@@ -238,76 +238,13 @@ it('trusts the cached gate even when it disagrees with live availability, until 
         ->and($system->canSendMessages())->toBeFalse();
 });
 
-// --- tokens: per-cycle cap, logging, and the ≤1000 floor gate ----------------
+// --- tokens: ANALYTICS-only accumulator (tokens never gate or bill) ----------
 
-it('available tokens is the cap minus consumed for the active cycle', function (): void {
+it('recordTokenUsage accumulates consumed tokens on the usage row (analytics only)', function (): void {
     $user = User::factory()->create();
 
     $credit = UserCredit::factory()->create([
         'user_id' => $user->id,
-        'tokens' => 1_000_000,
-        'started_at' => now()->subDay(),
-        'ends_at' => now()->addDays(20),
-    ]);
-    $credit->usage()->create(['tokens' => 250_000]);
-
-    expect($user->creditSystem()->refreshAvailableTokens())->toBe(750_000);
-});
-
-it('tokensAboveFloor is false once remaining tokens drop to the 1000 floor', function (): void {
-    $user = User::factory()->create();
-
-    $credit = UserCredit::factory()->create([
-        'user_id' => $user->id,
-        'tokens' => 100_000,
-        'started_at' => now()->subDay(),
-        'ends_at' => now()->addDays(20),
-    ]);
-    $credit->usage()->create(['tokens' => 99_500]); // 500 remaining (≤ 1000)
-
-    expect($user->creditSystem()->tokensAboveFloor())->toBeFalse();
-});
-
-it('tokensAboveFloor is true while remaining tokens exceed the floor', function (): void {
-    $user = User::factory()->create();
-
-    $credit = UserCredit::factory()->create([
-        'user_id' => $user->id,
-        'tokens' => 100_000,
-        'started_at' => now()->subDay(),
-        'ends_at' => now()->addDays(20),
-    ]);
-    $credit->usage()->create(['tokens' => 98_000]); // 2000 remaining (> 1000)
-
-    expect($user->creditSystem()->tokensAboveFloor())->toBeTrue();
-});
-
-it('tokensAboveFloor blocks (token-primary) when there is no active credit', function (): void {
-    $user = User::factory()->create();
-
-    // Token-primary: tokens are the gate, so "no active billing cycle" blocks.
-    expect($user->creditSystem()->tokensAboveFloor())->toBeFalse();
-});
-
-it('treats a 0 token cap as unlimited (token gate never bites)', function (): void {
-    $user = User::factory()->create();
-
-    UserCredit::factory()->create([
-        'user_id' => $user->id,
-        'tokens' => 0,
-        'started_at' => now()->subDay(),
-        'ends_at' => now()->addDays(20),
-    ]);
-
-    expect($user->creditSystem()->tokensAboveFloor())->toBeTrue();
-});
-
-it('recordTokenUsage accumulates consumed tokens and lowers availability', function (): void {
-    $user = User::factory()->create();
-
-    $credit = UserCredit::factory()->create([
-        'user_id' => $user->id,
-        'tokens' => 1_000_000,
         'started_at' => now()->subDay(),
         'ends_at' => now()->addDays(20),
     ]);
@@ -317,18 +254,15 @@ it('recordTokenUsage accumulates consumed tokens and lowers availability', funct
     $system->recordTokenUsage(400_000);
     $system->recordTokenUsage(150_000);
 
-    expect($credit->usage()->first()->tokens)->toBe(550_000)
-        ->and($system->getAvailableTokens())->toBe(450_000);
+    // Tokens are recorded for insight only — they do NOT affect the send gate
+    // (which is messages); this is the "tokens consumed this cycle" figure.
+    expect($credit->usage()->first()->tokens)->toBe(550_000);
 });
 
-it('addCredit persists the token cap from the quota and seeds available-tokens', function (): void {
+it('addCredit grants the plan message allowance for the cycle', function (): void {
     $user = User::factory()->create();
 
-    $credit = $user->creditSystem()->addCredit(
-        ['messages_limit' => 4000, 'tokens_limit' => 7_000_000],
-        now()->addMonth(),
-    );
+    $credit = $user->creditSystem()->addCredit(['messages_limit' => 4000], now()->addMonth());
 
-    expect($credit->tokens)->toBe(7_000_000)
-        ->and($user->creditSystem()->getAvailableTokens())->toBe(7_000_000);
+    expect($credit->messages)->toBe(4000);
 });

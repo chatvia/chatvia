@@ -125,10 +125,6 @@ const maxUsage = computed(() => {
     return Math.max(...currentActivityData.value.map((item) => item.value), 1);
 });
 
-const totalActivityMessages = computed(() => {
-    return currentActivityData.value.reduce((sum, item) => sum + item.value, 0);
-});
-
 const messageUsagePercent = computed(() => {
     if (dashboardData.value.messages.available === 0) return 0;
     return Math.round((dashboardData.value.messages.total / dashboardData.value.messages.available) * 100);
@@ -243,18 +239,12 @@ const formatNumber = (num: number): string => {
                                 {{ activityPeriod === 'week' ? 'Message volume over the past 7 days' : 'Message volume over the past 30 days' }}
                             </CardDescription>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <Tabs v-model="activityPeriod" class="w-auto">
-                                <TabsList class="h-8">
-                                    <TabsTrigger value="week" class="px-3 text-xs">Last Week</TabsTrigger>
-                                    <TabsTrigger value="month" class="px-3 text-xs">Last Month</TabsTrigger>
-                                </TabsList>
-                            </Tabs>
-                            <div class="text-right">
-                                <div class="text-2xl font-bold">{{ totalActivityMessages }}</div>
-                                <div class="text-muted-foreground text-xs">total messages</div>
-                            </div>
-                        </div>
+                        <Tabs v-model="activityPeriod" class="w-auto">
+                            <TabsList class="h-8">
+                                <TabsTrigger value="week" class="px-3 text-xs">Last Week</TabsTrigger>
+                                <TabsTrigger value="month" class="px-3 text-xs">Last Month</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
                     </CardHeader>
                     <CardContent>
                         <div v-if="loading" class="flex h-40 items-end justify-center gap-3 px-2">

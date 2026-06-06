@@ -4,15 +4,15 @@ namespace App\Http\Controllers\Widget\Conversations;
 
 use App\Http\Requests\Widget\UploadAttachmentRequest;
 use Domain\Conversation\Actions\Attachments\StoreAttachmentAction;
+use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Data\Attachments\AttachmentData;
-use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 
 class ConversationAttachmentController
 {
     public function __invoke(
         UploadAttachmentRequest $request,
-        WidgetVerification $verification,
+        FindWidgetConversationAction $findConversation,
         StoreAttachmentAction $action,
     ): JsonResponse {
         $sessionId = $request->header('X-SESSION-ID');
@@ -24,10 +24,9 @@ class ConversationAttachmentController
 
         $agent = current_agent_from_widget();
 
-        // Verifier confirms
-        // it belongs to this agent so a forged X-CONVERSATION-ID can't bind an
-        // upload to someone else's conversation.
-        $conversation = $verification->verifyConversationId($conversationId, $agent);
+        // Scope to (agent, requesting session) so a forged X-CONVERSATION-ID
+        // can't bind an upload to another visitor's conversation on this agent.
+        $conversation = $findConversation->execute((string) $conversationId, (string) $sessionId, $agent);
         abort_if(! $conversation, 403, 'Invalid thread');
 
         $attachment = $action->execute($request->toData($agent, $conversation->id));

@@ -13,6 +13,6 @@ class MicrosoftAuthController
         /** @var AbstractProvider $provider */
         $provider = Socialite::driver('microsoft');
 
-        return $provider->stateless()->redirect();
+        return $provider->redirect();
     }
 }

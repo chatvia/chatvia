@@ -39,6 +39,10 @@ class AcceptTeamInvitationAction
             $existingUser = User::where('email', $invitation->email)->first();
 
             if ($existingUser) {
+                if ($existingUser->isChatter()) {
+                    throw new DomainValidationException('invitation', 'This account is a chat user and cannot join a team.');
+                }
+
                 if (! Hash::check($data->password ?? '', $existingUser->password)) {
                     throw new DomainValidationException('password', 'The provided password is incorrect.');
                 }

@@ -3,8 +3,8 @@
 namespace Domain\Conversation\Services;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Services\ChatterTokenAllowance;
-use Domain\Billing\Services\UserTokenSystem;
+use Domain\Billing\Services\ChatterMessageAllowance;
+use Domain\Billing\Services\UserCreditSystem;
 use Domain\Conversation\Actions\Handoff\SendVisitorHandoffMessageAction;
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
@@ -21,14 +21,15 @@ use Domain\Conversation\Services\Streaming\Sources\ReplaySource;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\SseStreamer;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
+use Domain\Llm\Usage\TokenUsageContext;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 readonly class ChatStreamService
 {
     public function __construct(
         private ChatService $chatService,
-        private UserTokenSystem $tokenSystem,
-        private ChatterTokenAllowance $chatterAllowance,
+        private UserCreditSystem $creditSystem,
+        private ChatterMessageAllowance $chatterAllowance,
         private SendVisitorHandoffMessageAction $sendVisitorMessage,
         private SseStreamer $streamer,
         private LlmSource $llmSource,
@@ -39,6 +40,7 @@ readonly class ChatStreamService
         private ReplaySource $replaySource,
         private RequestDedupeStore $dedupe,
         private ToolApprovalStore $approvalStore,
+        private TokenUsageContext $usage,
     ) {}
 
     public function stream(StreamRequestData $data): StreamedResponse
@@ -133,15 +135,15 @@ readonly class ChatStreamService
             );
         }
 
-        // Token-primary gate: block only when the workspace has no positive
-        // token balance (the real cost). The turn that crossed zero already
-        // completed — this blocks the NEXT one. "Messages" stays the advertised
-        // unit; the friendly copy speaks of usage, not tokens.
-        if (! $this->userHasTokenBalance($user->id)) {
+        // Credit gate — message-based. Billing meters the assistant replies a
+        // workspace receives; this blocks when the cycle's message quota is
+        // exhausted or there's no active billing cycle. (Tokens are analytics
+        // only — see TokenUsageContext — and never gate.)
+        if (! $this->userCanSendMessages($user->id)) {
             return $this->streamer->respond(
                 $this->errorSource->events(
-                    ErrorCode::TokenLimitReached,
-                    'You have reached your usage limit for this cycle. Please upgrade to continue.',
+                    ErrorCode::MessageLimitReached,
+                    'You have reached your message limit. Please upgrade to continue.',
                 )
             );
         }
@@ -152,15 +154,21 @@ readonly class ChatStreamService
         if ($data->chatterUserId !== null && $this->chatterLimitReached($data->chatterUserId)) {
             return $this->streamer->respond(
                 $this->errorSource->events(
-                    ErrorCode::ChatterTokenLimitReached,
-                    'You have reached your monthly usage limit.',
+                    ErrorCode::ChatterMessageLimitReached,
+                    'You have reached your monthly message limit.',
                 )
             );
         }
 
-        // 3. Build context + knowledge.
-        $context = $this->chatService->initializeChatContext($data);
-        $context = $this->chatService->enrichContextWithKnowledge($context);
+        // 3. Build context + knowledge. The query rewrite, query embedding, and
+        // reranking done here all consume tokens — attribute them to the workspace
+        // for analytics. (The streamed reply itself reports usage out-of-band and
+        // is recorded separately by StoreMessageAction.)
+        $context = $this->usage->track($data->agent->user_id, function () use ($data) {
+            $context = $this->chatService->initializeChatContext($data);
+
+            return $this->chatService->enrichContextWithKnowledge($context);
+        }, 'chat');
 
         // 4. Q&A match → stream the answer using the same envelope.
         if ($context->hasQAMatch()) {
@@ -209,15 +217,15 @@ readonly class ChatStreamService
         return (bool) ($billing?->subscribed() || $billing?->onTrial());
     }
 
-    private function userHasTokenBalance(int $userId): bool
+    private function userCanSendMessages(int $userId): bool
     {
-        return $this->tokenSystem->setUserId($userId)->hasTokenBalance();
+        return $this->creditSystem->setUserId($userId)->canSendMessages();
     }
 
     private function chatterLimitReached(int $chatterUserId): bool
     {
-        $chatter = User::find($chatterUserId);
-
-        return $chatter !== null && $this->chatterAllowance->limitReached($chatter);
+        // Cached yes/no gate (mirrors the owner's UserCreditSystem) — a cache hit
+        // costs zero DB queries; the user is only loaded on a miss.
+        return ! $this->chatterAllowance->canSendMessagesById($chatterUserId);
     }
 }

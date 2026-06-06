@@ -44,9 +44,15 @@ readonly class MessageCredits
             return 0;
         }
 
+        // The rollup buckets messages by the hour FLOOR (e.g. 22:00), but a cycle
+        // can start partway through an hour (e.g. registering at 22:16). Comparing
+        // the bucket floor against the exact start drops messages sent later in the
+        // start hour — their bucket (22:00) sorts before the start (22:16) — which
+        // is why a fresh account that just sent messages shows "0 this cycle".
+        // Compare against the start of the cycle-start hour so that hour counts.
         return (int) $this->rollup()
             ->where('workspace_id', $this->workspace->id)
-            ->where('bucket_hour', '>=', $credit->started_at)
+            ->where('bucket_hour', '>=', $credit->started_at->copy()->startOfHour())
             ->sum('assistant_messages');
     }
 

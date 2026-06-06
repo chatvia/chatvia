@@ -4,8 +4,7 @@ namespace Domain\Conversation\Services;
 
 use Carbon\Carbon;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Jobs\RecordTokenUsageJob;
-use Domain\Knowledge\Ingestion\Services\TikToken;
+use Domain\Billing\Jobs\UpdateUserCreditsJob;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
@@ -252,14 +251,10 @@ readonly class ChatService
 
     public function handleChatCompletion(ChatContext $context): void
     {
-        // Charge the turn's REAL token usage (owner pool + member budget). The
-        // gate was checked before the turn; this records after — so the turn that
-        // crosses zero completes and overshoots, and the next turn is blocked.
-        RecordTokenUsageJob::dispatch(
+        // Update user credits based on LLM model used
+        UpdateUserCreditsJob::dispatch(
             userId: $context->requestData->agent->user_id,
-            tokens: $this->resolveConsumedTokens($context),
-            turnKey: $context->assistantMessageId,
-            chatterUserId: $context->requestData->chatterUserId,
+            modelId: $context->requestData->message->model->id
         );
 
         // Always persist messages (including playground)
@@ -273,41 +268,6 @@ readonly class ChatService
                 $context->assistantMessageId,
                 $context->sources->toArray()
             );
-        }
-    }
-
-    /**
-     * The turn's real consumed tokens: prefer the provider's usage block; fall
-     * back to a TikToken estimate (never 0) when the provider omits usage, so a
-     * usage-less provider can't leak free turns past the balance gate.
-     */
-    private function resolveConsumedTokens(ChatContext $context): int
-    {
-        $usage = $context->usage ?? [];
-
-        $real = (int) ($usage['total_tokens']
-            ?? (($usage['prompt_tokens'] ?? 0) + ($usage['completion_tokens'] ?? 0)));
-
-        return $real > 0 ? $real : $this->estimateTokens($context);
-    }
-
-    /**
-     * TikToken estimate of the prompt + reply, floored at the per-message rate so
-     * the balance always decrements even if estimation throws.
-     */
-    private function estimateTokens(ChatContext $context): int
-    {
-        $floor = (int) config('chatvia.agent.tokens_per_message', 250);
-
-        try {
-            $prompt = collect($context->llmMessages)
-                ->pluck('content')
-                ->filter(fn ($c): bool => is_string($c))
-                ->implode("\n");
-
-            return max($floor, TikToken::countTokens(trim($prompt."\n".$context->streamedMessage)));
-        } catch (\Throwable) {
-            return $floor;
         }
     }
 
@@ -485,8 +445,13 @@ readonly class ChatService
                     // Always use main domain URL instead of subdomain-based route()
                     $path = '/my/chunks/'.$chunk['external_id'].'/'.$imageIndex.'.png';
                     $imageUrl = rtrim(config('app.url'), '/').$path;
-                    $text .= "- Image {$imageIndex}: {$description}\n";
-                    $text .= "  Markdown: ![{$description}]({$imageUrl})\n";
+                    // The description is LLM-generated alt-text captured from an
+                    // ingested document image (attacker-influenceable). Strip the
+                    // markdown link delimiters so it can't break out of the
+                    // alt-text and inject an extra attacker-controlled image URL.
+                    $safeDescription = str_replace([']', '[', '(', ')', "\n", "\r"], ' ', (string) $description);
+                    $text .= "- Image {$imageIndex}: {$safeDescription}\n";
+                    $text .= "  Markdown: ![{$safeDescription}]({$imageUrl})\n";
                     $imageIndex++;
                 }
                 $text .= "\n";

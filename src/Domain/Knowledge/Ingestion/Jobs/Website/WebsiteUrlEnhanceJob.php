@@ -7,6 +7,8 @@ use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\ChunkEnhanceText;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
+use Domain\Llm\Usage\AttributesTokenUsage;
+use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,9 +17,9 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
 
-class WebsiteUrlEnhanceJob implements ShouldBeUnique, ShouldQueue
+class WebsiteUrlEnhanceJob implements ShouldBeUnique, ShouldQueue, AttributesTokenUsage
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
 
     public int $tries = 3;
 
@@ -33,6 +35,11 @@ class WebsiteUrlEnhanceJob implements ShouldBeUnique, ShouldQueue
         public AgentWebsiteUrl $websiteUrl,
         public Chunk $chunk,
     ) {}
+
+    public function tokenWorkspaceId(): ?int
+    {
+        return $this->agent->user_id;
+    }
 
     public function handle(ChunkEnhanceText $enhanceText): void
     {

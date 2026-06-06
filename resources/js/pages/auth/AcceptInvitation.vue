@@ -26,6 +26,7 @@ interface Props {
         name: string;
     };
     userExists: boolean;
+    acceptUrl: string;
 }
 
 const props = defineProps<Props>();
@@ -39,7 +40,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('teams.invitation.accept', { invitation: props.invitation.id }), {
+    form.post(props.acceptUrl, {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };

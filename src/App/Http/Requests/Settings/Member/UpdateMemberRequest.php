@@ -21,9 +21,9 @@ class UpdateMemberRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Null clears the budget (unlimited — only the workspace pool then
-            // gates); a positive integer sets the member's monthly token budget.
-            'tokens_limit' => ['nullable', 'integer', 'min:1', 'max:1000000000'],
+            // Null clears the limit (unlimited); a positive integer sets the
+            // monthly message cap.
+            'messages_limit' => ['nullable', 'integer', 'min:1', 'max:1000000'],
             'deactivated' => ['required', 'boolean'],
             'deactivation_reason' => ['nullable', 'string', 'max:500'],
         ];
@@ -31,11 +31,11 @@ class UpdateMemberRequest extends FormRequest
 
     public function toData(User $chatter): UpdateChatterAccessData
     {
-        $tokens = $this->input('tokens_limit');
+        $limit = $this->input('messages_limit');
 
         return new UpdateChatterAccessData(
             chatter: $chatter,
-            tokensLimit: $tokens !== null && $tokens !== '' ? (int) $tokens : null,
+            messagesLimit: $limit !== null && $limit !== '' ? (int) $limit : null,
             deactivated: $this->boolean('deactivated'),
             deactivationReason: $this->input('deactivation_reason') ?: null,
         );

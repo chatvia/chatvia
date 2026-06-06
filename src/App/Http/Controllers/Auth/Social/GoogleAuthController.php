@@ -13,6 +13,6 @@ final class GoogleAuthController
         /** @var AbstractProvider $provider */
         $provider = Socialite::driver('google');
 
-        return $provider->stateless()->redirect();
+        return $provider->redirect();
     }
 }

@@ -56,9 +56,15 @@ class FortifyServiceProvider extends ServiceProvider
     private function registerAuthCallback(): void
     {
         Fortify::authenticateUsing(function (Request $request): ?User {
-            $user = User::query()->where('email', $request->string('email')->toString())->first();
+            $user = User::query()
+                ->where('email', $request->string('email')->toString())
+                ->first();
 
             if ($user === null || ! Hash::check($request->string('password')->toString(), $user->password)) {
+                return null;
+            }
+
+            if (Str::doesntContain($request->url(), '/chat') && $user->isChatter()) {
                 return null;
             }
 

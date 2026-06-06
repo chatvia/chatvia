@@ -48,8 +48,11 @@ class InitializeWidgetSessionAction
                 'browser' => $userAgent['browser'],
                 'os' => $userAgent['os'],
                 'locale' => $data->acceptLanguage ? Str::substr($data->acceptLanguage, 0, 2) : 'en',
-                'referrer_url' => $data->referrerUrl,
-                'page_url' => $data->pageUrl ?? $data->referrerUrl,
+                // Scheme-guard visitor-supplied URLs so a javascript:/data: URI
+                // can't later execute when an operator clicks the link in the
+                // admin Conversation Details panel.
+                'referrer_url' => \Support\Http\SafeUrl::httpSchemeOrNull($data->referrerUrl),
+                'page_url' => \Support\Http\SafeUrl::httpSchemeOrNull($data->pageUrl ?? $data->referrerUrl),
             ]);
             $isNewSession = true;
         }

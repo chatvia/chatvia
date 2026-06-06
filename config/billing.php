@@ -35,6 +35,7 @@ return [
             'features' => [
                 'monthly' => [
                     'messages' => '4,000 messages/credits per month',
+                    'tokens' => '7M tokens per month',
                     'agents' => '3 AI agents',
                     'pages' => '1000 pages (PDF, Word, Text)',
                     'links' => '1,000 website links',
@@ -47,6 +48,7 @@ return [
                 ],
                 'yearly' => [
                     'messages' => '50,000 messages/credits per year',
+                    'tokens' => '70M tokens per year',
                     'agents' => '3 AI agents',
                     'pages' => '1000 pages (PDF, Word, Text)',
                     'links' => '1,000 website links',
@@ -94,6 +96,7 @@ return [
             'features' => [
                 'monthly' => [
                     'messages' => '10,000 messages/credits per month',
+                    'tokens' => '14M tokens per month',
                     'agents' => '5 AI agents',
                     'pages' => '3,000 pages (PDF, Word, Text)',
                     'links' => '3,000 website links',
@@ -107,6 +110,7 @@ return [
                 ],
                 'yearly' => [
                     'messages' => '140,000 messages/credits per year',
+                    'tokens' => '140M tokens per year',
                     'agents' => '5 AI agents',
                     'pages' => '3,000 pages (PDF, Word, Text)',
                     'links' => '3,000 website links',
@@ -155,6 +159,7 @@ return [
             'features' => [
                 'monthly' => [
                     'messages' => '40,000 messages/credits per month',
+                    'tokens' => '50M tokens per month',
                     'agents' => '20 AI agents',
                     'pages' => '10,000 pages (PDF, Word, Text)',
                     'links' => '10,000 website links',
@@ -174,6 +179,7 @@ return [
                 ],
                 'yearly' => [
                     'messages' => '500,000 messages/credits per year',
+                    'tokens' => '500M tokens per year',
                     'agents' => '20 AI agents',
                     'pages' => '10,000 pages (PDF, Word, Text)',
                     'links' => '10,000 website links',

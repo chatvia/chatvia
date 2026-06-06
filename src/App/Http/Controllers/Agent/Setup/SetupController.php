@@ -84,7 +84,7 @@ class SetupController
 
             // Embed snippet helpers (Widget/Bar render their script tag in the Embed section).
             'embedScriptUrl' => config('chatvia.widget.script_url_embed'),
-            'availableLanguages' => config('chatvia.widget.available_languages'),
+            'availableLanguages' => config('chatvia.languages'),
 
             // Custom domain (Hosted Chat only) — quota + CNAME target.
             'domain' => $domainContext,

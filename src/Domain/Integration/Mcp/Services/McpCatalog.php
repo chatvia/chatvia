@@ -101,11 +101,15 @@ class McpCatalog
                     'name' => $tool['name'],
                 ]);
 
-                // Seed the per-tool permission from scope on first sight only —
-                // a re-sync must never clobber a user's choice.
-                // Read → Allow; Write → Approval.
+                // Seed the per-tool permission on first sight only — a re-sync
+                // must never clobber a user's choice. A REMOTE server's
+                // self-reported readOnlyHint is not trustworthy, so only our own
+                // built-in servers auto-Allow read tools; every third-party tool
+                // defaults to Approval (human-in-the-loop) until the owner opts in.
                 if (! $row->exists) {
-                    $row->permission = $scope === McpToolScope::Read
+                    $isBuiltin = InternalMcpSignature::isInternalUrl((string) $server->url);
+
+                    $row->permission = ($isBuiltin && $scope === McpToolScope::Read)
                         ? McpToolPermission::Allow
                         : McpToolPermission::Approval;
                 }

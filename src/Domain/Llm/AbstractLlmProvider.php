@@ -6,6 +6,7 @@ use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Providers\Mistral;
 use Domain\Llm\Providers\OpenRouter;
 use Domain\Llm\Providers\Scaleway;
+use Domain\Llm\Usage\TokenUsageContext;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
@@ -74,10 +75,18 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
             unset($data['top_k']);
         }
 
-        return $this->client()
+        $response = $this->client()
             ->timeout(600)
             ->post($this->getCompletionEndpoint(), $data)
             ->throw();
+
+        // Attribute this non-streaming call's tokens to the active workspace
+        // (rewrite, title, chunker, vision, tables, analysis, ...) for analytics.
+        // No scope open → no-op. Streaming replies report usage out-of-band and are
+        // recorded by StoreMessageAction, so stream() is deliberately not hooked.
+        app(TokenUsageContext::class)->addFromResponse($response);
+
+        return $response;
     }
 
     public function client(): PendingRequest

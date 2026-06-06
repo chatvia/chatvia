@@ -2,42 +2,30 @@
 
 use Domain\Agent\Models\Agent;
 
-it('emits a Content-Security-Policy header on the landing page', function (): void {
+it('emits the intentional minimal Content-Security-Policy + hardening headers', function (): void {
     $response = $this->get('/');
 
     $response->assertHeader('Content-Security-Policy');
     $response->assertHeader('X-Content-Type-Options', 'nosniff');
     $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
+    // The app deliberately ships a minimal CSP (no script-src/style-src
+    // allowlist): it requires 'unsafe-inline' (Alpine, AOS, Ziggy @routes,
+    // inline handlers) which a nonce would silently disable, and the allowlist
+    // kept breaking on new CDN/font/Turnstile/Stripe/Vite origins. What remains
+    // are the high-value directives that never fight asset loading.
     expect($response->headers->get('Content-Security-Policy'))
-        ->toContain("default-src 'self'")
+        ->toContain("object-src 'none'")
+        ->toContain("base-uri 'self'")
+        ->toContain("form-action 'self'")
         ->toContain("frame-ancestors 'self'");
 });
 
-it('allows the inline scripts/styles and CDN libraries the pages actually use', function (): void {
-    $csp = $this->get('/')->headers->get('Content-Security-Policy');
+it('frames the dashboard same-origin only (clickjacking)', function (): void {
+    $response = $this->get('/');
 
-    $directives = explode('; ', $csp);
-    [$scriptSrc] = array_values(preg_grep('/^script-src /', $directives));
-    [$styleSrc] = array_values(preg_grep('/^style-src /', $directives));
-
-    // Inline handlers (onclick), Alpine x-data, AOS init and the dark-mode IIFE
-    // cannot carry a nonce, so 'unsafe-inline' must take effect (i.e. no nonce
-    // alongside it, which would silently disable it).
-    expect($scriptSrc)
-        ->toContain("'unsafe-inline'")
-        ->not->toContain('nonce-')
-        ->toContain('https://cdnjs.cloudflare.com')  // AOS
-        ->toContain('https://unpkg.com');            // Alpine
-
-    expect($styleSrc)
-        ->toContain("'unsafe-inline'")
-        ->not->toContain('nonce-')
-        ->toContain('https://cdnjs.cloudflare.com');
-
-    expect($csp)
-        ->toContain('connect-src ')   // Reverb / analytics / Vite HMR
-        ->toContain('frame-src ');    // widget chat iframe
+    $response->assertHeader('X-Frame-Options', 'SAMEORIGIN');
+    expect($response->headers->get('Content-Security-Policy'))->toContain("frame-ancestors 'self'");
 });
 
 it('allows any frame-ancestor on chat.embed routes', function (): void {

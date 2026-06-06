@@ -166,6 +166,17 @@ return [
         'hash_key' => env('CHUNKER_HASH_KEY'),
     ],
 
+    // Shared secret signing internal calls to our own built-in MCP servers
+    // (/mcp/*) and ingestion callbacks. Falls back to APP_KEY when unset so it
+    // is never empty; set explicitly to rotate independently of APP_KEY.
+    'builtin_mcp' => [
+        'secret' => env('BUILTIN_MCP_SECRET'),
+    ],
+
+    'ingestion' => [
+        'secret' => env('INGESTION_WEBHOOK_SECRET'),
+    ],
+
     'turnstile' => [
         'key' => env('TURNSTILE_SITE_KEY'),
         'secret' => env('TURNSTILE_SECRET_KEY'),

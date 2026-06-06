@@ -13,6 +13,6 @@ class SlackAuthController
         /** @var AbstractProvider $provider */
         $provider = Socialite::driver('slack');
 
-        return $provider->stateless()->redirect();
+        return $provider->redirect();
     }
 }

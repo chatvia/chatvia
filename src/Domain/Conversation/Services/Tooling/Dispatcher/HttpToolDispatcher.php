@@ -9,6 +9,8 @@ use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Support\Exceptions\UnsafeUrlException;
+use Support\Http\SafeUrl;
 use Throwable;
 
 class HttpToolDispatcher implements ToolDispatcherInterface
@@ -35,10 +37,23 @@ class HttpToolDispatcher implements ToolDispatcherInterface
             return $this->error('Invalid arguments JSON from the model.');
         }
 
+        // Dispatch-time SSRF guard: re-validate the (DNS-resolved) host right
+        // before connecting and disable redirect following, so a webhook that
+        // passed save-time validation cannot point/redirect at internal
+        // infrastructure (cloud metadata, RFC1918, loopback).
+        try {
+            SafeUrl::assert($function->webhook_url);
+        } catch (UnsafeUrlException $e) {
+            $this->record($function, $agent, error: 'blocked unsafe webhook url');
+
+            return $this->error('webhook URL is not allowed: '.$e->getMessage());
+        }
+
         $start = microtime(true);
 
         try {
             $request = Http::timeout(max(1, (int) ceil($function->timeout_ms / 1000)))
+                ->withOptions(SafeUrl::clientOptions())
                 ->withHeaders($this->headers($function, $agent, $conversationExternalId));
 
             $response = $function->webhook_method === 'GET'

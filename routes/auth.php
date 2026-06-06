@@ -16,6 +16,7 @@ Route::get('invitation/{invitation}', [TeamInvitationController::class, 'show'])
     ->name('teams.invitation.show');
 
 Route::post('invitation/{invitation}/accept', AcceptTeamInvitationController::class)
+    ->middleware('signed')
     ->name('teams.invitation.accept');
 
 // Agent member invitations. The `{token}` segment is a high-entropy random

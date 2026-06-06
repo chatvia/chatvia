@@ -5,6 +5,7 @@ namespace Domain\Conversation\Services\Tooling\Routing;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Tooling\Registry\ToolEntry;
 use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
+use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -28,6 +29,7 @@ class ToolSelector
         private readonly ToolRegistry $registry,
         private readonly SemanticToolRouter $router,
         private readonly StickyToolResolver $sticky,
+        private readonly TokenUsageContext $usage,
     ) {}
 
     /**
@@ -36,7 +38,15 @@ class ToolSelector
     public function selectForTurn(Agent $agent, string $userMessage, ?string $conversationId): array
     {
         try {
-            $routed = $this->router->route($userMessage, $agent);
+            // Tool routing embeds the user message (SemanticToolRouter::route →
+            // embedQuery) — and runs inside the streaming generator, after the
+            // chat-turn build scope has already closed. Open its own scope so the
+            // embed's tokens are attributed to the workspace.
+            $routed = $this->usage->track(
+                $agent->user_id,
+                fn (): array => $this->router->route($userMessage, $agent),
+                'tool-routing',
+            );
         } catch (Throwable $e) {
             $pool = $this->registry->for($agent);
 

@@ -45,6 +45,26 @@ it('tears down team memberships, owned teams, and workspace sub-users', function
         ->and(DB::table('team_user')->where('team_id', $team->id)->exists())->toBeFalse();
 });
 
+it('tears down a workspace with multiple already-canceled subscriptions without calling Stripe', function (): void {
+    $owner = User::factory()->create();
+
+    // Already-canceled subscriptions are skipped (no Stripe call) but must still
+    // cascade-delete with user_billing — and a workspace can hold more than one.
+    foreach (['sub_test_a', 'sub_test_b'] as $stripeId) {
+        $owner->billing->subscriptions()->create([
+            'type' => $stripeId,
+            'stripe_id' => $stripeId,
+            'stripe_status' => 'canceled',
+            'ends_at' => now()->subDay(),
+        ]);
+    }
+
+    app(DeleteUserAccountAction::class)->execute($owner);
+
+    expect(User::whereKey($owner->id)->exists())->toBeFalse()
+        ->and(DB::table('subscriptions')->whereIn('stripe_id', ['sub_test_a', 'sub_test_b'])->exists())->toBeFalse();
+});
+
 it('leaves other workspaces untouched while tearing one down', function (): void {
     $owner = User::factory()->create();
     $otherOwner = User::factory()->create();

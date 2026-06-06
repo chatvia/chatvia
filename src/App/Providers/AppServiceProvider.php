@@ -265,6 +265,20 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('api', fn ($request) => $request->user()
             ? Limit::perMinute(300)->by($request->user()->getAuthIdentifier().'|'.$request->user()::class)
             : Limit::perMinute(60)->by($request->ip()));
+
+        // Built-in MCP endpoints are only reachable by our own signed tool
+        // loop; key the backstop by the calling agent so one runaway agent
+        // loop can't exhaust the budget for every other agent.
+        RateLimiter::for('builtin-mcp', fn ($request) => Limit::perMinute(120)
+            ->by('builtin-mcp|'.((string) $request->header('X-Chatvia-Agent-Id') ?: $request->ip())));
+
+        // Hosted-chat LLM-cost endpoints (stream, transcription, regenerate,
+        // attachment upload). Keyed by the authenticated chatter, IP fallback.
+        RateLimiter::for('chat-stream', function ($request) {
+            $key = $request->user()?->getAuthIdentifier() ?: $request->ip();
+
+            return Limit::perMinute(30)->by('chat-stream|'.$key);
+        });
     }
 
     // Scramble — scope OpenAPI discovery to /api/v1/* and declare the

@@ -10,6 +10,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Memory\TurnState;
 use Domain\Llm\Operations\Query\QueryRewriter;
+use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Str;
 
 class CreateConversationAction
@@ -18,11 +19,19 @@ class CreateConversationAction
         private readonly ChatMemory $memory,
         private readonly TurnState $session,
         private readonly QueryRewriter $queryRewriter,
+        private readonly TokenUsageContext $usage,
     ) {}
 
     public function execute(CreateConversationData $data): string
     {
-        ['lang' => $lang, 'query' => $query] = $this->queryRewriter->rewrite($data->message);
+        // First-turn rewrite consumes tokens — attribute them to the workspace,
+        // mirroring the streaming path (ChatStreamService) which wraps the same
+        // rewrite + search in a scope.
+        ['lang' => $lang, 'query' => $query] = $this->usage->track(
+            $data->agent->user_id,
+            fn (): array => $this->queryRewriter->rewrite($data->message),
+            'conversation-create',
+        );
 
         $sessionId = $this->session->firstOrCreateSession($data->agent);
 

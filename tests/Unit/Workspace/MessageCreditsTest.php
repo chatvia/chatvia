@@ -117,6 +117,29 @@ describe('used()', function (): void {
 
         expect($user->messageCredits()->used())->toBe(7);
     });
+
+    it('counts messages in the cycle-start hour even when the cycle began partway through it', function (): void {
+        // Regression: the rollup buckets by hour floor (e.g. 22:00) while the cycle
+        // can start mid-hour (e.g. registering at 22:16). Messages sent right after
+        // registering land in the 22:00 bucket; comparing the floor to the exact
+        // start wrongly dropped them, so a fresh account showed "0 this cycle"
+        // while the activity chart showed them.
+        $user = User::factory()->create();
+
+        $startedAt = now()->startOfHour()->addMinutes(16);
+        UserCredit::create([
+            'user_id' => $user->id,
+            'messages' => 100,
+            'started_at' => $startedAt,
+            'ends_at' => now()->addDays(30),
+        ]);
+        $user->refresh();
+
+        // Bucketed at the hour floor (22:00), which is before the 22:16 cycle start.
+        insertRollupUsage($user->id, 2, $startedAt->copy()->startOfHour());
+
+        expect($user->messageCredits()->used())->toBe(2);
+    });
 });
 
 describe('addons()', function (): void {

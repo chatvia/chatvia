@@ -9,6 +9,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -16,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getInitials } from '@/composables/useInitials';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -370,7 +372,13 @@ const formatDate = (iso: string) => {
                                         @click="openMember(member)"
                                     >
                                         <TableCell class="font-medium">
-                                            {{ member.name }}
+                                            <div class="flex items-center gap-3">
+                                                <Avatar class="size-8">
+                                                    <AvatarImage v-if="member.avatar" :src="member.avatar" :alt="member.name" />
+                                                    <AvatarFallback class="text-xs">{{ getInitials(member.name) }}</AvatarFallback>
+                                                </Avatar>
+                                                <span>{{ member.name }}</span>
+                                            </div>
                                         </TableCell>
                                         <TableCell>
                                             {{ member.email || 'No email' }}
@@ -519,11 +527,10 @@ const formatDate = (iso: string) => {
             <SheetContent v-if="selectedMember" class="w-full overflow-y-auto p-0 sm:max-w-md">
                 <SheetHeader class="space-y-4 border-b px-6 pt-7 pb-6">
                     <div class="flex items-start gap-4">
-                        <div
-                            class="bg-muted text-foreground flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-base font-semibold"
-                        >
-                            {{ memberInitials }}
-                        </div>
+                        <Avatar class="size-14 shrink-0">
+                            <AvatarImage v-if="selectedMember.avatar" :src="selectedMember.avatar" :alt="selectedMember.name" />
+                            <AvatarFallback class="text-base font-semibold">{{ memberInitials }}</AvatarFallback>
+                        </Avatar>
                         <div class="min-w-0 flex-1 pt-1">
                             <SheetTitle class="truncate text-lg">{{ selectedMember.name }}</SheetTitle>
                             <div class="mt-1.5 flex items-center gap-2 text-sm">

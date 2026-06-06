@@ -23,7 +23,7 @@ class AnalyzeConversations extends Command
         // conversations_pending_analysis_idx partial index serves this predicate.
         Conversation::query()
             ->whereNull('analyzed_at')
-//            ->where('created_at', '<', $cutoff)
+            ->where('created_at', '<', $cutoff)
             ->whereNull('deleted_at')
             ->orderBy('id')
             ->chunkById($chunk, function ($conversations) use (&$dispatched): void {

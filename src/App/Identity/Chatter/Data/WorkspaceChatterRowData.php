@@ -28,8 +28,6 @@ class WorkspaceChatterRowData extends Data
         public string $created_at,
         public ?int $messages_limit,
         public int $messages_used,
-        public ?int $tokens_limit,
-        public int $tokens_used,
         public bool $is_deactivated,
         public ?string $deactivation_reason,
     ) {}
@@ -52,9 +50,6 @@ class WorkspaceChatterRowData extends Data
             created_at: ($chatter->created_at ?? now())->toIso8601String(),
             messages_limit: $credit?->messages,
             messages_used: $isCurrentPeriod ? (int) ($credit->usage?->messages ?? 0) : 0,
-            // 0 token cap = no token limit configured → expose as null for the UI.
-            tokens_limit: ($credit?->tokens ?? 0) > 0 ? $credit->tokens : null,
-            tokens_used: $isCurrentPeriod ? (int) ($credit->usage?->tokens ?? 0) : 0,
             is_deactivated: $chatter->isDeactivated(),
             deactivation_reason: $chatter->deactivation_reason,
         );

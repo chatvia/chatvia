@@ -213,8 +213,9 @@ it('controllers use FormRequest + toData() instead of inline $request->validate(
  * through WidgetVerification so the cross-tenant defence is grep-able in one place.
  */
 const EXTERNAL_ID_LOOKUP_ALLOWLIST = [
-    'src/App/Http/Controllers/Chat/Conversations/ConversationDeleteController.php',
-    'src/App/Http/Controllers/Chat/Conversations/ConversationUpdate.php',
+    // ConversationDeleteController + ConversationUpdate now scope the lookup to
+    // the caller's session + agent via whereHas('session'), so they no longer
+    // trip the bare-inline-lookup detector and are removed from this allowlist.
     'src/App/Http/Controllers/Chat/Conversations/GenerateConversationTitleController.php',
     'src/App/Http/Controllers/Widget/Activity/HeartbeatController.php',
     'src/Domain/Conversation/Services/ChatStreamService.php',

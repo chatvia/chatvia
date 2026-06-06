@@ -8,20 +8,15 @@ use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 
 /**
- * A purchasable token top-up (manual extra pack or auto-recharge). `amount` is in
- * TOKENS; the pack expires 30 days after purchase (`ends_at`) independent of the
- * base cycle, and is summed into the available balance while active.
- *
  * @property int $id
  * @property int $user_id
  * @property string $type
  * @property int $amount
  * @property string|null $stripe_id
- * @property Carbon|null $started_at
- * @property Carbon|null $ends_at
+ * @property string|null $started_at
+ * @property string|null $ends_at
  * @property-read User $user
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserAddon newModelQuery()
@@ -46,13 +41,5 @@ class UserAddon extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    protected function casts(): array
-    {
-        return [
-            'started_at' => 'datetime',
-            'ends_at' => 'datetime',
-        ];
     }
 }

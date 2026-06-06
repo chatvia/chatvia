@@ -9,8 +9,6 @@ agents_count: number;
 created_at: string;
 messages_limit: number | null;
 messages_used: number;
-tokens_limit: number | null;
-tokens_used: number;
 is_deactivated: boolean;
 deactivation_reason: string | null;
 };
@@ -278,7 +276,7 @@ negative: number;
 };
 export type ModelUsageData = {
 name: string;
-icon: string;
+icon: string | null;
 count: number;
 percentage: number;
 feedback: Domain.Agent.Data.Resources.Stats.ModelFeedbackData;
@@ -369,7 +367,6 @@ fixed: Domain.Billing.Data.Resources.Quota.BillingQuotaFixedData;
 };
 export type BillingQuotaPeriodData = {
 messages_limit: number;
-tokens_limit: number;
 };
 }
 declare namespace Domain.Billing.Data.Resources.Subscription {
@@ -637,6 +634,7 @@ export type AgentMemberRowData = {
 external_id: string;
 name: string;
 email: string | null;
+avatar: string | null;
 status: string;
 has_access: boolean;
 created_at: string;

@@ -51,7 +51,7 @@
         "mcamara/laravel-localization": "^2.4",
         "pgvector/pgvector": "^0.2.2",
         "php-ffmpeg/php-ffmpeg": "^1.3",
-        "platformcommunity/flysystem-bunnycdn": "*",
+        "platformcommunity/flysystem-bunnycdn": "^3.3",
         "prism-php/prism": "^0.100.0",
         "resend/resend-php": "^0.18.1",
         "ryangjchandler/laravel-cloudflare-turnstile": "^3.0",

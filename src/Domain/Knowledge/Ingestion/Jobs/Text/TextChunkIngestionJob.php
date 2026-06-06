@@ -7,14 +7,16 @@ use Domain\Knowledge\Ingestion\Actions\Sources\CreateSourceChunkAction;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Source\Text\Events\TextIngestionProgressed;
 use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Llm\Usage\AttributesTokenUsage;
+use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class TextChunkIngestionJob implements ShouldBeUnique, ShouldQueue
+class TextChunkIngestionJob implements ShouldBeUnique, ShouldQueue, AttributesTokenUsage
 {
-    use Batchable, Queueable;
+    use Batchable, Queueable, TracksTokenUsage;
 
     public bool $deleteWhenMissingModels = true;
 
@@ -27,6 +29,11 @@ class TextChunkIngestionJob implements ShouldBeUnique, ShouldQueue
         public ?PageData $previousPage = null,
         public ?PageData $nextPage = null,
     ) {}
+
+    public function tokenWorkspaceId(): ?int
+    {
+        return $this->agent->user_id;
+    }
 
     public function handle(CreateSourceChunkAction $createChunk): void
     {

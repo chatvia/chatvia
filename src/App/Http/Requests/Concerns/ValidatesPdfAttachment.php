@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Concerns;
 
 use Domain\Conversation\Rules\MaxConversationAttachments;
+use Domain\Conversation\Rules\MaxPdfPages;
 
 /**
  * Shared PDF-attachment validation for the chat and widget upload requests.
@@ -31,6 +32,9 @@ trait ValidatesPdfAttachment
                 new MaxConversationAttachments(
                     conversationExternalId: $this->header('X-CONVERSATION-ID'),
                     max: (int) config('chatvia.agent.files.upload.max_files'),
+                ),
+                new MaxPdfPages(
+                    max: (int) config('chatvia.agent.files.upload.max_pdf_pages'),
                 ),
             ],
         ];

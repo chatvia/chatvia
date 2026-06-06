@@ -9,6 +9,7 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Support\Http\SafeUrl;
 use Throwable;
 
 /**
@@ -179,11 +180,23 @@ class McpClient
             $headers['Mcp-Session-Id'] = $sessionId;
         }
 
+        // SSRF guard: a custom MCP server URL is user-supplied. Re-validate at
+        // dispatch time (DNS can change since save) and disable redirects so a
+        // public host can't 30x into internal infrastructure. Skipped in local.
+        SafeUrl::assert($server->url);
+
+        // Proof-of-origin for OUR OWN built-in MCP endpoints so they reject
+        // anonymous internet callers. Never sent to third-party servers.
+        if (InternalMcpSignature::isInternalUrl($server->url)) {
+            $headers = array_merge($headers, InternalMcpSignature::headers());
+        }
+
         // Identity headers are stamped last so a server's custom headers
         // can't shadow them.
         $headers = array_merge($headers, $identityHeaders);
 
         return Http::timeout(max(1, (int) ceil($server->timeout_ms / 1000)))
+            ->withOptions(SafeUrl::clientOptions())
             ->withHeaders($headers);
     }
 

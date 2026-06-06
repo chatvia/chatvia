@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import MemberDetailSheet from '@/components/members/MemberDetailSheet.vue';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -10,7 +11,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -227,13 +227,11 @@ const formatDate = (iso: string) => {
                             >
                                 <TableCell class="font-medium">
                                     <div class="flex items-center gap-3">
-                                        <Avatar class="size-8 shrink-0">
+                                        <Avatar class="size-8">
                                             <AvatarImage v-if="member.avatar" :src="member.avatar" :alt="member.name" />
-                                            <AvatarFallback class="bg-primary/10 text-primary text-xs font-semibold">
-                                                {{ getInitials(member.name) }}
-                                            </AvatarFallback>
+                                            <AvatarFallback class="text-xs">{{ getInitials(member.name) }}</AvatarFallback>
                                         </Avatar>
-                                        <span class="truncate">{{ member.name }}</span>
+                                        <span>{{ member.name }}</span>
                                     </div>
                                 </TableCell>
                                 <TableCell>

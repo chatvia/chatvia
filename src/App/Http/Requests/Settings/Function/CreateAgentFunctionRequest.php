@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Integration\Function\Data\CreateAgentFunctionData;
 use Illuminate\Foundation\Http\FormRequest;
+use Domain\Agent\Rules\SafeWebhookUrl;
 use Illuminate\Validation\Rule;
 use Domain\Integration\Function\Enums\FunctionAuthType;
 
@@ -42,7 +43,7 @@ class CreateAgentFunctionRequest extends FormRequest
                     }
                 },
             ],
-            'webhook_url' => ['required', 'url', 'max:2048'],
+            'webhook_url' => ['required', 'url', 'max:2048', new SafeWebhookUrl],
             'webhook_method' => ['sometimes', 'in:POST,GET,PATCH,DELETE'],
             'auth_type' => ['sometimes', Rule::enum(FunctionAuthType::class)],
             // Flat form payload; `toData()` reshapes these into the

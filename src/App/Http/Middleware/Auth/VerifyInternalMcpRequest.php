@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Http\Middleware\Auth;
+
+use Closure;
+use Domain\Agent\Models\Agent;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Mcp\Services\InternalMcpSignature;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+/**
+ * Gates Chatvia's OWN built-in MCP servers (/mcp/weather, /mcp/currency,
+ * /mcp/charts, /mcp/leads, /mcp/web-search). These are public HTTP routes but
+ * must only ever be driven by Chatvia's server-side tool loop.
+ *
+ * Two checks:
+ *   1. Proof-of-origin — a fresh HMAC signature attached by McpClient. Rejects
+ *      anonymous internet callers (the prior unauthenticated-MCP hole).
+ *   2. Per-agent enablement — for a `tools/call`, the agent named in the
+ *      identity header must have THIS built-in connector attached + enabled.
+ *      So a tool only runs for agents whose owner explicitly turned it on.
+ */
+class VerifyInternalMcpRequest
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (! InternalMcpSignature::verify(
+            $request->header(InternalMcpSignature::TIMESTAMP_HEADER),
+            $request->header(InternalMcpSignature::SIGNATURE_HEADER),
+        )) {
+            return response()->json(['error' => 'Unauthorized.'], 401);
+        }
+
+        if ($this->rpcMethod($request) === 'tools/call' && ! $this->agentHasConnectorEnabled($request)) {
+            return response()->json([
+                'error' => 'This tool is not enabled for this agent.',
+            ], 403);
+        }
+
+        return $next($request);
+    }
+
+    private function rpcMethod(Request $request): ?string
+    {
+        $method = $request->json('method');
+
+        return is_string($method) ? $method : null;
+    }
+
+    private function agentHasConnectorEnabled(Request $request): bool
+    {
+        $agentExternalId = (string) $request->header('X-Chatvia-Agent-Id', '');
+        if ($agentExternalId === '') {
+            return false;
+        }
+
+        $agent = Agent::query()->where('external_id', $agentExternalId)->first();
+        if (! $agent instanceof Agent) {
+            return false;
+        }
+
+        // The built-in connector's stored URL ends with this route's path
+        // (e.g. .../mcp/weather). It must be attached + enabled on the agent.
+        $path = $request->path();
+
+        return AgentMcpServer::query()
+            ->where('user_id', $agent->user_id)
+            ->where('is_enabled', true)
+            ->where('url', 'like', '%/'.$path)
+            ->whereExists(function ($q) use ($agent): void {
+                $q->from('agent_mcp_server')
+                    ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')
+                    ->where('agent_mcp_server.agent_id', $agent->id);
+            })
+            ->exists();
+    }
+}

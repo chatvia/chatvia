@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Sidebar from '@/components/chat/ChatSidebar.vue';
 import Header from '@/components/chat/Header.vue';
+import { Toaster } from '@/components/ui/sonner';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { vOnClickOutside } from '@vueuse/components';
 import axios from 'axios';
@@ -112,6 +113,10 @@ const handleToggleIncognito = (value: boolean) => {
 
 <template>
     <Head :title="props.appearance?.chat_window_title || 'Chat'" />
+
+    <!-- Toast outlet for the chat pages (upload errors, limits, etc.). Without
+         this, every toast.* call from ChatComposer/ChatSidebar renders nowhere. -->
+    <Toaster position="top-center" :duration="5000" />
 
     <div class="flex h-screen">
         <!-- Mobile overlay -->

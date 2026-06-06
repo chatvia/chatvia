@@ -27,6 +27,13 @@ class AutoRechargeCreditsAction
             return null;
         }
 
+        // Reserve the 1-hour debounce BEFORE charging, in its own committed
+        // write. If the worker is killed/times out between the Stripe charge and
+        // the addon commit, the debounce already holds — so the next low-balance
+        // turn will NOT charge the card again (turning a possible re-charge loop
+        // into at most one orphaned charge, reconciled by the addon upsert below).
+        $billing->update(['auto_recharge_last_triggered_at' => now()]);
+
         $invoice = $billing->invoicePrice($priceId, $units, [], [
             'metadata' => [
                 'id' => 'auto_recharge_credits',
@@ -38,17 +45,19 @@ class AutoRechargeCreditsAction
 
         $stripeInvoiceId = $invoice->asStripeInvoice()->id;
 
-        return DB::transaction(function () use ($user, $units, $unitMessages, $stripeInvoiceId, $billing): UserAddon {
+        return DB::transaction(function () use ($user, $units, $unitMessages, $stripeInvoiceId): UserAddon {
+            // Idempotent on the Stripe invoice id so a re-run for the same charge
+            // can never grant tokens twice.
             /** @var UserAddon $addon */
-            $addon = $user->addons()->create([
-                'type' => 'auto_recharge_credits',
-                'amount' => $unitMessages * $units,
-                'stripe_id' => $stripeInvoiceId,
-                'started_at' => now(),
-                'ends_at' => now()->addMonth(),
-            ]);
-
-            $billing->update(['auto_recharge_last_triggered_at' => now()]);
+            $addon = $user->addons()->updateOrCreate(
+                ['stripe_id' => $stripeInvoiceId],
+                [
+                    'type' => 'auto_recharge_credits',
+                    'amount' => $unitMessages * $units,
+                    'started_at' => now(),
+                    'ends_at' => now()->addMonth(),
+                ],
+            );
 
             $user->refresh();
             $user->creditSystem()->refreshCanSendMessages();

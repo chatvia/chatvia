@@ -297,7 +297,7 @@ class ChatMemory
     /**
      * Get messages formatted for LLM consumption.
      */
-    public function getLlmMessages(bool $asText = false, int $limit = 2): array|string
+    public function getLlmMessages(bool $asText = false, ?int $limit = null): array|string
     {
         $this->requireConversationId();
 

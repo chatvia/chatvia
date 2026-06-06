@@ -15,6 +15,10 @@ class AgentWebsiteLinkController
     {
         abort_if($request->user()->cannot('view', $agent), 404);
 
+        // {website} binds globally by id — confirm it belongs to this agent so
+        // a caller can't list another tenant's crawled URLs.
+        abort_if(! $agent->websites()->whereKey($website->id)->exists(), 404);
+
         $query = $website->urls()->select([
             'id',
             'source_website_id',
@@ -39,6 +43,10 @@ class AgentWebsiteLinkController
         DeleteAgentWebsiteUrlAction $delete,
     ): void {
         abort_if($request->user()->cannot('delete', $website), 404);
+
+        // {link} binds globally — ensure it belongs to {website} so a user
+        // can't delete a URL row from a foreign website.
+        abort_if($link->source_website_id !== $website->id, 404);
 
         $delete->execute($link);
     }

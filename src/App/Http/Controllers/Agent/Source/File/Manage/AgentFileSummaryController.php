@@ -15,6 +15,10 @@ class AgentFileSummaryController
             code: 404,
         );
 
+        // {file} binds globally by id — confirm it belongs to the caller's
+        // tenant before returning its summary metadata (cross-tenant leak).
+        abort_if($request->user()->cannot('view', $file), 404);
+
         $metadata = $file
             ->summary()
             ->select('metadata')

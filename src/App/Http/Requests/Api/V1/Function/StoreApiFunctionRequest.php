@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\V1\Function;
 
 use Domain\Integration\Function\Data\ApiFunctionPayloadData;
 use Illuminate\Foundation\Http\FormRequest;
+use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Function\Enums\FunctionAuthType;
 use Illuminate\Validation\Rule;
 
@@ -24,7 +25,7 @@ class StoreApiFunctionRequest extends FormRequest
             'display_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:1024'],
             'parameters_schema' => ['required', 'array'],
-            'webhook_url' => ['required', 'url', 'max:2048'],
+            'webhook_url' => ['required', 'url', 'max:2048', new SafeWebhookUrl],
             'webhook_method' => ['sometimes', 'in:POST,GET,PATCH,DELETE'],
             'webhook_headers' => ['sometimes', 'nullable', 'array'],
             'auth_type' => ['sometimes', Rule::enum(FunctionAuthType::class)],

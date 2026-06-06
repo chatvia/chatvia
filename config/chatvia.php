@@ -13,31 +13,6 @@
 |
 */
 
-// Supported UI languages — the SINGLE source of truth for both the embeddable
-// widget's language picker AND the hosted-chat language selector (previously
-// duplicated in config/widget.php only). Keep this in sync with the frontend
-// i18n locales (resources/js/i18n/index.ts SUPPORTED_LOCALES) and the matching
-// resources/js/i18n/locales/*.json files. 'auto' = browser auto-detect.
-$availableLanguages = [
-    'auto' => 'Auto',
-    'en' => 'English',
-    'ar' => 'Arabic (العربية)',
-    'da' => 'Danish (Dansk)',
-    'de' => 'German (Deutsch)',
-    'es' => 'Spanish (Español)',
-    'fa' => 'Persian (فارسی)',
-    'fr' => 'French (Français)',
-    'hi' => 'Hindi (हिन्दी)',
-    'id' => 'Indonesian (Bahasa Indonesia)',
-    'ja' => 'Japanese (日本語)',
-    'ko' => 'Korean (한국어)',
-    'pt' => 'Portuguese (Português)',
-    'ru' => 'Russian (Русский)',
-    'tr' => 'Turkish (Türkçe)',
-    'vi' => 'Vietnamese (Tiếng Việt)',
-    'zh' => 'Chinese (中文)',
-];
-
 return [
 
     /*
@@ -50,7 +25,25 @@ return [
     |
     */
 
-    'languages' => $availableLanguages,
+    'languages' => [
+        'auto' => 'Auto',
+        'en' => 'English',
+        'ar' => 'Arabic (العربية)',
+        'da' => 'Danish (Dansk)',
+        'de' => 'German (Deutsch)',
+        'es' => 'Spanish (Español)',
+        'fa' => 'Persian (فارسی)',
+        'fr' => 'French (Français)',
+        'hi' => 'Hindi (हिन्दी)',
+        'id' => 'Indonesian (Bahasa Indonesia)',
+        'ja' => 'Japanese (日本語)',
+        'ko' => 'Korean (한국어)',
+        'pt' => 'Portuguese (Português)',
+        'ru' => 'Russian (Русский)',
+        'tr' => 'Turkish (Türkçe)',
+        'vi' => 'Vietnamese (Tiếng Việt)',
+        'zh' => 'Chinese (中文)',
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -67,6 +60,11 @@ return [
             'upload' => [
                 'max_file_size_in_kb' => 10240, // 10MB in KB
                 'max_files' => 1,
+
+                // Hard cap on PDF pages for a single chat attachment. The whole
+                // document is sent to Mistral for Q&A, so this bounds cost and
+                // latency. Enforced at upload via MaxPdfPages.
+                'max_pdf_pages' => 10,
             ],
         ],
 
@@ -95,10 +93,11 @@ return [
         // falls back to the first available LLM.
         'default_model' => env('AGENT_DEFAULT_MODEL', 'qwen3.6-35b-a3b'),
 
-        // How many tokens a single message is worth. Drives the per-member
-        // token budget (ChatterMessageAllowance): each message spends this many
-        // tokens, and a member's default budget is (message cap × this rate).
-        'tokens_per_message' => (int) env('AGENT_TOKENS_PER_MESSAGE', 250),
+        // How many recent conversation messages (user + assistant turns) to
+        // replay into the LLM context on each turn. Caps the history window so
+        // it stays bounded as a chat grows — older messages are dropped. Raise
+        // it to give the model more follow-up context, lower it to save tokens.
+        'history_messages' => (int) env('AGENT_HISTORY_MESSAGES', 10),
     ],
 
     /*
@@ -114,15 +113,16 @@ return [
     'ai' => [
         'provider' => env('LLM_PROVIDER', 'scaleway'),
 
+        // https://www.scaleway.com/en/docs/generative-apis/reference-content/supported-models/
         'models' => [
             'vision' => 'gemma-3-27b-it',
             'embedding' => 'qwen',
-            'tables' => 'gemma-3-27b-it',
+            'tables' => 'mistral-small-3.2-24b-instruct-2506',
             'chunker' => 'llama-3.1-70b-instruct',
-            'title' => 'llama-3.1-70b-instruct',
-            'subdomain' => 'llama-3.1-70b-instruct',
-            'tone' => 'llama-3.1-8b-instruct',
-            'topic' => 'llama-3.1-8b-instruct',
+            'title' => 'mistral-small-3.2-24b-instruct-2506',
+            'subdomain' => 'mistral-small-3.2-24b-instruct-2506',
+            'tone' => 'mistral-small-3.2-24b-instruct-2506',
+            'topic' => 'mistral-small-3.2-24b-instruct-2506',
             'search_decision' => 'gemma-3-27b-it',
         ],
 
@@ -292,7 +292,6 @@ return [
     'widget' => [
         'script_url_embed' => env('WIDGET_SCRIPT_URL', 'http://localhost:3000/dist/embed.js'),
         'chatvia_widget_id' => env('CHATVIA_WIDGET_ID'),
-        'available_languages' => $availableLanguages,
     ],
 
 ];

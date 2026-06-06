@@ -7,6 +7,7 @@ use Closure;
 use Domain\Integration\Function\Data\UpdateAgentFunctionData;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Foundation\Http\FormRequest;
+use Domain\Agent\Rules\SafeWebhookUrl;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Domain\Integration\Function\Enums\FunctionAuthType;
@@ -47,7 +48,7 @@ class UpdateAgentFunctionRequest extends FormRequest
                     }
                 },
             ],
-            'webhook_url' => ['required', 'url', 'max:2048'],
+            'webhook_url' => ['required', 'url', 'max:2048', new SafeWebhookUrl],
             'webhook_method' => ['sometimes', 'in:POST,GET,PATCH,DELETE'],
             'auth_type' => ['sometimes', Rule::enum(FunctionAuthType::class)],
             'auth_header_name' => ['nullable', 'required_if:auth_type,header', 'string', 'max:128'],

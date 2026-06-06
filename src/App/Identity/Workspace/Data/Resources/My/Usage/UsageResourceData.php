@@ -39,10 +39,8 @@ class UsageResourceData extends Data
 
         $consumableMessages = $user->consumableMessages();
 
-        // Tokens read straight off the active billing cycle: the cap on the
-        // credit row, consumed on its usage row. (Unlike messages, tokens have
-        // no addon top-ups, so cap/used/remaining come directly from the row.)
-        $tokensLimit = (int) ($credit?->tokens ?? 0);
+        // Tokens are ANALYTICS only (billing is by messages): the real count
+        // consumed this cycle, read off the usage row. No cap.
         $tokensUsed = (int) ($credit?->usage?->tokens ?? 0);
 
         $consumption = $user->consumption();
@@ -59,7 +57,7 @@ class UsageResourceData extends Data
             minutes: new UsageStatsData(limit: $quota->minutes_limit, used: $minutesUsed, remaining: max(0, $quota->minutes_limit - $minutesUsed)),
             links: new UsageStatsData(limit: $quota->links_limit, used: $linksUsed, remaining: max(0, $quota->links_limit - $linksUsed)),
             messages: new UsageStatsData(limit: $consumableMessages, used: $totalSentMessage, remaining: max(0, $consumableMessages - $totalSentMessage)),
-            tokens: new UsageStatsData(limit: $tokensLimit, used: $tokensUsed, remaining: max(0, $tokensLimit - $tokensUsed)),
+            tokens: new UsageStatsData(limit: 0, used: $tokensUsed, remaining: 0),
             teams: new UsageStatsData(limit: $quota->teams_limit, used: $teamsUsed, remaining: max(0, $quota->teams_limit - $teamsUsed)),
             members: new UsageStatsData(limit: $quota->workspace_users_limit, used: $workspaceUsersUsed, remaining: max(0, $quota->workspace_users_limit - $workspaceUsersUsed)),
         );

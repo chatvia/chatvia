@@ -99,13 +99,21 @@ onMounted(() => {
                                 </CardTitle>
                                 <CardDescription> AI chat messages sent this billing period </CardDescription>
                             </CardHeader>
-                            <CardContent class="space-y-2">
-                                <!-- Plain count, no limit bar: the plan is metered in tokens,
-                                     so messages are shown for reference only. -->
-                                <span class="text-2xl font-bold">{{ usageData.messages.used.toLocaleString() }}</span>
-                                <p class="text-muted-foreground text-xs">
-                                    Messages sent this cycle. Your plan is metered in tokens — see Tokens This Cycle.
-                                </p>
+                            <CardContent class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-2xl font-bold">{{ usageData.messages.used.toLocaleString() }}</span>
+                                    <span class="text-muted-foreground text-sm"> of {{ usageData.messages.limit.toLocaleString() }} </span>
+                                </div>
+                                <div class="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-700">
+                                    <div
+                                        class="h-3 rounded-full transition-all duration-300"
+                                        :class="getUsageColor(getUsagePercentage(usageData.messages.used, usageData.messages.limit))"
+                                        :style="{ width: `${getUsagePercentage(usageData.messages.used, usageData.messages.limit)}%` }"
+                                    ></div>
+                                </div>
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-muted-foreground">{{ usageData.messages.remaining.toLocaleString() }} remaining</span>
+                                </div>
                             </CardContent>
                         </Card>
 
@@ -114,25 +122,14 @@ onMounted(() => {
                             <CardHeader>
                                 <CardTitle class="flex items-center gap-2 text-base">
                                     <Coins class="h-5 w-5 text-indigo-500" />
-                                    Tokens This Cycle
+                                    Tokens
                                 </CardTitle>
                                 <CardDescription> AI tokens consumed this billing period </CardDescription>
                             </CardHeader>
-                            <CardContent class="space-y-4">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-2xl font-bold">{{ usageData.tokens.used.toLocaleString() }}</span>
-                                    <span class="text-muted-foreground text-sm"> of {{ usageData.tokens.limit.toLocaleString() }} </span>
-                                </div>
-                                <div class="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-700">
-                                    <div
-                                        class="h-3 rounded-full transition-all duration-300"
-                                        :class="getUsageColor(getUsagePercentage(usageData.tokens.used, usageData.tokens.limit))"
-                                        :style="{ width: `${getUsagePercentage(usageData.tokens.used, usageData.tokens.limit)}%` }"
-                                    ></div>
-                                </div>
-                                <div class="flex items-center justify-between text-sm">
-                                    <span class="text-muted-foreground">{{ usageData.tokens.remaining.toLocaleString() }} remaining</span>
-                                </div>
+                            <CardContent class="space-y-2">
+                                <!-- Analytics only: tokens consumed this cycle, no cap (billing is by messages). -->
+                                <span class="text-2xl font-bold">{{ usageData.tokens.used.toLocaleString() }}</span>
+                                <p class="text-muted-foreground text-xs">Tokens consumed this cycle — for insight only; your plan is billed in messages.</p>
                             </CardContent>
                         </Card>
 
@@ -318,9 +315,9 @@ onMounted(() => {
                                 </div>
                                 <div class="space-y-1">
                                     <div class="text-2xl font-bold text-indigo-600">
-                                        {{ getUsagePercentage(usageData.tokens.used, usageData.tokens.limit) }}%
+                                        {{ usageData.tokens.used.toLocaleString() }}
                                     </div>
-                                    <div class="text-muted-foreground text-xs">Tokens</div>
+                                    <div class="text-muted-foreground text-xs">Tokens used</div>
                                 </div>
                                 <div class="space-y-1">
                                     <div class="text-2xl font-bold text-green-600">

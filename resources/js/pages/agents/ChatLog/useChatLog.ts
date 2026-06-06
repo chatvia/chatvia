@@ -459,10 +459,23 @@ export function useChatLog() {
         return `${dateRange.value.start} ~ ${dateRange.value.end}`;
     }
 
+    function escapeHtml(value: string): string {
+        return value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     function highlightText(text: string, query: string): string {
-        if (!query.trim()) return text;
-        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-900/50 rounded px-0.5">$1</mark>');
+        // `text` is visitor/assistant-authored content rendered via v-html, so
+        // it MUST be HTML-escaped before we inject <mark> — otherwise a message
+        // like `<img onerror=…>` executes in the operator's dashboard session.
+        const safe = escapeHtml(text);
+        if (!query.trim()) return safe;
+        const regex = new RegExp(`(${escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return safe.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-900/50 rounded px-0.5">$1</mark>');
     }
 
     function formatFullDateTime(dt: string | null | undefined): string {

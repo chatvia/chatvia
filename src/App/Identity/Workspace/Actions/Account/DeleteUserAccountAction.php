@@ -4,6 +4,8 @@ namespace App\Identity\Workspace\Actions\Account;
 
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Stripe\Exception\ApiErrorException;
 
 /**
  * Tear down a whole workspace: the owner, their employees + chatters, their
@@ -17,12 +19,7 @@ class DeleteUserAccountAction
 {
     public function execute(User $user): void
     {
-        // Cancel any active Stripe subscription immediately. We use cancelNow()
-        // (not the grace-period cancel() that UserObserver::deleting would
-        // otherwise apply) because the `user_billing` row cascade-deletes below
-        // — a grace-period cancel would orphan a still-billing subscription.
-        // Null-safe and outside the transaction (external call).
-        $user->billing?->subscription()?->cancelNow();
+        $this->cancelSubscriptions($user);
 
         DB::transaction(function () use ($user): void {
             $ownedTeamIds = $user->ownedTeams()->pluck('id')->all();
@@ -31,15 +28,13 @@ class DeleteUserAccountAction
             $subUserIds = $user->users()->pluck('id')->all();
 
             // Clear team membership first: team_user.team_id, .user_id and
-            // .role_id are all RESTRICT, so the pivot blocks deleting the owned
-            // teams and any of the workspace's users until these rows are gone.
+            // .role_id are all RESTRICT, so the pivot blocks both deleting the
+            // workspace's users and the owned-team cascade (team → roles would
+            // trip team_user.role_id) until these rows are gone.
             DB::table('team_user')
                 ->whereIn('team_id', $ownedTeamIds)
                 ->orWhereIn('user_id', [...$subUserIds, $user->id])
                 ->delete();
-
-            // Owned teams — agents, roles, and invitations cascade off each team.
-            $user->ownedTeams()->each(fn ($team) => $team->delete());
 
             // Workspace sub-users — their owned data cascades on delete. Model
             // delete (not a bulk query) so UserObserver/HasRoles cleanup fires;
@@ -50,5 +45,40 @@ class DeleteUserAccountAction
             // Finally the owner; every remaining reference cascades or nulls out.
             $user->delete();
         });
+    }
+
+    /**
+     * Best-effort immediate cancellation of every Stripe subscription on the
+     * workspace's billing (a workspace can hold more than one — e.g. add-ons as
+     * separate subscriptions) before the `user_billing` row cascade-deletes in
+     * the teardown.
+     *
+     * We use cancelNow() — not the grace-period cancel() UserObserver::deleting
+     * would otherwise apply — so we don't orphan a still-billing subscription.
+     * It covers both active and *trialing* subscriptions; already-canceled ones
+     * are skipped, and a generic trial (trial_ends_at with no subscription row)
+     * simply yields nothing to iterate.
+     *
+     * If Stripe rejects a call — most often because the subscription no longer
+     * exists there (stale/test data: "No such subscription") — it can't bill
+     * anyone, so we log it, mark it canceled locally, and carry on rather than
+     * failing the whole account deletion. Marking it canceled also stops
+     * UserObserver::deleting() from retrying the cancel during delete().
+     */
+    private function cancelSubscriptions(User $user): void
+    {
+        $billing = $user->billing;
+
+        if ($billing === null) {
+            return;
+        }
+
+        foreach ($billing->subscriptions()->get() as $subscription) {
+            if ($subscription->canceled()) {
+                continue;
+            }
+
+            $subscription->cancelNow();
+        }
     }
 }

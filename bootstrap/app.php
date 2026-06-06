@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Middleware\Access\EnsureAgentHasTokenBalance;
+use App\Http\Middleware\Access\EnsureAgentHasMessagesCapacity;
 use App\Http\Middleware\Access\EnsureAgentPermission;
 use App\Http\Middleware\Access\EnsureCanAccessApiAgent;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
@@ -67,7 +67,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             AuthenticateChatterUsingToken::class,
             AuthenticateChatViaSignInToken::class,
             EnsureChatIsAccessible::class,
-            EnsureAgentHasTokenBalance::class,
+            EnsureAgentHasMessagesCapacity::class,
             ContentSecurityPolicy::class,
             ChatHandleInertiaRequests::class,
         ]);
@@ -94,11 +94,20 @@ $app = Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Set TRUSTED_PROXIES to a comma-separated list of upstream IPs/CIDRs (e.g. Cloudflare).
-        // Wildcard fallback is for local/dev only; see AUDIT.md SEC-03.
-        $trustedProxies = (string) env('TRUSTED_PROXIES', '*');
-        $middleware->trustProxies(
-            at: $trustedProxies === '*' ? '*' : array_values(array_filter(array_map('trim', explode(',', $trustedProxies))))
-        );
+        // Trusting ALL proxies ('*') makes X-Forwarded-For attacker-spoofable, which
+        // defeats every IP-keyed rate limiter and the widget IP fingerprint — so the
+        // wildcard is only allowed in local/dev. In every other environment we trust
+        // ONLY the explicitly-configured proxies (empty ⇒ trust none ⇒ use REMOTE_ADDR).
+        // NB: app()->environment() is not resolvable this early in bootstrap,
+        // so read APP_ENV via the env() helper directly.
+        $trustedProxies = trim((string) env('TRUSTED_PROXIES', ''));
+        $isLocal = env('APP_ENV') === 'local';
+
+        $middleware->trustProxies(at: match (true) {
+            $trustedProxies === '*' => $isLocal ? '*' : [],
+            $trustedProxies === '' => $isLocal ? '*' : [],
+            default => array_values(array_filter(array_map('trim', explode(',', $trustedProxies)))),
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         if (app()->isProduction()) {

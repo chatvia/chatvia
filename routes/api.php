@@ -19,7 +19,7 @@ use App\Http\Controllers\Api\V1\Users\ExternalUserController;
 use App\Http\Controllers\Webhooks\WebhookChunkController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/chunk', WebhookChunkController::class)->name('webhook.chunk');
+Route::post('/chunk', WebhookChunkController::class)->middleware('throttle:120,1')->name('webhook.chunk');
 
 /*
 |--------------------------------------------------------------------------

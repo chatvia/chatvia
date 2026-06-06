@@ -12,6 +12,7 @@
  * styling. Those stay in the wrappers.
  */
 import type { ToolArtifact } from '@/types/stream';
+import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
 import { Marked } from 'marked';
 import markedAlert from 'marked-alert';
@@ -101,7 +102,13 @@ function stripOrphanImagePlaceholders(content: string): string {
 function formatMessage(content: string): string {
     const cleaned = renderableArtifacts.value.length > 0 ? stripOrphanImagePlaceholders(content) : content;
     const result = marked.parse(cleaned);
-    return typeof result === 'string' ? result : '';
+    const html = typeof result === 'string' ? result : '';
+
+    // Assistant/visitor content (and prompt-injected model output) is rendered
+    // via v-html in both the live widget AND the privileged admin chat-log /
+    // handoff UIs. Sanitize so injected <img onerror=…>, <script>, javascript:
+    // hrefs, etc. can never execute. marked v15 does NOT sanitize.
+    return DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
 }
 
 // While streaming, debounce reparsing on a trailing edge — markdown +

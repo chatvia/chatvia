@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\V1\Source;
 
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Illuminate\Foundation\Http\FormRequest;
+use Domain\Agent\Rules\SafeWebhookUrl;
 
 class CrawlSourceUrlRequest extends FormRequest
 {
@@ -18,7 +19,7 @@ class CrawlSourceUrlRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'url' => ['required', 'url'],
+            'url' => ['required', 'url', new SafeWebhookUrl],
             'slow_crawling' => ['sometimes', 'boolean'],
             'include_paths' => ['sometimes', 'nullable', 'string'],
             'exclude_paths' => ['sometimes', 'nullable', 'string'],

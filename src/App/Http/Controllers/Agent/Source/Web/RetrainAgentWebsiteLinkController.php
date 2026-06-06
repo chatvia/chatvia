@@ -22,6 +22,10 @@ class RetrainAgentWebsiteLinkController
     ): void {
         abort_if($request->user()->cannot('delete', $website), 404);
 
+        // {link} binds globally — ensure it belongs to {website} so a user
+        // can't re-crawl a foreign website's URL.
+        abort_if($link->source_website_id !== $website->id, 404);
+
         $retrain->execute($link, $agent);
     }
 }

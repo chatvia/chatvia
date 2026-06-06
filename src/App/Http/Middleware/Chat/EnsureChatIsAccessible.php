@@ -61,16 +61,30 @@ class EnsureChatIsAccessible
             return to_route('chat.home');
         }
 
-        // Per-conversation ownership check on protected agents. The
-        // ownership marker is keyed `user:<auth-id>:<conv-id>` at
-        // conversation creation (see ChatCache::rememberOwner) — a
-        // `has()` under the current chatter's id proves the same user
-        // created it, no DB hit. Different user → different key → miss → 403.
+        // Access control on protected (private) agents for authenticated users.
+        // Two complementary gates:
+        //
+        //  - Conversation-scoped routes ({conversationId} present): ownership of
+        //    THAT conversation is the gate (ChatCache::rememberOwner marks the
+        //    creator). A different user → miss → 403. This is the historical
+        //    model and lets a conversation owner act on their own thread.
+        //
+        //  - Entry / non-conversation routes (home, conversations/create, agent
+        //    switch, a brand-new stream): require membership/ownership of the
+        //    agent itself (canAccessAgent). Membership is otherwise only checked
+        //    at login/switch, and the web-guard session is shared across agent
+        //    subdomains — so without this re-check a chatter granted agent A can
+        //    reach private agent B (any tenant) by changing the subdomain or the
+        //    ?agent= query param and start chatting on the owner's bill.
         if ($agent->is_public === false && $userAuthenticated) {
             $conversationId = $request->route('conversationId');
 
-            if (! blank($conversationId) && ! ChatCache::isOwnedBy($conversationId, Auth::id())) {
-                abort(403);
+            if (! blank($conversationId)) {
+                if (! ChatCache::isOwnedBy($conversationId, Auth::id())) {
+                    abort(403);
+                }
+            } elseif (! Auth::guard('web')->user()->canAccessAgent($agent)) {
+                abort(403, 'You do not have access to this agent.');
             }
         }
 

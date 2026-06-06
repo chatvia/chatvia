@@ -3,7 +3,9 @@
 namespace Domain\Integration\Connector\Services\OAuth;
 
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Support\Http\SafeUrl;
 use Throwable;
 
 /**
@@ -37,10 +39,25 @@ class McpOAuthDiscoverer
         return $this->fetchAuthServerMetadata($authServers[0], $connector);
     }
 
+    /**
+     * SSRF-guarded GET. Every URL in the discovery cascade is upstream- or
+     * user-controlled (the entry URL, the WWW-Authenticate resource_metadata
+     * URL, each authorization_servers[] entry), so each hop is re-validated
+     * against private/reserved ranges and redirects are disabled.
+     */
+    private function safeGet(string $url): Response
+    {
+        SafeUrl::assert($url);
+
+        return Http::withOptions(SafeUrl::clientOptions())
+            ->withHeaders(['Accept' => 'application/json'])
+            ->get($url);
+    }
+
     private function probeForResourceMetadataUrl(string $mcpUrl): string
     {
         try {
-            $response = Http::withHeaders(['Accept' => 'application/json'])->get($mcpUrl);
+            $response = $this->safeGet($mcpUrl);
         } catch (Throwable $e) {
             throw new McpOAuthException('Could not reach the MCP server for OAuth discovery: '.$e->getMessage(), previous: $e);
         }
@@ -63,7 +80,7 @@ class McpOAuthDiscoverer
     private function fetchProtectedResource(string $url): array
     {
         try {
-            $response = Http::withHeaders(['Accept' => 'application/json'])->get($url);
+            $response = $this->safeGet($url);
         } catch (Throwable $e) {
             throw new McpOAuthException('Could not fetch protected-resource metadata: '.$e->getMessage(), previous: $e);
         }
@@ -85,7 +102,7 @@ class McpOAuthDiscoverer
         $lastStatus = null;
         foreach ($this->candidateMetadataUrls($authServerUrl) as $url) {
             try {
-                $response = Http::withHeaders(['Accept' => 'application/json'])->get($url);
+                $response = $this->safeGet($url);
             } catch (Throwable) {
                 continue;
             }

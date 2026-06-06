@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import Switch from '@/components/ui/switch/Switch.vue';
@@ -32,50 +31,22 @@ const emit = defineEmits<{
 const agents = useAgentAttachments('member');
 const idCopied = ref(false);
 
-// Per-message flat token charge — mirror of ChatterMessageAllowance::MESSAGE_TOKEN_RATE.
-const TOKEN_RATE = 250;
-
-// Access controls (message + token limits, deactivation). Edited locally and
+// Access controls (monthly message limit + deactivation). Edited locally and
 // persisted on "Save changes"; the server returns the refreshed row to merge.
 const messagesLimit = ref<number | string | null>(null);
-const tokensLimit = ref<number | string | null>(null);
-// "Set" → the admin overrides the token budget manually; otherwise it
-// auto-derives from the message limit and the field stays read-only.
-const customTokens = ref(false);
 const deactivated = ref(false);
 const deactivationReason = ref('');
 const isSaving = ref(false);
-
-// Auto budget = message cap × flat per-message rate (null when there's no cap).
-const autoTokens = (msgs: number | string | null): number | null => {
-    const n = Number(msgs);
-    return msgs === null || msgs === '' || Number.isNaN(n) || n <= 0 ? null : n * TOKEN_RATE;
-};
 
 watch(
     () => props.member?.external_id,
     () => {
         messagesLimit.value = props.member?.messages_limit ?? null;
-        const saved = props.member?.tokens_limit ?? null;
-        const auto = autoTokens(messagesLimit.value);
-        // A saved budget that differs from the auto value was set manually.
-        customTokens.value = saved !== null && saved !== auto;
-        tokensLimit.value = customTokens.value ? saved : auto;
         deactivated.value = props.member?.is_deactivated ?? false;
         deactivationReason.value = props.member?.deactivation_reason ?? '';
     },
     { immediate: true },
 );
-
-// Auto mode: keep the read-only budget synced to the message cap.
-watch(messagesLimit, (val) => {
-    if (!customTokens.value) tokensLimit.value = autoTokens(val);
-});
-
-// Toggling "Set" off snaps the budget back to the auto value.
-watch(customTokens, (on) => {
-    if (!on) tokensLimit.value = autoTokens(messagesLimit.value);
-});
 
 const save = async () => {
     if (!props.member) return;
@@ -83,15 +54,8 @@ const save = async () => {
     try {
         const raw = messagesLimit.value;
         const limit = raw === null || raw === '' ? null : Number(raw);
-        // No message cap → no budget. Custom → typed value; otherwise auto.
-        let tokens: number | null = null;
-        if (limit !== null) {
-            const rawTokens = tokensLimit.value;
-            tokens = customTokens.value ? (rawTokens === null || rawTokens === '' ? null : Number(rawTokens)) : limit * TOKEN_RATE;
-        }
         const { data } = await axios.patch(route('settings.members.update', { chatter: props.member.external_id }), {
             messages_limit: limit,
-            tokens_limit: tokens,
             deactivated: deactivated.value,
             deactivation_reason: deactivationReason.value || null,
         });
@@ -105,8 +69,8 @@ const save = async () => {
     }
 };
 
-// One-click clear of the monthly caps. Sends the SAVED deactivation state (not
-// the local toggles) so removing the limit can't apply an unsaved deactivation.
+// One-click clear of the monthly limit. Sends the SAVED deactivation state (not
+// the local toggle) so removing the limit can't apply an unsaved deactivation.
 const removeLimit = async () => {
     if (!props.member) return;
     isSaving.value = true;
@@ -117,8 +81,6 @@ const removeLimit = async () => {
             deactivation_reason: props.member.deactivation_reason,
         });
         messagesLimit.value = null;
-        tokensLimit.value = null;
-        customTokens.value = false;
         emit('updated', (data?.data ?? data) as ChatterRow);
         toast.success(`Limit removed for ${props.member.name}`);
     } catch {
@@ -179,7 +141,7 @@ const copyId = async () => {
                 <div class="flex items-start gap-4">
                     <Avatar class="size-14 shrink-0">
                         <AvatarImage v-if="member.avatar" :src="member.avatar" :alt="member.name" />
-                        <AvatarFallback class="bg-muted text-foreground text-base font-semibold">{{ initials }}</AvatarFallback>
+                        <AvatarFallback class="text-base font-semibold">{{ initials }}</AvatarFallback>
                     </Avatar>
                     <div class="min-w-0 flex-1 pt-1">
                         <SheetTitle class="truncate text-lg">{{ member.name }}</SheetTitle>
@@ -222,7 +184,7 @@ const copyId = async () => {
                     <TabsTrigger value="actions">Actions</TabsTrigger>
                 </TabsList>
 
-                <!-- LIMITS — monthly message cap + token budget -->
+                <!-- LIMITS — monthly message cap -->
                 <TabsContent value="limits" class="mt-6 space-y-6">
                     <div class="space-y-3">
                         <div>
@@ -247,32 +209,6 @@ const copyId = async () => {
                         </div>
                         <p v-if="member.messages_limit !== null" class="text-muted-foreground text-xs">
                             {{ member.messages_used }} of {{ member.messages_limit }} used this month.
-                        </p>
-                    </div>
-
-                    <div class="space-y-3 border-t pt-6">
-                        <div>
-                            <h3 class="text-sm font-semibold">Monthly token budget</h3>
-                            <p class="text-muted-foreground mt-1 text-xs">
-                                Each message uses {{ TOKEN_RATE }} tokens. The budget is set automatically from the message limit — tick “Set” to
-                                choose your own.
-                            </p>
-                        </div>
-                        <Input
-                            v-model="tokensLimit"
-                            type="number"
-                            min="1"
-                            placeholder="No limit"
-                            class="w-40"
-                            :readonly="!customTokens"
-                            :class="{ 'bg-muted text-muted-foreground': !customTokens }"
-                        />
-                        <div class="flex items-center gap-2">
-                            <Checkbox id="set-tokens" v-model="customTokens" />
-                            <label for="set-tokens" class="text-sm leading-none select-none">Set a custom budget</label>
-                        </div>
-                        <p v-if="member.tokens_limit !== null" class="text-muted-foreground text-xs">
-                            {{ member.tokens_used.toLocaleString() }} of {{ member.tokens_limit.toLocaleString() }} tokens used this month.
                         </p>
                     </div>
 
@@ -320,7 +256,12 @@ const copyId = async () => {
                         </div>
                         <Switch :model-value="deactivated" @update:model-value="(v) => (deactivated = v)" />
                     </div>
-                    <Textarea v-if="deactivated" v-model="deactivationReason" placeholder="Reason (optional) — visible to your team only" :rows="2" />
+                    <Textarea
+                        v-if="deactivated"
+                        v-model="deactivationReason"
+                        placeholder="Reason (optional) — visible to your team only"
+                        :rows="2"
+                    />
                     <Button :disabled="isSaving" @click="save">
                         <LoaderCircle v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
                         Save changes

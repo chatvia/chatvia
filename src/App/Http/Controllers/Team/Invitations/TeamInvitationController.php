@@ -7,6 +7,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Models\Invitation;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -44,6 +45,10 @@ class TeamInvitationController extends Controller
                 'id' => $invitation->id,
                 'email' => $invitation->email,
             ],
+            // The accept POST is `signed`; only this signed URL (derived from the
+            // same email-proven link) can be used to accept, so an attacker can't
+            // POST to a guessed invitation id.
+            'acceptUrl' => URL::signedRoute('teams.invitation.accept', ['invitation' => $invitation->id]),
             'team' => [
                 'id' => $team->id,
                 'name' => $team->name,

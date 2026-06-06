@@ -8,6 +8,7 @@ use Domain\Helpdesk\Models\Ticket;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,6 +30,9 @@ class TicketController
 
     public function show(Ticket $ticket): Response
     {
+        // {ticket} binds globally by id — authorize ownership (TicketPolicy::view).
+        Gate::authorize('view', $ticket);
+
         $ticket->load('replies');
 
         return Inertia::render('TicketShow', [

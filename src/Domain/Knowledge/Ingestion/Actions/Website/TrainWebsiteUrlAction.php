@@ -17,6 +17,7 @@ use Domain\Llm\Operations\Documents\Chunker;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Support\Http\SafeUrl;
 
 class TrainWebsiteUrlAction
 {
@@ -30,7 +31,14 @@ class TrainWebsiteUrlAction
 
     public function execute(AgentWebsiteUrl $websiteUrl, Agent $agent): void
     {
+        // SSRF guard: re-validate each URL right before fetching (DNS can
+        // change between crawl and train) and never follow redirects to a
+        // host we didn't validate. A discovered/internal URL must not be read
+        // back into the knowledge base.
+        SafeUrl::assert($websiteUrl->url);
+
         $response = Http::retry(3, 1000)
+            ->withOptions(SafeUrl::clientOptions())
             ->timeout(600)
             ->get($websiteUrl->url)
             ->throw();

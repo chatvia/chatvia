@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Chat\Conversations;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Memory\TurnState;
+use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -27,7 +28,11 @@ class GenerateConversationTitleController
         $conversation = Conversation::where('external_id', $conversationId)->first();
 
         if ($conversation && $conversation->needsTitle()) {
-            $memory->updateConversationTitleFromMessages();
+            app(TokenUsageContext::class)->track(
+                $agent->user_id,
+                fn () => $memory->updateConversationTitleFromMessages(),
+                'chat',
+            );
             $conversation->refresh();
         }
 

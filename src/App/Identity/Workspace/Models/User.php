@@ -12,11 +12,11 @@ use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserBilling;
-use Domain\Billing\Models\UserToken;
+use Domain\Billing\Models\UserCredit;
 use Domain\Billing\Models\UserQuota;
 use Domain\Billing\Services\Billing;
-use Domain\Billing\Services\ChatterTokenAllowance;
-use Domain\Billing\Services\UserTokenSystem;
+use Domain\Billing\Services\ChatterMessageAllowance;
+use Domain\Billing\Services\UserCreditSystem;
 use Domain\Helpdesk\Models\Ticket;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -88,10 +88,10 @@ use Support\Traits\HasSettings;
  * @property-read BillingPackageCapabilitiesData $capabilities
  * @property-read Collection<int, User> $chatters
  * @property-read int|null $chatters_count
- * @property-read UserToken|null $token
- * @property-read UserToken|null $chatterToken
- * @property-read Collection<int, UserToken> $tokens
- * @property-read int|null $tokens_count
+ * @property-read UserCredit|null $credit
+ * @property-read UserCredit|null $chatterMessageCredit
+ * @property-read Collection<int, UserCredit> $credits
+ * @property-read int|null $credits_count
  * @property-read Team|null $currentTeam
  * @property-read bool $is_paid
  * @property-read Collection<int, User> $managedUsers
@@ -221,9 +221,8 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * The workspace account this user operates under — self for a workspace
-     * owner, the parent workspace for an employee/chatter. Never null. Used for
-     * account-scoped resources: quota, agents, tokens, etc.
+     * Get the effective user (workspace owner if this is an employee/chatter,
+     * otherwise self). Used for resource access like quota, agents, credits, etc.
      */
     public function workspace(): self
     {
@@ -378,10 +377,10 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      * billing emails, and customer-trust math.
      *
      * For the **send-gate decision** (can this user send another message right
-     * now?), call {@see tokenSystem()} instead — it reads the active token
-     * grant's balance (budget − consumed, incl. active add-on packs), the
-     * authoritative gate. The two paths can disagree by a rollup-write cycle;
-     * the divergence is intentional.
+     * now?), call {@see creditSystem()} instead — it reads `user_credits.usage`,
+     * which the message-write path increments synchronously and is the
+     * authoritative counter for capacity enforcement. The two paths can
+     * disagree by a rollup-write cycle; the divergence is intentional.
      */
     public function messageCredits(): MessageCredits
     {
@@ -424,25 +423,25 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     /**
      * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['parentWorkspace.tokens', 'tokens'])`.
+     * through the workspace leg instead: `loadMissing(['parentWorkspace.credits', 'credits'])`.
      */
-    public function tokens(): HasMany
+    public function credits(): HasMany
     {
         $workspace = $this->workspace();
 
-        return $workspace->hasMany(UserToken::class);
+        return $workspace->hasMany(UserCredit::class);
     }
 
     /**
      * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['parentWorkspace.token', 'token'])`.
+     * through the workspace leg instead: `loadMissing(['parentWorkspace.credit', 'credit'])`.
      */
-    public function token(): HasOne
+    public function credit(): HasOne
     {
         $workspace = $this->workspace();
 
-        return $workspace->hasOne(UserToken::class)
+        return $workspace->hasOne(UserCredit::class)
             ->where('ends_at', '>=', now())
             ->latestOfMany('ends_at');
     }
@@ -460,46 +459,53 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * Authoritative send-gate accessor: reads the active token grant's balance
-     * (budget − consumed, including active add-on packs) to decide whether the
-     * next message is allowed through. Use this from
-     * {@see EnsureAgentHasTokenBalance} and the ChatStreamService capacity check.
+     * Authoritative send-gate accessor: reads `user_credits.usage` (the
+     * synchronous counter incremented on every message write) to decide whether
+     * the next message is allowed through. Use this from
+     * {@see EnsureAgentHasMessagesCapacity} and the ChatStreamService capacity
+     * check.
      *
-     * For dashboard/UI displays of "messages exchanged this cycle", prefer
-     * {@see messageCredits()} which reads the analytics rollup.
+     * For dashboard/UI displays of "remaining messages this cycle", prefer
+     * {@see messageCredits()} which reads the analytics rollup and matches the
+     * usage panel.
      */
-    public function tokenSystem(): UserTokenSystem
+    public function creditSystem(): UserCreditSystem
     {
         $workspaceId = $this->workspace()->id;
 
-        return app(UserTokenSystem::class)->setUserId($workspaceId);
+        return app(UserCreditSystem::class)->setUserId($workspaceId);
     }
 
     /**
-     * This chatter's OWN per-chatter monthly token budget (latest period).
-     * Unlike {@see token()} / {@see tokens()} / {@see tokenSystem()}, which
-     * resolve the workspace OWNER's pool via `workspace()`, this binds
-     * literally to the chatter's own `user_tokens` rows — the home of the
-     * per-chatter cap managed by {@see ChatterTokenAllowance}.
-     * Eager-load `chatterToken.usage` to render usage without N+1.
+     * This chatter's OWN per-chatter monthly message-limit credit (latest
+     * period). Unlike {@see credit()} / {@see credits()} / {@see creditSystem()},
+     * which resolve the workspace OWNER's billing pool via `workspace()`,
+     * this binds literally to the chatter's own `user_credits` rows — the home
+     * of the per-chatter cap managed by {@see ChatterMessageAllowance}.
+     * Eager-load `chatterMessageCredit.usage` to render usage without N+1.
      *
-     * @return HasOne<UserToken, $this>
+     * @return HasOne<UserCredit, $this>
      */
-    public function chatterToken(): HasOne
+    public function chatterMessageCredit(): HasOne
     {
-        return $this->hasOne(UserToken::class, 'user_id')->latestOfMany('ends_at');
+        return $this->hasOne(UserCredit::class, 'user_id')->latestOfMany('ends_at');
     }
 
-    public function grantTokens($quota, Carbon $endsAt): UserToken
+    public function addCredit($quota, Carbon $endsAt): UserCredit
     {
         $workspace = $this->workspace();
 
-        return $workspace->tokenSystem()->grant($quota, $endsAt);
+        return $workspace->creditSystem()->addCredit($quota, $endsAt);
     }
 
     public function getUserId()
     {
         return $this->id;
+    }
+
+    public function consumableMessages(): int
+    {
+        return $this->creditSystem()->consumableMessages();
     }
 
     /**
@@ -621,9 +627,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * The parent workspace this employee/chatter belongs to (null for a
-     * workspace owner). For the resolved account (self-or-parent, never null),
-     * use {@see workspace()}.
+     * The workspace owner this employee/chatter belongs to.
      */
     public function parentWorkspace(): BelongsTo
     {

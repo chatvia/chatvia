@@ -59,7 +59,7 @@ Route::prefix('/chat')
 
         Route::post('/agents/switch/{agent}', ChatterSwitchAgentController::class)->name('chat.agents.switch');
 
-        Route::post('/stream/{conversationId}', ChatStreamController::class)->name('chat.stream');
+        Route::post('/stream/{conversationId}', ChatStreamController::class)->middleware('throttle:chat-stream')->name('chat.stream');
 
         // Resume a paused agent turn after the user approves/denies a gated
         // tool call. {approval} binds ToolApprovalCheckpoint by external_id.
@@ -83,7 +83,7 @@ Route::prefix('/chat')
         Route::patch('/messages/feedback', MessageFeedbackController::class)->name('chat.messages.feedback');
         Route::delete('/messages', MessageDeleteController::class)->name('chat.messages.delete');
         Route::post('/messages/regenerate', MessageRegenerateController::class)->name('chat.messages.regenerate');
-        Route::post('/messages/attachments', AttachmentController::class)->name('chat.messages.attachments.store');
+        Route::post('/messages/attachments', AttachmentController::class)->middleware('throttle:chat-stream')->name('chat.messages.attachments.store');
         Route::delete('/messages/attachments/{attachment}', AttachmentDeleteController::class)->name('chat.messages.attachments.delete');
 
         Route::get('/conversations/{conversationId}/export', ChatExportController::class)->name('conversations.export');
@@ -97,5 +97,5 @@ Route::prefix('/chat')
 
         Route::get('/usage', MessagesUsage::class)->name('chat.usage');
 
-        Route::post('/transcribe', ChatTranscriptionController::class)->name('chat.transcribe');
+        Route::post('/transcribe', ChatTranscriptionController::class)->middleware('throttle:chat-stream')->name('chat.transcribe');
     });

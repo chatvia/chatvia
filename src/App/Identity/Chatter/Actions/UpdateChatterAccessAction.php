@@ -3,24 +3,24 @@
 namespace App\Identity\Chatter\Actions;
 
 use App\Identity\Chatter\Data\UpdateChatterAccessData;
-use Domain\Billing\Services\ChatterTokenAllowance;
+use Domain\Billing\Services\ChatterMessageAllowance;
 
 /**
  * Applies the Members-sheet access controls to a chatter: sets/clears the
- * monthly token budget (delegated to {@see ChatterTokenAllowance}) and toggles
+ * monthly message cap (delegated to {@see ChatterMessageAllowance}) and toggles
  * deactivation. Deactivating stamps `deactivated_at`; reactivating clears it.
  */
 class UpdateChatterAccessAction
 {
     public function __construct(
-        private readonly ChatterTokenAllowance $allowance,
+        private readonly ChatterMessageAllowance $allowance,
     ) {}
 
     public function execute(UpdateChatterAccessData $data): void
     {
         $chatter = $data->chatter;
 
-        $this->allowance->setLimit($chatter, $data->tokensLimit);
+        $this->allowance->setLimit($chatter, $data->messagesLimit);
 
         if ($data->deactivated && ! $chatter->isDeactivated()) {
             $chatter->deactivate($data->deactivationReason);

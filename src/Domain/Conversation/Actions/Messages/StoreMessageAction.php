@@ -6,6 +6,8 @@ use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\MessageSent;
 use Domain\Analytics\Jobs\AnalyzeMessageJob;
 use Domain\Analytics\Services\UserAgentParser;
+use Domain\Billing\Services\ChatterMessageAllowance;
+use Domain\Billing\Services\UserCreditSystem;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
 use Domain\Conversation\Enums\ConversationSource;
@@ -14,6 +16,7 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
+use Domain\Knowledge\Ingestion\Services\TikToken;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Pricing\CostCalculator;
@@ -22,6 +25,8 @@ class StoreMessageAction
 {
     public function __construct(
         private readonly LlmProviderInterface $llmProvider,
+        private readonly ChatterMessageAllowance $chatterAllowance,
+        private readonly UserCreditSystem $creditSystem,
     ) {}
 
     public function execute(Agent $agent, ChatInputPayload|ChatOutputPayload $payload): Message
@@ -58,6 +63,22 @@ class StoreMessageAction
             // threshold (3 days) keeps the update cheap — only writes
             // when the conversation is actually at risk of being pruned.
             $conversation->extendRetentionIfDueSoon($agent->messageRetentionInDays());
+
+            // Count this send against the chatter's monthly limit. Stamped
+            // only for authenticated chatters (session.user_id); the service
+            // is a no-op for non-chatters and for chatters with no limit. Counted
+            // here (not via chat_messages, which retention prunes) so the tally
+            // is durable.
+            if ($session->user) {
+                $this->chatterAllowance->recordMessage($session->user);
+            }
+        } else {
+            // Log token usage for the workspace owner's current billing cycle.
+            // Assistant turns are the only ones that carry token usage; user
+            // turns never do. Uses the provider's prompt+completion count
+            // (resolveUsage) — the authoritative billed total — with a TikToken
+            // estimate as a fallback when the provider exposes no usage.
+            $this->recordTokenUsage($agent, $promptTokens, $completionTokens, $payload->message);
         }
 
         $this->dispatchAnalytics(
@@ -180,10 +201,44 @@ class StoreMessageAction
             ? CostCalculator::dollarsToMicroCents((float) $costInDollars)
             : null;
 
-        // Stored on the message for analytics (chat_messages.prompt_tokens /
-        // completion_tokens). Billing is metered separately at a flat per-message
-        // rate (UpdateUserCreditsJob), so a null here never affects credit.
+        // 3. When both token counts remain null, recordTokenUsage() falls back
+        //    to a TikToken estimate of the reply text.
         return [$promptTokens, $completionTokens, $costInMicroCents];
+    }
+
+    /**
+     * Add this assistant turn's token usage to the workspace owner's current
+     * billing cycle. Prefers the provider's prompt+completion total (the
+     * authoritative billed count); estimates with TikToken only when the
+     * provider exposed no usage (e.g. a provider where supportsCostTracking()
+     * is false).
+     */
+    private function recordTokenUsage(
+        Agent $agent,
+        ?int $promptTokens,
+        ?int $completionTokens,
+        ?string $content,
+    ): void {
+        $tokens = ($promptTokens ?? 0) + ($completionTokens ?? 0);
+
+        if ($tokens === 0 && $content !== null && $content !== '') {
+            // Estimation only — never let a tokenizer hiccup fail the
+            // message-persist job; a missed estimate just skips logging.
+            try {
+                $tokens = TikToken::countTokens($content);
+            } catch (\Throwable) {
+                $tokens = 0;
+            }
+        }
+
+        if ($tokens <= 0) {
+            return;
+        }
+
+        // Workspace owner's billing pool (the real prompt+completion count).
+        // The per-member budget is charged separately at a flat rate on the
+        // user turn (see ChatterMessageAllowance::recordMessage).
+        $this->creditSystem->setUserId($agent->user_id)->recordTokenUsage($tokens);
     }
 
     private function buildMessageAttributes(

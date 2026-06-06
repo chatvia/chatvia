@@ -6,11 +6,13 @@ use Domain\Analytics\Events\MessageAnalyzed;
 use Domain\Analytics\Services\ConversationAnalyzer;
 use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Conversation\Models\Message;
+use Domain\Llm\Usage\TokenUsageContext;
 
 class AnalyzeMessageAction
 {
     public function __construct(
         private readonly ConversationAnalyzer $analyzer,
+        private readonly TokenUsageContext $usage,
     ) {}
 
     public function execute(string $externalMessageId): void
@@ -45,7 +47,12 @@ class AnalyzeMessageAction
             return;
         }
 
-        $analysis = $this->analyzer->analyzeMessage($message->content);
+        // Attribute the tone/sentiment LLM call's tokens to the workspace (analytics).
+        $analysis = $this->usage->track(
+            $agent->user_id,
+            fn () => $this->analyzer->analyzeMessage($message->content),
+            'analysis',
+        );
 
         // Persist both columns regardless (the single call already paid for
         // both) so the `$message->sentiment && $message->tone` guard above

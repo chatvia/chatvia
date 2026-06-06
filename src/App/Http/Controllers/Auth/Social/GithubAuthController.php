@@ -13,6 +13,6 @@ final class GithubAuthController
         /** @var AbstractProvider $provider */
         $provider = Socialite::driver('github');
 
-        return $provider->stateless()->redirect();
+        return $provider->redirect();
     }
 }

@@ -20,8 +20,10 @@ class UpdateChatterProfileRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'current_password' => ['nullable', 'string', 'min:8'],
-            'password' => ['nullable', 'required_with:current_password', 'string', 'min:8', 'confirmed'],
+            // Changing the password requires proving the current one (validated
+            // against the authenticated web guard), matching the workspace flow.
+            'current_password' => ['required_with:password', 'current_password:web'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
         ];
     }

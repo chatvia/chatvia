@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agent\Source\Web;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Web\Actions\Crawl\StartAgentWebsiteCrawlAction;
+use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Knowledge\Source\Web\Actions\Source\DeleteSourceWebsiteAction;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
@@ -36,7 +37,7 @@ class AgentWebsiteController
         abort_if($request->user()->cannot('view', $agent), 404);
 
         $validated = $request->validate([
-            'url' => ['required', 'url'],
+            'url' => ['required', 'url', new SafeWebhookUrl],
             'slow_crawling' => ['required', 'boolean'],
             'include_paths' => ['nullable'],
             'exclude_paths' => ['nullable'],

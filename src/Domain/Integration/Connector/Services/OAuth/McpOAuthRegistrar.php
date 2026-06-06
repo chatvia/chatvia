@@ -5,6 +5,7 @@ namespace Domain\Integration\Connector\Services\OAuth;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Illuminate\Support\Facades\Http;
+use Support\Http\SafeUrl;
 use Throwable;
 
 /**
@@ -64,7 +65,11 @@ class McpOAuthRegistrar
         ];
 
         try {
-            $response = Http::withHeaders([
+            // SSRF guard: registrationEndpoint comes from upstream-discovered
+            // metadata. Re-validate and disable redirects before POSTing.
+            SafeUrl::assert($metadata->registrationEndpoint);
+
+            $response = Http::withOptions(SafeUrl::clientOptions())->withHeaders([
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ])->post($metadata->registrationEndpoint, $payload);

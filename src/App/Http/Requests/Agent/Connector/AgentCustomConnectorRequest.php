@@ -5,6 +5,7 @@ namespace App\Http\Requests\Agent\Connector;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Connector\Data\Custom\AgentCustomConnectorData;
 use Illuminate\Foundation\Http\FormRequest;
+use Domain\Agent\Rules\SafeWebhookUrl;
 use Illuminate\Validation\Rule;
 
 class AgentCustomConnectorRequest extends FormRequest
@@ -21,7 +22,7 @@ class AgentCustomConnectorRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:64'],
-            'url' => ['required', 'string', 'url:http,https', 'max:2048'],
+            'url' => ['required', 'string', 'url:http,https', 'max:2048', new SafeWebhookUrl],
             'auth_strategy' => ['required', Rule::in(['none', 'token', 'oauth'])],
             'token' => ['nullable', 'string', 'min:4', 'max:4096', 'required_if:auth_strategy,token'],
         ];

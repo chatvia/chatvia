@@ -3,6 +3,8 @@
 namespace Domain\Knowledge\Ingestion\Jobs;
 
 use Domain\Knowledge\Ingestion\Actions\Sources\CreateSourceSummaryAction;
+use Domain\Llm\Usage\AttributesTokenUsage;
+use Domain\Llm\Usage\TracksTokenUsage;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
@@ -13,9 +15,9 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
 
-class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
+class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue, AttributesTokenUsage
 {
-    use Batchable, Queueable, SerializesModels;
+    use Batchable, Queueable, SerializesModels, TracksTokenUsage;
 
     public int $tries = 3;
 
@@ -30,6 +32,11 @@ class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
         public SourceFile|SourceText|SourceWebsite $source,
     ) {
         $this->onQueue('ingestion.summary');
+    }
+
+    public function tokenWorkspaceId(): ?int
+    {
+        return $this->source->user_id;
     }
 
     public function handle(CreateSourceSummaryAction $action): void

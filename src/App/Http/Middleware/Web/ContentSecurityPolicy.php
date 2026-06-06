@@ -42,6 +42,12 @@ class ContentSecurityPolicy
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
+        // HSTS: force HTTPS for two years incl. subdomains. Only over a secure
+        // connection in production so local/dev (http) is unaffected.
+        if ($request->secure() && app()->isProduction()) {
+            $response->headers->set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+        }
+
         return $response;
     }
 }

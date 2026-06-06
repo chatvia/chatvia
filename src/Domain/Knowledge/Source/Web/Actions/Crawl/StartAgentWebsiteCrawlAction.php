@@ -9,6 +9,8 @@ use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Jobs\Crawler\WebsiteCrawlerJob;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Support\Exceptions\DomainValidationException;
+use Support\Exceptions\UnsafeUrlException;
+use Support\Http\SafeUrl;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -23,15 +25,24 @@ class StartAgentWebsiteCrawlAction
             throw new DomainValidationException('url', 'This website has already been added to this agent.');
         }
 
+        // SSRF guard on the seed URL before any server-side fetch.
+        $this->assertSafe($data->url);
+
         try {
             $response = Http::withOptions(['allow_redirects' => false])->get($data->url)->throw();
+        } catch (UnsafeUrlException $e) {
+            throw new DomainValidationException('url', 'This URL is not allowed.');
         } catch (Throwable $throwable) {
             report($throwable);
             throw new DomainValidationException('url', 'Failed to fetch the website. Please check the URL and try again.');
         }
 
         if ($response->redirect()) {
-            $data->url = $response->header('Location');
+            // Re-validate the upstream-controlled redirect target before adopting
+            // it — a public seed must not 30x into an internal address.
+            $location = (string) $response->header('Location');
+            $this->assertSafe($location);
+            $data->url = $location;
         }
 
         $website = SourceWebsite::create([
@@ -47,5 +58,17 @@ class StartAgentWebsiteCrawlAction
         WebsiteCrawlerJob::dispatch($website, $data, $agent);
 
         return $website;
+    }
+
+    /**
+     * @throws DomainValidationException
+     */
+    private function assertSafe(string $url): void
+    {
+        try {
+            SafeUrl::assert($url);
+        } catch (UnsafeUrlException $e) {
+            throw new DomainValidationException('url', 'This URL is not allowed: '.$e->getMessage());
+        }
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Requests\Settings\Connector;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Data\Custom\AddCustomConnectorData;
 use Illuminate\Foundation\Http\FormRequest;
+use Domain\Agent\Rules\SafeWebhookUrl;
 
 class AddCustomConnectorRequest extends FormRequest
 {
@@ -20,7 +21,7 @@ class AddCustomConnectorRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:2', 'max:64'],
-            'url' => ['required', 'url', 'max:2048'],
+            'url' => ['required', 'url', 'max:2048', new SafeWebhookUrl],
             'auth_strategy' => ['required', 'in:oauth,token,none'],
             'token' => ['sometimes', 'nullable', 'string', 'max:8192'],
         ];

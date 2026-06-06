@@ -19,6 +19,7 @@ use Domain\Agent\Observers\ModelSettingObserver;
 use Domain\Analytics\Listeners\RecordAnalytics;
 use Domain\Billing\Events\MessageCreditsLow;
 use Domain\Billing\Listeners\HandleStripeWebhook;
+use Domain\Billing\Listeners\RecordLlmTokenUsage;
 use Domain\Billing\Listeners\TriggerAutoRecharge;
 use Domain\Conversation\Events\SessionLocationUnknown;
 use Domain\Conversation\Listeners\LocateSession;
@@ -44,6 +45,8 @@ use Domain\Knowledge\Source\Web\Observers\AgentWebsiteObserver;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Events\LlmTokensConsumed;
+use Domain\Llm\Usage\TokenUsageContext;
 use Domain\Llm\Providers\Groq;
 use Domain\Llm\Providers\Mistral as LlmMistral;
 use Domain\Llm\Providers\OpenRouter;
@@ -79,6 +82,11 @@ class DomainServiceProvider extends ServiceProvider
         // SSE stream transformer: parses the upstream OpenAI-compatible byte
         // stream into envelope events. Single implementation today.
         $this->app->bind(StreamTransformer::class, OpenAiCompatibleTransformer::class);
+
+        // Per-request / per-job accumulator that attributes LLM token usage to a
+        // workspace for analytics. MUST be a singleton so every add() within one
+        // chat turn or queued job lands in the same scope.
+        $this->app->singleton(TokenUsageContext::class);
 
         $this->app->bind(LlmProviderInterface::class, function ($app) {
             $provider = config('chatvia.ai.provider', 'openrouter');
@@ -138,11 +146,12 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(AgentMemberInvited::class, SendAgentMemberInvitationEmail::class);
         Event::listen(TeamInvitationCreated::class, SendTeamInvitationEmail::class);
         Event::listen(MagicLinkRequested::class, SendMagicLinkEmail::class);
-        Event::listen(AccountDeletionRequested::class, SendAccountDeletionConfirmationEmail::class);
         Event::listen(MessageCreditsLow::class, TriggerAutoRecharge::class);
         Event::listen(DataExportReady::class, SendDataExportReadyNotification::class);
         Event::listen(WebhookReceived::class, HandleStripeWebhook::class);
         Event::listen(SessionLocationUnknown::class, LocateSession::class);
+        Event::listen(AccountDeletionRequested::class, SendAccountDeletionConfirmationEmail::class);
+        Event::listen(LlmTokensConsumed::class, RecordLlmTokenUsage::class);
 
         Event::subscribe(RecordAnalytics::class);
     }

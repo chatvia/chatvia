@@ -4,12 +4,15 @@ namespace Domain\Conversation\Jobs;
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Llm\Usage\AttributesTokenUsage;
+use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class GenerateConversationTitleJob implements ShouldQueue
+class GenerateConversationTitleJob implements ShouldQueue, AttributesTokenUsage
 {
     use Queueable;
+    use TracksTokenUsage;
 
     public function __construct(
         public Agent $agent,
@@ -24,5 +27,10 @@ class GenerateConversationTitleJob implements ShouldQueue
         $memory
             ->withContext($this->agent, $this->externalSessionId, $this->conversationId)
             ->updateConversationTitleFromMessages();
+    }
+
+    public function tokenWorkspaceId(): ?int
+    {
+        return $this->agent->user_id;
     }
 }

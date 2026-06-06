@@ -6,6 +6,8 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Website\TrainWebsiteUrlAction;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
+use Domain\Llm\Usage\AttributesTokenUsage;
+use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -15,9 +17,9 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
 
-class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
+class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue, AttributesTokenUsage
 {
-    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
 
     public int $tries = 3;
 
@@ -31,6 +33,11 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
     public function __construct(public AgentWebsiteUrl $websiteUrl, public Agent $agent)
     {
         $this->onQueue('ingestion.website');
+    }
+
+    public function tokenWorkspaceId(): ?int
+    {
+        return $this->agent->user_id;
     }
 
     public function handle(TrainWebsiteUrlAction $action): void

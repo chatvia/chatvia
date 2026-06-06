@@ -46,13 +46,13 @@ class ExportAgentLeadsToCsvAction
         foreach ($leads as $lead) {
             fputcsv($output, [
                 $lead->id,
-                $lead->name ?? '',
-                $lead->email ?? '',
-                $lead->phone ?? '',
-                $lead->job_title ?? '',
-                $lead->company ?? '',
-                $lead->location ?? '',
-                $lead->message ?? '',
+                $this->csvSafe($lead->name),
+                $this->csvSafe($lead->email),
+                $this->csvSafe($lead->phone),
+                $this->csvSafe($lead->job_title),
+                $this->csvSafe($lead->company),
+                $this->csvSafe($lead->location),
+                $this->csvSafe($lead->message),
                 $lead->created_at->format('Y-m-d H:i:s'),
             ]);
         }
@@ -62,5 +62,22 @@ class ExportAgentLeadsToCsvAction
         fclose($output);
 
         return $csv;
+    }
+
+    /**
+     * Neutralise CSV formula injection. Lead fields are visitor-controlled, so
+     * a value beginning with = + - @ TAB or CR would execute as a formula when
+     * the operator opens the export in Excel / Sheets. Prefix with an
+     * apostrophe so the cell is treated as text.
+     */
+    private function csvSafe(?string $value): string
+    {
+        $value = (string) ($value ?? '');
+
+        if ($value !== '' && preg_match('/^[=+\-@\t\r]/', $value) === 1) {
+            return "'".$value;
+        }
+
+        return $value;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Domain\Integration\Connector\Data\Catalog;
 
+use Spatie\LaravelData\Attributes\Hidden;
 use Spatie\LaravelData\Data;
 
 class ConnectorData extends Data
@@ -30,6 +31,10 @@ class ConnectorData extends Data
         // Pre-registered OAuth (services that don't support RFC 7591 DCR —
         // GitHub, Slack, Microsoft, …). All null when DCR is used.
         public ?string $oauthClientId = null,
+        // Platform-wide OAuth app secret — server-only. #[Hidden] keeps it out
+        // of every JSON/Inertia response while remaining available to the
+        // server-side OAuth flow (hasPreRegisteredOAuth() etc.).
+        #[Hidden]
         public ?string $oauthClientSecret = null,
         public ?string $oauthAuthorizationEndpoint = null,
         public ?string $oauthTokenEndpoint = null,

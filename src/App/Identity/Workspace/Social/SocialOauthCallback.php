@@ -42,7 +42,7 @@ class SocialOauthCallback
     {
         /** @var AbstractProvider $driver */
         $driver = Socialite::driver($provider->value);
-        $socialUser = $driver->stateless()->user();
+        $socialUser = $driver->user();
 
         try {
             $this->link->execute(Auth::user(), $provider, (string) $socialUser->getId());
@@ -58,7 +58,7 @@ class SocialOauthCallback
     {
         /** @var AbstractProvider $driver */
         $driver = Socialite::driver($provider->value);
-        $socialUser = $driver->stateless()->user();
+        $socialUser = $driver->user();
 
         $user = $this->login->execute(
             $provider,

@@ -10,7 +10,7 @@ class ChangeTicketPriorityRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return (bool) $this->user()?->can('update', $this->route('ticket'));
     }
 
     /**

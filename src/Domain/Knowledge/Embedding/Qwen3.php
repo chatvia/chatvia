@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Embedding;
 
+use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Http;
 
 class Qwen3 extends AbstractEmbeddingsProvider
@@ -25,6 +26,8 @@ class Qwen3 extends AbstractEmbeddingsProvider
                 'dimensions' => $this->getDimensions(),
             ]);
 
+        app(TokenUsageContext::class)->addFromResponse($response);
+
         $embedding = $response->json('data.0.embedding');
 
         if ($returnAsText) {
@@ -44,7 +47,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
 
     public function rerank(string $query, array $documents): ?array
     {
-        $results = Http::withHeaders([
+        $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer '.$this->getApiKey(),
         ])
@@ -53,7 +56,12 @@ class Qwen3 extends AbstractEmbeddingsProvider
                 'model' => $this->getModel(),
                 'query' => $query,
                 'documents' => $documents,
-            ])->json('results');
+                'top_n' => 3,
+            ]);
+
+        app(TokenUsageContext::class)->addFromResponse($response);
+
+        $results = $response->json('results');
 
         return collect($results)
             ->map(fn ($item): array => [

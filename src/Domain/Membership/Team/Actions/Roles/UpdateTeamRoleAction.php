@@ -18,7 +18,11 @@ class UpdateTeamRoleAction
     {
         $agentIds = $data->allAgents
             ? []
-            : Agent::whereIn('external_id', $data->agentExternalIds)->pluck('id')->toArray();
+            : Agent::query()
+                ->where('team_id', $data->team->id)
+                ->whereIn('external_id', $data->agentExternalIds)
+                ->pluck('id')
+                ->toArray();
 
         if (! $data->allAgents && count($agentIds) !== count($data->agentExternalIds)) {
             throw new DomainValidationException('agent_ids', 'One or more selected agents are invalid.');

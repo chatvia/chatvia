@@ -7,13 +7,15 @@ use Domain\Knowledge\Ingestion\Actions\Sources\CreateSourceChunkAction;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Llm\Usage\AttributesTokenUsage;
+use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class DocumentChunkIngestionJob implements ShouldQueue
+class DocumentChunkIngestionJob implements ShouldQueue, AttributesTokenUsage
 {
-    use Batchable, Queueable;
+    use Batchable, Queueable, TracksTokenUsage;
 
     public bool $deleteWhenMissingModels = true;
 
@@ -28,6 +30,11 @@ class DocumentChunkIngestionJob implements ShouldQueue
         public ?PageData $previousPage = null,
         public ?PageData $nextPage = null,
     ) {}
+
+    public function tokenWorkspaceId(): ?int
+    {
+        return $this->agent->user_id;
+    }
 
     public function handle(CreateSourceChunkAction $createChunk): void
     {

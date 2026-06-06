@@ -2,30 +2,21 @@
 
 namespace App\Http\Controllers\Webhooks;
 
-use App\Security\HMAC;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Support\Http\WebhookSignature;
 
 class WebhookChunkController
 {
-    public function __invoke(Request $request, HMAC $hmac): void
+    public function __invoke(Request $request): void
     {
-        $authHash = $request->header('X-Auth-Hash');
-        $chunkId = $request->string('chunk_id');
+        // Unauthenticated + CSRF-exempt callback from the chunker pipeline.
+        // Enforce the HMAC over the chunk id and reject on mismatch. (The auth
+        // hash is never logged.)
+        $chunkId = $request->string('chunk_id')->toString();
 
-        Log::info('Chunk ID: '.$chunkId.'. Hash: '.$authHash);
-
-        abort_unless($authHash !== null, 401);
-
-        $passed = $this->verify($chunkId, $authHash);
-
-        logger('Passed? '.(int) $passed);
-    }
-
-    private function verify(string $payload, string $signature): bool
-    {
-        $expectedSignature = hash_hmac('sha256', $payload, config('services.chunker.secret'));
-
-        return hash_equals($expectedSignature, $signature);
+        abort_unless(
+            WebhookSignature::verify($chunkId, $request->header('X-Auth-Hash'), (string) config('services.chunker.hash_key')),
+            401,
+        );
     }
 }

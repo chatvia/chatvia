@@ -33,6 +33,7 @@ class AcceptTeamInvitationController extends Controller
         }
 
         Auth::login($user);
+
         $user->switchTeam($invitation->team);
 
         return redirect()->route('dashboard')

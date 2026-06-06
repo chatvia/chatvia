@@ -268,8 +268,11 @@ class MessageManager
      * Get messages formatted for LLM consumption.
      * Filters out assistant messages where llm_found_answer is false and their preceding user messages.
      */
-    public function getLlmMessages(string $conversationId, bool $asText = false, int $limit = 2): array|string
+    public function getLlmMessages(string $conversationId, bool $asText = false, ?int $limit = null): array|string
     {
+        // Default the history window to the configured size when not overridden.
+        $limit ??= (int) config('chatvia.agent.history_messages', 10);
+
         $cacheKey = $this->cache->generateConversationKey($conversationId);
         $messages = $this->cache->get($cacheKey, [], $conversationId);
 
@@ -313,6 +316,10 @@ class MessageManager
                 'role' => $message['role'],
                 'content' => $message['message_for_llm'] ?? $message['content'],
             ])
+            // Keep only the last N (chatvia.agent.history_messages) so the LLM
+            // context window stays bounded as the conversation grows.
+            ->slice(-$limit)
+            ->values()
             ->toArray();
 
         if ($asText) {

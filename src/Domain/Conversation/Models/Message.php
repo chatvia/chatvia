@@ -124,6 +124,13 @@ class Message extends Model
             'metadata' => 'array',
             'read_at' => 'datetime',
             'has_llm_found_answer' => 'boolean',
+            'is_response_from_qa' => 'boolean',
+            'is_usage_counted' => 'boolean',
+            'message_credits' => 'integer',
+            'response_time_ms' => 'integer',
+            'prompt_tokens' => 'integer',
+            'completion_tokens' => 'integer',
+            'cost_in_micro_cents' => 'integer',
         ];
     }
 

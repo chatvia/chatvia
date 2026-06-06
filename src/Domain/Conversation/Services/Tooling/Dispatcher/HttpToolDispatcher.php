@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Services\Tooling\Dispatcher;
 
 use Domain\Agent\Models\Agent;
+use Domain\Analytics\Events\FunctionInvoked;
 use Domain\Conversation\Services\Tooling\Registry\ToolCallerIdentity;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Support\Facades\DB;
@@ -150,6 +151,16 @@ class HttpToolDispatcher implements ToolDispatcherInterface
                 'invocation_count' => DB::raw('invocation_count + 1'),
                 'last_invoked_at' => $now,
             ]);
+
+        // Durable per-day rollup so usage insights survive function deletion.
+        FunctionInvoked::dispatch(
+            $agent->id,
+            (int) $agent->user_id,
+            $function->id,
+            (string) ($function->display_name ?: $function->internal_name),
+            $function->description,
+            $now,
+        );
     }
 
     private function error(string $message): ToolDispatchResult

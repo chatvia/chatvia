@@ -1,30 +1,28 @@
 # Profile
 
-Your personal account settings live in **Settings → Profile**.
+Each teammate's personal account settings live in **Settings → Profile**. This is the profile of the person signed in — not the workspace itself.
 
 | Field | Notes |
 | --- | --- |
-| **Name** | Shown in the dashboard and on team member lists. |
-| **Email** | Used for sign-in, notifications, billing receipts. |
-| **Avatar** | Optional. Shown beside your name in shared views. |
-| **Timezone** | Used for date displays in Chat logs and Analytics. |
-| **Language** | Dashboard interface language (not agent reply language — set that per-agent in **Behavior**). |
+| **Name** | Shown in the dashboard and on the workspace's teammate list. |
+| **Email** | Used for sign-in, notifications, and billing receipts (for the workspace owner). |
+| **Avatar** | Optional. Shown beside your name in shared workspace views. |
+| **Timezone** | Used for date displays in conversation logs and analytics. |
+| **Language** | Dashboard interface language (not the agent reply language — set that per-agent in **Behavior**). |
 
 ## Password
 
-Edit your password in **Settings → Password**. Changing it signs out other sessions immediately.
+Edit your password in **Settings → Password**. Changing it signs out your other sessions immediately.
 
-If you'd rather use single sign-on, you can sign in with **Google** or **Slack** from the login page — Chatvia links the SSO identity to your account on first sign-in.
+If your team prefers single sign-on, you can sign in with **Google** or **Slack** from the login page — Chatvia links the SSO identity to your account on first sign-in.
 
 ## Deleting your account
 
-The bottom of the Profile page has a **Delete account** action. This:
+The bottom of the Profile page has a **Delete account** action. The effect depends on your role in the workspace:
 
 - Hard-deletes your user record.
-- Cancels any active subscription.
-- Deletes teams you own (with all their agents, sources, conversations).
-
-If you're a member (not owner) of other teams, you're simply removed from those — the teams are not deleted.
+- If you are the **workspace owner**, this also cancels the active subscription and deletes the workspace itself, along with all its agents, sources, and conversations.
+- If you are a **teammate** (not the owner), you are simply removed from the workspace — the workspace and its agents stay intact for the rest of the team.
 
 This is irreversible. Export anything you want to keep first.
 

@@ -14,11 +14,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Check, Copy, Globe, LoaderCircle, Mail, PlusCircle, Search, Trash2, UserPlus, Users } from 'lucide-vue-next';
+import {
+    Check,
+    CircleAlert,
+    Clock,
+    Copy,
+    Globe,
+    LoaderCircle,
+    Mail,
+    PlusCircle,
+    RefreshCw,
+    Search,
+    Send,
+    Trash2,
+    UserPlus,
+    Users,
+    X,
+} from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -169,6 +186,83 @@ const grantAccess = (member: ChatterRow) => {
     );
 };
 
+// Member detail sheet. We track the id (not a snapshot) so the panel always
+// reflects the latest row after a grant/revoke/resend refresh.
+const memberSheetOpen = ref(false);
+const selectedMemberId = ref<string | null>(null);
+const selectedMember = computed<ChatterRow | null>(() => members.value.find((m) => m.external_id === selectedMemberId.value) ?? null);
+const sheetCopied = ref(false);
+const idCopied = ref(false);
+const isResending = ref(false);
+
+// Up-to-two-letter avatar initials from the member's name.
+const memberInitials = computed(() => {
+    const name = selectedMember.value?.name?.trim();
+    if (!name) return '?';
+    return name
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((p) => p[0]?.toUpperCase() ?? '')
+        .join('');
+});
+
+const openMember = (member: ChatterRow) => {
+    selectedMemberId.value = member.external_id;
+    sheetCopied.value = false;
+    idCopied.value = false;
+    memberSheetOpen.value = true;
+};
+
+const copyId = async () => {
+    const id = selectedMember.value?.external_id;
+    if (!id) return;
+    await navigator.clipboard.writeText(id);
+    idCopied.value = true;
+    setTimeout(() => (idCopied.value = false), 2000);
+};
+
+const copyInvitationLink = async () => {
+    const url = selectedMember.value?.invitation_url;
+    if (!url) return;
+    await navigator.clipboard.writeText(url);
+    sheetCopied.value = true;
+    setTimeout(() => (sheetCopied.value = false), 2000);
+};
+
+// Re-invite an existing pending member: mints a fresh link + emails it. After
+// the refresh the row carries the new `invitation_url`, so the sheet (driven by
+// the computed above) shows the copyable link without any manual patching.
+const resendInvitation = () => {
+    const member = selectedMember.value;
+    if (!member?.email) return;
+    isResending.value = true;
+    router.post(
+        route('agents.members.store', { agent: props.agent.external_id }),
+        { email: member.email },
+        {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                toast.success(`Fresh invitation link generated for ${member.name}`);
+                fetchMembers();
+            },
+            onError: () => toast.error('Could not generate an invitation link'),
+            onFinish: () => {
+                isResending.value = false;
+            },
+        },
+    );
+};
+
+const revokeFromSheet = () => {
+    const member = selectedMember.value;
+    if (!member) return;
+    // Close the sheet before opening the confirm dialog so the two overlays
+    // don't fight over focus.
+    memberSheetOpen.value = false;
+    askDetach(member);
+};
+
 // Mirror the server-side sort: granted first, then alphabetical within each group.
 const resort = () => {
     members.value = [...members.value].sort((a, b) => {
@@ -271,7 +365,9 @@ const formatDate = (iso: string) => {
                                     <TableRow
                                         v-for="member in filteredMembers"
                                         :key="member.external_id"
+                                        class="hover:bg-muted/50 cursor-pointer transition-colors"
                                         :class="{ 'opacity-70': !member.has_access }"
+                                        @click="openMember(member)"
                                     >
                                         <TableCell class="font-medium">
                                             {{ member.name }}
@@ -310,7 +406,7 @@ const formatDate = (iso: string) => {
                                                 class="h-8"
                                                 :disabled="grantingId === member.external_id"
                                                 :title="`Grant ${member.name} access to this agent`"
-                                                @click="grantAccess(member)"
+                                                @click.stop="grantAccess(member)"
                                             >
                                                 <LoaderCircle v-if="grantingId === member.external_id" class="mr-1 h-3.5 w-3.5 animate-spin" />
                                                 <PlusCircle v-else class="mr-1 h-3.5 w-3.5" />
@@ -322,7 +418,7 @@ const formatDate = (iso: string) => {
                                                 size="sm"
                                                 class="text-destructive hover:text-destructive h-8 w-8 p-0"
                                                 :title="`Revoke access for ${member.name}`"
-                                                @click="askDetach(member)"
+                                                @click.stop="askDetach(member)"
                                             >
                                                 <Trash2 class="h-4 w-4" />
                                             </Button>
@@ -371,9 +467,13 @@ const formatDate = (iso: string) => {
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" @click="inviteOpen = false" :disabled="inviteForm.processing">Cancel</Button>
+                        <Button type="button" variant="outline" @click="inviteOpen = false" :disabled="inviteForm.processing">
+                            <X class="mr-2 h-4 w-4" />
+                            Cancel
+                        </Button>
                         <Button type="submit" :disabled="inviteForm.processing || !inviteForm.email">
                             <LoaderCircle v-if="inviteForm.processing" class="mr-2 h-4 w-4 animate-spin" />
+                            <Send v-else class="mr-2 h-4 w-4" />
                             Send invite
                         </Button>
                     </DialogFooter>
@@ -401,12 +501,150 @@ const formatDate = (iso: string) => {
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" @click="lastInvitation = null">Invite another</Button>
-                        <Button type="button" @click="inviteOpen = false">Done</Button>
+                        <Button type="button" variant="outline" @click="lastInvitation = null">
+                            <UserPlus class="mr-2 h-4 w-4" />
+                            Invite another
+                        </Button>
+                        <Button type="button" @click="inviteOpen = false">
+                            <Check class="mr-2 h-4 w-4" />
+                            Done
+                        </Button>
                     </DialogFooter>
                 </div>
             </DialogContent>
         </Dialog>
+
+        <!-- Member detail sheet -->
+        <Sheet v-model:open="memberSheetOpen">
+            <SheetContent v-if="selectedMember" class="w-full overflow-y-auto p-0 sm:max-w-md">
+                <SheetHeader class="space-y-4 border-b px-6 pt-7 pb-6">
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="bg-muted text-foreground flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-base font-semibold"
+                        >
+                            {{ memberInitials }}
+                        </div>
+                        <div class="min-w-0 flex-1 pt-1">
+                            <SheetTitle class="truncate text-lg">{{ selectedMember.name }}</SheetTitle>
+                            <div class="mt-1.5 flex items-center gap-2 text-sm">
+                                <span
+                                    v-if="selectedMember.status === 'pending'"
+                                    class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100"
+                                >
+                                    Pending
+                                </span>
+                                <span
+                                    v-else
+                                    class="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-900 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-100"
+                                >
+                                    Active
+                                </span>
+                                <span class="text-muted-foreground truncate">{{ selectedMember.email || 'No email' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <SheetDescription class="sr-only">Member details and access for this agent.</SheetDescription>
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-1.5 text-xs">
+                            <span class="text-muted-foreground">ID</span>
+                            <code class="min-w-0 flex-1 truncate font-mono" :title="selectedMember.external_id">{{ selectedMember.external_id }}</code>
+                            <Button variant="ghost" size="sm" class="h-6 shrink-0 px-1.5" title="Copy member ID" @click="copyId">
+                                <Check v-if="idCopied" class="size-3.5 text-green-600" />
+                                <Copy v-else class="size-3.5" />
+                            </Button>
+                        </div>
+                        <p class="text-muted-foreground text-xs">Joined {{ formatDate(selectedMember.created_at) }}</p>
+                    </div>
+                </SheetHeader>
+
+                <div class="space-y-6 px-6 py-6">
+                    <!-- Access -->
+                    <div class="space-y-1.5">
+                        <p class="text-muted-foreground text-xs font-medium uppercase">Access</p>
+                        <div>
+                            <span
+                                v-if="selectedMember.has_access"
+                                class="inline-flex items-center rounded-full bg-neutral-900 px-2 py-0.5 text-xs font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
+                            >
+                                Granted
+                            </span>
+                            <span v-else class="text-muted-foreground text-xs">No access</span>
+                        </div>
+                    </div>
+
+                    <!-- Pending invitation -->
+                    <div v-if="selectedMember.status === 'pending'" class="space-y-3 rounded-md border p-4">
+                        <div class="flex items-start gap-2">
+                            <Clock class="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                            <div class="space-y-0.5">
+                                <p class="text-sm font-medium">Invitation pending</p>
+                                <p class="text-muted-foreground text-xs">
+                                    This member hasn't accepted yet. Share their personal sign-up link below.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div v-if="selectedMember.invitation_url" class="space-y-2">
+                            <Label>Sign-up link</Label>
+                            <div class="flex items-center gap-2">
+                                <Input :model-value="selectedMember.invitation_url" readonly class="font-mono text-xs" />
+                                <Button type="button" variant="outline" size="icon" title="Copy" @click="copyInvitationLink">
+                                    <Check v-if="sheetCopied" class="h-4 w-4 text-green-600" />
+                                    <Copy v-else class="h-4 w-4" />
+                                </Button>
+                            </div>
+                            <p v-if="selectedMember.invitation_expires_at" class="text-muted-foreground text-xs">
+                                Expires {{ formatDate(selectedMember.invitation_expires_at) }}.
+                            </p>
+                        </div>
+
+                        <div v-else class="text-muted-foreground flex items-start gap-2 text-xs">
+                            <CircleAlert class="mt-0.5 h-4 w-4 shrink-0" />
+                            <p>The invitation link has expired or is no longer available. Generate a fresh one below.</p>
+                        </div>
+
+                        <Button type="button" variant="outline" size="sm" class="w-full" :disabled="isResending" @click="resendInvitation">
+                            <LoaderCircle v-if="isResending" class="mr-2 h-4 w-4 animate-spin" />
+                            <RefreshCw v-else class="mr-2 h-4 w-4" />
+                            {{ selectedMember.invitation_url ? 'Resend invitation' : 'Generate new link' }}
+                        </Button>
+                    </div>
+
+                    <!-- Manage hint -->
+                    <p class="text-muted-foreground text-sm">
+                        To manage this member, go to the
+                        <Link
+                            :href="route('settings.members.index')"
+                            class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                        >
+                            members page </Link
+                        >.
+                    </p>
+                </div>
+
+                <SheetFooter class="border-t px-6 py-4">
+                    <Button
+                        v-if="selectedMember?.has_access"
+                        variant="outline"
+                        class="text-destructive hover:text-destructive"
+                        @click="revokeFromSheet"
+                    >
+                        <Trash2 class="mr-2 h-4 w-4" />
+                        Revoke access
+                    </Button>
+                    <Button
+                        v-else-if="selectedMember"
+                        variant="outline"
+                        :disabled="grantingId === selectedMember.external_id"
+                        @click="grantAccess(selectedMember)"
+                    >
+                        <LoaderCircle v-if="grantingId === selectedMember.external_id" class="mr-2 h-4 w-4 animate-spin" />
+                        <PlusCircle v-else class="mr-2 h-4 w-4" />
+                        Grant access
+                    </Button>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
 
         <!-- Revoke confirmation -->
         <AlertDialog v-model:open="detachOpen">

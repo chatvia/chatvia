@@ -18,14 +18,14 @@ class RecordConversationTopicAction
 {
     public function execute(ConversationTopicAssigned $event): void
     {
-        $db = DB::connection(config('analytics.connection'));
+        $db = DB::connection(config('chatvia.analytics.connection'));
         $day = $event->occurredAt->format('Y-m-d');
 
         $db->statement(<<<'SQL'
-            INSERT INTO analytics_agent_topic_daily (agent_id, user_id, bucket_day, chat_topic_id, conversation_count)
+            INSERT INTO analytics_agent_topic_daily (agent_id, workspace_id, bucket_day, topic_id, conversation_count)
             VALUES (?, ?, ?::date, ?, 1)
-            ON CONFLICT (agent_id, bucket_day, chat_topic_id) DO UPDATE SET
+            ON CONFLICT (agent_id, bucket_day, topic_id) DO UPDATE SET
                 conversation_count = analytics_agent_topic_daily.conversation_count + 1
-        SQL, [$event->agentId, $event->userId, $day, $event->topicId]);
+        SQL, [$event->agentId, $event->workspaceId, $day, $event->topicId]);
     }
 }

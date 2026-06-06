@@ -9,25 +9,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
+ * Tokens consumed in a billing cycle. Accumulator only — `tokens` is ALLOWED to
+ * exceed the granted budget on the {@see UserToken} (the turn that crosses zero
+ * overshoots); the available balance is clamped at 0 elsewhere.
+ *
  * @property int $id
- * @property int $user_credit_id
- * @property int $messages
- * @property int $credits
- * @property int $messages_exceeded
+ * @property int $user_token_id
+ * @property int $tokens
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read UserCredit|null $credit
+ * @property-read UserToken|null $token
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage whereCredits($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage whereMessages($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage whereMessagesExceeded($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage whereTokens($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage whereUserCreditId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|UserUsage whereUserTokenId($value)
  *
  * @mixin \Eloquent
  */
@@ -36,8 +36,8 @@ class UserUsage extends Model
 {
     use HasFactory;
 
-    public function credit(): BelongsTo
+    public function token(): BelongsTo
     {
-        return $this->belongsTo(UserCredit::class);
+        return $this->belongsTo(UserToken::class);
     }
 }

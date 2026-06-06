@@ -4,6 +4,7 @@ namespace App\Identity\Chatter\Actions;
 
 use App\Identity\Chatter\Data\UpdateChatterProfileData;
 use App\Identity\Workspace\Services\PasswordAuthenticator;
+use App\Identity\Workspace\Services\ProfilePhotoStorage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -11,6 +12,7 @@ class UpdateChatterProfileAction
 {
     public function __construct(
         private readonly PasswordAuthenticator $authenticator,
+        private readonly ProfilePhotoStorage $photos,
     ) {}
 
     /**
@@ -28,18 +30,20 @@ class UpdateChatterProfileAction
             }
         }
 
-        $values = [];
-
         if ($data->name !== null) {
-            $values['name'] = $data->name;
+            $user->name = $data->name;
         }
 
         if ($data->newPassword) {
-            $values['password'] = Hash::make($data->newPassword);
+            $user->password = Hash::make($data->newPassword);
         }
 
-        if ($values) {
-            $user->update($values);
+        if ($data->photo) {
+            $user->profile_image_path = $this->photos->store($user, $data->photo);
+        }
+
+        if ($user->isDirty()) {
+            $user->save();
         }
     }
 }

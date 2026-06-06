@@ -5,7 +5,6 @@ namespace Domain\Billing\Listeners;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserBilling;
 use Domain\Billing\Notifications\TrialWelcomeNotification;
-use Domain\Membership\Team\Services\TeamService;
 use Exception;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -242,7 +241,10 @@ class HandleStripeWebhook
 
             $user->billing()->updateOrCreate([], ['stripe_id' => $data['customer']]);
 
-            app(TeamService::class)->createDefaultTeam($user);
+            // The default team is created by UserObserver::created() the moment
+            // the Workspace user is inserted above — `type` is set explicitly so
+            // the observer's guard runs. Calling createDefaultTeam() here too
+            // produced a second, duplicate "…'s Team".
 
             // Welcome email with login instructions and the temporary password.
             $package = $metadata['package'] ?? 'starter';

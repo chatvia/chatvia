@@ -8,26 +8,26 @@ use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Jobs\Crawler\WebsiteCrawlerJob;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
 class StartAgentWebsiteCrawlAction
 {
     /**
-     * @throws InviteRejectedException
+     * @throws DomainValidationException
      */
     public function execute(Agent $agent, User $user, CrawlerData $data): SourceWebsite
     {
         if ($agent->websites()->where('url', $data->url)->exists()) {
-            throw new InviteRejectedException('url', 'This website has already been added to this agent.');
+            throw new DomainValidationException('url', 'This website has already been added to this agent.');
         }
 
         try {
             $response = Http::withOptions(['allow_redirects' => false])->get($data->url)->throw();
         } catch (Throwable $throwable) {
             report($throwable);
-            throw new InviteRejectedException('url', 'Failed to fetch the website. Please check the URL and try again.');
+            throw new DomainValidationException('url', 'Failed to fetch the website. Please check the URL and try again.');
         }
 
         if ($response->redirect()) {

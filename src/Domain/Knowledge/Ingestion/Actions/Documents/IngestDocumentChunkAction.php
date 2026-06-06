@@ -17,7 +17,7 @@ class IngestDocumentChunkAction
     {
         return Chunk::create([
             'chunkable_id' => $data->source_file_id,
-            'chunkable_type' => SourceFile::class,
+            'chunkable_type' => (new SourceFile)->getMorphClass(),
             'agent_id' => $data->agent_id,
             'type' => $data->chunk->type,
             'original' => $data->chunk->original,

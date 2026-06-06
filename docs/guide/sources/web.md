@@ -1,12 +1,12 @@
 # Web sources
 
-Point Chatvia at a URL and it'll crawl, parse, and index the page — and optionally child pages on the same domain.
+Point Chatvia at a URL and it will crawl, parse, and index the page — and optionally child pages on the same domain. Web sources turn your team's public knowledge (docs sites, help centers, marketing pages) into something every agent in the workspace can answer from.
 
 ![SCREENSHOT — web sources](/screenshots/sources-web.png)
 
 ## Adding a URL
 
-In **Sources → Web**, paste the URL and click **Add**.
+In the agent's **Sources → Web** tab, paste the URL and click **Add**.
 
 Chatvia immediately:
 
@@ -15,7 +15,7 @@ Chatvia immediately:
 3. Crawls those links, depth-limited and rate-limited.
 4. Indexes each page as a separate **link** under one parent **website** source.
 
-You'll see a progress card with **discovered**, **processing**, and **ingested** counts.
+You will see a progress card with **discovered**, **processing**, and **ingested** counts.
 
 ## Controlling the crawl
 
@@ -25,7 +25,7 @@ Open the website source to see:
 - Toggles to **include** or **exclude** specific links from indexing.
 - A **Retrain** button to re-crawl from scratch.
 
-Exclude noisy pages (login screens, archive indexes, terms of service) — they pollute retrieval. Include only the pages a visitor's question could plausibly map to.
+Exclude noisy pages (login screens, archive indexes, terms of service) — they pollute retrieval. Include only the pages a customer's question could plausibly map to.
 
 ## Limits and politeness
 
@@ -36,10 +36,10 @@ Exclude noisy pages (login screens, archive indexes, terms of service) — they 
 
 ## Re-crawling on a schedule
 
-Web sources don't auto-refresh. If the underlying site changes often, you have two options:
+Web sources don't auto-refresh. If the underlying site changes often, your team has two options:
 
-- **Manual retrain.** Click **Retrain** on the website source whenever you publish changes.
-- **API retrain.** Call the Sources API in your CI/CD pipeline so the agent's knowledge updates on every deploy.
+- **Manual retrain.** A teammate clicks **Retrain** on the website source whenever your team publishes changes.
+- **API retrain.** Call the Sources API from your CI/CD pipeline so the agent's knowledge updates on every deploy.
 
 ::: tip Pair the API and a webhook
 Many docs sites already emit a webhook on publish (e.g. from a CMS). Subscribe to that webhook and call the Chatvia API to retrain only the URLs that changed.
@@ -47,7 +47,7 @@ Many docs sites already emit a webhook on publish (e.g. from a CMS). Subscribe t
 
 ## Single-page apps
 
-For JS-rendered SPAs, Chatvia runs a headless browser so client-side content is captured. If you find a SPA isn't being indexed correctly, file a support ticket with the URL — the crawler may need a per-domain configuration.
+For JS-rendered SPAs, Chatvia runs a headless browser so client-side content is captured. If a SPA isn't being indexed correctly, file a support ticket with the URL — the crawler may need a per-domain configuration.
 
 ## Metadata
 
@@ -58,8 +58,8 @@ Each ingested link has:
 - Last crawled timestamp.
 - Retrieval count.
 
-You can filter and search across all links of a website.
+Your team can filter and search across all links of a website.
 
 ## Web sources via API
 
-You can add and refresh URL sources programmatically. See the [API reference](https://chatvia.ai/docs/api) under **Sources**.
+Your team can add and refresh URL sources programmatically. See the [API reference](https://chatvia.ai/docs/api) under **Sources**.

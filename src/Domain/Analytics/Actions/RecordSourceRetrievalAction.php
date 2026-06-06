@@ -19,17 +19,19 @@ class RecordSourceRetrievalAction
             return;
         }
 
-        $db = DB::connection(config('analytics.connection'));
+        $db = DB::connection(config('chatvia.analytics.connection'));
         $day = $event->occurredAt->format('Y-m-d');
 
         $db->transaction(function () use ($db, $event, $day): void {
             foreach ($event->sources as $source) {
                 $db->statement(<<<'SQL'
-                    INSERT INTO analytics_agent_source_daily (agent_id, user_id, bucket_day, sourceable_type, sourceable_id, retrieval_count)
-                    VALUES (?, ?, ?::date, ?, ?, 1)
+                    INSERT INTO analytics_agent_source_daily (agent_id, workspace_id, bucket_day, sourceable_type, sourceable_id, retrieval_count, source_name, source_mime)
+                    VALUES (?, ?, ?::date, ?, ?, 1, ?, ?)
                     ON CONFLICT (agent_id, bucket_day, sourceable_type, sourceable_id) DO UPDATE SET
-                        retrieval_count = analytics_agent_source_daily.retrieval_count + 1
-                SQL, [$event->agentId, $event->userId, $day, $source['type'], $source['id']]);
+                        retrieval_count = analytics_agent_source_daily.retrieval_count + 1,
+                        source_name = EXCLUDED.source_name,
+                        source_mime = EXCLUDED.source_mime
+                SQL, [$event->agentId, $event->workspaceId, $day, $source['type'], $source['id'], $source['name'] ?? null, $source['mime'] ?? null]);
             }
         });
     }

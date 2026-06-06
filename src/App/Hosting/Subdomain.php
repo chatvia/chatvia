@@ -15,7 +15,7 @@ class Subdomain
     public function generateRandomSubDomain(): string
     {
         $response = $this->llmProvider->completion([
-            'model' => config('ai.models.title'),
+            'model' => config('chatvia.ai.models.title'),
             'max_tokens' => 30,
             'messages' => [
                 [

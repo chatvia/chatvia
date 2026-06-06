@@ -1,6 +1,6 @@
 # Analytics
 
-Per-agent analytics surface what your visitors are asking, how they feel, and how your agent is performing. Open an agent and click **Analytics** on the sidebar.
+Per-agent analytics show your team what customers are asking, how they feel, and how each agent is performing. Open an agent and click **Analytics** on the sidebar.
 
 ![SCREENSHOT — analytics overview](/screenshots/analytics.png)
 
@@ -24,10 +24,10 @@ The headline numbers:
 - **Messages** — assistant turns served.
 - **Avg messages per conversation** — proxy for depth of engagement.
 - **Avg response time** — how fast the agent answered.
-- **Completion rate** — share of conversations that reached at least one assistant reply (vs. visitor bouncing on the empty state).
-- **Handoff rate** — share that escalated to a human.
+- **Completion rate** — share of conversations that reached at least one assistant reply (vs. the chatter bouncing on the empty state).
+- **Handoff rate** — share that escalated to a teammate.
 
-Spikes are usually traffic — a new embed, a viral mention. Dips can be a broken widget, a billing pause, or a model outage.
+Spikes are usually traffic — a new embed, a viral mention, a fresh rollout to your team. Dips can be a broken surface, a billing pause, or a model outage.
 
 ## Sentiment
 
@@ -41,10 +41,10 @@ Conversations are auto-classified at end as **positive**, **neutral**, or **nega
 
 ## Tone
 
-Same shape as sentiment, but for *visitor* tone. Surfaces things like:
+Same shape as sentiment, but for *chatter* tone. Surfaces things like:
 
 - Spikes in frustrated tone after a release.
-- Casual tone dominating on consumer agents, professional on B2B.
+- Casual tone dominating on internal agents, professional on customer-facing ones.
 
 ## Topics
 
@@ -53,29 +53,29 @@ Same shape as sentiment, but for *visitor* tone. Surfaces things like:
 Chatvia clusters conversations into topics. Two layers:
 
 - **Automatic clusters** — discovered from the data ("password reset", "shipping delays", "API limits").
-- **Manual topics** — you define them in the **Topics** management page; conversations are tagged against the closest match.
+- **Manual topics** — your team defines them in the **Topics** management page; conversations are tagged against the closest match.
 
 Both are visible in the topics view, with counts, samples, and a "top words" cloud.
 
 ::: tip Use manual topics for product reporting
-Auto-clustered names drift. If you want stable analytics ("how many billing questions per week?"), define a manual **Billing** topic and let the agent classify against it.
+Auto-clustered names drift. If your team wants stable analytics ("how many billing questions per week?"), define a manual **Billing** topic and let the agent classify against it.
 :::
 
 ## Sources
 
-A breakdown of which sources have been retrieved into responses, ranked. Use this to:
+A breakdown of which sources have been retrieved into responses, ranked. Your team can use this to:
 
 - **Spot dead weight** — sources with zero retrievals in 30 days are not earning their storage. Consider deleting.
-- **Find gaps** — if visitors are asking about a feature and no source surfaces, you're missing content.
+- **Find gaps** — if chatters are asking about a feature and no source surfaces, the workspace is missing content.
 - **Prioritize improvement** — the most-retrieved sources are your most-read; make them excellent.
 
 ## Country and language
 
-Most views are filterable by **country** (derived from visitor IP) and **language** (detected from conversation text). Useful for multi-market agents — see whether your DE traffic and your US traffic ask different things.
+Most views are filterable by **country** (derived from chatter IP) and **language** (detected from conversation text). Useful for multi-market agents — see whether your DE traffic and your US traffic ask different things.
 
 ## Exporting
 
-Each view has an **Export** button that downloads the filtered data as CSV or JSON. Pipe into your own BI stack if you want to combine it with non-Chatvia metrics (product usage, support tickets).
+Each view has an **Export** button that downloads the filtered data as CSV or JSON. Pipe into your business's BI stack if you want to combine it with non-Chatvia metrics (product usage, support tickets).
 
 ## How accurate are these classifications?
 
@@ -83,4 +83,4 @@ Sentiment, tone, and topic classifications are done by an LLM running offline on
 
 ## Privacy
 
-Analytics aggregates derived metadata, not message content. The drill-down samples show actual messages — and they're subject to your normal **retention** settings. Set a short retention window if you want analytics without long-term message storage.
+Analytics aggregates derived metadata, not message content. The drill-down samples show actual messages — and they're subject to the workspace's normal **retention** settings. Set a short retention window if your business wants analytics without long-term message storage.

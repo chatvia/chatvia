@@ -12,6 +12,10 @@ class StreamRequestData extends Data
         public StreamRequestMessageData $message,
         public string $externalSessionId,
         public string $conversationId,
+        // The authenticated Chatter (widget end-user) sending this turn, or null
+        // for anonymous visitors and dashboard/chat senders. Stamps Session.user_id,
+        // drives the per-chatter message limit, and records analytics chatter_user_id.
+        public ?int $chatterUserId = null,
         // In Chat, when the user creates a new conversation, their message will be saved with the conversation ID.
         public bool $saveUserMessageImmediately = false,
         public bool $streamSources = false,

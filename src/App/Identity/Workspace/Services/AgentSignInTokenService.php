@@ -10,30 +10,39 @@ use Illuminate\Support\Carbon;
 use Throwable;
 
 /**
- * Mints and verifies the self-contained sign-in tokens that log an agent's
+ * Mints and verifies the self-contained sign-in credentials that log an agent's
  * end-user into its chat (the `?token=` link) or its protected widget (the
  * `data-auth` attribute).
  *
- * The token is a standard JSON Web Token signed with HS256 (HMAC-SHA256) using
- * the agent's `auth_secret` as the shared key (≥256 bits of entropy — see
- * {@see Agent::regenerateAuthSecret()}), so customers can mint their own with
- * any off-the-shelf JWT library (jsonwebtoken, firebase/php-jwt, PyJWT, …) —
- * see the docs on the agent's Identity Verification tab. The payload uses
- * registered claims plus one optional custom claim:
- *   - sub: the external user's external_id (who to log in)
- *   - aud: the agent's external_id (which agent the token is good for)
- *   - exp: absolute Unix expiry
- *   - ctx: optional context tag the dashboard preview uses to mark a token as
- *          coming from the Live Preview iframe ("playground"). Customer-minted
- *          tokens never carry this; the verifier surfaces it to callers so
- *          downstream code can branch without inspecting raw HTTP signals
- *          (Referer, etc.).
+ * Two interchangeable schemes are accepted in the same slot; the customer picks
+ * whichever fits their backend. Both are signed with the agent's `auth_secret`
+ * (≥256 bits — see {@see Agent::regenerateAuthSecret()}), both are stateless,
+ * and both go through the same downstream access checks.
  *
- * Verification is stateless: the JWT library checks the HS256 signature and the
- * `exp` claim; we additionally pin the audience to the agent and cap the
- * lifetime so a customer-signed token can't become a long-lived bearer
- * credential. Nothing is consumed, so a token works on repeat opens until it
- * expires.
+ *  1. **JWT (HS256)** — the default. Standard JSON Web Token with three
+ *     registered claims plus one optional custom claim:
+ *       - sub: the external user's external_id (who to log in)
+ *       - aud: the agent's external_id (which agent the token is good for)
+ *       - exp: absolute Unix expiry
+ *       - ctx: optional context tag the dashboard preview uses to mark a token
+ *              as coming from the Live Preview iframe ("playground").
+ *              Customer-minted tokens never carry this; the verifier surfaces
+ *              it to callers so downstream code can branch without inspecting
+ *              easily-spoofed HTTP signals.
+ *     Any off-the-shelf library (jsonwebtoken, firebase/php-jwt, PyJWT, …) can
+ *     mint it.
+ *
+ *  2. **Compact HMAC credential** — for customers without a JWT library. A
+ *     four-segment string of the form `cvh1.<user_id>.<exp>.<sig>` where
+ *     `<sig> = hmac_sha256("<user_id>.<exp>", auth_secret)` (lowercase hex).
+ *     The audience is implicit: the secret is per-agent, so a credential
+ *     signed against agent A cannot validate under agent B. Mint it with the
+ *     language's standard library (`crypto.createHmac` / `hash_hmac`).
+ *
+ * Verification is stateless: the signature is checked, the expiry is enforced,
+ * and the lifetime is capped at {@see MAX_TTL_SECONDS} so a customer-signed
+ * credential can't become a long-lived bearer secret. Nothing is consumed, so
+ * a credential works on repeat opens until it expires.
  */
 class AgentSignInTokenService
 {
@@ -48,6 +57,13 @@ class AgentSignInTokenService
     public const MAX_TTL_SECONDS = 86400;
 
     public const CTX_PLAYGROUND = 'playground';
+
+    /**
+     * Scheme tag for the compact HMAC credential, used to disambiguate it from
+     * a JWT in the same `data-auth` / `?token=` slot. A JWT always starts with
+     * `eyJ` (the base64url of `{"`), so there's no ambiguity.
+     */
+    public const HMAC_PREFIX = 'cvh1.';
 
     private const ALGORITHM = 'HS256';
 
@@ -90,10 +106,38 @@ class AgentSignInTokenService
     }
 
     /**
-     * Verify a token against an agent and resolve it to the user it was minted
-     * for — the agent's owner, or a managed user with permission to reach the
-     * agent — or null when the signature, audience, expiry, or access check
-     * fails (or the account has no signing secret yet).
+     * Mint a compact HMAC credential — the dependency-free alternative to
+     * {@see issue()} for customers without a JWT library. Same TTL bounds,
+     * same per-agent secret, same downstream verification.
+     *
+     * @return array{token: string, expires_at: Carbon}
+     */
+    public function issueHmac(
+        User $user,
+        Agent $agent,
+        int $ttlSeconds = self::DEFAULT_TTL_SECONDS,
+    ): array {
+        $ttlSeconds = max(self::MIN_TTL_SECONDS, min(self::MAX_TTL_SECONDS, $ttlSeconds));
+        $expiresAt = Carbon::now()->addSeconds($ttlSeconds);
+
+        $userId = $user->external_id;
+        $exp = $expiresAt->getTimestamp();
+        $sig = hash_hmac('sha256', $userId.'.'.$exp, $agent->ensureAuthSecret());
+
+        return [
+            'token' => self::HMAC_PREFIX.$userId.'.'.$exp.'.'.$sig,
+            'expires_at' => $expiresAt,
+        ];
+    }
+
+    /**
+     * Verify a credential against an agent and resolve it to the user it was
+     * minted for — the agent's owner, or a managed user with permission to
+     * reach the agent — or null when the signature, audience, expiry, or
+     * access check fails (or the account has no signing secret yet).
+     *
+     * Accepts both schemes: a JWT (default) or a compact HMAC credential
+     * (prefix `cvh1.`). See the class docblock.
      */
     public function verify(string $token, Agent $agent): ?User
     {
@@ -113,6 +157,20 @@ class AgentSignInTokenService
 
         if (blank($token) || blank($secret)) {
             return null;
+        }
+
+        // Dispatch on the scheme tag. A JWT always starts with `eyJ`, so the
+        // `cvh1.` prefix is unambiguous.
+        if (str_starts_with($token, self::HMAC_PREFIX)) {
+            $sub = $this->verifyHmacSubject($token, $secret);
+
+            if ($sub === null) {
+                return null;
+            }
+
+            // HMAC credentials carry no `ctx` — the playground tag is a
+            // JWT-only, dashboard-minted concern.
+            return $this->resolveSubject($agent, $sub, null);
         }
 
         try {
@@ -141,13 +199,79 @@ class AgentSignInTokenService
             return null;
         }
 
-        $owner = $agent->user;
         $ctx = isset($payload->ctx) ? (string) $payload->ctx : null;
+
+        return $this->resolveSubject($agent, (string) $payload->sub, $ctx);
+    }
+
+    /**
+     * Verify a `cvh1.<user_id>.<exp>.<sig>` credential against the agent's
+     * secret and return its subject (the user's external_id) on success, or
+     * null on any mismatch — malformed, tampered, expired, or over-cap.
+     *
+     * Per-agent audience binding is implicit: the secret is per-agent, so a
+     * credential signed against agent A cannot validate under agent B.
+     */
+    private function verifyHmacSubject(string $token, string $secret): ?string
+    {
+        $body = substr($token, strlen(self::HMAC_PREFIX));
+
+        // The sig (hex) and exp (digits) carry no dots, so split from the
+        // right — that leaves the user_id free to itself contain dots
+        // (e.g. an email address).
+        $lastDot = strrpos($body, '.');
+        if ($lastDot === false) {
+            return null;
+        }
+        $sig = substr($body, $lastDot + 1);
+        $head = substr($body, 0, $lastDot);
+
+        $prevDot = strrpos($head, '.');
+        if ($prevDot === false) {
+            return null;
+        }
+        $exp = substr($head, $prevDot + 1);
+        $userId = substr($head, 0, $prevDot);
+
+        if ($userId === '' || $exp === '' || ! ctype_digit($exp) || ! preg_match('/^[a-f0-9]{64}$/', $sig)) {
+            return null;
+        }
+
+        $expected = hash_hmac('sha256', $userId.'.'.$exp, $secret);
+
+        if (! hash_equals($expected, $sig)) {
+            return null;
+        }
+
+        $now = Carbon::now()->getTimestamp();
+        $expInt = (int) $exp;
+
+        // Reject expired credentials, and credentials minted with a longer
+        // life than we permit, so a customer-signed credential can't become a
+        // long-lived bearer secret.
+        if ($expInt <= $now || $expInt - $now > self::MAX_TTL_SECONDS) {
+            return null;
+        }
+
+        return $userId;
+    }
+
+    /**
+     * Resolve an authenticated subject (`sub`) against the agent and apply
+     * the shared access checks — owner short-circuit, managed-user lookup,
+     * `canAccessAgent`, and deactivation gate. Shared by both schemes so
+     * authorization stays identical; only authentication differs.
+     *
+     * @return array{user: User, ctx: ?string}|null
+     */
+    private function resolveSubject(Agent $agent, string $sub, ?string $ctx): ?array
+    {
+        $owner = $agent->user;
 
         // The owner always has access to their own agent. (They are not part
         // of their own users() set — their workspace_id is null — so match
         // them explicitly.)
-        if (hash_equals($owner->external_id, (string) $payload->sub)) {
+        if (hash_equals($owner->external_id, $sub)) {
             return ['user' => $owner, 'ctx' => $ctx];
         }
 
@@ -162,9 +286,15 @@ class AgentSignInTokenService
         // `Model|null`. The `@var` brings the concrete type back so the
         // `canAccessAgent()` call and array return both typecheck.
         /** @var User|null $user */
-        $user = $owner->users()->where('external_id', $payload->sub)->first();
+        $user = $owner->users()->where('external_id', $sub)->first();
 
         if (! $user?->canAccessAgent($agent)) {
+            return null;
+        }
+
+        // A deactivated chatter/teammate loses access immediately — this gates
+        // both the widget bootstrap exchange and the hosted-chat sign-in link.
+        if ($user->isDeactivated()) {
             return null;
         }
 

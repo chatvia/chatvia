@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import { AlertTriangle, Bot, LoaderCircle } from 'lucide-vue-next';
-import { computed, onMounted, ref, watch } from 'vue';
+import { AlertTriangle, Bot, LoaderCircle, Plus } from 'lucide-vue-next';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 const props = defineProps<{
@@ -38,11 +38,21 @@ const currentAgentQuota = computed(() => {
     return usageData.value.agents;
 });
 
+const focusNameInput = () => {
+    nextTick(() => {
+        if (props.open && canCreateAnyAgent.value) {
+            document.getElementById('name')?.focus();
+        }
+    });
+};
+
 const fetchUsageData = async () => {
     try {
         isLoadingUsage.value = true;
         const response = await axios.get(route('usage'));
         usageData.value = response.data;
+        // Input is disabled until usage loads; focus once it's enabled.
+        focusNameInput();
     } catch (error) {
         console.error('Failed to fetch usage data:', error);
         toast.error('Failed to load usage information');
@@ -84,6 +94,14 @@ const closeModal = () => {
     form.clearErrors();
 };
 
+const onOpenAutoFocus = (event: Event) => {
+    // Stop Reka from focusing the close button, then focus the name input.
+    // On first open the input is still disabled (usage not loaded yet);
+    // fetchUsageData() focuses it once it's enabled.
+    event.preventDefault();
+    focusNameInput();
+};
+
 watch(
     () => props.open,
     (newValue) => {
@@ -103,7 +121,7 @@ onMounted(() => {
 
 <template>
     <Dialog :open="open" @update:open="(value) => emit('update:open', value)">
-        <DialogContent class="max-w-lg">
+        <DialogContent class="max-w-lg" @open-auto-focus="onOpenAutoFocus">
             <DialogHeader>
                 <DialogTitle class="flex items-center gap-2">
                     <Bot class="h-5 w-5" />
@@ -137,14 +155,17 @@ onMounted(() => {
                 <div class="space-y-6" :class="{ 'pointer-events-none opacity-50': !canCreateAnyAgent }">
                     <div class="space-y-2">
                         <Label for="name" required>Agent Name</Label>
-                        <Input
-                            id="name"
-                            v-model="form.name"
-                            :error="form.errors.name"
-                            :disabled="!canCreateAnyAgent"
-                            autofocus
-                            placeholder="E.g., Customer Support"
-                        />
+                        <div class="relative">
+                            <Bot class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Input
+                                id="name"
+                                v-model="form.name"
+                                :error="form.errors.name"
+                                :disabled="!canCreateAnyAgent"
+                                class="pl-9"
+                                placeholder="E.g., Customer Support"
+                            />
+                        </div>
                         <p v-if="form.errors.name" class="text-destructive text-sm">{{ form.errors.name }}</p>
                     </div>
                 </div>
@@ -156,6 +177,7 @@ onMounted(() => {
                 <Button variant="outline" size="lg" @click="closeModal"> Cancel </Button>
                 <Button :disabled="isSubmitting || !canCreateAnyAgent" size="lg" @click="submit">
                     <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
+                    <Plus v-else class="mr-2 h-4 w-4" />
                     Create Agent
                 </Button>
             </DialogFooter>

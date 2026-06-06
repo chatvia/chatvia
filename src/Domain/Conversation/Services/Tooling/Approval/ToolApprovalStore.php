@@ -41,7 +41,7 @@ class ToolApprovalStore
                 'stream_sources' => $context->requestData->streamSources,
                 'preface' => $context->streamedMessage,
             ],
-            'expires_at' => now()->addMinutes((int) config('agent.tools.approval_ttl_minutes', 1440)),
+            'expires_at' => now()->addMinutes((int) config('chatvia.agent.tools.approval_ttl_minutes', 1440)),
         ]);
     }
 

@@ -18,7 +18,7 @@ class TeamRoleCreateShowController
     {
         $user = $request->user();
 
-        if (! $user->ownsTeam($team)) {
+        if ($user->cannot('update', $team)) {
             abort(403, 'Only the team owner can create roles.');
         }
 

@@ -29,7 +29,7 @@ class ConversationAnalyzer
         $topics = $agent->topics()->get();
 
         $response = $this->provider->completion([
-            'model' => config('ai.models.topic'),
+            'model' => config('chatvia.ai.models.topic'),
             'response_format' => [
                 'type' => 'json_schema',
                 'json_schema' => [
@@ -52,6 +52,81 @@ class ConversationAnalyzer
             allowedIds: $topics->pluck('id')->map(fn ($id) => (int) $id)->all(),
             existingNames: $topics->pluck('topic')->map(fn ($n) => mb_strtolower(trim((string) $n)))->all(),
         );
+    }
+
+    /**
+     * Per-message variant: sentiment + tone only, no topic resolution. Used by
+     * {@see \Domain\Analytics\Actions\AnalyzeMessageAction} on the per-message
+     * analysis path. Returns the same structured-output shape minus topic_ids
+     * and language, so per-message and per-conversation analytics can never
+     * drift on the same input.
+     */
+    public function analyzeMessage(string $text): ConversationAnalysisData
+    {
+        $response = $this->provider->completion([
+            'model' => config('chatvia.ai.models.tone'),
+            'response_format' => [
+                'type' => 'json_schema',
+                'json_schema' => [
+                    'name' => 'message_analysis',
+                    'schema' => $this->messageSchema(),
+                ],
+            ],
+            'messages' => [
+                ['role' => 'system', 'content' => $this->messageSystemPrompt()],
+                ['role' => 'user', 'content' => $text],
+            ],
+        ]);
+
+        $content = $response->json('choices.0.message.content');
+        $data = $this->decodeJson(is_string($content) ? $content : null);
+
+        return new ConversationAnalysisData(
+            topicIds: [],
+            suggestedTopics: [],
+            sentiment: SentimentEnum::tryFrom(strtolower((string) ($data['sentiment'] ?? ''))) ?? SentimentEnum::NEUTRAL,
+            tone: ToneEnum::tryFrom(strtolower((string) ($data['tone'] ?? ''))) ?? ToneEnum::NEUTRAL,
+            language: null,
+        );
+    }
+
+    /**
+     * Per-message schema: sentiment + tone only. Reads ToneEnum/SentimentEnum
+     * dynamically so adding a new value to either enum reaches both
+     * `analyze()` and `analyzeMessage()` without a parallel update.
+     *
+     * @return array<string, mixed>
+     */
+    private function messageSchema(): array
+    {
+        return [
+            'type' => 'object',
+            'additionalProperties' => false,
+            'required' => ['sentiment', 'tone'],
+            'properties' => [
+                'sentiment' => [
+                    'type' => 'string',
+                    'description' => "The visitor's overall sentiment.",
+                    'enum' => array_column(SentimentEnum::cases(), 'value'),
+                ],
+                'tone' => [
+                    'type' => 'string',
+                    'description' => "The visitor's overall tone.",
+                    'enum' => ToneEnum::values(),
+                ],
+            ],
+        ];
+    }
+
+    private function messageSystemPrompt(): string
+    {
+        return <<<'PROMPT'
+        You analyse the sentiment and tone of a single visitor message to a
+        customer-support agent. Return only the structured JSON shape — do not
+        explain. Treat simple questions ("how do I X?", "what is your pricing?")
+        as NEUTRAL by default. Only mark Confused when the visitor explicitly
+        signals they are lost or struggling to understand after prior attempts.
+        PROMPT;
     }
 
     /**

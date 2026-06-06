@@ -38,7 +38,7 @@ it('is a no-op for a chatter with no billing row — workspace owner is left unt
     app(CancelSubscriptionAction::class)->execute($chatter);
 
     // Concretely: cancelling for the chatter must not write rows under the
-    // workspace owner's billing (regression guard for any effectiveUser slip).
+    // workspace owner's billing (regression guard for any workspace slip).
     expect(subscriptionsFor($workspace))->toBe($workspaceSubsBefore)
         ->and(subscriptionsFor($chatter))->toBe($chatterSubsBefore);
 });

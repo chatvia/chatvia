@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import axios, { AxiosError } from 'axios';
-import { Loader2 } from 'lucide-vue-next';
+import { Loader2, Lock, ShieldCheck, X } from 'lucide-vue-next';
 import { nextTick, ref } from 'vue';
 
 const isOpen = ref(false);
@@ -77,14 +77,29 @@ defineExpose({ open });
             <form @submit.prevent="submit" class="space-y-4">
                 <div class="space-y-2">
                     <Label for="confirm-password">Password</Label>
-                    <Input id="confirm-password" ref="passwordInput" v-model="password" type="password" autocomplete="current-password" required />
+                    <div class="relative">
+                        <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                        <Input
+                            id="confirm-password"
+                            ref="passwordInput"
+                            v-model="password"
+                            type="password"
+                            autocomplete="current-password"
+                            class="pl-9"
+                            required
+                        />
+                    </div>
                     <p v-if="error" class="text-destructive text-sm">{{ error }}</p>
                 </div>
 
                 <DialogFooter>
-                    <Button type="button" variant="ghost" :disabled="submitting" @click="cancel">Cancel</Button>
+                    <Button type="button" variant="ghost" :disabled="submitting" @click="cancel">
+                        <X class="mr-2 size-4" />
+                        Cancel
+                    </Button>
                     <Button type="submit" :disabled="submitting">
                         <Loader2 v-if="submitting" class="mr-2 size-4 animate-spin" />
+                        <ShieldCheck v-else class="mr-2 size-4" />
                         Confirm
                     </Button>
                 </DialogFooter>

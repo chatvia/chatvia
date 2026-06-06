@@ -117,7 +117,7 @@ readonly class Chunker
     {
         return ChunkIngestionData::from([
             'agent_id' => $this->agent->id,
-            'chunkable_type' => $this->chunkable::class,
+            'chunkable_type' => $this->chunkable->getMorphClass(),
             'chunkable_id' => $this->chunkable->getKey(),
             'chunk_index' => $chunkIndex,
             'expected_chunks' => 0, // Will be set later

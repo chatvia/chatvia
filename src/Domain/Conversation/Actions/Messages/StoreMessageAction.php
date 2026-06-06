@@ -5,11 +5,11 @@ namespace Domain\Conversation\Actions\Messages;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\MessageSent;
 use Domain\Analytics\Jobs\AnalyzeMessageJob;
-use Domain\Analytics\Services\IP2Country;
 use Domain\Analytics\Services\UserAgentParser;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Events\SessionLocationUnknown;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -17,7 +17,6 @@ use Domain\Conversation\Models\Session;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Pricing\CostCalculator;
-use Support\Localization\Country\Models\Country;
 
 class StoreMessageAction
 {
@@ -85,11 +84,16 @@ class StoreMessageAction
             $locale = explode(',', $payload->locale)[0];
         }
 
+        // Key on (external_id, agent_id) only — NOT user_id. On the hosted /chat
+        // surface the session row is minted by TurnState::firstOrCreateSession
+        // with just agent_id (the authenticated chatter isn't known there), so
+        // keying on user_id here would never match that row and the chatter id
+        // would never land on the session.
         $session = Session::firstOrCreate([
             'external_id' => $payload->external_session_id,
             'agent_id' => $agent->id,
-            'user_id' => $isUserMessage ? $payload->user_id : null,
         ], [
+            'user_id' => $isUserMessage ? $payload->user_id : null,
             'ip_address' => $isUserMessage ? $payload->ip_address : null,
             'user_agent' => $isUserMessage ? $payload->user_agent : null,
             'device_type' => $userAgentData['device_type'] ?? null,
@@ -100,10 +104,18 @@ class StoreMessageAction
             'locale' => $locale,
         ]);
 
-        $session->update(['last_activity_at' => now()]);
+        $sessionUpdates = ['last_activity_at' => now()];
+
+        // Backfill the chatter onto a session created without one (the TurnState
+        // case above). Only fills a null — never reassigns an existing owner.
+        if ($isUserMessage && $payload->user_id && $session->user_id === null) {
+            $sessionUpdates['user_id'] = $payload->user_id;
+        }
+
+        $session->update($sessionUpdates);
 
         if ($session->ip_address && ! $session->country_id) {
-            $this->updateSessionLocation($session);
+            SessionLocationUnknown::dispatch($session);
         }
 
         return $session;
@@ -142,7 +154,21 @@ class StoreMessageAction
      */
     private function resolveUsage(ChatInputPayload|ChatOutputPayload $payload, bool $isUserMessage): array
     {
-        $generationId = ! $isUserMessage ? $payload->generation_id : null;
+        if ($isUserMessage) {
+            return [null, null, null];
+        }
+
+        // 1. Inline usage from the streaming response — the authoritative,
+        //    provider-agnostic billed count (prompt + completion). Captured by
+        //    the transformer onto the context and carried on the payload. It
+        //    carries no dollar cost, so cost stays null on this path.
+        if ($payload->prompt_tokens !== null || $payload->completion_tokens !== null) {
+            return [$payload->prompt_tokens, $payload->completion_tokens, null];
+        }
+
+        // 2. OpenRouter-style post-hoc lookup — real tokens AND dollar cost, but
+        //    only for providers that support it (costs an extra HTTP round-trip).
+        $generationId = $payload->generation_id;
         $usageData = ($generationId && $this->llmProvider->supportsCostTracking())
             ? $this->llmProvider->getGenerationCost($generationId)
             : null;
@@ -154,6 +180,9 @@ class StoreMessageAction
             ? CostCalculator::dollarsToMicroCents((float) $costInDollars)
             : null;
 
+        // Stored on the message for analytics (chat_messages.prompt_tokens /
+        // completion_tokens). Billing is metered separately at a flat per-message
+        // rate (UpdateUserCreditsJob), so a null here never affects credit.
         return [$promptTokens, $completionTokens, $costInMicroCents];
     }
 
@@ -231,6 +260,7 @@ class StoreMessageAction
         MessageSent::dispatch(
             $agent->id,
             $agent->user_id,
+            $session->user_id,
             (string) $payload->external_conversation_id,
             (string) $payload->external_message_id,
             (string) $payload->external_session_id,
@@ -250,45 +280,4 @@ class StoreMessageAction
         // not here on the hot message-write path.
     }
 
-    private function updateSessionLocation(Session $session): void
-    {
-        $location = IP2Country::getLocationByIP($session->ip_address);
-
-        if (! $location) {
-            return;
-        }
-
-        $updateData = [];
-
-        if ($location->countryCode) {
-            $country = Country::where('code', $location->countryCode)->first();
-            if ($country) {
-                $updateData['country_id'] = $country->id;
-            }
-        }
-
-        if (! $session->city && $location->cityName) {
-            $updateData['city'] = $location->cityName;
-        }
-
-        if ($location->regionName) {
-            $updateData['region'] = $location->regionName;
-        }
-
-        if ($location->zipCode) {
-            $updateData['zip_code'] = $location->zipCode;
-        }
-
-        if ($location->timeZone) {
-            $updateData['time_zone'] = $location->timeZone;
-        }
-
-        if ($location->isProxy !== null) {
-            $updateData['is_proxy'] = $location->isProxy;
-        }
-
-        if (! empty($updateData)) {
-            $session->update($updateData);
-        }
-    }
 }

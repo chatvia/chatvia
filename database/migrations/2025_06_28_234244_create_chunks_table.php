@@ -70,7 +70,7 @@ SQL);
 
     private function createVectorChordIndex(string $indexName, string $column): void
     {
-        $buildThreads = (int) config('vector.build_threads', 4);
+        $buildThreads = (int) config('chatvia.vector.build_threads', 4);
 
         $options = <<<EOT
 residual_quantization = true

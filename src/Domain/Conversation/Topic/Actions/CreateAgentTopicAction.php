@@ -5,13 +5,13 @@ namespace Domain\Conversation\Topic\Actions;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\Topic;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Illuminate\Support\Facades\DB;
 
 class CreateAgentTopicAction
 {
     /**
-     * @throws InviteRejectedException
+     * @throws DomainValidationException
      */
     public function execute(Agent $agent, User $user, string $topic, string $description): Topic
     {
@@ -21,7 +21,7 @@ class CreateAgentTopicAction
             ->exists();
 
         if ($exists) {
-            throw new InviteRejectedException('topic', 'You already have a topic with this name');
+            throw new DomainValidationException('topic', 'You already have a topic with this name');
         }
 
         return DB::transaction(function () use ($agent, $user, $topic, $description): Topic {

@@ -222,10 +222,12 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // `has_access` flag for this agent); store invites a brand-new
         // chatter; grant gives an existing chatter access to this agent;
         // destroy revokes this agent's grant (user record stays).
-        Route::get('members', [AgentMemberController::class, 'index'])->name('members.index');
-        Route::post('members', [AgentMemberController::class, 'store'])->name('members.store');
-        Route::post('members/{chatter}/grant', [AgentMemberController::class, 'grant'])->name('members.grant');
-        Route::delete('members/{chatter}', [AgentMemberController::class, 'destroy'])->name('members.destroy');
+        Route::middleware('agent.permission:agent.members.manage')->group(function (): void {
+            Route::get('members', [AgentMemberController::class, 'index'])->name('members.index');
+            Route::post('members', [AgentMemberController::class, 'store'])->name('members.store');
+            Route::post('members/{chatter}/grant', [AgentMemberController::class, 'grant'])->name('members.grant');
+            Route::delete('members/{chatter}', [AgentMemberController::class, 'destroy'])->name('members.destroy');
+        });
 
         Route::get('logs', [AgentChatLogController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('logs');
         Route::get('logs/conversations', [ChatLogConversationsController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('logs.conversations');

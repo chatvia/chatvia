@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Middleware\Access\EnsureAgentHasMessagesCapacity;
+use App\Http\Middleware\Access\EnsureAgentHasTokenBalance;
 use App\Http\Middleware\Access\EnsureAgentPermission;
 use App\Http\Middleware\Access\EnsureCanAccessApiAgent;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
@@ -20,7 +20,7 @@ use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\ForceWww;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -55,7 +55,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             RedirectToAgent::class,
             HandleAppearance::class,
-            //            ContentSecurityPolicy::class,
+            ContentSecurityPolicy::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             ForceWww::class,
@@ -67,8 +67,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
             AuthenticateChatterUsingToken::class,
             AuthenticateChatViaSignInToken::class,
             EnsureChatIsAccessible::class,
-            EnsureAgentHasMessagesCapacity::class,
-            //            ContentSecurityPolicy::class,
+            EnsureAgentHasTokenBalance::class,
+            ContentSecurityPolicy::class,
             ChatHandleInertiaRequests::class,
         ]);
 
@@ -110,7 +110,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // {message, errors:{field:[...]}}, web/Inertia redirects back with the
         // field error. Controllers no longer hand-translate it; they only catch
         // it when they intentionally need a different shape (e.g. a 403 or a flash).
-        $exceptions->map(fn (InviteRejectedException $e) => ValidationException::withMessages([
+        $exceptions->map(fn (DomainValidationException $e) => ValidationException::withMessages([
             $e->field => [$e->getMessage()],
         ]));
     })->create();

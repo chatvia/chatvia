@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Your end-users. Create one here for a specific agent, then either hand them
- * a chat sign-in link via `POST /api/v1/agents/{agent}/sign-in-links` or let
+ * a chat sign-in link via `POST /api/v1/agents/{agent}/sign` or let
  * them sign in directly (if you provided an `email` + `password`). End-users
  * never reach the dashboard — they can only chat with the agent(s) you've
  * granted them.
@@ -34,7 +34,7 @@ class ExternalUserController
     {
         /** @var User $account */
         $account = $request->user();
-        $owner = $account->belongsToWorkspace() ? $account->workspace : $account;
+        $owner = $account->workspace();
 
         $agent = $owner->agents()->where('external_id', $payload->agent_id)->first();
 

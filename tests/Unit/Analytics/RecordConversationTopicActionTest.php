@@ -15,10 +15,10 @@ it('upserts and increments the topic daily rollup', function (): void {
     $action->execute(new ConversationTopicAssigned($agentId, $userId, $topicId, $when));
     $action->execute(new ConversationTopicAssigned($agentId, $userId, $topicId, $when));
 
-    $count = DB::connection(config('analytics.connection'))->table('analytics_agent_topic_daily')
+    $count = DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_topic_daily')
         ->where('agent_id', $agentId)
         ->where('bucket_day', '2026-06-01')
-        ->where('chat_topic_id', $topicId)
+        ->where('topic_id', $topicId)
         ->value('conversation_count');
 
     expect((int) $count)->toBe(2);
@@ -32,9 +32,9 @@ it('buckets topics by their own day', function (): void {
     $action->execute(new ConversationTopicAssigned($agentId, $userId, 5, Carbon::parse('2026-06-01 09:00')));
     $action->execute(new ConversationTopicAssigned($agentId, $userId, 5, Carbon::parse('2026-06-02 09:00')));
 
-    $days = DB::connection(config('analytics.connection'))->table('analytics_agent_topic_daily')
+    $days = DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_topic_daily')
         ->where('agent_id', $agentId)
-        ->where('chat_topic_id', 5)
+        ->where('topic_id', 5)
         ->count();
 
     expect($days)->toBe(2);

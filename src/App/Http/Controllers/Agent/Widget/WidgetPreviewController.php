@@ -71,7 +71,7 @@ class WidgetPreviewController
         }
 
         return view('widget.preview', [
-            'embedScriptUrl' => config('widget.script_url_embed'),
+            'embedScriptUrl' => config('chatvia.widget.script_url_embed'),
             'agentId' => $agent->external_id,
             'authToken' => $authToken,
             'language' => $request->query('language', 'auto'),

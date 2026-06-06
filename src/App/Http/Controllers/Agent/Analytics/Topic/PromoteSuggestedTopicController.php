@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Agent\Analytics\Topic;
 
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\PromoteSuggestedTopicAction;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -20,7 +20,7 @@ class PromoteSuggestedTopicController
 
         try {
             $topic = $promote->execute($agent, $request->user(), $validated['label']);
-        } catch (InviteRejectedException $e) {
+        } catch (DomainValidationException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
 

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Chat\Auth\ChatLoginController;
 use App\Http\Controllers\Chat\Auth\ChatLogoutController;
 use App\Http\Controllers\Chat\Auth\ChatMagicLinkController;
+use App\Http\Controllers\Chat\Auth\ChatProfilePhotoDestroyController;
 use App\Http\Controllers\Chat\Auth\ChatProfileUpdateController;
 use App\Http\Controllers\Chat\Auth\ChatShowLoginController;
 use App\Http\Controllers\Chat\Auth\ChatterAgentController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Chat\Conversations\ConversationDeleteController;
 use App\Http\Controllers\Chat\Conversations\ConversationMessageController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
 use App\Http\Controllers\Chat\Conversations\GenerateConversationTitleController;
+use App\Http\Controllers\Chat\Conversations\MessageAttachmentDeleteController;
 use App\Http\Controllers\Chat\Embed\ChatEmbedController;
 use App\Http\Controllers\Chat\Embed\ChatEmbedHomeController;
 use App\Http\Controllers\Chat\Export\ChatExportController;
@@ -23,6 +25,7 @@ use App\Http\Controllers\Chat\Home\ChatHomeController;
 use App\Http\Controllers\Chat\Home\ChatSourceController;
 use App\Http\Controllers\Chat\Home\ChatStarterController;
 use App\Http\Controllers\Chat\Messages\AttachmentController;
+use App\Http\Controllers\Chat\Messages\AttachmentDeleteController;
 use App\Http\Controllers\Chat\Messages\MessageDeleteController;
 use App\Http\Controllers\Chat\Messages\MessageFeedbackController;
 use App\Http\Controllers\Chat\Messages\MessageRegenerateController;
@@ -35,7 +38,9 @@ Route::get('/chat/appearance', ChatAppearanceController::class)->name('chat.appe
 
 Route::middleware('guest')->group(function (): void {
     Route::get('chat/login', ChatShowLoginController::class)->name('chat.login.show');
-    Route::post('chat/login', ChatLoginController::class)->name('chat.login');
+    Route::post('chat/login', ChatLoginController::class)
+        ->middleware('throttle:5,1')
+        ->name('chat.login');
 
     Route::post('chat/magic-link', ChatMagicLinkController::class)
         ->middleware('throttle:6,1')
@@ -66,6 +71,8 @@ Route::prefix('/chat')
         Route::get('/conversations', ConversationController::class)->name('conversations.index');
         Route::patch('/conversations/{conversationId}', ConversationUpdate::class)->name('conversations.update');
         Route::delete('/conversations/{conversationId}', ConversationDeleteController::class)->name('conversations.delete');
+        Route::delete('/conversations/{conversationId}/attachments/{attachment}', MessageAttachmentDeleteController::class)
+            ->name('chat.conversations.attachments.delete');
         Route::delete('/conversations', ChatDeleteAllConversationsController::class)->name('conversations.delete.all');
 
         // Reachable by both logged-in members and link-signed-in visitors;
@@ -77,6 +84,7 @@ Route::prefix('/chat')
         Route::delete('/messages', MessageDeleteController::class)->name('chat.messages.delete');
         Route::post('/messages/regenerate', MessageRegenerateController::class)->name('chat.messages.regenerate');
         Route::post('/messages/attachments', AttachmentController::class)->name('chat.messages.attachments.store');
+        Route::delete('/messages/attachments/{attachment}', AttachmentDeleteController::class)->name('chat.messages.attachments.delete');
 
         Route::get('/conversations/{conversationId}/export', ChatExportController::class)->name('conversations.export');
         Route::get('/conversations/{conversationId}/sources', ChatSourceController::class)->name('chat.sources');
@@ -85,6 +93,7 @@ Route::prefix('/chat')
         Route::get('/c/{conversationId}', ChatController::class)->name('chat.show');
 
         Route::patch('/profile', ChatProfileUpdateController::class)->name('chat.profile.update');
+        Route::delete('/profile/photo', ChatProfilePhotoDestroyController::class)->name('chat.profile.photo.destroy');
 
         Route::get('/usage', MessagesUsage::class)->name('chat.usage');
 

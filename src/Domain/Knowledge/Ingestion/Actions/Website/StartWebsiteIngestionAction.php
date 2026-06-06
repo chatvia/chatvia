@@ -77,7 +77,7 @@ class StartWebsiteIngestionAction
 
                 $website->update(['filepath' => $filePath]);
 
-                SummaryIngestionJob::dispatchIf(config('ai.chunker.enhance') === true, $website);
+                SummaryIngestionJob::dispatchIf(config('chatvia.ai.chunker.enhance') === true, $website);
 
                 WebsiteIngestionProgressed::dispatch($website, $agent->external_id);
                 WebsiteCrawlStarted::dispatch($website, $agent);

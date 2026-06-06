@@ -7,7 +7,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
-use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
@@ -82,19 +81,6 @@ class SourceText extends Model implements ChunkableContract
     {
         return $this->morphToMany(Agent::class, 'sourceable', 'agent_sources')
             ->using(AgentSource::class);
-    }
-
-    public function startTraining(?Agent $agent = null): void
-    {
-        // If agentId is provided, train for that specific agent
-        // Otherwise, train for all agents this text is attached to
-        if ($agent) {
-            TextIngestionJob::dispatch($this, $agent);
-        } else {
-            $this->agents->each(function (Agent $agent): void {
-                TextIngestionJob::dispatch($this, $agent);
-            });
-        }
     }
 
     public function retrain(): void

@@ -2,7 +2,6 @@
 
 namespace Domain\Knowledge\Ingestion\Services\Clients;
 
-use Domain\Knowledge\Document\Contracts\DocumentOCRInterface;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Llm\Providers\Mistral;
 use GrahamCampbell\Markdown\Facades\Markdown;
@@ -12,7 +11,7 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;
 
-class MistralOCR implements DocumentOCRInterface
+class MistralOCR
 {
     public function __construct(
         public Mistral $mistral

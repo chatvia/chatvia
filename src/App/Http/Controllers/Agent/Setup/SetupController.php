@@ -83,8 +83,8 @@ class SetupController
             'defaultLlmSettings' => config('model-settings.defaults.'.Agent::class.'.llm_settings'),
 
             // Embed snippet helpers (Widget/Bar render their script tag in the Embed section).
-            'embedScriptUrl' => config('widget.script_url_embed'),
-            'availableLanguages' => config('widget.available_languages'),
+            'embedScriptUrl' => config('chatvia.widget.script_url_embed'),
+            'availableLanguages' => config('chatvia.widget.available_languages'),
 
             // Custom domain (Hosted Chat only) — quota + CNAME target.
             'domain' => $domainContext,
@@ -102,7 +102,7 @@ class SetupController
     private function buildDomainContext(User $user, Agent $agent): array
     {
         // `quota` and `agents()` on User already resolve to the workspace
-        // owner (`effectiveUser`), so quota maths is the same whether the
+        // owner (`workspace`), so quota maths is the same whether the
         // viewer is the owner or a team member.
         $total = (int) ($user->quota?->totalCustomDomainsLimit() ?? 0);
 

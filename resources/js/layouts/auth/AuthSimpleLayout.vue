@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import { Toaster } from '@/components/ui/sonner';
 
 defineProps<{
     title?: string;
@@ -26,5 +27,7 @@ defineProps<{
                 <slot />
             </div>
         </div>
+
+        <Toaster />
     </div>
 </template>

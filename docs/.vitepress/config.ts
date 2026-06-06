@@ -4,7 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'Chatvia Documentation',
   description:
-    'Build, train and embed AI chatbots powered by your own content. Chatvia is a privacy-first, EU-hosted RAG platform.',
+    'Chatvia is the B2B AI workspace: deploy RAG-powered agents to your team and customers across a unified chat hub, embeddable widget, and in-app bar. EU-hosted, privacy-first.',
   cleanUrls: true,
   lastUpdated: true,
 
@@ -40,7 +40,7 @@ export default defineConfig({
         {
           text: 'Agents',
           items: [
-            { text: 'Agent types', link: '/guide/agents/types' },
+            { text: 'Agent surfaces', link: '/guide/agents/types' },
             { text: 'Creating an agent', link: '/guide/agents/create' },
             { text: 'Persona & instructions', link: '/guide/agents/persona' },
             { text: 'Model & generation', link: '/guide/agents/models' },
@@ -50,7 +50,7 @@ export default defineConfig({
           ],
         },
         {
-          text: 'Knowledge sources',
+          text: 'Sources',
           items: [
             { text: 'Overview', link: '/guide/sources/overview' },
             { text: 'Files', link: '/guide/sources/files' },

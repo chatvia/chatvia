@@ -3,14 +3,14 @@
 namespace Domain\Analytics\Actions;
 
 use Domain\Analytics\Events\MessageAnalyzed;
-use Domain\Analytics\Services\ToneAnalysis;
+use Domain\Analytics\Services\ConversationAnalyzer;
 use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Conversation\Models\Message;
 
 class AnalyzeMessageAction
 {
     public function __construct(
-        private readonly ToneAnalysis $toneAnalysis,
+        private readonly ConversationAnalyzer $analyzer,
     ) {}
 
     public function execute(string $externalMessageId): void
@@ -27,11 +27,10 @@ class AnalyzeMessageAction
             return;
         }
 
-        // ToneAnalysis::analyze() returns sentiment + tone in a single LLM
-        // call. A dimension is "wanted" only when the plan exposes it AND the
-        // agent hasn't switched it off (Setup → Settings). Skip the call
-        // entirely when neither is wanted, so a disabled agent never burns
-        // inference on data nobody will see.
+        // analyzeMessage() returns sentiment + tone in a single structured-output
+        // LLM call. A dimension is "wanted" only when the plan exposes it AND
+        // the agent hasn't switched it off (Setup → Settings). Skip the call
+        // entirely when neither is wanted.
         $agent = $message->conversation?->agent;
         $team = $agent?->team;
 
@@ -46,22 +45,22 @@ class AnalyzeMessageAction
             return;
         }
 
-        $analysis = $this->toneAnalysis->analyze($message->content);
+        $analysis = $this->analyzer->analyzeMessage($message->content);
 
         // Persist both columns regardless (the single call already paid for
         // both) so the `$message->sentiment && $message->tone` guard above
         // stays a clean idempotency check. Only the *wanted* dimensions roll
         // up to the daily analytics tables — that is what the toggle controls.
         $message->update([
-            'sentiment' => $analysis['sentiment']->value,
-            'tone' => $analysis['tone']->value,
+            'sentiment' => $analysis->sentiment->value,
+            'tone' => $analysis->tone->value,
         ]);
 
         MessageAnalyzed::dispatch(
             $agent->id,
             $agent->user_id,
-            $wantSentiment ? $analysis['sentiment']->value : null,
-            $wantTone ? $analysis['tone']->value : null,
+            $wantSentiment ? $analysis->sentiment->value : null,
+            $wantTone ? $analysis->tone->value : null,
             $message->created_at,
         );
     }

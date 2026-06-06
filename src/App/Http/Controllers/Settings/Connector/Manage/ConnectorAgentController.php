@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Settings\Connector\Manage;
 use App\Http\Controllers\Controller;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Connector\Actions\Agent\AttachGenericConnectorToAgentAction;
-use Domain\Integration\Connector\Actions\Agent\DetachGenericConnectorFromAgentAction;
 use Domain\Integration\Connector\Actions\Agent\ListConnectorAgentAssignmentAction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Membership\Agent\Data\Resources\AgentMembershipAssignmentData;
@@ -30,13 +28,12 @@ class ConnectorAgentController extends Controller
         Request $request,
         string $slug,
         string $agent,
-        AttachGenericConnectorToAgentAction $attach,
         ListConnectorAgentAssignmentAction $list,
     ): AgentMembershipAssignmentData {
         abort_unless(has_team_permission('account.connectors'), 404);
 
         $server = $this->server($request, $slug);
-        $attach->execute($this->agent($request, $agent), $server);
+        $this->agent($request, $agent)->attachConnector($server);
 
         return $list->execute($request->user(), $server);
     }
@@ -45,13 +42,12 @@ class ConnectorAgentController extends Controller
         Request $request,
         string $slug,
         string $agent,
-        DetachGenericConnectorFromAgentAction $detach,
         ListConnectorAgentAssignmentAction $list,
     ): AgentMembershipAssignmentData {
         abort_unless(has_team_permission('account.connectors'), 404);
 
         $server = $this->server($request, $slug);
-        $detach->execute($this->agent($request, $agent), $server);
+        $this->agent($request, $agent)->detachConnector($server);
 
         return $list->execute($request->user(), $server);
     }

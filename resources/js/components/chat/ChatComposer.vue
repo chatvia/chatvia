@@ -25,6 +25,9 @@ interface Props {
     uploadEndpoint?: string;
     /** Headers to send with the upload request (e.g. session/thread). */
     uploadHeaders?: Record<string, string>;
+    /** Builds the DELETE url for an attachment by id (Ziggy-resolved by the
+     *  parent). When unset, the X button just clears local state. */
+    deleteEndpoint?: (id: string) => string;
     /** Accept attribute for the file picker; defaults to PDF only. */
     uploadAccept?: string;
     /** Show the paperclip / file-upload button. Defaults to on. Set false to
@@ -87,6 +90,11 @@ const emit = defineEmits<{
 const fileInput = ref<HTMLInputElement>();
 const attachments = ref<Attachment[]>([]);
 const isUploading = ref(false);
+// In-flight DELETE count. We must not let `sendMessage` fire while a delete
+// is still in flight: StoreMessageAction claims every unattached file by
+// conversation id (it doesn't read the payload's attachment list), so a
+// quick X-then-Enter would smuggle a "removed" file into the next turn.
+const pendingDeleteCount = ref(0);
 
 // True while the local attachments list is below the per-chat ceiling.
 // Server enforces the same value (MaxConversationAttachments), but gating
@@ -140,8 +148,31 @@ const handleFileSelected = async (event: Event) => {
     }
 };
 
-const removeAttachment = (id: string) => {
+const removeAttachment = async (id: string) => {
+    const idx = attachments.value.findIndex((a) => a.id === id);
+    if (idx === -1) return;
+    const att = attachments.value[idx];
+
+    // Optimistic UI: drop the chip first so the click feels instant. If the
+    // server delete fails, we put it back — silently leaving it removed
+    // client-side would still send the file to the LLM, because
+    // StoreMessageAction sweeps every unattached file on the conversation
+    // into the next turn regardless of what the client claims is attached.
     attachments.value = attachments.value.filter((a) => a.id !== id);
+
+    if (!props.deleteEndpoint) return;
+
+    pendingDeleteCount.value++;
+    try {
+        await axios.delete(props.deleteEndpoint(id));
+    } catch (e: unknown) {
+        attachments.value.splice(idx, 0, att);
+        const err = e as { response?: { data?: { message?: string } } };
+        const msg = err.response?.data?.message ?? t('composer.delete_failed', 'Could not remove attachment');
+        toast.error(msg);
+    } finally {
+        pendingDeleteCount.value--;
+    }
 };
 
 const handleEnterKey = (event: KeyboardEvent) => {
@@ -174,6 +205,9 @@ const stopStreaming = () => {
 const sendMessage = () => {
     if (!userInput.value.trim() && attachments.value.length === 0) return;
     if (isUploading.value) return;
+    // Block while a remove is still hitting the server (see comment on
+    // pendingDeleteCount) — otherwise the server's orphan sweep races us.
+    if (pendingDeleteCount.value > 0) return;
 
     emit('messageAdded', userInput.value, [...attachments.value]);
     userInput.value = '';
@@ -200,7 +234,11 @@ onMounted(() => {
     });
 });
 
-const canSend = () => (userInput.value.trim() !== '' || attachments.value.length > 0) && !props.disabled && !isUploading.value;
+const canSend = () =>
+    (userInput.value.trim() !== '' || attachments.value.length > 0) &&
+    !props.disabled &&
+    !isUploading.value &&
+    pendingDeleteCount.value === 0;
 
 const formatBytes = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';

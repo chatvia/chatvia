@@ -17,7 +17,7 @@ class TeamShowController
     {
         $user = $request->user();
 
-        if (! $user->belongsToTeam($team) && ! $user->ownsTeam($team)) {
+        if ($user->cannot('view', $team)) {
             return back();
         }
 

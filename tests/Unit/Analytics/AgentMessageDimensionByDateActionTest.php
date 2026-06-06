@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\DB;
  */
 function seedDimensionDaily(string $table, int $agentId, string $column, string $day, string $value, int $count): void
 {
-    DB::connection(config('analytics.connection'))->table($table)->insert([
+    DB::connection(config('chatvia.analytics.connection'))->table($table)->insert([
         'agent_id' => $agentId,
-        'user_id' => DB::table('agents')->where('id', $agentId)->value('user_id'),
+        'workspace_id' => DB::table('agents')->where('id', $agentId)->value('user_id'),
         'bucket_day' => $day,
         $column => $value,
         'message_count' => $count,
@@ -26,9 +26,9 @@ function seedUserMessageTotal(int $agentId, string $day, int $count): void
 {
     // Total user messages live on the hourly message rollup; one bucket row per
     // day is enough for the read action's SUM(user_messages) by date.
-    DB::connection(config('analytics.connection'))->table('analytics_agent_hourly_rollups')->insert([
+    DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_hourly_rollups')->insert([
         'agent_id' => $agentId,
-        'user_id' => DB::table('agents')->where('id', $agentId)->value('user_id'),
+        'workspace_id' => DB::table('agents')->where('id', $agentId)->value('user_id'),
         'bucket_hour' => $day.' 10:00:00+00',
         'country_code' => '--',
         'llm_external_name' => '',

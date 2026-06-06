@@ -20,13 +20,13 @@ class AgentObserver
         AgentHelper::cacheAgentName($agent->sub_domain);
 
         // Each agent answers with a single LLM. Seed it to the platform's
-        // configured default (config('agent.default_model'), matched by
+        // configured default (config('chatvia.agent.default_model'), matched by
         // `llms.internal_name`); fall back to the first available row if the
         // configured name isn't in the catalog. Operators can swap it in
         // Setup later.
         if ($agent->llm_id === null) {
             $llms = $agent->user->llms();
-            $defaultName = (string) config('agent.default_model');
+            $defaultName = (string) config('chatvia.agent.default_model');
             $llmId = $llms->firstWhere('internal_name', $defaultName)?->id ?? $llms->first()?->id;
 
             if ($llmId !== null) {

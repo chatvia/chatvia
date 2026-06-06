@@ -1,12 +1,12 @@
 # YouTube sources
 
-Add a YouTube video URL and Chatvia indexes its transcript.
+Add a YouTube video URL and Chatvia indexes its transcript. Useful for recorded all-hands, product demos, training sessions, and onboarding videos your team already publishes.
 
 ![SCREENSHOT — youtube sources](/screenshots/sources-youtube.png)
 
 ## Adding a video
 
-In **Sources → YouTube**, paste the video URL and click **Add**. Supported URL forms:
+In the agent's **Sources → YouTube** tab, paste the video URL and click **Add**. Supported URL forms:
 
 - `https://www.youtube.com/watch?v=…`
 - `https://youtu.be/…`
@@ -22,7 +22,7 @@ Chatvia pulls the official transcript from YouTube (if available) and falls back
 - The Playground shows the timestamp of the retrieved chunks.
 
 ::: tip Captions matter
-Videos with creator-uploaded captions index more cleanly than auto-captioned ones. If you control the source, take a few minutes to upload a corrected transcript on YouTube — it pays off.
+Videos with team-uploaded captions index more cleanly than auto-captioned ones. If your workspace owns the channel, take a few minutes to upload a corrected transcript on YouTube — it pays off across every agent that reuses the source.
 :::
 
 ## Limits
@@ -42,8 +42,8 @@ Each YouTube source carries:
 
 ## When to use this vs. a Web source
 
-If a video has a companion blog post or transcript on the same domain, indexing the **web page** is usually cheaper and easier to keep updated. YouTube sources are best when the video itself is the canonical content — recorded talks, screencasts, podcast interviews.
+If a video has a companion blog post or transcript on the same domain, indexing the **web page** is usually cheaper and easier to keep updated. YouTube sources are best when the video itself is the canonical content — recorded all-hands, product demos, conference talks, customer training, podcast interviews.
 
 ## Removing a video
 
-Deleting a YouTube source removes the transcript and its chunks. The original video on YouTube is untouched.
+Any teammate with access to the agent can delete a YouTube source. Deleting removes the transcript and its chunks from the agent. The original video on YouTube is untouched.

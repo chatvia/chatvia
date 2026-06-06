@@ -20,7 +20,7 @@ it('upserts and increments per-source retrieval rollups', function (): void {
         ['type' => $type, 'id' => 10],
     ], $when));
 
-    $rollup = DB::connection(config('analytics.connection'))->table('analytics_agent_source_daily')
+    $rollup = DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_source_daily')
         ->where('agent_id', $agentId)
         ->where('bucket_day', '2026-06-01');
 
@@ -34,5 +34,5 @@ it('does nothing for an empty source list', function (): void {
 
     $action->execute(new SourceRetrieved($agentId, 500002, [], Carbon::parse('2026-06-01 09:00')));
 
-    expect(DB::connection(config('analytics.connection'))->table('analytics_agent_source_daily')->where('agent_id', $agentId)->count())->toBe(0);
+    expect(DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_source_daily')->where('agent_id', $agentId)->count())->toBe(0);
 });

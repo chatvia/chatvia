@@ -1,10 +1,20 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import hljs from 'highlight.js/lib/core';
+import cpp from 'highlight.js/lib/languages/cpp';
+import csharp from 'highlight.js/lib/languages/csharp';
+import go from 'highlight.js/lib/languages/go';
+import java from 'highlight.js/lib/languages/java';
 import javascript from 'highlight.js/lib/languages/javascript';
+import kotlin from 'highlight.js/lib/languages/kotlin';
 import php from 'highlight.js/lib/languages/php';
+import python from 'highlight.js/lib/languages/python';
+import rust from 'highlight.js/lib/languages/rust';
+import swift from 'highlight.js/lib/languages/swift';
 import xml from 'highlight.js/lib/languages/xml';
 import { computed, ref, watch } from 'vue';
+
+import { HMAC_EXAMPLES, JWT_EXAMPLES } from './IdentityVerification.examples';
 
 import {
     AlertDialog,
@@ -22,12 +32,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { AlertCircle, Check, Copy, Eye, EyeOff, RefreshCw, ShieldCheck } from 'lucide-vue-next';
+import { ArrowUpRight, Check, Copy, Eye, EyeOff, RefreshCw, ShieldCheck } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
+hljs.registerLanguage('cpp', cpp);
+hljs.registerLanguage('csharp', csharp);
+hljs.registerLanguage('go', go);
+hljs.registerLanguage('java', java);
 hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('kotlin', kotlin);
 hljs.registerLanguage('php', php);
+hljs.registerLanguage('python', python);
+hljs.registerLanguage('rust', rust);
+hljs.registerLanguage('swift', swift);
 hljs.registerLanguage('xml', xml);
 
 interface Props {
@@ -75,34 +94,38 @@ const updateProtection = () => {
     });
 };
 
+// Going public asks for confirmation first — the switch stays OFF until the
+// user clicks "Make public" in the dialog. Going protected applies immediately.
+const onTogglePublic = (next: boolean) => {
+    if (next) {
+        makePublicOpen.value = true;
+    } else {
+        protectionForm.is_public = false;
+        updateProtection();
+    }
+};
+
 const confirmMakePublic = () => {
     makePublicOpen.value = false;
+    protectionForm.is_public = true;
     updateProtection();
 };
-
-const cancelMakePublic = () => {
-    makePublicOpen.value = false;
-    protectionForm.is_public = false;
-};
-
-watch(
-    () => protectionForm.is_public,
-    (newValue, oldValue) => {
-        if (oldValue !== undefined && newValue !== oldValue) {
-            if (newValue === true) {
-                makePublicOpen.value = true;
-            } else {
-                updateProtection();
-            }
-        }
-    },
-);
 
 // Regenerating mints a brand-new secret server-side; the redirect back re-runs
 // the page so it reloads with the new value. It also invalidates every token
 // already signed with the old secret, hence the confirm dialog.
 const regenerateOpen = ref(false);
 const regenerateForm = useForm({});
+
+// Typing "I understand" arms the destructive action — a deliberate pause before
+// invalidating every live token. Cleared whenever the dialog closes (cancel,
+// escape, outside click, or success) so a reopen always starts fresh.
+const regenerateConfirmation = ref('');
+const canRegenerate = computed(() => regenerateConfirmation.value.trim().toLowerCase() === 'i understand');
+
+watch(regenerateOpen, (open) => {
+    if (!open) regenerateConfirmation.value = '';
+});
 
 const confirmRegenerate = () => {
     regenerateForm.post(route('agents.identity.regenerate', { agent: props.agent.external_id }), {
@@ -116,54 +139,6 @@ const confirmRegenerate = () => {
     });
 };
 
-const nodeExample = computed(() =>
-    [
-        "const jwt = require('jsonwebtoken');",
-        '',
-        "// This agent's signing secret. Keep it on your server — never expose it",
-        '// to the browser or ship it in client-side code.',
-        "const SIGNING_SECRET = 'YOUR_SIGNING_SECRET';",
-        '',
-        'function signChatviaToken(userId, ttlSeconds = 3600) {',
-        '  return jwt.sign(',
-        '    {',
-        '      sub: userId,   // the id of the user you are signing in',
-        `      aud: '${props.agent.external_id}',  // this agent's id`,
-        '    },',
-        '    SIGNING_SECRET,',
-        "    { algorithm: 'HS256', expiresIn: ttlSeconds },",
-        '  );',
-        '}',
-        '',
-        '// Mint a token, then hand it to the widget as data-auth.',
-        "const token = signChatviaToken('user_123');",
-    ].join('\n'),
-);
-
-const phpExample = computed(() =>
-    [
-        '<?php',
-        '',
-        'use Firebase\\JWT\\JWT;',
-        '',
-        "// This agent's signing secret. Keep it on your server — never expose it",
-        '// to the browser or ship it in client-side code.',
-        "$secret = 'YOUR_SIGNING_SECRET';",
-        '',
-        'function sign_chatvia_token(string $secret, string $userId, int $ttlSeconds = 3600): string',
-        '{',
-        '    return JWT::encode([',
-        "        'sub' => $userId,   // the id of the user you are signing in",
-        `        'aud' => '${props.agent.external_id}',  // this agent's id`,
-        "        'exp' => time() + $ttlSeconds,",
-        "    ], $secret, 'HS256');",
-        '}',
-        '',
-        '// Mint a token, then hand it to the widget as data-auth.',
-        "$token = sign_chatvia_token($secret, 'user_123');",
-    ].join('\n'),
-);
-
 const embedSnippet = computed(() =>
     [
         '<script',
@@ -176,15 +151,37 @@ const embedSnippet = computed(() =>
     ].join('\n'),
 );
 
-const nodeHighlighted = computed(() => hljs.highlight(nodeExample.value, { language: 'javascript', ignoreIllegals: true }).value);
-const phpHighlighted = computed(() => hljs.highlight(phpExample.value, { language: 'php', ignoreIllegals: true }).value);
+const chatLinkExample = computed(() => `${props.agent.chat_url}?token=THE_TOKEN_YOU_SIGNED`);
+
 const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { language: 'xml', ignoreIllegals: true }).value);
+
+// JWT examples need the agent's external id baked into the displayed snippet —
+// the file under ./IdentityVerification.examples.ts uses `__AGENT_EXTERNAL_ID__`
+// as a sentinel so it can be swapped at display time without per-language
+// template tricks. HMAC examples don't need substitution.
+const resolveAgentId = (code: string) => code.replaceAll('__AGENT_EXTERNAL_ID__', props.agent.external_id);
+
+type RenderedExample = (typeof JWT_EXAMPLES)[number] & { highlighted: string };
+
+const jwtBlocks = computed<RenderedExample[]>(() =>
+    JWT_EXAMPLES.map((e) => {
+        const code = resolveAgentId(e.code);
+        return { ...e, code, highlighted: hljs.highlight(code, { language: e.hljs, ignoreIllegals: true }).value };
+    }),
+);
+
+const hmacBlocks = computed<RenderedExample[]>(() =>
+    HMAC_EXAMPLES.map((e) => ({
+        ...e,
+        highlighted: hljs.highlight(e.code, { language: e.hljs, ignoreIllegals: true }).value,
+    })),
+);
 </script>
 
 <template>
     <AgentLayout :agent="agent" title="Security">
         <div class="flex justify-center">
-            <div class="w-full max-w-6xl space-y-6">
+            <div class="w-full max-w-3xl space-y-6">
                 <div>
                     <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
                         <ShieldCheck class="size-6" />
@@ -205,15 +202,18 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div class="flex items-center justify-between rounded-lg border p-4">
+                        <label
+                            for="agent-public"
+                            class="flex cursor-pointer items-center justify-between rounded-lg border p-4"
+                        >
                             <div class="space-y-0.5 pr-4">
-                                <Label for="agent-public">Make this agent public</Label>
+                                <span class="text-sm font-medium leading-none">Make this agent public</span>
                                 <p class="text-muted-foreground text-xs">
                                     Off keeps the agent protected and requires a signed token for every visitor.
                                 </p>
                             </div>
-                            <Switch id="agent-public" v-model="protectionForm.is_public" />
-                        </div>
+                            <Switch id="agent-public" :model-value="protectionForm.is_public" @update:model-value="onTogglePublic" />
+                        </label>
                     </CardContent>
                 </Card>
 
@@ -235,140 +235,208 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                                     readonly
                                     class="font-mono text-xs"
                                 />
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    :title="revealed ? 'Hide' : 'Reveal'"
-                                    @click="revealed = !revealed"
-                                >
-                                    <EyeOff v-if="revealed" class="size-4" />
-                                    <Eye v-else class="size-4" />
-                                </Button>
-                                <Button type="button" variant="outline" size="icon" title="Copy" @click="copy(props.auth_secret, 'secret')">
-                                    <Check v-if="copiedKey === 'secret'" class="size-4 text-green-600" />
-                                    <Copy v-else class="size-4" />
-                                </Button>
+                                <TooltipProvider :delay-duration="0">
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <Button type="button" variant="outline" size="icon" @click="revealed = !revealed">
+                                                <EyeOff v-if="revealed" class="size-4" />
+                                                <Eye v-else class="size-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>{{ revealed ? 'Hide' : 'Reveal' }}</TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <Button type="button" variant="outline" size="icon" @click="copy(props.auth_secret, 'secret')">
+                                                <Check v-if="copiedKey === 'secret'" class="size-4 text-green-600" />
+                                                <Copy v-else class="size-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>{{ copiedKey === 'secret' ? 'Copied' : 'Copy' }}</TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <Button type="button" variant="outline" size="icon" @click="regenerateOpen = true">
+                                                <RefreshCw class="size-4" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Regenerate secret</TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </div>
                         </div>
-
-                        <div
-                            class="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
-                        >
-                            <AlertCircle class="mt-0.5 size-4 flex-shrink-0" />
-                            <span>
-                                Regenerating immediately invalidates every token signed with the current secret for this agent — across both chat
-                                links and the widget — so you'll need to redeploy your backend with the new value.
-                            </span>
-                        </div>
-
-                        <div>
-                            <Button type="button" variant="outline" @click="regenerateOpen = true">
-                                <RefreshCw class="mr-2 size-4" />
-                                Regenerate secret
-                            </Button>
-                        </div>
                     </CardContent>
                 </Card>
 
-                <Card v-if="isProtected">
-                    <CardHeader>
-                        <CardTitle>How it works</CardTitle>
-                        <CardDescription> You only need this when this agent is marked as protected. Public agents need no token. </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ol class="text-muted-foreground list-decimal space-y-2 pl-5 text-sm">
-                            <li>
-                                On your server, build a payload of <code>{ sub, aud, exp }</code> — the user's id, this agent's id, and an expiry.
-                            </li>
-                            <li>Sign it as a JWT (HS256) with this agent's secret to produce a token (see the examples below).</li>
-                            <li>Pass the token to the widget as <code>data-auth</code>, or append <code>?token=</code> to a chat link.</li>
-                            <li>
-                                Chatvia verifies the signature and signs that user in. Tokens last at most one hour — mint a fresh one per page load.
-                            </li>
-                        </ol>
-                    </CardContent>
-                </Card>
+                <!-- JWT/HMAC tabs sit ABOVE the Card as a section-level chooser. The Card body
+                     swaps the relevant scheme's steps + code examples; a shared "Use the token"
+                     block lives at the bottom of the Card and is visible regardless of selection. -->
+                <Tabs v-if="isProtected" default-value="jwt" class="space-y-4">
+                    <TabsList class="h-auto gap-1 p-1">
+                        <TabsTrigger value="jwt" class="px-6 py-2 text-base">JWT</TabsTrigger>
+                        <TabsTrigger value="hmac" class="px-6 py-2 text-base">HMAC</TabsTrigger>
+                    </TabsList>
 
-                <Card v-if="isProtected">
-                    <CardHeader>
-                        <CardTitle>Sign a token</CardTitle>
-                        <CardDescription> A standard JWT (HS256) in either language — run it on your server, never in the browser. </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Tabs default-value="javascript">
-                            <TabsList class="mb-3">
-                                <TabsTrigger value="javascript">JavaScript</TabsTrigger>
-                                <TabsTrigger value="php">PHP</TabsTrigger>
-                            </TabsList>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Sign-in tokens</CardTitle>
+                            <CardDescription>
+                                Pick a signing scheme and mint a short-lived token on your backend. JWT and HMAC are interchangeable — protected
+                                agents accept either.
+                            </CardDescription>
+                            <p class="text-muted-foreground mt-2 text-sm">
+                                Or have Chatvia mint tokens for you —
+                                <a
+                                    href="/docs/api#/operations/v1.agents.sign.store"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="text-primary inline-flex items-center gap-0.5 font-medium underline-offset-4 hover:underline"
+                                >
+                                    call our REST API<ArrowUpRight class="size-3.5" />
+                                </a>
+                                instead.
+                            </p>
+                        </CardHeader>
+                        <CardContent class="space-y-8">
+                            <TabsContent value="jwt" class="mt-0 space-y-6">
+                                <ol class="text-muted-foreground list-decimal space-y-2 pl-5 text-sm">
+                                    <li>
+                                        On your server, build a payload of <code>{ sub, aud, exp }</code> — the user's id, this agent's id, and an
+                                        expiry.
+                                    </li>
+                                    <li>Sign it as a JWT (HS256) with this agent's secret to produce a token (see the examples below).</li>
+                                    <li>Pass the token to the widget or chat link as shown in <em>Use the token</em> below.</li>
+                                    <li>Chatvia verifies the signature and signs that user in.</li>
+                                </ol>
 
-                            <TabsContent value="javascript">
-                                <p class="text-muted-foreground mb-2 text-xs">Using the <code>jsonwebtoken</code> package.</p>
+                                <Tabs default-value="javascript">
+                                    <TabsList class="mb-3 h-auto flex-wrap justify-start gap-1">
+                                        <TabsTrigger v-for="lang in jwtBlocks" :key="lang.id" :value="lang.id">
+                                            {{ lang.name }}
+                                        </TabsTrigger>
+                                    </TabsList>
+
+                                    <TabsContent v-for="lang in jwtBlocks" :key="lang.id" :value="lang.id">
+                                        <p class="text-muted-foreground mb-2 text-xs">{{ lang.hint }}</p>
+                                        <div class="bg-muted relative rounded-lg p-4">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                class="absolute top-3 right-3 gap-2"
+                                                @click="copy(lang.code, `jwt-${lang.id}`)"
+                                            >
+                                                <Check v-if="copiedKey === `jwt-${lang.id}`" class="size-4 text-green-600" />
+                                                <Copy v-else class="size-4" />
+                                                Copy
+                                            </Button>
+                                            <pre
+                                                class="hljs overflow-x-auto bg-transparent p-0 text-xs"
+                                            ><code :class="`language-${lang.hljs}`" v-html="lang.highlighted" /></pre>
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
+                            </TabsContent>
+
+                            <TabsContent value="hmac" class="mt-0 space-y-6">
+                                <ol class="text-muted-foreground list-decimal space-y-2 pl-5 text-sm">
+                                    <li>On your server, pick the user's id and an expiry — an absolute Unix timestamp.</li>
+                                    <li>
+                                        Compute <code>sig = hmac_sha256("userId.exp", secret)</code> as lowercase hex with this agent's secret (see
+                                        the examples below).
+                                    </li>
+                                    <li>
+                                        Concatenate <code>cvh1.userId.exp.sig</code> and pass it to the widget or chat link as shown in
+                                        <em>Use the token</em> below.
+                                    </li>
+                                    <li>Chatvia verifies the signature and signs that user in.</li>
+                                </ol>
+
+                                <Tabs default-value="javascript">
+                                    <TabsList class="mb-3 h-auto flex-wrap justify-start gap-1">
+                                        <TabsTrigger v-for="lang in hmacBlocks" :key="lang.id" :value="lang.id">
+                                            {{ lang.name }}
+                                        </TabsTrigger>
+                                    </TabsList>
+
+                                    <TabsContent v-for="lang in hmacBlocks" :key="lang.id" :value="lang.id">
+                                        <p class="text-muted-foreground mb-2 text-xs">{{ lang.hint }}</p>
+                                        <div class="bg-muted relative rounded-lg p-4">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                class="absolute top-3 right-3 gap-2"
+                                                @click="copy(lang.code, `hmac-${lang.id}`)"
+                                            >
+                                                <Check v-if="copiedKey === `hmac-${lang.id}`" class="size-4 text-green-600" />
+                                                <Copy v-else class="size-4" />
+                                                Copy
+                                            </Button>
+                                            <pre
+                                                class="hljs overflow-x-auto bg-transparent p-0 text-xs"
+                                            ><code :class="`language-${lang.hljs}`" v-html="lang.highlighted" /></pre>
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
+                            </TabsContent>
+
+                            <!-- "Use the token" — shared between both schemes. The signed token plugs into the same
+                                 two places either way: widget data-auth, or hosted chat link with ?token=. -->
+                        <div class="space-y-4 border-t pt-6">
+                            <div>
+                                <p class="text-sm font-medium">Use the token</p>
+                                <p class="text-muted-foreground mt-1 text-sm">
+                                    Drop the signed token into the widget as <code>data-auth</code>, or onto the hosted chat link as
+                                    <code>?token=</code>. Tokens last at most one hour — mint a fresh one per page load.
+                                </p>
+                            </div>
+
+                            <div>
+                                <p class="text-muted-foreground mb-2 text-xs">Widget embed</p>
                                 <div class="bg-muted relative rounded-lg p-4">
                                     <Button
                                         type="button"
                                         variant="outline"
                                         size="sm"
                                         class="absolute top-3 right-3 gap-2"
-                                        @click="copy(nodeExample, 'node')"
+                                        @click="copy(embedSnippet, 'embed')"
                                     >
-                                        <Check v-if="copiedKey === 'node'" class="size-4 text-green-600" />
+                                        <Check v-if="copiedKey === 'embed'" class="size-4 text-green-600" />
                                         <Copy v-else class="size-4" />
                                         Copy
                                     </Button>
                                     <pre
                                         class="hljs overflow-x-auto bg-transparent p-0 text-xs"
-                                    ><code class="language-javascript" v-html="nodeHighlighted" /></pre>
+                                    ><code class="language-xml" v-html="embedHighlighted" /></pre>
                                 </div>
-                            </TabsContent>
+                            </div>
 
-                            <TabsContent value="php">
-                                <p class="text-muted-foreground mb-2 text-xs">Using the <code>firebase/php-jwt</code> package.</p>
-                                <div class="bg-muted relative rounded-lg p-4">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        class="absolute top-3 right-3 gap-2"
-                                        @click="copy(phpExample, 'php')"
-                                    >
-                                        <Check v-if="copiedKey === 'php'" class="size-4 text-green-600" />
-                                        <Copy v-else class="size-4" />
-                                        Copy
-                                    </Button>
-                                    <pre
-                                        class="hljs overflow-x-auto bg-transparent p-0 text-xs"
-                                    ><code class="language-php" v-html="phpHighlighted" /></pre>
+                            <div>
+                                <p class="text-muted-foreground mb-2 text-xs">Hosted chat link</p>
+                                <div class="bg-muted rounded-lg p-4">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <code class="text-foreground flex-1 font-mono text-xs break-all">{{ chatLinkExample }}</code>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            class="shrink-0 gap-2"
+                                            @click="copy(chatLinkExample, 'chatLink')"
+                                        >
+                                            <Check v-if="copiedKey === 'chatLink'" class="size-4 text-green-600" />
+                                            <Copy v-else class="size-4" />
+                                            Copy
+                                        </Button>
+                                    </div>
                                 </div>
-                            </TabsContent>
-                        </Tabs>
-                    </CardContent>
-                </Card>
-
-                <Card v-if="isProtected">
-                    <CardHeader>
-                        <CardTitle>Add the token to your embed</CardTitle>
-                        <CardDescription>
-                            Take the embed snippet from this agent's Setup tab and add a <code>data-auth</code> attribute with the token you signed.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="bg-muted relative rounded-lg p-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                class="absolute top-3 right-3 gap-2"
-                                @click="copy(embedSnippet, 'embed')"
-                            >
-                                <Check v-if="copiedKey === 'embed'" class="size-4 text-green-600" />
-                                <Copy v-else class="size-4" />
-                                Copy
-                            </Button>
-                            <pre class="hljs overflow-x-auto bg-transparent p-0 text-xs"><code class="language-xml" v-html="embedHighlighted" /></pre>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
+                </Tabs>
             </div>
         </div>
 
@@ -383,7 +451,7 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel @click="cancelMakePublic">Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction @click="confirmMakePublic">Make public</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
@@ -400,11 +468,15 @@ const embedHighlighted = computed(() => hljs.highlight(embedSnippet.value, { lan
                         widget. Sign-in will break until you redeploy your backend with the new secret. This cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
+                <div class="grid gap-2">
+                    <Label for="regenerate-confirmation"> Type <span class="font-semibold">I understand</span> to confirm </Label>
+                    <Input id="regenerate-confirmation" v-model="regenerateConfirmation" placeholder="I understand" autocomplete="off" />
+                </div>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        :disabled="regenerateForm.processing"
+                        :disabled="!canRegenerate || regenerateForm.processing"
                         @click="confirmRegenerate"
                     >
                         Regenerate

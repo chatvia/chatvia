@@ -10,6 +10,7 @@ export type StreamEventType = 'start' | 'delta' | 'meta' | 'sources' | 'tool' | 
 export type StreamErrorCode =
     | 'subscription_expired'
     | 'message_limit_reached'
+    | 'token_limit_reached'
     | 'upstream_unavailable'
     | 'rate_limited'
     | 'internal'

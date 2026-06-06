@@ -1,10 +1,14 @@
 <?php
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\MessageSent;
 use Domain\Analytics\Jobs\AnalyzeConversationJob;
 use Domain\Analytics\Jobs\AnalyzeMessageJob;
+use Domain\Billing\Services\ChatterMessageAllowance;
+use Domain\Billing\Services\UserCreditSystem;
 use Domain\Conversation\Actions\Messages\StoreMessageAction;
+use Domain\Conversation\Models\Session;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
 use Domain\Conversation\Models\Message;
@@ -70,6 +74,11 @@ function fakeLlmProvider(bool $supportsCost = false, ?array $usage = null): LlmP
     };
 }
 
+function makeStoreMessageAction(LlmProviderInterface $provider): StoreMessageAction
+{
+    return new StoreMessageAction($provider, new ChatterMessageAllowance, new UserCreditSystem);
+}
+
 function makeInputPayload(Agent $agent, array $overrides = []): ChatInputPayload
 {
     return ChatInputPayload::from(array_merge([
@@ -109,7 +118,7 @@ beforeEach(function (): void {
 
 it('persists a user message and dispatches MessageSent + AnalyzeMessageJob', function (): void {
     $agent = Agent::factory()->create();
-    $action = new StoreMessageAction(fakeLlmProvider());
+    $action = makeStoreMessageAction(fakeLlmProvider());
 
     $payload = makeInputPayload($agent);
 
@@ -150,10 +159,10 @@ it('computes microcent cost from total_cost dollars (sub-cent precision boundary
     ]);
 
     $input = makeInputPayload($agent);
-    new StoreMessageAction(fakeLlmProvider())->execute($agent, $input); // seed session/conversation
+    makeStoreMessageAction(fakeLlmProvider())->execute($agent, $input); // seed session/conversation
 
     $output = makeOutputPayload($llm, $input);
-    $message = new StoreMessageAction($provider)->execute($agent, $output);
+    $message = makeStoreMessageAction($provider)->execute($agent, $output);
 
     expect($message->role)->toBe('assistant')
         ->and($message->llm_id)->toBe($llm->id)
@@ -181,10 +190,10 @@ it('rounds microcent cost half-up at the integer boundary', function (): void {
         ]);
 
         $input = makeInputPayload($agent);
-        new StoreMessageAction(fakeLlmProvider())->execute($agent, $input);
+        makeStoreMessageAction(fakeLlmProvider())->execute($agent, $input);
 
         $output = makeOutputPayload($llm, $input);
-        $message = new StoreMessageAction($provider)->execute($agent, $output);
+        $message = makeStoreMessageAction($provider)->execute($agent, $output);
 
         expect($message->cost_in_micro_cents)->toBe($case['expected']);
     }
@@ -199,15 +208,101 @@ it('leaves cost+tokens null when the provider does not support cost tracking', f
     $provider = fakeLlmProvider(supportsCost: false);
 
     $input = makeInputPayload($agent);
-    new StoreMessageAction(fakeLlmProvider())->execute($agent, $input);
+    makeStoreMessageAction(fakeLlmProvider())->execute($agent, $input);
 
     $output = makeOutputPayload($llm, $input);
-    $message = new StoreMessageAction($provider)->execute($agent, $output);
+    $message = makeStoreMessageAction($provider)->execute($agent, $output);
 
     expect($message->role)->toBe('assistant')
         ->and($message->cost_in_micro_cents)->toBeNull()
         ->and($message->prompt_tokens)->toBeNull()
         ->and($message->completion_tokens)->toBeNull();
+});
+
+it('backfills the chatter onto a session that was minted without a user_id', function (): void {
+    // Regression: on the hosted /chat surface TurnState mints the session row
+    // up front with only agent_id (the authenticated chatter isn't known yet).
+    // resolveSession must stamp the chatter onto that existing null-user row,
+    // not key firstOrCreate on user_id (which would never match it).
+    $agent = Agent::factory()->create();
+    $chatter = User::factory()->chatter(User::factory()->workspace()->create())->create();
+
+    $sessionExternalId = (string) Str::uuid();
+    Session::create(['external_id' => $sessionExternalId, 'agent_id' => $agent->id]);
+
+    makeStoreMessageAction(fakeLlmProvider())->execute($agent, makeInputPayload($agent, [
+        'external_session_id' => $sessionExternalId,
+        'user_id' => $chatter->id,
+    ]));
+
+    expect(Session::where('external_id', $sessionExternalId)->value('user_id'))->toBe($chatter->id);
+});
+
+it('counts a chatter user message against their monthly limit', function (): void {
+    $agent = Agent::factory()->create();
+    $chatter = User::factory()->chatter(User::factory()->workspace()->create())->create();
+    $allowance = app(ChatterMessageAllowance::class);
+    $allowance->setLimit($chatter, 5);
+
+    makeStoreMessageAction(fakeLlmProvider())->execute($agent, makeInputPayload($agent, [
+        'user_id' => $chatter->id,
+    ]));
+
+    expect($allowance->usedThisPeriod($chatter))->toBe(1);
+});
+
+it('prefers inline response usage over the provider cost lookup', function (): void {
+    // Inline usage (prompt/completion on the payload, captured from the stream)
+    // is the authoritative billed count — it must win over getGenerationCost,
+    // which should not even be consulted when inline usage is present.
+    $agent = Agent::factory()->create();
+    $llm = Llm::factory()->create(['external_name' => 'gpt-inline-usage']);
+
+    // Provider WOULD return different numbers if asked — proving precedence.
+    $provider = fakeLlmProvider(supportsCost: true, usage: [
+        'tokens_prompt' => 999,
+        'tokens_completion' => 999,
+        'total_cost' => 1.23,
+    ]);
+
+    $input = makeInputPayload($agent);
+    makeStoreMessageAction(fakeLlmProvider())->execute($agent, $input);
+
+    $output = makeOutputPayload($llm, $input, [
+        'prompt_tokens' => 1200,
+        'completion_tokens' => 300,
+    ]);
+    $message = makeStoreMessageAction($provider)->execute($agent, $output);
+
+    expect($message->prompt_tokens)->toBe(1200)
+        ->and($message->completion_tokens)->toBe(300)
+        // inline usage carries no dollar cost, so cost stays null on this path
+        ->and($message->cost_in_micro_cents)->toBeNull();
+});
+
+it('logs the assistant turn tokens against the workspace owner billing cycle', function (): void {
+    // Provider usage (prompt + completion) is the authoritative billed count;
+    // StoreMessageAction adds it to the owner's current-cycle token usage.
+    $agent = Agent::factory()->create();
+    $owner = User::find($agent->user_id);
+    $credit = $owner->creditSystem()->addCredit(
+        ['messages_limit' => 4000, 'tokens_limit' => 1_000_000],
+        now()->addMonth(),
+    );
+
+    $llm = Llm::factory()->create(['external_name' => 'gpt-token-log']);
+
+    $input = makeInputPayload($agent);
+    makeStoreMessageAction(fakeLlmProvider())->execute($agent, $input); // seed session/conversation
+
+    $output = makeOutputPayload($llm, $input);
+    makeStoreMessageAction(fakeLlmProvider(supportsCost: true, usage: [
+        'tokens_prompt' => 120,
+        'tokens_completion' => 80,
+        'total_cost' => 0.0,
+    ]))->execute($agent, $output);
+
+    expect($credit->usage()->first()->tokens)->toBe(200);
 });
 
 it('does not dispatch AnalyzeMessageJob for an assistant turn', function (): void {
@@ -217,13 +312,13 @@ it('does not dispatch AnalyzeMessageJob for an assistant turn', function (): voi
     $llm = Llm::factory()->create(['external_name' => 'gpt-skip-analyze']);
 
     $input = makeInputPayload($agent);
-    new StoreMessageAction(fakeLlmProvider())->execute($agent, $input);
+    makeStoreMessageAction(fakeLlmProvider())->execute($agent, $input);
 
     Bus::assertDispatchedTimes(AnalyzeMessageJob::class, 1); // from the user turn above
     Bus::fake([AnalyzeMessageJob::class, AnalyzeConversationJob::class]); // reset between assertions
 
     $output = makeOutputPayload($llm, $input);
-    new StoreMessageAction(fakeLlmProvider(supportsCost: true, usage: [
+    makeStoreMessageAction(fakeLlmProvider(supportsCost: true, usage: [
         'tokens_prompt' => 1,
         'tokens_completion' => 1,
         'total_cost' => 0.0,

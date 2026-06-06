@@ -23,7 +23,7 @@ class AgentSignInLinkController
     ) {}
 
     /**
-     * Create sign-in link
+     * Sign a User
      *
      * Returns a ready-to-open `url`. Redirect your end-user to it; they land in
      * the agent's chat signed in as that user.
@@ -34,7 +34,7 @@ class AgentSignInLinkController
     {
         /** @var User $account */
         $account = $request->user();
-        $owner = $account->belongsToWorkspace() ? $account->workspace : $account;
+        $owner = $account->workspace();
 
         // `users()` is a BelongsToMany on User → related model is User by
         // construction, but the relation's static type erases to Model. The

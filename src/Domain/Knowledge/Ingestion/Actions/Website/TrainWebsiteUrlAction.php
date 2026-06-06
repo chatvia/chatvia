@@ -60,7 +60,7 @@ class TrainWebsiteUrlAction
 
             $chunkModel = Chunk::query()->updateOrCreate(
                 [
-                    'chunkable_type' => $website::class,
+                    'chunkable_type' => $website->getMorphClass(),
                     'chunkable_id' => $website->id,
                     'checksum' => $chunkChecksum,
                 ],
@@ -70,7 +70,7 @@ class TrainWebsiteUrlAction
                     'chunk_index' => $idx + 1,
                     'chunk' => $chunk,
                     'summary' => null,
-                    'chunked_using_model' => config('ai.models.chunker'),
+                    'chunked_using_model' => config('chatvia.ai.models.chunker'),
                     'embedding_model' => $this->embeddings->getModelName(),
                     'cost_in_micro_cents' => 0,
                     'tokens' => TikToken::countTokens($chunk),
@@ -86,7 +86,7 @@ class TrainWebsiteUrlAction
             ]);
 
             WebsiteUrlEnhanceJob::dispatchIf(
-                config('ai.chunker.enhance') === true,
+                config('chatvia.ai.chunker.enhance') === true,
                 $agent,
                 $websiteUrl,
                 $chunkModel,

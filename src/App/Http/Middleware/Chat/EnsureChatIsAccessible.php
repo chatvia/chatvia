@@ -36,6 +36,19 @@ class EnsureChatIsAccessible
 
         $userAuthenticated = Auth::guard('web')->check();
 
+        // A deactivated account loses access immediately, even mid-session. The
+        // login-time gate (LoginUserToAgentAction / sign-in token) can't catch a
+        // session that's already open, so re-check on every chat request and
+        // sign the user out — otherwise a chatter deactivated while logged in
+        // keeps browsing and chatting until their session happens to expire.
+        if ($userAuthenticated && Auth::guard('web')->user()->isDeactivated()) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return to_route('chat.login.show')->with('error', 'Your account has been deactivated.');
+        }
+
         if ($agent->is_public === false && $userAuthenticated === false) {
             $isAuthLogin = str_starts_with($currentRouteName, 'chat.login');
 

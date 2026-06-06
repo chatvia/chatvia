@@ -24,7 +24,7 @@ class GetDashboardStatsAction
         // analytics row — is stamped with it (see CreateAgentAction), so all
         // account-level stats key on this id and stay correct no matter which
         // member is viewing the dashboard.
-        $owner = $user->effectiveUser();
+        $owner = $user->workspace();
         $userId = $owner->id;
 
         // Every agent the workspace owns, by user_id. Drives the "Total Agents"
@@ -33,7 +33,7 @@ class GetDashboardStatsAction
         $agentIds = Agent::where('user_id', $userId)->pluck('id');
 
         $totalConversations = $this->rollup()
-            ->where('user_id', $userId)
+            ->where('workspace_id', $userId)
             ->sum('conversations_started');
 
         return [
@@ -60,9 +60,9 @@ class GetDashboardStatsAction
      */
     private function getActiveSessions(int $userId): int
     {
-        return DB::connection(config('analytics.connection'))
+        return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_events')
-            ->where('user_id', $userId)
+            ->where('workspace_id', $userId)
             ->where('occurred_at', '>=', now()->subDay())
             ->distinct()
             ->count('session_external_id');
@@ -82,47 +82,15 @@ class GetDashboardStatsAction
      */
     private function getMessagesPanel(User $user, ?Team $team): array
     {
-        $credit = $user->credit;
-
-        $used = $credit
-            ? (int) $this->cycleUsage($user->id, $credit->started_at)
-            : 0;
-
-        $baseLimit = $credit ? (int) $credit->messages : 0;
-        $addons = $this->activeAddonsTotal($user);
-
-        // remaining base, clamped — then addons added on top.
-        $available = max(0, $baseLimit - $used) + $addons;
-        $limit = $baseLimit + $addons;
+        $credits = $user->messageCredits();
 
         return [
-            'total' => $used,
-            'available' => $available,
-            'limit' => $limit,
-            'cycle' => $credit
-                ? [
-                    'started_at' => $credit->started_at,
-                    'ends_at' => $credit->ends_at,
-                ]
-                : null,
+            'total' => $credits->used(),
+            'available' => $credits->available(),
+            'limit' => $credits->limit(),
+            'cycle' => $credits->cycleBounds(),
             'trend' => $this->getMessagesTrend($user->id, $team !== null),
         ];
-    }
-
-    private function cycleUsage(int $userId, Carbon $cycleStart): int
-    {
-        return (int) $this->rollup()
-            ->where('user_id', $userId)
-            ->where('bucket_hour', '>=', $cycleStart)
-            ->sum('assistant_messages');
-    }
-
-    private function activeAddonsTotal(User $user): int
-    {
-        return (int) $user->addons()
-            ->where('type', 'extra_message_credits')
-            ->where('ends_at', '>=', now())
-            ->sum('amount');
     }
 
     /**
@@ -132,24 +100,19 @@ class GetDashboardStatsAction
     {
         /** @var UserQuota $quota */
         $quota = $user->quota;
-        $credit = $user->credit;
 
-        $cycleMessages = $credit ? $this->cycleUsage($user->id, $credit->started_at) : 0;
-        $baseLimit = $credit ? (int) $credit->messages : 0;
-        $addons = $this->activeAddonsTotal($user);
-        $quotaMessages = $baseLimit + $addons;
-        $remaining = max(0, $baseLimit - $cycleMessages) + $addons;
-
-        $pagesConsumed = $user->pagesConsumed();
-        $minutesConsumed = $user->minutesConsumed();
-        $linksConsumed = $user->linksConsumed();
+        $credits = $user->messageCredits();
+        $consumption = $user->consumption();
+        $pagesConsumed = $consumption->pages();
+        $minutesConsumed = $consumption->minutes();
+        $linksConsumed = $consumption->links();
 
         return [
             'plan' => $user->plan ?? 'Free',
             'messages' => [
-                'used' => $cycleMessages,
-                'limit' => $quotaMessages,
-                'remaining' => $remaining,
+                'used' => $credits->used(),
+                'limit' => $credits->limit(),
+                'remaining' => $credits->available(),
             ],
             'pages' => [
                 'used' => $pagesConsumed,
@@ -238,7 +201,7 @@ class GetDashboardStatsAction
     private function assistantMessagesInRange(int $userId, Carbon $from, ?Carbon $to): int
     {
         $query = $this->rollup()
-            ->where('user_id', $userId)
+            ->where('workspace_id', $userId)
             ->where('bucket_hour', '>=', $from);
 
         if ($to) {
@@ -257,7 +220,7 @@ class GetDashboardStatsAction
         $endDate = now()->endOfDay();
 
         $dailyMessages = $this->rollup()
-            ->where('user_id', $userId)
+            ->where('workspace_id', $userId)
             ->whereRaw('bucket_hour::date BETWEEN ? AND ?', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->selectRaw('bucket_hour::date as date, SUM(assistant_messages) as count')
             ->groupBy('date')
@@ -287,7 +250,7 @@ class GetDashboardStatsAction
      */
     private function rollup(): Builder
     {
-        return DB::connection(config('analytics.connection'))
+        return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_hourly_rollups');
     }
 }

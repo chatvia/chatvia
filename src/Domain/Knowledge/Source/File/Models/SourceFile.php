@@ -8,7 +8,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Ingestion\Services\Ingestion;
 use Domain\Knowledge\Source\File\QueryBuilders\SourceFileQueryBuilder;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -19,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Support\MimeType;
 use Support\Traits\Chunkable;
 use Support\Traits\HasStorageFile;
 use Support\Traits\SupportsExternalId;
@@ -116,47 +116,29 @@ class SourceFile extends Model implements ChunkableContract
             ->using(AgentSource::class);
     }
 
-    public function ingest(int $agentId): void
-    {
-        // If agentId is provided, ingest for that specific agent
-        // Otherwise, ingest for all agents this file is attached to
-        if ($agentId) {
-            app(Ingestion::class)->ingest($this, $agentId);
-        } else {
-            $this->agents->each(function (Agent $agent): void {
-                app(Ingestion::class)->ingest($this, $agent->id);
-            });
-        }
-    }
-
     public function url(): Attribute
     {
         return Attribute::get(fn () => Storage::url($this->filepath));
     }
 
-    public function cancelIngestionJob(): void
-    {
-        app(Ingestion::class)->cancel($this);
-    }
-
     public function isWordFile(): bool
     {
-        return in_array($this->mime_type, config('mimes.word'), true);
+        return MimeType::isWord($this->mime_type);
     }
 
     public function isPdfFile(): bool
     {
-        return $this->mime_type === 'application/pdf';
+        return MimeType::isPdf($this->mime_type);
     }
 
     public function isAudioFile(): bool
     {
-        return in_array($this->mime_type, config('mimes.audio'), true);
+        return MimeType::isAudio($this->mime_type);
     }
 
     public function isVideoFile(): bool
     {
-        return in_array($this->mime_type, config('mimes.video'), true);
+        return MimeType::isVideo($this->mime_type);
     }
 
     public function download(): StreamedResponse

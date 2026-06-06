@@ -26,6 +26,11 @@ class LoginUserToAgentAction
             return null;
         }
 
+        // A deactivated chatter can't sign in, even with valid credentials.
+        if ($user->isDeactivated()) {
+            return null;
+        }
+
         if (! $user->canAccessAgent($agent)) {
             return null;
         }

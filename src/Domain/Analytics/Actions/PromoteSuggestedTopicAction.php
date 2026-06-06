@@ -8,7 +8,7 @@ use Domain\Analytics\Events\ConversationTopicAssigned;
 use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -25,7 +25,7 @@ class PromoteSuggestedTopicAction
     ) {}
 
     /**
-     * @throws InviteRejectedException when the agent already has a topic with this name
+     * @throws DomainValidationException when the agent already has a topic with this name
      */
     public function execute(Agent $agent, User $user, string $label): Topic
     {
@@ -51,7 +51,7 @@ class PromoteSuggestedTopicAction
 
                 $committed = ConversationTopic::firstOrCreate([
                     'chat_conversation_id' => $conversation->id,
-                    'chat_topic_id' => $topic->id,
+                    'topic_id' => $topic->id,
                 ]);
 
                 if ($committed->wasRecentlyCreated) {

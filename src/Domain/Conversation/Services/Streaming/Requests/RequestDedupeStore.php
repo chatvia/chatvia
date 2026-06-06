@@ -55,13 +55,13 @@ class RequestDedupeStore
 
     private function cache(): Repository
     {
-        $store = $this->store ?? config('sse.dedupe.store');
+        $store = $this->store ?? config('chatvia.sse.dedupe.store');
 
         return $store ? Cache::store($store) : Cache::store();
     }
 
     private function ttl(): int
     {
-        return $this->ttlSeconds ?? (int) config('sse.dedupe.ttl_seconds', 600);
+        return $this->ttlSeconds ?? (int) config('chatvia.sse.dedupe.ttl_seconds', 600);
     }
 }

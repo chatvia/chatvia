@@ -10,36 +10,39 @@ You'll be asked for:
 
 | Field | Notes |
 | --- | --- |
-| **Name** | Shown in the dashboard and (for knowledge-base agents) at the top of the chat page. |
-| **Type** | [Knowledge base or Widget](/guide/agents/types). Not changeable later. |
-| **Subdomain** | The hosted URL — `your-name.chatvia.ai`. A random name is generated; the **Regenerate** button rolls a new one. Must be unique across Chatvia. |
+| **Name** | Shown in the dashboard and across all three surfaces of the agent. |
 | **Template** *(optional)* | Pre-fill all appearance/model/persona settings from a [template](/guide/account/templates). |
 
 ![SCREENSHOT — create agent modal](/screenshots/agent-create-modal.png)
 
-::: tip Subdomain rules
-Subdomains are lowercase, alphanumeric with hyphens, 3–63 characters, and must be unique. The "Regenerate" button always proposes a free name.
+::: tip Renaming and subdomain
+A slug is auto-generated from the name — no need to pick one in the modal. Rename it later in **Setup → Domain**, or attach a custom domain via CNAME.
 :::
 
 ## What happens after creation
 
-You land on the agent's **Home** page, with:
+You land on the agent's **Setup** page, with cards pointing to the sections your team will visit next:
 
-- A short tour banner (dismissible).
-- Cards for the sections you'll visit next: **Sources**, **Persona**, **Widget** or **Settings**, **Playground**.
-- A copy-link button for the hosted URL (knowledge-base only).
+- **Sources** — add files, web pages, YouTube, text, or Q&A so the agent has something to answer from.
+- **Persona** — set the system instructions, tone, and behaviour.
+- **Setup** — configure the three surfaces (Hosted Chat, Widget, Bar), appearance, model, and branding.
+- **Playground** — try the agent out before sharing it with chatters.
 
 Behind the scenes:
 
-- An empty agent is created on your current team.
-- A default model assignment is wired up (the first available model in your plan).
+- An empty agent is created in the current workspace.
+- A default model assignment is wired up (the first available model in the workspace plan).
 - Default system instructions ("You are a helpful assistant…") are set — change these before sharing.
-- No sources yet — the agent will refuse to answer until you add at least one.
+- No sources yet — the agent will refuse to answer until your team adds at least one.
 
 ## Permissions
 
-Only **team owners** can create agents. Members can be granted **edit** access on specific agents through [roles](/guide/account/teams).
+**Workspace owners** and **teammates with the `Agent.create` permission** can create agents. Other teammates can be granted edit access on specific agents through [role-based access](/guide/account/teams).
 
 ## Creating agents via API
 
-You can also create agents programmatically. See the [API reference](https://chatvia.ai/docs/api) under **Agents** for the full request schema. Note that the API can only create knowledge-base agents — widget agents must be created in the dashboard.
+Agents can also be created programmatically. See the [API reference](https://chatvia.ai/docs/api) under **Agents** for the full request schema.
+
+::: info
+Every new agent serves all three surfaces (Hosted Chat, Widget, Bar) — see [Agent surfaces](/guide/agents/types).
+:::

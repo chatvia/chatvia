@@ -350,7 +350,7 @@ class MessageManager
             ->join('agents as ag', 'ag.id', '=', 's.agent_id')
             ->leftJoin('countries as co', 'co.id', '=', 's.country_id')
             ->where('m.external_id', $messageExternalId)
-            ->select('s.agent_id', 'ag.user_id', 'co.code as country_code')
+            ->select('s.agent_id', 'ag.user_id', 's.user_id as chatter_user_id', 'co.code as country_code')
             ->first();
 
         if (! $context) {
@@ -360,6 +360,7 @@ class MessageManager
         FeedbackGiven::dispatch(
             (int) $context->agent_id,
             (int) $context->user_id,
+            $context->chatter_user_id !== null ? (int) $context->chatter_user_id : null,
             $conversationExternalId,
             $messageExternalId,
             $feedback,

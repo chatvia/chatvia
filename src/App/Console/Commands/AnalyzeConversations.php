@@ -15,7 +15,7 @@ class AnalyzeConversations extends Command
     public function handle(): int
     {
         $chunk = max(1, (int) $this->option('chunk'));
-        $cutoff = now()->subHours((int) config('analytics.analysis.scan_age_hours', 6));
+        $cutoff = now()->subHours((int) config('chatvia.analytics.analysis.scan_age_hours', 6));
         $dispatched = 0;
 
         // analyzed_at is set by the queued job (async), so it stays NULL for the
@@ -23,7 +23,7 @@ class AnalyzeConversations extends Command
         // conversations_pending_analysis_idx partial index serves this predicate.
         Conversation::query()
             ->whereNull('analyzed_at')
-            ->where('created_at', '<', $cutoff)
+//            ->where('created_at', '<', $cutoff)
             ->whereNull('deleted_at')
             ->orderBy('id')
             ->chunkById($chunk, function ($conversations) use (&$dispatched): void {

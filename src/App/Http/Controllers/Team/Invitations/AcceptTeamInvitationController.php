@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Team\AcceptInvitationRequest;
 use Domain\Membership\Team\Actions\Invitations\AcceptTeamInvitationAction;
 use Domain\Membership\Team\Data\AcceptInvitationData;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Models\Invitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +28,7 @@ class AcceptTeamInvitationController extends Controller
                 password: $request->input('password'),
                 name: $request->input('name'),
             ));
-        } catch (InviteRejectedException $e) {
+        } catch (DomainValidationException $e) {
             return back()->withErrors([$e->field => $e->getMessage()]);
         }
 

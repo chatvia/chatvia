@@ -46,7 +46,7 @@ class MediaChunkIngestionJob implements ShouldBeUnique, ShouldQueue
         FileIngestionProgressed::dispatch($this->sourceFile, $this->agent->external_id);
 
         TextEnhanceChunkJob::dispatchIf(
-            config('ai.chunker.enhance') === true,
+            config('chatvia.ai.chunker.enhance') === true,
             $this->agent,
             $this->sourceFile,
             $chunk,

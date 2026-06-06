@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Widget\Stream;
 
+use App\Identity\Workspace\Models\User;
 use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Requests\StreamRequestDataFactory;
 use Domain\Widget\Services\WidgetVerification;
@@ -33,6 +34,11 @@ readonly class StreamController
         // anything else — including a hand-crafted Referer — is ignored.
         $isPlayground = $request->attributes->getBoolean('widget_is_playground');
 
+        // The authenticated chatter resolved by EnsureWidgetIsAccessible for
+        // protected agents; null for public agents (anonymous visitors). Drives
+        // the per-chatter message limit and analytics chatter_user_id.
+        $chatter = $request->attributes->get('widget_user');
+
         return $this->chatStreamService->stream(
             $this->factory->forWidget(
                 $request,
@@ -40,6 +46,7 @@ readonly class StreamController
                 $sessionId,
                 $conversationId,
                 $isPlayground,
+                $chatter instanceof User ? $chatter : null,
             ),
         );
     }

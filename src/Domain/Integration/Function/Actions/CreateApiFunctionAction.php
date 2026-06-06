@@ -5,6 +5,7 @@ namespace Domain\Integration\Function\Actions;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Function\Data\ApiFunctionPayloadData;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Function\Services\AuthConfigBuilder;
 use Illuminate\Validation\ValidationException;
 use Spatie\LaravelData\Optional;
 
@@ -15,6 +16,8 @@ use Spatie\LaravelData\Optional;
  */
 class CreateApiFunctionAction
 {
+    public function __construct(private readonly AuthConfigBuilder $authConfig) {}
+
     public function execute(User $user, ApiFunctionPayloadData $data): AgentFunction
     {
         $name = (string) $data->internal_name;
@@ -26,6 +29,8 @@ class CreateApiFunctionAction
         }
 
         $authType = $data->auth_type instanceof Optional ? 'none' : (string) $data->auth_type;
+        $authValue = $data->auth_value instanceof Optional ? null : (string) $data->auth_value;
+        $authHeader = $data->auth_header_name instanceof Optional ? null : (string) $data->auth_header_name;
 
         /** @var AgentFunction $function */
         $function = $user->functions()->create([
@@ -37,27 +42,11 @@ class CreateApiFunctionAction
             'webhook_method' => $data->webhook_method instanceof Optional ? 'POST' : (string) $data->webhook_method,
             'webhook_headers' => $data->webhook_headers instanceof Optional ? null : $data->webhook_headers,
             'auth_type' => $authType,
-            'auth_config' => $this->buildAuthConfig($authType, $data),
+            'auth_config' => $this->authConfig->build($authType, $authValue, $authHeader),
             'timeout_ms' => $data->timeout_ms instanceof Optional ? 10000 : (int) $data->timeout_ms,
             'is_enabled' => $data->is_enabled instanceof Optional ? true : (bool) $data->is_enabled,
         ]);
 
         return $function;
-    }
-
-    /**
-     * @return array<string, string>|null
-     */
-    private function buildAuthConfig(string $authType, ApiFunctionPayloadData $data): ?array
-    {
-        $value = $data->auth_value instanceof Optional ? '' : (string) $data->auth_value;
-        $name = $data->auth_header_name instanceof Optional ? '' : (string) $data->auth_header_name;
-
-        return match ($authType) {
-            'bearer' => ['token' => $value],
-            'header' => ['name' => $name, 'value' => $value],
-            'hmac' => ['secret' => $value],
-            default => null,
-        };
     }
 }

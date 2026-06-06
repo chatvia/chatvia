@@ -12,7 +12,7 @@ class SaveTeamRoleRequest extends FormRequest
     {
         $team = $this->route('team');
 
-        return $team instanceof Team && $this->user()?->ownsTeam($team);
+        return $team instanceof Team && $this->user()?->can('update', $team);
     }
 
     /**

@@ -10,6 +10,7 @@ use Domain\Membership\Agent\Actions\InviteAgentMemberAction;
 use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
 use Domain\Membership\Agent\Data\Resources\AgentMemberRowData;
 use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
+use Domain\Membership\Agent\Models\AgentMemberInvitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -34,7 +35,6 @@ class AgentMemberController extends Controller
      */
     public function index(Request $request, Agent $agent): Response|array
     {
-        abort_unless(has_permission_to_agent($agent, 'agent.members.manage'), 404);
 
         if ($request->wantsJson()) {
             $agent->loadMissing('user');
@@ -48,11 +48,35 @@ class AgentMemberController extends Controller
             $grantedIds = $agent->chatters()->pluck('users.id')->all();
             $grantedSet = array_flip($grantedIds);
 
+            // Outstanding invitations for this agent, keyed by lower-cased
+            // email. A pending member's sign-up link lives here; we surface it
+            // so the owner can copy it from the member sheet.
+            $invitations = AgentMemberInvitation::query()
+                ->where('agent_id', $agent->id)
+                ->get()
+                ->keyBy(fn (AgentMemberInvitation $invitation): string => strtolower($invitation->email));
+
             $rows = $chatters
-                ->map(fn ($chatter): AgentMemberRowData => AgentMemberRowData::fromModelAndGrant(
-                    $chatter,
-                    isset($grantedSet[$chatter->id]),
-                ))
+                ->map(function ($chatter) use ($grantedSet, $invitations): AgentMemberRowData {
+                    $invitationUrl = null;
+                    $invitationExpiresAt = null;
+
+                    if ($chatter->email_verified_at === null && $chatter->email !== null) {
+                        $invitation = $invitations->get(strtolower($chatter->email));
+
+                        if ($invitation !== null && ! $invitation->hasExpired()) {
+                            $invitationUrl = route('agents.invitation.show', ['token' => $invitation->token]);
+                            $invitationExpiresAt = $invitation->expires_at->toIso8601String();
+                        }
+                    }
+
+                    return AgentMemberRowData::fromModelAndGrant(
+                        $chatter,
+                        isset($grantedSet[$chatter->id]),
+                        $invitationUrl,
+                        $invitationExpiresAt,
+                    );
+                })
                 ->sortBy(fn ($row): array => [$row->has_access ? 0 : 1, strtolower($row->name)])
                 ->values();
 
@@ -69,7 +93,6 @@ class AgentMemberController extends Controller
         Agent $agent,
         InviteAgentMemberAction $invite,
     ): RedirectResponse {
-        abort_unless(has_permission_to_agent($agent, 'agent.members.manage'), 404);
 
         // Public agents have no concept of members — anyone with the URL can
         // chat. Refuse the invite so the workspace doesn't pile up unused
@@ -97,7 +120,6 @@ class AgentMemberController extends Controller
         string $chatter,
         GrantAgentMembershipAction $grant,
     ): RedirectResponse {
-        abort_unless(has_permission_to_agent($agent, 'agent.members.manage'), 404);
 
         abort_if($agent->is_public, 422, 'Public agents do not use per-member grants.');
 
@@ -117,7 +139,6 @@ class AgentMemberController extends Controller
         string $chatter,
         RevokeAgentMembershipAction $detach,
     ): RedirectResponse {
-        abort_unless(has_permission_to_agent($agent, 'agent.members.manage'), 404);
 
         $member = $agent->chatters()->where('users.external_id', $chatter)->firstOrFail();
 

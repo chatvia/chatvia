@@ -11,7 +11,7 @@ use InvalidArgumentException;
 
 class Ingestion
 {
-    public function ingest(SourceFile $sourceFile, int|Agent $agent): void
+    public function ingest(SourceFile $sourceFile, Agent $agent): void
     {
         if ($sourceFile->status === 'ingested') {
             return;
@@ -19,10 +19,6 @@ class Ingestion
 
         if ($sourceFile->status !== 'ingesting') {
             $sourceFile->update(['status' => 'ingesting']);
-        }
-
-        if (is_int($agent)) {
-            $agent = Agent::find($agent);
         }
 
         if ($sourceFile->isAudioFile() || $sourceFile->isVideoFile()) {

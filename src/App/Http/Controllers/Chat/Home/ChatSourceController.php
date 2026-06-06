@@ -13,9 +13,7 @@ class ChatSourceController
         $agent = current_agent();
 
         return $memory
-            ->setAgent($agent)
-            ->setExternalSessionId($session->firstOrCreateSession($agent))
-            ->setConversationId($conversationId)
+            ->withContext($agent, $session->firstOrCreateSession($agent), $conversationId)
             ->getSources();
     }
 }

@@ -11,11 +11,16 @@ use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelMarkdown\MarkdownRenderer;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
+use Support\Browsershot\BrowsershotConfigurator;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 readonly class ChatExportController
 {
-    public function __construct(private ChatMemory $memory, private TurnState $session) {}
+    public function __construct(
+        private ChatMemory $memory,
+        private TurnState $session,
+        private BrowsershotConfigurator $browsershotConfig,
+    ) {}
 
     public function __invoke(Request $request, string $conversationId)
     {
@@ -28,9 +33,7 @@ readonly class ChatExportController
 
         $this
             ->memory
-            ->setAgent($agent)
-            ->setExternalSessionId($this->session->firstOrCreateSession($agent))
-            ->setConversationId($conversationId);
+            ->withContext($agent, $this->session->firstOrCreateSession($agent), $conversationId);
 
         $type = $request->input('type');
 
@@ -61,25 +64,9 @@ readonly class ChatExportController
 
     private function toPdf(array $messages, string $filename): PdfBuilder
     {
-        return Pdf::withBrowsershot(function (Browsershot $browsershot): void {
-            if (config('services.bin.nvm_include_path')) {
-                $browsershot->setIncludePath(config('services.bin.nvm_include_path'));
-            }
-
-            if (config('services.bin.node')) {
-                $browsershot->setNodeBinary(config('services.bin.node'));
-            }
-
-            if (config('services.bin.npm')) {
-                $browsershot->setNpmBinary(config('services.bin.npm'));
-            }
-
-            if (config('services.bin.chrome')) {
-                $browsershot->setChromePath(config('services.bin.chrome'));
-            }
-        })->view('chat.export.pdf', [
-            'messages' => $messages,
-        ])->download($filename.'.pdf');
+        return Pdf::withBrowsershot(fn (Browsershot $browsershot) => $this->browsershotConfig->configure($browsershot))
+            ->view('chat.export.pdf', ['messages' => $messages])
+            ->download($filename.'.pdf');
     }
 
     private function toMarkdown(array $messages, string $filename): BinaryFileResponse

@@ -6,11 +6,7 @@ use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
-use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteIngestionJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
-use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
-use Domain\Knowledge\Source\Web\Jobs\Crawler\WebsiteCrawlerJob;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -96,46 +92,6 @@ class SourceWebsite extends Model implements ChunkableContract
         return [
             'options' => 'json',
         ];
-    }
-
-    public function startTraining(?int $agentId = null): void
-    {
-        // If agentId is provided, train for that specific agent
-        // Otherwise, train for all agents this website is attached to
-        if ($agentId) {
-            $agent = Agent::findOrFail($agentId);
-            WebsiteIngestionJob::dispatch($this, $agent);
-        } else {
-            $this->agents->each(function (Agent $agent): void {
-                WebsiteIngestionJob::dispatch($this, $agent);
-            });
-        }
-    }
-
-    public function startCrawling(?int $agentId = null): void
-    {
-        // Update status to crawling
-        $this->update(['status' => 'crawling']);
-
-        // Prepare crawler data from the website's URL and options
-        $crawlerData = CrawlerData::from([
-            'url' => $this->url,
-            'slow_crawling' => $this->options['slow_crawling'] ?? false,
-            'include_paths' => $this->options['include_paths'] ?? null,
-            'exclude_paths' => $this->options['exclude_paths'] ?? null,
-        ]);
-
-        // Dispatch crawler job and event for each agent
-        if ($agentId) {
-            $agent = Agent::findOrFail($agentId);
-            WebsiteCrawlStarted::dispatch($this, $agent);
-            WebsiteCrawlerJob::dispatch($this, $crawlerData, $agent);
-        } else {
-            $this->agents->each(function (Agent $agent) use ($crawlerData): void {
-                WebsiteCrawlStarted::dispatch($this, $agent);
-                WebsiteCrawlerJob::dispatch($this, $crawlerData, $agent);
-            });
-        }
     }
 
     public function urls(): HasMany

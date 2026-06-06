@@ -14,6 +14,7 @@ import {
     CheckCircle,
     ChevronDown,
     Clock,
+    Coins,
     CreditCard,
     CreditCardIcon,
     FileText,
@@ -572,31 +573,43 @@ const cancelScheduledPlanChange = () => {
                                     </div>
 
                                     <div v-else-if="usageData" class="space-y-4">
-                                        <!-- Messages Usage -->
-                                        <div v-if="usageData.messages" class="space-y-2">
+                                        <!-- Messages sent — informational only. The plan is metered in
+                                             tokens, not messages, so there's no message limit bar. -->
+                                        <div v-if="usageData.messages" class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <MessageSquare class="h-4 w-4 text-blue-500" />
+                                                <span class="text-sm font-medium">Messages sent</span>
+                                            </div>
+                                            <span class="text-sm font-semibold">
+                                                {{ (usageData.messages.used ?? 0).toLocaleString() }}
+                                            </span>
+                                        </div>
+
+                                        <!-- Tokens This Cycle — the actual billing meter -->
+                                        <div v-if="usageData.tokens" class="space-y-2">
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
-                                                    <MessageSquare class="h-4 w-4 text-blue-500" />
-                                                    <span class="text-sm font-medium">Messages</span>
+                                                    <Coins class="h-4 w-4 text-indigo-500" />
+                                                    <span class="text-sm font-medium">Tokens This Cycle</span>
                                                 </div>
                                                 <span class="text-muted-foreground text-sm">
-                                                    {{ (usageData.messages.used ?? 0).toLocaleString() }} /
-                                                    {{ (usageData.messages.limit ?? 0).toLocaleString() }}
+                                                    {{ (usageData.tokens.used ?? 0).toLocaleString() }} /
+                                                    {{ (usageData.tokens.limit ?? 0).toLocaleString() }}
                                                 </span>
                                             </div>
                                             <div class="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                                                 <div
                                                     class="h-2 rounded-full transition-all duration-300"
                                                     :class="
-                                                        getUsageColor(getUsagePercentage(usageData.messages.used ?? 0, usageData.messages.limit ?? 1))
+                                                        getUsageColor(getUsagePercentage(usageData.tokens.used ?? 0, usageData.tokens.limit ?? 1))
                                                     "
                                                     :style="{
-                                                        width: `${getUsagePercentage(usageData.messages.used ?? 0, usageData.messages.limit ?? 1)}%`,
+                                                        width: `${getUsagePercentage(usageData.tokens.used ?? 0, usageData.tokens.limit ?? 1)}%`,
                                                     }"
                                                 ></div>
                                             </div>
                                             <div class="text-muted-foreground text-xs">
-                                                {{ (usageData.messages.remaining ?? 0).toLocaleString() }} remaining
+                                                {{ (usageData.tokens.remaining ?? 0).toLocaleString() }} remaining
                                             </div>
                                         </div>
 

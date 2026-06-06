@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Agent\Source\Qa;
 
+use App\Http\Requests\Agent\Source\Qa\CreateAgentQaRequest;
+use App\Http\Requests\Agent\Source\Qa\UpdateAgentQaRequest;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\QA\Actions\CreateAgentQaAction;
@@ -48,49 +50,29 @@ class AgentQaController
         ]);
     }
 
-    public function store(Request $request, Agent $agent, CreateAgentQaAction $createQa): RedirectResponse
+    public function store(CreateAgentQaRequest $request, Agent $agent, CreateAgentQaAction $createQa): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'questions' => ['required', 'array', 'min:1'],
-            'questions.*.question' => ['required', 'string'],
-            'answer' => ['required', 'string', 'min:10'],
-        ]);
-
         $createQa->execute(
             agent: $agent,
-            title: $validated['title'],
-            questions: $validated['questions'],
-            answer: $validated['answer'],
+            title: (string) $request->validated('title'),
+            questions: (array) $request->validated('questions'),
+            answer: (string) $request->validated('answer'),
         );
 
         return back();
     }
 
-    public function update(Request $request, Agent $agent, int $id, UpdateAgentQaAction $updateQa): RedirectResponse
+    public function update(UpdateAgentQaRequest $request, Agent $agent, int $id, UpdateAgentQaAction $updateQa): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-        abort_if($request->user()->cannot('update', $agent), 404);
-
         $qa = AgentQuestionAnswer::query()
             ->where('agent_id', $agent->id)
             ->findOrFail($id);
 
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'questions' => ['required', 'array', 'min:1'],
-            'questions.*.question' => ['required', 'string'],
-            'answer' => ['required', 'string', 'min:10'],
-        ]);
-
         $updateQa->execute(
             qa: $qa,
-            title: $validated['title'],
-            questions: $validated['questions'],
-            answer: $validated['answer'],
+            title: (string) $request->validated('title'),
+            questions: (array) $request->validated('questions'),
+            answer: (string) $request->validated('answer'),
         );
 
         return back();

@@ -237,3 +237,98 @@ it('trusts the cached gate even when it disagrees with live availability, until 
     expect($system->refreshCanSendMessages())->toBeFalse()
         ->and($system->canSendMessages())->toBeFalse();
 });
+
+// --- tokens: per-cycle cap, logging, and the ≤1000 floor gate ----------------
+
+it('available tokens is the cap minus consumed for the active cycle', function (): void {
+    $user = User::factory()->create();
+
+    $credit = UserCredit::factory()->create([
+        'user_id' => $user->id,
+        'tokens' => 1_000_000,
+        'started_at' => now()->subDay(),
+        'ends_at' => now()->addDays(20),
+    ]);
+    $credit->usage()->create(['tokens' => 250_000]);
+
+    expect($user->creditSystem()->refreshAvailableTokens())->toBe(750_000);
+});
+
+it('tokensAboveFloor is false once remaining tokens drop to the 1000 floor', function (): void {
+    $user = User::factory()->create();
+
+    $credit = UserCredit::factory()->create([
+        'user_id' => $user->id,
+        'tokens' => 100_000,
+        'started_at' => now()->subDay(),
+        'ends_at' => now()->addDays(20),
+    ]);
+    $credit->usage()->create(['tokens' => 99_500]); // 500 remaining (≤ 1000)
+
+    expect($user->creditSystem()->tokensAboveFloor())->toBeFalse();
+});
+
+it('tokensAboveFloor is true while remaining tokens exceed the floor', function (): void {
+    $user = User::factory()->create();
+
+    $credit = UserCredit::factory()->create([
+        'user_id' => $user->id,
+        'tokens' => 100_000,
+        'started_at' => now()->subDay(),
+        'ends_at' => now()->addDays(20),
+    ]);
+    $credit->usage()->create(['tokens' => 98_000]); // 2000 remaining (> 1000)
+
+    expect($user->creditSystem()->tokensAboveFloor())->toBeTrue();
+});
+
+it('tokensAboveFloor blocks (token-primary) when there is no active credit', function (): void {
+    $user = User::factory()->create();
+
+    // Token-primary: tokens are the gate, so "no active billing cycle" blocks.
+    expect($user->creditSystem()->tokensAboveFloor())->toBeFalse();
+});
+
+it('treats a 0 token cap as unlimited (token gate never bites)', function (): void {
+    $user = User::factory()->create();
+
+    UserCredit::factory()->create([
+        'user_id' => $user->id,
+        'tokens' => 0,
+        'started_at' => now()->subDay(),
+        'ends_at' => now()->addDays(20),
+    ]);
+
+    expect($user->creditSystem()->tokensAboveFloor())->toBeTrue();
+});
+
+it('recordTokenUsage accumulates consumed tokens and lowers availability', function (): void {
+    $user = User::factory()->create();
+
+    $credit = UserCredit::factory()->create([
+        'user_id' => $user->id,
+        'tokens' => 1_000_000,
+        'started_at' => now()->subDay(),
+        'ends_at' => now()->addDays(20),
+    ]);
+    $credit->usage()->create(['tokens' => 0]);
+
+    $system = $user->creditSystem();
+    $system->recordTokenUsage(400_000);
+    $system->recordTokenUsage(150_000);
+
+    expect($credit->usage()->first()->tokens)->toBe(550_000)
+        ->and($system->getAvailableTokens())->toBe(450_000);
+});
+
+it('addCredit persists the token cap from the quota and seeds available-tokens', function (): void {
+    $user = User::factory()->create();
+
+    $credit = $user->creditSystem()->addCredit(
+        ['messages_limit' => 4000, 'tokens_limit' => 7_000_000],
+        now()->addMonth(),
+    );
+
+    expect($credit->tokens)->toBe(7_000_000)
+        ->and($user->creditSystem()->getAvailableTokens())->toBe(7_000_000);
+});

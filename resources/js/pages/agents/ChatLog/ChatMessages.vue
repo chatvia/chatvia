@@ -50,6 +50,16 @@ function formatConfidenceScore(score: number): string {
     return score.toFixed(2);
 }
 
+function getTotalTokens(message: Message): number | null {
+    if (message.role !== 'assistant') return null;
+    const total = (message.prompt_tokens ?? 0) + (message.completion_tokens ?? 0);
+    return total > 0 ? total : null;
+}
+
+function formatTokens(value: number): string {
+    return value.toLocaleString();
+}
+
 function getFeedbackInfo(feedback: string | null): { color: string; label: string } | null {
     if (!feedback) return null;
     if (feedback === 'positive') {
@@ -144,6 +154,19 @@ function openReviseDialog(message: Message) {
                                         class="pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
                                     >
                                         Confidence: {{ (getConfidenceScore(m) * 100).toFixed(0) }}%
+                                    </span>
+                                </span>
+                                <span class="text-muted-foreground/30">•</span>
+                            </template>
+
+                            <!-- Tokens (for assistant) -->
+                            <template v-if="m.role === 'assistant' && getTotalTokens(m) !== null">
+                                <span class="group relative cursor-help tabular-nums">
+                                    {{ formatTokens(getTotalTokens(m)!) }} tokens
+                                    <span
+                                        class="pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                                    >
+                                        {{ formatTokens(m.prompt_tokens ?? 0) }} prompt + {{ formatTokens(m.completion_tokens ?? 0) }} completion
                                     </span>
                                 </span>
                                 <span class="text-muted-foreground/30">•</span>

@@ -49,9 +49,7 @@ readonly class MarkReadController
 
         return new WidgetMarkReadResultData(
             marked_count: $this->chatMemory
-                ->setAgent($agent)
-                ->setExternalSessionId($sessionId)
-                ->setConversationId($conversationId)
+                ->withContext($agent, $sessionId, $conversationId)
                 ->markMessagesAsRead('user'),
         );
     }

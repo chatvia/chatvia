@@ -75,7 +75,7 @@ class MistralPdfSource
             $toolDefinitions = $this->prepareToolDefinitions($agent, $context);
 
             if ($toolDefinitions !== []) {
-                $this->injectToolSystemNote($llmMessages, (bool) config('agent.tools.approval_enabled', true));
+                $this->injectToolSystemNote($llmMessages, (bool) config('chatvia.agent.tools.approval_enabled', true));
             }
 
             $paused = yield from $this->runner->run(

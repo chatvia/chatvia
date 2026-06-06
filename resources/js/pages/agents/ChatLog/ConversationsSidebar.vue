@@ -75,15 +75,6 @@ function formatExpiresIn(iso: string | null | undefined): string | null {
     return months === 1 ? 'Expires in 1 month' : `Expires in ${months} months`;
 }
 
-function formatExpiresOn(iso: string | null | undefined): string {
-    if (!iso) return '';
-    return new Date(iso).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
-}
-
 const isRefreshingConversations = ref(false);
 
 async function refreshConversations() {
@@ -342,18 +333,14 @@ import { ref } from 'vue';
                         <!-- Per-plan retention horizon. Hidden when expires_at
                              is null (legacy rows) or already in the past — the
                              prune command sweeps those on its next run. -->
-                        <Tooltip v-if="formatExpiresIn(c.expires_at)">
-                            <TooltipTrigger as-child>
-                                <div
-                                    class="flex items-center gap-1 text-[11px]"
-                                    :class="currentConversationId === c.conversation_id ? 'opacity-60' : 'opacity-40'"
-                                >
-                                    <Calendar class="h-3 w-3 flex-shrink-0" />
-                                    <span>{{ formatExpiresIn(c.expires_at) }}</span>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="top"> Deletes on {{ formatExpiresOn(c.expires_at) }} </TooltipContent>
-                        </Tooltip>
+                        <div
+                            v-if="formatExpiresIn(c.expires_at)"
+                            class="flex items-center gap-1 text-[11px]"
+                            :class="currentConversationId === c.conversation_id ? 'opacity-60' : 'opacity-40'"
+                        >
+                            <Calendar class="h-3 w-3 flex-shrink-0" />
+                            <span>{{ formatExpiresIn(c.expires_at) }}</span>
+                        </div>
                     </button>
                 </li>
             </ul>

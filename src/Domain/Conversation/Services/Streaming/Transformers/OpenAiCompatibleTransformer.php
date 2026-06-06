@@ -73,8 +73,10 @@ class OpenAiCompatibleTransformer implements StreamTransformer
 
                     // OpenAI-compatible providers emit a final chunk with `usage`
                     // when the request includes `stream_options.include_usage`.
-                    // Forward to the Spectra streaming tracker if present.
+                    // Capture it for billing (authoritative prompt+completion
+                    // count) and forward to the Spectra streaming tracker.
                     if (isset($json['usage']) && is_array($json['usage'])) {
+                        $context->usage = $json['usage'];
                         $context->spectraTracker?->setUsage($json['usage']);
                     }
 

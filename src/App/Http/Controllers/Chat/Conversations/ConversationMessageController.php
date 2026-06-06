@@ -15,9 +15,7 @@ class ConversationMessageController
         $agent = current_agent();
 
         $memory
-            ->setAgent($agent)
-            ->setExternalSessionId($session->firstOrCreateSession($agent))
-            ->setConversationId($conversationId);
+            ->withContext($agent, $session->firstOrCreateSession($agent), $conversationId);
 
         abort_if(
             boolean: ! $memory->conversationExists(),

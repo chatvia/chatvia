@@ -8,20 +8,20 @@ return new class extends Migration
 {
     public function getConnection(): ?string
     {
-        return config('analytics.connection');
+        return config('chatvia.analytics.connection');
     }
 
     public function up(): void
     {
         Schema::connection($this->getConnection())->create('analytics_agent_tone_daily', function (Blueprint $table): void {
             $table->unsignedBigInteger('agent_id');
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('workspace_id');
             $table->date('bucket_day');
             $table->string('tone', 20);
             $table->unsignedInteger('message_count')->default(0);
 
             $table->primary(['agent_id', 'bucket_day', 'tone']);
-            $table->index(['user_id', 'bucket_day']);
+            $table->index(['workspace_id', 'bucket_day']);
         });
     }
 

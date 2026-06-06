@@ -10,6 +10,7 @@ enum SocialProvider: string
     case Google = 'google';
     case Microsoft = 'microsoft';
     case Slack = 'slack';
+    case Github = 'github';
     case LinkedIn = 'linkedin';
     case X = 'x';
 }

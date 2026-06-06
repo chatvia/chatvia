@@ -17,8 +17,8 @@ class TopicController
         abort_if($request->user()->cannot('view', $agent), 404);
 
         $topics = $agent->topics()
-            ->orderBy('chat_topics.topic')
-            ->get(['chat_topics.id', 'chat_topics.topic', 'chat_topics.description']);
+            ->orderBy('topics.topic')
+            ->get(['topics.id', 'topics.topic', 'topics.description']);
 
         return ChatLogTopicsResourceData::fromCollection($topics);
     }

@@ -7,7 +7,7 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Topic\Models\ConversationTopic;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Illuminate\Support\Facades\Event;
 
 /**
@@ -45,12 +45,12 @@ it('promotes a suggested label and backfills its conversations', function (): vo
     $topic = app(PromoteSuggestedTopicAction::class)->execute($agent, $agent->user, 'Refund Requests');
 
     expect($topic->topic)->toBe('Refund Requests')
-        ->and($agent->topics()->where('chat_topics.id', $topic->id)->exists())->toBeTrue();
+        ->and($agent->topics()->where('topics.id', $topic->id)->exists())->toBeTrue();
 
     foreach ($conversations as $conversation) {
         expect(ConversationTopic::query()
             ->where('chat_conversation_id', $conversation->id)
-            ->where('chat_topic_id', $topic->id)
+            ->where('topic_id', $topic->id)
             ->exists())->toBeTrue()
             ->and(ConversationTopic::query()
                 ->where('chat_conversation_id', $conversation->id)
@@ -69,5 +69,5 @@ it('throws when the agent already has a topic with that name', function (): void
     app(PromoteSuggestedTopicAction::class)->execute($agent, $agent->user, 'Billing');
 
     expect(fn () => app(PromoteSuggestedTopicAction::class)->execute($agent, $agent->user, 'Billing'))
-        ->toThrow(InviteRejectedException::class);
+        ->toThrow(DomainValidationException::class);
 });

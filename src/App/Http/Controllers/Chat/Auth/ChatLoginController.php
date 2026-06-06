@@ -12,8 +12,6 @@ class ChatLoginController
 {
     public function __invoke(LoginRequest $request, LoginUserToAgentAction $loginToAgent): RedirectResponse
     {
-        $request->ensureIsNotRateLimited();
-
         $user = $loginToAgent->execute($request->toData(), current_agent());
 
         if (! $user) {

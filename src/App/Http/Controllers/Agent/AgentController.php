@@ -6,7 +6,6 @@ use App\Http\Requests\Agent\Crud\CreateAgentRequest;
 use App\Http\Requests\Agent\Crud\UpdateAgentRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Account\CreateAgentAction;
-use Domain\Agent\Actions\Account\DeleteAgentAction;
 use Domain\Agent\Actions\Account\UpdateAgentAction;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
@@ -18,7 +17,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
-use Throwable;
 
 class AgentController
 {
@@ -48,28 +46,9 @@ class AgentController
 
     public function store(CreateAgentRequest $request, CreateAgentAction $createAgent): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-        /** @var Team|null $team */
-        $team = current_team();
+        $this->ensureCurrentTeamOwnership($request->user(), 'Only team owners can create agents.');
 
-        if (! $team) {
-            abort(404, 'No team found. Please select or create a team first.');
-        }
-
-        if (! $user->ownsTeam($team)) {
-            abort(403, 'Only team owners can create agents.');
-        }
-
-        try {
-            $agent = $createAgent->execute($request->toData());
-        } catch (Throwable $exception) {
-            report($exception);
-
-            return back()
-                ->withErrors(['general' => 'Failed to create agent. Please try again.'])
-                ->withInput();
-        }
+        $agent = $createAgent->execute($request->toData());
 
         return to_route('agents.setup', ['agent' => $agent])
             ->with('success', 'Agent created successfully.');
@@ -86,21 +65,31 @@ class AgentController
         return response()->json(['success' => true]);
     }
 
-    public function destroy(Request $request, Agent $agent, DeleteAgentAction $deleteAgent): RedirectResponse
+    public function destroy(Request $request, Agent $agent): RedirectResponse
     {
-        $user = $request->user();
-        $team = current_team();
-
-        if (! $team || ! $user->ownsTeam($team)) {
-            abort(403, 'Only team owners can delete agents.');
-        }
+        $team = $this->ensureCurrentTeamOwnership($request->user(), 'Only team owners can delete agents.');
 
         if ($agent->team_id !== $team->id) {
             abort(404);
         }
 
-        $deleteAgent->execute($agent);
+        $agent->delete();
 
         return redirect()->route('agents.index');
+    }
+
+    private function ensureCurrentTeamOwnership(User $user, string $forbiddenMessage): Team
+    {
+        $team = current_team();
+
+        if (! $team) {
+            abort(404, 'No team found. Please select or create a team first.');
+        }
+
+        if (! $user->ownsTeam($team)) {
+            abort(403, $forbiddenMessage);
+        }
+
+        return $team;
     }
 }

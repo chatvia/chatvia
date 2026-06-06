@@ -26,6 +26,11 @@ class ChatOutputPayload extends Data
         public string $model,
         public Carbon $sent_at,
         public ?string $generation_id = null,
+        // Inline token usage from the streaming response (the authoritative
+        // billed count). Populated from ChatContext::$usage; preferred by
+        // StoreMessageAction over the OpenRouter lookup and TikToken estimate.
+        public ?int $prompt_tokens = null,
+        public ?int $completion_tokens = null,
         public ?int $response_time_ms = null,
         public array $sources = [],
         public ?string $language = null,

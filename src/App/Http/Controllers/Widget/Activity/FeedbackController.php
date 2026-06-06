@@ -19,9 +19,7 @@ class FeedbackController
         }
 
         $memory
-            ->setAgent(current_agent_from_widget())
-            ->setExternalSessionId($request->header('X-SESSION-ID'))
-            ->setConversationId($request->header('X-CONVERSATION-ID'))
+            ->withContext(current_agent_from_widget(), $request->header('X-SESSION-ID'), $request->header('X-CONVERSATION-ID'))
             ->feedback($request->header('X-MESSAGE-ID'), $request->boolean('feedback') ? 'positive' : 'negative');
 
         return new WidgetAckData;

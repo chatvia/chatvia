@@ -4,7 +4,8 @@ namespace Domain\Conversation\Services;
 
 use Carbon\Carbon;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Jobs\UpdateUserCreditsJob;
+use Domain\Billing\Jobs\RecordTokenUsageJob;
+use Domain\Knowledge\Ingestion\Services\TikToken;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
@@ -16,6 +17,7 @@ use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Query\QueryRewriter;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -42,9 +44,7 @@ readonly class ChatService
     {
         $this
             ->memory
-            ->setAgent($data->agent)
-            ->setExternalSessionId($data->externalSessionId)
-            ->setConversationId($data->conversationId);
+            ->withContext($data->agent, $data->externalSessionId, $data->conversationId);
 
         ['lang' => $lang, 'query' => $query] = app(QueryRewriter::class)->rewrite($data->message->message);
 
@@ -68,6 +68,7 @@ readonly class ChatService
             'sent_at' => $data->message->createdAt ? Carbon::parse($data->message->createdAt) : now(),
             'updated_message_info' => [],
             'message_for_llm' => $messageForLlm,
+            'user_id' => $data->chatterUserId,
             'language' => $lang,
             'ip_address' => $data->ipAddress,
             'user_agent' => $data->userAgent,
@@ -84,9 +85,7 @@ readonly class ChatService
         if ($data->saveUserMessageImmediately || count($llmMessages) > 1) {
             $this
                 ->memory
-                ->setAgent($data->agent)
-                ->setExternalSessionId($data->externalSessionId)
-                ->setConversationId($data->conversationId)
+                ->withContext($data->agent, $data->externalSessionId, $data->conversationId)
                 ->addMessageViaPayload($payload);
         } else {
             // The user message was already persisted (typically by
@@ -224,6 +223,7 @@ readonly class ChatService
             'sent_at' => $context->payload->sent_at,
             'updated_message_info' => $context->payload->updated_message_info,
             'message_for_llm' => $contextualMessage,
+            'user_id' => $context->payload->user_id,
             'language' => $context->payload->language,
             'ip_address' => $context->payload->ip_address,
             'user_agent' => $context->payload->user_agent,
@@ -252,10 +252,14 @@ readonly class ChatService
 
     public function handleChatCompletion(ChatContext $context): void
     {
-        // Update user credits based on LLM model used
-        UpdateUserCreditsJob::dispatch(
+        // Charge the turn's REAL token usage (owner pool + member budget). The
+        // gate was checked before the turn; this records after — so the turn that
+        // crosses zero completes and overshoots, and the next turn is blocked.
+        RecordTokenUsageJob::dispatch(
             userId: $context->requestData->agent->user_id,
-            modelId: $context->requestData->message->model->id
+            tokens: $this->resolveConsumedTokens($context),
+            turnKey: $context->assistantMessageId,
+            chatterUserId: $context->requestData->chatterUserId,
         );
 
         // Always persist messages (including playground)
@@ -272,13 +276,46 @@ readonly class ChatService
         }
     }
 
+    /**
+     * The turn's real consumed tokens: prefer the provider's usage block; fall
+     * back to a TikToken estimate (never 0) when the provider omits usage, so a
+     * usage-less provider can't leak free turns past the balance gate.
+     */
+    private function resolveConsumedTokens(ChatContext $context): int
+    {
+        $usage = $context->usage ?? [];
+
+        $real = (int) ($usage['total_tokens']
+            ?? (($usage['prompt_tokens'] ?? 0) + ($usage['completion_tokens'] ?? 0)));
+
+        return $real > 0 ? $real : $this->estimateTokens($context);
+    }
+
+    /**
+     * TikToken estimate of the prompt + reply, floored at the per-message rate so
+     * the balance always decrements even if estimation throws.
+     */
+    private function estimateTokens(ChatContext $context): int
+    {
+        $floor = (int) config('chatvia.agent.tokens_per_message', 250);
+
+        try {
+            $prompt = collect($context->llmMessages)
+                ->pluck('content')
+                ->filter(fn ($c): bool => is_string($c))
+                ->implode("\n");
+
+            return max($floor, TikToken::countTokens(trim($prompt."\n".$context->streamedMessage)));
+        } catch (\Throwable) {
+            return $floor;
+        }
+    }
+
     private function saveAssistantMessage(ChatContext $context): void
     {
         $this
             ->memory
-            ->setAgent($context->requestData->agent)
-            ->setExternalSessionId($context->requestData->externalSessionId)
-            ->setConversationId($context->requestData->conversationId)
+            ->withContext($context->requestData->agent, $context->requestData->externalSessionId, $context->requestData->conversationId)
             ->addMessageViaPayload(
                 new ChatOutputPayload(
                     external_session_id: $context->requestData->externalSessionId,
@@ -288,6 +325,8 @@ readonly class ChatService
                     model: $context->requestData->message->model->external_name,
                     sent_at: now(),
                     generation_id: $context->generationId,
+                    prompt_tokens: $context->usage['prompt_tokens'] ?? null,
+                    completion_tokens: $context->usage['completion_tokens'] ?? null,
                     response_time_ms: $context->getResponseTimeMs(),
                     language: $context->queryLanguage,
                     confidence_score: $context->confidenceScore,
@@ -471,8 +510,12 @@ readonly class ChatService
             ->map(function ($results, string $type) {
                 $ids = $results->pluck('chunkable_id')->unique();
 
-                /** @var class-string<Model> $type */
-                return $type::whereIn('id', $ids)->get()->keyBy('id');
+                // chunks.chunkable_type stores the morph alias (e.g. "source_file");
+                // resolve it back to the model class before querying.
+                /** @var class-string<Model> $class */
+                $class = Relation::getMorphedModel($type) ?? $type;
+
+                return $class::whereIn('id', $ids)->get()->keyBy('id');
             });
 
         return collect($searchResults)->map(function ($result) use ($chunkableItems) {

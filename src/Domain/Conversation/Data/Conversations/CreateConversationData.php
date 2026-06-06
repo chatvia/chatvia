@@ -25,5 +25,9 @@ class CreateConversationData extends Data
         public ?string $pageUrl = null,
         public ?string $locale = null,
         public array $attachmentIds = [],
+        // The authenticated chatter creating this conversation on the hosted
+        // /chat surface, or null for owner/employee senders. Stamps the first
+        // user message's Session.user_id (per-chatter limit + analytics).
+        public ?int $chatterUserId = null,
     ) {}
 }

@@ -46,7 +46,7 @@ class ToolApprovalPolicy
 
     private function evaluate(Agent $agent, string $toolName): bool
     {
-        if (! config('agent.tools.approval_enabled', true)) {
+        if (! config('chatvia.agent.tools.approval_enabled', true)) {
             return false;
         }
 

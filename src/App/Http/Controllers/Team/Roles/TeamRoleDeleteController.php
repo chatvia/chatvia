@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Team\Roles;
 
 use Domain\Membership\Team\Actions\Roles\DeleteTeamRoleAction;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ class TeamRoleDeleteController
     ): RedirectResponse {
         $user = $request->user();
 
-        if (! $user->ownsTeam($team)) {
+        if ($user->cannot('update', $team)) {
             abort(403, 'Only the team owner can delete roles.');
         }
 
@@ -30,7 +30,7 @@ class TeamRoleDeleteController
 
         try {
             $delete->execute($team, $roleModel);
-        } catch (InviteRejectedException $e) {
+        } catch (DomainValidationException $e) {
             return back()->with('error', $e->getMessage());
         }
 

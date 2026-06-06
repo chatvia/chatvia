@@ -319,14 +319,14 @@ describe('Account-level Functions CRUD', function (): void {
     });
 });
 
-describe('POST /api/v1/agents/{agent}/sign-in-links', function (): void {
+describe('POST /api/v1/agents/{agent}/sign', function (): void {
 
     it('returns a ready-to-open url for a chatter', function (): void {
         $agent = createAgentForUser($this->user);
         $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
 
         $response = $this->withHeaders(authHeaders($this->token))
-            ->postJson("/api/v1/agents/{$agent->external_id}/sign-in-links", [
+            ->postJson("/api/v1/agents/{$agent->external_id}/sign", [
                 'user_id' => $endUser->external_id,
                 'ttl_seconds' => 600,
             ]);
@@ -350,7 +350,7 @@ describe('POST /api/v1/agents/{agent}/sign-in-links', function (): void {
         $agent = createAgentForUser($this->user);
 
         $this->withHeaders(authHeaders($this->token))
-            ->postJson("/api/v1/agents/{$agent->external_id}/sign-in-links", [])
+            ->postJson("/api/v1/agents/{$agent->external_id}/sign", [])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['user_id']);
     });
@@ -360,7 +360,7 @@ describe('POST /api/v1/agents/{agent}/sign-in-links', function (): void {
         $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
 
         $this->withHeaders(authHeaders($this->token))
-            ->postJson("/api/v1/agents/{$agent->external_id}/sign-in-links", [
+            ->postJson("/api/v1/agents/{$agent->external_id}/sign", [
                 'user_id' => $endUser->external_id,
                 'ttl_seconds' => 99999,
             ])
@@ -373,7 +373,7 @@ describe('POST /api/v1/agents/{agent}/sign-in-links', function (): void {
         $otherAgent = createAgentForUser($otherUser);
 
         $this->withHeaders(authHeaders($this->token))
-            ->postJson("/api/v1/agents/{$otherAgent->external_id}/sign-in-links", ['user_id' => 'x'])
+            ->postJson("/api/v1/agents/{$otherAgent->external_id}/sign", ['user_id' => 'x'])
             ->assertForbidden();
     });
 });

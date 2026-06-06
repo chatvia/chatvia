@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Agent\Analytics\Source;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 
 class AgentSourcesDataController
 {
@@ -28,17 +27,33 @@ class AgentSourcesDataController
      */
     private function knowledgeSources(Agent $agent): array
     {
+        // Every field — including the denormalised name/mime — comes from the
+        // durable analytics rollup, so a DELETED source still shows with its
+        // real label. The generic fallback only covers legacy rows recorded
+        // before the name column existed.
         return $agent->mostAccessedSources()
             ->limit(50)
             ->get()
             ->map(fn ($row): array => [
-                'name' => $this->sourceName($row),
+                'name' => (string) ($row->name ?: $this->deletedLabel($row->sub_kind)),
                 'sub_kind' => $row->sub_kind,
-                'mime_type' => $row->file_mime_type,
+                'mime_type' => $row->mime_type,
                 'count' => (int) $row->count,
                 'last_used_at' => $this->toIso($row->last_used_at),
             ])
             ->toArray();
+    }
+
+    private function deletedLabel(string $subKind): string
+    {
+        return match ($subKind) {
+            'source_file' => 'Deleted file',
+            'source_website' => 'Deleted website',
+            'source_text' => 'Deleted text snippet',
+            'source_youtube_video' => 'Deleted YouTube video',
+            'agent_website_url' => 'Deleted web page',
+            default => 'Deleted source',
+        };
     }
 
     /**
@@ -76,30 +91,6 @@ class AgentSourcesDataController
                 'last_used_at' => $this->toIso($row->last_used_at),
             ])
             ->toArray();
-    }
-
-    /**
-     * Each source type stores its display label in a different column —
-     * pick the best one for what came back on this row. Falls back to the
-     * morph alias so a row never renders blank.
-     */
-    private function sourceName(object $row): string
-    {
-        return match ($row->sub_kind) {
-            'source_file' => (string) ($row->file_name ?? 'File'),
-            'source_website' => (string) ($row->website_url ?? 'Website'),
-            'source_text' => $this->truncateExcerpt((string) ($row->text_excerpt ?? 'Text snippet')),
-            'source_youtube_video' => (string) ($row->youtube_title ?? $row->youtube_url ?? 'YouTube video'),
-            'agent_website_url' => (string) ($row->website_url_url ?? 'Web page'),
-            default => (string) $row->sub_kind,
-        };
-    }
-
-    private function truncateExcerpt(string $excerpt): string
-    {
-        $excerpt = trim(preg_replace('/\s+/', ' ', $excerpt) ?? $excerpt);
-
-        return Str::limit($excerpt, 80);
     }
 
     /**

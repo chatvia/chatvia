@@ -29,14 +29,14 @@ class AgentMcpAttachmentController
         $data = $request->toData($agent);
         $server = $this->resolveServer($data->agent, $data->mcp_id);
 
-        $data->agent->mcpServers()->syncWithoutDetaching([$server->id]);
+        $data->agent->attachConnector($server);
 
         return ['data' => McpServerData::fromModel($server->fresh())];
     }
 
     public function destroy(Request $request, Agent $agent, string $mcp): JsonResponse
     {
-        $agent->mcpServers()->detach($this->resolveServer($agent, $mcp)->id);
+        $agent->detachConnector($this->resolveServer($agent, $mcp));
 
         return response()->json(null, 204);
     }

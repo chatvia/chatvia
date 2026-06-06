@@ -19,8 +19,7 @@ class ConversationCreateController
 
         return new WidgetConversationStoredData(
             id: $memory
-                ->setAgent(current_agent_from_widget())
-                ->setExternalSessionId((string) $request->header('X-SESSION-ID'))
+                ->withContext(current_agent_from_widget(), (string) $request->header('X-SESSION-ID'))
                 ->createConversation('New Chat', ConversationSource::Widget),
         );
     }

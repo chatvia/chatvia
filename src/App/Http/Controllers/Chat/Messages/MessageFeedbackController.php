@@ -19,9 +19,7 @@ class MessageFeedbackController
         $agent = current_agent();
 
         $memory
-            ->setAgent($agent)
-            ->setExternalSessionId($session->firstOrCreateSession($agent))
-            ->setConversationId($validated['conversation_id'])
+            ->withContext($agent, $session->firstOrCreateSession($agent), $validated['conversation_id'])
             ->feedback($validated['message_id'], $validated['feedback'] ?? null);
     }
 }

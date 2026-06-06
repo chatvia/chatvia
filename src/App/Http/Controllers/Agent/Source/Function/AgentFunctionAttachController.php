@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agent\Source\Function;
 
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Function\Actions\AttachFunctionToAgentAction;
 use Domain\Integration\Function\Data\Resources\AgentFunctionAttachResultData;
 use Domain\Integration\Function\Data\Resources\AgentFunctionData;
 use Domain\Integration\Function\Models\AgentFunction;
@@ -15,15 +14,14 @@ class AgentFunctionAttachController
         Request $request,
         Agent $agent,
         AgentFunction $function,
-        AttachFunctionToAgentAction $attach,
     ): AgentFunctionAttachResultData {
-        abort_if($request->user()->cannot('update', $agent), 403);
+        abort_if($request->user()->cannot('update', $agent), 404);
         abort_unless($agent->ownsFunction($function), 404);
 
-        $attached = $attach->execute($agent, $function);
+        $agent->attachFunction($function);
 
         return new AgentFunctionAttachResultData(
-            data: AgentFunctionData::fromModel($attached),
+            data: AgentFunctionData::fromModel($function->fresh()),
         );
     }
 }

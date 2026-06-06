@@ -36,7 +36,33 @@ class ChatMemory
     private ?SourceManager $sourceManager = null;
 
     /**
+     * Set the full operating context in one call — the preferred entry point.
+     *
+     * Replaces the `setAgent()->setExternalSessionId()->setConversationId()`
+     * chain, whose ordering was a foot-gun: callers had to remember to set all
+     * three (in the right order) or hit a runtime InvalidArgumentException deep
+     * inside an operation. With one call there is nothing to sequence.
+     *
+     * `$conversationId` is optional — listing operations (e.g. "all
+     * conversations for this session") legitimately run without one.
+     */
+    public function withContext(Agent $agent, string $externalSessionId, ?string $conversationId = null): self
+    {
+        $this->agent = $agent;
+        $this->externalSessionId = $externalSessionId;
+        $this->conversationId = $conversationId;
+        $this->resetManagers();
+
+        return $this;
+    }
+
+    /**
      * Set the current conversation ID for operations.
+     *
+     * @deprecated Prefer {@see withContext()} which sets agent + session +
+     *             conversation together. Kept for callers that learn the
+     *             conversation id only after the agent/session are set
+     *             (e.g. right after creating a conversation).
      */
     public function setConversationId(?string $conversationId = null): self
     {
@@ -47,6 +73,8 @@ class ChatMemory
 
     /**
      * Set the agent context and reset cached managers.
+     *
+     * @deprecated Prefer {@see withContext()}.
      */
     public function setAgent(Agent $agent): self
     {
@@ -58,6 +86,8 @@ class ChatMemory
 
     /**
      * Set the session ID and reset cached managers.
+     *
+     * @deprecated Prefer {@see withContext()}.
      */
     public function setExternalSessionId(string $sessionId): self
     {

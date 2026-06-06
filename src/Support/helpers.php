@@ -154,9 +154,9 @@ if (! function_exists('current_team')) {
             return null;
         }
 
-        // Use the current_team_id from the database
-        // This ensures it's available in all contexts (including broadcasting)
-        return $user->ensureCurrentTeam();
+        // Read-only — never persists during render. Session bootstrap +
+        // RegisterUserAction call bootstrapCurrentTeam() to seed the column.
+        return $user->currentOrPrimaryTeam();
     }
 }
 

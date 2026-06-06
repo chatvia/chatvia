@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Settings\Connector\Catalog;
 use App\Http\Controllers\Controller;
 use Domain\Integration\Connector\Actions\Account\ListAccountConnectorsAction;
 use Domain\Integration\Connector\Data\Account\AccountConnectorsResourceData;
-use Domain\Integration\Mcp\Actions\DeleteMcpServerAction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,11 +32,11 @@ class ConnectorController extends Controller
         return Inertia::render('settings/Connectors');
     }
 
-    public function destroy(Request $request, string $slug, DeleteMcpServerAction $delete): JsonResponse
+    public function destroy(Request $request, string $slug): JsonResponse
     {
         abort_unless(has_team_permission('account.connectors'), 404);
 
-        $delete->execute(AgentMcpServer::forSlugScoped($slug, $request->user()));
+        AgentMcpServer::forSlugScoped($slug, $request->user())->delete();
 
         return response()->json(['ok' => true]);
     }

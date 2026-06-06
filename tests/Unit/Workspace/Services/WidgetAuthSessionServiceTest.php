@@ -42,6 +42,18 @@ it('round-trips a chatter', function (): void {
         ->toBe($chatter->id);
 });
 
+it('rejects a still-cached token the moment the user is deactivated', function (): void {
+    $session = $this->service->issue($this->owner, $this->agent, $this->request);
+
+    // Resolves fine while active.
+    expect($this->service->resolve($session['token'], $this->agent, $this->request)?->id)->toBe($this->owner->id);
+
+    $this->owner->deactivate('blocked by admin');
+
+    // Same token, now rejected per-request (no need to wait for the TTL).
+    expect($this->service->resolve($session['token'], $this->agent, $this->request))->toBeNull();
+});
+
 it('rejects a token minted for a different agent', function (): void {
     $other = createAgent($this->owner);
     $session = $this->service->issue($this->owner, $this->agent, $this->request);

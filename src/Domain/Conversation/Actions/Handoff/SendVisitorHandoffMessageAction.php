@@ -47,9 +47,7 @@ class SendVisitorHandoffMessageAction
         );
 
         $this->chatMemory
-            ->setAgent($agent)
-            ->setExternalSessionId($session->external_id)
-            ->setConversationId($conversation->external_id)
+            ->withContext($agent, $session->external_id, $conversation->external_id)
             ->addMessageViaPayload($payload);
 
         MessagePosted::dispatch(

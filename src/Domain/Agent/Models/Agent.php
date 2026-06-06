@@ -38,6 +38,7 @@ use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Support\Enums\CreatedVia;
+use Support\MimeType;
 use Support\Traits\HasSettings;
 
 /**
@@ -351,6 +352,21 @@ class Agent extends Model
     }
 
     /**
+     * Attach an account-level function to this agent (idempotent — a repeat
+     * attach is a no-op). Single source of truth for the dashboard and the
+     * public API; don't re-implement the pivot write inline.
+     */
+    public function attachFunction(AgentFunction $function): void
+    {
+        $this->functions()->syncWithoutDetaching([$function->id]);
+    }
+
+    public function detachFunction(AgentFunction $function): void
+    {
+        $this->functions()->detach($function->id);
+    }
+
+    /**
      * Account-level MCP servers attached to this agent. Presence of the
      * pivot row means "attached"; to pause, detach.
      *
@@ -359,6 +375,20 @@ class Agent extends Model
     public function mcpServers(): BelongsToMany
     {
         return $this->belongsToMany(AgentMcpServer::class, 'agent_mcp_server', 'agent_id', 'mcp_server_id');
+    }
+
+    /**
+     * Attach a connector (MCP server) to this agent (idempotent). Single source
+     * of truth for the dashboard and the public API.
+     */
+    public function attachConnector(AgentMcpServer $server): void
+    {
+        $this->mcpServers()->syncWithoutDetaching([$server->id]);
+    }
+
+    public function detachConnector(AgentMcpServer $server): void
+    {
+        $this->mcpServers()->detach($server->id);
     }
 
     /**
@@ -495,27 +525,27 @@ class Agent extends Model
 
     public function wordFiles(): BelongsToMany
     {
-        return $this->files()->whereIn('mime_type', config('mimes.word'));
+        return $this->files()->whereIn('mime_type', MimeType::group('word'));
     }
 
     public function pdfFiles(): BelongsToMany
     {
-        return $this->files()->whereIn('mime_type', config('mimes.pdf'));
+        return $this->files()->whereIn('mime_type', MimeType::group('pdf'));
     }
 
     public function audioFiles(): BelongsToMany
     {
-        return $this->files()->whereIn('mime_type', config('mimes.audio'));
+        return $this->files()->whereIn('mime_type', MimeType::group('audio'));
     }
 
     public function videoFiles(): BelongsToMany
     {
-        return $this->files()->whereIn('mime_type', config('mimes.video'));
+        return $this->files()->whereIn('mime_type', MimeType::group('video'));
     }
 
     public function topics(): BelongsToMany
     {
-        return $this->belongsToMany(Topic::class, 'agent_topic', 'agent_id', 'chat_topic_id');
+        return $this->belongsToMany(Topic::class, 'agent_topic');
     }
 
     public function newEloquentBuilder($query): AgentQueryBuilder

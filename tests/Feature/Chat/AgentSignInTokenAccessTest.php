@@ -79,6 +79,53 @@ it('keeps the end-user authed across the post-sign-in redirect (full HTTP flow)'
     expect(auth('web')->id())->toBe($this->endUser->id);
 });
 
+describe('compact HMAC credential (?token=cvh1.…)', function (): void {
+    it('logs the end-user in on a valid HMAC token and strips it from the URL', function (): void {
+        $token = $this->service->issueHmac($this->endUser, $this->agent)['token'];
+        $request = signInChatRequest($this->agent, $token);
+
+        $response = $this->middleware->handle($request, fn (): Response => new Response('next'));
+
+        expect($response->getStatusCode())->toBe(302)
+            ->and($response->headers->get('Location'))->not->toContain('token=')
+            ->and(Auth::guard('web')->id())->toBe($this->endUser->id);
+    });
+
+    it('ignores an HMAC token minted for a different agent (no login)', function (): void {
+        $other = makeSignInAgent($this->owner);
+        $token = $this->service->issueHmac($this->endUser, $other)['token'];
+
+        $request = signInChatRequest($this->agent, $token);
+
+        $this->middleware->handle($request, fn (): Response => new Response('next'));
+
+        expect(Auth::guard('web')->check())->toBeFalse();
+    });
+
+    it('ignores a tampered or malformed HMAC token (no login)', function (): void {
+        $request = signInChatRequest($this->agent, 'cvh1.user_123.not-a-real-credential');
+
+        $this->middleware->handle($request, fn (): Response => new Response('next'));
+
+        expect(Auth::guard('web')->check())->toBeFalse();
+    });
+
+    it('keeps the end-user authed across the post-sign-in redirect (full HTTP flow) with HMAC', function (): void {
+        $token = $this->service->issueHmac($this->endUser, $this->agent)['token'];
+        $host = $this->agent->sub_domain.'.chatvia.test';
+
+        $this->get("https://{$host}/chat?token={$token}")
+            ->assertRedirect("https://{$host}/chat");
+
+        $second = $this->get("https://{$host}/chat");
+        if ($second->isRedirect()) {
+            expect($second->headers->get('Location'))->not->toContain('/chat/login');
+        }
+
+        expect(auth('web')->id())->toBe($this->endUser->id);
+    });
+});
+
 function makeSignInAgent(User $owner): Agent
 {
     return Agent::create([

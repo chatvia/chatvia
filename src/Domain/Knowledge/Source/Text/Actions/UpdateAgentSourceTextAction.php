@@ -4,9 +4,10 @@ namespace Domain\Knowledge\Source\Text\Actions;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
 use Domain\Knowledge\Source\Text\Models\SourceText;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -15,7 +16,7 @@ class UpdateAgentSourceTextAction
     /**
      * Returns false when no-op (duplicate checksum already attached).
      *
-     * @throws InviteRejectedException
+     * @throws DomainValidationException
      */
     public function execute(Agent $agent, User $user, SourceText $sourceText, string $rawContent): bool
     {
@@ -27,8 +28,8 @@ class UpdateAgentSourceTextAction
             return false;
         }
 
-        if (! $user->canUploadPages($numberOfPages)) {
-            throw new InviteRejectedException('content', 'This document requires '.$numberOfPages.' pages.');
+        if (! $user->consumption()->canUploadPages($numberOfPages)) {
+            throw new DomainValidationException('content', 'This document requires '.$numberOfPages.' pages.');
         }
 
         Storage::delete($sourceText->filepath);
@@ -45,7 +46,7 @@ class UpdateAgentSourceTextAction
         ]);
 
         $sourceText->chunks()->delete();
-        $sourceText->startTraining($agent);
+        TextIngestionJob::dispatch($sourceText, $agent);
 
         return true;
     }

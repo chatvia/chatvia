@@ -17,9 +17,7 @@ class AdminDeleteConversationAction
         $session = $conversation->session;
 
         $this->chatMemory
-            ->setAgent($agent)
-            ->setExternalSessionId($session->external_id)
-            ->setConversationId($conversation->external_id)
+            ->withContext($agent, $session->external_id, $conversation->external_id)
             ->deleteConversation(deletedBy: 'admin');
 
         $conversation->delete();

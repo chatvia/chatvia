@@ -13,8 +13,7 @@ class ConversationController
         $agent = current_agent();
 
         return $memory
-            ->setAgent($agent)
-            ->setExternalSessionId($session->firstOrCreateSession($agent))
+            ->withContext($agent, $session->firstOrCreateSession($agent))
             ->getConversationsForCurrentSession(
                 onlyVisible: true,
                 orderByDate: true,

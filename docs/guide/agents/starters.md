@@ -1,13 +1,14 @@
 # Conversation starters
 
-Starters are the suggested prompts visitors see on the empty state of a fresh conversation. They're one of the highest-leverage things you can configure: most visitors will click a starter instead of typing.
+Starters are the suggested prompts chatters see on the empty state of a fresh conversation. They're one of the highest-leverage things your team can configure: most chatters will click a starter instead of typing.
 
 ![SCREENSHOT — starters editor](/screenshots/agent-starters.png)
 
+Starters are configured once per agent and apply to all three surfaces — Hosted Chat, Widget, and Bar.
+
 ## Where to configure them
 
-- **Widget agents** — Widget editor → **Starters** tab.
-- **Knowledge-base agents** — Agent header → **Starters** menu.
+Open the agent in the dashboard and go to **Setup → Starters**. The list applies everywhere the agent is reachable.
 
 Each starter is one short prompt (recommend < 60 characters). You can have up to a handful — past ~5 the UI gets cluttered.
 
@@ -15,9 +16,9 @@ Each starter is one short prompt (recommend < 60 characters). You can have up to
 
 The starters that work best:
 
-- Sound like questions a real visitor would ask.
+- Sound like questions a real customer would ask.
 - Match topics your sources actually cover.
-- Lead the visitor toward where you can help, away from where you can't.
+- Lead the chatter toward where the agent can help, away from where it can't.
 
 Examples for a SaaS support bot:
 
@@ -39,7 +40,7 @@ What's the rate limit?
 
 ## Templates and starters
 
-Starters can live on a [template](/guide/account/templates) — useful when you have many agents that should share the same opening prompts (e.g. all your country-specific support bots).
+Starters can live on a [template](/guide/account/templates) — useful when your workspace runs many agents that should share the same opening prompts (e.g. all your country-specific support bots).
 
 When a template is attached, the starters list is locked and reads from the template.
 
@@ -49,9 +50,9 @@ Drag a starter to reorder. Click it to edit. Click the **×** to delete. Changes
 
 ## Bubbles vs. starters
 
-**Bubbles** (widget agents) and **starters** look similar but behave differently:
+**Bubbles** and **starters** look similar but behave differently:
 
-- **Bubbles** — chip-shaped prompts inside the widget panel that *send a message* when clicked.
-- **Starters** — the same idea, but a higher-impact variant used on the chat page's empty state.
+- **Bubbles** — chip-shaped prompts inside the Widget panel that *send a message* when clicked.
+- **Starters** — the same idea, but a higher-impact variant used on the chat empty state across all surfaces.
 
-In practice you set the same content in both for consistency.
+In practice your team sets the same content in both for consistency.

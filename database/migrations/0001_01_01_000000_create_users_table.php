@@ -12,8 +12,6 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
             $table->string('name');
-            // Nullable so API-provisioned chatters (no email at sign-up) can
-            // still own a users row. Unique constraint ignores NULLs in pgsql.
             $table->string('email')->nullable()->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
@@ -69,6 +67,10 @@ return new class extends Migration
             $table->integer('last_activity')->index();
 
             $table->index(['user_id', 'last_activity']);
+        });
+
+        Schema::table('teams', function (Blueprint $table) {
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 

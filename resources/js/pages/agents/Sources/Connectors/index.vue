@@ -172,7 +172,12 @@ onMounted(fetchAll);
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            <TableRow v-for="row in filteredCustom" :key="row.external_id">
+                                            <TableRow
+                                                v-for="row in filteredCustom"
+                                                :key="row.external_id"
+                                                class="cursor-pointer"
+                                                @click="toggleCustom(row)"
+                                            >
                                                 <TableCell class="py-4 pl-5">
                                                     <div class="flex items-center gap-4">
                                                         <div class="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
@@ -185,7 +190,7 @@ onMounted(fetchAll);
                                                     </div>
                                                 </TableCell>
                                                 <TableCell class="py-4 text-sm">{{ row.catalog_tools_count }}</TableCell>
-                                                <TableCell class="py-4 pr-5">
+                                                <TableCell class="py-4 pr-5" @click.stop>
                                                     <Switch :model-value="row.is_attached" @update:model-value="toggleCustom(row)" />
                                                 </TableCell>
                                             </TableRow>
@@ -211,7 +216,12 @@ onMounted(fetchAll);
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            <TableRow v-for="row in filteredFeatured" :key="row.connector.slug">
+                                            <TableRow
+                                                v-for="row in filteredFeatured"
+                                                :key="row.connector.slug"
+                                                :class="{ 'cursor-pointer': !row.connector.comingSoon && row.state !== 'available' }"
+                                                @click="toggleFeatured(row)"
+                                            >
                                                 <TableCell class="py-4 pl-5">
                                                     <div class="flex items-center gap-4">
                                                         <div
@@ -231,7 +241,7 @@ onMounted(fetchAll);
                                                 <TableCell class="py-4 text-sm">
                                                     {{ row.server ? row.server.catalog_tools_count : '—' }}
                                                 </TableCell>
-                                                <TableCell class="py-4 pr-5">
+                                                <TableCell class="py-4 pr-5" @click.stop>
                                                     <Badge v-if="row.connector.comingSoon" variant="outline">Soon</Badge>
                                                     <Switch
                                                         v-else

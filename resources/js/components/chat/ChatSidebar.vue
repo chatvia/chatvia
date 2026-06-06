@@ -2,7 +2,7 @@
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import isMobile from 'is-mobile';
-import { Bot, Check, Edit, Eye, EyeOff, Lock, LogOut, Mail, MoreVertical, PanelLeft, Trash2, User, X } from 'lucide-vue-next';
+import { Bot, Check, Edit, Eye, EyeOff, Loader2, Lock, LogOut, Mail, MoreVertical, PanelLeft, Trash2, Upload, User, X } from 'lucide-vue-next';
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -29,6 +29,7 @@ import { Separator } from '@/components/ui/separator'; // TODO: Implement agent 
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import InputError from '@/components/InputError.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { getInitials } from '@/composables/useInitials';
 
 interface Conversation {
     id: string | number;
@@ -86,6 +87,15 @@ const profileForm = useForm({
 const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
+
+// Profile photo state
+const currentUser = computed(() => (page.props.auth as any)?.user);
+const avatarInput = ref<HTMLInputElement | null>(null);
+const photoForm = useForm({
+    photo: null as File | null,
+});
+const removingPhoto = ref(false);
+const removePhotoDialogOpen = ref(false);
 
 // Agents dialog state
 const agentsDialogOpen = ref(false);
@@ -302,6 +312,46 @@ const closeProfileDialog = () => {
     showCurrentPassword.value = false;
     showNewPassword.value = false;
     showConfirmPassword.value = false;
+};
+
+const openAvatarPicker = () => {
+    if (photoForm.processing) return;
+    avatarInput.value?.click();
+};
+
+const onAvatarSelected = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (!file) return;
+
+    photoForm.photo = file;
+
+    photoForm.patch(route('chat.profile.update'), {
+        forceFormData: true,
+        preserveState: true,
+        preserveScroll: true,
+        onFinish: () => {
+            photoForm.reset('photo');
+            if (avatarInput.value) {
+                avatarInput.value.value = '';
+            }
+        },
+    });
+};
+
+const confirmRemoveAvatar = () => {
+    router.delete(route('chat.profile.photo.destroy'), {
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => {
+            removingPhoto.value = true;
+        },
+        onFinish: () => {
+            removingPhoto.value = false;
+            removePhotoDialogOpen.value = false;
+        },
+    });
 };
 
 const saveProfile = () => {
@@ -643,6 +693,27 @@ const switchToSelectedAgent = () => {
         </AlertDialogContent>
     </AlertDialog>
 
+    <!-- Remove Profile Photo Confirmation Dialog -->
+    <AlertDialog v-model:open="removePhotoDialogOpen">
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>{{ t('sidebar.remove_photo_title') }}</AlertDialogTitle>
+                <AlertDialogDescription>{{ t('sidebar.remove_photo_description') }}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel :disabled="removingPhoto">{{ t('common.cancel') }}</AlertDialogCancel>
+                <AlertDialogAction
+                    class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    :disabled="removingPhoto"
+                    @click.prevent="confirmRemoveAvatar"
+                >
+                    <Loader2 v-if="removingPhoto" class="mr-2 size-4 animate-spin" />
+                    {{ t('sidebar.remove_photo') }}
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+
     <!-- Profile Dialog -->
     <Dialog v-model:open="profileDialogOpen">
         <DialogContent class="sm:max-w-[600px]">
@@ -651,6 +722,48 @@ const switchToSelectedAgent = () => {
                 <DialogDescription>{{ t('sidebar.profile_settings_description') }}</DialogDescription>
             </DialogHeader>
             <div class="grid gap-6 py-4">
+                <div class="flex flex-col items-center gap-2">
+                    <button
+                        type="button"
+                        :disabled="photoForm.processing"
+                        :aria-label="currentUser?.avatar ? t('sidebar.change_photo') : t('sidebar.upload_photo')"
+                        class="group focus-visible:ring-primary/50 relative cursor-pointer rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-wait"
+                        @click="openAvatarPicker"
+                    >
+                        <Avatar :key="currentUser?.avatar ?? 'no-avatar'" class="border-background size-20 border-2 shadow-sm">
+                            <AvatarImage v-if="currentUser?.avatar" :src="currentUser.avatar" :alt="currentUser?.name" />
+                            <AvatarFallback class="bg-primary/10 text-primary text-lg font-semibold">
+                                {{ getInitials(currentUser?.name || '') }}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div
+                            class="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+                            :class="{ '!opacity-100': photoForm.processing }"
+                        >
+                            <Loader2 v-if="photoForm.processing" class="size-5 animate-spin" />
+                            <Upload v-else class="size-5" />
+                        </div>
+                    </button>
+                    <input
+                        ref="avatarInput"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        class="hidden"
+                        @change="onAvatarSelected"
+                    />
+                    <button
+                        v-if="currentUser?.avatar"
+                        type="button"
+                        :disabled="removingPhoto || photoForm.processing"
+                        class="text-muted-foreground hover:text-destructive inline-flex cursor-pointer items-center gap-1 text-xs transition-colors disabled:cursor-wait disabled:opacity-60"
+                        @click="removePhotoDialogOpen = true"
+                    >
+                        <Trash2 class="size-3" />
+                        {{ t('sidebar.remove_photo') }}
+                    </button>
+                    <InputError :message="photoForm.errors.photo" class="text-xs" />
+                </div>
+                <Separator />
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label for="name" class="text-right">{{ t('sidebar.profile_name') }}</Label>
                     <div class="col-span-3 space-y-1">

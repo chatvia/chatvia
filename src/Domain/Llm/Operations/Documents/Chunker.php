@@ -27,7 +27,7 @@ class Chunker
         ]);
 
         $res = $this->provider->completion([
-            'model' => config('ai.models.chunker'),
+            'model' => config('chatvia.ai.models.chunker'),
             'temperature' => 0.0,
             'max_tokens' => 8096,
             'messages' => [
@@ -169,8 +169,8 @@ class Chunker
             ->calculateCostInCents(
                 inputText: $input,
                 outputText: $output,
-                pricePerInputMilToken: config('ai.pricing.chunker_input_per_million_tokens'),
-                pricePerOutputMilToken: config('ai.pricing.chunker_output_per_million_tokens'),
+                pricePerInputMilToken: config('chatvia.ai.pricing.chunker_input_per_million_tokens'),
+                pricePerOutputMilToken: config('chatvia.ai.pricing.chunker_output_per_million_tokens'),
             );
     }
 }

@@ -20,7 +20,7 @@ class Vision
         $prompt = prompt('image/describe');
 
         $response = $this->provider->completion([
-            'model' => config('ai.models.vision'),
+            'model' => config('chatvia.ai.models.vision'),
             'messages' => [
                 [
                     'role' => 'user',

@@ -31,9 +31,7 @@ class ConversationMessageController
         );
 
         $chatMemory = $memory
-            ->setAgent($agent)
-            ->setExternalSessionId($sessionId)
-            ->setConversationId($conversationId);
+            ->withContext($agent, $sessionId, $conversationId);
 
         // Check if conversation exists (handles tampered/deleted conversations)
         if (! $chatMemory->conversationExists()) {

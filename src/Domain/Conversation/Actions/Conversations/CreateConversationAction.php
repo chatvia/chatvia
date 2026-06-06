@@ -27,8 +27,7 @@ class CreateConversationAction
         $sessionId = $this->session->firstOrCreateSession($data->agent);
 
         $conversationId = $this->memory
-            ->setAgent($data->agent)
-            ->setExternalSessionId($sessionId)
+            ->withContext($data->agent, $sessionId)
             ->createConversation(title: 'New Chat', source: ConversationSource::HostedChat);
 
         $payload = ChatInputPayload::from([
@@ -39,6 +38,7 @@ class CreateConversationAction
             'message' => $data->message,
             'sent_at' => now(),
             'message_for_llm' => $query,
+            'user_id' => $data->chatterUserId,
             'language' => $lang,
             'ip_address' => $data->ipAddress,
             'user_agent' => $data->userAgent,
@@ -81,7 +81,7 @@ class CreateConversationAction
         // the composer and uploaded N orphans pre-conversation could
         // smuggle them all in here, defeating the upload-side limit on
         // every subsequent turn.
-        $max = (int) config('agent.files.upload.max_files');
+        $max = (int) config('chatvia.agent.files.upload.max_files');
         $attachmentIds = array_slice($attachmentIds, 0, $max);
 
         Attachment::query()

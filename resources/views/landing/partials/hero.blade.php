@@ -35,7 +35,7 @@
                 <!-- Badge -->
                 <div
                     class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-xs sm:text-sm font-semibold text-indigo-700 uppercase tracking-wider mb-6">
-                    The best B2B AI Agents
+                    AI Agents for your business
                 </div>
 
                 <h1

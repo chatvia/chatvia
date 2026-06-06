@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -30,7 +29,6 @@ class AgentFileFactory extends Factory
 
         return [
             'user_id' => $user->id,
-            'agent_id' => Agent::factory(),
             'filename' => $this->faker->word().'.txt',
             'filetype' => 'pdf',
             'filepath' => 'test/files/'.$this->faker->uuid().'.txt',

@@ -360,7 +360,8 @@ class ChatSeeder extends Seeder
 
                     $messageSent->execute(new MessageSent(
                         agentId: $agent->id,
-                        userId: $agent->user_id,
+                        workspaceId: $agent->user_id,
+                        chatterUserId: $session->user_id,
                         conversationExternalId: (string) $conversation->external_id,
                         messageExternalId: (string) $message->external_id,
                         sessionExternalId: (string) $session->external_id,
@@ -377,7 +378,8 @@ class ChatSeeder extends Seeder
                     if (! empty($messageData['feedback'])) {
                         $feedbackGiven->execute(new FeedbackGiven(
                             agentId: $agent->id,
-                            userId: $agent->user_id,
+                            workspaceId: $agent->user_id,
+                            chatterUserId: $session->user_id,
                             conversationExternalId: (string) $conversation->external_id,
                             messageExternalId: (string) $message->external_id,
                             feedback: $messageData['feedback'],

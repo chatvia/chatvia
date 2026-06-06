@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Agent\Lead;
 
 use Domain\Agent\Models\Agent;
 use Domain\Lead\Actions\ExportAgentLeadsToCsvAction;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
@@ -22,7 +22,7 @@ class AgentLeadsExportController
 
         try {
             $result = $export->execute($agent, $request->input('lead_ids'));
-        } catch (InviteRejectedException $e) {
+        } catch (DomainValidationException $e) {
             throw ValidationException::withMessages([$e->field => $e->getMessage()]);
         }
 

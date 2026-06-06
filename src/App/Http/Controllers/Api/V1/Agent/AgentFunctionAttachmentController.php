@@ -29,14 +29,14 @@ class AgentFunctionAttachmentController
         $data = $request->toData($agent);
         $function = $this->resolveFunction($data->agent, $data->function_id);
 
-        $data->agent->functions()->syncWithoutDetaching([$function->id]);
+        $data->agent->attachFunction($function);
 
         return ['data' => FunctionData::fromModel($function->fresh())];
     }
 
     public function destroy(Request $request, Agent $agent, string $function): JsonResponse
     {
-        $agent->functions()->detach($this->resolveFunction($agent, $function)->id);
+        $agent->detachFunction($this->resolveFunction($agent, $function));
 
         return response()->json(null, 204);
     }

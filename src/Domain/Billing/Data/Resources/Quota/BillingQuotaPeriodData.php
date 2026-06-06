@@ -10,12 +10,14 @@ class BillingQuotaPeriodData extends Data
 {
     public function __construct(
         public int $messages_limit = 0,
+        public int $tokens_limit = 0,
     ) {}
 
     public static function fromArray(array $period): self
     {
         return new self(
             messages_limit: $period['messages_limit'] ?? 0,
+            tokens_limit: $period['tokens_limit'] ?? 0,
         );
     }
 }

@@ -14,7 +14,7 @@ class TitleGenerator
     {
 
         $response = $this->provider->completion([
-            'model' => config('ai.models.title'),
+            'model' => config('chatvia.ai.models.title'),
             'max_tokens' => 50,
             'messages' => [
                 [

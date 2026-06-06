@@ -7,7 +7,6 @@ use App\Http\Requests\Settings\Prompt\CreatePromptRequest;
 use App\Http\Requests\Settings\Prompt\UpdatePromptRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Prompt\Actions\CreatePromptAction;
-use Domain\Prompt\Actions\DeletePromptAction;
 use Domain\Prompt\Actions\ListPromptsForManagementPageAction;
 use Domain\Prompt\Actions\ListPromptsForPickerAction;
 use Domain\Prompt\Actions\UpdatePromptAction;
@@ -64,14 +63,16 @@ class PromptController extends Controller
         return back();
     }
 
-    public function destroy(Request $request, string $external_id, DeletePromptAction $deletePrompt): RedirectResponse
+    public function destroy(Request $request, string $external_id): RedirectResponse
     {
         abort_unless(has_team_permission('account.prompts'), 404);
 
         /** @var User $user */
         $user = $request->user();
 
-        $deletePrompt->execute($user, $external_id);
+        // Library prompt delete. Agents referencing it have agent_prompt_id
+        // nulled by the FK (nullOnDelete), falling back to their own instructions.
+        $user->prompts()->where('external_id', $external_id)->delete();
 
         return back();
     }

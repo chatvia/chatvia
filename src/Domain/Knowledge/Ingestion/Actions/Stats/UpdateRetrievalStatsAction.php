@@ -3,7 +3,9 @@
 namespace Domain\Knowledge\Ingestion\Actions\Stats;
 
 use Domain\Analytics\Events\SourceRetrieved;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class UpdateRetrievalStatsAction
 {
@@ -23,13 +25,18 @@ class UpdateRetrievalStatsAction
         foreach ($resultsByType as $type => $typeResults) {
             $ids = collect($typeResults)->pluck('chunkable_id')->unique()->values();
 
-            if ($ids->isEmpty() || ! class_exists($type)) {
+            // chunks.chunkable_type stores the morph alias (e.g. "source_file");
+            // resolve it to the model class. agent_sources.sourceable_type stores
+            // the same alias, so the $type filter below stays as-is.
+            $class = Relation::getMorphedModel($type) ?? $type;
+
+            if ($ids->isEmpty() || ! class_exists($class)) {
                 continue;
             }
 
             // All source models (SourceFile/SourceWebsite/SourceText/SourceYoutubeVideo)
             // expose both columns by convention — no information_schema lookup per job.
-            $type::query()
+            $class::query()
                 ->whereIn('id', $ids)
                 ->update([
                     'retrieval_count' => DB::raw('retrieval_count + 1'),
@@ -45,8 +52,17 @@ class UpdateRetrievalStatsAction
                     'last_retrieved_at' => now(),
                 ]);
 
+            // Denormalise the display label + mime now, while the source still
+            // exists, so the analytics rollup keeps showing it after deletion.
+            $labels = $this->resolveLabels($type, $class, $ids);
+
             foreach ($ids as $id) {
-                $retrieved[] = ['type' => $type, 'id' => (int) $id];
+                $retrieved[] = [
+                    'type' => $type,
+                    'id' => (int) $id,
+                    'name' => $labels[(int) $id]['name'] ?? null,
+                    'mime' => $labels[(int) $id]['mime'] ?? null,
+                ];
             }
         }
 
@@ -58,5 +74,44 @@ class UpdateRetrievalStatsAction
             $userId = (int) DB::table('agents')->where('id', $agentId)->value('user_id');
             SourceRetrieved::dispatch($agentId, $userId, $retrieved, now());
         }
+    }
+
+    /**
+     * Resolve the display name (and mime, for files) for each retrieved source
+     * id of a morph type, so the rollup can store a label that survives source
+     * deletion. Keyed by id.
+     *
+     * @param  class-string  $class
+     * @param  \Illuminate\Support\Collection<int, int|string>  $ids
+     * @return array<int, array{name: ?string, mime: ?string}>
+     */
+    private function resolveLabels(string $type, string $class, $ids): array
+    {
+        $columns = match ($type) {
+            'source_file' => ['id', 'filename', 'mime_type'],
+            'source_website', 'agent_website_url' => ['id', 'url'],
+            'source_text' => ['id', 'excerpt'],
+            'source_youtube_video' => ['id', 'title', 'url'],
+            default => ['id'],
+        };
+
+        $out = [];
+
+        foreach ($class::query()->whereIn('id', $ids)->get($columns) as $row) {
+            $name = match ($type) {
+                'source_file' => (string) $row->filename,
+                'source_website', 'agent_website_url' => (string) $row->url,
+                'source_text' => Str::limit(trim((string) preg_replace('/\s+/', ' ', (string) $row->excerpt)), 80),
+                'source_youtube_video' => (string) ($row->title ?: $row->url),
+                default => null,
+            };
+
+            $out[(int) $row->id] = [
+                'name' => $name,
+                'mime' => $type === 'source_file' ? $row->mime_type : null,
+            ];
+        }
+
+        return $out;
     }
 }

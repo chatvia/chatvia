@@ -144,6 +144,7 @@ class Conversation extends Model
             'last_activity_at' => 'datetime',
             'expires_at' => 'datetime',
             'analyzed_at' => 'datetime',
+            'is_visible' => 'boolean',
         ];
     }
 
@@ -223,17 +224,17 @@ class Conversation extends Model
 
     /**
      * Committed topics this conversation belongs to (multi-label). Suggestion
-     * rows in the pivot (chat_topic_id NULL) don't join here.
+     * rows in the pivot (topic_id NULL) don't join here.
      *
      * @return BelongsToMany<Topic, $this>
      */
     public function topics(): BelongsToMany
     {
-        return $this->belongsToMany(Topic::class, 'conversation_topics', 'chat_conversation_id', 'chat_topic_id');
+        return $this->belongsToMany(Topic::class, 'conversation_topics', 'chat_conversation_id', 'topic_id');
     }
 
     /**
-     * Emergent topic suggestions for this conversation (chat_topic_id NULL,
+     * Emergent topic suggestions for this conversation (topic_id NULL,
      * suggested_label set) — surfaced for promotion, not yet real topics.
      *
      * @return HasMany<ConversationTopic, $this>

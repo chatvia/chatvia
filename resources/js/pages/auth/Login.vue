@@ -243,13 +243,13 @@ onBeforeUnmount(cancelPasskeys);
                 <div class="absolute inset-0 flex items-center">
                     <span class="w-full border-t"></span>
                 </div>
-                <div class="relative flex justify-center text-sm uppercase">
-                    <span class="bg-background text-muted-foreground px-4 font-medium">Or</span>
+                <div class="relative flex justify-center text-sm">
+                    <span class="bg-background text-muted-foreground px-4 font-medium">Or continue with</span>
                 </div>
             </div>
 
             <!-- Social Login Buttons -->
-            <SocialLoginButtons />
+            <SocialLoginButtons show-microsoft show-github />
 
             <!-- Sign Up Link -->
             <div class="pt-4 text-center">

@@ -8,7 +8,6 @@ use App\Http\Resources\Api\V1\Agent\AgentData;
 use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Actions\Account\CreateApiAgentAction;
-use Domain\Agent\Actions\Account\DeleteAgentAction;
 use Domain\Agent\Actions\Account\UpdateApiAgentAction;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\JsonResponse;
@@ -34,7 +33,7 @@ class AgentController
     {
         /** @var User $user */
         $user = $request->user();
-        $owner = $user->belongsToWorkspace() ? $user->workspace : $user;
+        $owner = $user->workspace();
 
         $query = Agent::query()
             ->whereIn('team_id', $owner->ownedTeams()->select('id'))
@@ -65,7 +64,7 @@ class AgentController
     {
         /** @var User $user */
         $user = $request->user();
-        $owner = $user->belongsToWorkspace() ? $user->workspace : $user;
+        $owner = $user->workspace();
 
         return ['data' => AgentData::fromModel($createAgent->execute($owner, $request->toData()))];
     }
@@ -92,7 +91,7 @@ class AgentController
     {
         /** @var User $user */
         $user = $request->user();
-        $owner = $user->belongsToWorkspace() ? $user->workspace : $user;
+        $owner = $user->workspace();
 
         return ['data' => AgentData::fromModel($updateAgent->execute($owner, $agent, $request->toData()))];
     }
@@ -103,9 +102,9 @@ class AgentController
      * Also deletes all conversations, sources, MCPs, and functions attached to
      * the agent.
      */
-    public function destroy(Request $request, Agent $agent, DeleteAgentAction $deleteAgent): JsonResponse
+    public function destroy(Request $request, Agent $agent): JsonResponse
     {
-        $deleteAgent->execute($agent);
+        $agent->delete();
 
         return response()->json(null, 204);
     }

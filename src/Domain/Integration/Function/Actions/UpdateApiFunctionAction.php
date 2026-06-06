@@ -4,6 +4,7 @@ namespace Domain\Integration\Function\Actions;
 
 use Domain\Integration\Function\Data\ApiFunctionPayloadData;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Function\Services\AuthConfigBuilder;
 use Spatie\LaravelData\Optional;
 
 /**
@@ -13,6 +14,8 @@ use Spatie\LaravelData\Optional;
  */
 class UpdateApiFunctionAction
 {
+    public function __construct(private readonly AuthConfigBuilder $authConfig) {}
+
     public function execute(AgentFunction $function, ApiFunctionPayloadData $data): AgentFunction
     {
         $attributes = [];
@@ -24,28 +27,15 @@ class UpdateApiFunctionAction
         }
 
         if (! $data->auth_type instanceof Optional) {
+            $authValue = $data->auth_value instanceof Optional ? null : (string) $data->auth_value;
+            $authHeader = $data->auth_header_name instanceof Optional ? null : (string) $data->auth_header_name;
+
             $attributes['auth_type'] = $data->auth_type;
-            $attributes['auth_config'] = $this->buildAuthConfig((string) $data->auth_type, $data);
+            $attributes['auth_config'] = $this->authConfig->build((string) $data->auth_type, $authValue, $authHeader);
         }
 
         $function->update($attributes);
 
         return $function->refresh();
-    }
-
-    /**
-     * @return array<string, string>|null
-     */
-    private function buildAuthConfig(string $authType, ApiFunctionPayloadData $data): ?array
-    {
-        $value = $data->auth_value instanceof Optional ? '' : (string) $data->auth_value;
-        $name = $data->auth_header_name instanceof Optional ? '' : (string) $data->auth_header_name;
-
-        return match ($authType) {
-            'bearer' => ['token' => $value],
-            'header' => ['name' => $name, 'value' => $value],
-            'hmac' => ['secret' => $value],
-            default => null,
-        };
     }
 }

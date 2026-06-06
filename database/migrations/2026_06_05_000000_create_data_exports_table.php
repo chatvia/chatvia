@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('data_exports', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('status', 20)->index();
+            $table->string('status', 20);
             $table->string('file_path')->nullable();
             $table->unsignedBigInteger('file_size')->nullable();
             $table->string('download_token', 64)->unique();

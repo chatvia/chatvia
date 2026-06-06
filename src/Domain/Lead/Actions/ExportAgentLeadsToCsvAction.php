@@ -4,7 +4,7 @@ namespace Domain\Lead\Actions;
 
 use Domain\Agent\Models\Agent;
 use Domain\Lead\Models\Lead;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Illuminate\Database\Eloquent\Collection;
 
 class ExportAgentLeadsToCsvAction
@@ -13,7 +13,7 @@ class ExportAgentLeadsToCsvAction
      * @param  array<int, int>  $leadIds
      * @return array{filename: string, csv: string}
      *
-     * @throws InviteRejectedException
+     * @throws DomainValidationException
      */
     public function execute(Agent $agent, array $leadIds): array
     {
@@ -23,7 +23,7 @@ class ExportAgentLeadsToCsvAction
             ->get();
 
         if ($leads->count() !== count($leadIds)) {
-            throw new InviteRejectedException('lead_ids', 'Some selected leads do not belong to this agent.');
+            throw new DomainValidationException('lead_ids', 'Some selected leads do not belong to this agent.');
         }
 
         return [

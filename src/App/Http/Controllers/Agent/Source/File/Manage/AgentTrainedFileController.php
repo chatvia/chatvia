@@ -15,7 +15,7 @@ class AgentTrainedFileController
      */
     public function index(Request $request, Agent $agent): array
     {
-        abort_if($request->user()->cannot('update', $agent), 403);
+        abort_if($request->user()->cannot('update', $agent), 404);
 
         $request->validate([
             'type' => ['required', 'in:pdf,word,audio,video'],
@@ -35,7 +35,7 @@ class AgentTrainedFileController
 
     public function store(Request $request, Agent $agent, int $fileId): void
     {
-        abort_if($request->user()->cannot('update', $agent), 403);
+        abort_if($request->user()->cannot('update', $agent), 404);
 
         $request->validate(['file_id' => ['required', 'exists:source_files,id']]);
 

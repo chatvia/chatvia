@@ -21,9 +21,7 @@ class RegenerateMessageAction
         string $userMessageId,
     ): ?RegenerateMessageResult {
         $this->memory
-            ->setAgent($agent)
-            ->setExternalSessionId($this->session->firstOrCreateSession($agent))
-            ->setConversationId($conversationId);
+            ->withContext($agent, $this->session->firstOrCreateSession($agent), $conversationId);
 
         $userMessage = $this->memory->getMessageById($userMessageId);
 

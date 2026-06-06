@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Team\Roles;
 
 use App\Http\Requests\Team\Roles\SaveTeamRoleRequest;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 
@@ -17,7 +17,7 @@ class TeamRoleStoreController
     ): RedirectResponse {
         try {
             $createRole->execute($request->toData($team));
-        } catch (InviteRejectedException $e) {
+        } catch (DomainValidationException $e) {
             return back()->withErrors([$e->field => $e->getMessage()]);
         }
 

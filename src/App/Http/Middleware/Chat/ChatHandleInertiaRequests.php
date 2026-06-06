@@ -40,7 +40,7 @@ class ChatHandleInertiaRequests extends Middleware
             // The composer gates the paperclip on this; the server enforces
             // the same value via MaxConversationAttachments so a frontend
             // bypass still gets a 422.
-            'maxFilesPerChat' => (int) config('agent.files.upload.max_files'),
+            'maxFilesPerChat' => (int) config('chatvia.agent.files.upload.max_files'),
         ];
     }
 }

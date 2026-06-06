@@ -26,7 +26,7 @@ class AgentSourceAnalyzeFileAction
         $info = FileAnalyzer::analyze($uploadedFile);
 
         abort_unless(
-            boolean: $user->canUploadPages($info->length),
+            boolean: $user->consumption()->canUploadPages($info->length),
             code: 422,
             message: 'File upload limit exceeded. This document requires '.$info->length.' pages.'
         );

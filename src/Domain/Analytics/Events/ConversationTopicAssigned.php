@@ -11,7 +11,7 @@ class ConversationTopicAssigned
 
     public function __construct(
         public readonly int $agentId,
-        public readonly int $userId,
+        public readonly int $workspaceId,
         public readonly int $topicId,
         public readonly DateTimeInterface $occurredAt,
     ) {}

@@ -87,7 +87,7 @@ class AnalyzeConversationAction
             foreach ($analysis->topicIds as $topicId) {
                 $row = ConversationTopic::firstOrCreate([
                     'chat_conversation_id' => $conversation->id,
-                    'chat_topic_id' => $topicId,
+                    'topic_id' => $topicId,
                 ]);
 
                 if ($row->wasRecentlyCreated) {

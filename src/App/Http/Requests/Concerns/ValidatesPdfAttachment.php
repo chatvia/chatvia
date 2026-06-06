@@ -30,7 +30,7 @@ trait ValidatesPdfAttachment
                 'max:25600', // 25 MB — Mistral OCR allows 50 MB but chat attachments rarely need that much.
                 new MaxConversationAttachments(
                     conversationExternalId: $this->header('X-CONVERSATION-ID'),
-                    max: (int) config('agent.files.upload.max_files'),
+                    max: (int) config('chatvia.agent.files.upload.max_files'),
                 ),
             ],
         ];

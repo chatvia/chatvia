@@ -10,9 +10,11 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getInitials } from '@/composables/useInitials';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -64,6 +66,14 @@ const onAccessChanged = (member: ChatterRow, attachedCount: number) => {
     members.value = members.value.map((m) => (m.external_id === member.external_id ? { ...m, agents_count: attachedCount } : m));
     if (selectedMember.value?.external_id === member.external_id) {
         selectedMember.value = { ...selectedMember.value, agents_count: attachedCount };
+    }
+};
+
+// The sheet saved the message limit / deactivation and returned the fresh row.
+const onUpdated = (updated: ChatterRow) => {
+    members.value = members.value.map((m) => (m.external_id === updated.external_id ? updated : m));
+    if (selectedMember.value?.external_id === updated.external_id) {
+        selectedMember.value = updated;
     }
 };
 
@@ -185,18 +195,19 @@ const formatDate = (iso: string) => {
                                 <TableHead>Email</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Agents</TableHead>
+                                <TableHead>Messages</TableHead>
                                 <TableHead>Created</TableHead>
                                 <TableHead class="w-32 text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             <TableRow v-if="isLoading">
-                                <TableCell colspan="6" class="py-8 text-center">
+                                <TableCell colspan="7" class="py-8 text-center">
                                     <LoaderCircle class="text-muted-foreground mx-auto h-8 w-8 animate-spin" />
                                 </TableCell>
                             </TableRow>
                             <TableRow v-else-if="filteredMembers.length === 0">
-                                <TableCell colspan="6" class="text-muted-foreground py-8 text-center">
+                                <TableCell colspan="7" class="text-muted-foreground py-8 text-center">
                                     <div v-if="members.length === 0">
                                         <Users class="text-muted-foreground/50 mx-auto mb-4 h-12 w-12" />
                                         <p>No members yet.</p>
@@ -215,14 +226,28 @@ const formatDate = (iso: string) => {
                                 @click="openSheet(member)"
                             >
                                 <TableCell class="font-medium">
-                                    {{ member.name }}
+                                    <div class="flex items-center gap-3">
+                                        <Avatar class="size-8 shrink-0">
+                                            <AvatarImage v-if="member.avatar" :src="member.avatar" :alt="member.name" />
+                                            <AvatarFallback class="bg-primary/10 text-primary text-xs font-semibold">
+                                                {{ getInitials(member.name) }}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <span class="truncate">{{ member.name }}</span>
+                                    </div>
                                 </TableCell>
                                 <TableCell>
                                     {{ member.email || 'No email' }}
                                 </TableCell>
                                 <TableCell>
                                     <span
-                                        v-if="member.status === 'pending'"
+                                        v-if="member.is_deactivated"
+                                        class="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-900 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-100"
+                                    >
+                                        Deactivated
+                                    </span>
+                                    <span
+                                        v-else-if="member.status === 'pending'"
                                         class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100"
                                     >
                                         Pending
@@ -236,6 +261,16 @@ const formatDate = (iso: string) => {
                                 </TableCell>
                                 <TableCell>
                                     {{ member.agents_count }}
+                                </TableCell>
+                                <TableCell>
+                                    <span
+                                        v-if="member.messages_limit !== null"
+                                        class="text-sm tabular-nums"
+                                        :class="member.messages_used >= member.messages_limit ? 'text-destructive font-medium' : ''"
+                                    >
+                                        {{ member.messages_used }} / {{ member.messages_limit }}
+                                    </span>
+                                    <span v-else class="text-muted-foreground text-sm">—</span>
                                 </TableCell>
                                 <TableCell>
                                     {{ formatDate(member.created_at) }}
@@ -298,6 +333,7 @@ const formatDate = (iso: string) => {
                 @reset="askReset"
                 @delete="askDelete"
                 @access-changed="onAccessChanged"
+                @updated="onUpdated"
             />
 
             <!-- Delete confirmation -->

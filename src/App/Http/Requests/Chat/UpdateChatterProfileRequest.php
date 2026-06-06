@@ -22,6 +22,7 @@ class UpdateChatterProfileRequest extends FormRequest
             'name' => ['sometimes', 'string', 'max:255'],
             'current_password' => ['nullable', 'string', 'min:8'],
             'password' => ['nullable', 'required_with:current_password', 'string', 'min:8', 'confirmed'],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
         ];
     }
 
@@ -35,6 +36,7 @@ class UpdateChatterProfileRequest extends FormRequest
             name: $this->input('name'),
             currentPassword: $this->input('current_password'),
             newPassword: $this->input('password'),
+            photo: $this->file('photo'),
         );
     }
 }

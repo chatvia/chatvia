@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Chat;
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Conversations\CreateConversationData;
 use Illuminate\Foundation\Http\FormRequest;
@@ -39,6 +40,7 @@ class CreateConversationRequest extends FormRequest
             pageUrl: $this->url(),
             locale: $this->header('accept-language') ? substr($this->header('accept-language'), 0, 5) : null,
             attachmentIds: $this->extractAttachmentIds(),
+            chatterUserId: $this->user() instanceof User && $this->user()->isChatter() ? $this->user()->id : null,
         );
     }
 

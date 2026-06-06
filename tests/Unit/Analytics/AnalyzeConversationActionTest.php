@@ -80,8 +80,8 @@ it('assigns multiple topics, records a suggestion, sets fields and stamps analyz
 
     $committed = ConversationTopic::query()
         ->where('chat_conversation_id', $conversation->id)
-        ->whereNotNull('chat_topic_id')
-        ->pluck('chat_topic_id')
+        ->whereNotNull('topic_id')
+        ->pluck('topic_id')
         ->sort()
         ->values()
         ->all();
@@ -143,7 +143,7 @@ it('stores the full analysis regardless of plan capabilities', function (): void
         ->and($conversation->tone)->toBe('frustrated')
         ->and(ConversationTopic::query()
             ->where('chat_conversation_id', $conversation->id)
-            ->where('chat_topic_id', $ids['Billing'])
+            ->where('topic_id', $ids['Billing'])
             ->exists())->toBeTrue()
         ->and(ConversationTopic::query()
             ->where('chat_conversation_id', $conversation->id)
@@ -185,10 +185,10 @@ it('rolls the assigned topic into analytics_agent_topic_daily', function (): voi
 
     app(AnalyzeConversationAction::class)->execute($conversation);
 
-    $row = DB::connection(config('analytics.connection'))
+    $row = DB::connection(config('chatvia.analytics.connection'))
         ->table('analytics_agent_topic_daily')
         ->where('agent_id', $agent->id)
-        ->where('chat_topic_id', $ids['Billing'])
+        ->where('topic_id', $ids['Billing'])
         ->first();
 
     expect($row)->not->toBeNull()

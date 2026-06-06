@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Identity\Workspace\Services;
+
+use App\Identity\Workspace\Models\User;
+use Closure;
+use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+
+/**
+ * Workspace-scoped knowledge consumption queries: pages, audio/video minutes,
+ * and crawled links currently used across every agent the workspace owns.
+ *
+ * Extracted from User to keep the auth model from being a query layer too. The
+ * scoping rule that ties this to the workspace (not the individual logged-in
+ * employee) is preserved verbatim — every join goes through
+ * {@see User::workspace()}, so a workspace employee sees the workspace
+ * owner's consumption, exactly matching the in-place implementation that
+ * shipped on User.
+ */
+readonly class WorkspaceConsumption
+{
+    public function __construct(private User $user) {}
+
+    /**
+     * Total "pages" used across uploaded documents (PDF/Word/markdown/text)
+     * AND raw text sources. Each source is counted once even when attached to
+     * multiple agents (the inner query selects distinct sourceable ids).
+     */
+    public function pages(): int
+    {
+        $sourceFilesPages = SourceFile::query()
+            ->whereIn('id', $this->ownedSourceIds(SourceFile::class))
+            ->whereIn('filetype', ['pdf', 'word', 'markdown', 'text'])
+            ->sum('length');
+
+        $sourceTextsPages = SourceText::query()
+            ->whereIn('id', $this->ownedSourceIds(SourceText::class))
+            ->sum('length');
+
+        return (int) ($sourceFilesPages + $sourceTextsPages);
+    }
+
+    /** Total minutes of transcribed audio/video sources. */
+    public function minutes(): int
+    {
+        return (int) SourceFile::query()
+            ->whereIn('id', $this->ownedSourceIds(SourceFile::class))
+            ->whereIn('filetype', ['audio', 'video'])
+            ->sum('length');
+    }
+
+    /** Total number of distinct crawled URLs across owned website sources. */
+    public function links(): int
+    {
+        return $this->user
+            ->agents()
+            ->join('agent_sources', function ($join): void {
+                $join->on('agents.id', '=', 'agent_sources.agent_id')
+                    ->where('agent_sources.sourceable_type', '=', SourceWebsite::class);
+            })
+            ->join('source_websites', 'source_websites.id', '=', 'agent_sources.sourceable_id')
+            ->join('source_website_urls', 'source_websites.id', '=', 'source_website_urls.source_website_id')
+            ->whereNotNull('source_website_urls.crawled_at')
+            ->distinct('source_website_urls.id')
+            ->count('source_website_urls.id');
+    }
+
+    /**
+     * Whether the user can upload `$amount` more pages without exceeding their
+     * quota. Both `quota` and `pages()` route through {@see User::workspace()},
+     * so a workspace employee gates against the owner's quota AND the owner's
+     * measured pages — matching the original on-User semantics verbatim.
+     *
+     * Reads `$this->user->quota->pages_limit` directly; the relation is
+     * **lazy-only** (see User::quota() docblock) — eager-loading on a bare
+     * employee instance returns null. Resolve `quota` lazily here, or
+     * `loadMissing(['parentWorkspace.quota', 'quota'])` upstream.
+     */
+    public function canUploadPages(int $amount): bool
+    {
+        return ($this->user->quota->pages_limit - $this->pages()) >= $amount;
+    }
+
+    /**
+     * `whereIn('id', ...)` closure selecting the ids of $sourceableType rows
+     * attached (via agent_sources) to any agent the workspace owns. Shared by
+     * pages()/minutes() so the multi-join scoping lives in one place instead
+     * of being hand-copied per source type.
+     */
+    private function ownedSourceIds(string $sourceableType): Closure
+    {
+        $workspaceId = $this->user->workspace()->id;
+
+        return function ($query) use ($workspaceId, $sourceableType): void {
+            $query->select('agent_sources.sourceable_id')
+                ->from('agent_sources')
+                ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
+                ->where('agents.user_id', $workspaceId)
+                ->where('agent_sources.sourceable_type', '=', $sourceableType)
+                ->distinct();
+        };
+    }
+}

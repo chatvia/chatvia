@@ -3,10 +3,11 @@
 namespace Domain\Knowledge\Ingestion\Actions\Documents;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Document\Contracts\DocumentOCRInterface;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
+use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
@@ -19,7 +20,7 @@ use Symfony\Component\HttpFoundation\File\File;
 class IngestDocumentAction
 {
     public function __construct(
-        private readonly DocumentOCRInterface $documentOCR,
+        private readonly MistralOCR $documentOCR,
     ) {}
 
     public function execute(SourceFile $sourceFile, Agent $agent, ?string $internalJobId = null): void
@@ -82,16 +83,31 @@ class IngestDocumentAction
         ]);
 
         $agentFileId = $sourceFile->id;
+        $agentExternalId = $agent->external_id;
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent File ID: '.$agentFileId)
-            ->then(function (Batch $batch) use ($agentFileId): void {
+            ->then(function (Batch $batch) use ($agentFileId, $agentExternalId): void {
                 $file = SourceFile::find($agentFileId);
-                $file?->update(['status' => 'ingested']);
+
+                if (! $file) {
+                    return;
+                }
+
+                $file->update(['status' => 'ingested']);
 
                 // Refresh planner stats so vchordrq prefilter sees the new
                 // reltuples — autovacuum's default schedule waits far too long.
                 DB::statement('ANALYZE chunks');
+
+                // Authoritative "ingestion finished" signal. The per-chunk
+                // progress events can never reach 100% on their own — deduped or
+                // blank pages create no chunk, so importedChunks stays below
+                // expected_chunks — which leaves the client stuck on "ingesting".
+                // Broadcasting here, where ingestionProgress() returns 100 via
+                // the status==='ingested' short-circuit, guarantees the UI flips
+                // to "ingested" regardless of dedup, races, or a dropped frame.
+                FileIngestionProgressed::dispatch($file, $agentExternalId);
             })
             ->dispatch();
 

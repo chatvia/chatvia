@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Agent\Topic;
 
+use App\Http\Requests\Agent\Topic\AttachOrCreateTopicRequest;
+use App\Http\Requests\Agent\Topic\UpdateAgentTopicRequest;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Actions\AttachExistingTopicToAgentAction;
@@ -9,7 +11,8 @@ use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
 use Domain\Conversation\Topic\Actions\DetachTopicFromAgentAction;
 use Domain\Conversation\Topic\Actions\UpdateTopicAction;
 use Domain\Conversation\Topic\Models\Topic;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
+use Support\Exceptions\SystemTopicProtectedException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -36,13 +39,13 @@ class AgentTopicController
                 return response()->json($query->get());
             }
 
-            $query = $agent->topics()->orderBy('chat_topics.topic');
+            $query = $agent->topics()->orderBy('topics.topic');
 
             if ($search) {
-                $query->where('chat_topics.topic', 'ilike', "%{$search}%");
+                $query->where('topics.topic', 'ilike', "%{$search}%");
             }
 
-            return response()->json($query->get(['chat_topics.*']));
+            return response()->json($query->get(['topics.*']));
         }
 
         return Inertia::render('agents/topics/Manage', [
@@ -51,37 +54,36 @@ class AgentTopicController
     }
 
     public function store(
-        Request $request,
+        AttachOrCreateTopicRequest $request,
         Agent $agent,
         AttachExistingTopicToAgentAction $attach,
         CreateAgentTopicAction $createTopic,
     ): JsonResponse {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        if ($request->has('topic_id')) {
-            $validated = $request->validate([
-                'topic_id' => ['required', 'integer', 'exists:chat_topics,id'],
-            ]);
-
-            $topic = Topic::findOrFail($validated['topic_id']);
+        if ($request->isAttach()) {
+            // Scope through forUser (global or owned) so a body-supplied id
+            // can't reach another account's private topic. Mirrors the same
+            // scope the attachable-topics listing in index() uses.
+            $topic = Topic::query()
+                ->forUser($request->user())
+                ->findOrFail((int) $request->validated('topic_id'));
 
             try {
                 $attach->execute($agent, $topic);
-            } catch (InviteRejectedException $e) {
+            } catch (DomainValidationException $e) {
                 return response()->json(['message' => $e->getMessage()], 422);
             }
 
             return response()->json(['message' => 'Topic added successfully', 'topic' => $topic]);
         }
 
-        $validated = $request->validate([
-            'topic' => ['required', 'string', 'max:255'],
-            'description' => 'required|string|max:500',
-        ]);
-
         try {
-            $topic = $createTopic->execute($agent, $request->user(), $validated['topic'], $validated['description']);
-        } catch (InviteRejectedException $e) {
+            $topic = $createTopic->execute(
+                $agent,
+                $request->user(),
+                (string) $request->validated('topic'),
+                (string) $request->validated('description'),
+            );
+        } catch (DomainValidationException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
@@ -89,30 +91,28 @@ class AgentTopicController
     }
 
     public function update(
-        Request $request,
+        UpdateAgentTopicRequest $request,
         Agent $agent,
         Topic $topic,
         UpdateTopicAction $updateTopic,
     ): JsonResponse {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
         abort_unless(
-            $agent->topics()->where('chat_topics.id', $topic->id)->exists(),
+            $agent->topics()->where('topics.id', $topic->id)->exists(),
             404,
             'Topic not found for this agent',
         );
 
-        $validated = $request->validate([
-            'topic' => ['required', 'string', 'max:255'],
-            'description' => 'required|string|max:500',
-        ]);
-
         try {
-            $updateTopic->execute($topic, $request->user(), $validated['topic'], $validated['description']);
-        } catch (InviteRejectedException $e) {
-            $status = str_contains($e->getMessage(), 'System') ? 403 : 422;
-
-            return response()->json(['message' => $e->getMessage()], $status);
+            $updateTopic->execute(
+                $topic,
+                $request->user(),
+                (string) $request->validated('topic'),
+                (string) $request->validated('description'),
+            );
+        } catch (SystemTopicProtectedException $e) {
+            return response()->json(['message' => $e->getMessage()], 403);
+        } catch (DomainValidationException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
 
         return response()->json(['message' => 'Topic updated successfully', 'topic' => $topic]);
@@ -127,7 +127,7 @@ class AgentTopicController
         abort_if($request->user()->cannot('update', $agent), 404);
 
         abort_unless(
-            $agent->topics()->where('chat_topics.id', $topic->id)->exists(),
+            $agent->topics()->where('topics.id', $topic->id)->exists(),
             404,
             'Topic not found for this agent',
         );

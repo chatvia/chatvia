@@ -4,7 +4,7 @@ namespace Domain\Membership\Team\Actions\Invitations;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Data\AcceptInvitationData;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -13,14 +13,14 @@ use Support\Enums\User\UserType;
 class AcceptTeamInvitationAction
 {
     /**
-     * @throws InviteRejectedException
+     * @throws DomainValidationException
      */
     public function execute(AcceptInvitationData $data): User
     {
         $invitation = $data->invitation;
 
         if ($invitation->created_at->addDays(7)->isPast()) {
-            throw new InviteRejectedException('invitation', 'This invitation has expired.');
+            throw new DomainValidationException('invitation', 'This invitation has expired.');
         }
 
         $team = $invitation->team;
@@ -28,11 +28,11 @@ class AcceptTeamInvitationAction
         $owner = $team->owner;
 
         if (! $owner->hasActiveSubscription()) {
-            throw new InviteRejectedException('invitation', 'The team owner does not have an active subscription.');
+            throw new DomainValidationException('invitation', 'The team owner does not have an active subscription.');
         }
 
         if (! $owner->canAddWorkspaceUser()) {
-            throw new InviteRejectedException('invitation', 'The team owner has reached their workspace user limit. Please contact them to upgrade their plan.');
+            throw new DomainValidationException('invitation', 'The team owner has reached their workspace user limit. Please contact them to upgrade their plan.');
         }
 
         return DB::transaction(function () use ($data, $invitation, $team, $owner): User {
@@ -40,7 +40,7 @@ class AcceptTeamInvitationAction
 
             if ($existingUser) {
                 if (! Hash::check($data->password ?? '', $existingUser->password)) {
-                    throw new InviteRejectedException('password', 'The provided password is incorrect.');
+                    throw new DomainValidationException('password', 'The provided password is incorrect.');
                 }
 
                 $user = $existingUser;

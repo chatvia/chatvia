@@ -4,6 +4,8 @@ namespace App\Http\Requests\Api\V1\Function;
 
 use Domain\Integration\Function\Data\ApiFunctionPayloadData;
 use Illuminate\Foundation\Http\FormRequest;
+use Domain\Integration\Function\Enums\FunctionAuthType;
+use Illuminate\Validation\Rule;
 
 class UpdateApiFunctionRequest extends FormRequest
 {
@@ -25,7 +27,7 @@ class UpdateApiFunctionRequest extends FormRequest
             'webhook_url' => ['sometimes', 'url', 'max:2048'],
             'webhook_method' => ['sometimes', 'in:POST,GET,PATCH,DELETE'],
             'webhook_headers' => ['sometimes', 'nullable', 'array'],
-            'auth_type' => ['sometimes', 'in:none,bearer,header,hmac'],
+            'auth_type' => ['sometimes', Rule::enum(FunctionAuthType::class)],
             'auth_header_name' => ['nullable', 'required_if:auth_type,header', 'string', 'max:128'],
             'auth_value' => ['nullable', 'required_if:auth_type,bearer,header,hmac', 'string', 'max:8192'],
             'timeout_ms' => ['sometimes', 'integer', 'min:1000', 'max:30000'],

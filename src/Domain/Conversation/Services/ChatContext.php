@@ -13,6 +13,16 @@ class ChatContext
 
     public ?string $generationId = null;
 
+    /**
+     * Inline token usage from the streaming response's final chunk
+     * (`{prompt_tokens, completion_tokens, total_tokens}`), captured by the
+     * transformer. The authoritative billed count — preferred over the
+     * OpenRouter post-hoc lookup and the TikToken estimate when logging usage.
+     *
+     * @var array<string, int>|null
+     */
+    public ?array $usage = null;
+
     public Collection $sources;
 
     public ?float $confidenceScore = null;

@@ -8,7 +8,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Youtube\Actions\AddAgentYoutubeVideoAction;
 use Domain\Knowledge\Source\Youtube\Actions\DeleteAgentYoutubeVideoAction;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -47,7 +47,7 @@ class AgentYoutubeController
 
         try {
             $add->execute($agent, $user, $request->string('url')->toString());
-        } catch (InviteRejectedException $e) {
+        } catch (DomainValidationException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
                 'errors' => [$e->field => [$e->getMessage()]],

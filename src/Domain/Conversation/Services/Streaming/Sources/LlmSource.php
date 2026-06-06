@@ -71,7 +71,7 @@ class LlmSource
             // prompt automatically. The per-call gating decision is still made in
             // the runner — we don't probe the policy per candidate tool.
             if ($toolDefinitions !== []) {
-                $this->injectToolSystemNote($llmMessages, (bool) config('agent.tools.approval_enabled', true));
+                $this->injectToolSystemNote($llmMessages, (bool) config('chatvia.agent.tools.approval_enabled', true));
             }
 
             $model = $context->requestData->message->model;

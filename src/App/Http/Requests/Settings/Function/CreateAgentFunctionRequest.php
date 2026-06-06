@@ -7,6 +7,7 @@ use Closure;
 use Domain\Integration\Function\Data\CreateAgentFunctionData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Domain\Integration\Function\Enums\FunctionAuthType;
 
 class CreateAgentFunctionRequest extends FormRequest
 {
@@ -43,7 +44,7 @@ class CreateAgentFunctionRequest extends FormRequest
             ],
             'webhook_url' => ['required', 'url', 'max:2048'],
             'webhook_method' => ['sometimes', 'in:POST,GET,PATCH,DELETE'],
-            'auth_type' => ['sometimes', 'in:none,bearer,header,hmac'],
+            'auth_type' => ['sometimes', Rule::enum(FunctionAuthType::class)],
             // Flat form payload; `toData()` reshapes these into the
             // structured `auth_config` array per auth_type.
             'auth_header_name' => ['nullable', 'required_if:auth_type,header', 'string', 'max:128'],

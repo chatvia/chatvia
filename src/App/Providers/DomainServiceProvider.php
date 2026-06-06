@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Identity\Workspace\Events\AccountDeletionRequested;
 use App\Identity\Workspace\Events\DataExportReady;
 use App\Identity\Workspace\Events\MagicLinkRequested;
 use App\Identity\Workspace\Listeners\RecordKnownDevice;
+use App\Identity\Workspace\Listeners\SendAccountDeletionConfirmationEmail;
 use App\Identity\Workspace\Listeners\SendDataExportReadyNotification;
 use App\Identity\Workspace\Listeners\SendMagicLinkEmail;
 use App\Identity\Workspace\Models\User;
@@ -18,18 +20,21 @@ use Domain\Analytics\Listeners\RecordAnalytics;
 use Domain\Billing\Events\MessageCreditsLow;
 use Domain\Billing\Listeners\HandleStripeWebhook;
 use Domain\Billing\Listeners\TriggerAutoRecharge;
+use Domain\Conversation\Events\SessionLocationUnknown;
+use Domain\Conversation\Listeners\LocateSession;
+use Domain\Conversation\Services\Streaming\Transformers\OpenAiCompatibleTransformer;
+use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Dispatcher\RoutingToolDispatcher;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Function\Observers\AgentFunctionObserver;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Observers\AgentMcpServerObserver;
-use Domain\Knowledge\Document\Contracts\DocumentOCRInterface;
 use Domain\Knowledge\Embedding\Cohere;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Jina;
+use Domain\Knowledge\Embedding\Mistral;
 use Domain\Knowledge\Embedding\Qwen3;
-use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\File\Observers\SourceFileObserver;
 use Domain\Knowledge\Source\Text\Models\SourceText;
@@ -45,6 +50,8 @@ use Domain\Llm\Providers\OpenRouter;
 use Domain\Llm\Providers\Scaleway;
 use Domain\Membership\Agent\Events\AgentMemberInvited;
 use Domain\Membership\Agent\Listeners\SendAgentMemberInvitationEmail;
+use Domain\Membership\Team\Events\TeamInvitationCreated;
+use Domain\Membership\Team\Listeners\SendTeamInvitationEmail;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
@@ -69,8 +76,12 @@ class DomainServiceProvider extends ServiceProvider
         // (AgentFunctions) or MCP backend.
         $this->app->bind(ToolDispatcherInterface::class, RoutingToolDispatcher::class);
 
+        // SSE stream transformer: parses the upstream OpenAI-compatible byte
+        // stream into envelope events. Single implementation today.
+        $this->app->bind(StreamTransformer::class, OpenAiCompatibleTransformer::class);
+
         $this->app->bind(LlmProviderInterface::class, function ($app) {
-            $provider = config('ai.provider', 'openrouter');
+            $provider = config('chatvia.ai.provider', 'openrouter');
 
             return match ($provider) {
                 'groq' => $app->make(Groq::class),
@@ -81,17 +92,15 @@ class DomainServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(EmbeddingsProviderInterface::class, function ($app) {
-            $provider = config('ai.models.embedding', 'mistral');
+            $provider = config('chatvia.ai.models.embedding', 'mistral');
 
             return match ($provider) {
                 'jina' => $app->make(Jina::class),
                 'qwen' => $app->make(Qwen3::class),
-                'mistral' => $app->make(\Domain\Knowledge\Embedding\Mistral::class),
+                'mistral' => $app->make(Mistral::class),
                 default => $app->make(Cohere::class),
             };
         });
-
-        $this->app->bind(DocumentOCRInterface::class, fn ($app) => $app->make(MistralOCR::class));
 
         // PasswordAuthenticator wraps the `web` guard so Domain Actions don't
         // have to reach for the Auth facade. We bind it explicitly because
@@ -127,10 +136,13 @@ class DomainServiceProvider extends ServiceProvider
     {
         Event::listen(Login::class, RecordKnownDevice::class);
         Event::listen(AgentMemberInvited::class, SendAgentMemberInvitationEmail::class);
+        Event::listen(TeamInvitationCreated::class, SendTeamInvitationEmail::class);
         Event::listen(MagicLinkRequested::class, SendMagicLinkEmail::class);
+        Event::listen(AccountDeletionRequested::class, SendAccountDeletionConfirmationEmail::class);
         Event::listen(MessageCreditsLow::class, TriggerAutoRecharge::class);
         Event::listen(DataExportReady::class, SendDataExportReadyNotification::class);
         Event::listen(WebhookReceived::class, HandleStripeWebhook::class);
+        Event::listen(SessionLocationUnknown::class, LocateSession::class);
 
         Event::subscribe(RecordAnalytics::class);
     }

@@ -61,6 +61,10 @@ const chatlogEnabled = computed(() => usePage().props.chatlogEnabled !== false);
 // Page title
 const title = computed(() => (conversationTitle.value ? `Chat Log – ${conversationTitle.value}` : 'Chat Log'));
 
+// Lead capture is an opt-in MCP server (slug `leads`) on the agent. When it's
+// off, no leads are ever captured, so the Lead button is hidden entirely.
+const leadsEnabled = computed(() => Boolean(agent.value?.leads_mcp_enabled));
+
 // Lead panel
 const showLeadPanel = ref(false);
 function openLeadPanel() {
@@ -280,6 +284,7 @@ watch(
 
                                 <!-- Lead Button -->
                                 <Button
+                                    v-if="leadsEnabled"
                                     size="sm"
                                     class="ml-auto h-9"
                                     :variant="hasLeadForCurrentConversation ? 'default' : 'outline'"

@@ -10,7 +10,7 @@ class QueryRewriter
 
     public function rewrite(string $userQuery, $previousQuery = null): array
     {
-        if (config('ai.query.rewriter.enabled') === false) {
+        if (config('chatvia.ai.query.rewriter.enabled') === false) {
             return [
                 'lang' => null,
                 'query' => $userQuery,
@@ -18,7 +18,7 @@ class QueryRewriter
         }
 
         $response = $this->provider->completion([
-            'model' => config('ai.query.rewriter.model'),
+            'model' => config('chatvia.ai.query.rewriter.model'),
             'temperature' => 0.0,
             'messages' => [
                 [

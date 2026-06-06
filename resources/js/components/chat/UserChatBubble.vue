@@ -15,9 +15,10 @@ import { Textarea } from '@/components/ui/textarea';
 import type { Message } from '@/types/chat';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Check, Copy, Edit3, Trash2 } from 'lucide-vue-next';
+import { Check, Copy, Edit3, Trash2, X } from 'lucide-vue-next';
 import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 
@@ -32,6 +33,7 @@ const emit = defineEmits<{
     messageUpdated: [id: string | number, content: string];
     messageDeleted: [id: string | number];
     messageEdited: [userMessageId: string | number, assistantMessageId: string | number, newContent: string];
+    attachmentDeleted: [messageId: string | number, attachmentId: string];
 }>();
 
 const page = usePage();
@@ -120,6 +122,28 @@ async function copyToClipboard() {
     }
 }
 
+async function deleteAttachment(attachmentId: string) {
+    if (!props.conversationId || props.message.id === undefined) return;
+
+    // Optimistic emit so the chip disappears with the dialog close. The
+    // server delete fires the model's `deleting` hook → S3 wipe. The Mistral
+    // document_url retry path for any past assistant turn that referenced
+    // this file will 404 — which is what the AlertDialog warned about.
+    emit('attachmentDeleted', props.message.id, attachmentId);
+    try {
+        await axios.delete(
+            route('chat.conversations.attachments.delete', {
+                conversationId: props.conversationId,
+                attachment: attachmentId,
+            }),
+        );
+    } catch (e: unknown) {
+        const err = e as { response?: { data?: { message?: string } } };
+        const msg = err.response?.data?.message ?? t('messages.delete_attachment_failed', 'Could not remove the file. Please try again.');
+        toast.error(msg);
+    }
+}
+
 async function deleteMessage() {
     if (props.message.id !== undefined && props.conversationId) {
         try {
@@ -176,22 +200,54 @@ async function deleteMessage() {
                     <p class="text-[15px] leading-relaxed break-words whitespace-pre-wrap" :data-rtl="isRTL">{{ message.content }}</p>
                 </div>
 
-                <!-- Attachment chips -->
+                <!-- Attachment chips. Hovering reveals a small X — clicking
+                     opens an AlertDialog that warns the assistant will lose
+                     access to the file. -->
                 <div v-if="attachments.length > 0" class="flex flex-wrap justify-end gap-2">
-                    <a
-                        v-for="att in attachments"
-                        :key="att.id"
-                        :href="att.url"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="bg-card text-foreground hover:bg-muted/50 inline-flex max-w-[260px] items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors"
-                    >
-                        <img :src="iconForFile(att)" :alt="att.mime_type" class="h-6 w-6 shrink-0" />
-                        <div class="flex min-w-0 flex-col items-start leading-tight">
-                            <span class="max-w-[180px] truncate font-medium">{{ att.filename }}</span>
-                            <span class="text-muted-foreground text-[11px]">{{ formatBytes(att.size_bytes) }}</span>
-                        </div>
-                    </a>
+                    <div v-for="att in attachments" :key="att.id" class="group/chip relative">
+                        <a
+                            :href="att.url"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="bg-card text-foreground hover:bg-muted/50 inline-flex max-w-[260px] items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors"
+                        >
+                            <img :src="iconForFile(att)" :alt="att.mime_type" class="h-6 w-6 shrink-0" />
+                            <div class="flex min-w-0 flex-col items-start leading-tight">
+                                <span class="max-w-[180px] truncate font-medium">{{ att.filename }}</span>
+                                <span class="text-muted-foreground text-[11px]">{{ formatBytes(att.size_bytes) }}</span>
+                            </div>
+                        </a>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <button
+                                    type="button"
+                                    class="bg-card text-muted-foreground hover:bg-red-500/10 hover:text-red-600 absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover/chip:opacity-100 focus:opacity-100"
+                                    :aria-label="t('messages.delete_attachment_aria', 'Remove attachment')"
+                                >
+                                    <X class="h-3 w-3" />
+                                </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent class="rounded-2xl">
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>{{ t('messages.delete_attachment_title', 'Remove this file?') }}</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        {{
+                                            t(
+                                                'messages.delete_attachment_description',
+                                                'After you remove it, the assistant will no longer have access to this file in future replies.',
+                                            )
+                                        }}
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel class="rounded-lg">{{ t('common.cancel') }}</AlertDialogCancel>
+                                    <AlertDialogAction @click="deleteAttachment(att.id)" class="rounded-lg bg-red-600 hover:bg-red-700">
+                                        {{ t('common.delete') }}
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
                 </div>
             </div>
 

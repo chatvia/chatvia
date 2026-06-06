@@ -18,6 +18,7 @@ class UserUsageFactory extends Factory
             'messages' => 0,
             'credits' => 0,
             'messages_exceeded' => 0,
+            'tokens' => 0,
         ];
     }
 }

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function getConnection(): ?string
     {
-        return config('analytics.connection');
+        return config('chatvia.analytics.connection');
     }
 
     public function up(): void
@@ -18,7 +18,7 @@ return new class extends Migration
             // Workspace owner, denormalised from the agent so rollups stay
             // attributable — and queryable for account-wide stats — even after
             // the agent is deleted.
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('workspace_id');
             $table->timestampTz('bucket_hour');
 
             $table->string('country_code', 2);
@@ -33,7 +33,7 @@ return new class extends Migration
             $table->unsignedInteger('response_ms_count')->default(0);
 
             $table->primary(['agent_id', 'bucket_hour', 'country_code', 'llm_external_name']);
-            $table->index(['user_id', 'bucket_hour']);
+            $table->index(['workspace_id', 'bucket_hour']);
         });
     }
 

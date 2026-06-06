@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\Agent\Settings;
 
-use Domain\Agent\Actions\Settings\DeleteAgentSettingAction;
-use Domain\Agent\Actions\Settings\UpdateAgentSettingsAction;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 
@@ -13,7 +11,6 @@ class AgentSettingsController
         Request $request,
         Agent $agent,
         string $group,
-        UpdateAgentSettingsAction $updateSettings,
     ): void {
         abort_if($request->user()->cannot('view', $agent), 404);
 
@@ -28,14 +25,15 @@ class AgentSettingsController
             fn ($value): bool => $value !== '' && $value !== null,
         );
 
-        $updateSettings->execute($agent, $group, $values);
+        foreach ($values as $key => $value) {
+            $agent->setSetting(key: $key, value: $value, group: $group);
+        }
     }
 
     public function destroy(
         Request $request,
         Agent $agent,
         string $group,
-        DeleteAgentSettingAction $deleteSetting,
     ): void {
         abort_if($request->user()->cannot('view', $agent), 404);
 
@@ -44,7 +42,7 @@ class AgentSettingsController
         $key = $request->input('key');
 
         if ($key) {
-            $deleteSetting->execute($agent, $group, $key);
+            $agent->settingsDelete($group, $key);
         }
     }
 

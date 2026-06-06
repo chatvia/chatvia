@@ -3,6 +3,7 @@
 namespace App\Identity\Chatter\Data;
 
 use App\Identity\Workspace\Models\User;
+use Illuminate\Http\UploadedFile;
 use Spatie\LaravelData\Data;
 
 class UpdateChatterProfileData extends Data
@@ -12,5 +13,6 @@ class UpdateChatterProfileData extends Data
         public ?string $name = null,
         public ?string $currentPassword = null,
         public ?string $newPassword = null,
+        public ?UploadedFile $photo = null,
     ) {}
 }

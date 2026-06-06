@@ -3,7 +3,8 @@
 namespace Domain\Conversation\Services;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Services\UserCreditSystem;
+use Domain\Billing\Services\ChatterTokenAllowance;
+use Domain\Billing\Services\UserTokenSystem;
 use Domain\Conversation\Actions\Handoff\SendVisitorHandoffMessageAction;
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
@@ -26,7 +27,8 @@ readonly class ChatStreamService
 {
     public function __construct(
         private ChatService $chatService,
-        private UserCreditSystem $creditSystem,
+        private UserTokenSystem $tokenSystem,
+        private ChatterTokenAllowance $chatterAllowance,
         private SendVisitorHandoffMessageAction $sendVisitorMessage,
         private SseStreamer $streamer,
         private LlmSource $llmSource,
@@ -131,11 +133,27 @@ readonly class ChatStreamService
             );
         }
 
-        if (! $this->userCanSendMessages($user->id)) {
+        // Token-primary gate: block only when the workspace has no positive
+        // token balance (the real cost). The turn that crossed zero already
+        // completed — this blocks the NEXT one. "Messages" stays the advertised
+        // unit; the friendly copy speaks of usage, not tokens.
+        if (! $this->userHasTokenBalance($user->id)) {
             return $this->streamer->respond(
                 $this->errorSource->events(
-                    ErrorCode::MessageLimitReached,
-                    'You have reached your message limit. Please upgrade to continue.',
+                    ErrorCode::TokenLimitReached,
+                    'You have reached your usage limit for this cycle. Please upgrade to continue.',
+                )
+            );
+        }
+
+        // 2b. Per-chatter monthly limit — independent of the owner gate above.
+        // Only set for authenticated chatters (widget + hosted chat); an absent
+        // or fresh-month allowance passes (the write path provisions it).
+        if ($data->chatterUserId !== null && $this->chatterLimitReached($data->chatterUserId)) {
+            return $this->streamer->respond(
+                $this->errorSource->events(
+                    ErrorCode::ChatterTokenLimitReached,
+                    'You have reached your monthly usage limit.',
                 )
             );
         }
@@ -191,8 +209,15 @@ readonly class ChatStreamService
         return (bool) ($billing?->subscribed() || $billing?->onTrial());
     }
 
-    private function userCanSendMessages(int $userId): bool
+    private function userHasTokenBalance(int $userId): bool
     {
-        return $this->creditSystem->setUserId($userId)->canSendMessages();
+        return $this->tokenSystem->setUserId($userId)->hasTokenBalance();
+    }
+
+    private function chatterLimitReached(int $chatterUserId): bool
+    {
+        $chatter = User::find($chatterUserId);
+
+        return $chatter !== null && $this->chatterAllowance->limitReached($chatter);
     }
 }

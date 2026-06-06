@@ -176,7 +176,8 @@ class AnalyticsDemoSeeder extends Seeder
 
                     $messageSent->execute(new MessageSent(
                         agentId: $agent->id,
-                        userId: $agent->user_id,
+                        workspaceId: $agent->user_id,
+                        chatterUserId: null,
                         conversationExternalId: $convId,
                         messageExternalId: $msgId,
                         sessionExternalId: $sessionId,
@@ -196,7 +197,7 @@ class AnalyticsDemoSeeder extends Seeder
                     if ($isUser && random_int(1, 100) <= 85) {
                         $messageAnalyzed->execute(new MessageAnalyzed(
                             agentId: $agent->id,
-                            userId: $agent->user_id,
+                            workspaceId: $agent->user_id,
                             sentiment: (string) $this->weightedPick(self::SENTIMENT_WEIGHTS),
                             tone: (string) $this->weightedPick(self::TONE_WEIGHTS),
                             occurredAt: $cursor,
@@ -208,7 +209,8 @@ class AnalyticsDemoSeeder extends Seeder
                         $feedback = random_int(1, 100) <= 70 ? 'positive' : 'negative';
                         $feedbackGiven->execute(new FeedbackGiven(
                             agentId: $agent->id,
-                            userId: $agent->user_id,
+                            workspaceId: $agent->user_id,
+                            chatterUserId: null,
                             conversationExternalId: $convId,
                             messageExternalId: $msgId,
                             feedback: $feedback,
@@ -232,7 +234,7 @@ class AnalyticsDemoSeeder extends Seeder
 
     private function truncateAnalytics(): void
     {
-        $connection = config('analytics.connection');
+        $connection = config('chatvia.analytics.connection');
         $db = DB::connection($connection);
 
         foreach ([

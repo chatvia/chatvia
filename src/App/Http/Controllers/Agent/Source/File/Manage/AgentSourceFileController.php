@@ -7,6 +7,7 @@ use Domain\Agent\Models\Agent;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Support\MimeType;
 
 class AgentSourceFileController
 {
@@ -39,10 +40,7 @@ class AgentSourceFileController
         } else {
             // Return only PDF and Word files for the unified Files page (excluding audio/video)
             $files = $agent->files()
-                ->whereIn('mime_type', array_merge(
-                    config('mimes.pdf'),
-                    config('mimes.word')
-                ))
+                ->whereIn('mime_type', array_merge(MimeType::group('pdf'), MimeType::group('word')))
                 ->withCount(['agents', 'chunks'])
                 ->get();
         }

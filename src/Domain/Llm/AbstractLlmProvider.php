@@ -30,9 +30,9 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
             'stream' => true,
         ], $settings);
 
-        if (static::class === Scaleway::class) {
-            $json['reasoning_effort'] = 'none';
-        }
+        //        if (static::class === Scaleway::class) {
+        //            $json['reasoning_effort'] = 'none';
+        //        }
 
         // Force the upstream to emit a final chunk with token usage so Spectra
         // can record cost/tokens. Caller-provided stream_options keys win.
@@ -66,9 +66,9 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
      */
     public function completion(array $data)
     {
-        if (static::class === Scaleway::class) {
-            $data += ['reasoning_effort' => 'none'];
-        }
+        //        if (static::class === Scaleway::class) {
+        //            $data += ['reasoning_effort' => 'none'];
+        //        }
 
         if (static::class === Mistral::class) {
             unset($data['top_k']);

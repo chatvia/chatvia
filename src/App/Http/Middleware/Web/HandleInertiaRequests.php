@@ -24,7 +24,7 @@ class HandleInertiaRequests extends Middleware
         if ($user) {
             // One round-trip for the whole billing graph so the share() fields
             // and the User Appends accessors all hit the same in-memory data.
-            $user->loadMissing(['workspace.billing.subscriptions', 'billing.subscriptions']);
+            $user->loadMissing(['parentWorkspace.billing.subscriptions', 'billing.subscriptions']);
         }
 
         $billing = $user?->accountBilling();
@@ -74,8 +74,8 @@ class HandleInertiaRequests extends Middleware
             return null;
         }
 
-        // Get the current team from the database (ensures it's available in all contexts)
-        $team = $user->ensureCurrentTeam();
+        // Read-only resolve from the DB (no silent UPDATE on Inertia render).
+        $team = $user->currentOrPrimaryTeam();
 
         if (! $team) {
             return null;

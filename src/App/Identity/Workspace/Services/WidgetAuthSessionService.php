@@ -92,7 +92,10 @@ class WidgetAuthSessionService
 
         $user = User::query()->whereKey($payload['user_id'])->first();
 
-        if (! $user) {
+        // A still-cached token must stop working the moment an admin deactivates
+        // the chatter — checked per request here (not just at mint) so the
+        // off-switch takes effect within the 4h token TTL.
+        if (! $user || $user->isDeactivated()) {
             return null;
         }
 

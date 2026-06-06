@@ -8,7 +8,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -45,7 +44,6 @@ use Illuminate\Support\Carbon;
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
-#[Table(name: 'chat_topics')]
 class Topic extends Model
 {
     public function user(): BelongsTo
@@ -55,12 +53,12 @@ class Topic extends Model
 
     public function agents(): BelongsToMany
     {
-        return $this->belongsToMany(Agent::class, 'agent_topic', 'chat_topic_id', 'agent_id');
+        return $this->belongsToMany(Agent::class, 'agent_topic');
     }
 
     public function conversations(): BelongsToMany
     {
-        return $this->belongsToMany(Conversation::class, 'conversation_topics', 'chat_topic_id', 'chat_conversation_id');
+        return $this->belongsToMany(Conversation::class, 'conversation_topics', 'topic_id', 'chat_conversation_id');
     }
 
     #[Scope]

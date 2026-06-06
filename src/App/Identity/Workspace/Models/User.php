@@ -2,6 +2,8 @@
 
 namespace App\Identity\Workspace\Models;
 
+use App\Identity\Workspace\Services\MessageCredits;
+use App\Identity\Workspace\Services\WorkspaceConsumption;
 use Database\Factories\UserFactory;
 use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
@@ -10,21 +12,21 @@ use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserBilling;
-use Domain\Billing\Models\UserCredit;
+use Domain\Billing\Models\UserToken;
 use Domain\Billing\Models\UserQuota;
 use Domain\Billing\Services\Billing;
-use Domain\Billing\Services\UserCreditSystem;
+use Domain\Billing\Services\ChatterTokenAllowance;
+use Domain\Billing\Services\UserTokenSystem;
 use Domain\Helpdesk\Models\Ticket;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Domain\Knowledge\Source\Text\Models\SourceText;
-use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Llm\Data\LlmModelData;
 use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
+use Domain\Membership\Team\Services\TeamRoleResolver;
 use Domain\Membership\Team\Services\TeamService;
 use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -86,14 +88,15 @@ use Support\Traits\HasSettings;
  * @property-read BillingPackageCapabilitiesData $capabilities
  * @property-read Collection<int, User> $chatters
  * @property-read int|null $chatters_count
- * @property-read UserCredit|null $credit
- * @property-read Collection<int, UserCredit> $credits
- * @property-read int|null $credits_count
+ * @property-read UserToken|null $token
+ * @property-read UserToken|null $chatterToken
+ * @property-read Collection<int, UserToken> $tokens
+ * @property-read int|null $tokens_count
  * @property-read Team|null $currentTeam
  * @property-read bool $is_paid
  * @property-read Collection<int, User> $managedUsers
  * @property-read int|null $managed_users_count
- * @property-read User|null $workspace
+ * @property-read User|null $parentWorkspace
  * @property-read Collection<int, Team> $memberTeams
  * @property-read int|null $member_teams_count
  * @property-read Collection<int, ModelSetting> $modelSettings
@@ -218,12 +221,13 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * Get the effective user (workspace owner if this is an employee/chatter,
-     * otherwise self). Used for resource access like quota, agents, credits, etc.
+     * The workspace account this user operates under — self for a workspace
+     * owner, the parent workspace for an employee/chatter. Never null. Used for
+     * account-scoped resources: quota, agents, tokens, etc.
      */
-    public function effectiveUser(): self
+    public function workspace(): self
     {
-        return $this->workspace ?? $this;
+        return $this->parentWorkspace ?? $this;
     }
 
     /**
@@ -248,7 +252,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function accountBilling(): ?UserBilling
     {
-        return $this->remember('billing', fn (): ?UserBilling => $this->effectiveUser()->billing);
+        return $this->remember('billing', fn (): ?UserBilling => $this->workspace()->billing);
     }
 
     /**
@@ -268,16 +272,16 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with('agents')` / `load('agents')`) builds the relation on a bare
      * instance and returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['workspace.agents', 'agents'])`.
+     * through the workspace leg instead: `loadMissing(['parentWorkspace.agents', 'agents'])`.
      */
     public function agents(): HasMany
     {
-        $effectiveUser = $this->effectiveUser();
+        $workspace = $this->workspace();
 
-        return $effectiveUser->hasMany(Agent::class);
+        return $workspace->hasMany(Agent::class);
     }
 
     public function getCurrentPackage(): array
@@ -332,7 +336,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             // property: $plan"). `getCurrentPackage()` is the same source
             // `plan()` reads, minus the accessor round-trip.
             $plan = $this->workspace_id
-                ? $this->workspace->plan
+                ? $this->parentWorkspace->plan
                 : $this->getCurrentPackage()['id'];
 
             return BillingPackageCapabilitiesData::forPlan($plan);
@@ -351,12 +355,37 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
     public function cancelSubscription(): void
     {
-        $this->effectiveUser()->billing?->subscription()?->cancel();
+        $this->workspace()->billing?->subscription()?->cancel();
     }
 
-    public function canUploadPages(int $amount): bool
+    /**
+     * Workspace-scoped knowledge consumption queries (pages, minutes, links)
+     * and the matching upload-quota check. Lives on a small dedicated service
+     * so the auth model isn't also a query layer. See {@see WorkspaceConsumption}.
+     */
+    public function consumption(): WorkspaceConsumption
     {
-        return ($this->quota->pages_limit - $this->pagesConsumed()) >= $amount;
+        return new WorkspaceConsumption($this);
+    }
+
+    /**
+     * Workspace-scoped message-credit metering for read paths (cycle usage, base
+     * + addons, available/limit math). Reads from the analytics rollup
+     * (`analytics_agent_hourly_rollups`) so the figure stays in sync with the
+     * usage panel and any downstream BI consumer.
+     *
+     * Use this for dashboard/UI surfaces ("X messages remaining this cycle"),
+     * billing emails, and customer-trust math.
+     *
+     * For the **send-gate decision** (can this user send another message right
+     * now?), call {@see tokenSystem()} instead — it reads the active token
+     * grant's balance (budget − consumed, incl. active add-on packs), the
+     * authoritative gate. The two paths can disagree by a rollup-write cycle;
+     * the divergence is intentional.
+     */
+    public function messageCredits(): MessageCredits
+    {
+        return new MessageCredits($this);
     }
 
     public function formattedLlms()
@@ -393,123 +422,84 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['workspace.credits', 'credits'])`.
+     * through the workspace leg instead: `loadMissing(['parentWorkspace.tokens', 'tokens'])`.
      */
-    public function credits(): HasMany
+    public function tokens(): HasMany
     {
-        $effectiveUser = $this->effectiveUser();
+        $workspace = $this->workspace();
 
-        return $effectiveUser->hasMany(UserCredit::class);
+        return $workspace->hasMany(UserToken::class);
     }
 
     /**
-     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['workspace.credit', 'credit'])`.
+     * through the workspace leg instead: `loadMissing(['parentWorkspace.token', 'token'])`.
      */
-    public function credit(): HasOne
+    public function token(): HasOne
     {
-        $effectiveUser = $this->effectiveUser();
+        $workspace = $this->workspace();
 
-        return $effectiveUser->hasOne(UserCredit::class)
+        return $workspace->hasOne(UserToken::class)
             ->where('ends_at', '>=', now())
             ->latestOfMany('ends_at');
     }
 
     /**
-     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['workspace.addons', 'addons'])`.
+     * through the workspace leg instead: `loadMissing(['parentWorkspace.addons', 'addons'])`.
      */
     public function addons(): HasMany
     {
-        $effectiveUser = $this->effectiveUser();
+        $workspace = $this->workspace();
 
-        return $effectiveUser->hasMany(UserAddon::class);
+        return $workspace->hasMany(UserAddon::class);
     }
 
-    public function creditSystem(): UserCreditSystem
+    /**
+     * Authoritative send-gate accessor: reads the active token grant's balance
+     * (budget − consumed, including active add-on packs) to decide whether the
+     * next message is allowed through. Use this from
+     * {@see EnsureAgentHasTokenBalance} and the ChatStreamService capacity check.
+     *
+     * For dashboard/UI displays of "messages exchanged this cycle", prefer
+     * {@see messageCredits()} which reads the analytics rollup.
+     */
+    public function tokenSystem(): UserTokenSystem
     {
-        $effectiveUserId = $this->effectiveUser()->id;
+        $workspaceId = $this->workspace()->id;
 
-        return app(UserCreditSystem::class)->setUserId($effectiveUserId);
+        return app(UserTokenSystem::class)->setUserId($workspaceId);
     }
 
-    public function addCredit($quota, Carbon $endsAt): UserCredit
+    /**
+     * This chatter's OWN per-chatter monthly token budget (latest period).
+     * Unlike {@see token()} / {@see tokens()} / {@see tokenSystem()}, which
+     * resolve the workspace OWNER's pool via `workspace()`, this binds
+     * literally to the chatter's own `user_tokens` rows — the home of the
+     * per-chatter cap managed by {@see ChatterTokenAllowance}.
+     * Eager-load `chatterToken.usage` to render usage without N+1.
+     *
+     * @return HasOne<UserToken, $this>
+     */
+    public function chatterToken(): HasOne
     {
-        $effectiveUser = $this->effectiveUser();
+        return $this->hasOne(UserToken::class, 'user_id')->latestOfMany('ends_at');
+    }
 
-        return $effectiveUser->creditSystem()->addCredit($quota, $endsAt);
+    public function grantTokens($quota, Carbon $endsAt): UserToken
+    {
+        $workspace = $this->workspace();
+
+        return $workspace->tokenSystem()->grant($quota, $endsAt);
     }
 
     public function getUserId()
     {
         return $this->id;
-    }
-
-    /**
-     * `whereIn('id', ...)` closure selecting the ids of $sourceableType rows
-     * attached (via agent_sources) to any agent this account owns. Shared by
-     * pagesConsumed()/minutesConsumed() so the multi-join account-scoping lives
-     * in one place instead of being hand-copied per source type.
-     */
-    private function ownedSourceIds(string $sourceableType): \Closure
-    {
-        $effectiveUserId = $this->effectiveUser()->id;
-
-        return function ($query) use ($effectiveUserId, $sourceableType): void {
-            $query->select('agent_sources.sourceable_id')
-                ->from('agent_sources')
-                ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
-                ->where('agents.user_id', $effectiveUserId)
-                ->where('agent_sources.sourceable_type', '=', $sourceableType)
-                ->distinct();
-        };
-    }
-
-    public function pagesConsumed(): int
-    {
-        // Unique sources (a file/text linked to several agents counts once).
-        $sourceFilesPages = SourceFile::query()
-            ->whereIn('id', $this->ownedSourceIds(SourceFile::class))
-            ->whereIn('filetype', ['pdf', 'word', 'markdown', 'text'])
-            ->sum('length');
-
-        $sourceTextsPages = SourceText::query()
-            ->whereIn('id', $this->ownedSourceIds(SourceText::class))
-            ->sum('length');
-
-        return (int) ($sourceFilesPages + $sourceTextsPages);
-    }
-
-    public function minutesConsumed(): int
-    {
-        return (int) SourceFile::query()
-            ->whereIn('id', $this->ownedSourceIds(SourceFile::class))
-            ->whereIn('filetype', ['audio', 'video'])
-            ->sum('length');
-    }
-
-    public function linksConsumed(): int
-    {
-        return $this
-            ->agents()
-            ->join('agent_sources', function ($join): void {
-                $join->on('agents.id', '=', 'agent_sources.agent_id')
-                    ->where('agent_sources.sourceable_type', '=', SourceWebsite::class);
-            })
-            ->join('source_websites', 'source_websites.id', '=', 'agent_sources.sourceable_id')
-            ->join('source_website_urls', 'source_websites.id', '=', 'source_website_urls.source_website_id')
-            ->whereNotNull('source_website_urls.crawled_at')
-            ->distinct('source_website_urls.id')
-            ->count('source_website_urls.id');
-    }
-
-    public function consumableMessages(): int
-    {
-        return $this->creditSystem()->consumableMessages();
     }
 
     /**
@@ -521,28 +511,28 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with('quota')` / `load('quota')`) builds the relation on a bare instance
      * and returns null for an employee/chatter; eager-load through the workspace
-     * leg instead: `loadMissing(['workspace.quota', 'quota'])` (see AgentTeamController).
+     * leg instead: `loadMissing(['parentWorkspace.quota', 'quota'])` (see AgentTeamController).
      */
     public function quota(): HasOne
     {
-        $effectiveUser = $this->effectiveUser();
+        $workspace = $this->workspace();
 
-        return $effectiveUser->hasOne(UserQuota::class);
+        return $workspace->hasOne(UserQuota::class);
     }
 
     /**
-     * Account-scoped via effectiveUser() — **lazy-only**. Eager-loading
+     * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['workspace.sourceFiles', 'sourceFiles'])`.
+     * through the workspace leg instead: `loadMissing(['parentWorkspace.sourceFiles', 'sourceFiles'])`.
      */
     public function sourceFiles()
     {
-        $effectiveUser = $this->effectiveUser();
+        $workspace = $this->workspace();
 
-        return $effectiveUser->hasMany(SourceFile::class);
+        return $workspace->hasMany(SourceFile::class);
     }
 
     /**
@@ -584,54 +574,32 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * Get the user's role in a specific team.
+     * Get the user's role in a specific team. Thin wrapper around
+     * {@see TeamRoleResolver::roleFor}; new code should inject the resolver
+     * directly and skip this shim.
      */
     public function teamRole(Team $team): ?Role
     {
-        // Owner doesn't have a role in the pivot table
-        if ($this->ownsTeam($team)) {
-            return null;
-        }
-
-        return $this->remember("teamRole:{$team->id}", fn (): ?Role => Role::query()
-            ->join('team_user', 'team_user.role_id', '=', 'roles.id')
-            ->where('team_user.team_id', $team->id)
-            ->where('team_user.user_id', $this->id)
-            ->select('roles.*')
-            ->first());
+        return $this->remember(
+            "teamRole:{$team->id}",
+            fn (): ?Role => app(TeamRoleResolver::class)->roleFor($this, $team),
+        );
     }
 
-    /**
-     * Check if user has a specific permission in a team.
-     */
+    /** @see TeamRoleResolver::hasPermission */
     public function hasTeamPermission(Team $team, string $permission): bool
     {
-        $role = $this->teamRole($team);
-
-        if (! $role) {
-            return false;
-        }
-
-        return $role->hasPermissionTo($permission);
+        return app(TeamRoleResolver::class)->hasPermission($this, $team, $permission);
     }
 
     /**
-     * Get the user's permissions in a specific team.
+     * @see TeamRoleResolver::permissions
+     *
+     * @return list<string>
      */
-    public function teamPermissions(Team $team)
+    public function teamPermissions(Team $team): array
     {
-        // Owner has all permissions
-        if ($this->ownsTeam($team)) {
-            return collect(config('team-permissions.permissions'))->keys()->toArray();
-        }
-
-        $role = $this->teamRole($team);
-
-        if (! $role) {
-            return [];
-        }
-
-        return $role->permissions->pluck('name')->toArray();
+        return app(TeamRoleResolver::class)->permissions($this, $team);
     }
 
     /**
@@ -653,9 +621,11 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * The workspace owner this employee/chatter belongs to.
+     * The parent workspace this employee/chatter belongs to (null for a
+     * workspace owner). For the resolved account (self-or-parent, never null),
+     * use {@see workspace()}.
      */
-    public function workspace(): BelongsTo
+    public function parentWorkspace(): BelongsTo
     {
         return $this->belongsTo(User::class, 'workspace_id');
     }
@@ -685,26 +655,58 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * Ensure the user has a current team set. Called from middleware,
-     * permission helpers, and the Inertia share lambda.
+     * Resolve the user's current team WITHOUT persisting one (no DB writes,
+     * safe to call from Inertia share lambdas and other render-time
+     * contexts). Falls back to the user's primary owned team, then to the
+     * first team they're a member of.
+     *
+     * For the writing variant — pick a current team AND persist the choice —
+     * call {@see bootstrapCurrentTeam()} from a session-bootstrap middleware
+     * or registration Action.
      */
-    public function ensureCurrentTeam(): ?Team
+    public function currentOrPrimaryTeam(): ?Team
     {
         return $this->remember('currentTeam', function (): ?Team {
             if ($this->current_team_id && $this->currentTeam) {
                 return $this->currentTeam;
             }
 
-            $team = $this->ownedTeams()->first() ?? $this->memberTeams()->first();
-
-            if ($team) {
-                $this->update(['current_team_id' => $team->id]);
-
-                return $team;
-            }
-
-            return null;
+            return $this->ownedTeams()->first() ?? $this->memberTeams()->first();
         });
+    }
+
+    /**
+     * Like {@see currentOrPrimaryTeam()} but persists the choice when the user
+     * had no `current_team_id` set. Call this on session bootstrap or
+     * registration — NOT from render-time code (Inertia share lambda,
+     * Blade composers, etc.) where a silent UPDATE is a foot-gun.
+     */
+    public function bootstrapCurrentTeam(): ?Team
+    {
+        if ($this->current_team_id && $this->currentTeam) {
+            return $this->currentTeam;
+        }
+
+        $team = $this->ownedTeams()->first() ?? $this->memberTeams()->first();
+        if ($team) {
+            $this->update(['current_team_id' => $team->id]);
+            // Invalidate the read cache so subsequent currentOrPrimaryTeam()
+            // calls see the just-stamped row.
+            unset($this->memo['currentTeam']);
+        }
+
+        return $team;
+    }
+
+    /**
+     * @deprecated Use {@see currentOrPrimaryTeam()} for reads (Inertia share
+     *             lambda, helpers) or {@see bootstrapCurrentTeam()} for the
+     *             one-shot persisting variant (session bootstrap, registration).
+     *             Kept as a thin shim for callers we haven't migrated yet.
+     */
+    public function ensureCurrentTeam(): ?Team
+    {
+        return $this->bootstrapCurrentTeam();
     }
 
     /**
@@ -892,5 +894,38 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function canAccessDashboard(): bool
     {
         return $this->type !== UserType::Chatter;
+    }
+
+    /**
+     * Whether the account has been switched off by a workspace admin. A
+     * deactivated chatter is rejected by both widget and hosted-chat auth, so
+     * the off-switch takes effect on their next request.
+     */
+    public function isDeactivated(): bool
+    {
+        return $this->deactivated_at !== null;
+    }
+
+    /**
+     * Switch the account off with an optional reason (shown to admins on the
+     * Members page). Idempotent — re-deactivating refreshes the reason.
+     */
+    public function deactivate(?string $reason = null): void
+    {
+        $this->update([
+            'deactivated_at' => now(),
+            'deactivation_reason' => $reason,
+        ]);
+    }
+
+    /**
+     * Switch the account back on and clear the stored reason.
+     */
+    public function reactivate(): void
+    {
+        $this->update([
+            'deactivated_at' => null,
+            'deactivation_reason' => null,
+        ]);
     }
 }

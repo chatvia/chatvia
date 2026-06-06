@@ -21,8 +21,7 @@ class ListWidgetConversationsAction
     public function execute(Agent $agent, string $sessionExternalId): WidgetConversationsResultData
     {
         $memory = $this->memory
-            ->setAgent($agent)
-            ->setExternalSessionId($sessionExternalId);
+            ->withContext($agent, $sessionExternalId);
 
         $conversations = $memory->getConversationsForCurrentSession();
 

@@ -1,13 +1,13 @@
 # Widget (chat bubble)
 
-The Chatvia widget is a floating chat bubble you can embed on any website with one `<script>` tag. It opens a chat panel that talks to your agent in real time.
+The Chatvia widget is a floating chat bubble your team can embed on any website with one `<script>` tag. It opens a chat panel that talks to your agent in real time — one of three surfaces every agent supports (Hosted Chat, Widget, Bar).
 
 ![SCREENSHOT — widget bubble closed](/screenshots/widget-bubble.png)
 ![SCREENSHOT — widget open](/screenshots/widget-open.png)
 
 ## The embed snippet
 
-In the dashboard, open a Widget agent and go to **Widget → Embed**. Copy the snippet:
+In the dashboard, open the agent and go to **Setup → (preview: Widget) → Embed**. Copy the snippet:
 
 ```html
 <script
@@ -28,17 +28,16 @@ Paste it just before `</body>`. That's all — the widget loads asynchronously, 
 | --- | --- | --- |
 | `id` | yes | Must be `chatbot-embed-script` — used internally to find the tag. |
 | `src` | yes | The Chatvia embed loader URL. |
-| `data-agent-id` | yes | The agent ID. You'll find it in the dashboard URL and on the agent's **Embed** page. |
-| `data-language` | no | Forces a language. `auto` (default) detects from the visitor's browser. ISO-639-1 codes for explicit (`en`, `de`, `fr`, …). |
-| `data-auth` | conditionally | Required for [protected agents](/embed/protected). A JWT signed with your account's signing secret. |
-| `data-type` | no | `search` switches to ChatGPT-style search mode (no chat bubble; full-page on click). |
+| `data-agent-id` | yes | The agent ID. Your team will find it in the dashboard URL and on the agent's **Embed** tab. |
+| `data-language` | no | Forces a language. `auto` (default) detects from the customer's browser. ISO-639-1 codes for explicit (`en`, `de`, `fr`, …). |
+| `data-auth` | conditionally | Required for [protected agents](/embed/protected). A JWT signed with the workspace's signing secret. |
 | `defer` | recommended | Loads after parsing — faster page render. |
 
 ## What you get out of the box
 
 - **Floating button** — bottom-right by default, position configurable.
 - **Open / close animations.**
-- **Conversation persistence** — visitors can reload the page and pick up where they left off (stored in `localStorage`).
+- **Conversation persistence** — customers can reload the page and pick up where they left off (stored in `localStorage`).
 - **Auto language detection.**
 - **Markdown rendering** — assistant messages support bold, lists, code blocks.
 - **Mobile responsive.**
@@ -46,19 +45,18 @@ Paste it just before `</body>`. That's all — the widget loads asynchronously, 
 
 ## Customizing appearance and behavior
 
-Everything visible to the visitor — colors, position, size, text labels, starters — is configured in the dashboard:
+Everything visible to the customer — colors, position, size, text labels, starters — is configured in the dashboard. The unified **Setup** page configures appearance, persona, starters, model, and branding once and applies it across all three surfaces. **Behavior** and **Embed** swap per active surface tab.
 
-- **Widget → Text** — copy.
-- **Widget → Persona / Starters / Model** — the agent's behavior.
-- **Widget → Colors** — branding.
-- **Widget → Behavior** — open delay, sound, persistence, theme.
-- **Widget → Security** — domain whitelist, protected access.
+- **Setup → Info / Persona / Starters** — shared across surfaces.
+- **Setup → Branding** — colors, logo, fonts, shared across surfaces.
+- **Setup → (preview: Widget) → Behavior** — open delay, sound, persistence, theme for the widget surface.
+- **Setup → (preview: Widget) → Embed** — the embed snippet and domain whitelist for the widget surface.
 
 Changes apply on the next page load — there's no rebuild step.
 
 ## Domain whitelist
 
-In **Widget → Security**, list the domains where this widget is allowed to run. Requests from any other origin are rejected. Use this to prevent someone copying your snippet and running it on their own site.
+In **Setup → (preview: Widget) → Embed**, list the domains where this widget is allowed to run. Requests from any other origin are rejected. Use this to prevent someone copying your snippet and running it on their own site.
 
 Patterns supported:
 
@@ -70,9 +68,9 @@ Leave empty to allow everywhere (not recommended for production).
 
 ## Languages
 
-The widget supports automatic and forced languages. When set to `auto`, it inspects `navigator.language` and matches against Chatvia's supported list. If your visitors are predominantly one language, **force it** with `data-language` — it skips the detection step and ensures the welcome message is right.
+The widget supports automatic and forced languages. When set to `auto`, it inspects `navigator.language` and matches against Chatvia's supported list. If your customers are predominantly one language, **force it** with `data-language` — it skips the detection step and ensures the welcome message is right.
 
-The list of supported languages depends on the model (frontier models cover ~50 languages; smaller models cover ~10). Check the agent's **Model** tab for compatibility.
+The list of supported languages depends on the model (frontier models cover ~50 languages; smaller models cover ~10). Check the agent's **Model** setting for compatibility.
 
 ## Programmatic control
 
@@ -104,7 +102,7 @@ Useful for:
 
 ## Performance
 
-The loader is < 5 KB. It pulls the main bundle (~80 KB gzipped) on first interaction — the bubble appears immediately, the chat panel hydrates lazily when the visitor clicks it.
+The loader is < 5 KB. It pulls the main bundle (~80 KB gzipped) on first interaction — the bubble appears immediately, the chat panel hydrates lazily when the customer clicks it.
 
 No layout shift: the bubble is `position: fixed` and doesn't affect your page's flow.
 

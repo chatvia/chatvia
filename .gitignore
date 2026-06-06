@@ -37,3 +37,4 @@ frankenphp-worker.php
 
 .tinker/
 .laravel-scratchpad/
+.database-checksum.txt

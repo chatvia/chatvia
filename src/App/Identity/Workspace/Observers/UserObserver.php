@@ -38,6 +38,15 @@ class UserObserver
 
     public function updated(User $user): void
     {
+        // Cashier mirrors only the user's name + email to Stripe (see
+        // UserBilling::stripeName/stripeEmail). Without this guard every
+        // `users` UPDATE — including the per-request `current_team_id` write
+        // from User::ensureCurrentTeam() — fires a synchronous Stripe API
+        // call, so a plain page render can round-trip to Stripe.
+        if (! $user->wasChanged(['name', 'email'])) {
+            return;
+        }
+
         $billing = $user->billing;
 
         if ($billing?->hasStripeId()) {

@@ -40,7 +40,7 @@ class AgentMessageDimensionByDateAction
     {
         $table = self::TABLES[$column] ?? throw new InvalidArgumentException("Unsupported dimension column: {$column}");
 
-        $db = DB::connection(config('analytics.connection'));
+        $db = DB::connection(config('chatvia.analytics.connection'));
         $start = $startDate->format('Y-m-d');
         $end = $endDate->format('Y-m-d');
 

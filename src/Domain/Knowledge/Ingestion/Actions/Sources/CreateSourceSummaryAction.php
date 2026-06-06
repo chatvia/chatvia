@@ -54,7 +54,7 @@ class CreateSourceSummaryAction
         );
 
         // Add embedding cost (chunk + questions)
-        $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
+        $embeddingPrice = config('chatvia.ai.pricing.embedding_per_million_tokens', 0.10);
         $costInCents += $this->costCalculator
             ->calculateCostInCents(strip_tags($summary), '', $embeddingPrice, 0.0);
 
@@ -65,7 +65,7 @@ class CreateSourceSummaryAction
 
         $chunk = Chunk::query()->create([
             'user_id' => $source->user_id,
-            'chunkable_type' => get_class($source),
+            'chunkable_type' => $source->getMorphClass(),
             'chunkable_id' => $source->id,
             'type' => 'text',
             'chunk_index' => 0,
@@ -74,7 +74,7 @@ class CreateSourceSummaryAction
             'questions' => $questionsText !== '' ? $questionsText : null,
             'questions_embedding' => $questionsText !== '' ? embed($questionsText, true) : null,
             'questions_embedding_bm25' => $questionsText !== '' ? Bm25Tokenizer::expression($questionsText) : null,
-            'chunked_using_model' => config('ai.models.chunker'),
+            'chunked_using_model' => config('chatvia.ai.models.chunker'),
             'embedding_model' => $this->embeddings->getModelName(),
             'cost_in_micro_cents' => CostCalculator::centsToMicroCents($costInCents),
             'tokens' => TikToken::countTokens($summary),

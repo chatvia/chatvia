@@ -24,7 +24,7 @@ class ConversationQueryBuilder extends Builder
 
     public function filterByTopic(?string $topicId): self
     {
-        return $this->when($topicId, fn ($query) => $query->whereHas('topics', fn ($q) => $q->where('chat_topics.id', $topicId)));
+        return $this->when($topicId, fn ($query) => $query->whereHas('topics', fn ($q) => $q->where('topics.id', $topicId)));
     }
 
     public function filterBySentiment(?string $sentiment): self

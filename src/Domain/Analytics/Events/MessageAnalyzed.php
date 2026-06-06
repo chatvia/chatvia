@@ -11,7 +11,7 @@ class MessageAnalyzed
 
     public function __construct(
         public readonly int $agentId,
-        public readonly int $userId,
+        public readonly int $workspaceId,
         public readonly ?string $sentiment,
         public readonly ?string $tone,
         public readonly DateTimeInterface $occurredAt,

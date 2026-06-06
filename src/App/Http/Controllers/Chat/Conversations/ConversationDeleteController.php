@@ -13,9 +13,7 @@ class ConversationDeleteController
         $conversation = Conversation::where('external_id', $conversationId)->firstOrFail();
 
         $memory
-            ->setAgent(current_agent())
-            ->setExternalSessionId($conversation->session->external_id)
-            ->setConversationId($conversationId)
+            ->withContext(current_agent(), $conversation->session->external_id, $conversationId)
             ->deleteConversation();
     }
 }

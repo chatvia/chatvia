@@ -5,7 +5,7 @@ namespace Domain\Conversation\Services\Tooling;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
-use Domain\Conversation\Services\Streaming\Transformers\StreamTransformerResolver;
+use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalPolicy;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
@@ -33,7 +33,7 @@ class ToolLoopRunner
     public const DENIED_RESULT = 'The user reviewed this action and chose not to approve it. Acknowledge their decision briefly and continue helping without running it; do not call this tool again unless they ask.';
 
     public function __construct(
-        private readonly StreamTransformerResolver $transformers,
+        private readonly StreamTransformer $transformer,
         private readonly ToolDispatcherInterface $dispatcher,
         private readonly ToolDisplayResolver $displayResolver,
         private readonly ToolApprovalPolicy $approvalPolicy,
@@ -62,7 +62,7 @@ class ToolLoopRunner
     ): Generator {
         $agent = $context->requestData->agent;
         $assistantId = $context->assistantMessageId;
-        $maxIterations = (int) config('agent.tools.max_iterations');
+        $maxIterations = (int) config('chatvia.agent.tools.max_iterations');
         $iteration = $startIteration;
 
         while ($iteration < $maxIterations) {
@@ -78,8 +78,7 @@ class ToolLoopRunner
             try {
                 $response = $provider->stream($modelName, $llmMessages, $settings);
 
-                $transformer = $this->transformers->for($provider);
-                yield from $transformer->transform($response, $context);
+                yield from $this->transformer->transform($response, $context);
 
                 $tracker->finish();
             } catch (Throwable $e) {

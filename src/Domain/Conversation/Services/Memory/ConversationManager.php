@@ -41,6 +41,11 @@ readonly class ConversationManager
         // that's intentional — pricing is forward-looking.
         $expiresAt = now()->addDays($agent->messageRetentionInDays());
 
+        // Capture the existing list BEFORE inserting the new row so the
+        // DB rebuild in getConversationsFromSession() doesn't double-count
+        // the row we're about to add (and then append in-memory below).
+        $conversations = $this->getConversationsFromSession();
+
         // Also create the conversation in the database immediately
         // so it exists when widget tries to subscribe or check handoff status
         $conversation = Conversation::create([
@@ -62,8 +67,6 @@ readonly class ConversationManager
         // — country is known by then. Firing here with null country would bucket
         // every conversation under the "--" sentinel and miss the country panel.
 
-        $conversations = $this->getConversationsFromSession();
-
         $newConversation = new ConversationData(
             id: $conversationId,
             title: $title,
@@ -80,19 +83,24 @@ readonly class ConversationManager
 
     public function updateConversationTitle(string $conversationId, string $title): void
     {
+        $cleanTitle = Str::of($title)->replace('"', '')->toString();
         $conversations = $this->getConversationsFromSession();
 
         foreach ($conversations as &$conversation) {
             if ($conversation['id'] === $conversationId) {
-                $conversation['title'] = Str::of($title)->replace('"', '')->toString();
+                $conversation['title'] = $cleanTitle;
                 $conversation['is_visible'] = true;
             }
         }
 
         $this->saveSessionData($conversations);
 
-        // Also update database visibility
-        Conversation::where('external_id', $conversationId)->update(['is_visible' => true]);
+        // Persist title to DB too so a later cache rebuild from
+        // chat_conversations doesn't reset the sidebar to "New Chat".
+        Conversation::where('external_id', $conversationId)->update([
+            'title' => $cleanTitle,
+            'is_visible' => true,
+        ]);
     }
 
     public function updateConversationTitleFromMessages(string $conversationId, array|string $messages = []): void
@@ -204,14 +212,7 @@ readonly class ConversationManager
 
     public function getConversationsForSession(bool $onlyVisible = false, bool $orderByDate = false): array
     {
-        $session = $this->cache->get($this->sessionId, []);
-
-        // Check if session belongs to current user for private agents
-        if (! empty($session['user_id']) && $this->getCurrentUser()?->id !== $session['user_id']) {
-            return [];
-        }
-
-        $conversations = collect($session['conversations'] ?? []);
+        $conversations = collect($this->getConversationsFromSession());
 
         if ($onlyVisible) {
             $conversations = $conversations->filter(fn ($conversation): bool => $conversation['is_visible'] === true);
@@ -222,6 +223,28 @@ readonly class ConversationManager
         }
 
         return $conversations->values()->toArray();
+    }
+
+    private function loadConversationsFromDatabase(): array
+    {
+        $session = Session::query()
+            ->where('external_id', $this->sessionId)
+            ->first();
+
+        if ($session === null) {
+            return [];
+        }
+
+        return $session->conversations()
+            ->orderBy('id')
+            ->get()
+            ->map(fn (Conversation $conversation): array => (new ConversationData(
+                id: $conversation->external_id,
+                title: $conversation->title ?? 'New Chat',
+                timestamp: $conversation->created_at?->timestamp ?? 0,
+                is_visible: (bool) $conversation->is_visible,
+            ))->toArray())
+            ->all();
     }
 
     public function isMemberAuthenticated(): bool
@@ -246,6 +269,23 @@ readonly class ConversationManager
     {
         $session = $this->cache->get($this->sessionId, []);
 
-        return $session['conversations'] ?? [];
+        $userIdMatches = empty($session['user_id'])
+            || $this->getCurrentUser()?->id === $session['user_id'];
+
+        // Trust the cache only when an entry exists AND it was stamped by
+        // the current user (or nobody). Otherwise — cold slot after a
+        // TurnState reattach, evicted entry, or stale entry stamped under
+        // a different chatter — rebuild from chat_conversations so the
+        // mutation paths (create/update/delete) all see the full history.
+        // Writing back (even when empty) prevents a repeat DB query on
+        // every read while no conversations exist.
+        if ($this->cache->has($this->sessionId) && $userIdMatches) {
+            return $session['conversations'] ?? [];
+        }
+
+        $conversations = $this->loadConversationsFromDatabase();
+        $this->saveSessionData($conversations);
+
+        return $conversations;
     }
 }

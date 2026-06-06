@@ -3,6 +3,7 @@
 namespace Domain\Integration\Mcp\Services;
 
 use Domain\Agent\Models\Agent;
+use Domain\Analytics\Events\McpToolInvoked;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatchResult;
 use Domain\Conversation\Services\Tooling\Registry\ToolCallerIdentity;
@@ -243,6 +244,24 @@ class McpToolDispatcher implements ToolDispatcherInterface
                SET invocation_count = agent_mcp_tool.invocation_count + 1,
                    last_invoked_at = EXCLUDED.last_invoked_at',
             [$agent->id, $now, $server->id, $toolName]
+        );
+
+        // Durable per-day rollup (keyed by server slug + tool name) so usage
+        // insights survive tool/server deletion and catalog re-syncs.
+        $toolDescription = DB::table('mcp_tools')
+            ->where('mcp_server_id', $server->id)
+            ->where('name', $toolName)
+            ->value('description');
+
+        McpToolInvoked::dispatch(
+            $agent->id,
+            (int) $agent->user_id,
+            (string) $server->slug,
+            $toolName,
+            $toolDescription,
+            (string) $server->name,
+            $server->connector_slug,
+            $now,
         );
     }
 

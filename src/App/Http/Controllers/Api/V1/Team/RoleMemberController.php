@@ -27,7 +27,7 @@ class RoleMemberController
      */
     public function store(Request $request, Team $team, Role $role, AssignUserToRoleAction $action): array
     {
-        $owner = $request->user()->effectiveUser();
+        $owner = $request->user()->workspace();
 
         abort_unless($owner->ownsTeam($team), 403);
         abort_unless($role->team_id === $team->id, 404);

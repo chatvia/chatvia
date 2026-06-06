@@ -45,6 +45,18 @@ it('returns null and does not log in when the password is wrong', function (): v
         ->and(auth()->check())->toBeFalse();
 });
 
+it('returns null when the user is deactivated, even with valid credentials', function (): void {
+    $this->owner->deactivate('blocked by admin');
+
+    $result = app(LoginUserToAgentAction::class)->execute(
+        new LoginData(email: 'owner@example.test', password: 'correct-password', remember: false),
+        $this->agent,
+    );
+
+    expect($result)->toBeNull()
+        ->and(auth()->check())->toBeFalse();
+});
+
 it('returns null when no user matches the email', function (): void {
     $result = app(LoginUserToAgentAction::class)->execute(
         new LoginData(email: 'no-such-user@example.test', password: 'correct-password', remember: false),

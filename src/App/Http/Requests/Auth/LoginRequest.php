@@ -3,12 +3,9 @@
 namespace App\Http\Requests\Auth;
 
 use App\Identity\Workspace\Data\Sessions\LoginData;
-use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Validates credentials for the agent-scoped chat member login at /chat/login.
@@ -41,27 +38,6 @@ class LoginRequest extends FormRequest
             password: $this->string('password')->toString(),
             remember: $this->boolean('remember'),
         );
-    }
-
-    /**
-     * @throws ValidationException
-     */
-    public function ensureIsNotRateLimited(): void
-    {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
-            return;
-        }
-
-        event(new Lockout($this));
-
-        $seconds = RateLimiter::availableIn($this->throttleKey());
-
-        throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
-        ]);
     }
 
     public function throttleKey(): string

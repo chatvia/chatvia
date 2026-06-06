@@ -5,17 +5,17 @@ namespace Domain\Knowledge\Source\Youtube\Actions;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 
 class AddAgentYoutubeVideoAction
 {
     /**
-     * @throws InviteRejectedException
+     * @throws DomainValidationException
      */
     public function execute(Agent $agent, User $user, string $url): SourceYoutubeVideo
     {
         if (! $this->extractVideoId($url)) {
-            throw new InviteRejectedException('url', 'Could not extract video ID from URL.');
+            throw new DomainValidationException('url', 'Could not extract video ID from URL.');
         }
 
         $exists = $agent->youtubeVideos()
@@ -23,7 +23,7 @@ class AddAgentYoutubeVideoAction
             ->exists();
 
         if ($exists) {
-            throw new InviteRejectedException('url', 'This YouTube video has already been added to this agent.');
+            throw new DomainValidationException('url', 'This YouTube video has already been added to this agent.');
         }
 
         /** @var SourceYoutubeVideo $video */
@@ -35,7 +35,8 @@ class AddAgentYoutubeVideoAction
         ]);
 
         $agent->youtubeVideos()->attach($video->id);
-        $video->startTraining($agent->id);
+        // YoutubeIngestionJob is not yet implemented (the prior path on the model
+        // was a TODO no-op). When the job lands, dispatch it here.
 
         return $video;
     }

@@ -22,9 +22,7 @@ class GenerateConversationTitleJob implements ShouldQueue
     public function handle(ChatMemory $memory): void
     {
         $memory
-            ->setAgent($this->agent)
-            ->setExternalSessionId($this->externalSessionId)
-            ->setConversationId($this->conversationId)
+            ->withContext($this->agent, $this->externalSessionId, $this->conversationId)
             ->updateConversationTitleFromMessages();
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agent\Source\Function;
 
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Function\Actions\DetachFunctionFromAgentAction;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,12 +19,11 @@ class AgentFunctionDeleteController
         Request $request,
         Agent $agent,
         AgentFunction $function,
-        DetachFunctionFromAgentAction $detach,
     ): JsonResponse {
-        abort_if($request->user()->cannot('update', $agent), 403);
+        abort_if($request->user()->cannot('update', $agent), 404);
         abort_unless($agent->ownsFunction($function), 404);
 
-        $detach->execute($agent, $function);
+        $agent->detachFunction($function);
 
         return response()->json(['ok' => true]);
     }

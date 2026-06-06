@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 function feedbackRows(string $messageId)
 {
-    return DB::connection(config('analytics.connection'))->table('analytics_events')
+    return DB::connection(config('chatvia.analytics.connection'))->table('analytics_events')
         ->where('event_type', 'feedback_given')
         ->where('message_external_id', $messageId);
 }
@@ -17,7 +17,8 @@ function giveFeedback(int $agentId, string $convId, string $msgId, ?string $feed
 {
     app(RecordFeedbackGivenAction::class)->execute(new FeedbackGiven(
         agentId: $agentId,
-        userId: 700000,
+        workspaceId: 700000,
+        chatterUserId: null,
         conversationExternalId: $convId,
         messageExternalId: $msgId,
         feedback: $feedback,
@@ -65,7 +66,7 @@ it('counts current feedback as a snapshot, not a lifetime tally', function (): v
     giveFeedback($agentId, $convId, $cleared, null);         // cleared → counts nothing
     giveFeedback($agentId, $convId, $kept, 'positive');      // stays positive
 
-    $rows = DB::connection(config('analytics.connection'))->table('analytics_events')
+    $rows = DB::connection(config('chatvia.analytics.connection'))->table('analytics_events')
         ->where('event_type', 'feedback_given')
         ->where('agent_id', $agentId);
 

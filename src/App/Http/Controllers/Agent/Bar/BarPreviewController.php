@@ -60,7 +60,7 @@ class BarPreviewController
         }
 
         return view('bar.preview', [
-            'embedScriptUrl' => config('widget.script_url_embed'),
+            'embedScriptUrl' => config('chatvia.widget.script_url_embed'),
             'agentId' => $agent->external_id,
             'agentName' => $agent->name,
             'authToken' => $authToken,

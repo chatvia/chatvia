@@ -66,8 +66,7 @@ class InitializeWidgetSessionAction
 
         if (! $conversationExternalId) {
             $conversationExternalId = $this->memory
-                ->setAgent($agent)
-                ->setExternalSessionId($session->external_id)
+                ->withContext($agent, $session->external_id)
                 ->createConversation('New Chat', ConversationSource::Widget);
             $isNewConversation = true;
         }

@@ -38,6 +38,12 @@ const TREATMENT: Record<StreamErrorCode, Treatment> = {
         titleKey: 'errors.message_limit_reached',
         cta: { labelKey: 'errors.upgrade_plan', href: '/my/billing' },
     },
+    token_limit_reached: {
+        severity: 'block',
+        icon: CreditCard,
+        titleKey: 'errors.token_limit_reached',
+        cta: { labelKey: 'errors.upgrade_plan', href: '/my/billing' },
+    },
     upstream_unavailable: {
         severity: 'transient',
         icon: WifiOff,

@@ -20,7 +20,7 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { Auth, BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BarChart3, BotMessageSquare, CreditCard, HelpCircle, LayoutGrid, Menu, Users, Zap } from 'lucide-vue-next';
+import { BarChart3, BookOpen, BotMessageSquare, Code2, CreditCard, HelpCircle, LayoutGrid, Menu, Users, Zap } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Props {
@@ -105,7 +105,18 @@ const mainNavItems = computed<NavItem[]>(() => {
     return items;
 });
 
-const rightNavItems: NavItem[] = [];
+const rightNavItems: NavItem[] = [
+    {
+        title: 'Documentation',
+        href: 'https://docs.chatvia.ai',
+        icon: BookOpen,
+    },
+    {
+        title: 'API',
+        href: '/docs/api',
+        icon: Code2,
+    },
+];
 </script>
 
 <template>

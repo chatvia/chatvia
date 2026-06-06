@@ -20,26 +20,26 @@ class RecordMessageAnalyzedAction
             return;
         }
 
-        $db = DB::connection(config('analytics.connection'));
+        $db = DB::connection(config('chatvia.analytics.connection'));
         $day = $event->occurredAt->format('Y-m-d');
 
         $db->transaction(function () use ($db, $event, $day): void {
             if ($event->sentiment !== null) {
                 $db->statement(<<<'SQL'
-                    INSERT INTO analytics_agent_sentiment_daily (agent_id, user_id, bucket_day, sentiment, message_count)
+                    INSERT INTO analytics_agent_sentiment_daily (agent_id, workspace_id, bucket_day, sentiment, message_count)
                     VALUES (?, ?, ?::date, ?, 1)
                     ON CONFLICT (agent_id, bucket_day, sentiment) DO UPDATE SET
                         message_count = analytics_agent_sentiment_daily.message_count + 1
-                SQL, [$event->agentId, $event->userId, $day, $event->sentiment]);
+                SQL, [$event->agentId, $event->workspaceId, $day, $event->sentiment]);
             }
 
             if ($event->tone !== null) {
                 $db->statement(<<<'SQL'
-                    INSERT INTO analytics_agent_tone_daily (agent_id, user_id, bucket_day, tone, message_count)
+                    INSERT INTO analytics_agent_tone_daily (agent_id, workspace_id, bucket_day, tone, message_count)
                     VALUES (?, ?, ?::date, ?, 1)
                     ON CONFLICT (agent_id, bucket_day, tone) DO UPDATE SET
                         message_count = analytics_agent_tone_daily.message_count + 1
-                SQL, [$event->agentId, $event->userId, $day, $event->tone]);
+                SQL, [$event->agentId, $event->workspaceId, $day, $event->tone]);
             }
         });
     }

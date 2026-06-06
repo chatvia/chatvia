@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('available_at');
-            $table->index('max_visits');
+            $table->index(['max_visits', 'num_visits']);
         });
     }
 

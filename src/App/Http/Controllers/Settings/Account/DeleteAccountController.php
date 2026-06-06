@@ -5,25 +5,95 @@ namespace App\Http\Controllers\Settings\Account;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Account\DeleteAccountRequest;
 use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
+use App\Identity\Workspace\Actions\Account\RequestAccountDeletionAction;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DeleteAccountController extends Controller
 {
-    public function edit(): Response
+    /**
+     * Session key holding the unix timestamp at which the email confirmation
+     * link was opened. `destroy()` requires this to be present and fresh.
+     */
+    private const CONFIRMED_AT_KEY = 'account_deletion_confirmed_at';
+
+    /** How long (seconds) a confirmed deletion stays armed before it lapses. */
+    private const CONFIRMATION_TTL = 30 * 60;
+
+    public function edit(Request $request): Response
     {
-        return Inertia::render('settings/DeleteAccount');
+        /** @var User $user */
+        $user = $request->user();
+
+        abort_unless($user->isWorkspace(), 403);
+
+        return Inertia::render('settings/DeleteAccount', [
+            'agents' => $user->agents()
+                ->orderBy('name')
+                ->get(['name'])
+                ->map(fn (object $agent): array => ['name' => $agent->name])
+                ->all(),
+            'hasSubscription' => $user->hasActiveSubscription(),
+            'deletionConfirmed' => $this->confirmationIsFresh($request),
+        ]);
     }
 
-    public function destroy(
+    /**
+     * Step 1 — password verified by the FormRequest. Email a signed link the
+     * user must open to confirm the deletion.
+     */
+    public function request(
         DeleteAccountRequest $request,
+        RequestAccountDeletionAction $requestDeletion,
+    ): RedirectResponse {
+        /** @var User $user */
+        $user = $request->user();
+
+        $requestDeletion->execute($user);
+
+        return back()->with('success', 'We sent a confirmation link to your email. It expires in 30 minutes.');
+    }
+
+    /**
+     * Step 2a — landing of the signed email link. Arms the deletion for this
+     * session and returns the user to the page; it never deletes (so email
+     * prefetchers can't trigger anything). The route is `signed`, and we bind
+     * the link to the authenticated owner via the `userId` segment.
+     */
+    public function confirm(Request $request, int $userId): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        abort_unless($user->isWorkspace() && $user->id === $userId, 403);
+
+        $request->session()->put(self::CONFIRMED_AT_KEY, now()->timestamp);
+
+        return redirect()->route('settings.account.delete');
+    }
+
+    /**
+     * Step 2b — the final, explicit click. Requires a fresh confirmation marker
+     * set by `confirm()`; without it we bounce the user back to re-request.
+     */
+    public function destroy(
+        Request $request,
         DeleteUserAccountAction $deleteAccount,
     ): RedirectResponse {
         /** @var User $user */
         $user = $request->user();
+
+        abort_unless($user->isWorkspace(), 403);
+
+        if (! $this->confirmationIsFresh($request)) {
+            return back()->withErrors([
+                'confirmation' => 'Your confirmation link has expired. Please request account deletion again.',
+            ]);
+        }
 
         Auth::logout();
 
@@ -33,5 +103,12 @@ class DeleteAccountController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    private function confirmationIsFresh(Request $request): bool
+    {
+        $confirmedAt = $request->session()->get(self::CONFIRMED_AT_KEY);
+
+        return is_int($confirmedAt) && (now()->timestamp - $confirmedAt) <= self::CONFIRMATION_TTL;
     }
 }

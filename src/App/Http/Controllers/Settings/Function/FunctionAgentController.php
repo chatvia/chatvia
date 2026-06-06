@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Settings\Function;
 use App\Http\Controllers\Controller;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Function\Actions\AttachFunctionToAgentAction;
-use Domain\Integration\Function\Actions\DetachFunctionFromAgentAction;
 use Domain\Integration\Function\Actions\ListFunctionAgentAssignmentAction;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Membership\Agent\Data\Resources\AgentMembershipAssignmentData;
@@ -29,13 +27,12 @@ class FunctionAgentController extends Controller
         Request $request,
         string $external_id,
         string $agent,
-        AttachFunctionToAgentAction $attach,
         ListFunctionAgentAssignmentAction $list,
     ): AgentMembershipAssignmentData {
         abort_unless(has_team_permission('account.functions'), 404);
 
         $function = $this->function($request, $external_id);
-        $attach->execute($this->agent($request, $agent), $function);
+        $this->agent($request, $agent)->attachFunction($function);
 
         return $list->execute($request->user(), $function);
     }
@@ -44,13 +41,12 @@ class FunctionAgentController extends Controller
         Request $request,
         string $external_id,
         string $agent,
-        DetachFunctionFromAgentAction $detach,
         ListFunctionAgentAssignmentAction $list,
     ): AgentMembershipAssignmentData {
         abort_unless(has_team_permission('account.functions'), 404);
 
         $function = $this->function($request, $external_id);
-        $detach->execute($this->agent($request, $agent), $function);
+        $this->agent($request, $agent)->detachFunction($function);
 
         return $list->execute($request->user(), $function);
     }

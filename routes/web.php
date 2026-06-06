@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Agent\Chunks\AgentChunkImageViewController;
+use App\Http\Controllers\Auth\Social\GithubAuthController;
+use App\Http\Controllers\Auth\Social\GithubCallbackAuthController;
 use App\Http\Controllers\Auth\Social\GoogleAuthController;
 use App\Http\Controllers\Auth\Social\GoogleCallbackAuthController;
 use App\Http\Controllers\Auth\Social\MicrosoftAuthController;
@@ -50,6 +52,9 @@ Route::get('docs', DocController::class)->name('docs');
 // want a flaky network retry to lock them out).
 Route::get('/auth/google', GoogleAuthController::class)->middleware('throttle:10,1')->name('auth.google');
 Route::get('/auth/google/callback', GoogleCallbackAuthController::class)->middleware('throttle:30,1')->name('auth.google.callback');
+
+Route::get('/auth/github', GithubAuthController::class)->middleware('throttle:10,1')->name('auth.github');
+Route::get('/auth/github/callback', GithubCallbackAuthController::class)->middleware('throttle:30,1')->name('auth.github.callback');
 
 Route::get('/auth/microsoft', MicrosoftAuthController::class)->middleware('throttle:10,1')->name('auth.microsoft');
 Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->middleware('throttle:30,1')->name('auth.microsoft.callback');

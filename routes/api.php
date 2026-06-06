@@ -102,7 +102,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
 
             // Mint a one-time sign-in link so one of your end-users can open this
             // agent's chat. The link carries an opaque token consumed on first use.
-            Route::post('sign-in-links', [AgentSignInLinkController::class, 'store'])->name('sign-in-links.store');
+            Route::post('sign', [AgentSignInLinkController::class, 'store'])->name('sign.store');
 
             // Chat history
             Route::get('conversations', [ConversationController::class, 'index'])->name('conversations.index');

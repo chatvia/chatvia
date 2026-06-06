@@ -29,7 +29,7 @@ class RoleController
      */
     public function store(Request $request, Team $team, RolePayloadData $payload, CreateTeamRoleAction $action): array
     {
-        abort_unless($request->user()->effectiveUser()->ownsTeam($team), 403);
+        abort_unless($request->user()->workspace()->ownsTeam($team), 403);
 
         $role = $action->execute($this->toSaveData($team, $payload));
 
@@ -46,7 +46,7 @@ class RoleController
      */
     public function update(Request $request, Team $team, Role $role, RolePayloadData $payload, UpdateTeamRoleAction $action): array
     {
-        abort_unless($request->user()->effectiveUser()->ownsTeam($team), 403);
+        abort_unless($request->user()->workspace()->ownsTeam($team), 403);
         abort_unless($role->team_id === $team->id, 404);
 
         $updated = $action->execute($role, $this->toSaveData($team, $payload));

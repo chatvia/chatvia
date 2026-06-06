@@ -65,7 +65,7 @@ beforeEach(function (): void {
 
 it('persists a chunk for a source with content, index, checksum and owner', function (): void {
     $agent = Agent::factory()->create();
-    $source = AgentFileFactory::new()->create(['agent_id' => $agent->id]);
+    $source = AgentFileFactory::new()->create();
 
     $page = new PageData(
         pageNumber: 3,
@@ -80,13 +80,13 @@ it('persists a chunk for a source with content, index, checksum and owner', func
         ->and($chunk->chunk_index)->toBe(3)
         ->and($chunk->checksum)->toBe('checksum-aaa')
         ->and($chunk->user_id)->toBe($agent->user_id)
-        ->and($chunk->chunkable_type)->toBe(SourceFile::class)
+        ->and($chunk->chunkable_type)->toBe((new SourceFile)->getMorphClass())
         ->and($chunk->chunkable_id)->toBe($source->getKey());
 });
 
 it('is idempotent — a re-run with the same checksum returns null and creates no duplicate', function (): void {
     $agent = Agent::factory()->create();
-    $source = AgentFileFactory::new()->create(['agent_id' => $agent->id]);
+    $source = AgentFileFactory::new()->create();
 
     $page = new PageData(pageNumber: 1, content: 'Repeated content.', checksum: 'dupe-checksum');
 

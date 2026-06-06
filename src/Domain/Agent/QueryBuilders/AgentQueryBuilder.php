@@ -77,7 +77,7 @@ class AgentQueryBuilder extends Builder
     public function aggregateStats(): object
     {
         $agentId = $this->getModel()->id;
-        $connection = config('analytics.connection');
+        $connection = config('chatvia.analytics.connection');
 
         $sql = <<<'SQL'
 WITH agent_rollup AS (
@@ -184,7 +184,7 @@ SQL;
     {
         $agentId = $this->getModel()->id;
 
-        return DB::connection(config('analytics.connection'))
+        return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_hourly_rollups')
             ->where('agent_id', $agentId)
             ->whereRaw('bucket_hour::date BETWEEN ? AND ?', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
@@ -196,11 +196,11 @@ SQL;
     public function mostUsedModels()
     {
         $agentId = $this->getModel()->id;
-        $sentinel = config('analytics.unknown_llm_external_name');
+        $sentinel = config('chatvia.analytics.unknown_llm_external_name');
 
         // Llm display metadata (descriptive_name, icon) is joined in PHP since
         // the llms table may live on a different connection from analytics.
-        return DB::connection(config('analytics.connection'))
+        return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_hourly_rollups')
             ->where('agent_id', $agentId)
             ->where('llm_external_name', '!=', $sentinel)
@@ -229,7 +229,7 @@ SQL;
         $agentId = $this->getModel()->id;
         $startDate = now()->subDays($days)->startOfDay();
 
-        return DB::connection(config('analytics.connection'))
+        return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_hourly_rollups')
             ->where('agent_id', $agentId)
             ->where('bucket_hour', '>=', $startDate)
@@ -259,54 +259,33 @@ SQL;
     }
 
     /**
-     * Knowledge sources (files, websites, text snippets, YouTube videos)
-     * ranked by this agent's per-source retrieval count. The polymorphic
-     * `agent_sources` pivot already aggregates retrievals across all source
-     * types — we LEFT JOIN each underlying table to surface a display name
-     * and pick the best one in PHP afterwards.
+     * Knowledge sources this agent has retrieved, ranked by retrieval count —
+     * read from the durable per-day analytics rollup (`analytics_agent_source_daily`),
+     * NOT the live `agent_sources` pivot. The rollup is keyed by (type, id) with
+     * no FK and isn't touched by source deletion, so a source that's since been
+     * DELETED still shows in usage insights. It carries only (type, id); the
+     * caller resolves display names from the live source tables (which is
+     * connection-safe — the analytics rollup may live on a separate database).
      *
-     * Returns: { kind: 'knowledge', sub_kind, name, count, last_used_at }
+     * Returns rows: { sub_kind, sourceable_id, count, last_used_at }
      */
     public function mostAccessedSources()
     {
         $agentId = $this->getModel()->id;
 
-        return DB::table('agent_sources')
-            ->leftJoin('source_files', function ($join): void {
-                $join->on('source_files.id', '=', 'agent_sources.sourceable_id')
-                    ->where('agent_sources.sourceable_type', '=', 'source_file');
-            })
-            ->leftJoin('source_websites', function ($join): void {
-                $join->on('source_websites.id', '=', 'agent_sources.sourceable_id')
-                    ->where('agent_sources.sourceable_type', '=', 'source_website');
-            })
-            ->leftJoin('source_texts', function ($join): void {
-                $join->on('source_texts.id', '=', 'agent_sources.sourceable_id')
-                    ->where('agent_sources.sourceable_type', '=', 'source_text');
-            })
-            ->leftJoin('source_youtube_videos', function ($join): void {
-                $join->on('source_youtube_videos.id', '=', 'agent_sources.sourceable_id')
-                    ->where('agent_sources.sourceable_type', '=', 'source_youtube_video');
-            })
-            ->leftJoin('source_website_urls', function ($join): void {
-                $join->on('source_website_urls.id', '=', 'agent_sources.sourceable_id')
-                    ->where('agent_sources.sourceable_type', '=', 'agent_website_url');
-            })
-            ->where('agent_sources.agent_id', $agentId)
-            ->where('agent_sources.retrieval_count', '>', 0)
+        return DB::connection(config('chatvia.analytics.connection'))
+            ->table('analytics_agent_source_daily')
+            ->where('agent_id', $agentId)
+            ->groupBy('sourceable_type', 'sourceable_id')
             ->select([
-                'agent_sources.sourceable_type as sub_kind',
-                'source_files.filename as file_name',
-                'source_files.mime_type as file_mime_type',
-                'source_websites.url as website_url',
-                'source_texts.excerpt as text_excerpt',
-                'source_youtube_videos.title as youtube_title',
-                'source_youtube_videos.url as youtube_url',
-                'source_website_urls.url as website_url_url',
-                'agent_sources.retrieval_count as count',
-                'agent_sources.last_retrieved_at as last_used_at',
+                'sourceable_type as sub_kind',
+                'sourceable_id',
+                DB::raw('SUM(retrieval_count) as count'),
+                DB::raw('MAX(bucket_day) as last_used_at'),
+                DB::raw('MAX(source_name) as name'),
+                DB::raw('MAX(source_mime) as mime_type'),
             ])
-            ->orderByDesc('agent_sources.retrieval_count');
+            ->orderByRaw('SUM(retrieval_count) DESC');
     }
 
     /**
@@ -319,17 +298,19 @@ SQL;
     {
         $agentId = $this->getModel()->id;
 
-        return DB::table('agent_function')
-            ->join('functions', 'functions.id', '=', 'agent_function.function_id')
-            ->where('agent_function.agent_id', $agentId)
-            ->where('agent_function.invocation_count', '>', 0)
+        // Durable analytics rollup (not the live agent_function pivot) so a
+        // deleted function still shows, with its label captured at call time.
+        return DB::connection(config('chatvia.analytics.connection'))
+            ->table('analytics_agent_function_daily')
+            ->where('agent_id', $agentId)
+            ->groupBy('function_id')
             ->select([
-                DB::raw('COALESCE(functions.display_name, functions.internal_name) as name'),
-                'functions.description',
-                'agent_function.invocation_count as count',
-                'agent_function.last_invoked_at as last_used_at',
+                DB::raw('MAX(function_name) as name'),
+                DB::raw('MAX(function_description) as description'),
+                DB::raw('SUM(invocation_count) as count'),
+                DB::raw('MAX(bucket_day) as last_used_at'),
             ])
-            ->orderByDesc('agent_function.invocation_count');
+            ->orderByRaw('SUM(invocation_count) DESC');
     }
 
     /**
@@ -345,32 +326,33 @@ SQL;
     {
         $agentId = $this->getModel()->id;
 
-        return DB::table('agent_mcp_tool')
-            ->join('mcp_tools', 'mcp_tools.id', '=', 'agent_mcp_tool.mcp_tool_id')
-            ->join('mcp_servers', 'mcp_servers.id', '=', 'mcp_tools.mcp_server_id')
-            ->where('agent_mcp_tool.agent_id', $agentId)
-            ->where('agent_mcp_tool.invocation_count', '>', 0)
+        // Durable analytics rollup (not the live agent_mcp_tool pivot) so a
+        // deleted/re-synced tool still shows, with labels captured at call time.
+        return DB::connection(config('chatvia.analytics.connection'))
+            ->table('analytics_agent_mcp_tool_daily')
+            ->where('agent_id', $agentId)
+            ->groupBy('server_slug', 'tool_name')
             ->select([
-                'mcp_tools.name as tool_name',
-                'mcp_tools.description as tool_description',
-                'mcp_servers.name as server_name',
-                'mcp_servers.slug as server_slug',
-                'mcp_servers.connector_slug',
-                'agent_mcp_tool.invocation_count as count',
-                'agent_mcp_tool.last_invoked_at as last_used_at',
+                'tool_name',
+                'server_slug',
+                DB::raw('MAX(tool_description) as tool_description'),
+                DB::raw('MAX(server_name) as server_name'),
+                DB::raw('MAX(connector_slug) as connector_slug'),
+                DB::raw('SUM(invocation_count) as count'),
+                DB::raw('MAX(bucket_day) as last_used_at'),
             ])
-            ->orderByDesc('agent_mcp_tool.invocation_count');
+            ->orderByRaw('SUM(invocation_count) DESC');
     }
 
     public function conversationsByCountry()
     {
         $agentId = $this->getModel()->id;
-        $sentinel = config('analytics.unknown_country_code');
+        $sentinel = config('chatvia.analytics.unknown_country_code');
 
         // Country name resolution happens in StatsResourceData::getCountryStats
         // because countries lives on the main DB and may not be reachable from
         // a separate analytics connection.
-        return DB::connection(config('analytics.connection'))
+        return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_hourly_rollups')
             ->where('agent_id', $agentId)
             ->where('country_code', '!=', $sentinel)
@@ -396,7 +378,7 @@ SQL;
     {
         $agentId = $this->getModel()->id;
 
-        return DB::connection(config('analytics.connection'))
+        return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_hourly_rollups')
             ->where('agent_id', $agentId)
             ->selectRaw('EXTRACT(HOUR FROM bucket_hour)::int as hour, SUM(conversations_started) as conversation_count')
@@ -408,7 +390,7 @@ SQL;
     {
         $agentId = $this->getModel()->id;
 
-        return DB::connection(config('analytics.connection'))
+        return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_hourly_rollups')
             ->where('agent_id', $agentId)
             ->selectRaw('EXTRACT(DOW FROM bucket_hour)::int as day_of_week, SUM(conversations_started) as conversation_count')
@@ -421,7 +403,7 @@ SQL;
         $agentId = $this->getModel()->id;
         $startDate = now()->subDays($days)->startOfDay();
 
-        return DB::connection(config('analytics.connection'))
+        return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_hourly_rollups')
             ->where('agent_id', $agentId)
             ->where('bucket_hour', '>=', $startDate)
@@ -437,17 +419,17 @@ SQL;
     {
         $agentId = $this->getModel()->id;
 
-        return DB::connection(config('analytics.connection'))
+        return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_topic_daily')
-            ->join('chat_topics', 'chat_topics.id', '=', 'analytics_agent_topic_daily.chat_topic_id')
+            ->join('topics', 'topics.id', '=', 'analytics_agent_topic_daily.topic_id')
             ->where('analytics_agent_topic_daily.agent_id', $agentId)
             ->whereRaw('analytics_agent_topic_daily.bucket_day >= ?', [$startDate->format('Y-m-d')])
             ->whereRaw('analytics_agent_topic_daily.bucket_day <= ?', [$endDate->format('Y-m-d')])
-            ->groupBy('analytics_agent_topic_daily.bucket_day', 'chat_topics.id', 'chat_topics.topic')
+            ->groupBy('analytics_agent_topic_daily.bucket_day', 'topics.id', 'topics.topic')
             ->select([
                 DB::raw('analytics_agent_topic_daily.bucket_day::text as date'),
-                'chat_topics.id as topic_id',
-                'chat_topics.topic as topic_name',
+                'topics.id as topic_id',
+                'topics.topic as topic_name',
                 DB::raw('SUM(analytics_agent_topic_daily.conversation_count) as count'),
             ])
             ->orderBy('date')
@@ -462,16 +444,16 @@ SQL;
     {
         $agentId = $this->getModel()->id;
 
-        return DB::connection(config('analytics.connection'))
+        return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_topic_daily')
-            ->join('chat_topics', 'chat_topics.id', '=', 'analytics_agent_topic_daily.chat_topic_id')
+            ->join('topics', 'topics.id', '=', 'analytics_agent_topic_daily.topic_id')
             ->where('analytics_agent_topic_daily.agent_id', $agentId)
             ->whereRaw('analytics_agent_topic_daily.bucket_day >= ?', [$startDate->format('Y-m-d')])
             ->whereRaw('analytics_agent_topic_daily.bucket_day <= ?', [$endDate->format('Y-m-d')])
-            ->groupBy('chat_topics.id', 'chat_topics.topic')
+            ->groupBy('topics.id', 'topics.topic')
             ->select([
-                'chat_topics.id as topic_id',
-                'chat_topics.topic as topic_name',
+                'topics.id as topic_id',
+                'topics.topic as topic_name',
                 DB::raw('SUM(analytics_agent_topic_daily.conversation_count) as total_count'),
             ])
             ->orderByDesc('total_count')

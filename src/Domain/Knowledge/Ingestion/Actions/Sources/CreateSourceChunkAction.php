@@ -31,7 +31,7 @@ class CreateSourceChunkAction
     public function execute(Agent $agent, Model $source, PageData $page): ?Chunk
     {
         if (Chunk::query()
-            ->where('chunkable_type', $source::class)
+            ->where('chunkable_type', $source->getMorphClass())
             ->where('chunkable_id', $source->getKey())
             ->where('checksum', $page->checksum)
             ->exists()) {
@@ -40,13 +40,13 @@ class CreateSourceChunkAction
 
         return Chunk::query()->create([
             'user_id' => $agent->user_id,
-            'chunkable_type' => $source::class,
+            'chunkable_type' => $source->getMorphClass(),
             'chunkable_id' => $source->getKey(),
             'type' => 'text',
             'chunk_index' => $page->pageNumber,
             'chunk' => $page->content,
             'summary' => '',
-            'chunked_using_model' => config('ai.models.chunker'),
+            'chunked_using_model' => config('chatvia.ai.models.chunker'),
             'embedding_model' => $this->embeddings->getModelName(),
             'cost_in_micro_cents' => 0,
             'tokens' => TikToken::countTokens($page->content),

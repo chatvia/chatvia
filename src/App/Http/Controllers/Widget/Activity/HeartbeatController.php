@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Widget\Activity;
 
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
-use Domain\Conversation\Actions\Conversations\RecordConversationActivityAction;
+use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Auth\WidgetAckData;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +17,6 @@ readonly class HeartbeatController
 
     public function __invoke(
         Request $request,
-        RecordConversationActivityAction $recordActivity,
         FindWidgetConversationAction $findConversation,
     ): JsonResponse|WidgetAckData {
         $sessionId = $request->header('X-SESSION-ID');
@@ -46,7 +45,8 @@ readonly class HeartbeatController
                 return response()->json(['error' => 'Conversation not found'], 404);
             }
 
-            $recordActivity->execute($conversationId);
+            Conversation::where('external_id', $conversationId)
+                ->update(['last_activity_at' => now()]);
         }
 
         return new WidgetAckData;

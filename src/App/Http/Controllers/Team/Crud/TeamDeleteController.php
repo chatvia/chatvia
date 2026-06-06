@@ -12,7 +12,7 @@ class TeamDeleteController
     {
         $user = $request->user();
 
-        if (! $user->ownsTeam($team)) {
+        if ($user->cannot('delete', $team)) {
             return back()->withErrors(['team' => 'Only the team owner can delete the team.']);
         }
 

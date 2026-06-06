@@ -14,7 +14,7 @@ class SourceRetrieved
      */
     public function __construct(
         public readonly int $agentId,
-        public readonly int $userId,
+        public readonly int $workspaceId,
         public readonly array $sources,
         public readonly DateTimeInterface $occurredAt,
     ) {}

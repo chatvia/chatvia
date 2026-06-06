@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function getConnection(): ?string
     {
-        return config('analytics.connection');
+        return config('chatvia.analytics.connection');
     }
 
     public function up(): void
@@ -18,8 +18,12 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('agent_id');
             // Workspace owner, captured at dispatch time so events stay
-            // attributable to the user even after the agent is deleted.
-            $table->unsignedBigInteger('user_id');
+            // attributable to the workspace even after the agent is deleted.
+            $table->unsignedBigInteger('workspace_id');
+            // The chatter (end-user) who made this event — message_sent and
+            // feedback_given carry it; aggregate/system events and anonymous
+            // widget visitors leave it null. The "who", vs workspace_id's "where".
+            $table->unsignedBigInteger('chatter_user_id')->nullable();
             $table->string('event_type', 40);
             $table->string('role', 20)->nullable();
             $table->string('feedback', 20)->nullable();
@@ -37,7 +41,8 @@ return new class extends Migration
 
             $table->index(['agent_id', 'occurred_at']);
             $table->index(['agent_id', 'event_type', 'occurred_at']);
-            $table->index(['user_id', 'occurred_at']);
+            $table->index(['workspace_id', 'occurred_at']);
+            $table->index(['chatter_user_id', 'occurred_at']);
         });
 
         // Feedback is current-state: one row per message, upserted on

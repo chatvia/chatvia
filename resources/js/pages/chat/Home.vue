@@ -192,6 +192,7 @@ function handleStarterClick(starter) {
                             :max-files="maxFilesPerChat"
                             :upload-endpoint="props.agent_id ? route('chat.messages.attachments.store') : undefined"
                             :upload-headers="props.agent_id ? { 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': 'pending' } : undefined"
+                            :delete-endpoint="props.agent_id ? (id) => route('chat.messages.attachments.delete', { attachment: id }) : undefined"
                             @messageAdded="createNewConversation"
                         />
 

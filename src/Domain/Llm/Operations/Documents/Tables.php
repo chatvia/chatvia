@@ -19,7 +19,7 @@ class Tables
         ]);
 
         $response = $this->provider->completion([
-            'model' => config('ai.models.tables'),
+            'model' => config('chatvia.ai.models.tables'),
             'temperature' => 0.0,
             'max_tokens' => 512,
             'messages' => [

@@ -22,6 +22,7 @@ class SocialController extends Controller
         SocialProvider::Google,
         SocialProvider::Microsoft,
         SocialProvider::Slack,
+        SocialProvider::Github,
     ];
 
     public function edit(Request $request): Response

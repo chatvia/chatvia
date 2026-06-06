@@ -787,6 +787,20 @@ const messageUpdated = (messageId, messageContent) => {
     });
 };
 
+const attachmentDeleted = (messageId, attachmentId) => {
+    const message = messages.value.find((m) => m.id === messageId);
+    if (!message) return;
+    // The hydrator merges `attachments` onto the message at fetch time;
+    // freshly-sent messages also keep a copy under metadata.attachments.
+    // Drop both so the chip doesn't re-appear on the next render.
+    if (Array.isArray(message.attachments)) {
+        message.attachments = message.attachments.filter((a) => a.id !== attachmentId);
+    }
+    if (message.metadata?.attachments) {
+        message.metadata.attachments = message.metadata.attachments.filter((a) => a.id !== attachmentId);
+    }
+};
+
 const messageDeleted = (messageId) => {
     const messageIndex = messages.value.findIndex((m) => m.id === messageId);
     if (messageIndex === -1) return;
@@ -989,6 +1003,7 @@ const handleScrollToBottomClick = () => {
                                     @messageUpdated="messageUpdated"
                                     @messageDeleted="messageDeleted"
                                     @messageEdited="handleMessageEdited"
+                                    @attachmentDeleted="attachmentDeleted"
                                 />
                                 <ChatErrorBubble v-else-if="message.role === 'error'" :message="message" @retry="handleErrorRetry(index)" />
                                 <AssistantChatBubble
@@ -1046,6 +1061,7 @@ const handleScrollToBottomClick = () => {
                             :disabled="!canSendMessages || hasPendingApprovals"
                             :upload-endpoint="route('chat.messages.attachments.store')"
                             :upload-headers="{ 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': props.conversation_id }"
+                            :delete-endpoint="(id) => route('chat.messages.attachments.delete', { attachment: id })"
                             @messageAdded="messageAdded"
                             @stopStreaming="stopStreaming"
                         />

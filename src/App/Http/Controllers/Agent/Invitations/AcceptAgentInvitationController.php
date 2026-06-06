@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Agent\Member\AcceptAgentInvitationRequest;
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
+use Domain\Membership\Agent\Data\AcceptAgentInvitationData;
+use Domain\Membership\Agent\Enums\InvitationCredentialKind;
 use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
 use Domain\Membership\Agent\Models\AgentMemberInvitation;
 use Inertia\Inertia;
@@ -40,12 +42,13 @@ class AcceptAgentInvitationController extends Controller
         $agent = $invitation->agent;
 
         try {
-            $chatter = $accept->executeWithPassword(
+            $chatter = $accept->execute(new AcceptAgentInvitationData(
                 agent: $agent,
-                email: $invitation->email,
+                invitedEmail: $invitation->email,
                 name: (string) $request->validated('name'),
+                kind: InvitationCredentialKind::Password,
                 password: (string) $request->validated('password'),
-            );
+            ));
         } catch (AgentMemberInvitationRejectedException $e) {
             return back()->withErrors([$e->field => $e->getMessage()])->withInput();
         }

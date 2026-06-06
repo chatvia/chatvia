@@ -19,8 +19,8 @@ class KnowledgeBase
 
     public function __construct()
     {
-        $this->cacheStore = config('vector.cache.store', 'redis');
-        $this->vectorChordConfig = config('vector', []);
+        $this->cacheStore = config('chatvia.vector.cache.store', 'redis');
+        $this->vectorChordConfig = config('chatvia.vector', []);
     }
 
     public function search(int|Agent $agent, string $query, int $limit = 4): array
@@ -42,9 +42,9 @@ class KnowledgeBase
         );
         $vectorString = '['.implode(',', $embedding).']';
 
-        $accuracyLevel = config('vector.search.mode', 'default');
-        $maxChunks = config('vector.search.max_chunks', 3);
-        $candidateLimit = config('vector.search.rerank', false) ? 12 : ($maxChunks * 2);
+        $accuracyLevel = config('chatvia.vector.search.mode', 'default');
+        $maxChunks = config('chatvia.vector.search.max_chunks', 3);
+        $candidateLimit = config('chatvia.vector.search.rerank', false) ? 12 : ($maxChunks * 2);
 
         // SET LOCAL needs a transaction so vchordrq settings don't leak
         // across requests on pooled connections (pgbouncer / Octane).
@@ -62,7 +62,7 @@ class KnowledgeBase
             // Only rerank if we have multiple results, reranking is enabled in
             // config, and the configured embeddings provider supports it.
             $provider = app(EmbeddingsProviderInterface::class);
-            if (count($results) > 1 && config('vector.search.rerank', false) && $provider->supportsReranking()) {
+            if (count($results) > 1 && config('chatvia.vector.search.rerank', false) && $provider->supportsReranking()) {
                 $results = $this->rerank($query, $results, $provider);
             } else {
                 // When reranking is disabled or unsupported, use DB confidence
@@ -78,7 +78,7 @@ class KnowledgeBase
 
     private function filterByDbConfidence(array $results): array
     {
-        $maxChunks = config('vector.search.max_chunks', 3);
+        $maxChunks = config('chatvia.vector.search.max_chunks', 3);
 
         return collect($results)
             ->take($maxChunks)
@@ -93,8 +93,8 @@ class KnowledgeBase
             $rerankedResults = $provider->rerank($query, $chunks);
 
             // Get relevance threshold from config (default: 0.5)
-            $relevanceThreshold = config('vector.search.relevance_threshold');
-            $maxChunks = config('vector.search.max_chunks');
+            $relevanceThreshold = config('chatvia.vector.search.relevance_threshold');
+            $maxChunks = config('chatvia.vector.search.max_chunks');
 
             // Map reranked results with relevance scores and filter by threshold
             // Then limit to max chunks
@@ -122,43 +122,16 @@ class KnowledgeBase
         return collect($results)
             ->values()
             ->map(function ($result, int $rank) use ($total) {
-                $result->chunk = $this->removeXmlTags($result->chunk);
+                $result->chunk = RetrievalScoring::stripXmlTags($result->chunk);
 
                 // RRF returns a small positive score (~0.01–0.07); convert to a
                 // rank-based confidence: top result → near 0.99, last → near 0.5.
-                $result->confidence_score = $this->calculateConfidenceScore($rank, $total);
+                $result->confidence_score = RetrievalScoring::confidenceScore($rank, $total);
 
                 return $result;
             })
             ->values()
             ->toArray();
-    }
-
-    private function calculateConfidenceScore(int $rank, int $total): float
-    {
-        if ($total <= 1) {
-            return 0.99;
-        }
-
-        $confidence = 0.99 - (($rank / max($total - 1, 1)) * 0.49);
-
-        return round($confidence, 4);
-    }
-
-    private function removeXmlTags(string $text): string
-    {
-        // Remove XML tags and their content using regex
-        // This pattern matches opening tag, content, and closing tag
-        $pattern = '/<[^>]+>.*?<\/[^>]+>/s';
-        $text = preg_replace($pattern, '', $text);
-
-        // Also remove self-closing tags
-        $text = preg_replace('/<[^>]+\/>/s', '', $text);
-
-        // Clean up extra whitespace that might be left behind
-        $text = preg_replace('/\s+/', ' ', $text);
-
-        return trim($text);
     }
 
     public function chunks(int|Agent $agent, string $query, int $limit = 4): Collection

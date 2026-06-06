@@ -1,10 +1,17 @@
 <script lang="ts" setup>
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import Switch from '@/components/ui/switch/Switch.vue';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { useAgentAttachments } from '@/composables/useAgentAttachments';
-import { Check, Copy, KeyRound, LoaderCircle, Trash2, Users } from 'lucide-vue-next';
+import axios from 'axios';
+import { Check, Copy, KeyRound, LoaderCircle, Trash2, Users, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 
 type ChatterRow = App.Identity.Chatter.Data.WorkspaceChatterRowData;
 
@@ -19,10 +26,107 @@ const emit = defineEmits<{
     reset: [member: ChatterRow];
     delete: [member: ChatterRow];
     'access-changed': [member: ChatterRow, attachedCount: number];
+    updated: [member: ChatterRow];
 }>();
 
 const agents = useAgentAttachments('member');
 const idCopied = ref(false);
+
+// Per-message flat token charge — mirror of ChatterMessageAllowance::MESSAGE_TOKEN_RATE.
+const TOKEN_RATE = 250;
+
+// Access controls (message + token limits, deactivation). Edited locally and
+// persisted on "Save changes"; the server returns the refreshed row to merge.
+const messagesLimit = ref<number | string | null>(null);
+const tokensLimit = ref<number | string | null>(null);
+// "Set" → the admin overrides the token budget manually; otherwise it
+// auto-derives from the message limit and the field stays read-only.
+const customTokens = ref(false);
+const deactivated = ref(false);
+const deactivationReason = ref('');
+const isSaving = ref(false);
+
+// Auto budget = message cap × flat per-message rate (null when there's no cap).
+const autoTokens = (msgs: number | string | null): number | null => {
+    const n = Number(msgs);
+    return msgs === null || msgs === '' || Number.isNaN(n) || n <= 0 ? null : n * TOKEN_RATE;
+};
+
+watch(
+    () => props.member?.external_id,
+    () => {
+        messagesLimit.value = props.member?.messages_limit ?? null;
+        const saved = props.member?.tokens_limit ?? null;
+        const auto = autoTokens(messagesLimit.value);
+        // A saved budget that differs from the auto value was set manually.
+        customTokens.value = saved !== null && saved !== auto;
+        tokensLimit.value = customTokens.value ? saved : auto;
+        deactivated.value = props.member?.is_deactivated ?? false;
+        deactivationReason.value = props.member?.deactivation_reason ?? '';
+    },
+    { immediate: true },
+);
+
+// Auto mode: keep the read-only budget synced to the message cap.
+watch(messagesLimit, (val) => {
+    if (!customTokens.value) tokensLimit.value = autoTokens(val);
+});
+
+// Toggling "Set" off snaps the budget back to the auto value.
+watch(customTokens, (on) => {
+    if (!on) tokensLimit.value = autoTokens(messagesLimit.value);
+});
+
+const save = async () => {
+    if (!props.member) return;
+    isSaving.value = true;
+    try {
+        const raw = messagesLimit.value;
+        const limit = raw === null || raw === '' ? null : Number(raw);
+        // No message cap → no budget. Custom → typed value; otherwise auto.
+        let tokens: number | null = null;
+        if (limit !== null) {
+            const rawTokens = tokensLimit.value;
+            tokens = customTokens.value ? (rawTokens === null || rawTokens === '' ? null : Number(rawTokens)) : limit * TOKEN_RATE;
+        }
+        const { data } = await axios.patch(route('settings.members.update', { chatter: props.member.external_id }), {
+            messages_limit: limit,
+            tokens_limit: tokens,
+            deactivated: deactivated.value,
+            deactivation_reason: deactivationReason.value || null,
+        });
+        // Tolerate either a bare row or a { data: row } envelope.
+        emit('updated', (data?.data ?? data) as ChatterRow);
+        toast.success(`${props.member.name} updated`);
+    } catch {
+        toast.error('Could not update this member');
+    } finally {
+        isSaving.value = false;
+    }
+};
+
+// One-click clear of the monthly caps. Sends the SAVED deactivation state (not
+// the local toggles) so removing the limit can't apply an unsaved deactivation.
+const removeLimit = async () => {
+    if (!props.member) return;
+    isSaving.value = true;
+    try {
+        const { data } = await axios.patch(route('settings.members.update', { chatter: props.member.external_id }), {
+            messages_limit: null,
+            deactivated: props.member.is_deactivated,
+            deactivation_reason: props.member.deactivation_reason,
+        });
+        messagesLimit.value = null;
+        tokensLimit.value = null;
+        customTokens.value = false;
+        emit('updated', (data?.data ?? data) as ChatterRow);
+        toast.success(`Limit removed for ${props.member.name}`);
+    } catch {
+        toast.error('Could not remove the limit');
+    } finally {
+        isSaving.value = false;
+    }
+};
 
 const initials = computed(() => {
     if (!props.member?.name) return '?';
@@ -71,11 +175,12 @@ const copyId = async () => {
 <template>
     <Sheet :open="open" @update:open="(v) => emit('update:open', v)">
         <SheetContent v-if="member" class="w-full overflow-y-auto p-0 sm:max-w-md">
-            <SheetHeader class="space-y-5 border-b px-6 pt-7 pb-6">
+            <SheetHeader class="space-y-4 border-b px-6 pt-7 pb-6">
                 <div class="flex items-start gap-4">
-                    <div class="bg-muted text-foreground flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-base font-semibold">
-                        {{ initials }}
-                    </div>
+                    <Avatar class="size-14 shrink-0">
+                        <AvatarImage v-if="member.avatar" :src="member.avatar" :alt="member.name" />
+                        <AvatarFallback class="bg-muted text-foreground text-base font-semibold">{{ initials }}</AvatarFallback>
+                    </Avatar>
                     <div class="min-w-0 flex-1 pt-1">
                         <SheetTitle class="truncate text-lg">{{ member.name }}</SheetTitle>
                         <div class="mt-1.5 flex items-center gap-2 text-sm">
@@ -95,40 +200,91 @@ const copyId = async () => {
                         </div>
                     </div>
                 </div>
-                <SheetDescription class="text-sm leading-relaxed">
-                    A chat member of your workspace. Below is everything they can do and how to identify them via the API.
-                </SheetDescription>
+                <SheetDescription class="sr-only">Manage this member's limits, agent access, and status.</SheetDescription>
+                <div class="space-y-1.5">
+                    <div class="flex items-center gap-1.5 text-xs">
+                        <span class="text-muted-foreground">ID</span>
+                        <code class="min-w-0 flex-1 truncate font-mono" :title="member.external_id">{{ member.external_id }}</code>
+                        <Button variant="ghost" size="sm" class="h-6 shrink-0 px-1.5" title="Copy member ID" @click="copyId">
+                            <Check v-if="idCopied" class="size-3.5 text-green-600" />
+                            <Copy v-else class="size-3.5" />
+                        </Button>
+                    </div>
+                    <p class="text-muted-foreground text-xs">Joined {{ formatDate(member.created_at) }}</p>
+                </div>
             </SheetHeader>
 
-            <div class="space-y-6 px-6 py-6">
-                <!-- Identity / metadata -->
-                <dl class="divide-border divide-y text-sm">
-                    <div class="grid grid-cols-3 gap-4 py-3 first:pt-0">
-                        <dt class="text-muted-foreground col-span-1">Member ID</dt>
-                        <dd class="col-span-2 flex min-w-0 items-center gap-1.5">
-                            <code class="min-w-0 flex-1 truncate font-mono text-xs" :title="member.external_id">{{ member.external_id }}</code>
-                            <Button variant="ghost" size="sm" class="h-6 shrink-0 px-1.5" title="Copy member ID" @click="copyId">
-                                <Check v-if="idCopied" class="size-3.5 text-green-600" />
-                                <Copy v-else class="size-3.5" />
-                            </Button>
-                        </dd>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4 py-3">
-                        <dt class="text-muted-foreground col-span-1">Email</dt>
-                        <dd class="col-span-2 break-all">{{ member.email || '—' }}</dd>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4 py-3">
-                        <dt class="text-muted-foreground col-span-1">Created</dt>
-                        <dd class="col-span-2">{{ formatDate(member.created_at) }}</dd>
-                    </div>
-                </dl>
+            <Tabs default-value="limits" class="px-6 py-6">
+                <TabsList class="grid w-full grid-cols-4">
+                    <TabsTrigger value="limits">Limits</TabsTrigger>
+                    <TabsTrigger value="agents">Agents</TabsTrigger>
+                    <TabsTrigger value="status">Status</TabsTrigger>
+                    <TabsTrigger value="actions">Actions</TabsTrigger>
+                </TabsList>
 
-                <!-- Agents the member can access — toggle to grant / revoke -->
-                <div class="space-y-3">
-                    <div>
-                        <h3 class="text-sm font-semibold">Agents</h3>
-                        <p class="text-muted-foreground mt-1 text-xs">Toggle which of your agents this member can chat with.</p>
+                <!-- LIMITS — monthly message cap + token budget -->
+                <TabsContent value="limits" class="mt-6 space-y-6">
+                    <div class="space-y-3">
+                        <div>
+                            <h3 class="text-sm font-semibold">Monthly message limit</h3>
+                            <p class="text-muted-foreground mt-1 text-xs">
+                                Cap how many messages this member can send each month. Leave empty for no limit.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <Input v-model="messagesLimit" type="number" min="1" placeholder="No limit" class="w-40" />
+                            <Button
+                                v-if="member.messages_limit !== null"
+                                variant="ghost"
+                                size="sm"
+                                class="text-destructive hover:text-destructive shrink-0"
+                                :disabled="isSaving"
+                                @click="removeLimit"
+                            >
+                                <X class="mr-1 h-3.5 w-3.5" />
+                                Remove limit
+                            </Button>
+                        </div>
+                        <p v-if="member.messages_limit !== null" class="text-muted-foreground text-xs">
+                            {{ member.messages_used }} of {{ member.messages_limit }} used this month.
+                        </p>
                     </div>
+
+                    <div class="space-y-3 border-t pt-6">
+                        <div>
+                            <h3 class="text-sm font-semibold">Monthly token budget</h3>
+                            <p class="text-muted-foreground mt-1 text-xs">
+                                Each message uses {{ TOKEN_RATE }} tokens. The budget is set automatically from the message limit — tick “Set” to
+                                choose your own.
+                            </p>
+                        </div>
+                        <Input
+                            v-model="tokensLimit"
+                            type="number"
+                            min="1"
+                            placeholder="No limit"
+                            class="w-40"
+                            :readonly="!customTokens"
+                            :class="{ 'bg-muted text-muted-foreground': !customTokens }"
+                        />
+                        <div class="flex items-center gap-2">
+                            <Checkbox id="set-tokens" v-model="customTokens" />
+                            <label for="set-tokens" class="text-sm leading-none select-none">Set a custom budget</label>
+                        </div>
+                        <p v-if="member.tokens_limit !== null" class="text-muted-foreground text-xs">
+                            {{ member.tokens_used.toLocaleString() }} of {{ member.tokens_limit.toLocaleString() }} tokens used this month.
+                        </p>
+                    </div>
+
+                    <Button :disabled="isSaving" @click="save">
+                        <LoaderCircle v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
+                        Save changes
+                    </Button>
+                </TabsContent>
+
+                <!-- AGENTS — grant / revoke access -->
+                <TabsContent value="agents" class="mt-6 space-y-3">
+                    <p class="text-muted-foreground text-xs">Toggle which of your agents this member can chat with.</p>
 
                     <div v-if="agents.loading.value" class="text-muted-foreground flex items-center gap-2 py-6 text-sm">
                         <LoaderCircle class="size-4 animate-spin" />
@@ -153,32 +309,45 @@ const copyId = async () => {
                             />
                         </li>
                     </ul>
-                </div>
+                </TabsContent>
 
-                <!-- Actions -->
-                <div class="space-y-2 border-t pt-6">
-                    <h3 class="text-sm font-semibold">Actions</h3>
-                    <div class="flex flex-col gap-2">
-                        <Button
-                            variant="outline"
-                            class="justify-start"
-                            :disabled="!member.email || member.status === 'pending'"
-                            @click="emit('reset', member)"
-                        >
-                            <KeyRound class="mr-2 h-4 w-4" />
-                            Send password reset link
-                        </Button>
-                        <Button
-                            variant="outline"
-                            class="text-destructive hover:text-destructive hover:bg-destructive/10 justify-start"
-                            @click="emit('delete', member)"
-                        >
-                            <Trash2 class="mr-2 h-4 w-4" />
-                            Remove member
-                        </Button>
+                <!-- STATUS — deactivation -->
+                <TabsContent value="status" class="mt-6 space-y-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-semibold">Deactivate member</h3>
+                            <p class="text-muted-foreground mt-1 text-xs">A deactivated member can't sign in or send messages.</p>
+                        </div>
+                        <Switch :model-value="deactivated" @update:model-value="(v) => (deactivated = v)" />
                     </div>
-                </div>
-            </div>
+                    <Textarea v-if="deactivated" v-model="deactivationReason" placeholder="Reason (optional) — visible to your team only" :rows="2" />
+                    <Button :disabled="isSaving" @click="save">
+                        <LoaderCircle v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
+                        Save changes
+                    </Button>
+                </TabsContent>
+
+                <!-- ACTIONS -->
+                <TabsContent value="actions" class="mt-6 space-y-2">
+                    <Button
+                        variant="outline"
+                        class="w-full justify-start"
+                        :disabled="!member.email || member.status === 'pending'"
+                        @click="emit('reset', member)"
+                    >
+                        <KeyRound class="mr-2 h-4 w-4" />
+                        Send password reset link
+                    </Button>
+                    <Button
+                        variant="outline"
+                        class="text-destructive hover:text-destructive hover:bg-destructive/10 w-full justify-start"
+                        @click="emit('delete', member)"
+                    >
+                        <Trash2 class="mr-2 h-4 w-4" />
+                        Remove member
+                    </Button>
+                </TabsContent>
+            </Tabs>
         </SheetContent>
     </Sheet>
 </template>

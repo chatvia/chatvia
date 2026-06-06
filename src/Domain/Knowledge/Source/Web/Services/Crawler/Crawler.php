@@ -135,28 +135,7 @@ final class Crawler
 
     private function createBrowsershot(): Browsershot
     {
-        $browsershot = new Browsershot;
-
-        $nodePath = config('services.bin.node');
-        $npmPath = config('services.bin.npm');
-        $nvmIncludePath = config('services.bin.nvm_include_path');
-        $chromePath = config('services.bin.chrome');
-
-        if ($nodePath) {
-            $browsershot->setNodeBinary($nodePath);
-        }
-
-        if ($npmPath) {
-            $browsershot->setNpmBinary($npmPath);
-        }
-
-        if ($nvmIncludePath) {
-            $browsershot->setIncludePath($nvmIncludePath);
-        }
-
-        if ($chromePath) {
-            $browsershot->setChromePath($chromePath);
-        }
+        $browsershot = app(\Support\Browsershot\BrowsershotConfigurator::class)->configure(new Browsershot);
 
         // Add common Chrome flags for server environments
         $browsershot->addChromiumArguments([

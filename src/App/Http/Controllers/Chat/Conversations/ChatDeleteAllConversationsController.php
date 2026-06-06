@@ -13,8 +13,7 @@ class ChatDeleteAllConversationsController
         $agent = current_agent();
 
         $memory
-            ->setAgent($agent)
-            ->setExternalSessionId($session->firstOrCreateSession($agent))
+            ->withContext($agent, $session->firstOrCreateSession($agent))
             ->deleteAllConversations();
     }
 }

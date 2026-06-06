@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import { Bot, Clock, FileText, Layers, Link2, Loader2, MessageSquare, TrendingUp, Users } from 'lucide-vue-next';
+import { Bot, Clock, Coins, FileText, Layers, Link2, Loader2, MessageSquare, TrendingUp, Users } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 
 type UsageData = App.Identity.Workspace.Data.Resources.My.Usage.UsageResourceData;
@@ -99,20 +99,39 @@ onMounted(() => {
                                 </CardTitle>
                                 <CardDescription> AI chat messages sent this billing period </CardDescription>
                             </CardHeader>
+                            <CardContent class="space-y-2">
+                                <!-- Plain count, no limit bar: the plan is metered in tokens,
+                                     so messages are shown for reference only. -->
+                                <span class="text-2xl font-bold">{{ usageData.messages.used.toLocaleString() }}</span>
+                                <p class="text-muted-foreground text-xs">
+                                    Messages sent this cycle. Your plan is metered in tokens — see Tokens This Cycle.
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Tokens Usage -->
+                        <Card>
+                            <CardHeader>
+                                <CardTitle class="flex items-center gap-2 text-base">
+                                    <Coins class="h-5 w-5 text-indigo-500" />
+                                    Tokens This Cycle
+                                </CardTitle>
+                                <CardDescription> AI tokens consumed this billing period </CardDescription>
+                            </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-2xl font-bold">{{ usageData.messages.used.toLocaleString() }}</span>
-                                    <span class="text-muted-foreground text-sm"> of {{ usageData.messages.limit.toLocaleString() }} </span>
+                                    <span class="text-2xl font-bold">{{ usageData.tokens.used.toLocaleString() }}</span>
+                                    <span class="text-muted-foreground text-sm"> of {{ usageData.tokens.limit.toLocaleString() }} </span>
                                 </div>
                                 <div class="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                                     <div
                                         class="h-3 rounded-full transition-all duration-300"
-                                        :class="getUsageColor(getUsagePercentage(usageData.messages.used, usageData.messages.limit))"
-                                        :style="{ width: `${getUsagePercentage(usageData.messages.used, usageData.messages.limit)}%` }"
+                                        :class="getUsageColor(getUsagePercentage(usageData.tokens.used, usageData.tokens.limit))"
+                                        :style="{ width: `${getUsagePercentage(usageData.tokens.used, usageData.tokens.limit)}%` }"
                                     ></div>
                                 </div>
                                 <div class="flex items-center justify-between text-sm">
-                                    <span class="text-muted-foreground">{{ usageData.messages.remaining.toLocaleString() }} remaining</span>
+                                    <span class="text-muted-foreground">{{ usageData.tokens.remaining.toLocaleString() }} remaining</span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -290,12 +309,18 @@ onMounted(() => {
                             <CardDescription> Overview of your current resource utilization across all services </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div class="grid grid-cols-2 gap-6 text-center sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+                            <div class="grid grid-cols-2 gap-6 text-center sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8">
                                 <div class="space-y-1">
                                     <div class="text-2xl font-bold text-blue-600">
                                         {{ getUsagePercentage(usageData.messages.used, usageData.messages.limit) }}%
                                     </div>
                                     <div class="text-muted-foreground text-xs">Messages</div>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="text-2xl font-bold text-indigo-600">
+                                        {{ getUsagePercentage(usageData.tokens.used, usageData.tokens.limit) }}%
+                                    </div>
+                                    <div class="text-muted-foreground text-xs">Tokens</div>
                                 </div>
                                 <div class="space-y-1">
                                     <div class="text-2xl font-bold text-green-600">

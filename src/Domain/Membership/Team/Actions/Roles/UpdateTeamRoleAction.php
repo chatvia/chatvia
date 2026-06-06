@@ -4,7 +4,7 @@ namespace Domain\Membership\Team\Actions\Roles;
 
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
-use Domain\Membership\Team\Exceptions\InviteRejectedException;
+use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 class UpdateTeamRoleAction
 {
     /**
-     * @throws InviteRejectedException
+     * @throws DomainValidationException
      */
     public function execute(Role $role, SaveTeamRoleData $data): Role
     {
@@ -21,7 +21,7 @@ class UpdateTeamRoleAction
             : Agent::whereIn('external_id', $data->agentExternalIds)->pluck('id')->toArray();
 
         if (! $data->allAgents && count($agentIds) !== count($data->agentExternalIds)) {
-            throw new InviteRejectedException('agent_ids', 'One or more selected agents are invalid.');
+            throw new DomainValidationException('agent_ids', 'One or more selected agents are invalid.');
         }
 
         return DB::transaction(function () use ($role, $data, $agentIds): Role {

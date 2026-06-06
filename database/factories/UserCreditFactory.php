@@ -21,6 +21,7 @@ class UserCreditFactory extends Factory
     {
         return [
             'messages' => $this->faker->numberBetween(50, 200),
+            'tokens' => 7_000_000,
             'started_at' => now()->subDays($this->faker->numberBetween(1, 30)),
             'ends_at' => now()->addDays($this->faker->numberBetween(1, 30)),
         ];

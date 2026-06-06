@@ -75,7 +75,7 @@
 
 <script
     id="chatbot-embed-script"
-    src="{{ config('widget.script_url_embed') }}"
-    data-agent-id="{{ config('widget.chatvia_widget_id') }}"
+    src="{{ config('chatvia.widget.script_url_embed') }}"
+    data-agent-id="{{ config('chatvia.widget.chatvia_widget_id') }}"
     defer>
 </script>

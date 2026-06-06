@@ -9,12 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * A single (conversation ↔ topic) link. Exactly one of `chat_topic_id`
+ * A single (conversation ↔ topic) link. Exactly one of `topic_id`
  * (committed) or `suggested_label` (emergent, pre-promotion) is set.
  *
  * @property int $id
  * @property int $chat_conversation_id
- * @property int|null $chat_topic_id
+ * @property int|null $topic_id
  * @property string|null $suggested_label
  * @property-read Conversation $conversation
  * @property-read Topic|null $topic
@@ -34,6 +34,6 @@ class ConversationTopic extends Model
 
     public function topic(): BelongsTo
     {
-        return $this->belongsTo(Topic::class, 'chat_topic_id');
+        return $this->belongsTo(Topic::class);
     }
 }

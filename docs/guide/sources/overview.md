@@ -1,6 +1,8 @@
 # Sources overview
 
-Sources are the knowledge your agent answers from. Without sources an agent will refuse most questions — its persona instructions tell it not to make things up.
+Sources are the knowledge an agent answers from — your business's docs, policies, runbooks, FAQs, and recorded know-how. Without sources an agent will refuse most questions; its persona instructions tell it not to make things up.
+
+Sources are scoped to one specific agent. There is no global "Knowledge Base" page in the dashboard — that view was removed when chat was unified at `/chat`. To manage sources, open the agent and go to its **Sources** tab.
 
 ![SCREENSHOT — sources index](/screenshots/sources-overview.png)
 
@@ -28,13 +30,13 @@ You'll see the source's **status** change live: `pending → processing → inge
 
 ## Retrieval at query time
 
-When a visitor asks a question:
+When a chatter asks the agent a question:
 
-1. The question is turned into a vector the same way your sources were.
-2. Chatvia finds the closest matching blocks across all your sources.
+1. The question is turned into a vector the same way the sources were.
+2. Chatvia finds the closest matching blocks across all of the agent's sources.
 3. A second pass reorders the candidates so the most relevant ones come first.
 4. Those top blocks are passed to the AI alongside the question and the persona.
-5. The AI grounds its answer in those blocks. The Playground and Chat logs show you which were used.
+5. The AI grounds its answer in those blocks. The Playground and Chat logs show your team which were used.
 
 ## Source limits and credits
 
@@ -44,8 +46,8 @@ When a visitor asks a question:
 
 ## Retraining a source
 
-If the underlying content changes (a web page is updated, you edit a Markdown file), open the source and click **Retrain**. The old chunks are deleted and re-ingestion runs from scratch. The agent keeps working in the meantime — only the retrained source is briefly unavailable.
+If the underlying content changes (a web page is updated, your team edits a Markdown file), open the source and click **Retrain**. The old chunks are deleted and re-ingestion runs from scratch. The agent keeps working in the meantime — only the retrained source is briefly unavailable.
 
 ## Permissions
 
-Sources belong to the agent (and thus the team). Anyone with **write** access on the agent can add or remove sources.
+Sources belong to the agent, and the agent belongs to your workspace. Any teammate with **write** access on the agent can add or remove sources. Chatters only see the agent's answers in chat — they never see the source list or manage sources themselves.

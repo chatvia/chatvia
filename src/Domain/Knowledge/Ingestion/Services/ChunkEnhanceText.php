@@ -35,7 +35,7 @@ class ChunkEnhanceText
             ? $summary."\n\n".$page->content
             : $page->content;
 
-        $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
+        $embeddingPrice = config('chatvia.ai.pricing.embedding_per_million_tokens', 0.10);
         $costInCents = app(CostCalculator::class)
             ->calculateCostInCents($contextualizedChunk, '', $embeddingPrice, 0.0) + $enhancedChunk->cost;
 

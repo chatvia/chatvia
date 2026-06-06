@@ -91,6 +91,7 @@ class Session extends Model
     {
         return [
             'last_activity_at' => 'datetime',
+            'is_proxy' => 'boolean',
         ];
     }
 

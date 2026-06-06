@@ -17,7 +17,7 @@ class TeamCancelInvitationController
     ): RedirectResponse {
         $user = $request->user();
 
-        if (! $user->ownsTeam($team)) {
+        if ($user->cannot('removeTeamMember', $team)) {
             abort(403, 'Only the team owner can cancel invitations.');
         }
 

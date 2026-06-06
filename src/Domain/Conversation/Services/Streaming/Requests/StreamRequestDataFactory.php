@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Services\Streaming\Requests;
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Data\StreamRequestData;
 use Domain\Conversation\Services\Data\StreamRequestMessageData;
@@ -31,6 +32,11 @@ class StreamRequestDataFactory
             ),
             externalSessionId: $externalSessionId,
             conversationId: $conversationId,
+            // The hosted /chat surface is reachable by chatters signed in via an
+            // agent sign-in link, not just workspace owners/employees. Stamp the
+            // chatter so their per-chatter limit applies here too; null for
+            // owner/employee senders.
+            chatterUserId: $this->chatterUserId($request),
             saveUserMessageImmediately: $request->boolean('save_user_message_immediately'),
             streamSources: false,
             ipAddress: $request->ip(),
@@ -51,6 +57,7 @@ class StreamRequestDataFactory
         string $sessionId,
         string $threadId,
         bool $isPlayground,
+        ?User $chatter = null,
     ): StreamRequestData {
         $agent->loadMissing(['agentPrompt', 'llm']);
 
@@ -63,6 +70,10 @@ class StreamRequestDataFactory
             ),
             externalSessionId: $sessionId,
             conversationId: $threadId,
+            // Only actual chatters carry a per-chatter limit. A protected widget
+            // can resolve an owner/employee (e.g. previewing); never stamp them,
+            // or their billing user_credits would be mistaken for a chatter cap.
+            chatterUserId: $chatter && $chatter->isChatter() ? $chatter->id : null,
             saveUserMessageImmediately: true,
             streamSources: false,
             streamLanguage: false,
@@ -94,6 +105,18 @@ class StreamRequestDataFactory
         }
 
         return $llm;
+    }
+
+    /**
+     * The authenticated chatter (web guard) on the hosted /chat surface, or
+     * null when the sender is a workspace owner/employee. Only chatters carry a
+     * per-chatter message limit, so non-chatter senders stay unstamped.
+     */
+    private function chatterUserId(Request $request): ?int
+    {
+        $user = $request->user();
+
+        return $user instanceof User && $user->isChatter() ? $user->id : null;
     }
 
     private function referrer(Request $request): ?string

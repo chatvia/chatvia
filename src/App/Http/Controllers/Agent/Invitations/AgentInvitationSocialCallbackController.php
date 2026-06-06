@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Agent\Invitations;
 use App\Http\Controllers\Controller;
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
+use Domain\Membership\Agent\Data\AcceptAgentInvitationData;
+use Domain\Membership\Agent\Enums\InvitationCredentialKind;
 use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
 use Domain\Membership\Agent\Models\AgentMemberInvitation;
 use Illuminate\Http\RedirectResponse;
@@ -66,14 +68,15 @@ class AgentInvitationSocialCallbackController extends Controller
         }
 
         try {
-            $chatter = $accept->executeWithSocial(
+            $chatter = $accept->execute(new AcceptAgentInvitationData(
                 agent: $agent,
                 invitedEmail: $invitation->email,
+                name: (string) ($socialUser->getName() ?? $socialUser->getNickname() ?? 'Member'),
+                kind: InvitationCredentialKind::Social,
                 socialEmail: (string) ($socialUser->getEmail() ?? ''),
-                socialName: (string) ($socialUser->getName() ?? $socialUser->getNickname() ?? 'Member'),
-                provider: $providerEnum,
-                providerId: (string) $socialUser->getId(),
-            );
+                socialProvider: $providerEnum,
+                socialProviderId: (string) $socialUser->getId(),
+            ));
         } catch (AgentMemberInvitationRejectedException $e) {
             return redirect()->route('login')->with('error', $e->getMessage());
         }

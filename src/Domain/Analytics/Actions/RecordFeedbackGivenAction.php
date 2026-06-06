@@ -17,7 +17,7 @@ class RecordFeedbackGivenAction
 {
     public function execute(FeedbackGiven $event): void
     {
-        $db = DB::connection(config('analytics.connection'));
+        $db = DB::connection(config('chatvia.analytics.connection'));
 
         // Cleared reaction: drop the message's feedback row so it leaves the
         // current-snapshot counts entirely.
@@ -33,9 +33,9 @@ class RecordFeedbackGivenAction
         // One row per message: a new reaction inserts, a switch updates in place.
         $db->statement(<<<'SQL'
             INSERT INTO analytics_events (
-                agent_id, user_id, event_type, feedback, llm_external_name, country_code,
+                agent_id, workspace_id, chatter_user_id, event_type, feedback, llm_external_name, country_code,
                 conversation_external_id, message_external_id, occurred_at
-            ) VALUES (?, ?, 'feedback_given', ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, 'feedback_given', ?, ?, ?, ?, ?, ?)
             ON CONFLICT (message_external_id) WHERE event_type = 'feedback_given'
             DO UPDATE SET
                 feedback          = EXCLUDED.feedback,
@@ -44,7 +44,8 @@ class RecordFeedbackGivenAction
                 occurred_at       = EXCLUDED.occurred_at
         SQL, [
             $event->agentId,
-            $event->userId,
+            $event->workspaceId,
+            $event->chatterUserId,
             $event->feedback,
             $event->llmExternalName,
             $event->countryCode,

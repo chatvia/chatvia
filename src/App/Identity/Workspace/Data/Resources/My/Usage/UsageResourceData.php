@@ -18,6 +18,7 @@ class UsageResourceData extends Data
         public UsageStatsData $minutes,
         public UsageStatsData $links,
         public UsageStatsData $messages,
+        public UsageStatsData $tokens,
         public UsageStatsData $teams,
         public UsageStatsData $members,
     ) {}
@@ -38,9 +39,16 @@ class UsageResourceData extends Data
 
         $consumableMessages = $user->consumableMessages();
 
-        $pagesUsed = $user->pagesConsumed();
-        $minutesUsed = $user->minutesConsumed();
-        $linksUsed = $user->linksConsumed();
+        // Tokens read straight off the active billing cycle: the cap on the
+        // credit row, consumed on its usage row. (Unlike messages, tokens have
+        // no addon top-ups, so cap/used/remaining come directly from the row.)
+        $tokensLimit = (int) ($credit?->tokens ?? 0);
+        $tokensUsed = (int) ($credit?->usage?->tokens ?? 0);
+
+        $consumption = $user->consumption();
+        $pagesUsed = $consumption->pages();
+        $minutesUsed = $consumption->minutes();
+        $linksUsed = $consumption->links();
         $teamsUsed = $user->teamsCreatedCount();
         $workspaceUsersUsed = $user->workspaceUsersCount();
 
@@ -51,6 +59,7 @@ class UsageResourceData extends Data
             minutes: new UsageStatsData(limit: $quota->minutes_limit, used: $minutesUsed, remaining: max(0, $quota->minutes_limit - $minutesUsed)),
             links: new UsageStatsData(limit: $quota->links_limit, used: $linksUsed, remaining: max(0, $quota->links_limit - $linksUsed)),
             messages: new UsageStatsData(limit: $consumableMessages, used: $totalSentMessage, remaining: max(0, $consumableMessages - $totalSentMessage)),
+            tokens: new UsageStatsData(limit: $tokensLimit, used: $tokensUsed, remaining: max(0, $tokensLimit - $tokensUsed)),
             teams: new UsageStatsData(limit: $quota->teams_limit, used: $teamsUsed, remaining: max(0, $quota->teams_limit - $teamsUsed)),
             members: new UsageStatsData(limit: $quota->workspace_users_limit, used: $workspaceUsersUsed, remaining: max(0, $quota->workspace_users_limit - $workspaceUsersUsed)),
         );

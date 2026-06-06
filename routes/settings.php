@@ -52,8 +52,18 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::delete('settings/profile/photo', [ProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
 
     // Account deletion lives on its own page in the Account section so the
-    // destructive flow has the user's full attention.
+    // destructive flow has the user's full attention. Two-factor: re-enter the
+    // password (request) → open the signed email link (confirm, 30-min expiry)
+    // → final explicit click (destroy). Workspace owners only — gated in the
+    // controller + FormRequest.
     Route::get('settings/delete-account', [DeleteAccountController::class, 'edit'])->name('settings.account.delete');
+    Route::post('settings/delete-account', [DeleteAccountController::class, 'request'])
+        ->middleware('throttle:5,60')
+        ->name('settings.account.delete.request');
+    Route::get('settings/delete-account/confirm/{userId}', [DeleteAccountController::class, 'confirm'])
+        ->whereNumber('userId')
+        ->middleware('signed')
+        ->name('settings.account.delete.confirm');
     Route::delete('settings/delete-account', [DeleteAccountController::class, 'destroy'])->name('settings.account.destroy');
 
     Route::get('settings/password', [PasswordController::class, 'edit'])->name('settings.password.edit');
@@ -136,20 +146,24 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     // member can access (toggle attach/detach from the detail sheet), send a
     // password-reset link, or remove a chatter outright. All gated by
     // `account.members.manage`.
-    Route::get('settings/members', [SettingsMemberController::class, 'index'])->name('settings.members.index');
-    Route::post('settings/members/{chatter}/reset-password', [SettingsMemberController::class, 'resetPassword'])
-        ->name('settings.members.reset-password');
-    Route::delete('settings/members/{chatter}', [SettingsMemberController::class, 'destroy'])
-        ->name('settings.members.destroy');
+    Route::middleware('team.permission:account.members.manage')->group(function (): void {
+        Route::get('settings/members', [SettingsMemberController::class, 'index'])->name('settings.members.index');
+        Route::patch('settings/members/{chatter}', [SettingsMemberController::class, 'update'])
+            ->name('settings.members.update');
+        Route::post('settings/members/{chatter}/reset-password', [SettingsMemberController::class, 'resetPassword'])
+            ->name('settings.members.reset-password');
+        Route::delete('settings/members/{chatter}', [SettingsMemberController::class, 'destroy'])
+            ->name('settings.members.destroy');
 
-    // Per-chatter agent grants — same shape as the Connectors/Functions
-    // agent toggles, consumed by useAgentAttachments('member').
-    Route::get('settings/members/{chatter}/agents', [SettingsMemberController::class, 'listAgents'])
-        ->name('settings.members.agents.index');
-    Route::post('settings/members/{chatter}/agents/{agent}', [SettingsMemberController::class, 'attachAgent'])
-        ->name('settings.members.agents.attach');
-    Route::delete('settings/members/{chatter}/agents/{agent}', [SettingsMemberController::class, 'detachAgent'])
-        ->name('settings.members.agents.detach');
+        // Per-chatter agent grants — same shape as the Connectors/Functions
+        // agent toggles, consumed by useAgentAttachments('member').
+        Route::get('settings/members/{chatter}/agents', [SettingsMemberController::class, 'listAgents'])
+            ->name('settings.members.agents.index');
+        Route::post('settings/members/{chatter}/agents/{agent}', [SettingsMemberController::class, 'attachAgent'])
+            ->name('settings.members.agents.attach');
+        Route::delete('settings/members/{chatter}/agents/{agent}', [SettingsMemberController::class, 'detachAgent'])
+            ->name('settings.members.agents.detach');
+    });
 
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/Appearance');

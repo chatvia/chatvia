@@ -5,6 +5,14 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 
+interface Props {
+    agents: { name: string }[];
+    hasSubscription: boolean;
+    deletionConfirmed: boolean;
+}
+
+defineProps<Props>();
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Delete account',
@@ -18,7 +26,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         <Head title="Delete account" />
 
         <SettingsLayout>
-            <DeleteUser />
+            <DeleteUser :agents="agents" :has-subscription="hasSubscription" :confirmed="deletionConfirmed" />
         </SettingsLayout>
     </AppLayout>
 </template>

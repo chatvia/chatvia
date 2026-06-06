@@ -25,7 +25,7 @@ class AgentIdentityController extends Controller
         return Inertia::render('agents/IdentityVerification', [
             'agent' => $agent,
             'auth_secret' => $agent->ensureAuthSecret(),
-            'embed_script_url' => config('widget.script_url_embed'),
+            'embed_script_url' => config('chatvia.widget.script_url_embed'),
         ]);
     }
 }

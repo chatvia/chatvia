@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agent\Source\Text;
 
+use App\Http\Requests\Agent\Source\Text\AgentSourceTextRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
@@ -45,34 +46,26 @@ class AgentTextController
         return $text;
     }
 
-    public function store(Request $request, Agent $agent, CreateAgentSourceTextAction $create): void
+    public function store(AgentSourceTextRequest $request, Agent $agent, CreateAgentSourceTextAction $create): void
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        $request->validate(['content' => ['required', 'min:500']]);
-
         /** @var User $user */
         $user = $request->user();
 
-        $create->execute($agent, $user, $request->input('content'));
+        $create->execute($agent, $user, (string) $request->validated('content'));
     }
 
-    public function update(Request $request, Agent $agent, int $id, UpdateAgentSourceTextAction $update): void
+    public function update(AgentSourceTextRequest $request, Agent $agent, int $id, UpdateAgentSourceTextAction $update): void
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
         /** @var SourceText $sourceText */
         $sourceText = $agent
             ->texts()
             ->where('source_texts.id', $id)
             ->firstOrFail();
 
-        $request->validate(['content' => ['required', 'min:500']]);
-
         /** @var User $user */
         $user = $request->user();
 
-        $update->execute($agent, $user, $sourceText, $request->input('content'));
+        $update->execute($agent, $user, $sourceText, (string) $request->validated('content'));
     }
 
     public function destroy(Request $request, Agent $agent, int $id, DeleteAgentSourceTextAction $delete): void

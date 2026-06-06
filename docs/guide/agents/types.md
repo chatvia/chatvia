@@ -1,56 +1,68 @@
-# Agent types
+# Agent surfaces
 
-Chatvia ships two agent types. Pick the one that matches how your visitors will reach the chatbot.
+Every Chatvia agent has three surfaces at once: a **Hosted Chat** page, an embeddable **Widget**, and a **Bar** trigger. You configure the agent once in Setup, and the same persona, model, sources, and branding apply across all three.
 
-![SCREENSHOT — agents index showing the two types](/screenshots/agents-index.png)
+![SCREENSHOT — agents index](/screenshots/agents-index.png)
 
-## Knowledge base
+::: tip TL;DR
+You do not pick a surface upfront. A single agent serves all three at the same time. Disable any surface you don't want exposed under **Setup → Behavior**.
+:::
 
-A **hosted chat page**, ChatGPT-style: a sidebar with conversation history, a main thread, and an input box at the bottom.
+## Hosted Chat
 
-- Lives at `your-agent.chatvia.ai` (or a subdomain you pick).
-- Multiple conversations per visitor.
+A standalone chat page, ChatGPT-style: a sidebar with conversation history, a main thread, and an input box at the bottom.
+
+- Lives at `{agent}.chatvia.ai` — the subdomain is auto-generated when the agent is created.
+- Map a custom domain by pointing a CNAME at the agent's subdomain. Configure it under **Setup → Domain**.
+- Multiple conversations per chatter.
 - Conversation starters appear on the empty state.
-- Optionally protected — only signed-in users can access it.
+- Optionally protected — only signed-in chatters can access it.
 
-Best for: internal knowledge bases, customer self-service portals, "talk to our docs" pages.
+Good for: customer self-service portals, single-agent embeds, "talk to our docs" pages.
 
 ## Widget
 
-An **embeddable chat bubble**: a small button on a host page that opens a panel with the conversation.
+An embeddable chat bubble: a small button on a host page that opens a panel with the conversation.
 
 - Embedded with a single `<script>` tag.
 - Customizable color, position, language, icon, size.
-- Domain whitelist — limit where the widget is allowed to run.
-- Optional **handoff** — visitor can request a human.
+- Domain whitelist — limit which sites are allowed to load the widget.
+- Optional **handoff** — chatter can request a teammate.
 - Optional **lead capture** — collect a name/email/phone before chatting.
 
-Best for: marketing sites, support pages, in-app help.
+Good for: marketing sites, support pages, in-app help.
 
-::: tip API-created agents
-The public API can only create knowledge-base agents (`type: "knowledge_base"`). Widget agents are dashboard-only because they require interactive appearance/behavior configuration.
-:::
+## Bar
 
-## Switching types
+A search-style trigger that opens a full-screen chat modal — the kind of "ask anything" command bar your team expects from modern apps.
 
-You can't change an agent's type after creation — the data model, default settings, and exposed surface differ enough that it's safer to create a new agent and migrate sources over. You **can** attach the same [template](/guide/account/templates) to a knowledge-base agent and a widget agent if you want consistent branding.
+- Embedded with a single `<script>` tag, same as the Widget.
+- Replaces the previous search-style mode; it is now a first-class surface configured per agent.
+- Customizable placeholder, shortcut key, and modal appearance.
+
+Good for: in-app command-bar assistants, internal tools, knowledge lookup from inside your product.
+
+## Cross-surface behavior
+
+The Setup page is split into shared and per-surface sections:
+
+- **Shared across all three surfaces**: Info, Persona, Starters, Model, Branding. Edit once, applies everywhere.
+- **Per-surface**: Behavior and Embed swap based on the active preview tab. Each surface gets its own behavior toggles and its own embed snippet.
+
+This means a workspace can ship the same agent on a marketing site (Widget), inside its product (Bar), and as a public help portal (Hosted Chat) without re-authoring the agent three times.
 
 ## What every agent has
-
-Regardless of type, every agent has:
 
 - A **name** and **subdomain**.
 - A **persona** (system instructions). See [Persona & instructions](/guide/agents/persona).
 - A **model** assignment. See [Model & generation](/guide/agents/models).
-- An **appearance** (colors, avatar, copy). See [Appearance & branding](/guide/agents/appearance).
+- A **branding** configuration (colors, avatar, copy). See [Appearance & branding](/guide/agents/appearance).
 - **Sources** — at least one is required before the agent can answer usefully. See [Sources overview](/guide/sources/overview).
-- A **Playground** for testing without going through the visitor surface.
+- A **Playground** for testing without going through a public surface.
 - **Chat logs**, **Leads**, **Analytics**.
 
-## What only widgets have
+## A note on the unified /chat hub
 
-- An **embed snippet** with `data-agent-id` / `data-auth` / `data-language` attributes.
-- A **live preview** panel beside every setting so you see changes immediately.
-- **Behavior** controls: open delay, show-on-load, theme toggle, sound.
-- **Sites** (domain whitelist).
-- **Bubbles** — the chip-shaped suggestion prompts visible on the empty state.
+The unified `/chat` route is **not** a surface of any single agent. It is the chatter lobby — a ChatGPT-style hub scoped to all agents a chatter has been granted access to across the workspace. Chatters log in there to switch between every agent assigned to them.
+
+Each agent's three surfaces (Hosted Chat, Widget, Bar) are about exposing **one** agent to the outside world. The `/chat` hub is about giving a chatter one place to talk to **all** their agents inside the workspace.

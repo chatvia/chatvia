@@ -75,3 +75,152 @@ it('rejects a managed user with no permission to the agent', function (): void {
 
     expect($this->service->verify($token, $this->agent))->toBeNull();
 });
+
+describe('compact HMAC credential', function (): void {
+    it('issues a token in the cvh1.<sub>.<exp>.<sig> shape with the expected signature', function (): void {
+        // issueHmac() signs with the per-agent secret.
+        $secret = $this->agent->ensureAuthSecret();
+
+        ['token' => $token, 'expires_at' => $expiresAt] = $this->service->issueHmac($this->owner, $this->agent);
+
+        expect($token)->toStartWith('cvh1.');
+
+        $body = substr($token, 5);
+        [$sub, $exp, $sig] = [
+            substr($body, 0, strpos($body, '.')),
+            substr($body, strpos($body, '.') + 1, strrpos($body, '.') - strpos($body, '.') - 1),
+            substr($body, strrpos($body, '.') + 1),
+        ];
+
+        expect($sub)->toBe($this->owner->external_id)
+            ->and((int) $exp)->toBe($expiresAt->getTimestamp())
+            ->and($sig)->toMatch('/^[a-f0-9]{64}$/')
+            ->and($sig)->toBe(hash_hmac('sha256', $sub.'.'.$exp, $secret));
+    });
+
+    it('encodes and decodes the owner back to the same user', function (): void {
+        $token = $this->service->issueHmac($this->owner, $this->agent)['token'];
+
+        $resolved = $this->service->verify($token, $this->agent);
+
+        expect($resolved)->not->toBeNull()
+            ->and($resolved->id)->toBe($this->owner->id)
+            ->and($resolved->external_id)->toBe($this->owner->external_id);
+    });
+
+    it('encodes and decodes a member whose role grants this agent', function (): void {
+        $team = $this->owner->primaryTeam();
+        app(PermissionRegistrar::class)->setPermissionsTeamId($team->id);
+
+        $role = Role::create([
+            'name' => 'Support',
+            'code' => 'support',
+            'team_id' => $team->id,
+            'guard_name' => 'web',
+        ]);
+        $role->agents()->attach($this->agent->id);
+
+        $member = User::factory()->employee($this->owner)->create([
+            'current_team_id' => $team->id,
+        ]);
+        $team->members()->attach($member->id, ['role_id' => $role->id]);
+
+        $token = $this->service->issueHmac($member, $this->agent)['token'];
+
+        $resolved = $this->service->verify($token, $this->agent);
+
+        expect($resolved)->not->toBeNull()
+            ->and($resolved->id)->toBe($member->id);
+    });
+
+    it('accepts a credential minted by inline hash_hmac — cross-language parity', function (): void {
+        // What a customer's PHP/JS snippet does, verbatim.
+        $secret = $this->agent->ensureAuthSecret();
+        $exp = now()->addMinutes(10)->getTimestamp();
+        $sub = $this->owner->external_id;
+        $sig = hash_hmac('sha256', $sub.'.'.$exp, $secret);
+
+        $token = 'cvh1.'.$sub.'.'.$exp.'.'.$sig;
+
+        expect($this->service->verify($token, $this->agent)?->id)->toBe($this->owner->id);
+    });
+
+    it('rejects a tampered signature', function (): void {
+        $token = $this->service->issueHmac($this->owner, $this->agent)['token'];
+        // Flip the last hex char.
+        $tampered = substr($token, 0, -1).(substr($token, -1) === '0' ? '1' : '0');
+
+        expect($this->service->verify($tampered, $this->agent))->toBeNull();
+    });
+
+    it('rejects a credential signed with the wrong secret', function (): void {
+        $exp = now()->addMinutes(10)->getTimestamp();
+        $sub = $this->owner->external_id;
+        $sig = hash_hmac('sha256', $sub.'.'.$exp, 'not-the-real-secret');
+
+        $token = 'cvh1.'.$sub.'.'.$exp.'.'.$sig;
+
+        expect($this->service->verify($token, $this->agent))->toBeNull();
+    });
+
+    it('rejects a credential minted against a different agent (per-agent scoping)', function (): void {
+        $other = createAgent($this->owner);
+
+        $token = $this->service->issueHmac($this->owner, $other)['token'];
+
+        // The signature is valid against `$other` but not against `$this->agent`,
+        // because the secret is per-agent.
+        expect($this->service->verify($token, $this->agent))->toBeNull();
+    });
+
+    it('rejects an expired credential', function (): void {
+        $secret = $this->agent->ensureAuthSecret();
+        $exp = now()->subSecond()->getTimestamp();
+        $sub = $this->owner->external_id;
+        $sig = hash_hmac('sha256', $sub.'.'.$exp, $secret);
+
+        $token = 'cvh1.'.$sub.'.'.$exp.'.'.$sig;
+
+        expect($this->service->verify($token, $this->agent))->toBeNull();
+    });
+
+    it('rejects a credential with a lifetime over the 24h cap', function (): void {
+        $secret = $this->agent->ensureAuthSecret();
+        $exp = now()->addSeconds(AgentSignInTokenService::MAX_TTL_SECONDS + 60)->getTimestamp();
+        $sub = $this->owner->external_id;
+        $sig = hash_hmac('sha256', $sub.'.'.$exp, $secret);
+
+        $token = 'cvh1.'.$sub.'.'.$exp.'.'.$sig;
+
+        expect($this->service->verify($token, $this->agent))->toBeNull();
+    });
+
+    it('rejects a managed user with no permission to the agent', function (): void {
+        $stranger = User::factory()->employee($this->owner)->create([
+            'current_team_id' => $this->owner->primaryTeam()->id,
+        ]);
+
+        $token = $this->service->issueHmac($stranger, $this->agent)['token'];
+
+        expect($this->service->verify($token, $this->agent))->toBeNull();
+    });
+
+    it('rejects malformed credentials', function (string $token): void {
+        expect($this->service->verify($token, $this->agent))->toBeNull();
+    })->with([
+        'missing segments' => 'cvh1.only-one-segment',
+        'two segments' => 'cvh1.user_123.1234567890',
+        'non-numeric exp' => fn () => 'cvh1.user_123.notanumber.'.str_repeat('a', 64),
+        'non-hex sig' => fn () => 'cvh1.user_123.'.now()->addMinutes(5)->getTimestamp().'.'.str_repeat('z', 64),
+        'wrong sig length' => fn () => 'cvh1.user_123.'.now()->addMinutes(5)->getTimestamp().'.deadbeef',
+        'empty user_id' => fn () => 'cvh1..'.now()->addMinutes(5)->getTimestamp().'.'.str_repeat('a', 64),
+    ]);
+});
+
+it('accepts both a JWT and an HMAC credential against the same agent (no scheme conflict)', function (): void {
+    $jwt = $this->service->issue($this->owner, $this->agent)['token'];
+    $hmac = $this->service->issueHmac($this->owner, $this->agent)['token'];
+
+    expect($this->service->verify($jwt, $this->agent)?->id)->toBe($this->owner->id)
+        ->and($this->service->verify($hmac, $this->agent)?->id)->toBe($this->owner->id);
+});

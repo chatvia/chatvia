@@ -219,8 +219,9 @@ class AppServiceProvider extends ServiceProvider
 
             // Employee users: check team-based access with permissions.
             // Use the user's current_team_id from the database (works in all
-            // contexts including broadcasting).
-            $team = $user->currentTeam ?? $user->ensureCurrentTeam();
+            // contexts including broadcasting). Read-only — Gate definitions
+            // must not persist during access checks.
+            $team = $user->currentTeam ?? $user->currentOrPrimaryTeam();
 
             if (! $team) {
                 return false;

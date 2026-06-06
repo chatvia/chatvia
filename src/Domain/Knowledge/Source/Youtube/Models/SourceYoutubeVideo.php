@@ -104,20 +104,6 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
         return $this->belongsTo(User::class);
     }
 
-    public function startTraining(?int $agentId = null): void
-    {
-        // TODO: Dispatch job to process YouTube video
-        // If agentId is provided, train for that specific agent
-        // Otherwise, train for all agents this video is attached to
-        if ($agentId) {
-            // YoutubeIngestionJob::dispatch($this, $agentId);
-        } else {
-            $this->agents->each(function ($agent): void {
-                // YoutubeIngestionJob::dispatch($this, $agent->id);
-            });
-        }
-    }
-
     public function retrain(?int $agentId = null): void
     {
         // Delete chunks only for the specific agent if provided
@@ -131,6 +117,9 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
             'status' => 'pending',
             'error_message' => null,
         ]);
-        $this->startTraining($agentId);
+
+        // YoutubeIngestionJob is not yet implemented (the workflow path that
+        // dispatched it from the model was a TODO). When the job lands, queue
+        // it here or — better — from AddAgentYoutubeVideoAction.
     }
 }

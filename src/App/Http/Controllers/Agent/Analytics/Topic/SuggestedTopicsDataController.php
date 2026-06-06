@@ -13,12 +13,12 @@ class SuggestedTopicsDataController
     {
         abort_if($request->user()->cannot('view', $agent), 404);
 
-        $minOccurrences = (int) config('analytics.analysis.min_occurrences', 3);
-        $maxExamples = (int) config('analytics.analysis.max_examples', 10);
+        $minOccurrences = (int) config('chatvia.analytics.analysis.min_occurrences', 3);
+        $maxExamples = (int) config('chatvia.analytics.analysis.max_examples', 10);
 
         // Labels already covered by a real topic shouldn't be re-suggested.
         $existingNames = $agent->topics()
-            ->pluck('chat_topics.topic')
+            ->pluck('topics.topic')
             ->map(fn ($name) => mb_strtolower((string) $name))
             ->all();
 

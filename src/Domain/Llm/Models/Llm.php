@@ -11,8 +11,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
 
 /**
  * @property int $id
@@ -31,7 +29,6 @@ use Illuminate\Validation\Rules\Enum;
  * @property LlmProviderEnum $provider
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read string $location_label
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm byLocation($location)
  * @method static \Database\Factories\LlmFactory factory($count = null, $state = [])
@@ -82,48 +79,6 @@ class Llm extends Model
         'is_reasoning' => false,
         'credits' => 1,
     ];
-
-    public static function rules(): array
-    {
-        return [
-            'internal_name' => ['required', 'string', 'max:255', 'unique:llms,internal_name'],
-            'external_name' => ['required', 'string', 'max:255'],
-            'descriptive_name' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'icon' => ['required', 'string', 'max:255'],
-            'context_window' => ['required', 'integer', 'min:1'],
-            'features' => ['nullable', 'array'],
-            'location' => ['required', Rule::in(['us', 'eu', 'cn'])],
-            'is_reasoning' => ['boolean'],
-            'provider' => ['required', new Enum(LlmProviderEnum::class)],
-        ];
-    }
-
-    public static function updateRules($id): array
-    {
-        return [
-            'internal_name' => ['required', 'string', 'max:255', Rule::unique('llms', 'internal_name')->ignore($id)],
-            'external_name' => ['required', 'string', 'max:255'],
-            'descriptive_name' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'icon' => ['required', 'string', 'max:255'],
-            'context_window' => ['required', 'integer', 'min:1'],
-            'features' => ['nullable', 'array'],
-            'location' => ['required', Rule::in(['us', 'eu', 'cn'])],
-            'is_reasoning' => ['boolean'],
-            'provider' => ['required', new Enum(LlmProviderEnum::class)],
-        ];
-    }
-
-    public function getLocationLabelAttribute(): string
-    {
-        return match ($this->location) {
-            'us' => 'United States',
-            'eu' => 'Europe',
-            'cn' => 'China',
-            default => $this->location,
-        };
-    }
 
     #[Scope]
     protected function byLocation(Builder $query, string $location): void

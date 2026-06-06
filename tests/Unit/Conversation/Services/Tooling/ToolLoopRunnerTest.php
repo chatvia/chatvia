@@ -8,7 +8,6 @@ use Domain\Conversation\Services\Data\StreamRequestData;
 use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
-use Domain\Conversation\Services\Streaming\Transformers\StreamTransformerResolver;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalPolicy;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
@@ -127,13 +126,13 @@ function tlrApprovalPolicy(bool $requires): ToolApprovalPolicy
 }
 
 /**
- * Build a transformer resolver whose transformer runs $onTransform($context) —
- * the hook tests use to push tool calls into the context and/or yield deltas,
- * standing in for what OpenAiCompatibleTransformer does off a live stream.
+ * Build a transformer that runs $onTransform($context) — the hook tests use to
+ * push tool calls into the context and/or yield deltas, standing in for what
+ * OpenAiCompatibleTransformer does off a live stream.
  */
-function tlrTransformerResolver(Closure $onTransform): StreamTransformerResolver
+function tlrTransformer(Closure $onTransform): StreamTransformer
 {
-    $transformer = new class($onTransform) implements StreamTransformer
+    return new class($onTransform) implements StreamTransformer
     {
         public function __construct(private Closure $onTransform) {}
 
@@ -142,33 +141,23 @@ function tlrTransformerResolver(Closure $onTransform): StreamTransformerResolver
             return yield from ($this->onTransform)($context);
         }
     };
-
-    return new class($transformer) extends StreamTransformerResolver
-    {
-        public function __construct(private StreamTransformer $transformer) {}
-
-        public function for(LlmProviderInterface $provider): StreamTransformer
-        {
-            return $this->transformer;
-        }
-    };
 }
 
-function tlrNoopResolver(): StreamTransformerResolver
+function tlrNoopTransformer(): StreamTransformer
 {
-    return tlrTransformerResolver(function (ChatContext $context) {
+    return tlrTransformer(function (ChatContext $context) {
         yield from [];
     });
 }
 
 function tlrRunner(
-    StreamTransformerResolver $transformers,
+    StreamTransformer $transformer,
     ToolDispatcherInterface $dispatcher,
     ToolApprovalPolicy $policy,
     ?ToolApprovalStore $store = null,
 ): ToolLoopRunner {
     return new ToolLoopRunner(
-        transformers: $transformers,
+        transformer: $transformer,
         dispatcher: $dispatcher,
         displayResolver: tlrDisplayResolver(),
         approvalPolicy: $policy,
@@ -214,7 +203,7 @@ beforeEach(function (): void {
 it('injects the denied-result message and never dispatches a denied gated call', function (): void {
     $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
     $dispatcher = tlrDispatcher();
-    $runner = tlrRunner(tlrNoopResolver(), $dispatcher, tlrApprovalPolicy(true));
+    $runner = tlrRunner(tlrNoopTransformer(), $dispatcher, tlrApprovalPolicy(true));
 
     $pendingCalls = [[
         'tool_call_id' => 'call_1',
@@ -245,7 +234,7 @@ it('injects the denied-result message and never dispatches a denied gated call',
 it('dispatches an approved gated call and appends its tool result', function (): void {
     $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
     $dispatcher = tlrDispatcher();
-    $runner = tlrRunner(tlrNoopResolver(), $dispatcher, tlrApprovalPolicy(true));
+    $runner = tlrRunner(tlrNoopTransformer(), $dispatcher, tlrApprovalPolicy(true));
 
     $pendingCalls = [[
         'tool_call_id' => 'call_1',
@@ -276,7 +265,7 @@ it('dispatches an approved gated call and appends its tool result', function ():
 it('runs an ungated (auto) call even without an approval decision', function (): void {
     $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
     $dispatcher = tlrDispatcher();
-    $runner = tlrRunner(tlrNoopResolver(), $dispatcher, tlrApprovalPolicy(false));
+    $runner = tlrRunner(tlrNoopTransformer(), $dispatcher, tlrApprovalPolicy(false));
 
     $pendingCalls = [[
         'tool_call_id' => 'call_1',
@@ -306,11 +295,11 @@ it('returns false and streams a final answer when the model emits no tool calls'
     $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
     $dispatcher = tlrDispatcher();
 
-    $resolver = tlrTransformerResolver(function (ChatContext $ctx) {
+    $transformer = tlrTransformer(function (ChatContext $ctx) {
         $ctx->appendStreamedMessage('Hello, world.');
         yield StreamEvent::delta($ctx->assistantMessageId, 'Hello, world.');
     });
-    $runner = tlrRunner($resolver, $dispatcher, tlrApprovalPolicy(false));
+    $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'Hi']];
     $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: []);
@@ -328,7 +317,7 @@ it('dispatches an ungated tool call and continues to a final answer', function (
     $dispatcher = tlrDispatcher();
 
     $turn = 0;
-    $resolver = tlrTransformerResolver(function (ChatContext $ctx) use (&$turn) {
+    $transformer = tlrTransformer(function (ChatContext $ctx) use (&$turn) {
         if ($turn === 0) {
             // First model turn requests a tool…
             $ctx->pendingToolCalls[] = ['id' => 'call_1', 'name' => 'get_time', 'arguments' => '{}'];
@@ -339,7 +328,7 @@ it('dispatches an ungated tool call and continues to a final answer', function (
         $turn++;
         yield StreamEvent::delta($ctx->assistantMessageId, 'x');
     });
-    $runner = tlrRunner($resolver, $dispatcher, tlrApprovalPolicy(false));
+    $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'time?']];
     $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: [['type' => 'function']]);
@@ -361,12 +350,12 @@ it('pauses the whole turn and persists a pending checkpoint when a tool call nee
     $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
     $dispatcher = tlrDispatcher();
 
-    $resolver = tlrTransformerResolver(function (ChatContext $ctx) {
+    $transformer = tlrTransformer(function (ChatContext $ctx) {
         $ctx->pendingToolCalls[] = ['id' => 'call_1', 'name' => 'delete_user', 'arguments' => '{}'];
         yield StreamEvent::delta($ctx->assistantMessageId, 'x');
     });
     // real store so we can assert the checkpoint row is actually written
-    $runner = tlrRunner($resolver, $dispatcher, tlrApprovalPolicy(true), new ToolApprovalStore);
+    $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(true), new ToolApprovalStore);
 
     $llmMessages = [['role' => 'user', 'content' => 'delete me']];
     $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: [['type' => 'function']]);
@@ -395,11 +384,11 @@ it('stops at the configured max_iterations cap instead of looping unbounded', fu
 
     // Every model turn keeps requesting another ungated tool — only the cap stops it.
     $counter = 0;
-    $resolver = tlrTransformerResolver(function (ChatContext $ctx) use (&$counter) {
+    $transformer = tlrTransformer(function (ChatContext $ctx) use (&$counter) {
         $ctx->pendingToolCalls[] = ['id' => 'call_'.$counter++, 'name' => 'loop_tool', 'arguments' => '{}'];
         yield StreamEvent::delta($ctx->assistantMessageId, 'x');
     });
-    $runner = tlrRunner($resolver, $dispatcher, tlrApprovalPolicy(false));
+    $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'go']];
     $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: [['type' => 'function']]);

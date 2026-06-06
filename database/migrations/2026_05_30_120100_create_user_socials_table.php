@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('provider');
-            $table->string('provider_id')->index();
+            $table->string('provider_id');
             $table->timestamps();
 
             $table->unique(['provider', 'provider_id']);

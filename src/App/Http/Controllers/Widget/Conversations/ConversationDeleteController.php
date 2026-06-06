@@ -28,8 +28,7 @@ class ConversationDeleteController
         $conversationId = $request->header('X-CONVERSATION-ID');
 
         $memory
-            ->setAgent($agent)
-            ->setExternalSessionId($sessionId);
+            ->withContext($agent, $sessionId);
 
         if ($conversationId) {
             // Confirm the conversation actually belongs to THIS agent before

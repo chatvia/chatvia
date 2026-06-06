@@ -41,11 +41,15 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can add team members.
+     * Determine whether the user can add team members (invite).
+     *
+     * Owners always may; a teammate needs the explicit `team.invite` grant.
+     * This is the single source of truth for the invite gate — keep it in sync
+     * with nothing, because nothing else should re-implement it.
      */
     public function addTeamMember(object $user, object $team): bool
     {
-        return $user->ownsTeam($team);
+        return $user->ownsTeam($team) || $user->hasTeamPermission($team, 'team.invite');
     }
 
     /**

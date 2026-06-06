@@ -91,7 +91,7 @@ class EnhanceDocumentChunkAction
             ? $summary."\n\n".$chunkEmbeddingText
             : $chunkEmbeddingText;
 
-        $embeddingPrice = config('ai.pricing.embedding_per_million_tokens', 0.10);
+        $embeddingPrice = config('chatvia.ai.pricing.embedding_per_million_tokens', 0.10);
         $costInCents = $this->costCalculator
             ->calculateCostInCents($contextualizedChunk, '', $embeddingPrice, 0.0) + $enhancedChunk->cost;
 

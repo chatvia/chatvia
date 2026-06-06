@@ -13,11 +13,8 @@ class InviteTeamMemberRequest extends FormRequest
     public function authorize(): bool
     {
         $team = $this->route('team');
-        $user = $this->user();
 
-        return $team instanceof Team
-            && $user instanceof User
-            && ($user->ownsTeam($team) || $user->hasTeamPermission($team, 'team.invite'));
+        return $team instanceof Team && $this->user()?->can('addTeamMember', $team);
     }
 
     /**

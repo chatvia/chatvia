@@ -1,0 +1,234 @@
+<?php
+
+use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
+use Domain\Billing\Services\UserCreditSystem;
+use Domain\Conversation\Models\Attachment;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
+use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\Memory\ChatCache;
+use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+
+/**
+ * HTTP coverage for the composer-X delete endpoint. Proves that clicking the
+ * remove chip in the composer wipes both the DB row AND the S3 object on the
+ * public disk — plus the negative cases that keep the route from becoming a
+ * delete-anyone's-file hole.
+ */
+function attachmentDeleteAgent(bool $isPublic = true): Agent
+{
+    $owner = User::factory()->create();
+    app(TeamService::class)->createDefaultTeam($owner);
+
+    $priceId = 'price_test_pro_'.Str::random(6);
+    config(['billing.packages.pro.stripe_monthly_price_id' => $priceId]);
+    $owner->billing->subscriptions()->create([
+        'type' => 'default',
+        'stripe_id' => 'sub_test_'.Str::random(8),
+        'stripe_status' => 'active',
+        'stripe_price' => $priceId,
+        'quantity' => 1,
+    ]);
+    $owner->refresh();
+
+    $agent = Agent::create([
+        'user_id' => $owner->id,
+        'team_id' => $owner->primaryTeam()->id,
+        'name' => 'Attachment Bot',
+        'external_id' => Str::random(14),
+        'sub_domain' => Str::lower(Str::random(12)),
+        'system_instructions' => 'You are a helpful assistant.',
+        'is_public' => $isPublic,
+    ]);
+
+    app(UserCreditSystem::class)->setUserId($agent->user_id)->setCanSendMessages(true);
+
+    return $agent;
+}
+
+function makeAttachment(Agent $agent, ?Conversation $conversation = null, ?int $messageId = null): Attachment
+{
+    $convPart = $conversation ? $conversation->external_id : 'pending';
+    $uuid = (string) Str::uuid();
+    $filepath = sprintf('chat-uploads/agent-%d/%s/%s.pdf', $agent->id, $convPart, $uuid);
+
+    Storage::disk('public')->put($filepath, 'fake pdf bytes');
+
+    return Attachment::create([
+        'chat_conversation_id' => $conversation?->id,
+        'chat_message_id' => $messageId,
+        'filepath' => $filepath,
+        'filename' => 'job-posting.pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 14,
+    ]);
+}
+
+function makeConversation(Agent $agent, ?User $user = null): Conversation
+{
+    $session = Session::create([
+        'agent_id' => $agent->id,
+        'user_id' => $user?->id,
+    ]);
+
+    return Conversation::create([
+        'chat_session_id' => $session->id,
+        'source' => 'hosted_chat',
+        'is_visible' => true,
+        'title' => 'Test chat',
+    ]);
+}
+
+beforeEach(function (): void {
+    Storage::fake('public');
+});
+
+it('deletes an orphan attachment (Home.vue pending flow) and wipes its S3 object', function (): void {
+    $agent = attachmentDeleteAgent();
+    $attachment = makeAttachment($agent);
+
+    Storage::disk('public')->assertExists($attachment->filepath);
+
+    $response = $this->delete(
+        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+    );
+
+    $response->assertNoContent();
+    expect(Attachment::find($attachment->id))->toBeNull();
+    Storage::disk('public')->assertMissing($attachment->filepath);
+});
+
+it('deletes a conversation-bound attachment on a public agent and wipes its S3 object', function (): void {
+    $agent = attachmentDeleteAgent();
+    $conversation = makeConversation($agent);
+    $attachment = makeAttachment($agent, $conversation);
+
+    $response = $this->delete(
+        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+    );
+
+    $response->assertNoContent();
+    expect(Attachment::find($attachment->id))->toBeNull();
+    Storage::disk('public')->assertMissing($attachment->filepath);
+});
+
+it('refuses to delete an attachment already bound to a sent message (composer-only guard)', function (): void {
+    $agent = attachmentDeleteAgent();
+    $conversation = makeConversation($agent);
+    $message = Message::create([
+        'chat_conversation_id' => $conversation->id,
+        'role' => 'user',
+        'content' => 'see attached',
+    ]);
+    $attachment = makeAttachment($agent, $conversation, messageId: $message->id);
+
+    $response = $this->delete(
+        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+    );
+
+    $response->assertForbidden();
+    expect(Attachment::find($attachment->id))->not->toBeNull();
+    Storage::disk('public')->assertExists($attachment->filepath);
+});
+
+it('refuses to delete an orphan attachment that lives under a different agent\'s upload bucket', function (): void {
+    $otherAgent = attachmentDeleteAgent();
+    $attachment = makeAttachment($otherAgent); // filepath baked under $otherAgent->id
+
+    // Hit the endpoint as a different agent.
+    $requesterAgent = attachmentDeleteAgent();
+
+    $response = $this->delete(
+        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$requesterAgent->external_id}",
+    );
+
+    $response->assertForbidden();
+    expect(Attachment::find($attachment->id))->not->toBeNull();
+    Storage::disk('public')->assertExists($attachment->filepath);
+});
+
+it('refuses to delete a conversation-bound attachment whose conversation belongs to another agent', function (): void {
+    $otherAgent = attachmentDeleteAgent();
+    $conversation = makeConversation($otherAgent);
+    $attachment = makeAttachment($otherAgent, $conversation);
+
+    $requesterAgent = attachmentDeleteAgent();
+
+    $response = $this->delete(
+        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$requesterAgent->external_id}",
+    );
+
+    $response->assertForbidden();
+    expect(Attachment::find($attachment->id))->not->toBeNull();
+    Storage::disk('public')->assertExists($attachment->filepath);
+});
+
+it('refuses to delete on a private agent when the auth user does not own the conversation', function (): void {
+    $agent = attachmentDeleteAgent(isPublic: false);
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+
+    $conversation = makeConversation($agent, $owner);
+    ChatCache::rememberOwner($conversation->external_id, $owner->id);
+
+    $attachment = makeAttachment($agent, $conversation);
+
+    $response = $this->actingAs($intruder)->delete(
+        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+    );
+
+    $response->assertForbidden();
+    expect(Attachment::find($attachment->id))->not->toBeNull();
+    Storage::disk('public')->assertExists($attachment->filepath);
+});
+
+it('lets the rightful owner delete on a private agent', function (): void {
+    $agent = attachmentDeleteAgent(isPublic: false);
+    $owner = User::factory()->create();
+
+    $conversation = makeConversation($agent, $owner);
+    ChatCache::rememberOwner($conversation->external_id, $owner->id);
+
+    $attachment = makeAttachment($agent, $conversation);
+
+    $response = $this->actingAs($owner)->delete(
+        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+    );
+
+    $response->assertNoContent();
+    expect(Attachment::find($attachment->id))->toBeNull();
+    Storage::disk('public')->assertMissing($attachment->filepath);
+});
+
+it('returns 404 for a non-existent attachment external_id (route-model binding)', function (): void {
+    $agent = attachmentDeleteAgent();
+
+    $response = $this->delete(
+        'https://chatvia.test/chat/messages/attachments/01999999-0000-7000-8000-000000000000?agent='.$agent->external_id,
+    );
+
+    $response->assertNotFound();
+});
+
+it('refuses to delete an attachment whose conversation has been soft-deleted', function (): void {
+    $agent = attachmentDeleteAgent();
+    $conversation = makeConversation($agent);
+    $attachment = makeAttachment($agent, $conversation);
+
+    // The Conversation::booted() deleting hook normally cascades, but a partial
+    // failure mid-cascade could leave an attachment row pointing at a trashed
+    // conversation. The controller still refuses (Attachment->conversation()
+    // applies SoftDeletes scope → null → 403); the daily prune is the only
+    // path that cleans up such an orphan. Lock the behaviour in.
+    $conversation->forceFill(['deleted_at' => now()])->saveQuietly();
+
+    $response = $this->delete(
+        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+    );
+
+    $response->assertForbidden();
+});

@@ -18,9 +18,7 @@ class MessageDeleteController
         $agent = current_agent();
 
         $memory
-            ->setAgent($agent)
-            ->setExternalSessionId($session->firstOrCreateSession($agent))
-            ->setConversationId($request->input('conversation_id'))
+            ->withContext($agent, $session->firstOrCreateSession($agent), $request->input('conversation_id'))
             ->deleteMessage($request->input('message_id'));
     }
 }

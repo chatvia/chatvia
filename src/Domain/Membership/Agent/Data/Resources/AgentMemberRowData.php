@@ -22,16 +22,28 @@ class AgentMemberRowData extends Data
         public ?string $email,
         public string $status,
         public bool $has_access,
+        public string $created_at,
+        // Only set for a pending member that still has a live (non-expired)
+        // invitation, so the owner can copy/share the sign-up link from the UI.
+        public ?string $invitation_url = null,
+        public ?string $invitation_expires_at = null,
     ) {}
 
-    public static function fromModelAndGrant(User $chatter, bool $hasAccess): self
-    {
+    public static function fromModelAndGrant(
+        User $chatter,
+        bool $hasAccess,
+        ?string $invitationUrl = null,
+        ?string $invitationExpiresAt = null,
+    ): self {
         return new self(
             external_id: $chatter->external_id,
             name: $chatter->name,
             email: $chatter->email,
             status: $chatter->email_verified_at !== null ? 'active' : 'pending',
             has_access: $hasAccess,
+            created_at: $chatter->created_at->toIso8601String(),
+            invitation_url: $invitationUrl,
+            invitation_expires_at: $invitationExpiresAt,
         );
     }
 }

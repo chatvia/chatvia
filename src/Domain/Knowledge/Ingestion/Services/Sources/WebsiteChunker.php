@@ -5,7 +5,7 @@ namespace Domain\Knowledge\Ingestion\Services\Sources;
 use Domain\Knowledge\Ingestion\Services\Tidy\HTMLCleaner;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Llm\Operations\Documents\Chunker;
+use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;

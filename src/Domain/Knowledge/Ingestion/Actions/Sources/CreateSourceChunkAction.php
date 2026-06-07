@@ -7,7 +7,7 @@ use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
-use Domain\Knowledge\Ingestion\Services\TikToken;
+use Domain\Llm\Services\TikToken;
 use Illuminate\Database\Eloquent\Model;
 
 /**

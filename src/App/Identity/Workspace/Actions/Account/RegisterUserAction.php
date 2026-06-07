@@ -30,7 +30,7 @@ class RegisterUserAction
 
             event(new Registered($user));
 
-            $user->ensureCurrentTeam();
+            $user->bootstrapCurrentTeam();
 
             return $user;
         });

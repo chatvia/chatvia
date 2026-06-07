@@ -703,17 +703,6 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * @deprecated Use {@see currentOrPrimaryTeam()} for reads (Inertia share
-     *             lambda, helpers) or {@see bootstrapCurrentTeam()} for the
-     *             one-shot persisting variant (session bootstrap, registration).
-     *             Kept as a thin shim for callers we haven't migrated yet.
-     */
-    public function ensureCurrentTeam(): ?Team
-    {
-        return $this->bootstrapCurrentTeam();
-    }
-
-    /**
      * Employees (collaborators) this user manages.
      *
      * @return HasMany<User, $this>

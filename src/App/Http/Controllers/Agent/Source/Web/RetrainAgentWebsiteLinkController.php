@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agent\Source\Web;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Source\Web\Actions\Url\RetrainAgentWebsiteUrlAction;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\Request;
@@ -18,7 +17,6 @@ class RetrainAgentWebsiteLinkController
         Agent $agent,
         SourceWebsite $website,
         AgentWebsiteUrl $link,
-        RetrainAgentWebsiteUrlAction $retrain,
     ): void {
         abort_if($request->user()->cannot('delete', $website), 404);
 
@@ -26,6 +24,6 @@ class RetrainAgentWebsiteLinkController
         // can't re-crawl a foreign website's URL.
         abort_if($link->source_website_id !== $website->id, 404);
 
-        $retrain->execute($link, $agent);
+        $link->train($agent);
     }
 }

@@ -72,7 +72,6 @@ use App\Http\Controllers\Agent\Source\Qa\AgentQaController;
 use App\Http\Controllers\Agent\Source\Qa\DetachAgentQaController;
 use App\Http\Controllers\Agent\Source\Text\AgentSourcesLinkTextController;
 use App\Http\Controllers\Agent\Source\Text\AgentSourcesTrainedTextsListController;
-use App\Http\Controllers\Agent\Source\Text\AgentSourceUnlinkTextController;
 use App\Http\Controllers\Agent\Source\Text\AgentTextController;
 use App\Http\Controllers\Agent\Source\Text\DetachAgentTextController;
 use App\Http\Controllers\Agent\Source\Video\AgentSourceFileDeleteController;
@@ -290,7 +289,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Text Sources
         Route::get('sources/trained-texts', AgentSourcesTrainedTextsListController::class)->name('sources.texts.list');
         Route::post('sources/trained-texts/{textId}/link', AgentSourcesLinkTextController::class)->name('sources.texts.link');
-        Route::post('sources/trained-texts/{textId}/unlink', AgentSourceUnlinkTextController::class)->name('sources.texts.unlink');
 
         // Website Sources (cross-agent shared pool)
         Route::get('sources/trained-websites', [AgentTrainedWebsiteController::class, 'index'])->name('sources.trained-websites.index');

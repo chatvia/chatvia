@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agent\Source\Youtube;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Source\Youtube\Actions\RetrainAgentYoutubeVideoAction;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,7 +12,7 @@ use Illuminate\Http\Request;
  */
 class RetrainAgentYoutubeController
 {
-    public function __invoke(Request $request, Agent $agent, SourceYoutubeVideo $youtube, RetrainAgentYoutubeVideoAction $retrain): JsonResponse
+    public function __invoke(Request $request, Agent $agent, SourceYoutubeVideo $youtube): JsonResponse
     {
         abort_if($request->user()->cannot('update', $agent), 404);
         abort_unless(
@@ -21,7 +20,7 @@ class RetrainAgentYoutubeController
             404,
         );
 
-        $retrain->execute($agent, $youtube);
+        $youtube->retrain($agent->id);
 
         return response()->json(['message' => 'YouTube video retraining started.']);
     }

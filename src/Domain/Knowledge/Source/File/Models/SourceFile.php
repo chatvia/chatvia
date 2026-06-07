@@ -8,6 +8,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\QueryBuilders\SourceFileQueryBuilder;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -22,7 +23,6 @@ use Support\MimeType;
 use Support\Traits\Chunkable;
 use Support\Traits\HasStorageFile;
 use Support\Traits\SupportsExternalId;
-use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -160,6 +160,6 @@ class SourceFile extends Model implements ChunkableContract
 
     public function isIngested(): bool
     {
-        return $this->status === 'ingested';
+        return $this->status === SourceStatus::Completed->value;
     }
 }

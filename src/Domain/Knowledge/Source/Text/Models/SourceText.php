@@ -8,6 +8,7 @@ use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -90,7 +91,7 @@ class SourceText extends Model implements ChunkableContract
         $this->update([
             'language' => null,
             'document_classification' => null,
-            'status' => 'pending',
+            'status' => SourceStatus::Pending->value,
         ]);
     }
 

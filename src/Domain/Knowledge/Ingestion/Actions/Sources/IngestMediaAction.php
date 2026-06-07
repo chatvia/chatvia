@@ -8,6 +8,7 @@ use Domain\Knowledge\Ingestion\Jobs\Media\MediaChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
 use Domain\Knowledge\Ingestion\Services\TokenSplitter;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Llm\Operations\Media\Transcription;
 use Illuminate\Bus\Batch;
@@ -28,7 +29,7 @@ class IngestMediaAction
 
     public function execute(SourceFile $sourceFile, Agent $agent, ?string $internalJobId = null): void
     {
-        if ($sourceFile->status === 'ingested') {
+        if ($sourceFile->status === SourceStatus::Completed->value) {
             return;
         }
 
@@ -37,7 +38,7 @@ class IngestMediaAction
         $sourceFile->update([
             'internal_ingestion_job_id' => $internalJobId,
             'parser' => 'whisper',
-            'status' => 'ingesting',
+            'status' => SourceStatus::Processing->value,
         ]);
 
         if ($sourceFile->parser_filepath) {
@@ -77,7 +78,7 @@ class IngestMediaAction
             ->name('Ingestion Agent File ID: '.$agent->id)
             ->then(function (Batch $batch) use ($agentFileId): void {
                 $file = SourceFile::find($agentFileId);
-                $file?->update(['status' => 'ingested']);
+                $file?->update(['status' => SourceStatus::Completed->value]);
 
                 DB::statement('ANALYZE chunks');
             })

@@ -6,10 +6,11 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Models\SourceText;
-use Support\Exceptions\DomainValidationException;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Support\Exceptions\DomainValidationException;
 
 class UpdateAgentSourceTextAction
 {
@@ -41,7 +42,7 @@ class UpdateAgentSourceTextAction
             'filepath' => $filepath,
             'checksum' => $checksum,
             'length' => $numberOfPages,
-            'status' => 'pending',
+            'status' => SourceStatus::Pending->value,
             'excerpt' => Str::of($newContent)->limit(200)->replace("\n", ' ')->trim()->toString(),
         ]);
 

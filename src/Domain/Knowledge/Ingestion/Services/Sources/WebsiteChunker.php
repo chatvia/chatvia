@@ -2,10 +2,11 @@
 
 namespace Domain\Knowledge\Ingestion\Services\Sources;
 
+use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
 use Domain\Knowledge\Ingestion\Services\Tidy\HTMLCleaner;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
@@ -38,7 +39,7 @@ class WebsiteChunker
 
                 $urlModel = $untrainedUrls->where('url', $url)->first();
 
-                $status = 'ingesting';
+                $status = SourceStatus::Processing->value;
 
                 $urlModel->update([
                     'checksum' => $checksum,

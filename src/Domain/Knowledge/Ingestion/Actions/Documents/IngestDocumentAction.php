@@ -4,9 +4,10 @@ namespace Domain\Knowledge\Ingestion\Actions\Documents;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
-use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
+use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Bus\Batch;
@@ -78,7 +79,7 @@ class IngestDocumentAction
         SummaryIngestionJob::dispatch($sourceFile);
 
         $sourceFile->update([
-            'status' => 'ingesting',
+            'status' => SourceStatus::Processing->value,
             'expected_chunks' => $pages->count(),
         ]);
 
@@ -94,7 +95,7 @@ class IngestDocumentAction
                     return;
                 }
 
-                $file->update(['status' => 'ingested']);
+                $file->update(['status' => SourceStatus::Completed->value]);
 
                 // Refresh planner stats so vchordrq prefilter sees the new
                 // reltuples — autovacuum's default schedule waits far too long.
@@ -105,7 +106,7 @@ class IngestDocumentAction
                 // blank pages create no chunk, so importedChunks stays below
                 // expected_chunks — which leaves the client stuck on "ingesting".
                 // Broadcasting here, where ingestionProgress() returns 100 via
-                // the status==='ingested' short-circuit, guarantees the UI flips
+                // the Completed-status short-circuit, guarantees the UI flips
                 // to "ingested" regardless of dedup, races, or a dropped frame.
                 FileIngestionProgressed::dispatch($file, $agentExternalId);
             })

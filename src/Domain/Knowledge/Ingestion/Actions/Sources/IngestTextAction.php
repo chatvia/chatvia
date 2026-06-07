@@ -7,6 +7,7 @@ use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Services\TokenSplitter;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Events\TextIngestionStarted;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Bus\Batch;
@@ -23,7 +24,7 @@ class IngestTextAction
     {
         $startTime = microtime(true);
 
-        $sourceText->update(['status' => 'ingesting']);
+        $sourceText->update(['status' => SourceStatus::Processing->value]);
         TextIngestionStarted::dispatch($sourceText, $agent);
 
         $file = $sourceText->readFile();
@@ -39,7 +40,7 @@ class IngestTextAction
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent Text ID: '.$sourceText->id)
             ->then(function (Batch $batch) use ($agentTextId, $agent): void {
-                SourceText::find($agentTextId)?->update(['status' => 'ingested']);
+                SourceText::find($agentTextId)?->update(['status' => SourceStatus::Completed->value]);
                 TextIngestionStarted::dispatch(SourceText::find($agentTextId), $agent);
 
                 DB::statement('ANALYZE chunks');

@@ -7,6 +7,7 @@ use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlTrainJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Collection;
@@ -63,7 +64,7 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
 
     public function train(Agent $agent): void
     {
-        $this->update(['status' => 'pending']);
+        $this->update(['status' => SourceStatus::Pending->value]);
 
         WebsiteUrlTrainJob::dispatch($this, $agent);
     }

@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Ingestion\Services;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Media\MediaIngestionJob;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Support\Facades\Bus;
 use InvalidArgumentException;
@@ -13,12 +14,12 @@ class Ingestion
 {
     public function ingest(SourceFile $sourceFile, Agent $agent): void
     {
-        if ($sourceFile->status === 'ingested') {
+        if ($sourceFile->status === SourceStatus::Completed->value) {
             return;
         }
 
-        if ($sourceFile->status !== 'ingesting') {
-            $sourceFile->update(['status' => 'ingesting']);
+        if ($sourceFile->status !== SourceStatus::Processing->value) {
+            $sourceFile->update(['status' => SourceStatus::Processing->value]);
         }
 
         if ($sourceFile->isAudioFile() || $sourceFile->isVideoFile()) {

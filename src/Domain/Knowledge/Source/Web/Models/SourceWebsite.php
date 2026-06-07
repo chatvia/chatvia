@@ -7,6 +7,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -102,6 +103,6 @@ class SourceWebsite extends Model implements ChunkableContract
     public function untrainedUrls(): HasMany
     {
         return $this->hasMany(AgentWebsiteUrl::class, 'source_website_id')
-            ->where('status', 'pending');
+            ->where('status', SourceStatus::Pending->value);
     }
 }

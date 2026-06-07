@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agent\Source\Web;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Actions\Source\AttachWebsiteToAgentAction;
 use Domain\Knowledge\Source\Web\Actions\Source\DetachWebsiteFromAgentAction;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
@@ -19,7 +20,7 @@ class AgentTrainedWebsiteController
 
         $websites = SourceWebsite::query()
             ->where('user_id', $request->user()->id)
-            ->where('status', 'ingested')
+            ->where('status', SourceStatus::Completed->value)
             ->whereNotIn('id', $currentIds)
             ->with(['agents' => function ($q) use ($agent): void {
                 $q->select('agents.id', 'agents.name')

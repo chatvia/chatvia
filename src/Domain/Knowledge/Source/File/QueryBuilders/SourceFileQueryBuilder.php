@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Source\File\QueryBuilders;
 
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -14,7 +15,7 @@ class SourceFileQueryBuilder extends Builder
 {
     public function ingested(): self
     {
-        return $this->where('source_files.status', 'ingested');
+        return $this->where('source_files.status', SourceStatus::Completed->value);
     }
 
     public function pdf(): self

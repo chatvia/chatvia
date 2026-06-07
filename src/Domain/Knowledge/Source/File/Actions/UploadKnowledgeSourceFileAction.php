@@ -4,7 +4,7 @@ namespace Domain\Knowledge\Source\File\Actions;
 
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\FileAnalyzer;
-use Domain\Knowledge\Source\File\Enums\AgentFileStatusEnum;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,7 @@ class UploadKnowledgeSourceFileAction
     public function execute(
         Agent $agent,
         UploadedFile $file,
-        AgentFileStatusEnum $status = AgentFileStatusEnum::UPLOADED,
+        SourceStatus $status = SourceStatus::Uploaded,
     ): SourceFile {
         if (! is_pdf_file($file) && ! is_word_file($file) && ! is_audio_file($file) && ! is_video_file($file)) {
             throw new RuntimeException('Unsupported file type. Accepted: PDF, Word, audio, video.');

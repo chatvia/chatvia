@@ -6,6 +6,7 @@ use App\Http\Requests\Agent\Source\Qa\CreateAgentQaRequest;
 use App\Http\Requests\Agent\Source\Qa\UpdateAgentQaRequest;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\QA\Actions\CreateAgentQaAction;
 use Domain\Knowledge\Source\QA\Actions\UpdateAgentQaAction;
 use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
@@ -44,7 +45,7 @@ class AgentQaController
             'title' => $qa->title,
             'questions' => $this->parseQuestionsToArray($qa->questions),
             'answer' => $qa->answer,
-            'status' => 'ingested',
+            'status' => SourceStatus::Completed->value,
             'created_at' => $qa->created_at,
             'updated_at' => $qa->updated_at,
         ]);
@@ -102,7 +103,7 @@ class AgentQaController
                 'title' => $qa->title,
                 'questions' => $this->parseQuestionsToArray($qa->questions),
                 'answer' => $qa->answer,
-                'status' => 'ingested',
+                'status' => SourceStatus::Completed->value,
                 'created_at' => $qa->created_at,
                 'updated_at' => $qa->updated_at,
             ]);

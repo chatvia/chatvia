@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agent\Source\File\Manage;
 use Domain\Agent\Actions\Sources\UnlinkSourceFileFromAgentAction;
 use Domain\Agent\Data\Resources\Sources\AgentSourcesListData;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Http\Request;
 
@@ -24,7 +25,7 @@ class AgentTrainedFileController
         $data = $request->user()
             ->sourceFiles()
             ->with('agents', fn ($query) => $query->select('agents.id', 'name'))
-            ->where('status', 'ingested')
+            ->where('status', SourceStatus::Completed->value)
             ->when($request->filled('type'), fn ($q) => $q->where('filetype', $request->input('type')))
             ->whereDoesntHave('agents', fn ($q) => $q->where('agents.id', $agent->id))
             ->select('id', 'filename', 'filetype', 'length')

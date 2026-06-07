@@ -292,6 +292,12 @@ return [
     'widget' => [
         'script_url_embed' => env('WIDGET_SCRIPT_URL', 'http://localhost:3000/dist/embed.js'),
         'chatvia_widget_id' => env('CHATVIA_WIDGET_ID'),
+
+        // Global per-agent ceilings for the LLM-cost widget stream, keyed on the
+        // server-resolved agent so a client cannot multiply its budget (and burn
+        // the owner's quota/spend) by rotating X-SESSION-ID or source IPs.
+        'stream_per_agent_per_minute' => (int) env('WIDGET_STREAM_PER_AGENT_PER_MINUTE', 120),
+        'stream_per_agent_per_hour' => (int) env('WIDGET_STREAM_PER_AGENT_PER_HOUR', 1500),
     ],
 
 ];

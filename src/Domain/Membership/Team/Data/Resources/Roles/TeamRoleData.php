@@ -30,7 +30,15 @@ class TeamRoleData extends Data
             code: $role->code,
             name: $role->name,
             description: $role->description,
-            permissions: $role->permissions->pluck('name')->toArray(),
+            // `agents.access-all` is surfaced through `all_agents`, not as a
+            // member of the permissions list — exposing it in both lets the
+            // edit form round-trip it back and silently re-grant all-agent
+            // access even after the user unchecks "All Agents".
+            permissions: $role->permissions
+                ->pluck('name')
+                ->reject(fn (string $name): bool => $name === 'agents.access-all')
+                ->values()
+                ->toArray(),
             all_agents: $role->hasPermissionTo('agents.access-all'),
             agent_ids: $role->agents()->pluck('agents.external_id')->toArray(),
         );

@@ -159,7 +159,7 @@ class AgentMcpServer extends Model
      * unknown to that workspace. Replaces the per-controller `find()` helper
      * that was copy-pasted across the Settings/Connector controllers.
      */
-    public static function forSlugScoped(string $slug, \App\Identity\Workspace\Models\User $user): self
+    public static function forSlugScoped(string $slug, User $user): self
     {
         return $user->mcpServers()->where('slug', $slug)->firstOrFail();
     }

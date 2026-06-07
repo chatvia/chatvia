@@ -140,6 +140,44 @@ SQL;
     }
 
     /**
+     * Distinct candidate questions for an agent, drawn from the LLM-generated
+     * `questions` on its ingested chunks (each chunk holds a newline-delimited
+     * block). Used to suggest conversation starters in the agent Setup UI.
+     * Scoped to the agent through the same `agent_sources` EXISTS filter as the
+     * hybrid search above. Returns an empty array when the agent has no
+     * question-bearing chunks.
+     *
+     * @return array<int, string>
+     */
+    public function questionsForAgent(int $agentId, int $limit = 60): array
+    {
+        $blocks = $this->getModel()->newQuery()
+            ->whereNotNull('questions')
+            ->where('questions', '!=', '')
+            ->whereExists(function ($query) use ($agentId): void {
+                $query->select(DB::raw(1))
+                    ->from('agent_sources as s')
+                    ->whereColumn('s.sourceable_id', 'chunks.chunkable_id')
+                    ->whereColumn('s.sourceable_type', 'chunks.chunkable_type')
+                    ->where('s.agent_id', $agentId);
+            })
+            ->limit(200)
+            ->pluck('questions');
+
+        return $blocks
+            ->flatMap(fn (string $block): array => preg_split('/\r\n|\r|\n/', $block) ?: [])
+            ->map(fn (string $question): string => trim($question))
+            ->filter()
+            // The starters endpoint caps each entry at 255 chars; never suggest
+            // one that would fail validation when the user saves it.
+            ->filter(fn (string $question): bool => mb_strlen($question) <= 255)
+            ->unique()
+            ->take($limit)
+            ->values()
+            ->all();
+    }
+
+    /**
      * Set vchordrq runtime params for the current transaction. `SET LOCAL`
      * needs an explicit transaction — otherwise values leak on pooled
      * connections (pgbouncer / Octane).

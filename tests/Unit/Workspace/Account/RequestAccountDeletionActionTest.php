@@ -3,7 +3,9 @@
 use App\Identity\Workspace\Actions\Account\RequestAccountDeletionAction;
 use App\Identity\Workspace\Events\AccountDeletionRequested;
 use App\Identity\Workspace\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\URL;
 
 it('dispatches AccountDeletionRequested with a signed confirmation link for the user', function (): void {
     Event::fake();
@@ -36,7 +38,7 @@ it('mints a confirmation link that passes signature validation', function (): vo
         return true;
     });
 
-    $request = Illuminate\Http\Request::create($url);
+    $request = Request::create($url);
 
-    expect(Illuminate\Support\Facades\URL::hasValidSignature($request))->toBeTrue();
+    expect(URL::hasValidSignature($request))->toBeTrue();
 });

@@ -56,11 +56,11 @@ class RenderRadarChartTool extends Tool
             'tooltip' => ['trigger' => 'item'],
             'legend' => ['show' => true, 'top' => 'bottom'],
             'radar' => [
-                'indicator' => array_map(fn ($i) => ['name' => $i['name'], 'max' => $i['max']], $v['indicators']),
+                'indicator' => array_map(fn ($i): array => ['name' => $i['name'], 'max' => $i['max']], $v['indicators']),
             ],
             'series' => [[
                 'type' => 'radar',
-                'data' => array_map(fn ($s) => ['name' => $s['name'], 'value' => $s['values']], $v['series']),
+                'data' => array_map(fn ($s): array => ['name' => $s['name'], 'value' => $s['values']], $v['series']),
             ]],
         ];
 

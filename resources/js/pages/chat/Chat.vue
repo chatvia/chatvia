@@ -86,6 +86,10 @@ const props = defineProps({
         type: String,
         default: 'chat.home',
     },
+    chatviaBranding: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const loadingMessages = ref(true);
@@ -584,6 +588,15 @@ function buildStreamCallbacks({ userIndex, assistantIndex, isNewConversation = f
                 };
             }
             streamingAssistantId.value = null;
+
+            // Title even when the first turn errors. The user message is already
+            // persisted (conversations.create stores it before streaming), so the
+            // backend can still name the conversation from it — otherwise a failed
+            // first reply leaves the chat stuck as "New Chat" forever. onDone and
+            // onError are mutually exclusive, so this never double-fires per turn.
+            if (isNewConversation) {
+                void generateTitleThenRefresh();
+            }
         },
         onDone: () => {
             streamingAssistantId.value = null;
@@ -683,13 +696,22 @@ function resolveApproval(approvalId, assistantMessageId, decisions) {
  * sidebar still refreshes (showing "New Chat") if titling fails.
  */
 async function generateTitleThenRefresh() {
-    try {
-        await axios.post(route('conversations.title', { conversationId: props.conversation_id }));
-    } catch {
-        // ignore — titling is best-effort
-    } finally {
-        chatEventBus.emitConversationCreated(props.conversation_id);
+    // Retry once: the endpoint is idempotent (a no-op once the conversation is
+    // named) and cheap, so a single transient blip — a 503 under load, a network
+    // hiccup — shouldn't permanently leave the chat as "New Chat". Best-effort
+    // throughout; the sidebar still refreshes even if both attempts fail.
+    for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+            await axios.post(route('conversations.title', { conversationId: props.conversation_id }));
+            break;
+        } catch {
+            if (attempt === 0) {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+            }
+        }
     }
+
+    chatEventBus.emitConversationCreated(props.conversation_id);
 }
 
 /**
@@ -1068,6 +1090,19 @@ const handleScrollToBottomClick = () => {
 
                         <div v-if="props.appearance?.chat_footer_text" class="mt-3 text-center">
                             <p class="text-muted-foreground/60 text-[11px]">{{ props.appearance.chat_footer_text }}</p>
+                        </div>
+
+                        <!-- Branding: hidden when the workspace owns the remove-branding add-on -->
+                        <div v-if="props.chatviaBranding" class="mt-2 flex items-center justify-center">
+                            <a
+                                href="https://chatvia.ai"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-muted-foreground/50 hover:text-muted-foreground/80 inline-flex items-center gap-1 text-[11px] transition-colors"
+                            >
+                                <img src="/images/logo.svg" alt="Chatvia" class="h-3.5 w-3.5 opacity-70" />
+                                Powered by Chatvia
+                            </a>
                         </div>
                     </div>
                 </div>

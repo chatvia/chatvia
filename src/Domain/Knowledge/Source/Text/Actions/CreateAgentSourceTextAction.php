@@ -7,9 +7,9 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
 use Domain\Knowledge\Source\Text\Models\SourceText;
-use Support\Exceptions\DomainValidationException;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Support\Exceptions\DomainValidationException;
 
 class CreateAgentSourceTextAction
 {

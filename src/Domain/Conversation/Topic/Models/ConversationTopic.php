@@ -23,10 +23,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 #[Guarded(['id'])]
 #[Table(name: 'conversation_topics')]
+#[\Illuminate\Database\Eloquent\Attributes\WithoutTimestamps]
 class ConversationTopic extends Model
 {
-    public $timestamps = false;
-
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class, 'chat_conversation_id');

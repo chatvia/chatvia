@@ -4,10 +4,10 @@ namespace Domain\Membership\Team\Actions\Roles;
 
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
-use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Illuminate\Support\Facades\DB;
+use Support\Exceptions\DomainValidationException;
 
 class CreateTeamRoleAction
 {
@@ -44,18 +44,20 @@ class CreateTeamRoleAction
                 'guard_name' => 'web',
             ]);
 
-            $permissions = $data->permissions;
-            if ($data->allAgents) {
-                $permissions[] = 'agents.access-all';
-            }
+            // `agents.access-all` is a meta-permission owned entirely by the
+            // allAgents flag — strip any incoming copy, then add it back only
+            // when the role grants all agents. Keeps create symmetric with
+            // UpdateTeamRoleAction so the permission can never drift in.
+            $permissions = collect($data->permissions)
+                ->reject(fn (string $permission): bool => $permission === 'agents.access-all')
+                ->when($data->allAgents, fn ($permissions) => $permissions->push('agents.access-all'))
+                ->unique();
 
-            if (! empty($permissions)) {
-                $permissionModels = collect($permissions)->unique()->map(function ($permissionName) {
-                    return Permission::firstOrCreate([
-                        'name' => $permissionName,
-                        'guard_name' => 'web',
-                    ]);
-                });
+            if ($permissions->isNotEmpty()) {
+                $permissionModels = $permissions->map(fn (string $permissionName): Permission => Permission::firstOrCreate([
+                    'name' => $permissionName,
+                    'guard_name' => 'web',
+                ]));
 
                 $role->syncPermissions($permissionModels);
             }

@@ -75,6 +75,7 @@ interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData & { id?: number | string };
     authToken: string | null;
     starters: string[];
+    knowledgeQuestions: string[];
     prompts: PromptOption[];
     hasPermission: boolean;
     canUseHandoff: boolean;
@@ -294,8 +295,11 @@ const starters = ref<string[]>([...props.starters]);
 const isSavingStarters = ref(false);
 const saveStarters = async () => {
     isSavingStarters.value = true;
+    // Drop blank/whitespace-only lines so empty fields never persist as starters.
+    const cleaned = starters.value.map((s) => s.trim()).filter(Boolean);
     try {
-        await axios.put(route('agents.starters.update', { agent: props.agent.external_id }), { text: starters.value });
+        await axios.put(route('agents.starters.update', { agent: props.agent.external_id }), { text: cleaned });
+        starters.value = cleaned;
         toast.success('Starters saved');
         bumpPreview();
     } catch {
@@ -963,7 +967,7 @@ const copyApiCode = async (code: string) => {
 
                                 <!-- Starters -->
                                 <div v-if="activeTab === 'starters'" class="space-y-6 p-6">
-                                    <StartersSection v-model:starters="starters" :disabled="locked" />
+                                    <StartersSection v-model:starters="starters" :knowledge-questions="knowledgeQuestions" :disabled="locked" />
                                     <div v-if="!locked">
                                         <Button type="button" size="sm" :disabled="!canEdit || isSavingStarters" @click="saveStarters">
                                             <Save class="mr-2 h-4 w-4" />

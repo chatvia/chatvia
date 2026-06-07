@@ -26,6 +26,11 @@ class WidgetSettingsResourceData extends Data
         public ?bool $show_on_load,
         public ?int $show_on_load_delay,
         public WidgetSettingsBrandingData $branding,
+        // Whether the "Powered by Chatvia" badge should render. False only when
+        // the owning workspace holds the active "remove branding" add-on. The
+        // widget gates the footer on this (and on branding.enabled, which is
+        // driven by the same value for back-compat with cached bundles).
+        public bool $chatvia_branding,
         /** @var array<int, mixed> */
         public array $starters,
         public ?string $window_size,

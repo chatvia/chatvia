@@ -10,7 +10,7 @@ beforeEach(function (): void {
     $this->workspace = User::factory()->create();
 });
 
-function deletionConfirmUrl(User $user, ?\Closure $tamper = null): string
+function deletionConfirmUrl(User $user, ?Closure $tamper = null): string
 {
     $url = URL::temporarySignedRoute(
         'settings.account.delete.confirm',

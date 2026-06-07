@@ -97,7 +97,7 @@ it('rerank() attributes usage.total_tokens to the active scope', function (): vo
         ],
     ])]);
 
-    $out = app(TokenUsageContext::class)->track(7, fn () => (new Qwen3)->rerank('q', ['a', 'b']));
+    $out = app(TokenUsageContext::class)->track(7, fn (): ?array => (new Qwen3)->rerank('q', ['a', 'b']));
 
     // The rerank result is still returned intact (usage capture is side-channel).
     expect($out)->toHaveCount(2)

@@ -48,7 +48,7 @@ function bindFakeStreamingLlm(string ...$tokens): void
             throw new RuntimeException('client() not used');
         }
 
-        public function completion(array $data)
+        public function completion(array $data): void
         {
             throw new RuntimeException('completion() not used');
         }

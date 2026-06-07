@@ -44,6 +44,7 @@ interface AddonsData {
     extra_message_credits: MessageCreditsState;
     extra_agents: AddonSubscriptionState;
     custom_domains: AddonSubscriptionState;
+    remove_branding: AddonSubscriptionState;
 }
 
 const props = defineProps<{
@@ -155,6 +156,21 @@ const subscribeCustomDomains = (): void => {
 const cancelCustomDomainsForm = useForm({});
 const cancelCustomDomains = (): void => {
     cancelCustomDomainsForm.post(route('billing.addons.custom-domains.cancel'), {
+        preserveScroll: true,
+        onSuccess: () => emit('refresh'),
+    });
+};
+
+// --- Remove Branding (recurring subscription, flat monthly, no quantity) ---
+const isSubscribingRemoveBranding = ref(false);
+const subscribeRemoveBranding = (): void => {
+    isSubscribingRemoveBranding.value = true;
+    window.location.href = route('billing.addons.remove-branding');
+};
+
+const cancelRemoveBrandingForm = useForm({});
+const cancelRemoveBranding = (): void => {
+    cancelRemoveBrandingForm.post(route('billing.addons.remove-branding.cancel'), {
         preserveScroll: true,
         onSuccess: () => emit('refresh'),
     });
@@ -540,10 +556,70 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                         </div>
                     </div>
                 </div>
+
+                <!-- Remove Branding -->
+                <div class="bg-muted/30 hover:bg-muted/50 flex flex-col gap-3 rounded-lg border p-4 transition-colors">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
+                                <Sparkles class="text-muted-foreground h-4 w-4" />
+                            </div>
+                            <h3 class="text-sm font-semibold">Remove Branding</h3>
+                        </div>
+                        <Badge v-if="addons.remove_branding.active" variant="default" class="gap-1">
+                            <CheckCircle class="h-3 w-3" />
+                            Active
+                        </Badge>
+                        <Badge v-else variant="outline">None</Badge>
+                    </div>
+                    <p class="text-muted-foreground text-xs leading-relaxed">
+                        Hide the "Powered by Chatvia" badge across your widget and hosted chat.
+                    </p>
+                    <p v-if="addons.remove_branding.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">
+                        Ends {{ addons.remove_branding.cancels_at }}
+                    </p>
+                    <div class="mt-auto flex items-end justify-between gap-2 pt-1">
+                        <div>
+                            <span class="text-lg font-bold">$19</span>
+                            <span class="text-muted-foreground text-xs"> / month</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <AlertDialog v-if="addons.remove_branding.active">
+                                <AlertDialogTrigger as-child>
+                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">Cancel</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Cancel Remove Branding subscription?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            The "Powered by Chatvia" badge will reappear on your widget and hosted chat immediately, and you won't be
+                                            charged again.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Keep subscription</AlertDialogCancel>
+                                        <AlertDialogAction @click="cancelRemoveBranding">Yes, cancel</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                            <Button
+                                v-else
+                                variant="outline"
+                                size="sm"
+                                class="gap-2"
+                                :disabled="!subscribed || isSubscribingRemoveBranding"
+                                @click="subscribeRemoveBranding"
+                            >
+                                <Loader2 v-if="isSubscribingRemoveBranding" class="h-4 w-4 animate-spin" />
+                                Subscribe
+                            </Button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <p v-if="!subscribed" class="text-muted-foreground mt-4 text-center text-xs">
-                Extra Agents and Custom Domain require an active main subscription.
+                Extra Agents, Custom Domain, and Remove Branding require an active main subscription.
             </p>
         </CardContent>
     </Card>

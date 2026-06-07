@@ -31,13 +31,25 @@ class SourceFileViewController
         };
 
         $record = $model::query()
-            ->select(['filepath'])
+            ->select(['filepath', 'user_id'])
             ->where('external_id', $externalId)
             ->first();
 
         if (! $record?->filepath) {
             abort(404, 'Invalid source file.');
         }
+
+        // Tenant isolation: a knowledge-base file may only be served to the
+        // workspace that owns it (or a platform admin). Without this any
+        // authenticated user could read another tenant's proprietary training
+        // documents by id (cross-tenant IDOR). 404 — not 403 — so the endpoint
+        // does not confirm the existence of a file the caller may not see.
+        $viewer = $request->user();
+
+        abort_unless(
+            $viewer->isAdmin() || (int) $record->user_id === (int) $viewer->workspace()->id,
+            404,
+        );
 
         $filepath = $record->filepath;
 

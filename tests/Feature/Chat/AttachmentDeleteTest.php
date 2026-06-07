@@ -9,9 +9,8 @@ use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * HTTP coverage for the composer-X delete endpoint. Proves that clicking the

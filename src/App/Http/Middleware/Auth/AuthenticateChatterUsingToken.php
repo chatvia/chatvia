@@ -24,13 +24,29 @@ class AuthenticateChatterUsingToken
         if ($request->filled('auth_token')) {
             $authToken = $request->input('auth_token');
 
+            // A valid (not-yet-consumed, unexpired) token signs the chatter in.
+            // An invalid/expired/already-used token is a no-op here — the
+            // downstream chat middleware will then route the still-anonymous
+            // visitor to login.
             if ($cachedAuthToken = $this->authTokenService->getTokenData($authToken)) {
                 Auth::guard('web')->loginUsingId($cachedAuthToken['user_id']);
 
                 $this->authTokenService->invalidateToken($authToken);
-
-                return redirect()->route('chat.home');
             }
+
+            // Always redirect away from the auth_token URL, whether or not the
+            // token resolved. This strips the single-use token from the address
+            // bar (so a refresh/back doesn't replay a dead token) and lands the
+            // visitor on the clean chat home.
+            //
+            // Relative redirect: the request already arrived on the agent's
+            // subdomain, and with SESSION_DOMAIN=null the session cookie is
+            // scoped to that exact host. Redirecting to the absolute
+            // route('chat.home') would jump to the apex domain, where the cookie
+            // isn't sent and no agent resolves — bouncing the user to login.
+            // Staying on the current host keeps both intact. Same pattern as
+            // ChatLoginController.
+            return redirect(route('chat.home', absolute: false));
         }
 
         return $next($request);

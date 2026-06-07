@@ -4,6 +4,7 @@ namespace Domain\Billing\Jobs;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Account\AutoRechargeCreditsAction;
+use Domain\Billing\Listeners\TriggerAutoRecharge;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
@@ -50,6 +51,13 @@ class ProcessAutoRechargeJob implements ShouldQueue
             // arrived here first.
             if ($billing->auto_recharge_last_triggered_at
                 && $billing->auto_recharge_last_triggered_at->gt(now()->subHour())) {
+                return;
+            }
+
+            // Re-check the rolling-24h spend ceiling under the lock (mirrors the
+            // listener guard) so a burst of queued jobs can't blow past it.
+            if (TriggerAutoRecharge::dailyRechargeCount($user)
+                >= (int) config('billing.addons.auto_recharge_credits.max_per_day', 3)) {
                 return;
             }
 

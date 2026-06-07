@@ -2,6 +2,7 @@
 
 namespace Domain\Widget\Actions;
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Services\UserAgentParser;
 use Domain\Conversation\Enums\ConversationSource;
@@ -11,6 +12,7 @@ use Domain\Widget\Data\Session\WidgetSessionInitData;
 use Domain\Widget\Data\Session\WidgetSessionInitResultData;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Support\Str;
+use Support\Http\SafeUrl;
 
 /**
  * Bootstrap a widget session: validate (or mint) the session, validate (or
@@ -25,16 +27,17 @@ class InitializeWidgetSessionAction
         private readonly ChatMemory $memory,
     ) {}
 
-    public function execute(Agent $agent, WidgetSessionInitData $data): WidgetSessionInitResultData
+    public function execute(Agent $agent, WidgetSessionInitData $data, ?User $authUser = null): WidgetSessionInitResultData
     {
         $isNewSession = false;
         $isNewConversation = false;
 
         $session = null;
         if ($data->existingSessionId) {
-            // Agent-scoped: a session id from another agent is ignored, and a
-            // fresh one is minted for this agent below.
-            $session = $this->widgetVerification->verifySessionExternalId($data->existingSessionId, $agent);
+            // Agent-scoped (and, on a protected agent, user-scoped): a session id
+            // from another agent — or another chatter — is ignored, and a fresh
+            // one is minted below bound to the authenticated user.
+            $session = $this->widgetVerification->verifySessionExternalId($data->existingSessionId, $agent, $authUser);
             $session?->update(['last_activity_at' => now()]);
         }
 
@@ -42,6 +45,10 @@ class InitializeWidgetSessionAction
             $userAgent = $this->userAgentParser->parse($data->userAgent);
             $session = Session::create([
                 'agent_id' => $agent->id,
+                // Bind the session to the authenticated chatter on protected
+                // agents (null for public/anonymous), so later reads/deletes can
+                // be scoped to the owning user instead of trusting the session id.
+                'user_id' => $authUser?->id,
                 'ip_address' => $data->ipAddress,
                 'user_agent' => $data->userAgent,
                 'device_type' => $userAgent['device_type'],
@@ -51,17 +58,18 @@ class InitializeWidgetSessionAction
                 // Scheme-guard visitor-supplied URLs so a javascript:/data: URI
                 // can't later execute when an operator clicks the link in the
                 // admin Conversation Details panel.
-                'referrer_url' => \Support\Http\SafeUrl::httpSchemeOrNull($data->referrerUrl),
-                'page_url' => \Support\Http\SafeUrl::httpSchemeOrNull($data->pageUrl ?? $data->referrerUrl),
+                'referrer_url' => SafeUrl::httpSchemeOrNull($data->referrerUrl),
+                'page_url' => SafeUrl::httpSchemeOrNull($data->pageUrl ?? $data->referrerUrl),
             ]);
             $isNewSession = true;
         }
 
         $conversation = null;
         if ($data->existingConversationId) {
-            // Same agent-scoping rule: a conversation from another agent never
-            // resurfaces here, even if the visitor (or attacker) sends it.
-            $conversation = $this->widgetVerification->verifyConversationId($data->existingConversationId, $agent);
+            // Same agent- + user-scoping rule: a conversation from another agent
+            // (or another chatter) never resurfaces here, even if the visitor
+            // (or attacker) sends it.
+            $conversation = $this->widgetVerification->verifyConversationId($data->existingConversationId, $agent, $authUser);
             $conversation?->update(['last_activity_at' => now()]);
         }
 

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import MemberDetailSheet from '@/components/members/MemberDetailSheet.vue';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -11,6 +10,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';

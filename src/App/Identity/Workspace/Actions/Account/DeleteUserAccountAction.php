@@ -5,7 +5,7 @@ namespace App\Identity\Workspace\Actions\Account;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Stripe\Exception\ApiErrorException;
+use Laravel\Cashier\Subscription;
 
 /**
  * Tear down a whole workspace: the owner, their employees + chatters, their
@@ -73,6 +73,7 @@ class DeleteUserAccountAction
             return;
         }
 
+        /** @var Subscription $subscription */
         foreach ($billing->subscriptions()->get() as $subscription) {
             if ($subscription->canceled()) {
                 continue;

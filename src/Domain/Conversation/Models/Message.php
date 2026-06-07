@@ -111,12 +111,6 @@ class Message extends Model
 {
     use HasFactory, SupportsExternalId;
 
-    protected array $hmacEncryptionColumns = [
-        'conversation.session.agent_id',
-        'conversation_id',
-        'id',
-    ];
-
     protected function casts(): array
     {
         return [

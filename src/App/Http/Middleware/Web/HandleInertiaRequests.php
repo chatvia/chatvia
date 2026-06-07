@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware\Web;
 
-use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;

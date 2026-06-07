@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1\Team;
 
 use App\Http\Resources\Api\V1\Team\RoleData;
-use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Roles\UpdateTeamRoleAction;
@@ -64,5 +63,4 @@ class RoleController
             agentExternalIds: $payload->agent_ids,
         );
     }
-
 }

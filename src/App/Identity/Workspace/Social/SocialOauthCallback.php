@@ -8,6 +8,8 @@ use App\Identity\Workspace\Exceptions\SocialAccountAlreadyLinkedException;
 use App\Identity\Workspace\Login\TwoFactorAwareLogin;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Laravel\Socialite\AbstractUser;
+use Laravel\Socialite\Contracts\User;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
 use Support\Enums\User\SocialProvider;
@@ -64,6 +66,7 @@ class SocialOauthCallback
             $provider,
             (string) $socialUser->getId(),
             $socialUser->getEmail(),
+            $this->providerEmailVerified($socialUser),
         );
 
         if (! $user) {
@@ -71,5 +74,28 @@ class SocialOauthCallback
         }
 
         return TwoFactorAwareLogin::redirect($user, route('dashboard'));
+    }
+
+    /**
+     * Whether the OAuth provider asserted the email is verified: true / false
+     * when the claim is present, null when the provider did not include it (the
+     * action then keeps the prior trust-the-provider behaviour). Reads the
+     * common OIDC `email_verified` / Google `verified_email` raw claims.
+     */
+    private function providerEmailVerified(User $socialUser): ?bool
+    {
+        if (! $socialUser instanceof AbstractUser) {
+            return null;
+        }
+
+        $raw = (array) $socialUser->getRaw();
+
+        foreach (['email_verified', 'verified_email'] as $claim) {
+            if (array_key_exists($claim, $raw)) {
+                return filter_var($raw[$claim], FILTER_VALIDATE_BOOLEAN);
+            }
+        }
+
+        return null;
     }
 }

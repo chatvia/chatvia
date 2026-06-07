@@ -4,8 +4,8 @@ namespace Domain\Membership\Team\Actions\Members;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Data\InviteTeamMemberData;
-use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Services\TeamService;
+use Support\Exceptions\DomainValidationException;
 
 class InviteTeamMemberAction
 {

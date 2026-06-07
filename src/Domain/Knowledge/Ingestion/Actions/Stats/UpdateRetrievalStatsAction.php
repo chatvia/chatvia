@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Ingestion\Actions\Stats;
 
 use Domain\Analytics\Events\SourceRetrieved;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -82,7 +83,7 @@ class UpdateRetrievalStatsAction
      * deletion. Keyed by id.
      *
      * @param  class-string  $class
-     * @param  \Illuminate\Support\Collection<int, int|string>  $ids
+     * @param  Collection<int, int|string>  $ids
      * @return array<int, array{name: ?string, mime: ?string}>
      */
     private function resolveLabels(string $type, string $class, $ids): array

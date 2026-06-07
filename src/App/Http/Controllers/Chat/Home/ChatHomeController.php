@@ -12,6 +12,7 @@ class ChatHomeController
     {
         $agent = current_agent();
         $agent?->loadSettingsGroups(['appearance', 'embed']);
+        $agent?->loadMissing('team.owner');
         $embed = $agent?->settings('embed');
 
         return Inertia::render('chat/Home', [
@@ -23,6 +24,7 @@ class ChatHomeController
             'defaultTheme' => $embed?->get('default_theme'),
             'enableChatExpand' => $embed?->get('enable_chat_expand'),
             'locale' => $embed?->get('language') ?: 'auto',
+            'chatviaBranding' => $agent?->showsChatviaBranding() ?? true,
         ]);
     }
 }

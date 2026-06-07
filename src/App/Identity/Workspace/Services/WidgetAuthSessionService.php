@@ -29,7 +29,13 @@ use Illuminate\Support\Str;
  */
 class WidgetAuthSessionService
 {
-    private const string PREFIX = 'user:{userId}:widget:auth:';
+    // Keyed on the 64-char CSPRNG token alone. It used to embed the issuing
+    // user id, but issue() interpolated $user->id while resolveWithMeta() and
+    // revoke() interpolated $agent->user_id — they only matched for the agent
+    // owner, so every non-owner chatter's session silently missed (protected
+    // widgets broke) and revoke() never deleted anything. The token is already
+    // unguessable; the (user, agent, fingerprint) payload still scopes it.
+    private const string PREFIX = 'widget:auth:';
 
     // Four hours. Long enough for a typical chat session; short enough that an
     // exfiltrated token has a small useful life. The customer's backend
@@ -47,7 +53,7 @@ class WidgetAuthSessionService
         $token = Str::random(64);
         $expiresAt = Carbon::now()->addSeconds(self::TTL_SECONDS);
 
-        Cache::put(template(self::PREFIX.$token, ['userId' => $user->id]), [
+        Cache::put(self::PREFIX.$token, [
             'user_id' => $user->id,
             'agent_id' => $agent->id,
             'fingerprint' => $this->fingerprint($request),
@@ -72,7 +78,7 @@ class WidgetAuthSessionService
      */
     public function resolveWithMeta(string $token, Agent $agent, Request $request): ?array
     {
-        $payload = Cache::get(template(self::PREFIX.$token, ['userId' => $agent->user_id]));
+        $payload = Cache::get(self::PREFIX.$token);
 
         if (! is_array($payload) || ! isset($payload['user_id'], $payload['agent_id'])) {
             return null;

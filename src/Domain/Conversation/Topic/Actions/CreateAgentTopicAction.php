@@ -5,8 +5,8 @@ namespace Domain\Conversation\Topic\Actions;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\Topic;
-use Support\Exceptions\DomainValidationException;
 use Illuminate\Support\Facades\DB;
+use Support\Exceptions\DomainValidationException;
 
 class CreateAgentTopicAction
 {

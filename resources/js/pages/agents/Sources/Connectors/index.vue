@@ -200,10 +200,7 @@ onMounted(fetchAll);
                             </section>
 
                             <section>
-                                <div
-                                    v-if="filteredFeatured.length === 0"
-                                    class="text-muted-foreground rounded-md border py-12 text-center text-sm"
-                                >
+                                <div v-if="filteredFeatured.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
                                     No connectors match.
                                 </div>
                                 <div v-else class="rounded-lg border">

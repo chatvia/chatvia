@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Rules;
 
 use Closure;
+use Domain\Conversation\Actions\Conversations\CreateConversationAction;
 use Domain\Conversation\Models\Attachment;
 use Illuminate\Contracts\Validation\ValidationRule;
 
@@ -14,7 +15,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
  *
  * Null / empty / `pending` conversation ids skip the check — those are
  * pre-conversation uploads on the chatter's Home.vue path, where the
- * composer caps client-side and {@see \Domain\Conversation\Actions\Conversations\CreateConversationAction}
+ * composer caps client-side and {@see CreateConversationAction}
  * slices claimed orphan ids to the same ceiling so a script can't smuggle
  * extras in.
  */

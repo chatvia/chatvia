@@ -324,11 +324,7 @@ onMounted(() => {
                                         <TableCell class="py-4 text-sm">{{ row.server?.catalog_tools_count ?? '—' }}</TableCell>
                                         <TableCell class="py-4 text-sm">{{ row.server?.agents_count ?? '—' }}</TableCell>
                                         <TableCell class="py-4 pr-5 text-right" @click.stop>
-                                            <Switch
-                                                v-if="row.server"
-                                                :model-value="row.server.is_enabled"
-                                                @update:model-value="quickToggle(row)"
-                                            />
+                                            <Switch v-if="row.server" :model-value="row.server.is_enabled" @update:model-value="quickToggle(row)" />
                                             <Button
                                                 v-else-if="!row.connector!.comingSoon"
                                                 size="sm"

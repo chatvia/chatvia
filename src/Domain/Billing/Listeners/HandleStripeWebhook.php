@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Events\WebhookReceived;
+use Laravel\Cashier\Subscription;
 use Support\Enums\User\UserType;
 
 class HandleStripeWebhook
@@ -290,6 +291,7 @@ class HandleStripeWebhook
         $isSinglePrice = count($items) === 1;
         $firstItem = $items[0] ?? null;
 
+        /** @var Subscription $subscription */
         $subscription = $billing->subscriptions()->updateOrCreate(
             ['stripe_id' => $stripeSubscription->id],
             [
@@ -425,6 +427,15 @@ class HandleStripeWebhook
             return;
         }
 
-        $user->quota()->updateOrCreate([], [$addon->quotaColumn() => $quantity]);
+        $quotaColumn = $addon->quotaColumn();
+
+        // Subscription-only addons (e.g. remove_branding) keep no quota mirror;
+        // their entitlement is read live from the Cashier subscription row that
+        // Cashier itself syncs. Nothing to write here.
+        if ($quotaColumn === null) {
+            return;
+        }
+
+        $user->quota()->updateOrCreate([], [$quotaColumn => $quantity]);
     }
 }

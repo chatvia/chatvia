@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Support\Http\ChunkImageLink;
 
 /**
  * Chat turn lifecycle: build the context, enrich with knowledge / Q&A, prepare
@@ -442,8 +443,11 @@ readonly class ChatService
 
                 $imageIndex = 0;
                 foreach ($chunk['images'] as $description) {
-                    // Always use main domain URL instead of subdomain-based route()
-                    $path = '/my/chunks/'.$chunk['external_id'].'/'.$imageIndex.'.png';
+                    // Always use main domain URL instead of subdomain-based route().
+                    // The path carries a constant-time HMAC over (chunk id, index)
+                    // so the public chunk-image route only serves links the server
+                    // minted — closing the cross-tenant IDOR on guessable chunk ids.
+                    $path = ChunkImageLink::path($chunk['external_id'], $imageIndex);
                     $imageUrl = rtrim(config('app.url'), '/').$path;
                     // The description is LLM-generated alt-text captured from an
                     // ingested document image (attacker-influenceable). Strip the

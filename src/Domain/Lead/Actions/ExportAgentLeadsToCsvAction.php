@@ -4,8 +4,8 @@ namespace Domain\Lead\Actions;
 
 use Domain\Agent\Models\Agent;
 use Domain\Lead\Models\Lead;
-use Support\Exceptions\DomainValidationException;
 use Illuminate\Database\Eloquent\Collection;
+use Support\Exceptions\DomainValidationException;
 
 class ExportAgentLeadsToCsvAction
 {

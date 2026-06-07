@@ -256,12 +256,7 @@ const copyId = async () => {
                         </div>
                         <Switch :model-value="deactivated" @update:model-value="(v) => (deactivated = v)" />
                     </div>
-                    <Textarea
-                        v-if="deactivated"
-                        v-model="deactivationReason"
-                        placeholder="Reason (optional) — visible to your team only"
-                        :rows="2"
-                    />
+                    <Textarea v-if="deactivated" v-model="deactivationReason" placeholder="Reason (optional) — visible to your team only" :rows="2" />
                     <Button :disabled="isSaving" @click="save">
                         <LoaderCircle v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
                         Save changes

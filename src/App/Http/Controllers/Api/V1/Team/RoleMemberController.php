@@ -44,5 +44,4 @@ class RoleMemberController
 
         return ['data' => UserData::fromModel($user)];
     }
-
 }

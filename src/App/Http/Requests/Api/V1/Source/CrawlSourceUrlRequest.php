@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\Source;
 
+use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Illuminate\Foundation\Http\FormRequest;
-use Domain\Agent\Rules\SafeWebhookUrl;
 
 class CrawlSourceUrlRequest extends FormRequest
 {

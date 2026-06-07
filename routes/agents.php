@@ -132,7 +132,8 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         });
 
         // Update Agent (Persona/Instructions)
-        Route::patch('/update', [AgentController::class, 'update'])->name('update');
+        Route::patch('/update', [AgentController::class, 'update'])
+            ->middleware('agent.permission:agent.setup')->name('update');
 
         Route::get('widget/preview', WidgetPreviewController::class)->name('widget.preview');
         Route::get('bar/preview', BarPreviewController::class)->name('bar.preview');
@@ -178,19 +179,27 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // = pivot deleted. No per-attachment enabled flag.
         Route::get('sources/functions', AgentFunctionController::class)->name('sources.functions.index');
         Route::get('sources/functions/data', AgentFunctionsListController::class)->name('sources.functions.data');
-        Route::post('sources/functions/{function}/attach', AgentFunctionAttachController::class)->name('sources.functions.attach');
-        Route::delete('sources/functions/{function}', AgentFunctionDeleteController::class)->name('sources.functions.detach');
-        Route::post('sources/functions/{function}/test', AgentFunctionTestController::class)->name('sources.functions.test');
+        // Attaching/detaching a webhook tool changes what the agent can call —
+        // gate the mutations on the documented function-training permission.
+        Route::post('sources/functions/{function}/attach', AgentFunctionAttachController::class)
+            ->middleware('agent.permission:agent.sources.train.functions')->name('sources.functions.attach');
+        Route::delete('sources/functions/{function}', AgentFunctionDeleteController::class)
+            ->middleware('agent.permission:agent.sources.train.functions')->name('sources.functions.detach');
+        Route::post('sources/functions/{function}/test', AgentFunctionTestController::class)
+            ->middleware('agent.permission:agent.sources.train.functions')->name('sources.functions.test');
 
         // Connectors page — agents attach existing account-level connectors
         // via the pivot. Creation/deletion of connector rows happens in
         // /settings/connectors. Attach = pivot exists; detach = pivot deleted.
         Route::get('sources/connectors', AgentConnectorController::class)->name('sources.connectors.index');
         Route::get('sources/connectors/data', AgentConnectorsListController::class)->name('sources.connectors.data');
-        Route::post('sources/connectors/{slug}/attach', AgentConnectorAttachController::class)->name('sources.connectors.attach');
-        Route::delete('sources/connectors/{slug}', AgentConnectorDisconnectController::class)->name('sources.connectors.detach');
+        Route::post('sources/connectors/{slug}/attach', AgentConnectorAttachController::class)
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.attach');
+        Route::delete('sources/connectors/{slug}', AgentConnectorDisconnectController::class)
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.detach');
         Route::get('sources/connectors/{slug}/tools', AgentConnectorToolController::class)->name('sources.connectors.tools');
-        Route::post('sources/connectors/{slug}/refresh', AgentConnectorRefreshController::class)->name('sources.connectors.refresh');
+        Route::post('sources/connectors/{slug}/refresh', AgentConnectorRefreshController::class)
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.refresh');
 
         Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
         Route::delete('sources/text/{id}', [AgentTextController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.text.destroy');
@@ -210,7 +219,8 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::post('sources/websites/{website}/links/bulk-destroy', BulkDestroyAgentWebsiteLinksController::class)->name('sources.websites.links.bulk-destroy');
 
         // Starters API endpoint (used by Widget and Embed components)
-        Route::put('starters', [AgentStarterController::class, 'update'])->name('starters.update');
+        Route::put('starters', [AgentStarterController::class, 'update'])
+            ->middleware('agent.permission:agent.setup')->name('starters.update');
 
         Route::get('leads', [AgentLeadController::class, 'index'])->middleware('agent.permission:agent.leads.view')->name('leads.index');
         Route::delete('leads', [AgentLeadController::class, 'destroy'])->middleware('agent.permission:agent.leads.view')->name('leads.destroy');
@@ -256,24 +266,33 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('setup', SetupController::class)->name('setup');
 
         // Single-model picker — sets the agent's `llm_id` and hyperparameters.
-        Route::patch('llm', UpdateAgentLlmController::class)->name('llm.update');
+        Route::patch('llm', UpdateAgentLlmController::class)
+            ->middleware('agent.permission:agent.setup')->name('llm.update');
 
         // Custom domain (Hosted Chat) — pass an empty value to clear.
         // Quota gating happens in the controller.
-        Route::patch('domain', UpdateAgentDomainController::class)->name('domain.update');
+        Route::patch('domain', UpdateAgentDomainController::class)
+            ->middleware('agent.permission:agent.setup')->name('domain.update');
 
         //        Route::patch('activity', AgentUpdateActivityController::class)->name('activity');
-        Route::patch('security', AgentSecurityUpdateController::class)->name('security.update');
+        // Toggling `is_public` exposes/locks the agent on the public internet —
+        // gate it on the documented `agent.setup` permission, not mere access.
+        Route::patch('security', AgentSecurityUpdateController::class)
+            ->middleware('agent.permission:agent.setup')->name('security.update');
 
         // Per-agent signing secret. Owner mints sign-in tokens (chat ?token= and
         // widget data-auth) on their backend; regenerating invalidates every
-        // token previously signed for this agent.
+        // token previously signed for this agent — so the destructive POST must
+        // require the same permission the (read) GET above already enforces.
         Route::get('identity', AgentIdentityController::class)->name('identity');
-        Route::post('identity/regenerate', RegenerateAgentAuthSecretController::class)->name('identity.regenerate');
+        Route::post('identity/regenerate', RegenerateAgentAuthSecretController::class)
+            ->middleware('agent.permission:agent.identity.manage')->name('identity.regenerate');
 
-        // Settings
-        Route::post('settings/{group}', [AgentSettingsController::class, 'update'])->name('settings.update');
-        Route::delete('settings/{group}', [AgentSettingsController::class, 'destroy'])->name('settings.delete');
+        // Settings (persona / branding / widget / bar / embed / lead-capture …)
+        Route::post('settings/{group}', [AgentSettingsController::class, 'update'])
+            ->middleware('agent.permission:agent.setup')->name('settings.update');
+        Route::delete('settings/{group}', [AgentSettingsController::class, 'destroy'])
+            ->middleware('agent.permission:agent.setup')->name('settings.delete');
 
         // Members
         Route::get('team', AgentTeamController::class)->name('team');

@@ -63,7 +63,7 @@
         "remove_photo_title": "Remove profile photo",
         "remove_photo_description": "Your photo will revert to your initials. You can upload a new one at any time.",
         "agents_dialog_title": "My Agents",
-        "agents_dialog_description": "Manage your AI agents and their configurations.",
+        "agents_dialog_description": "Access your AI Agents",
         "loading_agents": "Loading agents...",
         "no_agents": "No agents found.",
         "switching_agent": "Switching...",

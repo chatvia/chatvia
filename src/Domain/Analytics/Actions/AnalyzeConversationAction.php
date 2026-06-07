@@ -41,7 +41,7 @@ class AnalyzeConversationAction
 
         $hasUserContent = $messages
             ->where('role', 'user')
-            ->contains(fn ($message) => filled($message->content));
+            ->contains(fn ($message): bool => filled($message->content));
 
         // Nothing classifiable (no owning agent, or no user turns) — still stamp
         // analyzed_at so the scheduled scan stops re-selecting this conversation.
@@ -52,7 +52,7 @@ class AnalyzeConversationAction
         }
 
         $transcript = $messages
-            ->map(fn ($message) => ucfirst($message->role).': '.$message->content)
+            ->map(fn ($message): string => ucfirst($message->role).': '.$message->content)
             ->implode("\n");
 
         $analysis = $this->analyzer->analyze($transcript, $agent);

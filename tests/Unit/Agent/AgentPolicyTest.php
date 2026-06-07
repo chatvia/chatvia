@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Policies\AgentPolicy;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * AgentPolicy matrix. The view/update/delete/restore/forceDelete abilities
@@ -14,7 +15,6 @@ use Domain\Agent\Policies\AgentPolicy;
  *  - Chatter           → only agents on the accessible-agents pivot
  *  - Unrelated user    → denied
  */
-
 beforeEach(function (): void {
     $this->policy = app(AgentPolicy::class);
 });
@@ -70,7 +70,7 @@ it('regression guard: AgentPolicy and the access-agent Gate disagree about admin
     expect($this->policy->view($admin, $agent))->toBeFalse();
 
     // The Gate, however, allows:
-    expect(Illuminate\Support\Facades\Gate::forUser($admin)->allows('access-agent', $agent))->toBeTrue();
+    expect(Gate::forUser($admin)->allows('access-agent', $agent))->toBeTrue();
 });
 
 it('view denies a chatter that has not been granted access to the agent on the pivot', function (): void {

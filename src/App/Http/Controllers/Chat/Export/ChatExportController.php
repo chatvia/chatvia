@@ -64,7 +64,7 @@ readonly class ChatExportController
 
     private function toPdf(array $messages, string $filename): PdfBuilder
     {
-        return Pdf::withBrowsershot(fn (Browsershot $browsershot) => $this->browsershotConfig->configure($browsershot))
+        return Pdf::withBrowsershot(fn (Browsershot $browsershot): \Spatie\Browsershot\Browsershot => $this->browsershotConfig->configure($browsershot))
             ->view('chat.export.pdf', ['messages' => $messages])
             ->download($filename.'.pdf');
     }

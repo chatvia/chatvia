@@ -221,7 +221,7 @@ async function deleteMessage() {
                             <AlertDialogTrigger asChild>
                                 <button
                                     type="button"
-                                    class="bg-card text-muted-foreground hover:bg-red-500/10 hover:text-red-600 absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover/chip:opacity-100 focus:opacity-100"
+                                    class="bg-card text-muted-foreground absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover/chip:opacity-100 hover:bg-red-500/10 hover:text-red-600 focus:opacity-100"
                                     :aria-label="t('messages.delete_attachment_aria', 'Remove attachment')"
                                 >
                                     <X class="h-3 w-3" />

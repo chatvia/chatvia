@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Controllers\Chat\Messages\AttachmentDeleteController;
+use App\Http\Middleware\Chat\EnsureChatIsAccessible;
 use Domain\Conversation\Models\Attachment;
 use Illuminate\Http\Response;
 
 /**
  * Removes an attachment that's already bound to a sent message. Distinct
- * from {@see \App\Http\Controllers\Chat\Messages\AttachmentDeleteController},
+ * from {@see AttachmentDeleteController},
  * which handles the composer-stage (unsent) case under different rules.
  *
- * Authorization comes from {@see \App\Http\Middleware\Chat\EnsureChatIsAccessible}:
+ * Authorization comes from {@see EnsureChatIsAccessible}:
  * the route carries `{conversationId}` so the middleware enforces
  * `ChatCache::isOwnedBy()` for authenticated chatters on protected agents.
  * The inline check below is a defense-in-depth tie between the URL's

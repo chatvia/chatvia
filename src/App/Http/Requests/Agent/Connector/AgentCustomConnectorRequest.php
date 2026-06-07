@@ -3,9 +3,9 @@
 namespace App\Http\Requests\Agent\Connector;
 
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Connector\Data\Custom\AgentCustomConnectorData;
 use Illuminate\Foundation\Http\FormRequest;
-use Domain\Agent\Rules\SafeWebhookUrl;
 use Illuminate\Validation\Rule;
 
 class AgentCustomConnectorRequest extends FormRequest

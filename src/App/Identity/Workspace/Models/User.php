@@ -9,6 +9,7 @@ use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\ModelSetting;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
+use Domain\Billing\Enums\Addon;
 use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserBilling;
@@ -84,6 +85,7 @@ use Support\Traits\HasSettings;
  * @property-read int|null $addons_count
  * @property-read AgentCollection<int, Agent> $agents
  * @property-read int|null $agents_count
+ * @property-read string|null $avatar
  * @property-read UserBilling|null $billing
  * @property-read BillingPackageCapabilitiesData $capabilities
  * @property-read Collection<int, User> $chatters
@@ -276,6 +278,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      * instance and returns the wrong rows for an employee/chatter; eager-load
      * through the workspace leg instead: `loadMissing(['parentWorkspace.agents', 'agents'])`.
      */
+    /**
+     * Declared on the resolved workspace (the account owner), not necessarily
+     * `$this` — hence `self` rather than `$this` as the declaring-model type.
+     *
+     * @return HasMany<Agent, self>
+     */
     public function agents(): HasMany
     {
         $workspace = $this->workspace();
@@ -322,6 +330,20 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
             return (bool) ($billing?->subscribed() || $billing?->onTrial());
         });
+    }
+
+    /**
+     * Whether this account owns the active "remove branding" add-on — the
+     * workspace-wide entitlement that hides the "Powered by Chatvia" badge on
+     * every agent's widget and hosted chat. Resolved through the account owner's
+     * Cashier billing, so employees/chatters inherit the workspace answer.
+     */
+    public function canHideBranding(): bool
+    {
+        return $this->remember(
+            'canHideBranding',
+            fn (): bool => (bool) $this->accountBilling()?->subscribed(Addon::RemoveBranding->value),
+        );
     }
 
     public function capabilities(): Attribute
@@ -798,6 +820,39 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             team: $team,
             agent: $agent,
         );
+    }
+
+    /**
+     * Every agent this user may open from the chat agent-switcher — the plural
+     * companion to {@see canAccessAgent()}, resolved by account type:
+     *
+     *  - Chatter   → explicit `agent_user` grants only.
+     *  - Workspace → every agent in the account (all teams).
+     *  - Employee  → agents reachable through their current team + role.
+     *
+     * Kept in lock-step with canAccessAgent() so the set listed here is exactly
+     * the set the switch endpoint's Gate will accept — never list a row the
+     * user cannot then switch to.
+     *
+     * @return \Illuminate\Support\Collection<int, Agent>
+     */
+    public function listAccessibleAgents(): \Illuminate\Support\Collection
+    {
+        if ($this->isChatter()) {
+            return $this->accessibleAgents()->get();
+        }
+
+        if ($this->isWorkspace()) {
+            return $this->agents()->get();
+        }
+
+        $team = $this->currentTeam;
+
+        if ($team === null) {
+            return collect();
+        }
+
+        return app(TeamService::class)->accessibleAgents($this, $team);
     }
 
     // =========================================================================

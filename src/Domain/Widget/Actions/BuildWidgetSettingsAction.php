@@ -25,6 +25,11 @@ class BuildWidgetSettingsAction
         $appearance = $agent->settings('appearance');
         $bar = $agent->settings('bar');
 
+        // Workspace-wide: the "remove branding" add-on hides the badge across
+        // every agent. Drives both the legacy branding.enabled flag (so cached
+        // widget bundles still obey it) and the dedicated chatvia_branding field.
+        $showsBranding = $agent->showsChatviaBranding();
+
         return new WidgetSettingsResourceData(
             protected: $agent->is_public === false,
             title: (string) ($appearance['chat_window_title'] ?? ''),
@@ -38,11 +43,12 @@ class BuildWidgetSettingsAction
             show_on_load: $widget['show_on_load'] ?? null,
             show_on_load_delay: $widget['show_on_load_delay'] ?? null,
             branding: new WidgetSettingsBrandingData(
-                enabled: true,
+                enabled: $showsBranding,
                 name: 'Powered by ChatVia.ai',
                 url: 'https://chatvia.ai',
                 logo_url: asset('images/logo.svg'),
             ),
+            chatvia_branding: $showsBranding,
             starters: $agent->resolvedStarters(),
             window_size: $widget['window_size'] ?? null,
             theme: $widget['theme'] ?? null,

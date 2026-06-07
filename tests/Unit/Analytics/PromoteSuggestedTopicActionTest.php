@@ -7,8 +7,8 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Topic\Models\ConversationTopic;
-use Support\Exceptions\DomainValidationException;
 use Illuminate\Support\Facades\Event;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * PromoteSuggestedTopicAction turns an emergent suggestion label into a real,

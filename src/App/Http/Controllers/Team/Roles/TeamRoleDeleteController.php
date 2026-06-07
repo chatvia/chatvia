@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Team\Roles;
 
 use Domain\Membership\Team\Actions\Roles\DeleteTeamRoleAction;
-use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Support\Exceptions\DomainValidationException;
 
 class TeamRoleDeleteController
 {

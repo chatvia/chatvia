@@ -83,10 +83,6 @@ class Session extends Model
 {
     use HasFactory, SupportsExternalId;
 
-    protected array $hmacEncryptionColumns = [
-        'id',
-    ];
-
     protected function casts(): array
     {
         return [
@@ -95,6 +91,9 @@ class Session extends Model
         ];
     }
 
+    /**
+     * @return HasMany<Conversation, $this>
+     */
     public function conversations(): HasMany
     {
         return $this->hasMany(Conversation::class, 'chat_session_id');

@@ -554,7 +554,9 @@ const formatDate = (iso: string) => {
                     <div class="space-y-1.5">
                         <div class="flex items-center gap-1.5 text-xs">
                             <span class="text-muted-foreground">ID</span>
-                            <code class="min-w-0 flex-1 truncate font-mono" :title="selectedMember.external_id">{{ selectedMember.external_id }}</code>
+                            <code class="min-w-0 flex-1 truncate font-mono" :title="selectedMember.external_id">{{
+                                selectedMember.external_id
+                            }}</code>
                             <Button variant="ghost" size="sm" class="h-6 shrink-0 px-1.5" title="Copy member ID" @click="copyId">
                                 <Check v-if="idCopied" class="size-3.5 text-green-600" />
                                 <Copy v-else class="size-3.5" />
@@ -585,9 +587,7 @@ const formatDate = (iso: string) => {
                             <Clock class="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
                             <div class="space-y-0.5">
                                 <p class="text-sm font-medium">Invitation pending</p>
-                                <p class="text-muted-foreground text-xs">
-                                    This member hasn't accepted yet. Share their personal sign-up link below.
-                                </p>
+                                <p class="text-muted-foreground text-xs">This member hasn't accepted yet. Share their personal sign-up link below.</p>
                             </div>
                         </div>
 

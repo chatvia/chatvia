@@ -21,7 +21,7 @@ class DismissSuggestedTopicController
         // analyzed_at, so the label won't be regenerated.
         ConversationTopic::query()
             ->where('suggested_label', $validated['label'])
-            ->whereHas('conversation', fn ($query) => $query->forAgent($agent->id))
+            ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id))
             ->delete();
 
         return response()->json(['message' => 'Suggestion dismissed']);

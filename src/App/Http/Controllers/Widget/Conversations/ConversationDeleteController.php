@@ -24,17 +24,26 @@ class ConversationDeleteController
         }
 
         $agent = current_agent_from_widget();
+        $widgetUser = $request->attributes->get('widget_user');
         $sessionId = $request->header('X-SESSION-ID');
         $conversationId = $request->header('X-CONVERSATION-ID');
+
+        // On a protected agent, only the session's owning chatter may delete its
+        // threads — block deleting another signed-in visitor's history (including
+        // the delete-all branch) by replaying their client-supplied session id.
+        if ($widgetUser && ! $widgetVerification->verifySessionExternalId($sessionId, $agent, $widgetUser)) {
+            return response()->json(['error' => 'Invalid session'], 404);
+        }
 
         $memory
             ->withContext($agent, $sessionId);
 
         if ($conversationId) {
-            // Confirm the conversation actually belongs to THIS agent before
-            // touching it — guarantees a conversation id from another agent's
-            // session can't be deleted by spoofing X-AGENT-ID.
-            $thread = $widgetVerification->verifyConversationId($conversationId, $agent);
+            // Confirm the conversation actually belongs to THIS agent (and, on a
+            // protected agent, the authenticated chatter) before touching it —
+            // guarantees a conversation id from another agent's or chatter's
+            // session can't be deleted by spoofing X-AGENT-ID / X-SESSION-ID.
+            $thread = $widgetVerification->verifyConversationId($conversationId, $agent, $widgetUser);
 
             if (! $thread) {
                 return response()->json(['error' => 'Invalid thread'], 404);

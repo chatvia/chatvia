@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Team\Member;
 
 use App\Http\Requests\Team\InviteTeamMemberRequest;
 use Domain\Membership\Team\Actions\Members\InviteTeamMemberAction;
-use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
+use Support\Exceptions\DomainValidationException;
 
 class TeamInviteMemberController
 {

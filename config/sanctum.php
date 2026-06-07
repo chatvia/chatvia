@@ -50,7 +50,10 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Default public-API token lifetime. Previously null (tokens never expired),
+    // so a single leaked bearer was a permanent full-account credential. Default
+    // to one year; override with SANCTUM_TOKEN_TTL_MINUTES.
+    'expiration' => (int) env('SANCTUM_TOKEN_TTL_MINUTES', 525600),
 
     /*
     |--------------------------------------------------------------------------

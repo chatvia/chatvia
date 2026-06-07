@@ -3,11 +3,11 @@
 namespace Domain\Knowledge\Ingestion\Jobs;
 
 use Domain\Knowledge\Ingestion\Actions\Sources\CreateSourceSummaryAction;
-use Domain\Llm\Usage\AttributesTokenUsage;
-use Domain\Llm\Usage\TracksTokenUsage;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Domain\Llm\Usage\AttributesTokenUsage;
+use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,7 +15,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
 
-class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue, AttributesTokenUsage
+class SummaryIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable, SerializesModels, TracksTokenUsage;
 

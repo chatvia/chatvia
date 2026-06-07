@@ -129,7 +129,9 @@ const destroy = () => {
 
             <!-- State B: email confirmed → final, explicit delete -->
             <template v-if="props.confirmed">
-                <div class="flex items-start gap-2 rounded-md border border-red-200 bg-white/60 p-3 text-sm text-red-700 dark:border-red-200/20 dark:bg-transparent dark:text-red-100">
+                <div
+                    class="flex items-start gap-2 rounded-md border border-red-200 bg-white/60 p-3 text-sm text-red-700 dark:border-red-200/20 dark:bg-transparent dark:text-red-100"
+                >
                     <ShieldAlert class="mt-0.5 size-4 shrink-0" />
                     <span>Email confirmed. This is your last step — there's no going back after this.</span>
                 </div>
@@ -166,14 +168,18 @@ const destroy = () => {
 
             <!-- State A: link already sent → check your email -->
             <template v-else-if="linkSent">
-                <div class="flex items-start gap-2 rounded-md border border-red-200 bg-white/60 p-3 text-sm text-red-700 dark:border-red-200/20 dark:bg-transparent dark:text-red-100">
+                <div
+                    class="flex items-start gap-2 rounded-md border border-red-200 bg-white/60 p-3 text-sm text-red-700 dark:border-red-200/20 dark:bg-transparent dark:text-red-100"
+                >
                     <MailCheck class="mt-0.5 size-4 shrink-0" />
                     <span>
                         Check your email — we sent a confirmation link to finish deleting your account. It expires in 30 minutes. Open the link to
                         continue.
                     </span>
                 </div>
-                <Button variant="ghost" size="sm" class="text-red-600 hover:text-red-700 dark:text-red-100" @click="openDialog"> Send the link again </Button>
+                <Button variant="ghost" size="sm" class="text-red-600 hover:text-red-700 dark:text-red-100" @click="openDialog">
+                    Send the link again
+                </Button>
             </template>
 
             <!-- State A: initial → enter password -->

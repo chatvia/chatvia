@@ -202,12 +202,9 @@ const hmacBlocks = computed<RenderedExample[]>(() =>
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <label
-                            for="agent-public"
-                            class="flex cursor-pointer items-center justify-between rounded-lg border p-4"
-                        >
+                        <label for="agent-public" class="flex cursor-pointer items-center justify-between rounded-lg border p-4">
                             <div class="space-y-0.5 pr-4">
-                                <span class="text-sm font-medium leading-none">Make this agent public</span>
+                                <span class="text-sm leading-none font-medium">Make this agent public</span>
                                 <p class="text-muted-foreground text-xs">
                                     Off keeps the agent protected and requires a signed token for every visitor.
                                 </p>
@@ -385,57 +382,57 @@ const hmacBlocks = computed<RenderedExample[]>(() =>
 
                             <!-- "Use the token" — shared between both schemes. The signed token plugs into the same
                                  two places either way: widget data-auth, or hosted chat link with ?token=. -->
-                        <div class="space-y-4 border-t pt-6">
-                            <div>
-                                <p class="text-sm font-medium">Use the token</p>
-                                <p class="text-muted-foreground mt-1 text-sm">
-                                    Drop the signed token into the widget as <code>data-auth</code>, or onto the hosted chat link as
-                                    <code>?token=</code>. Tokens last at most one hour — mint a fresh one per page load.
-                                </p>
-                            </div>
-
-                            <div>
-                                <p class="text-muted-foreground mb-2 text-xs">Widget embed</p>
-                                <div class="bg-muted relative rounded-lg p-4">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        class="absolute top-3 right-3 gap-2"
-                                        @click="copy(embedSnippet, 'embed')"
-                                    >
-                                        <Check v-if="copiedKey === 'embed'" class="size-4 text-green-600" />
-                                        <Copy v-else class="size-4" />
-                                        Copy
-                                    </Button>
-                                    <pre
-                                        class="hljs overflow-x-auto bg-transparent p-0 text-xs"
-                                    ><code class="language-xml" v-html="embedHighlighted" /></pre>
+                            <div class="space-y-4 border-t pt-6">
+                                <div>
+                                    <p class="text-sm font-medium">Use the token</p>
+                                    <p class="text-muted-foreground mt-1 text-sm">
+                                        Drop the signed token into the widget as <code>data-auth</code>, or onto the hosted chat link as
+                                        <code>?token=</code>. Tokens last at most one hour — mint a fresh one per page load.
+                                    </p>
                                 </div>
-                            </div>
 
-                            <div>
-                                <p class="text-muted-foreground mb-2 text-xs">Hosted chat link</p>
-                                <div class="bg-muted rounded-lg p-4">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <code class="text-foreground flex-1 font-mono text-xs break-all">{{ chatLinkExample }}</code>
+                                <div>
+                                    <p class="text-muted-foreground mb-2 text-xs">Widget embed</p>
+                                    <div class="bg-muted relative rounded-lg p-4">
                                         <Button
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            class="shrink-0 gap-2"
-                                            @click="copy(chatLinkExample, 'chatLink')"
+                                            class="absolute top-3 right-3 gap-2"
+                                            @click="copy(embedSnippet, 'embed')"
                                         >
-                                            <Check v-if="copiedKey === 'chatLink'" class="size-4 text-green-600" />
+                                            <Check v-if="copiedKey === 'embed'" class="size-4 text-green-600" />
                                             <Copy v-else class="size-4" />
                                             Copy
                                         </Button>
+                                        <pre
+                                            class="hljs overflow-x-auto bg-transparent p-0 text-xs"
+                                        ><code class="language-xml" v-html="embedHighlighted" /></pre>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <p class="text-muted-foreground mb-2 text-xs">Hosted chat link</p>
+                                    <div class="bg-muted rounded-lg p-4">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <code class="text-foreground flex-1 font-mono text-xs break-all">{{ chatLinkExample }}</code>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                class="shrink-0 gap-2"
+                                                @click="copy(chatLinkExample, 'chatLink')"
+                                            >
+                                                <Check v-if="copiedKey === 'chatLink'" class="size-4 text-green-600" />
+                                                <Copy v-else class="size-4" />
+                                                Copy
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
                 </Tabs>
             </div>
         </div>

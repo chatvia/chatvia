@@ -50,7 +50,7 @@ class AnalyzeMessageAction
         // Attribute the tone/sentiment LLM call's tokens to the workspace (analytics).
         $analysis = $this->usage->track(
             $agent->user_id,
-            fn () => $this->analyzer->analyzeMessage($message->content),
+            fn (): \Domain\Analytics\Data\ConversationAnalysisData => $this->analyzer->analyzeMessage($message->content),
             'analysis',
         );
 

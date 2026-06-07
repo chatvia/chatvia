@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Data\StreamRequestData;
@@ -56,7 +57,7 @@ function noopLlmProvider(): LlmProviderInterface
             throw new RuntimeException('client() not used in LlmSource tests');
         }
 
-        public function completion(array $data)
+        public function completion(array $data): void
         {
             throw new RuntimeException('completion() not used in LlmSource tests');
         }
@@ -135,7 +136,7 @@ function makeChatContext(Agent $agent, Llm $llm): ChatContext
         requestId: 'req_'.Str::random(12),
     );
 
-    $payload = \Domain\Conversation\Data\Messages\ChatInputPayload::from([
+    $payload = ChatInputPayload::from([
         'external_session_id' => $requestData->externalSessionId,
         'external_conversation_id' => $requestData->conversationId,
         'external_message_id' => (string) Str::uuid(),

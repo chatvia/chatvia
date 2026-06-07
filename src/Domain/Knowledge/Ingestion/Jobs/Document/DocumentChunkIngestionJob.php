@@ -13,7 +13,7 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class DocumentChunkIngestionJob implements ShouldQueue, AttributesTokenUsage
+class DocumentChunkIngestionJob implements AttributesTokenUsage, ShouldQueue
 {
     use Batchable, Queueable, TracksTokenUsage;
 

@@ -251,6 +251,19 @@ class Agent extends Model
     }
 
     /**
+     * Whether the "Powered by Chatvia" badge renders for this agent — on both
+     * the embedded widget and the hosted chat. Visible by default; hidden only
+     * when the owning workspace holds the active "remove branding" add-on.
+     *
+     * Reads `team.owner`; callers under strict mode must eager-load it
+     * (BuildWidgetSettingsAction and the chat controllers already do).
+     */
+    public function showsChatviaBranding(): bool
+    {
+        return ! ($this->team?->owner?->canHideBranding() ?? false);
+    }
+
+    /**
      * Chatters explicitly granted access to this agent via `agent_user`. Only
      * `User`s with `type=chatter` should appear; access for workspace/employee
      * users is resolved through teams + roles, not here.

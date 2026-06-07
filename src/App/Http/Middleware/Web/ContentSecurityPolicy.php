@@ -25,15 +25,39 @@ class ContentSecurityPolicy
         ];
 
         // The hosted-chat surface (the agent subdomains — every route is named
-        // `chat.*`) is built to be embedded in third-party iframes, including the
-        // login page a private agent's `/chat/embed` redirects to. Anything else
-        // (dashboard + marketing on the apex) stays same-origin only.
-        if ($request->routeIs('chat.*')) {
+        // `chat.*`) is built to be embedded in third-party iframes. The auth
+        // pages (login / magic-link) are the exception: a cross-origin-framable
+        // login form is a clickjacking/UI-redress target, so those stay
+        // same-origin only. Everything else (dashboard + marketing on the apex)
+        // is same-origin too.
+        $embeddable = $request->routeIs('chat.*') && ! $request->routeIs('chat.login*', 'chat.magic-link*');
+
+        if ($embeddable) {
             $cspDirectives[] = 'frame-ancestors *';
             $response->headers->remove('X-Frame-Options');
         } else {
             $cspDirectives[] = "frame-ancestors 'self'";
             $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        }
+
+        // Defence-in-depth against prompt-injection image exfiltration on the
+        // hosted-chat surface: even though the assistant renderer already
+        // allow-lists <img> hosts, pin img-src so a model-emitted external image
+        // is also blocked by the browser. Scoped to chat.* (where the legitimate
+        // image origins are known: self, inline data, the app domain that serves
+        // chunk images, and the public storage/CDN host) so it never fights the
+        // marketing/dashboard asset pipeline. Does NOT require 'unsafe-inline'.
+        if ($request->routeIs('chat.*')) {
+            $imgSources = ["'self'", 'data:', 'blob:'];
+
+            foreach ([config('app.url'), config('filesystems.disks.public.url')] as $candidate) {
+                $origin = $this->originOf((string) $candidate);
+                if ($origin !== null) {
+                    $imgSources[] = $origin;
+                }
+            }
+
+            $cspDirectives[] = 'img-src '.implode(' ', array_values(array_unique($imgSources)));
         }
 
         $response->headers->set('Content-Security-Policy', implode('; ', $cspDirectives));
@@ -49,5 +73,30 @@ class ContentSecurityPolicy
         }
 
         return $response;
+    }
+
+    /**
+     * Reduce a configured URL to its `scheme://host[:port]` origin for use as a
+     * CSP source, or null when the value is empty/malformed.
+     */
+    private function originOf(string $url): ?string
+    {
+        if ($url === '') {
+            return null;
+        }
+
+        $parts = parse_url($url);
+
+        if (! is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+            return null;
+        }
+
+        $origin = $parts['scheme'].'://'.$parts['host'];
+
+        if (isset($parts['port'])) {
+            $origin .= ':'.$parts['port'];
+        }
+
+        return $origin;
     }
 }

@@ -37,6 +37,7 @@ const UNTESTED_ACTIONS_ALLOWLIST = [
     'BuyExtraMessageCreditsAction',
     'CancelCustomDomainAction',
     'CancelExtraAgentsAction',
+    'CancelRemoveBrandingAction',
     'CancelTeamInvitationAction',
     'CrawlWebsiteAction',
     'CreateAgentAction',
@@ -102,6 +103,7 @@ const UNTESTED_ACTIONS_ALLOWLIST = [
     'StoreAttachmentAction',
     'SubscribeCustomDomainAction',
     'SubscribeExtraAgentsAction',
+    'SubscribeRemoveBrandingAction',
     'ToggleAgentFunctionAction',
     'TrainWebsiteUrlAction',
     'TranscribeAudioAction',
@@ -117,7 +119,6 @@ const UNTESTED_ACTIONS_ALLOWLIST = [
     'UpdateAutoRechargeAction',
     'UpdatePromptAction',
     'UpdateTeamAction',
-    'UpdateTeamRoleAction',
     'UpdateTopicAction',
     'UploadKnowledgeSourceFileAction',
 ];

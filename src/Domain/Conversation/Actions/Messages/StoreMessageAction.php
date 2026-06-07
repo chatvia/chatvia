@@ -16,10 +16,10 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
-use Domain\Llm\Services\TikToken;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Pricing\CostCalculator;
+use Domain\Llm\Services\TikToken;
 
 class StoreMessageAction
 {
@@ -334,5 +334,4 @@ class StoreMessageAction
         // once at end-of-life via the scheduled app:analyze-conversations pass —
         // not here on the hot message-write path.
     }
-
 }

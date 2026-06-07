@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Api\V1\Function;
 
-use Domain\Integration\Function\Data\ApiFunctionPayloadData;
-use Illuminate\Foundation\Http\FormRequest;
 use Domain\Agent\Rules\SafeWebhookUrl;
+use Domain\Integration\Function\Data\ApiFunctionPayloadData;
 use Domain\Integration\Function\Enums\FunctionAuthType;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreApiFunctionRequest extends FormRequest

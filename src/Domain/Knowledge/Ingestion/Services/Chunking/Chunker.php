@@ -5,9 +5,9 @@ namespace Domain\Knowledge\Ingestion\Services\Chunking;
 use Domain\Knowledge\Ingestion\Data\Chunking\DocumentChunk;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Llm\Contracts\LlmProviderInterface;
-use Domain\Llm\Services\TikToken;
 use Domain\Llm\Operations\Pricing\CostCalculator;
 use Domain\Llm\Providers\Mistral;
+use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Facades\Log;
 
 class Chunker

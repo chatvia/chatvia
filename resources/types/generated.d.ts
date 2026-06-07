@@ -384,6 +384,7 @@ auto_recharge: Domain.Billing.Data.Resources.Subscription.BillingAutoRechargeDat
 extra_message_credits: Domain.Billing.Data.Resources.Subscription.BillingAddonMessageCreditsData;
 extra_agents: Domain.Billing.Data.Resources.Subscription.BillingAddonSubscriptionData;
 custom_domains: Domain.Billing.Data.Resources.Subscription.BillingAddonSubscriptionData;
+remove_branding: Domain.Billing.Data.Resources.Subscription.BillingAddonSubscriptionData;
 };
 export type BillingAutoRechargeData = {
 enabled: boolean;
@@ -818,6 +819,7 @@ position: string | null;
 show_on_load: boolean | null;
 show_on_load_delay: number | null;
 branding: Domain.Widget.Data.Settings.WidgetSettingsBrandingData;
+chatvia_branding: boolean;
 starters: { [key: number]: any };
 window_size: string | null;
 theme: string | null;

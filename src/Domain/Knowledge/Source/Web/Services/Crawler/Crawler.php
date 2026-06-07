@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Source\Web\Services\Crawler;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Spatie\Browsershot\Browsershot;
 use Spatie\Crawler\Crawler as CrawlerSpatie;
+use Support\Browsershot\BrowsershotConfigurator;
 
 final class Crawler
 {
@@ -135,7 +136,7 @@ final class Crawler
 
     private function createBrowsershot(): Browsershot
     {
-        $browsershot = app(\Support\Browsershot\BrowsershotConfigurator::class)->configure(new Browsershot);
+        $browsershot = app(BrowsershotConfigurator::class)->configure(new Browsershot);
 
         // Add common Chrome flags for server environments
         $browsershot->addChromiumArguments([

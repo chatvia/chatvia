@@ -9,7 +9,7 @@ use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class AnalyzeConversationJob implements ShouldQueue, AttributesTokenUsage
+class AnalyzeConversationJob implements AttributesTokenUsage, ShouldQueue
 {
     use Queueable, TracksTokenUsage;
 

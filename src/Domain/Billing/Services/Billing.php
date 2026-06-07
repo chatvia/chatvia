@@ -37,6 +37,21 @@ class Billing
         return $this->getPackage(config('billing.default_package', 'starter'));
     }
 
+    /**
+     * The default package's fixed (cycle-independent) quota limit for $key —
+     * e.g. 'teams_limit', 'workspace_users_limit'. The fallback every quota
+     * gate uses for accounts with no user_quotas row yet (fresh signup before
+     * the first plan/webhook lands one). Keeps the billing-config tree shape
+     * out of the auth model.
+     */
+    public function defaultFixedLimit(string $key, int $default = 0): int
+    {
+        return (int) config(
+            'billing.packages.'.config('billing.default_package', 'starter').".quota_limits.fixed.{$key}",
+            $default,
+        );
+    }
+
     public function getPackageByName(string $name)
     {
         $packages = $this->getAvailablePackages();

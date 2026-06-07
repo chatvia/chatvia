@@ -466,7 +466,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      * check.
      *
      * For dashboard/UI displays of "remaining messages this cycle", prefer
-     * {@see messageCredits()} which reads the analytics rollup and matches the
+     * {@see MessageCredits()} which reads the analytics rollup and matches the
      * usage panel.
      */
     public function creditSystem(): UserCreditSystem
@@ -855,7 +855,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function remainingTeamsQuota(): int
     {
-        return max(0, $this->quota->teams_limit - $this->teamsCreatedCount());
+        return max(0, $this->fixedQuotaLimit('teams_limit') - $this->teamsCreatedCount());
     }
 
     /**
@@ -864,7 +864,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function remainingWorkspaceUsersQuota(): int
     {
-        return max(0, $this->quota->workspace_users_limit - $this->workspaceUsersCount());
+        return max(0, $this->fixedQuotaLimit('workspace_users_limit') - $this->workspaceUsersCount());
     }
 
     /**
@@ -872,14 +872,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function canCreateTeam(): bool
     {
-        // Fall back to the default-package limit when the user has no quota row
-        // yet (fresh signup before the first plan or webhook lands one). Without
-        // this, brand-new accounts get a misleading "team limit reached" error
-        // when they try to create their first team.
-        $limit = $this->quota?->teams_limit
-            ?? (int) (config('billing.packages.'.config('billing.default_package', 'starter').'.quota_limits.fixed.teams_limit') ?? 1);
-
-        return $this->teamsCreatedCount() < $limit;
+        return $this->teamsCreatedCount() < $this->fixedQuotaLimit('teams_limit');
     }
 
     /**
@@ -888,7 +881,20 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function canAddWorkspaceUser(): bool
     {
-        return $this->workspaceUsersCount() < $this->quota->workspace_users_limit;
+        return $this->workspaceUsersCount() < $this->fixedQuotaLimit('workspace_users_limit');
+    }
+
+    /**
+     * This account's fixed quota limit for $key, falling back to the default
+     * package's limit when no `user_quotas` row exists yet (fresh signup before
+     * the first plan/webhook lands one). Centralises the null-quota handling
+     * that every quota gate needs — without it `canAddWorkspaceUser()` and the
+     * `remaining*` helpers would fatal on a brand-new account. The default-
+     * package shape is owned by the Billing service, not this model.
+     */
+    private function fixedQuotaLimit(string $key): int
+    {
+        return (int) ($this->quota?->{$key} ?? app(Billing::class)->defaultFixedLimit($key));
     }
 
     /**

@@ -3,6 +3,8 @@
 namespace Domain\Billing\Listeners;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Actions\Subscriptions\GrantSubscriptionAction;
+use Domain\Billing\Enums\Addon;
 use Domain\Billing\Models\UserBilling;
 use Domain\Billing\Notifications\TrialWelcomeNotification;
 use Domain\Membership\Team\Services\TeamService;
@@ -139,7 +141,7 @@ class HandleStripeWebhook
             }
 
             // Grant subscription quotas and credits
-            $this->grantSubscription($user, $package, $isYearly);
+            app(GrantSubscriptionAction::class)->execute($user, $package, $isYearly);
 
             // Clean up the metadata if this was a scheduled change
             if ($subscription && isset($metadata['pending_change']) && $metadata['pending_change'] === 'true') {
@@ -322,51 +324,7 @@ class HandleStripeWebhook
         $package = $metadata['package'] ?? 'starter';
         $isYearly = ($metadata['is_yearly'] ?? 'false') === 'true';
 
-        $this->grantSubscription($user, $package, $isYearly);
-    }
-
-    /**
-     * Grant subscription quotas and credits to a user.
-     * Used for both new subscriptions (trials) and renewals.
-     */
-    private function grantSubscription(User $user, string $package, bool $isYearly): void
-    {
-        $cycle = $isYearly ? 'yearly' : 'monthly';
-
-        $quotaLimit = config('billing.packages.'.$package.'.quota_limits.'.$cycle);
-        $fixedLimit = config('billing.packages.'.$package.'.quota_limits.fixed');
-
-        if (! $quotaLimit || ! $fixedLimit) {
-            Log::warning('Invalid package configuration', ['package' => $package, 'cycle' => $cycle]);
-
-            return;
-        }
-
-        $endsAt = $isYearly ? now()->addYear() : now()->addMonth();
-
-        // Persist the denormalised plan label. Source of truth for entitlement
-        // stays the synced Cashier subscription (stripe_price); this column is a
-        // convenience for admin/reporting and is written on every grant (trial
-        // start + each renewal, which passes the current to_package).
-        $user->billing()->updateOrCreate([], ['plan' => $package]);
-
-        // Set quota limits (fixed per package, not cumulative)
-        $user->quota()->updateOrCreate([], [
-            'agents_limit' => $fixedLimit['agents_limit'],
-            'pages_limit' => $fixedLimit['pages_limit'],
-            'minutes_limit' => $fixedLimit['minutes_limit'],
-            'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
-            'workspace_users_limit' => $fixedLimit['workspace_users_limit'],
-            'links_limit' => $fixedLimit['links_limit'],
-            'teams_limit' => $fixedLimit['teams_limit'],
-        ]);
-
-        // Add message credits for the billing period
-        $user->addCredit($quotaLimit, $endsAt);
-
-        $user->refresh();
-
-        $user->creditSystem()->refreshCanSendMessages();
+        app(GrantSubscriptionAction::class)->execute($user, $package, $isYearly);
     }
 
     private function handleAddOns(array $data): void
@@ -461,16 +419,12 @@ class HandleStripeWebhook
             return;
         }
 
-        $column = match ($data['metadata']['addon'] ?? null) {
-            'extra_agents' => 'extra_agents_limit',
-            'custom_domains' => 'extra_custom_domains_limit',
-            default => null,
-        };
+        $addon = Addon::tryFrom($data['metadata']['addon'] ?? '');
 
-        if (! $column) {
+        if (! $addon) {
             return;
         }
 
-        $user->quota()->updateOrCreate([], [$column => $quantity]);
+        $user->quota()->updateOrCreate([], [$addon->quotaColumn() => $quantity]);
     }
 }

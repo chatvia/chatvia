@@ -56,6 +56,23 @@ class UserBilling extends Model
     }
 
     /**
+     * Fetch a Cashier subscription with its `owner` relation pre-wired to this
+     * billing row. Cashier's `updateQuantity()` / `cancelNow()` reach for
+     * `$subscription->owner` to get the Stripe client; under
+     * `Model::shouldBeStrict()` that lazy-load throws, so callers must always
+     * set it. Routing every addon caller through here keeps that one Cashier
+     * gotcha in a single place.
+     */
+    public function ownedSubscription(string $type): ?Subscription
+    {
+        $subscription = $this->subscription($type);
+
+        $subscription?->setRelation('owner', $this);
+
+        return $subscription;
+    }
+
+    /**
      * Cashier reads {@see stripeEmail()} and {@see stripeName()} when it
      * auto-creates a Stripe customer on first checkout. Without these the
      * defaults look for `email`/`name` properties on UserBilling itself —

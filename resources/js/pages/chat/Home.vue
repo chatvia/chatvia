@@ -62,6 +62,10 @@ const props = defineProps({
         type: Number,
         default: null,
     },
+    chatviaBranding: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const selectedStarter = ref('');
@@ -212,6 +216,19 @@ function handleStarterClick(starter) {
                             <p class="text-muted-foreground/60 text-[11px]">
                                 {{ props.appearance.chat_footer_text }}
                             </p>
+                        </div>
+
+                        <!-- Branding: hidden when the workspace owns the remove-branding add-on -->
+                        <div v-if="props.chatviaBranding" class="mt-2 flex items-center justify-center">
+                            <a
+                                href="https://chatvia.ai"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-muted-foreground/50 hover:text-muted-foreground/80 inline-flex items-center gap-1 text-[11px] transition-colors"
+                            >
+                                <img src="/images/logo.svg" alt="Chatvia" class="h-3.5 w-3.5 opacity-70" />
+                                Powered by Chatvia
+                            </a>
                         </div>
                     </div>
                 </div>

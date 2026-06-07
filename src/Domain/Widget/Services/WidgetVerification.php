@@ -2,6 +2,7 @@
 
 namespace Domain\Widget\Services;
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
@@ -62,8 +63,13 @@ class WidgetVerification
      * specific agent. New code must always pass the agent — without it a
      * caller can submit a session id from agent A while claiming to act on
      * agent B (cross-agent session hijacking).
+     *
+     * On a PROTECTED agent the caller is authenticated; pass that `$user` too so
+     * the session is also bound to its owning chatter. Without it the
+     * client-supplied session id acts as an unfingerprinted bearer and one
+     * signed-in chatter can read another's threads by replaying their id.
      */
-    public function verifySessionExternalId(?string $sessionId, ?Agent $agent = null): ?Session
+    public function verifySessionExternalId(?string $sessionId, ?Agent $agent = null, ?User $user = null): ?Session
     {
         if (! $sessionId) {
             return null;
@@ -75,15 +81,20 @@ class WidgetVerification
             $query->where('agent_id', $agent->id);
         }
 
+        if ($user !== null) {
+            $query->where('user_id', $user->id);
+        }
+
         return $query->first();
     }
 
     /**
      * Resolve a chat conversation by its external id, optionally scoped to a
      * specific agent. Same warning as {@see verifySessionExternalId} — new
-     * code must pass the agent.
+     * code must pass the agent, and the authenticated `$user` on protected
+     * agents so the conversation is bound to its owning chatter.
      */
-    public function verifyConversationId(?string $conversationId, ?Agent $agent = null): ?Conversation
+    public function verifyConversationId(?string $conversationId, ?Agent $agent = null, ?User $user = null): ?Conversation
     {
         if (! $conversationId) {
             return null;
@@ -91,8 +102,16 @@ class WidgetVerification
 
         $query = Conversation::where('external_id', $conversationId);
 
-        if ($agent !== null) {
-            $query->whereHas('session', fn ($q) => $q->where('agent_id', $agent->id));
+        if ($agent !== null || $user !== null) {
+            $query->whereHas('session', function ($q) use ($agent, $user): void {
+                if ($agent !== null) {
+                    $q->where('agent_id', $agent->id);
+                }
+
+                if ($user !== null) {
+                    $q->where('user_id', $user->id);
+                }
+            });
         }
 
         return $query->first();

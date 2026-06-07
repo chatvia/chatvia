@@ -43,14 +43,14 @@ class RenderSankeyChartTool extends Tool
         ]);
 
         if (! empty($v['nodes'])) {
-            $nodes = array_map(fn ($n) => ['name' => $n['name']], $v['nodes']);
+            $nodes = array_map(fn ($n): array => ['name' => $n['name']], $v['nodes']);
         } else {
             $names = [];
             foreach ($v['links'] as $link) {
                 $names[$link['source']] = true;
                 $names[$link['target']] = true;
             }
-            $nodes = array_map(fn ($n) => ['name' => $n], array_keys($names));
+            $nodes = array_map(fn ($n): array => ['name' => $n], array_keys($names));
         }
 
         $option = [
@@ -58,7 +58,7 @@ class RenderSankeyChartTool extends Tool
             'series' => [[
                 'type' => 'sankey',
                 'data' => $nodes,
-                'links' => array_map(fn ($l) => ['source' => $l['source'], 'target' => $l['target'], 'value' => $l['value']], $v['links']),
+                'links' => array_map(fn ($l): array => ['source' => $l['source'], 'target' => $l['target'], 'value' => $l['value']], $v['links']),
                 'emphasis' => ['focus' => 'adjacency'],
                 'lineStyle' => ['color' => 'gradient', 'curveness' => 0.5],
                 'label' => ['fontSize' => 11],

@@ -8,12 +8,12 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Youtube\Actions\AddAgentYoutubeVideoAction;
 use Domain\Knowledge\Source\Youtube\Actions\DeleteAgentYoutubeVideoAction;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
-use Support\Exceptions\DomainValidationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Support\Exceptions\DomainValidationException;
 
 class AgentYoutubeController
 {

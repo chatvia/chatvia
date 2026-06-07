@@ -15,6 +15,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\RefreshTestDatabases;
 use Tests\TestCase;
@@ -107,8 +108,8 @@ function fakeLlmCompletion(string $content): void
     // HTTP call itself is faked.
     config(['services.scalewayai.api_key' => 'test-key']);
 
-    \Illuminate\Support\Facades\Http::fake([
-        '*' => \Illuminate\Support\Facades\Http::response([
+    Http::fake([
+        '*' => Http::response([
             'choices' => [['message' => ['content' => $content]]],
         ]),
     ]);

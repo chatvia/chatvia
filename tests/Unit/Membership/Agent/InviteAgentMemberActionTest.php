@@ -28,7 +28,7 @@ function inviteWorkspaceAndAgent(string $ownerEmail = 'owner@example.com'): arra
     return [$workspace, $agent];
 }
 
-function invite(Agent $agent, string $email)
+function invite(Agent $agent, string $email): \Domain\Membership\Agent\Data\AgentMemberInvitationData
 {
     return app(InviteAgentMemberAction::class)->execute(new InviteAgentMemberData(
         agent: $agent,

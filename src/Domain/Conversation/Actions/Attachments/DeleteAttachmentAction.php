@@ -2,13 +2,14 @@
 
 namespace Domain\Conversation\Actions\Attachments;
 
+use Domain\Conversation\Actions\Messages\StoreMessageAction;
 use Domain\Conversation\Models\Attachment;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Removes a composer-uploaded attachment atomically. The `chat_message_id IS
  * NULL` predicate inside a `SELECT FOR UPDATE` closes the race against
- * {@see \Domain\Conversation\Actions\Messages\StoreMessageAction}'s sweep,
+ * {@see StoreMessageAction}'s sweep,
  * which claims every orphan attachment on a conversation by id (not by
  * payload). Without the lock, a quick X-then-send sequence could leave the
  * row deleted server-side AND attached to the brand-new message.

@@ -123,10 +123,6 @@ class Conversation extends Model
     /** Placeholder title every conversation is created with until it's named. */
     public const string DEFAULT_TITLE = 'New Chat';
 
-    protected array $hmacEncryptionColumns = [
-        'id',
-    ];
-
     /**
      * True while the conversation still carries its placeholder title, i.e. it
      * has not been named from its messages yet.

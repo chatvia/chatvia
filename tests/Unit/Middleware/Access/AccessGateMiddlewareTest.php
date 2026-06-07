@@ -9,7 +9,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
-use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Middleware access gates: small classes that decide pass/deny based on the
@@ -19,16 +19,15 @@ use Illuminate\Support\Str;
  * either pass-through (next ran) or the right kind of deny (exception or
  * redirect).
  */
-
 function mwPassThrough(): Closure
 {
-    return fn (Request $r) => response('ok', 200);
+    return fn (Request $r): \Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Http\Response => response('ok', 200);
 }
 
 function mwRequestWithUser(User $user): Request
 {
     $request = Request::create('/test');
-    $request->setUserResolver(fn () => $user);
+    $request->setUserResolver(fn (): \App\Identity\Workspace\Models\User => $user);
 
     return $request;
 }
@@ -37,10 +36,10 @@ function mwRequestWithUser(User $user): Request
 function mwRequestForAgent(User $user, Agent $agent): Request
 {
     $request = mwRequestWithUser($user);
-    $route = new Route(['GET'], '/test/{agent}', ['uses' => fn () => null]);
+    $route = new Route(['GET'], '/test/{agent}', ['uses' => fn (): null => null]);
     $route->bind($request);
     $route->setParameter('agent', $agent);
-    $request->setRouteResolver(fn () => $route);
+    $request->setRouteResolver(fn (): \Illuminate\Routing\Route => $route);
 
     return $request;
 }
@@ -105,7 +104,7 @@ it('EnsureUserHasSubscription passes for an admin user regardless of subscriptio
 
 it('EnsureUserHasSubscription passes for an unauthenticated guest (auth handled elsewhere)', function (): void {
     $request = Request::create('/test');
-    $request->setUserResolver(fn () => null);
+    $request->setUserResolver(fn (): null => null);
 
     $response = app(EnsureUserHasSubscription::class)->handle($request, mwPassThrough());
 
@@ -142,5 +141,5 @@ it('EnsureUserHasCapability aborts(403) when the workspace plan does not include
 
     expect(fn () => app(EnsureUserHasCapability::class)
         ->handle(mwRequestWithUser($user), mwPassThrough(), 'handoff'))
-        ->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+        ->toThrow(HttpException::class);
 });

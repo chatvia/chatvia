@@ -30,6 +30,13 @@ class SessionInitController
             pageUrl: $request->input('page_url'),
         );
 
-        return $initialize->execute(current_agent_from_widget(), $data);
+        // On a protected agent EnsureWidgetIsAccessible attached the resolved
+        // chatter; bind the (new or resolved) session to them. Null for public
+        // agents (anonymous visitors), leaving their session unscoped as before.
+        return $initialize->execute(
+            current_agent_from_widget(),
+            $data,
+            $request->attributes->get('widget_user'),
+        );
     }
 }

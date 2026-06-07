@@ -4,13 +4,13 @@ namespace App\Http\Requests\Settings\Function;
 
 use App\Identity\Workspace\Models\User;
 use Closure;
+use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Function\Data\UpdateAgentFunctionData;
+use Domain\Integration\Function\Enums\FunctionAuthType;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Foundation\Http\FormRequest;
-use Domain\Agent\Rules\SafeWebhookUrl;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
-use Domain\Integration\Function\Enums\FunctionAuthType;
 
 class UpdateAgentFunctionRequest extends FormRequest
 {

@@ -52,7 +52,7 @@ function tlrProvider(): LlmProviderInterface
             throw new RuntimeException('client() not used in ToolLoopRunner tests');
         }
 
-        public function completion(array $data)
+        public function completion(array $data): void
         {
             throw new RuntimeException('completion() not used in ToolLoopRunner tests');
         }

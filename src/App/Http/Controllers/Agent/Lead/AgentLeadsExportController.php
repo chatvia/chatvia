@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Agent\Lead;
 
 use Domain\Agent\Models\Agent;
 use Domain\Lead\Actions\ExportAgentLeadsToCsvAction;
-use Support\Exceptions\DomainValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
+use Support\Exceptions\DomainValidationException;
 
 class AgentLeadsExportController
 {

@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Team\Roles;
 
 use App\Http\Requests\Team\Roles\SaveTeamRoleRequest;
 use Domain\Membership\Team\Actions\Roles\UpdateTeamRoleAction;
-use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
+use Support\Exceptions\DomainValidationException;
 
 class TeamRoleUpdateController
 {

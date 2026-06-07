@@ -18,7 +18,17 @@ use Support\Enums\User\SocialProvider;
  */
 class SocialLoginAction
 {
-    public function execute(SocialProvider $provider, string $providerId, ?string $email): ?User
+    /**
+     * @param  bool|null  $emailVerified  whether the provider asserted the email
+     *                                    as verified. `null` = the provider did
+     *                                    not say (trusted, current behaviour);
+     *                                    `false` = explicitly NOT verified, in
+     *                                    which case the same-email auto-link is
+     *                                    refused so an attacker controlling an
+     *                                    unverified provider email cannot take
+     *                                    over a victim's existing account.
+     */
+    public function execute(SocialProvider $provider, string $providerId, ?string $email, ?bool $emailVerified = null): ?User
     {
         $linked = UserSocial::query()
             ->where('provider', $provider)
@@ -30,6 +40,12 @@ class SocialLoginAction
         }
 
         if (! $email) {
+            return null;
+        }
+
+        // Pre-hijack / OAuth-merge defence: never link an incoming identity to a
+        // pre-existing local account by email the provider says is unverified.
+        if ($emailVerified === false) {
             return null;
         }
 

@@ -7,6 +7,7 @@ use App\Http\Requests\Settings\Account\DeleteAccountRequest;
 use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
 use App\Identity\Workspace\Actions\Account\RequestAccountDeletionAction;
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,7 +36,7 @@ class DeleteAccountController extends Controller
             'agents' => $user->agents()
                 ->orderBy('name')
                 ->get(['name'])
-                ->map(fn (object $agent): array => ['name' => $agent->name])
+                ->map(fn (Agent $agent): array => ['name' => $agent->name])
                 ->all(),
             'hasSubscription' => $user->hasActiveSubscription(),
             'deletionConfirmed' => $this->confirmationIsFresh($request),

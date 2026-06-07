@@ -47,13 +47,13 @@ class RenderCandlestickChartTool extends Tool
             'summary' => ['required', 'string', 'max:500'],
         ]);
 
-        $dates = array_map(fn ($d) => $d['date'], $v['data']);
+        $dates = array_map(fn ($d): mixed => $d['date'], $v['data']);
 
         // ECharts candlestick wants [open, close, low, high] in this exact
         // order — distinct from the conventional OHLC [open, high, low,
         // close]. The Action does the swap so the LLM/caller can stick
         // with the conventional shape.
-        $candles = array_map(fn ($d) => [
+        $candles = array_map(fn ($d): array => [
             (float) $d['open'],
             (float) $d['close'],
             (float) $d['low'],

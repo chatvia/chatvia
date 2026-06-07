@@ -49,14 +49,14 @@ class RenderComboChartTool extends Tool
             'summary' => ['required', 'string', 'max:500'],
         ]);
 
-        $bars = array_map(fn ($s) => [
+        $bars = array_map(fn ($s): array => [
             'type' => 'bar',
             'name' => $s['name'],
             'data' => $s['data'],
             'yAxisIndex' => 0,
         ], $v['barSeries']);
 
-        $lines = array_map(fn ($s) => [
+        $lines = array_map(fn ($s): array => [
             'type' => 'line',
             'name' => $s['name'],
             'data' => $s['data'],

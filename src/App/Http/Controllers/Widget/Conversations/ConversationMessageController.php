@@ -22,7 +22,14 @@ class ConversationMessageController
 
         // Conversation must belong to this agent — otherwise an attacker with a
         // conversation id from agent A can pull its history while spoofing agent B.
-        $conversation = $verification->verifyConversationId($conversationId, $agent);
+        // On a protected agent it must also belong to the authenticated chatter,
+        // so a signed-in visitor can't read another chatter's thread by replaying
+        // their (client-supplied) conversation/session id.
+        $conversation = $verification->verifyConversationId(
+            $conversationId,
+            $agent,
+            $request->attributes->get('widget_user'),
+        );
 
         abort_if(
             boolean: ! $conversation,

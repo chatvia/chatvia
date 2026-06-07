@@ -1,11 +1,13 @@
 <?php
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Attachments\DeleteAttachmentAction;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -23,8 +25,8 @@ beforeEach(function (): void {
 
 function buildAttachment(?int $messageId = null): Attachment
 {
-    $owner = \App\Identity\Workspace\Models\User::factory()->create();
-    app(\Domain\Membership\Team\Services\TeamService::class)->createDefaultTeam($owner);
+    $owner = User::factory()->create();
+    app(TeamService::class)->createDefaultTeam($owner);
     $agent = Agent::create([
         'user_id' => $owner->id,
         'team_id' => $owner->primaryTeam()->id,

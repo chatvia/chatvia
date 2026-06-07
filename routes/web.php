@@ -72,7 +72,11 @@ Route::get('trial/success', TrialSuccessController::class)->name('trial.success'
 
 Route::get('my/chunks/{chunkExternalId}/{imageIndex}.png', AgentChunkImageViewController::class)->name('chunks.image.view');
 
-Route::get('external/files/{type}/{externalId}', SourceFileViewController::class)->name('external.source.files.view');
+// Serves a tenant's uploaded knowledge-base file. Requires auth; the controller
+// additionally scopes the file to the caller's workspace (cross-tenant IDOR).
+Route::get('external/files/{type}/{externalId}', SourceFileViewController::class)
+    ->middleware(['web', 'auth'])
+    ->name('external.source.files.view');
 
 // Global OAuth callback for MCP connectors. The `state` query param carries
 // the agent + connector slug, so this is a single endpoint shared across

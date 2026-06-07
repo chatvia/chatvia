@@ -16,24 +16,24 @@ class UserObserver
         // owners pay; admins may need stripe state too (admin accounts can hold
         // a subscription for fixtures/testing). Employees + chatters never
         // bill — no row, no orphan Cashier customer.
-//        if (in_array($user->type, [UserType::Workspace, UserType::Admin], true)) {
-//            UserBilling::firstOrCreate(['user_id' => $user->id]);
-//
-//            // Seed with starter-plan fixed limits so capability checks
-//            // (canAddWorkspaceUser, canCreateTeam, …) have something to read
-//            // against before the first Stripe webhook lands.
-//            UserQuota::firstOrCreate(
-//                ['user_id' => $user->id],
-//                config('billing.packages.starter.quota_limits.fixed', [])
-//            );
-//
-//            // Every workspace owner needs a default team so dashboard routes
-//            // (gated by has_team_permission) don't 404 immediately after
-//            // registration. Idempotent: skips if the user already has one.
-//            if ($user->ownedTeams()->doesntExist()) {
-//                app(TeamService::class)->createDefaultTeam($user);
-//            }
-//        }
+        //        if (in_array($user->type, [UserType::Workspace, UserType::Admin], true)) {
+        //            UserBilling::firstOrCreate(['user_id' => $user->id]);
+        //
+        //            // Seed with starter-plan fixed limits so capability checks
+        //            // (canAddWorkspaceUser, canCreateTeam, …) have something to read
+        //            // against before the first Stripe webhook lands.
+        //            UserQuota::firstOrCreate(
+        //                ['user_id' => $user->id],
+        //                config('billing.packages.starter.quota_limits.fixed', [])
+        //            );
+        //
+        //            // Every workspace owner needs a default team so dashboard routes
+        //            // (gated by has_team_permission) don't 404 immediately after
+        //            // registration. Idempotent: skips if the user already has one.
+        //            if ($user->ownedTeams()->doesntExist()) {
+        //                app(TeamService::class)->createDefaultTeam($user);
+        //            }
+        //        }
     }
 
     public function updated(User $user): void

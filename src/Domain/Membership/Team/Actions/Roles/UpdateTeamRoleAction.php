@@ -4,10 +4,10 @@ namespace Domain\Membership\Team\Actions\Roles;
 
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
-use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Illuminate\Support\Facades\DB;
+use Support\Exceptions\DomainValidationException;
 
 class UpdateTeamRoleAction
 {
@@ -31,18 +31,22 @@ class UpdateTeamRoleAction
         return DB::transaction(function () use ($role, $data, $agentIds): Role {
             $role->update(['name' => $data->name]);
 
-            $permissions = $data->permissions;
-            if ($data->allAgents) {
-                $permissions[] = 'agents.access-all';
-            }
+            // `agents.access-all` is a meta-permission owned entirely by the
+            // allAgents flag — never a member of the general permissions list.
+            // Strip any round-tripped copy first, then re-add it only when the
+            // role actually grants all agents; otherwise unchecking "All Agents"
+            // would leave the stale permission behind (the role still sees
+            // everything) because syncPermissions only replaces what it's given.
+            $permissions = collect($data->permissions)
+                ->reject(fn (string $permission): bool => $permission === 'agents.access-all')
+                ->when($data->allAgents, fn ($permissions) => $permissions->push('agents.access-all'))
+                ->unique();
 
-            if (! empty($permissions)) {
-                $permissionModels = collect($permissions)->unique()->map(function ($permissionName) {
-                    return Permission::firstOrCreate([
-                        'name' => $permissionName,
-                        'guard_name' => 'web',
-                    ]);
-                });
+            if ($permissions->isNotEmpty()) {
+                $permissionModels = $permissions->map(fn (string $permissionName): Permission => Permission::firstOrCreate([
+                    'name' => $permissionName,
+                    'guard_name' => 'web',
+                ]));
 
                 $role->syncPermissions($permissionModels);
             } else {

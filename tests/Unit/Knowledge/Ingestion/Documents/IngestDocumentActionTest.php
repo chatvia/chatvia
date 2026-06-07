@@ -5,6 +5,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Documents\IngestDocumentAction;
 use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 
@@ -33,12 +34,12 @@ function idaFakeMistralOcr(): MistralOCR
             // when the SourceFile has no parser_filepath in the happy path.
         }
 
-        public function fromUrl(string $url): \Illuminate\Support\Collection
+        public function fromUrl(string $url): Collection
         {
             return collect();
         }
 
-        public function fromFile(string $file): \Illuminate\Support\Collection
+        public function fromFile(string $file): Collection
         {
             return collect();
         }

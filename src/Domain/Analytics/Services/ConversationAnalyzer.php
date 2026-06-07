@@ -3,10 +3,12 @@
 namespace Domain\Analytics\Services;
 
 use Domain\Agent\Models\Agent;
+use Domain\Analytics\Actions\AnalyzeMessageAction;
 use Domain\Analytics\Data\ConversationAnalysisData;
 use Domain\Analytics\Enums\SentimentEnum;
 use Domain\Analytics\Enums\ToneEnum;
 use Domain\Conversation\Topic\Models\ConversationTopic;
+use Domain\Conversation\Topic\Models\Topic;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Illuminate\Support\Collection;
 
@@ -25,7 +27,7 @@ class ConversationAnalyzer
 
     public function analyze(string $transcript, Agent $agent): ConversationAnalysisData
     {
-        /** @var Collection<int, \Domain\Conversation\Topic\Models\Topic> $topics */
+        /** @var Collection<int, Topic> $topics */
         $topics = $agent->topics()->get();
 
         $response = $this->provider->completion([
@@ -49,14 +51,14 @@ class ConversationAnalyzer
 
         return $this->parse(
             is_string($content) ? $content : null,
-            allowedIds: $topics->pluck('id')->map(fn ($id) => (int) $id)->all(),
+            allowedIds: $topics->pluck('id')->map(fn ($id): int => (int) $id)->all(),
             existingNames: $topics->pluck('topic')->map(fn ($n) => mb_strtolower(trim((string) $n)))->all(),
         );
     }
 
     /**
      * Per-message variant: sentiment + tone only, no topic resolution. Used by
-     * {@see \Domain\Analytics\Actions\AnalyzeMessageAction} on the per-message
+     * {@see AnalyzeMessageAction} on the per-message
      * analysis path. Returns the same structured-output shape minus topic_ids
      * and language, so per-message and per-conversation analytics can never
      * drift on the same input.
@@ -172,14 +174,14 @@ class ConversationAnalyzer
     }
 
     /**
-     * @param  Collection<int, \Domain\Conversation\Topic\Models\Topic>  $topics
+     * @param  Collection<int, Topic>  $topics
      * @param  string[]  $pendingLabels
      */
     private function systemPrompt(Collection $topics, array $pendingLabels): string
     {
         $topicList = $topics->isEmpty()
             ? '(none configured)'
-            : $topics->map(fn ($t) => "  {$t->id}: {$t->topic}".($t->description ? " — {$t->description}" : ''))->implode("\n");
+            : $topics->map(fn ($t): string => "  {$t->id}: {$t->topic}".($t->description ? " — {$t->description}" : ''))->implode("\n");
 
         $pending = empty($pendingLabels) ? '(none)' : implode(', ', $pendingLabels);
 
@@ -214,16 +216,16 @@ class ConversationAnalyzer
         }
 
         $topicIds = collect($data['topic_ids'] ?? [])
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => in_array($id, $allowedIds, true))
+            ->map(fn ($id): int => (int) $id)
+            ->filter(fn ($id): bool => in_array($id, $allowedIds, true))
             ->unique()
             ->values()
             ->all();
 
         $suggested = collect($data['suggested_topics'] ?? [])
-            ->filter(fn ($l) => is_string($l) && trim($l) !== '')
-            ->map(fn ($l) => trim($l))
-            ->reject(fn ($l) => in_array(mb_strtolower($l), $existingNames, true))
+            ->filter(fn ($l): bool => is_string($l) && trim($l) !== '')
+            ->map(fn ($l): string => trim($l))
+            ->reject(fn ($l): bool => in_array(mb_strtolower($l), $existingNames, true))
             ->unique(fn ($l) => mb_strtolower($l))
             ->values()
             ->all();
@@ -283,7 +285,7 @@ class ConversationAnalyzer
     {
         return ConversationTopic::query()
             ->whereNotNull('suggested_label')
-            ->whereHas('conversation', fn ($q) => $q->forAgent($agent->id))
+            ->whereHas('conversation.session', fn ($q) => $q->where('agent_id', $agent->id))
             ->distinct()
             ->pluck('suggested_label')
             ->all();

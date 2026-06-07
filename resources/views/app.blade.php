@@ -4,6 +4,12 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
+        {{-- Canonical app origin. The assistant-message renderer uses this to
+             allow-list <img> hosts (chunk images live on the main domain even
+             when the hosted chat runs on an agent subdomain) and strip every
+             other image src, neutralising prompt-injection exfiltration pixels. --}}
+        <meta name="app-url" content="{{ config('app.url') }}">
+
         @include('analytics')
 
         <script>

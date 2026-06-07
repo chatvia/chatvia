@@ -36,7 +36,7 @@ it('accumulates add() calls within a scope and flushes one event with the sum', 
 it('does not flush when no tokens were added', function (): void {
     Event::fake([LlmTokensConsumed::class]);
 
-    $this->ctx->track(42, fn () => null);
+    $this->ctx->track(42, fn (): null => null);
 
     Event::assertNotDispatched(LlmTokensConsumed::class);
 });

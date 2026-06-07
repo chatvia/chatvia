@@ -302,7 +302,7 @@ export const HMAC_EXAMPLES: TokenExample[] = [
         id: 'javascript',
         name: 'JavaScript',
         hljs: 'javascript',
-        hint: 'Using Node\'s built-in crypto module — no extra dependency.',
+        hint: "Using Node's built-in crypto module — no extra dependency.",
         code: `// Keep YOUR_SIGNING_SECRET on the server — never ship it to the browser.
 const crypto = require('crypto');
 
@@ -322,7 +322,7 @@ console.log(signChatviaToken('user_123'));`,
         id: 'python',
         name: 'Python',
         hljs: 'python',
-        hint: 'Using Python\'s built-in hmac and hashlib modules — no extra dependency.',
+        hint: "Using Python's built-in hmac and hashlib modules — no extra dependency.",
         code: `import hmac
 import hashlib
 import time
@@ -344,7 +344,7 @@ print(sign_chatvia_token("user_123"))`,
         id: 'java',
         name: 'Java',
         hljs: 'java',
-        hint: 'Using Java\'s built-in javax.crypto.Mac with HmacSHA256 — no extra dependency.',
+        hint: "Using Java's built-in javax.crypto.Mac with HmacSHA256 — no extra dependency.",
         code: `import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
@@ -377,7 +377,7 @@ public class ChatviaHmac {
         id: 'csharp',
         name: 'C#',
         hljs: 'csharp',
-        hint: 'Using .NET\'s built-in System.Security.Cryptography.HMACSHA256 — no extra dependency.',
+        hint: "Using .NET's built-in System.Security.Cryptography.HMACSHA256 — no extra dependency.",
         code: `using System;
 using System.Security.Cryptography;
 using System.Text;
@@ -405,7 +405,7 @@ static class Chatvia
         id: 'cpp',
         name: 'C++',
         hljs: 'cpp',
-        hint: 'Using OpenSSL\'s HMAC() — link with -lcrypto.',
+        hint: "Using OpenSSL's HMAC() — link with -lcrypto.",
         code: `#include <openssl/hmac.h>
 #include <iomanip>
 #include <sstream>
@@ -440,7 +440,7 @@ int main() {
         id: 'php',
         name: 'PHP',
         hljs: 'php',
-        hint: 'Using PHP\'s built-in hash_hmac — no extra dependency.',
+        hint: "Using PHP's built-in hash_hmac — no extra dependency.",
         code: `<?php
 
 // Keep YOUR_SIGNING_SECRET on the server — never expose it to the browser.
@@ -462,7 +462,7 @@ echo signChatviaToken('user_123'), PHP_EOL;`,
         id: 'go',
         name: 'Go',
         hljs: 'go',
-        hint: 'Using Go\'s built-in crypto/hmac and crypto/sha256 — no extra dependency.',
+        hint: "Using Go's built-in crypto/hmac and crypto/sha256 — no extra dependency.",
         code: `package main
 
 import (
@@ -525,7 +525,7 @@ fn main() {
         id: 'kotlin',
         name: 'Kotlin',
         hljs: 'kotlin',
-        hint: 'Using Kotlin\'s built-in javax.crypto.Mac with HmacSHA256 — no extra dependency.',
+        hint: "Using Kotlin's built-in javax.crypto.Mac with HmacSHA256 — no extra dependency.",
         code: `import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -551,7 +551,7 @@ fun main() {
         id: 'swift',
         name: 'Swift',
         hljs: 'swift',
-        hint: 'Using Apple\'s CryptoKit framework — built into Swift on Apple platforms.',
+        hint: "Using Apple's CryptoKit framework — built into Swift on Apple platforms.",
         code: `import Foundation
 import CryptoKit
 

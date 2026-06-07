@@ -241,6 +241,10 @@ return [
             // Auto-recharge reuses the same Stripe price as Extra Message Credits.
             // The trigger differs (automatic vs. manual), the line item does not.
             'stripe_price_id' => env('STRIPE_EXTRA_1000_MESSAGES_PRICE_ID'),
+            // Max off-session auto-recharges per rolling 24h. The hourly debounce
+            // alone permits ~24 card charges/day; this caps a runaway spend spike
+            // driven by abuse (e.g. anonymous public-widget traffic).
+            'max_per_day' => (int) env('AUTO_RECHARGE_MAX_PER_DAY', 3),
         ],
         'extra_message_credits' => [
             'name' => 'Extra Message Credits',
@@ -269,6 +273,15 @@ return [
             'billing_unit' => 'per domain/month',
             'icon' => 'globe',
             'stripe_price_id' => env('STRIPE_CUSTOM_DOMAIN_PRICE_ID'),
+        ],
+        'remove_branding' => [
+            'name' => 'Remove Chatvia Branding',
+            'description' => 'Hide the "Powered by Chatvia" badge across your widget and hosted chat.',
+            'price_cents' => 1900,
+            'price_formatted' => '$19',
+            'billing_unit' => 'per month',
+            'icon' => 'sparkles',
+            'stripe_price_id' => env('STRIPE_REMOVE_BRANDING_PRICE_ID'),
         ],
     ],
 

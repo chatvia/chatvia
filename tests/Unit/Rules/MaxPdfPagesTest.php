@@ -41,7 +41,7 @@ class MaxPdfPagesTest extends TestCase
         $this->fakePageCount(11);
 
         $failed = false;
-        (new MaxPdfPages(max: 10))->validate('file', $this->pdfUpload(), function () use (&$failed) {
+        (new MaxPdfPages(max: 10))->validate('file', $this->pdfUpload(), function () use (&$failed): void {
             $failed = true;
         });
 
@@ -53,7 +53,7 @@ class MaxPdfPagesTest extends TestCase
         $this->fakePageCount(10);
 
         $failed = false;
-        (new MaxPdfPages(max: 10))->validate('file', $this->pdfUpload(), function () use (&$failed) {
+        (new MaxPdfPages(max: 10))->validate('file', $this->pdfUpload(), function () use (&$failed): void {
             $failed = true;
         });
 
@@ -64,7 +64,7 @@ class MaxPdfPagesTest extends TestCase
     {
         // No PdfInfo bound — if the rule tried to read pages this would error.
         $failed = false;
-        (new MaxPdfPages(max: 10))->validate('file', 'not-a-file', function () use (&$failed) {
+        (new MaxPdfPages(max: 10))->validate('file', 'not-a-file', function () use (&$failed): void {
             $failed = true;
         });
 

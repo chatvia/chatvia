@@ -42,6 +42,7 @@ import {
     PencilLine,
     Plus,
     Save,
+    Send,
     Shield,
     Trash2,
     UserCog,
@@ -694,6 +695,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                     @click="inviteType = 'existing'"
                                     class="flex-1"
                                 >
+                                    <Users class="mr-2 size-4" />
                                     Select Existing
                                 </Button>
                                 <Button
@@ -703,6 +705,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                     @click="inviteType = 'email'"
                                     class="flex-1"
                                 >
+                                    <Mail class="mr-2 size-4" />
                                     Invite by Email
                                 </Button>
                             </div>
@@ -729,13 +732,19 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                             <!-- Email input -->
                             <div v-if="inviteType === 'email'" class="grid gap-2">
                                 <Label for="invite-email">Email Address</Label>
-                                <Input
-                                    id="invite-email"
-                                    v-model="inviteForm.email"
-                                    type="email"
-                                    placeholder="colleague@example.com"
-                                    :required="inviteType === 'email'"
-                                />
+                                <div class="relative">
+                                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <Mail class="size-4" />
+                                    </div>
+                                    <Input
+                                        id="invite-email"
+                                        v-model="inviteForm.email"
+                                        type="email"
+                                        placeholder="colleague@example.com"
+                                        :required="inviteType === 'email'"
+                                        class="pl-9"
+                                    />
+                                </div>
                                 <InputError :message="inviteForm.errors.email" />
                             </div>
 
@@ -748,9 +757,13 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="outline" @click="isInviteDialogOpen = false"> Cancel </Button>
+                            <Button type="button" variant="outline" @click="isInviteDialogOpen = false">
+                                <X class="mr-2 size-4" />
+                                Cancel
+                            </Button>
                             <Button type="submit" :disabled="inviteForm.processing || (inviteType === 'existing' && !inviteForm.user_id)">
                                 <Loader2 v-if="inviteForm.processing" class="mr-2 size-4 animate-spin" />
+                                <component :is="inviteType === 'existing' ? UserPlus : Send" v-else class="mr-2 size-4" />
                                 {{ inviteType === 'existing' ? 'Add Member' : 'Send Invitation' }}
                             </Button>
                         </DialogFooter>

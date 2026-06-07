@@ -16,7 +16,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
 
-class DocumentEnhanceChunkJob implements ShouldQueue, AttributesTokenUsage
+class DocumentEnhanceChunkJob implements AttributesTokenUsage, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
 

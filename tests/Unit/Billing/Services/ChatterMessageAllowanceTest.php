@@ -115,7 +115,7 @@ it('exposes an id-based gate: unknown id is allowed, real chatter mirrors the ca
 
     expect($this->allowance->canSendMessagesById($this->chatter->id))->toBeFalse()
         ->and($this->allowance->canSendMessagesById($this->chatter->id))
-            ->toBe($this->allowance->canSendMessages($this->chatter));
+        ->toBe($this->allowance->canSendMessages($this->chatter));
 });
 
 it('is a no-op for non-chatter users so billing credits are never touched', function (): void {

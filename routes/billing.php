@@ -4,6 +4,7 @@ use App\Http\Controllers\Billing\Addons\UpdateAutoRechargeController;
 use App\Http\Controllers\Billing\Checkout\CheckoutCustomDomainController;
 use App\Http\Controllers\Billing\Checkout\CheckoutExtraAgentsController;
 use App\Http\Controllers\Billing\Checkout\CheckoutExtraMessagesController;
+use App\Http\Controllers\Billing\Checkout\CheckoutRemoveBrandingController;
 use App\Http\Controllers\Billing\Home\BillingController;
 use App\Http\Controllers\Billing\Home\BillingDataController;
 use App\Http\Controllers\Billing\Home\BillingUpdateInformationController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionResumeControll
 use App\Http\Controllers\Billing\Subscriptions\BillingSubscriptionScheduleCancelController;
 use App\Http\Controllers\Billing\Subscriptions\CancelCustomDomainController;
 use App\Http\Controllers\Billing\Subscriptions\CancelExtraAgentsController;
+use App\Http\Controllers\Billing\Subscriptions\CancelRemoveBrandingController;
 use App\Http\Middleware\Auth\DenyIfEmployee;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +46,9 @@ Route::middleware(['auth', 'verified', DenyIfEmployee::class, 'can.access.dashbo
     Route::get('addons/custom-domains', CheckoutCustomDomainController::class)
         ->name('addons.custom-domains');
 
+    Route::get('addons/remove-branding', CheckoutRemoveBrandingController::class)
+        ->name('addons.remove-branding');
+
     Route::post('addons/auto-recharge', UpdateAutoRechargeController::class)
         ->name('addons.auto-recharge.update');
 
@@ -52,6 +57,9 @@ Route::middleware(['auth', 'verified', DenyIfEmployee::class, 'can.access.dashbo
 
     Route::post('addons/custom-domains/cancel', CancelCustomDomainController::class)
         ->name('addons.custom-domains.cancel');
+
+    Route::post('addons/remove-branding/cancel', CancelRemoveBrandingController::class)
+        ->name('addons.remove-branding.cancel');
 
     // Main billing dashboard
     Route::get('/', BillingController::class)->name('index');

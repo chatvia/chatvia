@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Support\Http\SafeUrl;
 use Throwable;
 
 /**
@@ -223,8 +224,21 @@ class McpOAuthFlow
             $body['client_secret'] = $client->client_secret;
         }
 
+        // SSRF guard: the token endpoint originates from attacker-served OAuth
+        // metadata (not a user-typed, pre-validated value), so re-assert it is a
+        // public address and disable redirects — mirroring every other
+        // user-influenced fetch in the connector flow. Without this a malicious
+        // auth-server can point token_endpoint at 169.254.169.254 / loopback /
+        // RFC1918 and drive this background POST there.
+        try {
+            SafeUrl::assert((string) $server->oauth_token_endpoint);
+        } catch (Throwable $e) {
+            throw new McpOAuthException('Token refresh blocked: unsafe token endpoint.', previous: $e);
+        }
+
         try {
             $response = Http::asForm()
+                ->withOptions(SafeUrl::clientOptions())
                 ->withHeaders(['Accept' => 'application/json'])
                 ->post($server->oauth_token_endpoint, $body);
         } catch (Throwable $e) {
@@ -272,8 +286,19 @@ class McpOAuthFlow
             $body['client_secret'] = $pending->clientSecret;
         }
 
+        // SSRF guard — see refresh(). token_endpoint comes from the upstream
+        // authorization-server metadata the (attacker-controlled) host returned,
+        // so validate it against private/reserved ranges and disable redirects
+        // before POSTing the credential-bearing exchange.
+        try {
+            SafeUrl::assert((string) $pending->tokenEndpoint);
+        } catch (Throwable $e) {
+            throw new McpOAuthException('Token exchange blocked: unsafe token endpoint.', previous: $e);
+        }
+
         try {
             $response = Http::asForm()
+                ->withOptions(SafeUrl::clientOptions())
                 ->withHeaders(['Accept' => 'application/json'])
                 ->post($pending->tokenEndpoint, $body);
         } catch (Throwable $e) {

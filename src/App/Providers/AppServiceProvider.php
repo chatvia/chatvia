@@ -54,6 +54,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->assertProductionSecurityConfig();
         $this->configureStripe();
         $this->enforceMorphMap();
         $this->configureModelStrictness();
@@ -68,6 +69,31 @@ class AppServiceProvider extends ServiceProvider
         $this->configureScramble();
         $this->configureParallelTesting();
         $this->registerBunnyCdnDriver();
+    }
+
+    /**
+     * Fail loudly (or warn) on security-critical config that is easy to ship
+     * empty from the .env template. Runs only in production so local/dev and the
+     * test suite are unaffected.
+     */
+    private function assertProductionSecurityConfig(): void
+    {
+        if (! app()->isProduction()) {
+            return;
+        }
+
+        // HARD requirement: an unset Stripe webhook secret silently drops
+        // Cashier's signature verification, turning /stripe/webhook into an
+        // unauthenticated endpoint that grants subscriptions/credits from forged
+        // events. Refuse to boot rather than run a forgeable billing webhook.
+        // (TRUSTED_PROXIES is validated in bootstrap/app.php where it is read; it
+        // has no config mirror, so it cannot be re-checked cache-safely here.)
+        if (blank(config('cashier.webhook.secret'))) {
+            throw new \RuntimeException(
+                'STRIPE_WEBHOOK_SECRET is not set. Refusing to boot in production: '
+                .'the Stripe webhook would accept unsigned, forgeable events.'
+            );
+        }
     }
 
     private function registerRequestMacros(): void
@@ -245,13 +271,32 @@ class AppServiceProvider extends ServiceProvider
         // ceiling regardless of how many sessions an IP spins up.
         RateLimiter::for('widgets', fn ($request) => Limit::perMinute(90)->by($request->ip()));
 
-        // Stream endpoint specifically — every call costs an LLM invocation,
-        // so we throttle by session (or IP when there's no session) at a
-        // much lower budget than the bulk widget gate.
+        // Stream endpoint specifically — every call costs an LLM invocation
+        // billed to the agent's OWNING workspace, so throttling matters for both
+        // abuse and the victim tenant's spend. The per-session/per-IP key alone
+        // is forgeable (a client mints unlimited X-SESSION-IDs and can proxy
+        // across IPs), so we stack a GLOBAL per-agent ceiling keyed on the
+        // server-resolved agent — independent of any client-supplied value — so
+        // an attacker cannot multiply their LLM budget against a public agent
+        // (financial DoS: draining the owner's message quota + triggering
+        // auto-recharge). Applies to /widget/stream and /widget/.../attachments.
         RateLimiter::for('widget-stream', function ($request) {
-            $key = $request->header('X-SESSION-ID') ?: $request->ip();
+            $sessionKey = $request->header('X-SESSION-ID') ?: $request->ip();
 
-            return Limit::perMinute(20)->by('widget-stream|'.$key);
+            $limits = [
+                Limit::perMinute(20)->by('widget-stream|sess|'.$sessionKey),
+            ];
+
+            $agent = current_agent_from_widget();
+
+            if ($agent) {
+                $limits[] = Limit::perMinute((int) config('chatvia.widget.stream_per_agent_per_minute', 120))
+                    ->by('widget-stream|agent|'.$agent->id);
+                $limits[] = Limit::perHour((int) config('chatvia.widget.stream_per_agent_per_hour', 1500))
+                    ->by('widget-stream|agent-hour|'.$agent->id);
+            }
+
+            return $limits;
         });
 
         // Auth exchange runs once per page load for protected widgets. A

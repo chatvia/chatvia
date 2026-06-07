@@ -20,7 +20,6 @@ use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\ForceWww;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
-use Support\Exceptions\DomainValidationException;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -29,6 +28,7 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Sentry\Laravel\Integration as SentryIntegration;
+use Support\Exceptions\DomainValidationException;
 
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withCommands([

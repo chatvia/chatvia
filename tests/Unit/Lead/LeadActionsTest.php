@@ -7,9 +7,9 @@ use Domain\Conversation\Models\Session;
 use Domain\Lead\Actions\BulkDeleteAgentLeadsAction;
 use Domain\Lead\Actions\ExportAgentLeadsToCsvAction;
 use Domain\Lead\Models\Lead;
-use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * Behavioural coverage for the Lead actions. The Leads domain shipped with

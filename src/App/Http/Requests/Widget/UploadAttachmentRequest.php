@@ -13,7 +13,11 @@ class UploadAttachmentRequest extends FormRequest
 
     public function toData(Agent $agent, ?int $conversationId): UploadAttachmentData
     {
-        $sessionId = (string) $this->header('X-SESSION-ID');
+        // The session id is a client-supplied header that becomes a storage path
+        // segment. Strip anything outside the UUID alphabet so `../` (which
+        // Flysystem's normaliser would collapse into another agent's prefix)
+        // can never reach the path.
+        $sessionId = preg_replace('/[^A-Za-z0-9-]/', '', (string) $this->header('X-SESSION-ID')) ?? '';
 
         return new UploadAttachmentData(
             file: $this->file('file'),

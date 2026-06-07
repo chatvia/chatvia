@@ -21,7 +21,6 @@ use Illuminate\Support\Str;
  *    THIS agent with handoff_status='pending' AND is_visible=true, ordered
  *    by updated_at desc, capped at 50.
  */
-
 function newHandoffSession(Agent $agent, string $initialStatus, ?int $handoffUserId = null): Conversation
 {
     $session = Session::factory()->create(['agent_id' => $agent->id]);

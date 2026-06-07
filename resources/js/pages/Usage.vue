@@ -129,7 +129,9 @@ onMounted(() => {
                             <CardContent class="space-y-2">
                                 <!-- Analytics only: tokens consumed this cycle, no cap (billing is by messages). -->
                                 <span class="text-2xl font-bold">{{ usageData.tokens.used.toLocaleString() }}</span>
-                                <p class="text-muted-foreground text-xs">Tokens consumed this cycle — for insight only; your plan is billed in messages.</p>
+                                <p class="text-muted-foreground text-xs">
+                                    Tokens consumed this cycle — for insight only; your plan is billed in messages.
+                                </p>
                             </CardContent>
                         </Card>
 

@@ -11,12 +11,12 @@ use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
 use Domain\Conversation\Topic\Actions\DetachTopicFromAgentAction;
 use Domain\Conversation\Topic\Actions\UpdateTopicAction;
 use Domain\Conversation\Topic\Models\Topic;
-use Support\Exceptions\DomainValidationException;
-use Support\Exceptions\SystemTopicProtectedException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Support\Exceptions\DomainValidationException;
+use Support\Exceptions\SystemTopicProtectedException;
 
 class AgentTopicController
 {

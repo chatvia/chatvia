@@ -17,7 +17,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
 
-class MediaEnhanceChunkJob implements ShouldBeUnique, ShouldQueue, AttributesTokenUsage
+class MediaEnhanceChunkJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
 

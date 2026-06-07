@@ -4,6 +4,7 @@ namespace Domain\Billing\Services;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserCredit;
+use Domain\Conversation\Actions\Messages\StoreMessageAction;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -113,7 +114,7 @@ class ChatterMessageAllowance
     /**
      * Count one message, renewing the monthly window first if it rolled over
      * (carrying the cap forward). No-op when the chatter has no limit. Called
-     * from the message-persist path ({@see \Domain\Conversation\Actions\Messages\StoreMessageAction}).
+     * from the message-persist path ({@see StoreMessageAction}).
      */
     public function recordMessage(User $chatter): void
     {

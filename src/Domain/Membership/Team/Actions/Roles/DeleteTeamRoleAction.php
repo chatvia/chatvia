@@ -2,9 +2,9 @@
 
 namespace Domain\Membership\Team\Actions\Roles;
 
-use Support\Exceptions\DomainValidationException;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
+use Support\Exceptions\DomainValidationException;
 
 class DeleteTeamRoleAction
 {

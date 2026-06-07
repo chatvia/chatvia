@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Agent\Analytics\Topic;
 
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\PromoteSuggestedTopicAction;
-use Support\Exceptions\DomainValidationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Support\Exceptions\DomainValidationException;
 
 class PromoteSuggestedTopicController
 {

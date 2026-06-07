@@ -210,10 +210,10 @@ describe('compact HMAC credential', function (): void {
     })->with([
         'missing segments' => 'cvh1.only-one-segment',
         'two segments' => 'cvh1.user_123.1234567890',
-        'non-numeric exp' => fn () => 'cvh1.user_123.notanumber.'.str_repeat('a', 64),
-        'non-hex sig' => fn () => 'cvh1.user_123.'.now()->addMinutes(5)->getTimestamp().'.'.str_repeat('z', 64),
-        'wrong sig length' => fn () => 'cvh1.user_123.'.now()->addMinutes(5)->getTimestamp().'.deadbeef',
-        'empty user_id' => fn () => 'cvh1..'.now()->addMinutes(5)->getTimestamp().'.'.str_repeat('a', 64),
+        'non-numeric exp' => fn (): string => 'cvh1.user_123.notanumber.'.str_repeat('a', 64),
+        'non-hex sig' => fn (): string => 'cvh1.user_123.'.now()->addMinutes(5)->getTimestamp().'.'.str_repeat('z', 64),
+        'wrong sig length' => fn (): string => 'cvh1.user_123.'.now()->addMinutes(5)->getTimestamp().'.deadbeef',
+        'empty user_id' => fn (): string => 'cvh1..'.now()->addMinutes(5)->getTimestamp().'.'.str_repeat('a', 64),
     ]);
 });
 

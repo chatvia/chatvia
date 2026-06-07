@@ -8,10 +8,10 @@ use Domain\Analytics\Jobs\AnalyzeMessageJob;
 use Domain\Billing\Services\ChatterMessageAllowance;
 use Domain\Billing\Services\UserCreditSystem;
 use Domain\Conversation\Actions\Messages\StoreMessageAction;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
 use Domain\Conversation\Models\Message;
+use Domain\Conversation\Models\Session;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use Illuminate\Http\Client\PendingRequest;
@@ -47,7 +47,7 @@ function fakeLlmProvider(bool $supportsCost = false, ?array $usage = null): LlmP
             throw new RuntimeException('client() not used in StoreMessageAction tests');
         }
 
-        public function completion(array $data)
+        public function completion(array $data): void
         {
             throw new RuntimeException('completion() not used in StoreMessageAction tests');
         }

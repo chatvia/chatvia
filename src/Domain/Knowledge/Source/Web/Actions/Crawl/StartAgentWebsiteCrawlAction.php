@@ -8,10 +8,10 @@ use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Jobs\Crawler\WebsiteCrawlerJob;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Illuminate\Support\Facades\Http;
 use Support\Exceptions\DomainValidationException;
 use Support\Exceptions\UnsafeUrlException;
 use Support\Http\SafeUrl;
-use Illuminate\Support\Facades\Http;
 use Throwable;
 
 class StartAgentWebsiteCrawlAction

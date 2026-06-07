@@ -36,6 +36,25 @@ class TriggerAutoRecharge
             return;
         }
 
+        // Daily spend ceiling. The hourly debounce alone still permits ~24
+        // off-session card charges/day, which an abuse-driven quota drain
+        // (e.g. anonymous traffic hammering a public agent) could sustain
+        // indefinitely. Cap the number of auto-recharges in any rolling 24h so
+        // a spend spike can't run away on the customer's card. Re-checked under
+        // lock in ProcessAutoRechargeJob.
+        if (self::dailyRechargeCount($user) >= (int) config('billing.addons.auto_recharge_credits.max_per_day', 3)) {
+            return;
+        }
+
         ProcessAutoRechargeJob::dispatch($user->id);
+    }
+
+    /** Count auto-recharge addons granted to this account in the last 24h. */
+    public static function dailyRechargeCount(User $user): int
+    {
+        return $user->addons()
+            ->where('type', 'auto_recharge_credits')
+            ->where('started_at', '>=', now()->subDay())
+            ->count();
     }
 }

@@ -61,6 +61,7 @@ return [
 
     'ingestion' => [
         'api_endpoint' => env('INGESTION_ENDPOINT_URL', 'http://127.0.0.1:8080'),
+        'secret' => env('INGESTION_WEBHOOK_SECRET'),
     ],
 
     'cohere' => [
@@ -171,10 +172,6 @@ return [
     // is never empty; set explicitly to rotate independently of APP_KEY.
     'builtin_mcp' => [
         'secret' => env('BUILTIN_MCP_SECRET'),
-    ],
-
-    'ingestion' => [
-        'secret' => env('INGESTION_WEBHOOK_SECRET'),
     ],
 
     'turnstile' => [

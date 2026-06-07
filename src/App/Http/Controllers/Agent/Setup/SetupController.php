@@ -7,6 +7,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Llm\Data\LlmModelData;
 use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Http\Request;
@@ -55,6 +56,10 @@ class SetupController
             'agent' => AgentResourceData::fromModel($agent),
             'authToken' => $authToken,
             'starters' => $agent->resolvedStarters(),
+            // Candidate starters mined from the agent's knowledge-base chunks
+            // (LLM-generated questions). Empty when the agent has no ingested
+            // sources — the Setup UI hides the "Add from Knowledge Base" picker.
+            'knowledgeQuestions' => Chunk::query()->questionsForAgent($agent->id),
             'prompts' => $prompts,
             'hasPermission' => has_permission_to_agent($agent, 'agent.setup'),
             'canUseHandoff' => $agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false,

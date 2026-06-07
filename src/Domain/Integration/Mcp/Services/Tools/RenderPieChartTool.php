@@ -42,7 +42,7 @@ class RenderPieChartTool extends Tool
             'radius' => ! empty($v['donut']) ? ['40%', '70%'] : '70%',
             'avoidLabelOverlap' => true,
             'label' => ['show' => true, 'formatter' => '{b}: {d}%'],
-            'data' => array_map(fn ($d) => ['name' => $d['name'], 'value' => $d['value']], $v['data']),
+            'data' => array_map(fn ($d): array => ['name' => $d['name'], 'value' => $d['value']], $v['data']),
         ];
 
         $option = [

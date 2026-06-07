@@ -39,5 +39,4 @@ class RefreshConnectorController extends Controller
             'tools_count' => count($tools),
         ]);
     }
-
 }

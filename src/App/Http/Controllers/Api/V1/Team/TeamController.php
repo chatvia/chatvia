@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1\Team;
 
 use App\Http\Resources\Api\V1\Team\TeamData;
-use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Actions\Team\UpdateTeamAction;
@@ -73,5 +72,4 @@ class TeamController
             new UpdateTeamData(team: $team, name: $payload->name),
         ))];
     }
-
 }

@@ -14,7 +14,7 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class TextChunkIngestionJob implements ShouldBeUnique, ShouldQueue, AttributesTokenUsage
+class TextChunkIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable, TracksTokenUsage;
 

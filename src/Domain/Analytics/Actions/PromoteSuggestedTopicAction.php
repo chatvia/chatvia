@@ -8,8 +8,8 @@ use Domain\Analytics\Events\ConversationTopicAssigned;
 use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
-use Support\Exceptions\DomainValidationException;
 use Illuminate\Support\Facades\DB;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * Promote an emergent topic suggestion into the agent's real taxonomy: create
@@ -35,7 +35,7 @@ class PromoteSuggestedTopicAction
 
             $rows = ConversationTopic::query()
                 ->where('suggested_label', $label)
-                ->whereHas('conversation', fn ($query) => $query->forAgent($agent->id))
+                ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id))
                 ->with('conversation:id,created_at')
                 ->get();
 

@@ -66,7 +66,7 @@ it('transitions Blocked → Allow', function (): void {
 });
 
 it('throws RuntimeException for a tool id that belongs to a DIFFERENT server', function (): void {
-    [$server, ] = smtServerWithTool();
+    [$server] = smtServerWithTool();
     [, $otherTool] = smtServerWithTool();
 
     expect(fn () => app(SetMcpToolPermissionAction::class)->execute($server, $otherTool->id, McpToolPermission::Blocked))

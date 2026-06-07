@@ -18,7 +18,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
 
-class TextEnhanceChunkJob implements ShouldBeUnique, ShouldQueue, AttributesTokenUsage
+class TextEnhanceChunkJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
 

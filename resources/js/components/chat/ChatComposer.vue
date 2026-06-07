@@ -235,10 +235,7 @@ onMounted(() => {
 });
 
 const canSend = () =>
-    (userInput.value.trim() !== '' || attachments.value.length > 0) &&
-    !props.disabled &&
-    !isUploading.value &&
-    pendingDeleteCount.value === 0;
+    (userInput.value.trim() !== '' || attachments.value.length > 0) && !props.disabled && !isUploading.value && pendingDeleteCount.value === 0;
 
 const formatBytes = (bytes: number): string => {
     if (bytes < 1024) return bytes + ' B';

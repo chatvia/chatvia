@@ -3,12 +3,13 @@
 namespace Domain\Membership\Agent\Data;
 
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
 use Domain\Membership\Agent\Enums\InvitationCredentialKind;
 use Spatie\LaravelData\Data;
 use Support\Enums\User\SocialProvider;
 
 /**
- * Input for {@see \Domain\Membership\Agent\Actions\AcceptAgentInvitationAction::execute}.
+ * Input for {@see AcceptAgentInvitationAction::execute}.
  *
  * `kind` discriminates the path:
  *  - Password: $password is set, social fields are null

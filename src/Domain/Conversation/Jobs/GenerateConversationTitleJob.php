@@ -9,7 +9,7 @@ use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class GenerateConversationTitleJob implements ShouldQueue, AttributesTokenUsage
+class GenerateConversationTitleJob implements AttributesTokenUsage, ShouldQueue
 {
     use Queueable;
     use TracksTokenUsage;

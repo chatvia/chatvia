@@ -1,6 +1,6 @@
 <?php
 
-namespace Domain\Llm\Operations\Documents;
+namespace Domain\Knowledge\Ingestion\Services;
 
 use Domain\Analytics\Data\ContentAnalysisData;
 use Domain\Llm\Providers\Mistral;

@@ -16,7 +16,7 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
-use Domain\Knowledge\Ingestion\Services\TikToken;
+use Domain\Llm\Services\TikToken;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Pricing\CostCalculator;

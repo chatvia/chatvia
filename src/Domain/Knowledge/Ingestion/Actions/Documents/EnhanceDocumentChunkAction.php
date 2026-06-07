@@ -7,7 +7,7 @@ use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Domain\Llm\Operations\Documents\Chunker;
+use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
 use Domain\Llm\Operations\Documents\Tables;
 use Domain\Llm\Operations\Media\Vision;
 use Domain\Llm\Operations\Pricing\CostCalculator;

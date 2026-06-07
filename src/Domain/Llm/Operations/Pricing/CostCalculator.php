@@ -2,7 +2,7 @@
 
 namespace Domain\Llm\Operations\Pricing;
 
-use Domain\Knowledge\Ingestion\Services\TikToken;
+use Domain\Llm\Services\TikToken;
 
 class CostCalculator
 {

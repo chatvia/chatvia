@@ -5,7 +5,7 @@ namespace Domain\Knowledge\Ingestion\Services;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
-use Domain\Llm\Operations\Documents\Chunker;
+use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
 use Domain\Llm\Operations\Pricing\CostCalculator;
 
 class ChunkEnhanceText

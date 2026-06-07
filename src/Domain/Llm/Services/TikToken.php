@@ -1,6 +1,6 @@
 <?php
 
-namespace Domain\Knowledge\Ingestion\Services;
+namespace Domain\Llm\Services;
 
 use Yethee\Tiktoken\Encoder;
 use Yethee\Tiktoken\EncoderProvider;

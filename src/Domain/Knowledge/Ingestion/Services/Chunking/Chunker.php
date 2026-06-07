@@ -2,246 +2,175 @@
 
 namespace Domain\Knowledge\Ingestion\Services\Chunking;
 
-use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
-use Domain\Knowledge\Ingestion\Data\ChunkIngestionData;
+use Domain\Knowledge\Ingestion\Data\Chunking\DocumentChunk;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
-use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
-use Domain\Knowledge\Ingestion\Services\TikToken;
-use Illuminate\Http\File;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Intervention\Image\Interfaces\EncodedImageInterface;
-use Intervention\Image\Laravel\Facades\Image;
+use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Services\TikToken;
+use Domain\Llm\Operations\Pricing\CostCalculator;
+use Domain\Llm\Providers\Mistral;
+use Illuminate\Support\Facades\Log;
 
-readonly class Chunker
+class Chunker
 {
     public function __construct(
-        private Agent $agent,
-        private ChunkableContract $chunkable,
-        private int $maxTokensPerChunk = 800,
-        private int $minTokensPerChunk = 128,
-        private ?ChunkFitClient $chunkFit = null,
+        public LlmProviderInterface $provider,
     ) {}
 
-    /**
-     * @param  Collection<int, PageData>  $pages
-     * @return Collection<int, ChunkIngestionData>
-     */
-    public function createChunks(Collection $pages): Collection
+    public function chunkDocument(PageData $page, ?PageData $prevPage = null, ?PageData $nextPage = null): DocumentChunk
     {
-        $chunks = collect();
-        $chunkIndex = 1;
-        $textBuffer = '';
-        $imageBuffer = [];
-        $tableBuffer = [];
+        $systemPrompt = prompt('chunking/document-chunking-system');
 
-        foreach ($pages as $page) {
-            $pageText = $page->content;
-            $pageImages = $page->imagesBase64;
-            $pageTables = $page->tables;
+        $userPrompt = prompt('chunking/document-chunking-user', [
+            'previous_page' => $prevPage?->content,
+            'target_page' => $page->content,
+            'next_page' => $nextPage?->content,
+        ]);
 
-            // Skip empty pages
-            if (empty(trim($pageText))) {
-                continue;
-            }
+        $res = $this->provider->completion([
+            'model' => config('chatvia.ai.models.chunker'),
+            'temperature' => 0.0,
+            'max_tokens' => 8096,
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => $systemPrompt,
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $userPrompt,
+                ],
+            ],
+            'response_format' => [
+                'type' => 'json_schema',
+                'json_schema' => [
+                    'name' => 'document_chunk',
+                    'strict' => true,
+                    'schema' => $this->documentChunkSchema(),
+                ],
+            ],
+        ])->throw();
 
-            // Add to buffer
-            $textBuffer .= ($textBuffer ? "\n\n" : '').$pageText;
-            $imageBuffer = array_merge($imageBuffer, $this->storePageImages($pageImages));
-            $tableBuffer = array_merge($tableBuffer, $pageTables);
+        $content = $res->json('choices.0.message.content');
 
-            // Check if buffer exceeds token limit
-            $bufferTokenCount = TikToken::countTokens($textBuffer);
+        Log::info($content);
 
-            if ($bufferTokenCount >= $this->maxTokensPerChunk) {
-                // Process the buffer
-                $bufferChunks = $this->processBuffer($textBuffer, $imageBuffer, $tableBuffer, $chunkIndex);
-                $chunks = $chunks->merge($bufferChunks);
-                $chunkIndex += $bufferChunks->count();
+        $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
-                // Reset buffer
-                $textBuffer = '';
-                $imageBuffer = [];
-                $tableBuffer = [];
-            }
-        }
-
-        // Process any remaining buffer
-        if (! empty(trim($textBuffer))) {
-            $bufferChunks = $this->processBuffer($textBuffer, $imageBuffer, $tableBuffer, $chunkIndex);
-            $chunks = $chunks->merge($bufferChunks);
-        }
-
-        // Merge small chunks that are below the minimum token threshold
-        $chunks = $this->mergeSmallChunks($chunks);
-
-        return $this->setChunkRelationships($chunks);
+        return DocumentChunk::from([
+            'chunk' => $page->content,
+            'summary' => $decoded['summary'],
+            'questions' => $decoded['questions'],
+            'cost' => $this->calculateCost(
+                input: $systemPrompt.$userPrompt,
+                output: $res,
+            ),
+        ]);
     }
 
-    private function processBuffer(string $text, array $images, array $tables, int $startChunkIndex): Collection
+    /**
+     * Strict JSON schema for the chunker response — the LLM MUST return
+     * exactly this shape, no XML tags, no closing-tag truncation risk.
+     */
+    private function documentChunkSchema(): array
     {
-        $chunks = collect();
-        $tokenCount = TikToken::countTokens($text);
+        return [
+            'type' => 'object',
+            'properties' => [
+                'summary' => [
+                    'type' => 'string',
+                    'description' => '2-5 sentences capturing the target page\'s key ideas in natural language.',
+                ],
+                'questions' => [
+                    'type' => 'array',
+                    'items' => ['type' => 'string'],
+                    'minItems' => 5,
+                    'maxItems' => 7,
+                    'description' => '5-7 distinct questions the target page answers. Each question is its own array item — do NOT number them.',
+                ],
+            ],
+            'required' => ['summary', 'questions'],
+            'additionalProperties' => false,
+        ];
+    }
 
-        if ($tokenCount <= $this->maxTokensPerChunk) {
-            // Text fits in a single chunk
-            $chunks->push($this->createChunk($text, $images, $tables, $startChunkIndex));
+    public function chunkHtml($html): array
+    {
+        $systemPrompt = prompt('chunking/web');
 
-            return $chunks;
-        }
+        $userPrompt = prompt('chunking/user-web', [
+            'html' => $html,
+        ]);
 
-        // Delegate splitting to chunk.fit's LlamaIndex SentenceSplitter:
-        // sentence-boundary aware, token-budgeted in the same tiktoken
-        // currency the rest of this pipeline uses.
-        $textChunks = $this->chunkFit()->splitSentences(
-            text: $text,
-            chunkSize: $this->maxTokensPerChunk,
-            chunkOverlap: 0,
+        $res = app(Mistral::class)->completion([
+            'model' => 'mistral-large-latest',
+            'temperature' => 0.0,
+            'max_tokens' => 10000,
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => $systemPrompt,
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $userPrompt,
+                ],
+            ],
+            'response_format' => [
+                'type' => 'json_schema',
+                'json_schema' => [
+                    'name' => 'web_chunks',
+                    'strict' => true,
+                    'schema' => $this->webChunksSchema(),
+                ],
+            ],
+        ])->throw();
+
+        $decoded = json_decode(
+            $res->json('choices.0.message.content') ?? '',
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
         );
 
-        foreach ($textChunks as $index => $chunkText) {
-            $chunks->push($this->createChunk($chunkText, $images, $tables, $startChunkIndex + $index));
-        }
-
-        return $chunks;
-    }
-
-    private function chunkFit(): ChunkFitClient
-    {
-        return $this->chunkFit ?? app(ChunkFitClient::class);
-    }
-
-    private function createChunk(string $text, array $images, array $tables, int $chunkIndex): ChunkIngestionData
-    {
-        return ChunkIngestionData::from([
-            'agent_id' => $this->agent->id,
-            'chunkable_type' => $this->chunkable->getMorphClass(),
-            'chunkable_id' => $this->chunkable->getKey(),
-            'chunk_index' => $chunkIndex,
-            'expected_chunks' => 0, // Will be set later
-            'chunk_text' => trim($text),
-            'chunk_images' => $images,
-            'chunk_tables' => $tables,
-            'prev_chunk' => '',
-            'next_chunk' => '',
-        ]);
+        // Drop empty or sub-threshold chunks. 128 tokens matches the
+        // minimum used by the legacy XML-tag parser — chunks smaller than
+        // that don't carry enough context for useful retrieval.
+        return collect($decoded['chunks'] ?? [])
+            ->map(fn (string $chunk): string => trim($chunk))
+            ->filter(fn (string $chunk): bool => $chunk !== '' && TikToken::countTokens($chunk) >= 128)
+            ->values()
+            ->all();
     }
 
     /**
-     * @param  array<int, EncodedImageInterface>  $images
+     * Strict JSON schema for the HTML chunker — replaces the legacy
+     * <Chunk>...</Chunk> tag protocol so missing closing tags, markdown
+     * fences, or nested tags can't silently drop chunks.
      */
-    private function storePageImages(array $images): array
+    private function webChunksSchema(): array
     {
-        $imagePaths = [];
+        return [
+            'type' => 'object',
+            'properties' => [
+                'chunks' => [
+                    'type' => 'array',
+                    'items' => ['type' => 'string'],
+                    'description' => 'Semantically coherent, self-contained chunks extracted from the input. Empty array when the input has no meaningful content.',
+                ],
+            ],
+            'required' => ['chunks'],
+            'additionalProperties' => false,
+        ];
+    }
 
-        $userId = $this->agent->user_id;
-
-        foreach ($images as $imageBase64) {
-            $fileName = Str::uuid()->toString().'.png';
-            $filepath = create_temp_file(
-                $fileName,
-                Image::read($imageBase64)->toPng()->toString()
+    public function calculateCost($input, $output): float
+    {
+        return app(CostCalculator::class)
+            ->calculateCostInCents(
+                inputText: $input,
+                outputText: $output,
+                pricePerInputMilToken: config('chatvia.ai.pricing.chunker_input_per_million_tokens'),
+                pricePerOutputMilToken: config('chatvia.ai.pricing.chunker_output_per_million_tokens'),
             );
-            $imagePaths[] = Storage::putFileAs(
-                path: 'users/'.$userId.'/agents/'.$this->agent->id.'/images',
-                file: new File($filepath),
-                name: $fileName,
-            );
-        }
-
-        return $imagePaths;
-    }
-
-    private function mergeSmallChunks(Collection $chunks): Collection
-    {
-        $mergedChunks = collect();
-        $totalChunks = $chunks->count();
-        $i = 0;
-
-        while ($i < $totalChunks) {
-            $chunk = $chunks->get($i);
-            $tokenCount = TikToken::countTokens($chunk->chunk_text);
-
-            if ($tokenCount >= $this->minTokensPerChunk) {
-                // Chunk is large enough, keep it
-                $mergedChunks->push($chunk);
-                $i++;
-            } else {
-                // Chunk is too small, try to merge with next chunk first
-                if ($i < $totalChunks - 1) {
-                    $nextChunk = $chunks->get($i + 1);
-                    $mergedChunk = $this->mergeChunks($chunk, $nextChunk);
-                    $mergedChunks->push($mergedChunk);
-                    $i += 2; // Skip the next chunk since it's been merged
-                } // If no next chunk, try to merge with previous
-                elseif ($mergedChunks->isNotEmpty()) {
-                    $prevChunk = $mergedChunks->pop();
-                    $mergedChunk = $this->mergeChunks($prevChunk, $chunk);
-                    $mergedChunks->push($mergedChunk);
-                    $i++;
-                } else {
-                    // Edge case: only one chunk and it's too small, keep it
-                    $mergedChunks->push($chunk);
-                    $i++;
-                }
-            }
-        }
-
-        // Recalculate chunk indices
-        return $mergedChunks->map(function (ChunkIngestionData $chunk, $newIndex) {
-            return ChunkIngestionData::from([
-                'agent_id' => $chunk->agent_id,
-                'chunkable_type' => $chunk->chunkable_type,
-                'chunkable_id' => $chunk->chunkable_id,
-                'chunk_index' => $newIndex + 1, // 1-based indexing
-                'expected_chunks' => 0, // Will be set in setChunkRelationships
-                'chunk_text' => $chunk->chunk_text,
-                'chunk_images' => $chunk->chunk_images,
-                'chunk_tables' => $chunk->chunk_tables,
-                'prev_chunk' => $chunk->prev_chunk,
-                'next_chunk' => $chunk->next_chunk,
-            ]);
-        });
-    }
-
-    private function mergeChunks(ChunkIngestionData $chunk1, ChunkIngestionData $chunk2): ChunkIngestionData
-    {
-        return ChunkIngestionData::from([
-            'agent_id' => $chunk1->agent_id,
-            'chunkable_type' => $chunk1->chunkable_type,
-            'chunkable_id' => $chunk1->chunkable_id,
-            'chunk_index' => min($chunk1->chunk_index, $chunk2->chunk_index), // Will be recalculated
-            'expected_chunks' => 0, // Will be set later
-            'chunk_text' => $chunk1->chunk_text."\n\n".$chunk2->chunk_text,
-            'chunk_images' => array_merge($chunk1->chunk_images, $chunk2->chunk_images),
-            'chunk_tables' => array_merge($chunk1->chunk_tables, $chunk2->chunk_tables),
-            'prev_chunk' => $chunk1->prev_chunk,
-            'next_chunk' => $chunk2->next_chunk,
-        ]);
-    }
-
-    private function setChunkRelationships(Collection $chunks): Collection
-    {
-        $totalChunks = $chunks->count();
-
-        return $chunks->map(function (ChunkIngestionData $chunk, $index) use ($totalChunks, $chunks) {
-            $prevChunk = $index > 0 ? $chunks->get($index - 1)->chunk_text : '';
-            $nextChunk = $index < $totalChunks - 1 ? $chunks->get($index + 1)->chunk_text : '';
-
-            return ChunkIngestionData::from([
-                'agent_id' => $chunk->agent_id,
-                'chunkable_type' => $chunk->chunkable_type,
-                'chunkable_id' => $chunk->chunkable_id,
-                'chunk_index' => $chunk->chunk_index,
-                'expected_chunks' => $totalChunks,
-                'chunk_text' => $chunk->chunk_text,
-                'chunk_images' => $chunk->chunk_images,
-                'chunk_tables' => $chunk->chunk_tables,
-                'prev_chunk' => $prevChunk,
-                'next_chunk' => $nextChunk,
-            ]);
-        });
     }
 }

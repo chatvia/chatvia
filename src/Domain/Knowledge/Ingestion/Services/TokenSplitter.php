@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Ingestion\Services;
 
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
+use Domain\Llm\Services\TikToken;
 
 class TokenSplitter
 {

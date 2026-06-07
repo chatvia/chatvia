@@ -167,8 +167,11 @@ class Agent extends Model
 
     /**
      * The signing secret for this agent's chat (`?token=`) and widget
-     * (`data-auth`) sign-in tokens. Generated lazily on first use; the
-     * customer needs it on their backend to mint HS256 JWTs.
+     * (`data-auth`) sign-in tokens; the customer needs it on their backend to
+     * mint HS256 JWTs. Seeded at creation by {@see AgentObserver}, so this is a
+     * pure read on every normal path — the lazy generation is a legacy safety
+     * net for rows created before secrets were seeded and never fires on the
+     * GET render paths. Rotate explicitly via {@see regenerateAuthSecret()}.
      */
     public function ensureAuthSecret(): string
     {

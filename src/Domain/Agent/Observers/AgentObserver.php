@@ -12,9 +12,23 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class AgentObserver
 {
+    /**
+     * Seed the JWT signing secret as part of the initial insert so the
+     * read-only identity/preview render paths never trigger a lazy write
+     * ({@see Agent::ensureAuthSecret()}). Rotation stays explicit via
+     * {@see Agent::regenerateAuthSecret()}.
+     */
+    public function creating(Agent $agent): void
+    {
+        if (empty($agent->auth_secret)) {
+            $agent->auth_secret = 'cvsk_'.Str::random(56);
+        }
+    }
+
     public function created(Agent $agent): void
     {
         AgentHelper::cacheAgentName($agent->sub_domain);

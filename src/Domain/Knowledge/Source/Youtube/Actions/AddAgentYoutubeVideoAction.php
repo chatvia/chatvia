@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Source\Youtube\Actions;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Support\Exceptions\DomainValidationException;
 
@@ -31,7 +32,7 @@ class AddAgentYoutubeVideoAction
             'user_id' => $user->id,
             'url' => $url,
             'length' => 0,
-            'status' => 'pending',
+            'status' => SourceStatus::Pending->value,
         ]);
 
         $agent->youtubeVideos()->attach($video->id);

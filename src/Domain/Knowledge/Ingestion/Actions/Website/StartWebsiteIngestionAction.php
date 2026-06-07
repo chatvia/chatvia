@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Ingestion\Actions\Website;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlTrainJob;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
@@ -19,7 +20,7 @@ class StartWebsiteIngestionAction
 {
     public function execute(SourceWebsite $website, Agent $agent, ?string $internalJobId = null): void
     {
-        $website->update(['status' => 'ingesting']);
+        $website->update(['status' => SourceStatus::Processing->value]);
 
         $website->refresh();
 
@@ -59,7 +60,7 @@ class StartWebsiteIngestionAction
                         return;
                     }
 
-                    $locked->update(['status' => 'ingested']);
+                    $locked->update(['status' => SourceStatus::Completed->value]);
                     $locked->decrement('expected_chunks', $locked->urls()->count());
                 });
 

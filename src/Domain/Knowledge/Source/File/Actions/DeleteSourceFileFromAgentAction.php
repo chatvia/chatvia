@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Source\File\Actions;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Services\Ingestion;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 
 class DeleteSourceFileFromAgentAction
@@ -12,7 +13,7 @@ class DeleteSourceFileFromAgentAction
 
     public function execute(Agent $agent, SourceFile $file): void
     {
-        if ($file->status === 'ingesting') {
+        if ($file->status === SourceStatus::Processing->value) {
             $this->ingestion->cancel($file);
         }
 

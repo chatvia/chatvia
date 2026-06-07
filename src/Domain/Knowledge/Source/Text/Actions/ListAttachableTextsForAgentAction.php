@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Source\Text\Actions;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Data\TrainedTextRowData;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Collection;
@@ -23,7 +24,7 @@ class ListAttachableTextsForAgentAction
 
         return SourceText::query()
             ->where('user_id', $user->id)
-            ->where('status', 'ingested')
+            ->where('status', SourceStatus::Completed->value)
             ->whereNotIn('id', $currentIds)
             ->with(['agents' => fn ($q) => $q->select('agents.id', 'agents.name')])
             ->get()

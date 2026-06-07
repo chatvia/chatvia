@@ -5,9 +5,10 @@ namespace Domain\Knowledge\Source\Youtube\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Agent\Models\AgentSource;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -114,7 +115,7 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
         }
 
         $this->update([
-            'status' => 'pending',
+            'status' => SourceStatus::Pending->value,
             'error_message' => null,
         ]);
 

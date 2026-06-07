@@ -3,6 +3,7 @@
 namespace Domain\Agent\Data\Resources\Sources;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Support\Facades\DB;
 use Spatie\LaravelData\Data;
@@ -40,7 +41,7 @@ class AgentSourcesStatsData extends Data
             ->join('source_files', 'source_files.id', '=', 'agent_sources.sourceable_id')
             ->where('agent_sources.agent_id', $agent->id)
             ->where('agent_sources.sourceable_type', (new SourceFile)->getMorphClass())
-            ->where('source_files.status', 'ingested')
+            ->where('source_files.status', SourceStatus::Completed->value)
             ->selectRaw(
                 'COUNT(*) FILTER (WHERE mime_type = ANY(?)) AS pdf,
                  COUNT(*) FILTER (WHERE mime_type = ANY(?)) AS word,
@@ -57,8 +58,8 @@ class AgentSourcesStatsData extends Data
             )
             ->first();
 
-        $websites = $agent->websites()->where('source_websites.status', 'ingested')->count();
-        $texts = $agent->texts()->where('source_texts.status', 'ingested')->count();
+        $websites = $agent->websites()->where('source_websites.status', SourceStatus::Completed->value)->count();
+        $texts = $agent->texts()->where('source_texts.status', SourceStatus::Completed->value)->count();
 
         return new self(
             websites: $websites,

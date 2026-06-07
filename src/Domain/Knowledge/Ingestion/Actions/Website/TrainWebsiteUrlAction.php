@@ -6,14 +6,15 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlEnhanceJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
 use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Knowledge\Ingestion\Services\Tidy\HTMLCleaner;
-use Domain\Llm\Services\TikToken;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
+use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -48,7 +49,7 @@ class TrainWebsiteUrlAction
         $checksum = hash('sha256', $text);
 
         if ($websiteUrl->checksum === $checksum) {
-            $websiteUrl->update(['status' => 'ingested']);
+            $websiteUrl->update(['status' => SourceStatus::Completed->value]);
             UrlIngestionStarted::dispatch($websiteUrl, $agent->external_id);
 
             return;
@@ -119,7 +120,7 @@ class TrainWebsiteUrlAction
         });
 
         $websiteUrl->update([
-            'status' => 'ingested',
+            'status' => SourceStatus::Completed->value,
             'checksum' => $checksum,
         ]);
 

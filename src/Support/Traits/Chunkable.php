@@ -4,6 +4,7 @@ namespace Support\Traits;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -52,11 +53,11 @@ trait Chunkable
 
     public function ingestionProgress(): int
     {
-        if ($this->status === 'ingested') {
+        if ($this->status === SourceStatus::Completed->value) {
             return 100;
         }
 
-        if ($this->status !== 'ingesting') {
+        if ($this->status !== SourceStatus::Processing->value) {
             return 0;
         }
 

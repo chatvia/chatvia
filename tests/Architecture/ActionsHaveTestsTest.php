@@ -92,8 +92,6 @@ const UNTESTED_ACTIONS_ALLOWLIST = [
     'RenameAgentAction',
     'ResolveAgentPromptIdAction',
     'ResolveOwnedTeamAction',
-    'RetrainAgentWebsiteUrlAction',
-    'RetrainAgentYoutubeVideoAction',
     'RetrainSourceWebsiteAction',
     'RevokeAgentMembershipAction',
     'SendHandoffAdminMessageAction',

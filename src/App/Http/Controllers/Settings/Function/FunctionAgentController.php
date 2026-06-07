@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Settings\Function;
 
+use App\Http\Controllers\Concerns\ResolvesAccountAgent;
 use App\Http\Controllers\Controller;
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Actions\ListFunctionAgentAssignmentAction;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Membership\Agent\Data\Resources\AgentMembershipAssignmentData;
@@ -16,6 +16,8 @@ use Illuminate\Http\Request;
  */
 class FunctionAgentController extends Controller
 {
+    use ResolvesAccountAgent;
+
     public function index(Request $request, string $external_id, ListFunctionAgentAssignmentAction $list): AgentMembershipAssignmentData
     {
         abort_unless(has_team_permission('account.functions'), 404);
@@ -32,7 +34,7 @@ class FunctionAgentController extends Controller
         abort_unless(has_team_permission('account.functions'), 404);
 
         $function = $this->function($request, $external_id);
-        $this->agent($request, $agent)->attachFunction($function);
+        $this->resolveAccountAgent($request, $agent)->attachFunction($function);
 
         return $list->execute($request->user(), $function);
     }
@@ -46,7 +48,7 @@ class FunctionAgentController extends Controller
         abort_unless(has_team_permission('account.functions'), 404);
 
         $function = $this->function($request, $external_id);
-        $this->agent($request, $agent)->detachFunction($function);
+        $this->resolveAccountAgent($request, $agent)->detachFunction($function);
 
         return $list->execute($request->user(), $function);
     }
@@ -57,16 +59,5 @@ class FunctionAgentController extends Controller
         $user = $request->user();
 
         return $user->functions()->where('external_id', $externalId)->firstOrFail();
-    }
-
-    private function agent(Request $request, string $externalId): Agent
-    {
-        /** @var User $user */
-        $user = $request->user();
-        $agent = $user->agents->firstWhere('external_id', $externalId);
-
-        abort_if($agent === null, 404);
-
-        return $agent;
     }
 }

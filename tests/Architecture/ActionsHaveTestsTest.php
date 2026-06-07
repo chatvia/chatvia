@@ -68,7 +68,6 @@ const UNTESTED_ACTIONS_ALLOWLIST = [
     'IngestDocumentChunkAction',
     'IngestMediaAction',
     'IngestTextAction',
-    'InviteAgentMemberAction',
     'InviteTeamMemberAction',
     'ListAccountConnectorsAction',
     'ListAgentConnectorsAction',

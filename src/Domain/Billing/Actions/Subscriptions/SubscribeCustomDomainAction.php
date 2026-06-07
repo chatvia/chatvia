@@ -3,6 +3,7 @@
 namespace Domain\Billing\Actions\Subscriptions;
 
 use Domain\Billing\Data\SubscribeCustomDomainData;
+use Domain\Billing\Enums\Addon;
 use Laravel\Cashier\Checkout;
 use RuntimeException;
 
@@ -24,25 +25,22 @@ class SubscribeCustomDomainAction
 
         $billing = $data->user->accountBillingOrFail();
 
-        $existing = $billing->subscription('custom_domains');
+        $existing = $billing->ownedSubscription(Addon::CustomDomains->value);
 
         if ($existing && $existing->active()) {
-            // Wire the parent relation so Cashier's `updateQuantity()` doesn't
-            // lazy-load `owner` (forbidden by Model::shouldBeStrict in dev).
-            $existing->setRelation('owner', $billing);
             $existing->updateQuantity($data->quantity);
 
-            $data->user->quota()->updateOrCreate([], ['extra_custom_domains_limit' => $data->quantity]);
+            $data->user->quota()->updateOrCreate([], [Addon::CustomDomains->quotaColumn() => $data->quantity]);
 
             return null;
         }
 
         return $billing
-            ->newSubscription(type: 'custom_domains', prices: $priceId)
+            ->newSubscription(type: Addon::CustomDomains->value, prices: $priceId)
             ->quantity($data->quantity)
             ->withMetadata([
                 'type' => 'addon_subscription',
-                'addon' => 'custom_domains',
+                'addon' => Addon::CustomDomains->value,
                 'quantity' => $data->quantity,
             ])
             ->allowPromotionCodes()

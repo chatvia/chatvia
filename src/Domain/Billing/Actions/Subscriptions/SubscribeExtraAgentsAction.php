@@ -3,6 +3,7 @@
 namespace Domain\Billing\Actions\Subscriptions;
 
 use Domain\Billing\Data\SubscribeExtraAgentsData;
+use Domain\Billing\Enums\Addon;
 use Laravel\Cashier\Checkout;
 use RuntimeException;
 
@@ -26,26 +27,22 @@ class SubscribeExtraAgentsAction
         $billing = $data->user->accountBillingOrFail();
 
         // Existing subscription → adjust quantity in place; no checkout needed.
-        $existing = $billing->subscription('extra_agents');
+        $existing = $billing->ownedSubscription(Addon::ExtraAgents->value);
 
         if ($existing && $existing->active()) {
-            // Cashier's `updateQuantity()` reaches for `$this->owner` to
-            // fetch the Stripe client. We already have the UserBilling row,
-            // so wire it on directly to avoid strict-lazy-loading.
-            $existing->setRelation('owner', $billing);
             $existing->updateQuantity($data->quantity);
 
-            $data->user->quota()->updateOrCreate([], ['extra_agents_limit' => $data->quantity]);
+            $data->user->quota()->updateOrCreate([], [Addon::ExtraAgents->quotaColumn() => $data->quantity]);
 
             return null;
         }
 
         return $billing
-            ->newSubscription(type: 'extra_agents', prices: $priceId)
+            ->newSubscription(type: Addon::ExtraAgents->value, prices: $priceId)
             ->quantity($data->quantity)
             ->withMetadata([
                 'type' => 'addon_subscription',
-                'addon' => 'extra_agents',
+                'addon' => Addon::ExtraAgents->value,
                 'quantity' => $data->quantity,
             ])
             ->allowPromotionCodes()

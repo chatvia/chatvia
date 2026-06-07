@@ -1,5 +1,7 @@
 <?php
 
+use Domain\Widget\Services\WidgetVerification;
+
 /*
  * Executable form of the "Conventions enforcement (grep checks)" section of
  * CLAUDE.md. Previously these were manual greps a reviewer had to remember to
@@ -118,6 +120,20 @@ it('Actions never send notifications inline (listeners do that)', function (): v
     expect(conventionOffenders(conventionFilesInSegment('Actions'), '/->notify\(|Notification::route/'))->toBe([]);
 });
 
+// --- Job conventions -----------------------------------------------------
+
+it('Jobs hold no business logic (no DB transactions or row locks)', function (): void {
+    // CLAUDE.md: "Jobs hold no logic. Receive a DTO in the constructor, call an
+    // Action's execute() in handle()." A DB::transaction / lockForUpdate inside
+    // a Job is the tell-tale of business logic that belongs in an Action (the
+    // UpdateUserCreditsJob → ConsumeMessageCreditsAction extraction). Guarding
+    // it here stops the pattern from being copied into the next job.
+    expect(conventionOffenders(
+        conventionFilesInSegment('Jobs'),
+        '/DB::transaction\(|DB::beginTransaction\(|->lockForUpdate\(/',
+    ))->toBe([]);
+});
+
 // --- Naming conventions --------------------------------------------------
 
 it('listeners drop the redundant Listener suffix', function (): void {
@@ -207,7 +223,7 @@ it('controllers use FormRequest + toData() instead of inline $request->validate(
 
 /**
  * Inline Conversation::where('external_id', …) and Session::where('external_id', …)
- * lookups skip the agent-scoping that {@see Domain\Widget\Services\WidgetVerification}
+ * lookups skip the agent-scoping that {@see WidgetVerification}
  * exists to centralise. Some legacy call sites enforce ownership via middleware
  * or a separate whereHas — those are listed below — but a NEW callsite must go
  * through WidgetVerification so the cross-tenant defence is grep-able in one place.

@@ -2,12 +2,15 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
+use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Data\StreamRequestData;
 use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
+use Domain\Conversation\Services\Tooling\Access\ToolAccessPolicy;
+use Domain\Conversation\Services\Tooling\Access\ToolRateLimiter;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalPolicy;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
@@ -18,6 +21,7 @@ use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;
 use Spectra\Facades\Spectra;
@@ -34,6 +38,13 @@ use Spectra\Facades\Spectra;
  * faked; the ToolApprovalStore is real so we can assert the checkpoint is
  * actually persisted.
  */
+
+// The runner now emits ToolCallCompleted for governance audit; this suite does
+// not exercise the audit, so fake the event (its queued listener writes to an
+// agent_activity table these tests don't touch).
+beforeEach(function (): void {
+    Event::fake([ToolCallCompleted::class]);
+});
 
 // --- fakes -------------------------------------------------------------------
 
@@ -160,7 +171,7 @@ function tlrRunner(
         transformer: $transformer,
         dispatcher: $dispatcher,
         displayResolver: tlrDisplayResolver(),
-        approvalPolicy: $policy,
+        accessPolicy: new ToolAccessPolicy($policy, new ToolRateLimiter),
         approvalStore: $store ?? new ToolApprovalStore,
     );
 }
@@ -229,6 +240,57 @@ it('injects the denied-result message and never dispatches a denied gated call',
         ->and($llmMessages[0]['role'])->toBe('tool')
         ->and($llmMessages[0]['tool_call_id'])->toBe('call_1')
         ->and($llmMessages[0]['content'])->toBe(ToolLoopRunner::DENIED_RESULT);
+});
+
+it('emits a governance audit event with outcome auto for a dispatched call', function (): void {
+    $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
+    $runner = tlrRunner(tlrNoopTransformer(), tlrDispatcher(), tlrApprovalPolicy(false));
+
+    $pendingCalls = [[
+        'tool_call_id' => 'call_1',
+        'name' => 'get_weather',
+        'arguments' => '{"city":"Dubai"}',
+        'requires_approval' => false,
+        'access' => 'allow',
+        'kind' => 'function',
+        'label' => 'Weather',
+        'icon_url' => null,
+        'brand_color' => null,
+        'reason' => null,
+    ]];
+
+    $llmMessages = [];
+    iterator_to_array($runner->applyPendingCalls($context, $llmMessages, $pendingCalls, []), preserve_keys: false);
+
+    Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->toolName === 'get_weather'
+        && $e->approvalOutcome === 'auto'
+        && $e->gated === false
+        && $e->isError === false);
+});
+
+it('emits a governance audit event with outcome denied for a denied gated call', function (): void {
+    $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
+    $runner = tlrRunner(tlrNoopTransformer(), tlrDispatcher(), tlrApprovalPolicy(true));
+
+    $pendingCalls = [[
+        'tool_call_id' => 'call_1',
+        'name' => 'delete_everything',
+        'arguments' => '{}',
+        'requires_approval' => true,
+        'access' => 'requires_approval',
+        'kind' => 'function',
+        'label' => 'Delete everything',
+        'icon_url' => null,
+        'brand_color' => null,
+        'reason' => ToolLoopRunner::APPROVAL_REASON,
+    ]];
+
+    $llmMessages = [];
+    iterator_to_array($runner->applyPendingCalls($context, $llmMessages, $pendingCalls, ['call_1' => 'deny']), preserve_keys: false);
+
+    Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->toolName === 'delete_everything'
+        && $e->approvalOutcome === 'denied'
+        && $e->gated === true);
 });
 
 it('dispatches an approved gated call and appends its tool result', function (): void {

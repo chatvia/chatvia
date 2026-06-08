@@ -6,47 +6,59 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlEnhanceJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
+use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
 use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
-use Domain\Knowledge\Ingestion\Services\Tidy\HTMLCleaner;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Domain\Knowledge\Source\Web\Services\Firecrawl;
 use Domain\Llm\Services\TikToken;
+use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Support\Http\SafeUrl;
 
 class TrainWebsiteUrlAction
 {
-    private const PROGRESS_EVENT_EVERY = 25;
+    private const int PROGRESS_EVENT_EVERY = 25;
 
     public function __construct(
-        private readonly HTMLCleaner $parser,
-        private readonly Chunker $chunker,
+        private readonly Firecrawl $firecrawl,
+        private readonly ChunkFitClient $chunker,
         private readonly EmbeddingsProviderInterface $embeddings,
     ) {}
 
     public function execute(AgentWebsiteUrl $websiteUrl, Agent $agent): void
     {
-        // SSRF guard: re-validate each URL right before fetching (DNS can
-        // change between crawl and train) and never follow redirects to a
-        // host we didn't validate. A discovered/internal URL must not be read
-        // back into the knowledge base.
+        // FireCrawl performs the fetch from its own infrastructure, so there is
+        // no server-side SSRF surface here — but we still refuse obviously
+        // non-public targets before spending a scrape credit on them.
         SafeUrl::assert($websiteUrl->url);
 
-        $response = Http::retry(3, 1000)
-            ->withOptions(SafeUrl::clientOptions())
-            ->timeout(600)
-            ->get($websiteUrl->url)
-            ->throw();
+        $markdown = trim($this->firecrawl->scrape($websiteUrl->url)['markdown']);
 
-        $text = $this->parser->getTextFromHtml($response->body());
+        // Nothing scrapable (empty page, blocked, JS-only with no content).
+        if ($markdown === '') {
+            $websiteUrl->update([
+                'status' => SourceStatus::Completed->value,
+                'crawled_at' => now(),
+            ]);
 
-        $checksum = hash('sha256', $text);
+            UrlIngestionStarted::dispatch($websiteUrl, $agent->external_id);
+
+            return;
+        }
+
+        // FireCrawl is a scraping service, not an LLM, so it returns no `usage`
+        // block — meter the scraped content with the same tokenizer used
+        // everywhere else and add it to the workspace scope opened by
+        // WebsiteUrlTrainJob. No-op outside a job (no open scope). Counted on
+        // every successful scrape, even when the checksum is unchanged below.
+        app(TokenUsageContext::class)->add(TikToken::countTokens($markdown));
+
+        $checksum = hash('sha256', $markdown);
 
         if ($websiteUrl->checksum === $checksum) {
             $websiteUrl->update(['status' => SourceStatus::Completed->value]);
@@ -57,8 +69,8 @@ class TrainWebsiteUrlAction
 
         $cacheKey = 'ingestion:website:chunks:'.$websiteUrl->id.':'.$checksum;
 
-        $chunks = Cache::remember($cacheKey, now()->addDay(), function () use ($text) {
-            return $this->chunker->chunkHtml($text);
+        $chunks = Cache::remember($cacheKey, now()->addDay(), function () use ($markdown) {
+            return $this->chunker->splitByTitle($markdown);
         });
 
         /** @var SourceWebsite $website */
@@ -75,11 +87,10 @@ class TrainWebsiteUrlAction
                 ],
                 [
                     'user_id' => $agent->user_id,
-                    'type' => 'text',
                     'chunk_index' => $idx + 1,
                     'chunk' => $chunk,
                     'summary' => null,
-                    'chunked_using_model' => config('chatvia.ai.models.chunker'),
+                    'chunked_using_model' => 'chunkfit',
                     'embedding_model' => $this->embeddings->getModelName(),
                     'cost_in_micro_cents' => 0,
                     'tokens' => TikToken::countTokens($chunk),
@@ -122,6 +133,7 @@ class TrainWebsiteUrlAction
         $websiteUrl->update([
             'status' => SourceStatus::Completed->value,
             'checksum' => $checksum,
+            'crawled_at' => now(),
         ]);
 
         $website->refresh();

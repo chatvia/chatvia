@@ -18,7 +18,8 @@
         "default_placeholder": "Message...",
         "disabled": "Chat disabled",
         "stop_recording": "Stop recording",
-        "start_voice_input": "Start voice input"
+        "start_voice_input": "Start voice input",
+        "pdf_pages": "{count} page | {count} pages"
     },
     "header": {
         "toggle_sidebar": "Toggle sidebar",

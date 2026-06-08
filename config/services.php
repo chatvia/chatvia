@@ -114,6 +114,7 @@ return [
         'nvm_include_path' => env('NVM_INCLUDE_PATH'),
         'chrome' => env('CHROME_EXECUTABLE_PATH'),
         'libreoffice' => env('LIBREOFFICE_BIN_PATH', '/opt/homebrew/bin/soffice'),
+        'pandoc' => env('PANDOC_BIN_PATH', '/opt/homebrew/bin/pandoc'),
         'pdfinfo' => env('PDFINFO_BIN_PATH', '/opt/homebrew/bin/pdfinfo'),
         'ffmpeg' => env('FFMPEG_BIN_PATH', '/opt/homebrew/bin/ffmpeg'),
         'ffprobe' => env('FFPROBE_PATH', '/opt/homebrew/bin/ffprobe'),
@@ -131,6 +132,14 @@ return [
     'firecrawl' => [
         'key' => env('FIRECRAWL_API_KEY'),
         'endpoint' => env('FIRECRAWL_API_ENDPOINT', 'https://api.firecrawl.dev/v2'),
+
+        // Stage-2 scrape renders JavaScript in a headless browser (so SPA /
+        // AJAX / client-rendered content is captured). `wait_for` is an extra
+        // settle delay in MS for content that loads after the initial render;
+        // `timeout` (MS) caps a slow render. Both env-tunable; keep them well
+        // under the HTTP client timeout in Firecrawl::client().
+        'wait_for' => (int) env('FIRECRAWL_WAIT_FOR', 2000),
+        'timeout' => (int) env('FIRECRAWL_SCRAPE_TIMEOUT', 60000),
     ],
 
     'voyageai' => [
@@ -184,5 +193,15 @@ return [
         'base_url' => env('CHUNK_FIT_BASE_URL', 'https://chunk.fit/api/v1'),
         'timeout' => (int) env('CHUNK_FIT_TIMEOUT', 120),
         'tokenizer' => env('CHUNK_FIT_TOKENIZER', 'cl100k_base'),
+
+        // Unstructured `chunk_by_title` knobs (all in CHARACTERS). Sections are
+        // combined up to `combine_text_under_n_chars` and capped at
+        // `max_characters` — tuned (~250-350 token chunks) to avoid the
+        // many-tiny-chunks problem of raw Markdown-header splitting.
+        'by_title' => [
+            'max_characters' => (int) env('CHUNK_FIT_MAX_CHARACTERS', 2000),
+            'new_after_n_chars' => (int) env('CHUNK_FIT_NEW_AFTER_N_CHARS', 1500),
+            'combine_text_under_n_chars' => (int) env('CHUNK_FIT_COMBINE_UNDER_N_CHARS', 1000),
+        ],
     ],
 ];

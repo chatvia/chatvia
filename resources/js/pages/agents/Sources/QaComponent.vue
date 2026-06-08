@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useDateFormat } from '@/composables/useDateFormat';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -40,6 +41,9 @@ interface QAEntry {
 const props = defineProps<Props>();
 
 const { hasPermission } = useTeamPermissions();
+
+// Dates follow the user's chosen format (Settings → Date & time).
+const { formatDate } = useDateFormat();
 
 // Check if user can delete sources
 const canDeleteSources = computed(() => hasPermission('agent.sources.delete'));
@@ -472,7 +476,7 @@ fetchQAEntries();
 
                         <!-- Meta Info -->
                         <div class="text-muted-foreground mt-4 flex items-center gap-4 text-xs">
-                            <span>Created {{ new Date(entry.created_at).toLocaleDateString() }}</span>
+                            <span>Created {{ formatDate(entry.created_at) }}</span>
                             <span v-if="entry.agents_count && entry.agents_count > 1"> Used by {{ entry.agents_count }} agents </span>
                         </div>
                     </CardContent>

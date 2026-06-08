@@ -215,7 +215,7 @@ const cancelScheduledPlanChange = () => {
     <AppLayout title="Billing" :breadcrumbs="breadcrumbs">
         <Head title="Billing" />
 
-        <div class="container mx-auto max-w-5xl py-8">
+        <div class="mx-auto w-full max-w-6xl px-4 py-8">
             <div class="space-y-8">
                 <!-- Header -->
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0">

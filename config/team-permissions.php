@@ -96,6 +96,34 @@ return [
             'requires' => ['agent.chat.view'],
         ],
 
+        // Audit
+        'agent.audit.view' => [
+            'label' => 'View audit log',
+            'description' => 'See the tool-call audit log for this agent',
+        ],
+
+        // Evals
+        'agent.evals.view' => [
+            'label' => 'View evals',
+            'description' => 'See agent eval suites and run history',
+        ],
+        'agent.evals.manage' => [
+            'label' => 'Manage evals',
+            'description' => 'Create test cases and run eval suites',
+            'requires' => ['agent.evals.view'],
+        ],
+
+        // Guardrails
+        'agent.guardrails.view' => [
+            'label' => 'View guardrails',
+            'description' => 'See the AI-safety settings and trigger log for this agent',
+        ],
+        'agent.guardrails.manage' => [
+            'label' => 'Manage guardrails',
+            'description' => 'Configure PII, prompt-injection, topic and toxicity guards',
+            'requires' => ['agent.guardrails.view'],
+        ],
+
         // Analytics
         'agent.analytics.chats' => [
             'label' => 'Chat analytics',
@@ -170,6 +198,10 @@ return [
         'account.members.manage' => [
             'label' => 'Members',
             'description' => 'View, reset password, and remove chat members across the workspace',
+        ],
+        'account.governance' => [
+            'label' => 'Governance',
+            'description' => 'View the tool-call audit log and access controls',
         ],
     ],
 
@@ -256,6 +288,32 @@ return [
                 'agent.chat.export',
             ],
         ],
+        'audit' => [
+            'scope' => 'agent',
+            'label' => 'Audit',
+            'description' => 'View the tool-call audit log (tools, connectors, approvals).',
+            'permissions' => [
+                'agent.audit.view',
+            ],
+        ],
+        'evals' => [
+            'scope' => 'agent',
+            'label' => 'Evals',
+            'description' => 'Test the agent against a suite and track pass-rate over time.',
+            'permissions' => [
+                'agent.evals.view',
+                'agent.evals.manage',
+            ],
+        ],
+        'guardrails' => [
+            'scope' => 'agent',
+            'label' => 'Guardrails',
+            'description' => 'AI-safety guards: PII, prompt-injection, blocked topics, toxicity.',
+            'permissions' => [
+                'agent.guardrails.view',
+                'agent.guardrails.manage',
+            ],
+        ],
         'analytics' => [
             'scope' => 'agent',
             'label' => 'Analytics',
@@ -328,6 +386,14 @@ return [
             'description' => 'Manage the chat members granted access to your agents.',
             'permissions' => [
                 'account.members.manage',
+            ],
+        ],
+        'governance' => [
+            'scope' => 'account',
+            'label' => 'Governance',
+            'description' => 'Audit and control every action your agents take through tools and connectors.',
+            'permissions' => [
+                'account.governance',
             ],
         ],
     ],

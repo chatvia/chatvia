@@ -155,6 +155,10 @@ return new class extends Migration
             $table->string('filename');
             $table->string('mime_type', 100)->default('application/octet-stream');
             $table->unsignedBigInteger('size_bytes')->default(0);
+            // PDF page count, captured at upload via pdfinfo. Drives page-based
+            // billing (1 message per page, on top of the base turn message) and
+            // is null for non-PDFs / files pdfinfo couldn't read.
+            $table->unsignedInteger('pages')->nullable();
 
             $table->timestamps();
 

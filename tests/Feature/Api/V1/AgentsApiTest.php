@@ -319,14 +319,15 @@ describe('Account-level Functions CRUD', function (): void {
     });
 });
 
-describe('POST /api/v1/agents/{agent}/sign', function (): void {
+describe('POST /api/v1/users/sign', function (): void {
 
     it('returns a ready-to-open url for a chatter', function (): void {
         $agent = createAgentForUser($this->user);
         $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
 
         $response = $this->withHeaders(authHeaders($this->token))
-            ->postJson("/api/v1/agents/{$agent->external_id}/sign", [
+            ->postJson('/api/v1/users/sign', [
+                'agent_id' => $agent->external_id,
                 'user_id' => $endUser->external_id,
                 'ttl_seconds' => 600,
             ]);
@@ -346,13 +347,11 @@ describe('POST /api/v1/agents/{agent}/sign', function (): void {
             ->toBe($endUser->id);
     });
 
-    it('requires a user_id', function (): void {
-        $agent = createAgentForUser($this->user);
-
+    it('requires an agent_id and user_id', function (): void {
         $this->withHeaders(authHeaders($this->token))
-            ->postJson("/api/v1/agents/{$agent->external_id}/sign", [])
+            ->postJson('/api/v1/users/sign', [])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['user_id']);
+            ->assertJsonValidationErrors(['agent_id', 'user_id']);
     });
 
     it('rejects ttl_seconds beyond the max', function (): void {
@@ -360,7 +359,8 @@ describe('POST /api/v1/agents/{agent}/sign', function (): void {
         $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
 
         $this->withHeaders(authHeaders($this->token))
-            ->postJson("/api/v1/agents/{$agent->external_id}/sign", [
+            ->postJson('/api/v1/users/sign', [
+                'agent_id' => $agent->external_id,
                 'user_id' => $endUser->external_id,
                 'ttl_seconds' => 99999,
             ])
@@ -368,13 +368,13 @@ describe('POST /api/v1/agents/{agent}/sign', function (): void {
             ->assertJsonValidationErrors(['ttl_seconds']);
     });
 
-    it('forbids minting a link for another account’s agent', function (): void {
+    it('404s when minting a link for another account’s agent', function (): void {
         $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $otherAgent = createAgentForUser($otherUser);
 
         $this->withHeaders(authHeaders($this->token))
-            ->postJson("/api/v1/agents/{$otherAgent->external_id}/sign", ['user_id' => 'x'])
-            ->assertForbidden();
+            ->postJson('/api/v1/users/sign', ['agent_id' => $otherAgent->external_id, 'user_id' => 'x'])
+            ->assertNotFound();
     });
 });
 

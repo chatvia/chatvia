@@ -306,6 +306,71 @@ if (! function_exists('is_video_file')) {
     }
 }
 
+if (! function_exists('file_extension')) {
+    /**
+     * Lowercased extension from the original filename (UploadedFile) or path
+     * (string). Extension — not MIME — is the source of truth for OCR formats
+     * because exotic text types share generic MIMEs (.tex/.bib → text/plain).
+     */
+    function file_extension(UploadedFile|string $file): string
+    {
+        $name = $file instanceof UploadedFile ? $file->getClientOriginalName() : $file;
+
+        return strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    }
+}
+
+if (! function_exists('ocr_supported_extensions')) {
+    /**
+     * Flattened union of every extension Mistral OCR can parse.
+     *
+     * @return array<int, string>
+     */
+    function ocr_supported_extensions(): array
+    {
+        return array_values(array_unique(array_merge(...array_values(config('mimes.ocr')))));
+    }
+}
+
+if (! function_exists('is_ocr_supported')) {
+    function is_ocr_supported(UploadedFile|string $file): bool
+    {
+        return in_array(file_extension($file), ocr_supported_extensions(), true);
+    }
+}
+
+if (! function_exists('is_image_file')) {
+    function is_image_file(UploadedFile|string $file): bool
+    {
+        return in_array(file_extension($file), config('mimes.ocr.image'), true);
+    }
+}
+
+if (! function_exists('file_category')) {
+    /**
+     * Extension → metering/UI category stored on SourceFile::filetype.
+     * Every returned value except audio/video sits in the "pages" billing
+     * bucket (see WorkspaceConsumption). Falls back to get_file_type($mime)
+     * for audio/video, whose detection is reliably MIME-based.
+     */
+    function file_category(UploadedFile|string $file): string
+    {
+        return match (file_extension($file)) {
+            'pdf' => 'pdf',
+            'doc', 'docx', 'odt', 'rtf' => 'word',
+            'ppt', 'pptx', 'odp' => 'presentation',
+            'xls', 'xlsx', 'csv', 'ods' => 'spreadsheet',
+            'txt' => 'text',
+            'md', 'markdown' => 'markdown',
+            'jpg', 'jpeg', 'png', 'avif', 'tiff', 'tif', 'gif', 'heic', 'heif', 'bmp', 'webp' => 'image',
+            'epub', 'fb2', 'ipynb', 'xml', 'tex', 'bib', 'opml', '1', 'man', 'html', 'htm' => 'document',
+            default => get_file_type(
+                $file instanceof UploadedFile ? $file->getMimeType() : File::mimeType($file)
+            ),
+        };
+    }
+}
+
 if (! function_exists('current_agent_from_widget')) {
     function current_agent_from_widget(): ?AgentModel
     {

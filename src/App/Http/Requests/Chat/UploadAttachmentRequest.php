@@ -3,12 +3,20 @@
 namespace App\Http\Requests\Chat;
 
 use App\Http\Requests\Concerns\ValidatesPdfAttachment;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UploadAttachmentRequest extends FormRequest
 {
     use ValidatesPdfAttachment;
+
+    protected function workspaceUserId(): ?int
+    {
+        return Agent::query()
+            ->whereKey((int) ($this->header('X-AGENT-ID') ?: 0))
+            ->value('user_id');
+    }
 
     public function toData(?int $conversationId): UploadAttachmentData
     {

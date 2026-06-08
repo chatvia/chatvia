@@ -53,6 +53,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Support\Concerns\HasExternalId;
+use Support\Enums\User\DateFormat;
 use Support\Enums\User\SocialProvider;
 use Support\Enums\User\UserSource;
 use Support\Enums\User\UserType;
@@ -76,6 +77,7 @@ use Support\Traits\HasSettings;
  * @property string|null $profile_image_path
  * @property string|null $deactivation_reason
  * @property string|null $deactivated_at
+ * @property DateFormat|null $date_format
  * @property Carbon|null $last_login_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -181,6 +183,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'last_login_at' => 'datetime',
             'type' => UserType::class,
             'source' => UserSource::class,
+            'date_format' => DateFormat::class,
             'marketing_consent' => 'boolean',
             'analytics_consent' => 'boolean',
             'consent_given_at' => 'datetime',

@@ -275,7 +275,10 @@ const formatDate = (dateString: string) => {
                     <div class="grid gap-4 py-4">
                         <div class="grid gap-2">
                             <Label for="team-name">Team Name</Label>
-                            <Input id="team-name" v-model="createForm.name" placeholder="Enter team name" required />
+                            <div class="relative">
+                                <Users class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                                <Input id="team-name" v-model="createForm.name" placeholder="Enter team name" class="pl-9" required />
+                            </div>
                             <InputError :message="createForm.errors.name" />
                         </div>
                     </div>
@@ -283,6 +286,7 @@ const formatDate = (dateString: string) => {
                         <Button type="button" variant="outline" @click="isCreateDialogOpen = false"> Cancel </Button>
                         <Button type="submit" :disabled="createForm.processing">
                             <Loader2 v-if="createForm.processing" class="mr-2 size-4 animate-spin" />
+                            <Plus v-else class="mr-2 size-4" />
                             Create Team
                         </Button>
                     </DialogFooter>

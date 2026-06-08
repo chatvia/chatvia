@@ -18,10 +18,15 @@ class UpdateApiAgentRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Display name for the agent, shown in the dashboard and chat header.
             'name' => ['sometimes', 'string', 'min:3', 'max:255'],
+            // System prompt that defines the agent's behaviour, tone, and rules. Cannot be combined with prompt_id.
             'system_instructions' => ['sometimes', 'nullable', 'string', 'max:10000'],
+            // The id of a reusable saved prompt to use instead of system_instructions. Cannot be combined with system_instructions.
             'prompt_id' => ['sometimes', 'nullable', 'string', 'uuid', 'prohibits:system_instructions'],
+            // Arbitrary key/value pairs to attach to the agent — for example your own reference ids.
             'metadata' => ['sometimes', 'nullable', 'array'],
+            // Whether the agent's chat is publicly reachable without a sign-in link.
             'is_public' => ['sometimes', 'boolean'],
         ];
     }

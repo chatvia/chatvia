@@ -7,7 +7,6 @@ withDefaults(
     defineProps<{
         welcomeMessage: string;
         chatWindowTitle: string;
-        chatFooterText: string;
         composerPlaceholder: string;
         bubbles?: string[];
         showBubbles?: boolean;
@@ -20,7 +19,6 @@ withDefaults(
 defineEmits<{
     'update:welcomeMessage': [value: string];
     'update:chatWindowTitle': [value: string];
-    'update:chatFooterText': [value: string];
     'update:composerPlaceholder': [value: string];
     'update:bubbles': [value: string[]];
 }>();
@@ -31,13 +29,11 @@ defineEmits<{
         <AppearanceTextFields
             :welcome-message="welcomeMessage"
             :chat-window-title="chatWindowTitle"
-            :chat-footer-text="chatFooterText"
             :composer-placeholder="composerPlaceholder"
             :errors="errors"
             :disabled="disabled"
             @update:welcome-message="$emit('update:welcomeMessage', $event)"
             @update:chat-window-title="$emit('update:chatWindowTitle', $event)"
-            @update:chat-footer-text="$emit('update:chatFooterText', $event)"
             @update:composer-placeholder="$emit('update:composerPlaceholder', $event)"
         />
 

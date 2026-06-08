@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Http\Controllers\Agent\Eval;
+
+use Domain\Agent\Data\Resources\Account\AgentResourceData;
+use Domain\Agent\Models\Agent;
+use Domain\Evaluation\Data\Resources\EvalCaseResourceData;
+use Domain\Evaluation\Data\Resources\EvalRunResourceData;
+use Domain\Evaluation\Enums\ScorerType;
+use Domain\Evaluation\Models\EvalCase;
+use Domain\Evaluation\Models\EvalRun;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+/**
+ * Per-agent Eval Suites (Agent Governance + Evals — Phase 1). Lists the agent's
+ * eval cases plus its recent runs; the page lets a teammate with
+ * `agent.evals.manage` edit cases and trigger a run, while `agent.evals.view`
+ * grants read-only access.
+ */
+class AgentEvalController
+{
+    public function __invoke(Request $request, Agent $agent): Response
+    {
+        abort_if($request->user()->cannot('view', $agent), 404);
+
+        $cases = EvalCase::query()->forAgent($agent->id)->orderByDesc('id')->get();
+        $runs = EvalRun::query()->forAgent($agent->id)->orderByDesc('id')->limit(20)->get();
+
+        return Inertia::render('agents/Evals/index', [
+            'agent' => AgentResourceData::fromModel($agent),
+            'cases' => EvalCaseResourceData::collection($cases),
+            'runs' => EvalRunResourceData::collection($runs),
+            'scorerTypes' => array_column(ScorerType::cases(), 'value'),
+        ]);
+    }
+}

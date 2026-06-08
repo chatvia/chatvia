@@ -11,6 +11,7 @@ use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
+use Domain\Conversation\Services\Streaming\Sources\Concerns\InjectsToolSystemNote;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
@@ -40,6 +41,8 @@ use Throwable;
  */
 class MistralPdfSource
 {
+    use InjectsToolSystemNote;
+
     public function __construct(
         private readonly Mistral $mistral,
         private readonly ChatService $chatService,
@@ -286,27 +289,6 @@ class MistralPdfSource
             $context->payload->message,
             $context->requestData->conversationId,
         );
-    }
-
-    /**
-     * @param  array<int, array<string, mixed>>  $llmMessages
-     */
-    private function injectToolSystemNote(array &$llmMessages, bool $approvalEnabled): void
-    {
-        $note = trim(prompt('tools/approval', ['approval' => $approvalEnabled]));
-        if ($note === '') {
-            return;
-        }
-
-        foreach ($llmMessages as $i => $message) {
-            if (($message['role'] ?? null) === 'system') {
-                $llmMessages[$i]['content'] = rtrim((string) ($message['content'] ?? ''))."\n\n".$note;
-
-                return;
-            }
-        }
-
-        array_unshift($llmMessages, ['role' => 'system', 'content' => $note]);
     }
 
     /**

@@ -37,6 +37,19 @@ class EnsureWidgetIsAccessible
         }
 
         if ($agent->is_public) {
+            // Public agents don't REQUIRE auth, but if a token is present (e.g. an
+            // authenticated playground, or a signed-in user) resolve it
+            // best-effort so the governance audit can attribute the action to who
+            // is signed in. Never gate — an absent/invalid token stays anonymous.
+            $token = $request->header('X-AUTH-TOKEN');
+            if (is_string($token) && $token !== '') {
+                $resolved = $this->sessions->resolveWithMeta($token, $agent, $request);
+                if ($resolved) {
+                    $request->attributes->set('widget_user', $resolved['user']);
+                    $request->attributes->set('widget_is_playground', (bool) ($resolved['meta']['is_playground'] ?? false));
+                }
+            }
+
             return $next($request);
         }
 

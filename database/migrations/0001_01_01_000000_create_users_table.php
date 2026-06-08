@@ -49,6 +49,11 @@ return new class extends Migration
             $table->boolean('analytics_consent')->default(false);
             $table->timestamp('consent_given_at')->nullable();
 
+            // Preferred date display format across the dashboard
+            // (Settings → Date & time). Null falls back to the ISO default —
+            // see Support\Enums\User\DateFormat.
+            $table->string('date_format')->nullable();
+
             $table->timestamps();
         });
 

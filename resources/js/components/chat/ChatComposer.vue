@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useVoiceRecorder } from '@/composables/useVoiceRecorder';
 import axios from 'axios';
-import { ArrowUp, FileText, Loader2, Mic, Paperclip, Square, X } from 'lucide-vue-next';
+import { ArrowUp, FileText, Loader2, Mic, Plus, Square, X } from 'lucide-vue-next';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -14,6 +15,7 @@ interface Attachment {
     filename: string;
     mime_type: string;
     size_bytes: number;
+    pages?: number | null;
 }
 
 interface Props {
@@ -21,7 +23,7 @@ interface Props {
     text?: string;
     placeholder?: string;
     disabled?: boolean;
-    /** Endpoint to POST the file to. When set, a paperclip button appears. */
+    /** Endpoint to POST the file to. When set, a "+" upload button appears. */
     uploadEndpoint?: string;
     /** Headers to send with the upload request (e.g. session/thread). */
     uploadHeaders?: Record<string, string>;
@@ -30,7 +32,7 @@ interface Props {
     deleteEndpoint?: (id: string) => string;
     /** Accept attribute for the file picker; defaults to PDF only. */
     uploadAccept?: string;
-    /** Show the paperclip / file-upload button. Defaults to on. Set false to
+    /** Show the "+" / file-upload button. Defaults to on. Set false to
      *  hide it for FAQ-only / compliance agents that don't accept uploads. */
     allowFileUploads?: boolean;
     /** Show the mic / speech-to-text button. Defaults to on. Set false to
@@ -38,7 +40,7 @@ interface Props {
     allowVoiceInput?: boolean;
     /** Per-chat upload ceiling. Mirrors `agent.files.upload.max_files` —
      *  pass it through from `$page.props.maxFilesPerChat`. The composer
-     *  greys out the paperclip once the local attachments list hits this,
+     *  greys out the "+" button once the local attachments list hits this,
      *  but the server enforces the same value so a bypass still 422s. */
     maxFiles?: number;
 }
@@ -103,6 +105,11 @@ const pendingDeleteCount = ref(0);
 // turn — if the conversation already has files from prior turns, the
 // server's 422 surfaces via the catch block below.
 const canUploadMore = computed(() => attachments.value.length < props.maxFiles);
+
+// Whether the left "+" upload button is shown. Drives both its v-if and the
+// textarea's left padding (so the caret doesn't sit flush against the edge
+// when the button is hidden for upload-disabled agents).
+const showUploadButton = computed(() => props.allowFileUploads && !!props.uploadEndpoint && !props.isThinking && !props.disabled);
 
 const triggerFilePicker = () => {
     if (!canUploadMore.value) {
@@ -266,116 +273,139 @@ const toggleRecording = async () => {
 
 <template>
     <div class="w-full">
-        <div
-            class="bg-card relative rounded-3xl border transition-all duration-200"
-            :class="[
-                disabled ? 'cursor-not-allowed opacity-50' : '',
-                isFocused && !disabled
-                    ? 'border-primary/40 ring-primary/10 shadow-lg ring-1'
-                    : 'border-gray-300 shadow-sm hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500',
-                isThinking ? 'border-primary/40' : '',
-            ]"
-        >
-            <!-- Attachment chips -->
-            <div v-if="attachments.length > 0 || isUploading" class="flex flex-wrap gap-2 px-4 pt-3">
-                <div
-                    v-for="att in attachments"
-                    :key="att.id"
-                    class="bg-muted text-foreground flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs"
-                >
-                    <FileText class="text-muted-foreground h-3.5 w-3.5 shrink-0" />
-                    <span class="max-w-[180px] truncate">{{ att.filename }}</span>
-                    <span class="text-muted-foreground">{{ formatBytes(att.size_bytes) }}</span>
-                    <button
-                        type="button"
-                        @click="removeAttachment(att.id)"
-                        class="text-muted-foreground hover:text-foreground -mr-1 rounded p-0.5"
-                        :aria-label="t('composer.remove_attachment', 'Remove attachment')"
+        <TooltipProvider :delay-duration="200">
+            <div
+                class="bg-card relative border transition-all duration-200"
+                :class="[
+                    attachments.length > 0 || isUploading ? 'rounded-3xl' : 'rounded-full',
+                    disabled ? 'cursor-not-allowed opacity-50' : '',
+                    isFocused && !disabled
+                        ? 'border-primary/40 ring-primary/10 shadow-lg ring-1'
+                        : 'dark:border-input hover:border-muted-foreground/40 border-[#dcdcdc] shadow-[0_2px_8px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.04)]',
+                    isThinking ? 'border-primary/40' : '',
+                ]"
+            >
+                <!-- Attachment chips -->
+                <div v-if="attachments.length > 0 || isUploading" class="flex flex-wrap gap-2 px-4 pt-3">
+                    <div
+                        v-for="att in attachments"
+                        :key="att.id"
+                        class="bg-muted text-foreground flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs"
                     >
-                        <X class="h-3.5 w-3.5" />
-                    </button>
-                </div>
-                <div v-if="isUploading" class="text-muted-foreground bg-muted flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs">
-                    <Loader2 class="h-3.5 w-3.5 animate-spin" />
-                    {{ t('composer.uploading', 'Uploading…') }}
-                </div>
-            </div>
-
-            <div class="flex items-center">
-                <!-- Left side: textarea -->
-                <div class="min-w-0 flex-1">
-                    <Textarea
-                        ref="messageInput"
-                        v-model="userInput"
-                        @keydown.enter="handleEnterKey"
-                        @input="adjustTextareaHeight"
-                        @focus="handleFocus"
-                        @blur="handleBlur"
-                        :placeholder="disabled ? t('composer.disabled') : placeholder || t('composer.default_placeholder')"
-                        class="text-foreground placeholder:text-muted-foreground/50 max-h-[160px] min-h-[28px] w-full resize-none !border-0 !bg-transparent px-4 py-4 text-sm !shadow-none focus-visible:!border-0 focus-visible:ring-0 focus-visible:outline-none dark:!bg-transparent"
-                        :disabled="isThinking || disabled"
-                        rows="1"
-                    />
+                        <FileText class="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+                        <span class="max-w-[180px] truncate">{{ att.filename }}</span>
+                        <span class="text-muted-foreground">{{ formatBytes(att.size_bytes) }}</span>
+                        <span v-if="att.pages" class="text-muted-foreground">
+                            · {{ t('composer.pdf_pages', { count: att.pages }, { plural: att.pages }) }}
+                        </span>
+                        <button
+                            type="button"
+                            @click="removeAttachment(att.id)"
+                            class="text-muted-foreground hover:text-foreground -mr-1 rounded p-0.5"
+                            :aria-label="t('composer.remove_attachment', 'Remove attachment')"
+                        >
+                            <X class="h-3.5 w-3.5" />
+                        </button>
+                    </div>
+                    <div v-if="isUploading" class="text-muted-foreground bg-muted flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs">
+                        <Loader2 class="h-3.5 w-3.5 animate-spin" />
+                        {{ t('composer.uploading', 'Uploading…') }}
+                    </div>
                 </div>
 
-                <!-- Right side: Attach, Mic, and Send/Stop buttons -->
-                <div class="flex items-center gap-1.5 p-3">
-                    <!-- File upload button — hidden when the agent disables uploads.
-                         Disabled (greyed) once the local attachments list hits
-                         the per-chat ceiling; the click handler also re-checks
-                         and surfaces a toast as a fallback. -->
-                    <Button
-                        v-if="allowFileUploads && uploadEndpoint && !isThinking && !disabled"
-                        @click="triggerFilePicker"
-                        :disabled="isUploading || !canUploadMore"
-                        size="icon"
-                        variant="ghost"
-                        class="hover:bg-muted text-muted-foreground hover:text-foreground h-10 w-10 shrink-0 rounded-full transition-all duration-200"
-                        :title="
-                            !canUploadMore
-                                ? t('composer.upload_limit_reached', { count: maxFiles }, `You can attach up to ${maxFiles} files.`)
-                                : t('composer.attach_file', 'Attach a PDF')
-                        "
-                    >
-                        <Paperclip class="h-5 w-5" />
-                    </Button>
+                <div class="flex items-center">
+                    <!-- Left: file upload "+" button. Hidden when the agent disables
+                     uploads or while streaming. Disabled (greyed) once the local
+                     attachments list hits the per-chat ceiling; the click handler
+                     also re-checks and surfaces a toast as a fallback. -->
+                    <div v-if="showUploadButton" class="flex items-center py-2 pl-2">
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <Button
+                                    @click="triggerFilePicker"
+                                    :disabled="isUploading || !canUploadMore"
+                                    size="icon"
+                                    variant="ghost"
+                                    class="hover:bg-muted text-muted-foreground hover:text-foreground h-10 w-10 shrink-0 rounded-full transition-all duration-200"
+                                    :aria-label="t('composer.attach_file', 'Attach a PDF')"
+                                >
+                                    <Plus class="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                {{
+                                    !canUploadMore
+                                        ? t('composer.upload_limit_reached', { count: maxFiles }, `You can attach up to ${maxFiles} files.`)
+                                        : t('composer.attach_file', 'Attach a PDF')
+                                }}
+                            </TooltipContent>
+                        </Tooltip>
+                    </div>
                     <input ref="fileInput" type="file" :accept="uploadAccept" class="hidden" @change="handleFileSelected" />
 
-                    <!-- Voice recording button — hidden when the agent disables voice. -->
-                    <Button
-                        v-if="allowVoiceInput && isVoiceSupported && !isThinking && !disabled"
-                        @click="toggleRecording"
-                        :disabled="isTranscribing"
-                        size="icon"
-                        variant="ghost"
-                        class="h-10 w-10 shrink-0 rounded-full transition-all duration-200"
-                        :class="[
-                            isRecording
-                                ? 'animate-pulse bg-red-500 text-white hover:bg-red-600'
-                                : 'hover:bg-muted text-muted-foreground hover:text-foreground',
-                        ]"
-                        :title="isRecording ? t('composer.stop_recording') : t('composer.start_voice_input')"
-                    >
-                        <Loader2 v-if="isTranscribing" class="h-5 w-5 animate-spin" />
-                        <Mic v-else class="h-5 w-5" />
-                    </Button>
+                    <!-- Middle: textarea. Left padding fills in when the "+" button is hidden. -->
+                    <div class="min-w-0 flex-1">
+                        <Textarea
+                            ref="messageInput"
+                            v-model="userInput"
+                            @keydown.enter="handleEnterKey"
+                            @input="adjustTextareaHeight"
+                            @focus="handleFocus"
+                            @blur="handleBlur"
+                            :placeholder="disabled ? t('composer.disabled') : placeholder || t('composer.default_placeholder')"
+                            class="text-foreground placeholder:text-muted-foreground/50 max-h-[160px] min-h-[28px] w-full resize-none !border-0 !bg-transparent py-4 pr-2 text-sm !shadow-none focus-visible:!border-0 focus-visible:ring-0 focus-visible:outline-none dark:!bg-transparent"
+                            :class="showUploadButton ? 'pl-2' : 'pl-4'"
+                            :disabled="isThinking || disabled"
+                            rows="1"
+                        />
+                    </div>
 
-                    <Button v-if="isThinking" @click="stopStreaming" size="icon" variant="destructive" class="h-10 w-10 shrink-0 rounded-full">
-                        <Square class="h-5 w-5" />
-                    </Button>
+                    <!-- Right: Mic and Send/Stop buttons -->
+                    <div class="flex items-center gap-1.5 p-3">
+                        <!-- Voice recording button — hidden when the agent disables voice. -->
+                        <Tooltip v-if="allowVoiceInput && isVoiceSupported && !isThinking && !disabled">
+                            <TooltipTrigger as-child>
+                                <Button
+                                    @click="toggleRecording"
+                                    :disabled="isTranscribing"
+                                    size="icon"
+                                    variant="ghost"
+                                    class="h-10 w-10 shrink-0 rounded-full transition-all duration-200"
+                                    :class="[
+                                        isRecording
+                                            ? 'animate-pulse bg-red-500 text-white hover:bg-red-600'
+                                            : 'hover:bg-muted text-muted-foreground hover:text-foreground',
+                                    ]"
+                                    :aria-label="isRecording ? t('composer.stop_recording') : t('composer.start_voice_input')"
+                                >
+                                    <Loader2 v-if="isTranscribing" class="h-5 w-5 animate-spin" />
+                                    <Mic v-else class="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                {{ isRecording ? t('composer.stop_recording') : t('composer.start_voice_input') }}
+                            </TooltipContent>
+                        </Tooltip>
 
-                    <Button
-                        v-else
-                        @click="sendMessage"
-                        :disabled="!canSend()"
-                        size="icon"
-                        class="h-10 w-10 shrink-0 rounded-full transition-all duration-200"
-                        :class="[canSend() ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md' : 'bg-muted text-muted-foreground']"
-                    >
-                        <ArrowUp class="h-5 w-5" :class="{ 'stroke-[2.5px]': canSend() }" />
-                    </Button>
+                        <Button v-if="isThinking" @click="stopStreaming" size="icon" variant="destructive" class="h-10 w-10 shrink-0 rounded-full">
+                            <Square class="h-5 w-5" />
+                        </Button>
+
+                        <Button
+                            v-else
+                            @click="sendMessage"
+                            :disabled="!canSend()"
+                            size="icon"
+                            class="h-10 w-10 shrink-0 rounded-full transition-all duration-200"
+                            :class="[
+                                canSend() ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md' : 'bg-muted text-muted-foreground',
+                            ]"
+                        >
+                            <ArrowUp class="h-5 w-5" :class="{ 'stroke-[2.5px]': canSend() }" />
+                        </Button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </TooltipProvider>
     </div>
 </template>

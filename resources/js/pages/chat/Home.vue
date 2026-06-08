@@ -2,6 +2,7 @@
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
+import HeroIcon from '@/components/ui/HeroIcon.vue';
 import { useColorTheme } from '@/composables/useColorTheme';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -23,7 +24,6 @@ const props = defineProps({
             color_theme: 'black',
             welcome_message: null,
             chat_window_title: null,
-            chat_footer_text: null,
             avatar: null,
             logo: null,
             composer_placeholder: null,
@@ -132,8 +132,8 @@ async function createNewConversation(message, attachments = []) {
     });
 }
 
-function handleStarterClick(starter) {
-    selectedStarter.value = starter;
+function handleStarterClick(text) {
+    selectedStarter.value = text;
 }
 </script>
 
@@ -153,7 +153,7 @@ function handleStarterClick(starter) {
                 <div class="mx-auto w-full max-w-3xl">
                     <!-- Logo -->
                     <div class="mb-4 flex justify-center">
-                        <div class="h-14 w-14 overflow-hidden">
+                        <div class="h-10 w-10 overflow-hidden">
                             <img
                                 v-if="props.appearance.logo"
                                 :src="props.appearance.logo"
@@ -165,25 +165,9 @@ function handleStarterClick(starter) {
                     </div>
 
                     <!-- Welcome message -->
-                    <h1 class="text-foreground mb-10 text-center text-2xl font-semibold sm:text-3xl">
+                    <h1 class="text-foreground mb-8 text-center text-2xl font-semibold tracking-tight sm:text-3xl">
                         {{ props.appearance?.welcome_message || t('home.welcome_message') }}
                     </h1>
-
-                    <!-- Conversation Starters -->
-                    <div v-if="starters.length > 0" class="mb-8">
-                        <div class="mx-auto grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
-                            <button
-                                v-for="(starter, index) in starters"
-                                :key="index"
-                                @click="handleStarterClick(starter)"
-                                class="group border-border/60 bg-card hover:bg-muted/50 hover:border-border cursor-pointer rounded-xl border px-4 py-3 text-left transition-all duration-150"
-                            >
-                                <p class="text-foreground/80 group-hover:text-foreground line-clamp-2 text-sm leading-relaxed">
-                                    {{ starter }}
-                                </p>
-                            </button>
-                        </div>
-                    </div>
 
                     <div class="mx-auto w-full max-w-2xl">
                         <!-- Show composer if user can send messages -->
@@ -211,11 +195,23 @@ function handleStarterClick(starter) {
                             </div>
                         </div>
 
-                        <!-- Footer text -->
-                        <div v-if="props.appearance?.chat_footer_text" class="mt-4 text-center">
-                            <p class="text-muted-foreground/60 text-[11px]">
-                                {{ props.appearance.chat_footer_text }}
-                            </p>
+                        <!-- Conversation Starters -->
+                        <div v-if="canSendMessages && starters.length > 0" class="mt-5 flex flex-wrap justify-center gap-2.5">
+                            <button
+                                v-for="(starter, index) in starters"
+                                :key="index"
+                                @click="handleStarterClick(starter.text)"
+                                class="group border-border bg-card hover:bg-muted flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-2.5 text-left transition-colors duration-150"
+                            >
+                                <HeroIcon
+                                    v-if="starter.icon"
+                                    :name="starter.icon"
+                                    class="text-muted-foreground group-hover:text-foreground h-4 w-4 shrink-0"
+                                />
+                                <span class="text-foreground/80 group-hover:text-foreground line-clamp-2 max-w-[280px] text-sm leading-snug">
+                                    {{ starter.text }}
+                                </span>
+                            </button>
                         </div>
 
                         <!-- Branding: hidden when the workspace owns the remove-branding add-on -->

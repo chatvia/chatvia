@@ -15,11 +15,11 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
@@ -55,10 +55,21 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: 'API keys', href: '/settings/api
 
 const form = useForm({ name: '' });
 
+const generateOpen = ref(false);
+
+const openGenerate = () => {
+    form.reset();
+    form.clearErrors();
+    generateOpen.value = true;
+};
+
 const submit = () => {
     form.post(route('api-keys.store'), {
         preserveScroll: true,
-        onSuccess: () => form.reset(),
+        onSuccess: () => {
+            form.reset();
+            generateOpen.value = false;
+        },
     });
 };
 
@@ -110,76 +121,108 @@ const dismissDialog = () => {
         <Head title="API keys" />
 
         <SettingsLayout width="wide">
-            <div class="flex flex-col space-y-8">
-                <div>
-                    <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
-                        <KeyRound class="size-6" />
-                        API keys
-                    </h1>
-                    <p class="text-muted-foreground mt-1 text-sm">
-                        Account keys for the <a class="underline" href="/docs/api" target="_blank">Chatvia API</a> — create and manage agents,
-                        knowledge, MCP servers, and functions.
-                    </p>
+            <div class="w-full space-y-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
+                            <KeyRound class="size-6" />
+                            API keys
+                        </h1>
+                        <p class="text-muted-foreground mt-1 text-sm">
+                            Account keys for the <a class="underline" href="/docs/api" target="_blank">Chatvia API</a> — create and manage agents,
+                            knowledge, MCP servers, and functions.
+                        </p>
+                    </div>
+                    <Button v-if="hasAccess" @click="openGenerate">
+                        <Plus class="mr-1 size-4" />
+                        Generate key
+                    </Button>
                 </div>
 
                 <Separator />
 
                 <LockedFeature v-if="!hasAccess" description="Upgrade your plan to issue API keys and integrate Chatvia with your applications." />
 
-                <Card v-else>
-                    <CardHeader>
-                        <CardTitle>Generate a new key</CardTitle>
-                        <CardDescription>
-                            Pick a name you'll recognize later — e.g. <code>production-backend</code>. The token itself is shown only once.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form @submit.prevent="submit" class="flex flex-col gap-3 sm:flex-row sm:items-end">
-                            <div class="grid flex-1 gap-2">
-                                <Label for="name">Name</Label>
-                                <div class="relative">
-                                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                        <Tag class="size-4" />
-                                    </div>
-                                    <Input id="name" v-model="form.name" placeholder="production-backend" autocomplete="off" required class="pl-9" />
-                                </div>
-                                <InputError :message="form.errors.name" />
-                            </div>
-                            <Button type="submit" :disabled="form.processing">
-                                <Plus class="mr-2 size-4" />
-                                Generate
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
+                <template v-else>
+                    <div v-if="tokens.length === 0" class="rounded-lg border py-16 text-center">
+                        <KeyRound class="text-muted-foreground mx-auto size-8" />
+                        <p class="mt-3 text-sm font-medium">No API keys yet</p>
+                        <p class="text-muted-foreground mt-1 text-sm">Generate one to start using the Chatvia API.</p>
+                        <Button class="mt-4" @click="openGenerate">
+                            <Plus class="mr-1 size-4" />
+                            Generate key
+                        </Button>
+                    </div>
 
-                <Card v-if="hasAccess">
-                    <CardHeader>
-                        <CardTitle>Existing keys</CardTitle>
-                        <CardDescription> Revoke any key here. Revoked keys stop working immediately and cannot be restored. </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div v-if="tokens.length === 0" class="text-muted-foreground py-6 text-center text-sm">
-                            No API keys yet. Generate one above to get started.
-                        </div>
-                        <ul v-else class="divide-border divide-y">
-                            <li v-for="token in tokens" :key="token.id" class="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
-                                <div class="min-w-0 flex-1">
-                                    <p class="truncate text-sm font-medium">{{ token.name }}</p>
-                                    <p class="text-muted-foreground text-xs">
-                                        Created {{ token.created_at }} ·
-                                        <span v-if="token.last_used_at">Last used {{ token.last_used_at }}</span>
-                                        <span v-else>Never used</span>
-                                    </p>
-                                </div>
-                                <Button variant="ghost" size="sm" @click="revoke(token)">
-                                    <Trash2 class="size-4 text-red-600" />
-                                </Button>
-                            </li>
-                        </ul>
-                    </CardContent>
-                </Card>
+                    <div v-else class="rounded-lg border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead class="h-11 pl-5">Name</TableHead>
+                                    <TableHead class="h-11 w-40">Created</TableHead>
+                                    <TableHead class="h-11 w-40">Last used</TableHead>
+                                    <TableHead class="h-11 w-16 pr-5 text-right">Revoke</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow v-for="token in tokens" :key="token.id">
+                                    <TableCell class="py-4 pl-5">
+                                        <div class="flex items-center gap-4">
+                                            <div class="bg-muted flex size-10 shrink-0 items-center justify-center rounded-md">
+                                                <KeyRound class="text-muted-foreground size-5" />
+                                            </div>
+                                            <p class="leading-tight font-medium">{{ token.name }}</p>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell class="text-muted-foreground py-4 text-sm">{{ token.created_at ?? '—' }}</TableCell>
+                                    <TableCell class="text-muted-foreground py-4 text-sm">
+                                        {{ token.last_used_at ?? 'Never' }}
+                                    </TableCell>
+                                    <TableCell class="py-4 pr-5 text-right">
+                                        <Button variant="ghost" size="icon" aria-label="Revoke key" @click="revoke(token)">
+                                            <Trash2 class="size-4 text-red-600" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </div>
+                </template>
             </div>
+
+            <!-- Generate a new key -->
+            <Dialog v-model:open="generateOpen">
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle class="flex items-center gap-2">
+                            <Plus class="size-5" />
+                            Generate a new key
+                        </DialogTitle>
+                        <DialogDescription>
+                            Pick a name you'll recognize later — e.g. <code>production-backend</code>. The token itself is shown only once.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <form id="generate-key-form" @submit.prevent="submit" class="grid gap-2">
+                        <Label for="name">Name</Label>
+                        <div class="relative">
+                            <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <Tag class="size-4" />
+                            </div>
+                            <Input id="name" v-model="form.name" placeholder="production-backend" autocomplete="off" required class="pl-9" />
+                        </div>
+                        <InputError :message="form.errors.name" />
+                    </form>
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="generateOpen = false">Cancel</Button>
+                        <Button type="submit" form="generate-key-form" :disabled="form.processing">
+                            <Plus class="mr-1 size-4" />
+                            Generate
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <!-- One-time reveal dialog -->
             <Dialog :open="showCreatedDialog" @update:open="dismissDialog">
@@ -211,7 +254,10 @@ const dismissDialog = () => {
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" @click="dismissDialog">I've stored it safely</Button>
+                        <Button type="button" @click="dismissDialog">
+                            <Check class="mr-1 size-4" />
+                            I've stored it safely
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

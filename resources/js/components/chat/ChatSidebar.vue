@@ -484,14 +484,19 @@ const switchToSelectedAgent = () => {
         <div class="flex h-full flex-col px-3 py-3">
             <!-- Header -->
             <div class="mb-2 flex items-center justify-between">
-                <Link :href="route('chat.home')" class="hover:bg-accent rounded-lg p-2 transition-colors">
+                <Link :href="route('chat.home')" class="hover:bg-accent flex items-center gap-2 rounded-lg p-2 transition-colors">
                     <img
                         v-if="props.appearance?.logo"
                         :src="props.appearance.logo"
                         :alt="props.appearance?.chat_window_title || 'ChatVia'"
                         class="h-8 object-contain"
                     />
-                    <AppLogoIcon v-else class="h-8 w-8" />
+                    <template v-else>
+                        <AppLogoIcon class="h-7 w-7" />
+                        <span class="text-foreground text-sm font-semibold tracking-tight">
+                            {{ props.appearance?.chat_window_title || 'Chatvia' }}
+                        </span>
+                    </template>
                 </Link>
                 <!-- Close button for mobile only -->
                 <button
@@ -518,7 +523,7 @@ const switchToSelectedAgent = () => {
             <!-- Chats Section -->
             <div class="flex min-h-0 flex-1 flex-col">
                 <div class="flex-shrink-0 px-3 py-2">
-                    <span class="text-muted-foreground text-xs font-medium">{{ t('sidebar.your_chats') }}</span>
+                    <span class="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">{{ t('sidebar.your_chats') }}</span>
                 </div>
 
                 <ScrollArea class="h-full flex-1">
@@ -543,8 +548,8 @@ const switchToSelectedAgent = () => {
                                                 :class="[
                                                     'flex w-full cursor-pointer items-center rounded-lg px-3 py-2.5 text-sm transition-colors',
                                                     route().current('chat.show', { conversationId: chat.id })
-                                                        ? 'text-foreground bg-gray-200 dark:bg-gray-700'
-                                                        : 'text-foreground/80 hover:bg-gray-100 dark:hover:bg-gray-800',
+                                                        ? 'text-foreground bg-sidebar-accent'
+                                                        : 'text-foreground/80 hover:bg-sidebar-accent/60',
                                                 ]"
                                                 :href="route('chat.show', { conversationId: chat.id })"
                                             >

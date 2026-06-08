@@ -1,0 +1,158 @@
+<?php
+
+use Domain\Agent\Models\Agent;
+use Domain\Billing\Jobs\UpdateUserCreditsJob;
+use Domain\Evaluation\Actions\ScoreEvalCaseAction;
+use Domain\Evaluation\Data\AgentRunResultData;
+use Domain\Evaluation\Models\EvalCase;
+use Domain\Evaluation\Models\EvalRun;
+use Domain\Evaluation\Services\EvalAgentRunner;
+use Domain\Llm\Models\Llm;
+use Illuminate\Support\Facades\Bus;
+
+/**
+ * ScoreEvalCase glues the runner to the scorer and writes the immutable result.
+ * We fake the runner (the real one needs a live LLM) and assert the mapping:
+ * the captured answer/sources/tools/trace land on the row, the scorer's verdict
+ * drives pass/score, and a failed agent run becomes a failing result — never an
+ * exception that would abort the batch. It also bills the workspace one message
+ * credit per case that produced an answer, so fake the bus in every test.
+ */
+beforeEach(function (): void {
+    Bus::fake();
+});
+
+function scoringFixtures(string $value = 'paris'): array
+{
+    $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
+
+    $run = EvalRun::create([
+        'agent_id' => $agent->id,
+        'agent_name' => $agent->name,
+        'workspace_id' => $agent->user_id,
+        'status' => EvalRun::STATUS_RUNNING,
+        'total_cases' => 1,
+        'started_at' => now(),
+    ]);
+
+    $case = EvalCase::create([
+        'agent_id' => $agent->id,
+        'agent_name' => $agent->name,
+        'workspace_id' => $agent->user_id,
+        'name' => 'capital',
+        'input' => 'Capital of France?',
+        'scorer_type' => 'contains',
+        'scorer_config' => ['value' => $value],
+        'active' => true,
+    ]);
+
+    return [$run, $case];
+}
+
+function fakeRunner(AgentRunResultData $data): EvalAgentRunner
+{
+    $mock = Mockery::mock(EvalAgentRunner::class);
+    $mock->shouldReceive('run')->andReturn($data);
+
+    return $mock;
+}
+
+it('records a passing result with the captured run state', function (): void {
+    [$run, $case] = scoringFixtures();
+
+    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+        answer: 'The capital is Paris.',
+        sources: ['World Atlas'],
+        toolsCalled: ['geo_lookup'],
+        tokens: 42,
+        latencyMs: 120,
+        traceId: 'trace-abc',
+    )));
+
+    $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
+
+    expect($result->pass)->toBeTrue()
+        ->and($result->score)->toBe(1.0)
+        ->and($result->actual_output)->toBe('The capital is Paris.')
+        ->and($result->sources_used)->toBe(['World Atlas'])
+        ->and($result->tools_called)->toBe(['geo_lookup'])
+        ->and($result->tokens)->toBe(42)
+        ->and($result->trace_id)->toBe('trace-abc')
+        ->and($result->run_id)->toBe($run->id);
+});
+
+it('records a failing result when the scorer rejects the answer', function (): void {
+    [$run, $case] = scoringFixtures('berlin');
+
+    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+        answer: 'The capital is Paris.',
+        sources: [],
+        toolsCalled: [],
+        tokens: 10,
+        latencyMs: 50,
+        traceId: 'trace-x',
+    )));
+
+    $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
+
+    expect($result->pass)->toBeFalse();
+});
+
+it('records a failing result (not an exception) when the agent run errored', function (): void {
+    [$run, $case] = scoringFixtures();
+
+    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+        answer: '',
+        sources: [],
+        toolsCalled: [],
+        tokens: null,
+        latencyMs: 0,
+        traceId: 'trace-err',
+        error: 'model timeout',
+    )));
+
+    $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
+
+    expect($result->pass)->toBeFalse()
+        ->and($result->judge_rationale)->toContain('Agent run failed')
+        ->and($result->judge_rationale)->toContain('model timeout');
+});
+
+it('charges one message credit to the workspace for a case that produced an answer', function (): void {
+    [$run, $case] = scoringFixtures();
+    $agent = $run->agent;
+
+    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+        answer: 'The capital is Paris.',
+        sources: [],
+        toolsCalled: [],
+        tokens: 42,
+        latencyMs: 120,
+        traceId: 'trace-bill',
+    )));
+
+    app(ScoreEvalCaseAction::class)->execute($run, $case);
+
+    Bus::assertDispatched(
+        UpdateUserCreditsJob::class,
+        fn (UpdateUserCreditsJob $job): bool => $job->userId === $agent->user_id && $job->modelId === $agent->llm_id,
+    );
+});
+
+it('does not charge a credit when the agent run errored (no answer produced)', function (): void {
+    [$run, $case] = scoringFixtures();
+
+    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+        answer: '',
+        sources: [],
+        toolsCalled: [],
+        tokens: null,
+        latencyMs: 0,
+        traceId: 'trace-err',
+        error: 'model timeout',
+    )));
+
+    app(ScoreEvalCaseAction::class)->execute($run, $case);
+
+    Bus::assertNotDispatched(UpdateUserCreditsJob::class);
+});

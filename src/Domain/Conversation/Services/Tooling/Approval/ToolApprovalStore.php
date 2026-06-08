@@ -35,6 +35,12 @@ class ToolApprovalStore
             'context' => [
                 'external_session_id' => $context->requestData->externalSessionId,
                 'model_id' => $context->requestData->message->model->id,
+                'chatter_name' => $context->requestData->chatterName,
+                'chatter_user_id' => $context->requestData->chatterUserId,
+                // Carried so the resume path can attribute the approve/deny
+                // decision to whoever is signed in, in the governance audit.
+                'actor_user_id' => $context->requestData->actorUserId,
+                'actor_name' => $context->requestData->actorName,
                 'user_message' => $context->payload->message,
                 'query_language' => $context->queryLanguage,
                 'source' => $context->requestData->source,

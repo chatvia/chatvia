@@ -41,7 +41,7 @@ class CreateApiAgentAction
                 // A library prompt and a custom prompt are mutually exclusive.
                 'system_instructions' => $agentPromptId === null ? $data->system_instructions : null,
                 'agent_prompt_id' => $agentPromptId,
-                'is_public' => false,
+                'is_public' => $data->is_public,
                 'metadata' => $data->metadata,
                 'source' => 'api',
             ]);

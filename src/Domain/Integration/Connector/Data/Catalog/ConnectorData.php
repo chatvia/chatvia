@@ -27,6 +27,10 @@ class ConnectorData extends Data
         public ?string $tokenHelpUrl = null,
         public ?string $tokenPattern = null,
         public ?string $tokenPlaceholder = null,
+        // When true, the catalog has no fixed `mcpUrl` and the user supplies
+        // their own MCP server URL at connect time (token strategy only). Used
+        // for services without a first-party hosted MCP server (e.g. Zendesk).
+        public bool $requiresUrl = false,
         public bool $comingSoon = false,
         // Pre-registered OAuth (services that don't support RFC 7591 DCR —
         // GitHub, Slack, Microsoft, …). All null when DCR is used.
@@ -69,6 +73,7 @@ class ConnectorData extends Data
             tokenHelpUrl: $entry['token_help_url'] ?? null,
             tokenPattern: $entry['token_pattern'] ?? null,
             tokenPlaceholder: $entry['token_placeholder'] ?? null,
+            requiresUrl: (bool) ($entry['requires_url'] ?? false),
             comingSoon: (bool) ($entry['coming_soon'] ?? false),
             oauthClientId: $entry['oauth_client_id'] ?? null,
             oauthClientSecret: $entry['oauth_client_secret'] ?? null,

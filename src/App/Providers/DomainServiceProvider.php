@@ -22,11 +22,15 @@ use Domain\Billing\Listeners\HandleStripeWebhook;
 use Domain\Billing\Listeners\RecordLlmTokenUsage;
 use Domain\Billing\Listeners\TriggerAutoRecharge;
 use Domain\Conversation\Events\SessionLocationUnknown;
+use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Listeners\LocateSession;
+use Domain\Conversation\Listeners\RecordToolCallAudit;
 use Domain\Conversation\Services\Streaming\Transformers\OpenAiCompatibleTransformer;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Dispatcher\RoutingToolDispatcher;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
+use Domain\Guardrail\Events\GuardrailTriggered;
+use Domain\Guardrail\Listeners\RecordGuardrailEvent;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Function\Observers\AgentFunctionObserver;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -152,6 +156,8 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(SessionLocationUnknown::class, LocateSession::class);
         Event::listen(AccountDeletionRequested::class, SendAccountDeletionConfirmationEmail::class);
         Event::listen(LlmTokensConsumed::class, RecordLlmTokenUsage::class);
+        Event::listen(ToolCallCompleted::class, RecordToolCallAudit::class);
+        Event::listen(GuardrailTriggered::class, RecordGuardrailEvent::class);
 
         Event::subscribe(RecordAnalytics::class);
     }

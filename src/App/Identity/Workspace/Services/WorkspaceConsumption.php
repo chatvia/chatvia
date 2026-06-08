@@ -24,15 +24,16 @@ readonly class WorkspaceConsumption
     public function __construct(private User $user) {}
 
     /**
-     * Total "pages" used across uploaded documents (PDF/Word/markdown/text)
-     * AND raw text sources. Each source is counted once even when attached to
-     * multiple agents (the inner query selects distinct sourceable ids).
+     * Total "pages" used across uploaded documents (every OCR-parsed file —
+     * PDF, Word, presentation, spreadsheet, image, and the exotic document
+     * formats) AND raw text sources. Each source is counted once even when
+     * attached to multiple agents (the inner query selects distinct ids).
      */
     public function pages(): int
     {
         $sourceFilesPages = SourceFile::query()
             ->whereIn('id', $this->ownedSourceIds(SourceFile::class))
-            ->whereIn('filetype', ['pdf', 'word', 'markdown', 'text'])
+            ->whereIn('filetype', ['pdf', 'word', 'markdown', 'text', 'presentation', 'spreadsheet', 'image', 'document'])
             ->sum('length');
 
         $sourceTextsPages = SourceText::query()

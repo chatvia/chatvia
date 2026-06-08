@@ -7,10 +7,13 @@ use Domain\Agent\Models\Agent;
 use Domain\Billing\Jobs\UpdateUserCreditsJob;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\Data\StreamRequestData;
 use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Guardrail\Services\GuardrailRecorder;
+use Domain\Guardrail\Services\GuardrailService;
 use Domain\Knowledge\Ingestion\Services\Search\KnowledgeBase;
 use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
@@ -38,6 +41,8 @@ readonly class ChatService
     public function __construct(
         private ChatMemory $memory,
         private KnowledgeBase $knowledgeBase,
+        private GuardrailService $guardrails,
+        private GuardrailRecorder $guardrailRecorder,
     ) {}
 
     public function initializeChatContext(StreamRequestData $data): ChatContext
@@ -53,11 +58,17 @@ readonly class ChatService
 
         $attachments = $data->message->attachments;
 
-        // No "[Attached PDF: …]" injection — PDFs are delivered to the model
-        // as `document_url` chunks by MistralPdfSource based on
-        // `conversation.pdfAttachments`. The visible user content stays
-        // clean either way.
-        $messageForLlm = $query;
+        // Input guardrails (PII / injection / topic / toxicity). PII redaction
+        // applies to what the LLM sees; a genuine injection / off-topic / toxic
+        // message sets $guard->blocked, and the turn routes to GuardBlockSource
+        // (no LLM call, no credit) — see ChatStreamService.
+        $guard = $this->guardrails->inspectInput($data->agent, $data->message->message);
+
+        // PDFs are delivered to the model as `document_url` chunks by
+        // MistralPdfSource, so the visible user content stays clean. When input
+        // PII was redacted, the LLM gets the masked text instead of the rewritten
+        // query.
+        $messageForLlm = ($guard->text !== $data->message->message && ! $guard->blocked) ? $guard->text : $query;
 
         $payload = ChatInputPayload::from([
             'external_session_id' => $data->externalSessionId,
@@ -104,7 +115,7 @@ readonly class ChatService
             }
         }
 
-        return new ChatContext(
+        $context = new ChatContext(
             requestData: $data,
             payload: $payload,
             llmMessages: $llmMessages,
@@ -112,6 +123,14 @@ readonly class ChatService
             assistantMessageId: $assistantMessageId,
             queryLanguage: $lang,
         );
+
+        // Carry the block decision to ChatStreamService, and log every input
+        // verdict (PII redaction / injection block / topic / toxicity).
+        $context->guardBlocked = $guard->blocked;
+        $context->guardRefusal = $guard->refusalMessage;
+        $this->guardrailRecorder->record($context, $data->message->message, $guard);
+
+        return $context;
     }
 
     public function prepareLlmMessages(ChatContext $context): array
@@ -146,6 +165,10 @@ readonly class ChatService
             ),
             externalSessionId: (string) ($ctx['external_session_id'] ?? ''),
             conversationId: $checkpoint->conversation_external_id,
+            chatterUserId: $ctx['chatter_user_id'] ?? null,
+            chatterName: $ctx['chatter_name'] ?? null,
+            actorUserId: $ctx['actor_user_id'] ?? null,
+            actorName: $ctx['actor_name'] ?? null,
             streamSources: (bool) ($ctx['stream_sources'] ?? false),
             source: $ctx['source'] ?? null,
             requestId: $checkpoint->request_id,
@@ -178,6 +201,12 @@ readonly class ChatService
      */
     public function enrichContextWithKnowledge(ChatContext $context): ChatContext
     {
+        // A guard-blocked turn never reaches the LLM, so skip the (costly) RAG
+        // retrieval entirely — it routes to GuardBlockSource.
+        if ($context->guardBlocked) {
+            return $context;
+        }
+
         // First, check for high-confidence Q&A match using ORIGINAL message (not rewritten)
         $qaMatch = $this->searchQA(
             $context->requestData->agent->id,
@@ -197,6 +226,10 @@ readonly class ChatService
             $context->requestData->agent,
             $context->payload,
         );
+
+        // RAG-source injection guard: drop any retrieved chunk whose content
+        // carries injection markers before it is concatenated into the prompt.
+        $sources = $this->guardSources($context, $sources);
 
         $context->setSources($sources);
 
@@ -250,12 +283,55 @@ readonly class ChatService
         return $enrichedContext;
     }
 
+    /**
+     * Drop retrieved RAG chunks whose content trips the source injection guard,
+     * logging each one. A neutralised source never reaches the model's prompt.
+     *
+     * @param  Collection<int, array<string, mixed>>  $sources
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function guardSources(ChatContext $context, Collection $sources): Collection
+    {
+        $agent = $context->requestData->agent;
+
+        if (! $this->guardrails->enabledFor($agent)) {
+            return $sources;
+        }
+
+        return $sources->reject(function ($chunk) use ($agent, $context): bool {
+            $content = (string) ($chunk['content'] ?? '');
+            $scan = $this->guardrails->scanSource($agent, $content);
+
+            if ($scan->triggered()) {
+                $this->guardrailRecorder->record($context, $content, $scan);
+
+                return true;
+            }
+
+            return false;
+        })->values();
+    }
+
+    /**
+     * Persist an assistant message WITHOUT billing — used by GuardBlockSource so a
+     * refused turn is recorded in history but never charges a message credit.
+     */
+    public function persistAssistantMessage(ChatContext $context): void
+    {
+        $this->saveAssistantMessage($context);
+    }
+
     public function handleChatCompletion(ChatContext $context): void
     {
-        // Update user credits based on LLM model used
+        // Update user credits: the model's base cost plus one message per PDF
+        // page in this conversation. PDFs are re-sent to Mistral on every turn
+        // (see ChatStreamService / MistralPdfSource, gated on the same
+        // pdfAttachments relation), so the page charge recurs each turn the
+        // document is in context — not just the upload turn.
         UpdateUserCreditsJob::dispatch(
             userId: $context->requestData->agent->user_id,
-            modelId: $context->requestData->message->model->id
+            modelId: $context->requestData->message->model->id,
+            additionalMessages: $this->pdfPageCredits($context),
         );
 
         // Always persist messages (including playground)
@@ -270,6 +346,27 @@ readonly class ChatService
                 $context->sources->toArray()
             );
         }
+    }
+
+    /**
+     * Extra message credits for this turn: the summed page count of every PDF
+     * attached to the conversation. Mirrors the pdfAttachments condition that
+     * routes the turn to Mistral, so the charge applies exactly when the
+     * document was actually processed. Returns 0 for plain text conversations.
+     */
+    private function pdfPageCredits(ChatContext $context): int
+    {
+        $conversationId = $context->requestData->conversationId;
+
+        if (! $conversationId) {
+            return 0;
+        }
+
+        return (int) (Conversation::query()
+            ->where('external_id', $conversationId)
+            ->first()
+            ?->pdfAttachments()
+            ->sum('pages') ?? 0);
     }
 
     private function saveAssistantMessage(ChatContext $context): void
@@ -400,6 +497,14 @@ readonly class ChatService
         $systemPrompt = $data->agent->resolveSystemInstructions();
 
         $systemPrompt .= prompt('knowledge/preconditions');
+
+        // Protected agents always know who they're talking to: the chatter had to
+        // sign in to reach them. Tell the model their name so it can address them
+        // personally. Public agents serve anonymous visitors — skip it there even
+        // if a chatter happens to be signed in.
+        if (! $data->agent->is_public && filled($data->chatterName)) {
+            $systemPrompt .= "\n\n".prompt('chatter/identity', ['name' => $data->chatterName]);
+        }
 
         $business = array_filter($data->agent->settings('business')->toArray(), static fn ($v): bool => filled($v));
         if ($business !== []) {

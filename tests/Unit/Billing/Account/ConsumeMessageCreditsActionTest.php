@@ -45,6 +45,27 @@ it('adds the model credit cost on top of existing usage', function (): void {
     expect((int) $credit->usage()->value('messages'))->toBe(14);
 });
 
+it('adds PDF page credits on top of the model cost', function (): void {
+    $user = User::factory()->workspace()->create();
+    $credit = activeCreditFor($user);
+    $llm = Llm::factory()->create(['credits' => 1]);
+
+    // A 10-page PDF turn: base 1 + 10 pages = 11 messages.
+    app(ConsumeMessageCreditsAction::class)->execute($user->id, $llm->id, additionalMessages: 10);
+
+    expect((int) $credit->usage()->value('messages'))->toBe(11);
+});
+
+it('charges only the base cost when there are no extra messages', function (): void {
+    $user = User::factory()->workspace()->create();
+    $credit = activeCreditFor($user);
+    $llm = Llm::factory()->create(['credits' => 1]);
+
+    app(ConsumeMessageCreditsAction::class)->execute($user->id, $llm->id);
+
+    expect((int) $credit->usage()->value('messages'))->toBe(1);
+});
+
 it('dispatches MessageCreditsLow when the balance falls to the auto-recharge threshold', function (): void {
     Event::fake([MessageCreditsLow::class]);
 

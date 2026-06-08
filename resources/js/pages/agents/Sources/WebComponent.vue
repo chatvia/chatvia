@@ -41,6 +41,7 @@ import { Switch } from '@/components/ui/switch';
 
 import AttachWebsiteDialog from '@/components/ui/AttachWebsiteDialog.vue';
 import InfoBanner from '@/components/ui/InfoBanner.vue';
+import { useDateFormat } from '@/composables/useDateFormat';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { useEcho } from '@laravel/echo-vue';
 
@@ -306,24 +307,8 @@ const someCrawledWebsitesSelected = computed(() => {
     return crawledSources.value.some((source) => selectedWebsites.value.has(source.id)) && !allCrawledWebsitesSelected.value;
 });
 
-// Utility functions
-const formatDate = (dateString: string): string => {
-    try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) {
-            return dateString;
-        }
-        return new Intl.DateTimeFormat(navigator.language || 'en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        }).format(date);
-    } catch (_error) {
-        return dateString;
-    }
-};
+// Dates follow the user's chosen format (Settings → Date & time), with a 24h time.
+const { formatDateTime: formatDate } = useDateFormat();
 
 const getDomainFromUrl = (url: string): string => {
     try {
@@ -778,6 +763,15 @@ const handleCrawlingUpdate = async (event: any) => {
         sourceIndex = webSources.value.findIndex(
             (source) => source.status === 'crawling' || source.status === 'pending' || source.status === 'crawled' || source.status === 'ingesting',
         );
+    }
+
+    // FireCrawl's stage-1 discovery is near-instant, so the "crawled" broadcast
+    // can arrive before the just-submitted source has been added to local state
+    // by fetchWebSources(). Reconcile from the server before giving up —
+    // otherwise the discovered links never load until a manual refresh.
+    if (sourceIndex === -1 && website_id) {
+        await fetchWebSources(true);
+        sourceIndex = webSources.value.findIndex((source) => source.id === website_id);
     }
 
     if (sourceIndex === -1) {

@@ -17,9 +17,9 @@ class AgentStarterFactory extends Factory
     {
         return [
             'agent_id' => Agent::factory(),
-            'text' => [
-                fake()->sentence(),
-                fake()->sentence(),
+            'starters' => [
+                ['text' => fake()->sentence(), 'icon' => 'ChatBubbleLeftRightIcon'],
+                ['text' => fake()->sentence(), 'icon' => null],
             ],
         ];
     }

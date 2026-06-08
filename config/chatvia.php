@@ -124,6 +124,15 @@ return [
             'tone' => 'mistral-small-3.2-24b-instruct-2506',
             'topic' => 'mistral-small-3.2-24b-instruct-2506',
             'search_decision' => 'gemma-3-27b-it',
+            // LLM-as-judge for agent evals. Open-weight + reliable for the
+            // constrained pass/fail scoring we ask of it; swap to a Qwen3
+            // instruct model here without touching code.
+            'judge' => 'mistral-small-3.2-24b-instruct-2506',
+
+            // Open-weight moderation/guard classifier: ONE structured call returns
+            // the prompt-injection / off-topic / toxicity verdicts for a message.
+            // PII detection is regex (free), not this model.
+            'guardrail' => 'mistral-small-3.2-24b-instruct-2506',
         ],
 
         'query' => [
@@ -241,6 +250,109 @@ return [
             'scan_age_hours' => env('ANALYSIS_SCAN_AGE_HOURS', 6),
             'min_occurrences' => env('TOPIC_SUGGESTION_MIN', 3),
             'max_examples' => 10,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Governance (tool-call audit + access)
+    |--------------------------------------------------------------------------
+    |
+    | The Governed MCP Gateway records an immutable row in the dedicated
+    | agent_activity table for every agent tool call, and can gate/rate-limit
+    | calls at dispatch. Audit is on by default and silent; arguments/results
+    | are redacted + size-capped before storage.
+    |
+    */
+
+    'governance' => [
+        // Master switch for tool-call audit. When false, RecordToolCallAudit
+        // drops the event before it touches the DB (CI, local debugging).
+        'audit_enabled' => env('GOVERNANCE_AUDIT_ENABLED', true),
+
+        // How long audit rows (agent_activity) are kept before the daily
+        // app:prune-agent-activity sweep removes them.
+        'retention_days' => (int) env('GOVERNANCE_RETENTION_DAYS', 90),
+
+        // Size caps (bytes) for the stored tool arguments / result text. The
+        // full raw args are hashed (sha256) BEFORE truncation, for integrity.
+        'max_arg_bytes' => (int) env('GOVERNANCE_MAX_ARG_BYTES', 4096),
+        'max_result_bytes' => (int) env('GOVERNANCE_MAX_RESULT_BYTES', 8192),
+
+        // Argument keys whose values are replaced with "[redacted]" before the
+        // audit row is written (defends against secrets/PII echoed in args).
+        'redact_keys' => ['password', 'token', 'secret', 'authorization', 'api_key', 'apikey', 'access_token'],
+
+        // Per-agent-per-tool rate limit: max tool calls allowed per window.
+        // Generous by default so it stays invisible until a customer tightens it.
+        'tool_rate_limit' => (int) env('GOVERNANCE_TOOL_RATE_LIMIT', 60),
+        'tool_rate_window_seconds' => (int) env('GOVERNANCE_TOOL_RATE_WINDOW', 60),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Agent evaluation (#9 Agent Governance + Evals)
+    |--------------------------------------------------------------------------
+    |
+    | Per-agent eval suites run each test case through the agent's REAL pipeline
+    | (system prompt + RAG + tools) off-request and score it. Runs are queued so
+    | a suite never blocks a chat reply.
+    |
+    */
+
+    'evals' => [
+        // Master switch — when false, eval runs are rejected (CI / local).
+        'enabled' => env('EVALS_ENABLED', true),
+
+        // Queue the per-case eval jobs run on — off the chat-critical `messages` queue.
+        'queue' => env('EVALS_QUEUE', 'analytics'),
+
+        // Hard cap on cases per run, so a misconfigured suite can't burn the
+        // workspace's LLM budget.
+        'max_cases_per_run' => (int) env('EVALS_MAX_CASES', 100),
+
+        // Size cap (bytes) for the stored actual_output; a sha256 of the raw is kept.
+        'max_output_bytes' => (int) env('EVALS_MAX_OUTPUT_BYTES', 8192),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Guardrails (#? AI Safety)
+    |--------------------------------------------------------------------------
+    |
+    | Input + output safety guards on the live chat: PII (regex redaction),
+    | prompt-injection, off-topic/blocked-topics, and toxicity (one open-weight
+    | classifier call). Per-agent toggles live in the `guardrails` model-settings
+    | group; triggers are logged to the immutable `guardrail_events` table.
+    |
+    */
+
+    'guardrails' => [
+        // Master switch — when false, no guard runs and the chat path is untouched.
+        'enabled' => env('GUARDRAILS_ENABLED', true),
+
+        // Queue the audit-logging listener runs on (off the chat-critical path).
+        'queue' => env('GUARDRAILS_QUEUE', 'analytics'),
+
+        // Retention for the immutable guardrail_events log.
+        'retention_days' => (int) env('GUARDRAILS_RETENTION_DAYS', 90),
+
+        // The redacted snippet stored on a trigger is capped to this many bytes;
+        // the full original text is hashed (sha256) before truncation, never stored raw.
+        'max_snippet_bytes' => (int) env('GUARDRAILS_MAX_SNIPPET_BYTES', 2048),
+
+        // Phrases that mark a likely prompt-injection inside retrieved RAG source
+        // content (a cheap rules pass; the LLM classifier handles the user message).
+        'injection_markers' => [
+            'ignore previous instructions',
+            'ignore the above',
+            'disregard previous',
+            'disregard all previous',
+            'forget previous instructions',
+            'you are now',
+            'new instructions:',
+            'override your instructions',
+            'system prompt:',
         ],
     ],
 

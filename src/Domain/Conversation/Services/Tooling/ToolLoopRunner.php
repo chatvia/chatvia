@@ -3,10 +3,12 @@
 namespace Domain\Conversation\Services\Tooling;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
-use Domain\Conversation\Services\Tooling\Approval\ToolApprovalPolicy;
+use Domain\Conversation\Services\Tooling\Access\ToolAccessDecision;
+use Domain\Conversation\Services\Tooling\Access\ToolAccessPolicy;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
 use Domain\Conversation\Services\Tooling\Registry\ToolDisplayResolver;
@@ -17,9 +19,13 @@ use Throwable;
 
 /**
  * The provider-agnostic agentic loop. Streams an LLM completion, drains any
- * emitted tool_calls, gates them through ToolApprovalCheckpoint when needed,
- * dispatches the approved ones, and iterates until the model produces a final
- * answer or the configured iteration cap kicks in.
+ * emitted tool_calls, runs each through the governance gate (approval / rate
+ * limit), dispatches the allowed ones, and iterates until the model produces a
+ * final answer or the configured iteration cap kicks in.
+ *
+ * Every tool-call decision — auto, approved, denied, or rate_limited — emits a
+ * {@see ToolCallCompleted} event so the Governed MCP Gateway can record an
+ * immutable audit row off the hot path.
  *
  * Shared by every source that needs the loop — `LlmSource` runs it on the
  * agent's configured provider, `MistralPdfSource` runs it on Mistral with a
@@ -32,11 +38,13 @@ class ToolLoopRunner
 
     public const DENIED_RESULT = 'The user reviewed this action and chose not to approve it. Acknowledge their decision briefly and continue helping without running it; do not call this tool again unless they ask.';
 
+    public const RATE_LIMITED_RESULT = 'This tool is temporarily rate-limited for this agent and was not run. Do not retry it now; continue helping the user without it.';
+
     public function __construct(
         private readonly StreamTransformer $transformer,
         private readonly ToolDispatcherInterface $dispatcher,
         private readonly ToolDisplayResolver $displayResolver,
-        private readonly ToolApprovalPolicy $approvalPolicy,
+        private readonly ToolAccessPolicy $accessPolicy,
         private readonly ToolApprovalStore $approvalStore,
     ) {}
 
@@ -108,13 +116,14 @@ class ToolLoopRunner
                 ], $toolCalls),
             ];
 
-            // Resolve display + approval once for every call in the turn.
+            // Resolve display + access decision once for every call in the turn.
             $calls = $this->buildPendingCalls($agent, $toolCalls);
             $needsApproval = array_values(array_filter($calls, static fn (array $c): bool => $c['requires_approval']));
 
             // If any call is gated, pause the whole turn (OpenAI needs a result
             // for every tool_call_id before the next assistant turn, so we
-            // cannot half-run it). Checkpoint, surface the cards, and stop.
+            // cannot half-run it). Checkpoint, surface the cards, and stop. Any
+            // Deny (rate-limited) calls in the same turn are resolved on resume.
             if ($needsApproval !== []) {
                 $checkpoint = $this->approvalStore->persist($context, $llmMessages, $calls, $iteration);
 
@@ -139,8 +148,15 @@ class ToolLoopRunner
                 return true;
             }
 
-            // Nothing gated → run every call inline.
+            // Nothing gated → resolve every call inline (Allow runs, Deny is
+            // blocked + audited).
             foreach ($calls as $pc) {
+                if (($pc['access'] ?? null) === ToolAccessDecision::Deny->value) {
+                    yield from $this->denyCall($context, $llmMessages, $pc, 'rate_limited', self::RATE_LIMITED_RESULT);
+
+                    continue;
+                }
+
                 yield from $this->dispatchToolCall($context, $llmMessages, $pc);
             }
 
@@ -169,6 +185,13 @@ class ToolLoopRunner
             $requires = (bool) ($pc['requires_approval'] ?? false);
             $decision = $decisions[$toolCallId] ?? null;
 
+            // Rate-limited at gate time — blocked regardless of the human's call.
+            if (($pc['access'] ?? null) === ToolAccessDecision::Deny->value) {
+                yield from $this->denyCall($context, $llmMessages, $pc, 'rate_limited', self::RATE_LIMITED_RESULT);
+
+                continue;
+            }
+
             if ($requires && $decision !== 'approve') {
                 $llmMessages[] = [
                     'role' => 'tool',
@@ -176,24 +199,29 @@ class ToolLoopRunner
                     'content' => self::DENIED_RESULT,
                 ];
 
+                $this->emitToolCallAudit($context, $pc, 'denied', self::DENIED_RESULT, false, null, decided: true);
+
                 continue;
             }
 
             // Auto (never gated) or approved → run it for real.
-            yield from $this->dispatchToolCall($context, $llmMessages, $pc);
+            $outcome = $requires ? 'approved' : 'auto';
+            yield from $this->dispatchToolCall($context, $llmMessages, $pc, $outcome, decided: $requires);
         }
     }
 
     /**
-     * Dispatch one tool call, emitting `start`/`end` events and appending the
-     * `role: 'tool'` result. `$pc` is a resolved call: tool_call_id, name,
-     * arguments, kind, label, icon_url, brand_color.
+     * Dispatch one tool call, emitting `start`/`end` events, appending the
+     * `role: 'tool'` result, and recording the governance audit. `$pc` is a
+     * resolved call: tool_call_id, name, arguments, kind, label, icon_url,
+     * brand_color, access.
      *
      * @param  array<int, array<string, mixed>>  $llmMessages
      * @param  array<string, mixed>  $pc
+     * @param  bool  $decided  true when a human resolved a gated call (sets decided_at)
      * @return Generator<int, StreamEvent>
      */
-    private function dispatchToolCall(ChatContext $context, array &$llmMessages, array $pc): Generator
+    private function dispatchToolCall(ChatContext $context, array &$llmMessages, array $pc, string $outcome = 'auto', bool $decided = false): Generator
     {
         $agent = $context->requestData->agent;
         $assistantId = $context->assistantMessageId;
@@ -210,12 +238,14 @@ class ToolLoopRunner
             brandColor: $pc['brand_color'],
         );
 
+        $start = microtime(true);
         $dispatched = $this->dispatcher->dispatch(
             $agent,
             $pc['name'],
             $pc['arguments'],
             $context->requestData->conversationId,
         );
+        $latencyMs = (int) round((microtime(true) - $start) * 1000);
 
         $context->toolCallNames[] = $pc['name'];
 
@@ -237,11 +267,44 @@ class ToolLoopRunner
             result: $dispatched->text,
             artifacts: $dispatched->artifacts !== [] ? $dispatched->artifacts : null,
         );
+
+        $this->emitToolCallAudit($context, $pc, $outcome, $dispatched->text, $dispatched->isError, $latencyMs, $decided);
     }
 
     /**
-     * Resolve display metadata + approval requirement for every tool call in a
-     * turn, in the shape the checkpoint stores and the dispatch path consumes.
+     * Resolve a blocked call without dispatching: append a recoverable
+     * `role: 'tool'` result so the LLM continues, surface an `end` event, and
+     * record the governance audit. Used for the `rate_limited` outcome.
+     *
+     * @param  array<int, array<string, mixed>>  $llmMessages
+     * @param  array<string, mixed>  $pc
+     * @return Generator<int, StreamEvent>
+     */
+    private function denyCall(ChatContext $context, array &$llmMessages, array $pc, string $outcome, string $message, bool $decided = false): Generator
+    {
+        $assistantId = $context->assistantMessageId;
+
+        yield StreamEvent::tool(
+            assistantMessageId: $assistantId,
+            phase: 'end',
+            toolCallId: $pc['tool_call_id'],
+            name: $pc['name'],
+            result: $message,
+        );
+
+        $llmMessages[] = [
+            'role' => 'tool',
+            'tool_call_id' => $pc['tool_call_id'],
+            'content' => $message,
+        ];
+
+        $this->emitToolCallAudit($context, $pc, $outcome, $message, false, null, $decided);
+    }
+
+    /**
+     * Resolve display metadata + governance access decision for every tool call
+     * in a turn, in the shape the checkpoint stores and the dispatch path
+     * consumes.
      *
      * @param  array<int, array{id: string, name: string, arguments: string}>  $toolCalls
      * @return array<int, array<string, mixed>>
@@ -250,13 +313,15 @@ class ToolLoopRunner
     {
         return array_map(function (array $tc) use ($agent): array {
             $display = $this->displayResolver->resolve($agent, $tc['name']);
-            $requires = $this->approvalPolicy->requiresApproval($agent, $tc['name']);
+            $decision = $this->accessPolicy->decide($agent, $tc['name']);
+            $requires = $decision === ToolAccessDecision::RequiresApproval;
 
             return [
                 'tool_call_id' => $tc['id'],
                 'name' => $tc['name'],
                 'arguments' => $tc['arguments'],
                 'requires_approval' => $requires,
+                'access' => $decision->value,
                 'kind' => $display['kind'],
                 'label' => $display['label'],
                 'icon_url' => $display['icon_url'],
@@ -264,5 +329,66 @@ class ToolLoopRunner
                 'reason' => $requires ? self::APPROVAL_REASON : null,
             ];
         }, $toolCalls);
+    }
+
+    /**
+     * Emit the immutable-audit event for one resolved tool call. A queued
+     * listener writes the agent_activity row, so this never touches the DB on
+     * the streaming hot path. Names (agent/user/connector) are denormalized here
+     * so the audit survives later deletion, and the tool name is unprefixed.
+     *
+     * @param  array<string, mixed>  $pc
+     */
+    private function emitToolCallAudit(ChatContext $context, array $pc, string $outcome, ?string $resultText, bool $isError, ?int $latencyMs, bool $decided): void
+    {
+        $rd = $context->requestData;
+        $agent = $rd->agent;
+        $kind = (string) ($pc['kind'] ?? 'function');
+        [$connectorSlug, $toolName] = $this->toolOrigin((string) $pc['name'], $kind);
+
+        ToolCallCompleted::dispatch(
+            agentId: (int) $agent->id,
+            agentName: (string) $agent->name,
+            workspaceId: (int) $agent->user_id,
+            userId: $rd->actorUserId,
+            userName: $rd->actorName,
+            conversationExternalId: $rd->conversationId,
+            traceId: (string) $context->assistantMessageId,
+            requestId: $rd->requestId,
+            toolCallId: (string) $pc['tool_call_id'],
+            toolName: $toolName,
+            toolKind: $kind,
+            connectorSlug: $connectorSlug,
+            // For MCP tools the display label IS the connector/server name.
+            connectorName: $kind === 'mcp' ? ($pc['label'] ?? null) : null,
+            arguments: (string) ($pc['arguments'] ?? ''),
+            resultText: $resultText,
+            isError: $isError,
+            latencyMs: $latencyMs,
+            gated: in_array($outcome, ['approved', 'denied'], true),
+            approvalOutcome: $outcome,
+            decidedAt: $decided ? now()->toIso8601String() : null,
+        );
+    }
+
+    /**
+     * Split a tool name into [connector_slug, unprefixed_tool_name]. For an MCP
+     * tool `mcp__{slug}__{tool}` → [slug, tool]; for a webhook function → [null,
+     * name]. No DB lookup — the connector display name comes from the already
+     * resolved display label.
+     *
+     * @return array{0: ?string, 1: string}
+     */
+    private function toolOrigin(string $name, string $kind): array
+    {
+        if ($kind !== 'mcp' || ! str_starts_with($name, 'mcp__')) {
+            return [null, $name];
+        }
+
+        $parts = explode('__', substr($name, 5), 2);
+        $slug = ($parts[0] ?? '') !== '' ? $parts[0] : null;
+        $tool = $parts[1] ?? $name;
+
+        return [$slug, $tool];
     }
 }

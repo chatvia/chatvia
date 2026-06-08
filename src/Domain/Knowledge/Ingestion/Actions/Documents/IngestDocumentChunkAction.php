@@ -19,7 +19,6 @@ class IngestDocumentChunkAction
             'chunkable_id' => $data->source_file_id,
             'chunkable_type' => (new SourceFile)->getMorphClass(),
             'agent_id' => $data->agent_id,
-            'type' => $data->chunk->type,
             'original' => $data->chunk->original,
             'is_enhanced' => $data->chunk->enhanced,
             'checksum' => $data->id,

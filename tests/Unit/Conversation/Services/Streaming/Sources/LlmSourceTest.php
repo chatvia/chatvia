@@ -15,6 +15,8 @@ use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Guardrail\Services\GuardrailRecorder;
+use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use Illuminate\Http\Client\PendingRequest;
@@ -162,6 +164,10 @@ function makeLlmSource(ToolLoopRunner $runner): LlmSource
         dedupe: new RequestDedupeStore,
         toolSelector: noopToolSelector(),
         runner: $runner,
+        // Real services; the factory agents have guardrails off by default, so
+        // inspectOutput() is a clean no-op (no classifier call, no events).
+        guardrails: app(GuardrailService::class),
+        guardrailRecorder: app(GuardrailRecorder::class),
     );
 }
 

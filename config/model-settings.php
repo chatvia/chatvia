@@ -75,7 +75,6 @@ return [
                 'color_shade' => 700,
                 'welcome_message' => 'What can I help with? ',
                 'chat_window_title' => 'Chat',
-                'chat_footer_text' => 'Consider checking important information',
                 'composer_placeholder' => 'Ask anything...',
                 // Composer affordances. Default on so existing behaviour is
                 // preserved; agent owners can turn either off in Setup when
@@ -156,6 +155,18 @@ return [
                 'address' => null,
                 'opening_hours' => null,
             ],
+            // Per-agent AI-safety guards (Setup → Guardrails). Off by default so
+            // existing agents are untouched; the owner opts in. PII redaction is
+            // regex; injection/toxicity/topic use one open-weight classifier call.
+            'guardrails' => [
+                'enabled' => false,
+                'pii' => true,            // redact emails/phones/cards/SSNs in input + output
+                'injection' => true,      // block prompt-injection in input; strip from RAG sources
+                'toxicity' => true,       // block toxic input; redact toxic output
+                'blocked_topics' => [],   // topics to refuse; empty = no topic guard
+                'allowed_scope' => '',    // optional: only answer within this described scope
+                'refusal_message' => 'Sorry, I can’t help with that request.',
+            ],
         ],
     ],
 
@@ -176,7 +187,6 @@ return [
             'color_shade' => ['nullable', 'integer', 'min:50', 'max:950'],
             'welcome_message' => ['nullable', 'string'],
             'chat_window_title' => ['nullable', 'string'],
-            'chat_footer_text' => ['nullable', 'string'],
             'composer_placeholder' => ['nullable', 'string'],
             'allow_file_uploads' => ['nullable', 'boolean'],
             'allow_voice_input' => ['nullable', 'boolean'],
@@ -228,6 +238,16 @@ return [
             'sentiment' => ['nullable', 'boolean'],
             'tone' => ['nullable', 'boolean'],
             'topics' => ['nullable', 'boolean'],
+        ],
+        'guardrails' => [
+            'enabled' => ['nullable', 'boolean'],
+            'pii' => ['nullable', 'boolean'],
+            'injection' => ['nullable', 'boolean'],
+            'toxicity' => ['nullable', 'boolean'],
+            'blocked_topics' => ['nullable', 'array'],
+            'blocked_topics.*' => ['string', 'max:120'],
+            'allowed_scope' => ['nullable', 'string', 'max:2000'],
+            'refusal_message' => ['nullable', 'string', 'max:500'],
         ],
     ],
 ];

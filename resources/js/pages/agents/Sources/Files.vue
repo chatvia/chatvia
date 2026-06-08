@@ -28,6 +28,7 @@ import {
 import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
+import { useDateFormat } from '@/composables/useDateFormat';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
@@ -114,14 +115,20 @@ const fileUploaderDescription = computed(() => {
     } else if (props.fileType === 'video') {
         return 'Upload video files for transcription. Supported formats: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime, and 3GPP. File size limit: 200 MB.';
     }
-    return 'Supported formats: PDF (.pdf), Word (.docx), PowerPoint (.pptx), Text Files (.txt), EPUB (.epub), RTF (.rtf), OpenDocument Text (.odt)';
+    return (
+        'Documents: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Text (.txt), Markdown (.md), ' +
+        'EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). ' +
+        'Images: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Max 50 MB per file.'
+    );
 });
 
 // File uploader configuration for Knowledge page - dynamic based on file type
 const fileUploaderConfig = computed<FileUploaderConfig>(() => {
-    // Default to PDF and Word files only (for unified Files page)
-    let acceptedTypes = '.pdf,.doc,.docx';
-    let maxFileSize = undefined; // Default: no limit
+    // Default (unified Files page): every format Mistral OCR can parse.
+    let acceptedTypes =
+        '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.markdown,.epub,.xml,.rtf,.odt,.bib,.fb2,.ipynb,.tex,.opml,.1,.man,.html,.htm,' +
+        '.jpg,.jpeg,.png,.avif,.tiff,.tif,.gif,.heic,.heif,.bmp,.webp';
+    let maxFileSize = 50; // Mistral OCR cap: 50 MB per file
 
     if (props.fileType === 'pdf') {
         acceptedTypes = '.pdf';
@@ -463,25 +470,8 @@ const formatFileType = (mimeType: string): string => {
     return typeMap[mimeType] || mimeType.split('/')[1]?.toUpperCase() || 'Unknown';
 };
 
-const formatDate = (dateString: string): string => {
-    try {
-        const date = new Date(dateString);
-
-        // Check if date is valid
-        if (isNaN(date.getTime())) {
-            return dateString; // Return original if invalid
-        }
-
-        // Use user's locale for formatting
-        return new Intl.DateTimeFormat(navigator.language || 'en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-        }).format(date);
-    } catch (_error) {
-        return dateString; // Return original if formatting fails
-    }
-};
+// Dates follow the user's chosen format (Settings → Date & time).
+const { formatDate } = useDateFormat();
 
 const formatFileSize = (sizeInBytes: number): string => {
     const units = ['B', 'KB', 'MB', 'GB'];

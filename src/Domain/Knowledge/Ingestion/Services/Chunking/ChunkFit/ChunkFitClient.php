@@ -44,6 +44,47 @@ class ChunkFitClient
         return $this->extractChunks($response);
     }
 
+    /**
+     * Chunk document text by section/title via chunk.fit's Unstructured
+     * `chunk_by_title` strategy.
+     *
+     * Unlike the raw Markdown header splitter (which starts a new chunk at every
+     * heading and never merges, shredding clause-heavy pages into dozens of
+     * sub-100-token fragments), this partitions the text into title-led sections
+     * and then COMBINES small adjacent sections up to `combine_text_under_n_chars`
+     * while capping size at `max_characters`. The result is a small set of
+     * coherent, evenly-sized, fragment-free chunks — empirically the best fit for
+     * the FireCrawl Markdown output across home/marketing and clause-heavy
+     * (terms/refund/pricing) pages alike.
+     *
+     * NOTE: all size knobs are measured in CHARACTERS.
+     *
+     * @return string[] the ordered chunks
+     *
+     * @throws ChunkFitException
+     */
+    public function splitByTitle(string $text): array
+    {
+        if (trim($text) === '') {
+            return [];
+        }
+
+        $response = $this->request(
+            endpoint: '/unstructured/splitters/text',
+            body: [
+                'text' => $text,
+                'config' => [
+                    'max_characters' => $this->maxCharacters(),
+                    'new_after_n_chars' => $this->newAfterNChars(),
+                    'combine_text_under_n_chars' => $this->combineUnderNChars(),
+                    'overlap' => 0,
+                ],
+            ],
+        );
+
+        return $this->extractChunks($response);
+    }
+
     private function request(string $endpoint, array $body): Response
     {
         $apiKey = $this->apiKey();
@@ -128,5 +169,20 @@ class ChunkFitClient
     private function tokenizer(): string
     {
         return (string) config('services.chunkfit.tokenizer', 'cl100k_base');
+    }
+
+    private function maxCharacters(): int
+    {
+        return (int) config('services.chunkfit.by_title.max_characters', 2000);
+    }
+
+    private function newAfterNChars(): int
+    {
+        return (int) config('services.chunkfit.by_title.new_after_n_chars', 1500);
+    }
+
+    private function combineUnderNChars(): int
+    {
+        return (int) config('services.chunkfit.by_title.combine_text_under_n_chars', 1000);
     }
 }

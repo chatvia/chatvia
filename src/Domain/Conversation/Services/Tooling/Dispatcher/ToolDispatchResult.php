@@ -28,6 +28,7 @@ final readonly class ToolDispatchResult
     public function __construct(
         public string $text,
         public array $artifacts = [],
+        public bool $isError = false,
     ) {}
 
     public static function text(string $text): self
@@ -41,5 +42,14 @@ final readonly class ToolDispatchResult
     public static function withArtifacts(string $text, array $artifacts): self
     {
         return new self($text, $artifacts);
+    }
+
+    /**
+     * A recoverable tool error (the LLM still sees the text). Flagged so the
+     * governance audit can record the call as failed.
+     */
+    public static function error(string $text): self
+    {
+        return new self($text, [], true);
     }
 }

@@ -3,8 +3,6 @@
 use App\Http\Controllers\Api\V1\Agent\AgentController;
 use App\Http\Controllers\Api\V1\Agent\AgentFunctionAttachmentController;
 use App\Http\Controllers\Api\V1\Agent\AgentMcpAttachmentController;
-use App\Http\Controllers\Api\V1\Agent\AgentSettingsController;
-use App\Http\Controllers\Api\V1\Agent\AgentSignInLinkController;
 use App\Http\Controllers\Api\V1\Chat\ConversationController;
 use App\Http\Controllers\Api\V1\Function\FunctionController;
 use App\Http\Controllers\Api\V1\Mcp\McpServerController;
@@ -16,6 +14,7 @@ use App\Http\Controllers\Api\V1\Team\RoleController;
 use App\Http\Controllers\Api\V1\Team\RoleMemberController;
 use App\Http\Controllers\Api\V1\Team\TeamController;
 use App\Http\Controllers\Api\V1\Users\ExternalUserController;
+use App\Http\Controllers\Api\V1\Users\UserSignInLinkController;
 use App\Http\Controllers\Webhooks\WebhookChunkController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +43,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
         Route::post('agents', [AgentController::class, 'store'])->name('agents.store');
 
         Route::post('users', [ExternalUserController::class, 'store'])->name('users.store');
+
+        // Mint a one-time sign-in link so one of your end-users can open one of
+        // your agents' chat. The link carries an opaque token consumed on first use.
+        Route::post('users/sign', [UserSignInLinkController::class, 'store'])->name('users.sign');
 
         Route::get('teams', [TeamController::class, 'index'])->name('teams.index');
         Route::post('teams', [TeamController::class, 'store'])->name('teams.store');
@@ -75,10 +78,6 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
             Route::patch('/', [AgentController::class, 'update'])->name('update');
             Route::delete('/', [AgentController::class, 'destroy'])->name('destroy');
 
-            // Setup (appearance, widget, embed, leads, persona, model, security, starters, metadata flags)
-            Route::patch('settings/{group}', [AgentSettingsController::class, 'update'])->name('settings.update');
-            Route::get('settings/{group}', [AgentSettingsController::class, 'show'])->name('settings.show');
-
             // Knowledge sources
             Route::get('sources', SourceListController::class)->name('sources.index');
             Route::post('sources/files', [SourceFileController::class, 'store'])->name('sources.files.store');
@@ -99,10 +98,6 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
             Route::get('functions', [AgentFunctionAttachmentController::class, 'index'])->name('functions.index');
             Route::post('functions', [AgentFunctionAttachmentController::class, 'store'])->name('functions.attach');
             Route::delete('functions/{function}', [AgentFunctionAttachmentController::class, 'destroy'])->name('functions.detach');
-
-            // Mint a one-time sign-in link so one of your end-users can open this
-            // agent's chat. The link carries an opaque token consumed on first use.
-            Route::post('sign', [AgentSignInLinkController::class, 'store'])->name('sign.store');
 
             // Chat history
             Route::get('conversations', [ConversationController::class, 'index'])->name('conversations.index');

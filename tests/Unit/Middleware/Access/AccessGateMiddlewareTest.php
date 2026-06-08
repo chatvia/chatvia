@@ -6,6 +6,7 @@ use App\Http\Middleware\Access\EnsureUserHasSubscription;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
@@ -21,13 +22,13 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  */
 function mwPassThrough(): Closure
 {
-    return fn (Request $r): \Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Http\Response => response('ok', 200);
+    return fn (Request $r): ResponseFactory|\Illuminate\Http\Response => response('ok', 200);
 }
 
 function mwRequestWithUser(User $user): Request
 {
     $request = Request::create('/test');
-    $request->setUserResolver(fn (): \App\Identity\Workspace\Models\User => $user);
+    $request->setUserResolver(fn (): User => $user);
 
     return $request;
 }
@@ -39,7 +40,7 @@ function mwRequestForAgent(User $user, Agent $agent): Request
     $route = new Route(['GET'], '/test/{agent}', ['uses' => fn (): null => null]);
     $route->bind($request);
     $route->setParameter('agent', $agent);
-    $request->setRouteResolver(fn (): \Illuminate\Routing\Route => $route);
+    $request->setRouteResolver(fn (): Route => $route);
 
     return $request;
 }

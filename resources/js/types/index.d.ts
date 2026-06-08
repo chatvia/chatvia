@@ -73,6 +73,9 @@ export interface User {
     updated_at: string;
     is_paid: boolean;
     type: 'admin' | 'company' | 'staff';
+    // Preferred date display format key — see Support\Enums\User\DateFormat and
+    // the useDateFormat composable. Null/undefined falls back to ISO.
+    date_format?: string | null;
     capabilities?: App.Billing.Data.Resources.Package.BillingPackageCapabilitiesData;
 }
 

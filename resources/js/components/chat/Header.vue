@@ -90,7 +90,7 @@ function toggleChatExpand() {
 </script>
 
 <template>
-    <header class="bg-background/95 border-border/30 sticky top-0 z-10 w-full border-b backdrop-blur-sm">
+    <header class="bg-background/95 border-border/60 sticky top-0 z-10 w-full border-b backdrop-blur-sm">
         <div class="flex h-14 items-center justify-between px-4">
             <div class="flex items-center gap-1">
                 <!-- Collapse/Expand sidebar -->

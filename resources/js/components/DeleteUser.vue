@@ -3,7 +3,6 @@ import { Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 // Components
-import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import {
     AlertDialog,
@@ -20,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { AlertTriangle, Bot, CreditCard, Download, Loader2, Lock, MailCheck, ShieldAlert, Trash2 } from 'lucide-vue-next';
 
 interface Props {
@@ -69,7 +69,15 @@ const destroy = () => {
 
 <template>
     <div class="space-y-6">
-        <HeadingSmall title="Delete account" description="Permanently delete your account and everything in it." />
+        <div>
+            <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
+                <Trash2 class="size-6" />
+                Delete account
+            </h1>
+            <p class="text-muted-foreground mt-1 text-sm">Permanently delete your account and everything in it.</p>
+        </div>
+
+        <Separator />
 
         <!-- Reminder: download a copy of your data first -->
         <div class="flex items-start gap-3 rounded-lg border p-4">

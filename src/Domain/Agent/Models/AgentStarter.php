@@ -9,13 +9,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * One row per agent holding the ordered JSON array of conversation starters
- * (`text`). Same shape as a template's `starters` column, so read-through and
- * detach can move starters between the two without reshaping.
+ * One row per agent holding the ordered JSON array of conversation starters.
+ * Each entry is `{ text, icon }` where `icon` is an optional Heroicons (outline)
+ * export name (e.g. `ChatBubbleLeftRightIcon`) or null for a text-only chip.
  *
  * @property int $id
  * @property int $agent_id
- * @property array<int, string> $text
+ * @property array<int, array{text: string, icon: string|null}> $starters
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Agent $agent
@@ -40,7 +40,7 @@ class AgentStarter extends Model
     protected function casts(): array
     {
         return [
-            'text' => 'array',
+            'starters' => 'array',
         ];
     }
 }

@@ -21,6 +21,7 @@ class AttachmentData extends Data
         public string $filename,
         public string $mime_type,
         public int $size_bytes,
+        public ?int $pages = null,
     ) {}
 
     public static function fromModel(Attachment $attachment): self
@@ -31,6 +32,7 @@ class AttachmentData extends Data
             filename: $attachment->filename,
             mime_type: $attachment->mime_type,
             size_bytes: $attachment->size_bytes,
+            pages: $attachment->pages,
         );
     }
 }

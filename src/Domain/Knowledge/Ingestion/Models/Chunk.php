@@ -23,7 +23,6 @@ use Support\Concerns\HasExternalId;
  * @property int $user_id
  * @property string $chunkable_type
  * @property int $chunkable_id
- * @property string $type
  * @property int $chunk_index
  * @property string $chunk
  * @property bool $is_enhanced

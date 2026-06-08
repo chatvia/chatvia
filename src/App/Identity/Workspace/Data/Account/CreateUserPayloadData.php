@@ -36,8 +36,8 @@ class CreateUserPayloadData extends Data
         return [
             'name' => ['required', 'string', 'max:255'],
             'agent_id' => ['required', 'string'],
-            'email' => ['sometimes', 'nullable', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required_with:email', 'nullable', 'string', 'min:8', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'max:255'],
         ];
     }
 }

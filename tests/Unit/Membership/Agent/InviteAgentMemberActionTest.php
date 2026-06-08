@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\InviteAgentMemberAction;
+use Domain\Membership\Agent\Data\AgentMemberInvitationData;
 use Domain\Membership\Agent\Data\InviteAgentMemberData;
 use Domain\Membership\Agent\Events\AgentMemberInvited;
 use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
@@ -28,7 +29,7 @@ function inviteWorkspaceAndAgent(string $ownerEmail = 'owner@example.com'): arra
     return [$workspace, $agent];
 }
 
-function invite(Agent $agent, string $email): \Domain\Membership\Agent\Data\AgentMemberInvitationData
+function invite(Agent $agent, string $email): AgentMemberInvitationData
 {
     return app(InviteAgentMemberAction::class)->execute(new InviteAgentMemberData(
         agent: $agent,

@@ -22,6 +22,10 @@ class StreamRequestDataFactory
         // queries mid-stream.
         $agent->loadMissing(['agentPrompt', 'llm']);
 
+        $chatter = $this->chatter($request);
+        // Any authenticated user (chatter, owner, or teammate) is the audit actor.
+        $actor = $request->user() instanceof User ? $request->user() : null;
+
         return new StreamRequestData(
             agent: $agent,
             message: new StreamRequestMessageData(
@@ -36,7 +40,10 @@ class StreamRequestDataFactory
             // agent sign-in link, not just workspace owners/employees. Stamp the
             // chatter so their per-chatter limit applies here too; null for
             // owner/employee senders.
-            chatterUserId: $this->chatterUserId($request),
+            chatterUserId: $chatter?->id,
+            chatterName: $chatter?->name,
+            actorUserId: $actor?->id,
+            actorName: $actor?->name,
             saveUserMessageImmediately: $request->boolean('save_user_message_immediately'),
             streamSources: false,
             ipAddress: $request->ip(),
@@ -74,6 +81,12 @@ class StreamRequestDataFactory
             // can resolve an owner/employee (e.g. previewing); never stamp them,
             // or their billing user_credits would be mistaken for a chatter cap.
             chatterUserId: $chatter && $chatter->isChatter() ? $chatter->id : null,
+            chatterName: $chatter && $chatter->isChatter() ? $chatter->name : null,
+            // The audit actor is whoever is signed in — any type (owner/teammate
+            // previewing, or a chatter); unlike chatterUserId it is not gated to
+            // chatters and never affects billing.
+            actorUserId: $chatter?->id,
+            actorName: $chatter?->name,
             saveUserMessageImmediately: true,
             streamSources: false,
             streamLanguage: false,
@@ -110,13 +123,14 @@ class StreamRequestDataFactory
     /**
      * The authenticated chatter (web guard) on the hosted /chat surface, or
      * null when the sender is a workspace owner/employee. Only chatters carry a
-     * per-chatter message limit, so non-chatter senders stay unstamped.
+     * per-chatter message limit and get addressed by name, so non-chatter
+     * senders stay unstamped.
      */
-    private function chatterUserId(Request $request): ?int
+    private function chatter(Request $request): ?User
     {
         $user = $request->user();
 
-        return $user instanceof User && $user->isChatter() ? $user->id : null;
+        return $user instanceof User && $user->isChatter() ? $user : null;
     }
 
     private function referrer(Request $request): ?string

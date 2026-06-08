@@ -8,6 +8,7 @@ import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.v
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useDateFormat } from '@/composables/useDateFormat';
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { AlertCircle, ExternalLink, LoaderCircle, Plus, Trash2, Youtube } from 'lucide-vue-next';
@@ -166,17 +167,8 @@ const getThumbnailUrl = (url: string): string | null => {
     return videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null;
 };
 
-// Format date
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
-};
+// Dates follow the user's chosen format (Settings → Date & time), with a 24h time.
+const { formatDateTime: formatDate } = useDateFormat();
 
 // Load videos on mount
 onMounted(() => {

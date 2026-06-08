@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
 import { AlertTriangle, CheckCircle2, Download, Loader2, RefreshCw, ShieldCheck } from 'lucide-vue-next';
@@ -81,10 +81,18 @@ const refresh = () => {
 
 <template>
     <div class="space-y-6">
-        <HeadingSmall
-            title="Download a copy of my data"
-            description="Get a ZIP archive containing every piece of personal data we hold about you — your agents, conversations, messages, knowledge sources, and uploaded files. Prepared in line with GDPR Articles 15 and 20."
-        />
+        <div>
+            <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
+                <Download class="size-6" />
+                Download a copy of my data
+            </h1>
+            <p class="text-muted-foreground mt-1 text-sm">
+                Get a ZIP archive containing every piece of personal data we hold about you — your agents, conversations, messages, knowledge sources,
+                and uploaded files. Prepared in line with GDPR Articles 15 and 20.
+            </p>
+        </div>
+
+        <Separator />
 
         <div class="space-y-4 rounded-lg border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-200/10 dark:bg-emerald-700/10">
             <!-- Idle: no active export -->

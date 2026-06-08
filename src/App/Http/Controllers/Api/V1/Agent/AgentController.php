@@ -14,10 +14,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Customer-facing CRUD for AI agents. Only `knowledge_base` agents can be
- * provisioned via the API — widget agents must be created in the dashboard.
- */
 #[Group(name: 'Agents', weight: 10)]
 class AgentController
 {
@@ -82,8 +78,7 @@ class AgentController
     /**
      * Update agent
      *
-     * Patch top-level agent fields. Settings (appearance, persona, etc.) use
-     * the dedicated `/settings/{group}` endpoint.
+     *
      *
      * @return array{data: AgentData}
      */

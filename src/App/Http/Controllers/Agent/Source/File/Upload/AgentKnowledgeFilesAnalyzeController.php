@@ -11,7 +11,9 @@ class AgentKnowledgeFilesAnalyzeController
     public function __invoke(Request $request, AgentSourceAnalyzeFileAction $action): KnowledgeAnalyzeResourceData
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:pdf,docx,txt,md'],
+            // Extension-based: exotic OCR formats share generic MIMEs, so the
+            // mimes rule can't gate them. max:51200 = Mistral's 50 MB cap.
+            'file' => ['required', 'file', 'extensions:'.implode(',', ocr_supported_extensions()), 'max:51200'],
         ]);
 
         $file = $request->file('file');

@@ -67,7 +67,6 @@ class CreateSourceSummaryAction
             'user_id' => $source->user_id,
             'chunkable_type' => $source->getMorphClass(),
             'chunkable_id' => $source->id,
-            'type' => 'text',
             'chunk_index' => 0,
             'chunk' => $summary,
             'summary' => '',

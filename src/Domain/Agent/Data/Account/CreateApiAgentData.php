@@ -13,6 +13,7 @@ class CreateApiAgentData extends Data
     public function __construct(
         public string $name,
         public string $team_id,
+        public bool $is_public,
         public ?string $prompt_id = null,
         public ?string $system_instructions = null,
         /** @var array<string, mixed>|null */

@@ -18,19 +18,28 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { formatDateWith, type DateFormatKey } from '@/composables/useDateFormat';
 import { getInitials } from '@/composables/useInitials';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
 import { CheckCircle, Loader2, Mail, Save, Trash2, Upload, User as UserIcon } from 'lucide-vue-next';
 
+interface DateFormatOption {
+    value: DateFormatKey;
+    label: string;
+    example: string;
+}
+
 interface Props {
     mustVerifyEmail: boolean;
     status?: string;
+    dateFormats: DateFormatOption[];
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -101,6 +110,19 @@ const confirmRemovePhoto = () => {
             removing.value = false;
             removeOpen.value = false;
         },
+    });
+};
+
+const dateForm = useForm({
+    date_format: (user.value.date_format as DateFormatKey) ?? 'iso',
+});
+
+// Live preview of today's date in the currently selected format.
+const datePreview = computed(() => formatDateWith(dateForm.date_format, new Date()));
+
+const submitDateFormat = () => {
+    dateForm.patch(route('settings.preferences.update'), {
+        preserveScroll: true,
     });
 };
 </script>
@@ -264,6 +286,59 @@ const confirmRemovePhoto = () => {
                                     <div v-show="form.recentlySuccessful" class="flex items-center text-sm text-green-600">
                                         <CheckCircle class="mr-1 size-4" />
                                         <span>Profile updated successfully</span>
+                                    </div>
+                                </Transition>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                <!-- Date & time preferences -->
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Date &amp; time</CardTitle>
+                        <CardDescription>Choose how dates are displayed across your dashboard.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form @submit.prevent="submitDateFormat" class="space-y-6">
+                            <div class="grid gap-2">
+                                <Label for="date_format">Date format</Label>
+                                <Select v-model="dateForm.date_format">
+                                    <SelectTrigger id="date_format" class="w-full sm:w-80">
+                                        <SelectValue placeholder="Select a date format" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="option in props.dateFormats" :key="option.value" :value="option.value">
+                                            <span class="font-medium">{{ option.example }}</span>
+                                            <span class="text-muted-foreground ml-2">{{ option.label }}</span>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError :message="dateForm.errors.date_format" />
+                            </div>
+
+                            <div class="bg-muted/50 rounded-md px-4 py-3 text-sm">
+                                <span class="text-muted-foreground">Preview:</span>
+                                <span class="ml-2 font-medium">{{ datePreview }}</span>
+                            </div>
+
+                            <div class="flex items-center gap-4 pt-2">
+                                <Button type="submit" :disabled="dateForm.processing">
+                                    <Save class="mr-2 size-4" />
+                                    Save
+                                </Button>
+
+                                <Transition
+                                    enter-active-class="transition ease-in-out duration-300"
+                                    enter-from-class="opacity-0 transform translate-x-4"
+                                    enter-to-class="opacity-100 transform translate-x-0"
+                                    leave-active-class="transition ease-in-out duration-300"
+                                    leave-from-class="opacity-100 transform translate-x-0"
+                                    leave-to-class="opacity-0 transform translate-x-4"
+                                >
+                                    <div v-show="dateForm.recentlySuccessful" class="flex items-center text-sm text-green-600">
+                                        <CheckCircle class="mr-1 size-4" />
+                                        <span>Saved</span>
                                     </div>
                                 </Transition>
                             </div>

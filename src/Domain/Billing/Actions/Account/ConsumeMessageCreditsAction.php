@@ -26,11 +26,11 @@ class ConsumeMessageCreditsAction
         private readonly UserCreditSystem $creditSystem,
     ) {}
 
-    public function execute(int $userId, int $modelId): void
+    public function execute(int $userId, int $modelId, int $additionalMessages = 0): void
     {
         $this->creditSystem->setUserId($userId);
 
-        DB::transaction(function () use ($userId, $modelId): void {
+        DB::transaction(function () use ($userId, $modelId, $additionalMessages): void {
             /** @var User|null $user */
             $user = User::query()
                 ->lockForUpdate()
@@ -50,10 +50,11 @@ class ConsumeMessageCreditsAction
                 return;
             }
 
-            // Messages: increment by LLM cost (e.g. a model with credits=4
-            // consumes 4 messages).
+            // Messages: increment by the model's credit cost (e.g. a model with
+            // credits=4 consumes 4 messages) plus any per-turn extras — notably
+            // one message per PDF page in a document-chat turn.
             $model = Llm::find($modelId);
-            $credits = $model->credits ?? 1;
+            $credits = ($model->credits ?? 1) + $additionalMessages;
 
             $credit->usage()->increment('messages', $credits);
 

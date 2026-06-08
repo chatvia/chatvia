@@ -25,13 +25,16 @@ class TokenConnectorAuthorizer
     ) {}
 
     /**
+     * @param  string|null  $url  User-supplied MCP server URL, for presets that
+     *                            carry no fixed endpoint (`requiresUrl`). Falls
+     *                            back to the connector's configured `mcpUrl`.
      * @return array{server: AgentMcpServer, tools_count: int}
      *
      * @throws McpException when the token / endpoint fails validation
      */
-    public function connect(User $user, ConnectorData $connector, ?string $token = null): array
+    public function connect(User $user, ConnectorData $connector, ?string $token = null, ?string $url = null): array
     {
-        return DB::transaction(function () use ($user, $connector, $token) {
+        return DB::transaction(function () use ($user, $connector, $token, $url) {
             $existing = AgentMcpServer::query()
                 ->where('user_id', $user->id)
                 ->where('connector_slug', $connector->slug)
@@ -44,7 +47,7 @@ class TokenConnectorAuthorizer
                 'connector_slug' => $connector->slug,
                 'name' => $connector->name,
                 'slug' => AgentMcpServer::makeSlug($connector->slug),
-                'url' => $connector->mcpUrl,
+                'url' => $url ?: $connector->mcpUrl,
                 'transport' => 'streamable_http',
                 'auth_type' => $noAuth ? 'none' : ($connector->authType ?? 'bearer'),
                 'auth_value' => $noAuth ? null : $token,

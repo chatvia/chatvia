@@ -13,10 +13,11 @@ class AgentStarterController
         abort_if($request->user()->cannot('view', $agent), 404);
 
         $validated = $request->validate([
-            'text' => ['array'],
-            'text.*' => ['string', 'max:255'],
+            'starters' => ['array'],
+            'starters.*.text' => ['required', 'string', 'max:255'],
+            'starters.*.icon' => ['nullable', 'string', 'max:64'],
         ]);
 
-        $setStarters->execute($agent, $validated['text'] ?? []);
+        $setStarters->execute($agent, $validated['starters'] ?? []);
     }
 }

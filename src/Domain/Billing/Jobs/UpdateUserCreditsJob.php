@@ -13,7 +13,8 @@ class UpdateUserCreditsJob implements ShouldQueue
 
     public function __construct(
         public int $userId,
-        public int $modelId
+        public int $modelId,
+        public int $additionalMessages = 0,
     ) {
         $this->onQueue('messages');
     }
@@ -26,6 +27,6 @@ class UpdateUserCreditsJob implements ShouldQueue
     public function handle(ConsumeMessageCreditsAction $action): void
     {
         Cache::lock("user_credits_lock:{$this->userId}", 10)
-            ->block(5, fn () => $action->execute($this->userId, $this->modelId));
+            ->block(5, fn () => $action->execute($this->userId, $this->modelId, $this->additionalMessages));
     }
 }

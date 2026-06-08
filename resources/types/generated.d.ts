@@ -475,6 +475,53 @@ total_topics: any;
 total_count: number;
 };
 }
+declare namespace Domain.Evaluation.Data.Resources {
+export type EvalCaseResourceData = {
+id: number;
+external_id: string;
+name: string;
+input: string;
+scorer_type: string;
+scorer_config: Array<any> | null;
+expected_output: string | null;
+active: boolean;
+created_at: string;
+};
+export type EvalResultResourceData = {
+id: number;
+external_id: string;
+case_id: number | null;
+case_name: string;
+scorer_type: string;
+pass: boolean;
+score: number | null;
+actual_output: string | null;
+actual_output_truncated: boolean;
+sources_used: Array<any>;
+tools_called: Array<any>;
+judge_rationale: string | null;
+latency_ms: number | null;
+tokens: number | null;
+trace_id: string | null;
+created_at: string | null;
+};
+export type EvalRunResourceData = {
+id: number;
+external_id: string;
+status: string;
+total_cases: number;
+passed_count: number;
+failed_count: number;
+avg_score: number | null;
+pass_rate: number | null;
+total_tokens: number | null;
+model_snapshot: string | null;
+triggered_by_name: string | null;
+started_at: string | null;
+finished_at: string | null;
+created_at: string;
+};
+}
 declare namespace Domain.Integration.Connector.Data.Account {
 export type AccountConnectorRowData = {
 kind: string;
@@ -826,7 +873,6 @@ theme: string | null;
 keyboard_trigger: string | null;
 bar_placement: string | null;
 composer_placeholder: string | null;
-chat_footer_text: string | null;
 handoff_enabled: boolean;
 allow_file_uploads: boolean;
 allow_voice_input: boolean;

@@ -56,7 +56,6 @@ const props = defineProps({
             color_theme: 'black',
             welcome_message: null,
             chat_window_title: null,
-            chat_footer_text: null,
             avatar: null,
             composer_placeholder: null,
         }),
@@ -512,6 +511,11 @@ function buildStreamCallbacks({ userIndex, assistantIndex, isNewConversation = f
                 msg.content += text;
                 scrollWhileStreaming();
             }
+        },
+        onReplace: (text) => {
+            // An output guardrail corrected the answer — swap the rendered text.
+            const msg = findStreamingAssistant(streamingAssistantId.value, assistantIndex);
+            if (msg) msg.content = text;
         },
         onMeta: (key, value) => {
             if (key === 'language' && typeof value === 'string') {
@@ -1087,10 +1091,6 @@ const handleScrollToBottomClick = () => {
                             @messageAdded="messageAdded"
                             @stopStreaming="stopStreaming"
                         />
-
-                        <div v-if="props.appearance?.chat_footer_text" class="mt-3 text-center">
-                            <p class="text-muted-foreground/60 text-[11px]">{{ props.appearance.chat_footer_text }}</p>
-                        </div>
 
                         <!-- Branding: hidden when the workspace owns the remove-branding add-on -->
                         <div v-if="props.chatviaBranding" class="mt-2 flex items-center justify-center">

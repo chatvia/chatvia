@@ -34,7 +34,7 @@ class AgentSourceAnalyzeFileAction
         return KnowledgeAnalyzeResourceData::from([
             'length' => $info->length,
             'mime_type' => $uploadedFile->getMimeType(),
-            'filetype' => get_file_type($uploadedFile->getMimeType()),
+            'filetype' => file_category($uploadedFile),
             'is_audio_file' => is_audio_file($uploadedFile),
             'is_video_file' => is_video_file($uploadedFile),
         ]);

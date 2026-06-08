@@ -18,6 +18,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
+import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import type { Auth, BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { BarChart3, BookOpen, BotMessageSquare, Code2, CreditCard, HelpCircle, LayoutGrid, Menu, Users, Zap } from 'lucide-vue-next';
@@ -68,6 +69,8 @@ const activeItemStyles = computed(
 
 const isStaff = computed(() => auth.value.user.type === 'staff');
 
+const { isOwner } = useTeamPermissions();
+
 const mainNavItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [
         {
@@ -87,8 +90,9 @@ const mainNavItems = computed<NavItem[]>(() => {
         },
     ];
 
-    // Only show billing for non-staff users
-    if (!isStaff.value) {
+    // Billing is workspace-owner only — employees/teammates are blocked from
+    // the billing routes server-side (DenyIfEmployee), and staff never see it.
+    if (!isStaff.value && isOwner.value) {
         items.push({
             title: 'Billing',
             href: route('billing.index'),

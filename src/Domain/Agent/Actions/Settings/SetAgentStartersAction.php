@@ -8,11 +8,21 @@ class SetAgentStartersAction
 {
     /**
      * Replace an agent's conversation starters with the given ordered list.
+     * Each entry is normalized to `{ text, icon }`, where `icon` is an optional
+     * Heroicons (outline) export name or null.
      *
-     * @param  array<int, string>  $texts
+     * @param  array<int, array{text: string, icon?: string|null}>  $starters
      */
-    public function execute(Agent $agent, array $texts): void
+    public function execute(Agent $agent, array $starters): void
     {
-        $agent->starterSet()->updateOrCreate([], ['text' => array_values($texts)]);
+        $normalized = array_values(array_map(
+            fn (array $starter): array => [
+                'text' => $starter['text'],
+                'icon' => $starter['icon'] ?? null,
+            ],
+            $starters,
+        ));
+
+        $agent->starterSet()->updateOrCreate([], ['starters' => $normalized]);
     }
 }

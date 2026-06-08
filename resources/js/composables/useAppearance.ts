@@ -100,7 +100,6 @@ export interface AppearanceData {
     color_shade: number | null;
     welcome_message: string | null;
     chat_window_title: string | null;
-    chat_footer_text: string | null;
     composer_placeholder: string | null;
 }
 

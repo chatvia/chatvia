@@ -39,7 +39,9 @@ import {
     Database,
     Eye,
     FileText,
+    FlaskConical,
     FunctionSquare,
+    ShieldAlert,
     Heart,
     LoaderCircle,
     Lock,
@@ -196,6 +198,27 @@ const managementGroups = computed(() => {
     }
     if (hasPermission('agent.chat.view')) {
         insights.push({ id: 'logs', label: 'Chat', icon: MessageSquare, route: 'agents.logs', tooltip: 'Inspect raw chat messages by session' });
+    }
+    if (hasPermission('agent.audit.view')) {
+        insights.push({ id: 'audit', label: 'Audit', icon: ShieldCheck, route: 'agents.audit', tooltip: 'Tool-call audit log for this agent' });
+    }
+    if (hasPermission('agent.evals.view')) {
+        insights.push({
+            id: 'evals',
+            label: 'Evals',
+            icon: FlaskConical,
+            route: 'agents.evals',
+            tooltip: 'Test suites that grade this agent’s answers',
+        });
+    }
+    if (hasPermission('agent.guardrails.view')) {
+        insights.push({
+            id: 'guardrails',
+            label: 'Guardrails',
+            icon: ShieldAlert,
+            route: 'agents.guardrails',
+            tooltip: 'AI-safety guards: PII, prompt-injection, topics, toxicity',
+        });
     }
     if (hasPermission('agent.leads.view') && props.agent.leads_mcp_enabled) {
         insights.push({ id: 'leads', label: 'Leads', icon: UserCheck, route: 'agents.leads.index', tooltip: 'Manage leads captured by your agent' });

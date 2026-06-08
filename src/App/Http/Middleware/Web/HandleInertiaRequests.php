@@ -5,6 +5,7 @@ namespace App\Http\Middleware\Web;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Support\Enums\User\DateFormat;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
@@ -29,7 +30,8 @@ class HandleInertiaRequests extends Middleware
         $billing = $user?->accountBilling();
         $subscription = $billing?->subscription();
         $onTrial = (bool) $billing?->onTrial();
-        $trialEndsAt = $onTrial ? $subscription?->trial_ends_at?->format('F j, Y') : null;
+        $dateFormat = ($user?->date_format ?? DateFormat::default())->phpFormat();
+        $trialEndsAt = $onTrial ? $subscription?->trial_ends_at?->format($dateFormat) : null;
 
         return [
             ...parent::share($request),

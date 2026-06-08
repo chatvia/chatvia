@@ -21,7 +21,6 @@ const props = defineProps<{
         color_theme?: string;
         welcome_message?: string;
         chat_window_title?: string;
-        chat_footer_text?: string;
         avatar?: string;
     };
 }>();

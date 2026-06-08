@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { ExternalLink, Globe, MessageSquare, Monitor, Search, Smartphone, Tablet } from 'lucide-vue-next';
+import { Check, Copy, ExternalLink, Globe, MessageSquare, Monitor, Search, Smartphone, Tablet } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
@@ -60,6 +62,20 @@ const openFullPreview = () => {
         window.open(currentUrl.value, '_blank');
     }
 };
+
+// Copy the agent's external id (the public identifier used in embed snippets,
+// routes, and the API) straight from the preview toolbar.
+const isExternalIdCopied = ref(false);
+const copyExternalId = async () => {
+    try {
+        await navigator.clipboard.writeText(props.agent.external_id);
+        isExternalIdCopied.value = true;
+        toast.success('Agent ID copied to clipboard');
+        setTimeout(() => (isExternalIdCopied.value = false), 2000);
+    } catch {
+        toast.error('Could not copy to clipboard');
+    }
+};
 </script>
 
 <template>
@@ -82,27 +98,54 @@ const openFullPreview = () => {
                     </button>
                 </nav>
 
-                <div class="flex items-center gap-1 py-2">
-                    <button
-                        v-for="d in ['desktop', 'tablet', 'mobile'] as const"
-                        :key="d"
-                        type="button"
-                        @click="device = d"
-                        class="text-muted-foreground hover:text-foreground rounded-md p-1.5 transition-colors"
-                        :class="{ 'text-foreground bg-background shadow-sm': device === d }"
-                        :title="d"
-                    >
-                        <component :is="d === 'desktop' ? Monitor : d === 'tablet' ? Tablet : Smartphone" class="h-4 w-4" />
-                    </button>
-                    <button
-                        type="button"
-                        class="text-muted-foreground hover:text-foreground rounded-md p-1.5 transition-colors"
-                        title="Open in new tab"
-                        @click="openFullPreview"
-                    >
-                        <ExternalLink class="h-4 w-4" />
-                    </button>
-                </div>
+                <TooltipProvider :delay-duration="0">
+                    <div class="flex items-center gap-1 py-2">
+                        <Tooltip v-for="d in ['desktop', 'tablet', 'mobile'] as const" :key="d">
+                            <TooltipTrigger as-child>
+                                <button
+                                    type="button"
+                                    @click="device = d"
+                                    class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md p-1.5 transition-colors"
+                                    :class="{ 'text-foreground bg-background shadow-sm': device === d }"
+                                >
+                                    <component :is="d === 'desktop' ? Monitor : d === 'tablet' ? Tablet : Smartphone" class="h-4 w-4" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p class="capitalize">{{ d }}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <button
+                                    type="button"
+                                    class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md p-1.5 transition-colors"
+                                    :class="{ 'text-foreground': isExternalIdCopied }"
+                                    @click="copyExternalId"
+                                >
+                                    <component :is="isExternalIdCopied ? Check : Copy" class="h-4 w-4" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{{ isExternalIdCopied ? 'Copied!' : 'Copy agent ID' }}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <button
+                                    type="button"
+                                    class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md p-1.5 transition-colors"
+                                    @click="openFullPreview"
+                                >
+                                    <ExternalLink class="h-4 w-4" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Open in new tab</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </div>
+                </TooltipProvider>
             </div>
 
             <!-- Full-page preview frame. Desktop fills the area; tablet/mobile

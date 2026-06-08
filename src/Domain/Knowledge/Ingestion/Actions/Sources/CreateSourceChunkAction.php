@@ -42,7 +42,6 @@ class CreateSourceChunkAction
             'user_id' => $agent->user_id,
             'chunkable_type' => $source->getMorphClass(),
             'chunkable_id' => $source->getKey(),
-            'type' => 'text',
             'chunk_index' => $page->pageNumber,
             'chunk' => $page->content,
             'summary' => '',

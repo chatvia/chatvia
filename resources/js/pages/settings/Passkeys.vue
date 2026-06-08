@@ -11,9 +11,11 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -37,26 +39,39 @@ const breadcrumbItems: BreadcrumbItem[] = [{ title: 'Passkeys', href: '/settings
 const confirmDlg = ref<InstanceType<typeof ConfirmPasswordDialog> | null>(null);
 const ensureConfirmed = async (): Promise<boolean> => (await confirmDlg.value?.open()) ?? false;
 
+const registerOpen = ref(false);
 const registeringPasskey = ref(false);
 const passkeyName = ref('');
 const passkeyError = ref<string | null>(null);
 
+const openRegister = () => {
+    passkeyName.value = '';
+    passkeyError.value = null;
+    registerOpen.value = true;
+};
+
 const registerPasskey = async () => {
-    if (!passkeyName.value.trim()) {
+    const name = passkeyName.value.trim();
+    if (!name) {
         passkeyError.value = 'Give your passkey a name first.';
         return;
     }
+
+    // Close this dialog before opening the confirm-password dialog — the
+    // codebase never stacks two modal dialogs (see TwoFactor.vue).
+    passkeyError.value = null;
+    registerOpen.value = false;
     if (!(await ensureConfirmed())) return;
 
-    passkeyError.value = null;
     registeringPasskey.value = true;
     try {
         const { Passkeys } = await import('@laravel/passkeys');
-        await Passkeys.register({ name: passkeyName.value.trim() });
+        await Passkeys.register({ name });
         passkeyName.value = '';
         router.reload({ only: ['passkeys'] });
     } catch (e: unknown) {
         passkeyError.value = e instanceof Error ? e.message : 'Could not register passkey.';
+        registerOpen.value = true; // reopen so the error stays visible
     } finally {
         registeringPasskey.value = false;
     }
@@ -104,58 +119,100 @@ const confirmDelete = async () => {
         </AlertDialog>
 
         <SettingsLayout width="wide">
-            <div class="space-y-8">
-                <div class="flex flex-col space-y-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="bg-primary/10 rounded-full p-2">
-                            <Fingerprint class="text-primary size-6" />
-                        </div>
-                        <h1 class="text-2xl font-bold tracking-tight">Passkeys</h1>
+            <div class="w-full space-y-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
+                            <Fingerprint class="size-6" />
+                            Passkeys
+                        </h1>
+                        <p class="text-muted-foreground mt-1 text-sm">
+                            Sign in with Face ID, Touch ID, Windows Hello, or a hardware security key — no password needed.
+                        </p>
                     </div>
-                    <p class="text-muted-foreground">
-                        Sign in with Face ID, Touch ID, Windows Hello, or a hardware security key — no password needed.
-                    </p>
+                    <Button @click="openRegister">
+                        <Plus class="mr-1 size-4" />
+                        Register a passkey
+                    </Button>
                 </div>
 
                 <Separator />
 
-                <!-- Register -->
-                <form @submit.prevent="registerPasskey" class="space-y-3">
-                    <div class="space-y-2">
-                        <Label for="passkey-name">Name this passkey</Label>
-                        <Input id="passkey-name" v-model="passkeyName" placeholder="MacBook Pro, iPhone, YubiKey…" class="max-w-md" />
-                        <p v-if="passkeyError" class="text-destructive text-sm">{{ passkeyError }}</p>
-                    </div>
-                    <Button type="submit" :disabled="registeringPasskey">
-                        <Loader2 v-if="registeringPasskey" class="mr-2 size-4 animate-spin" />
-                        <Plus v-else class="mr-2 size-4" />
+                <!-- List -->
+                <div v-if="props.passkeys.length === 0" class="rounded-lg border py-16 text-center">
+                    <Fingerprint class="text-muted-foreground mx-auto size-8" />
+                    <p class="mt-3 text-sm font-medium">No passkeys registered yet</p>
+                    <p class="text-muted-foreground mt-1 text-sm">Register one to sign in without a password.</p>
+                    <Button class="mt-4" @click="openRegister">
+                        <Plus class="mr-1 size-4" />
                         Register a passkey
                     </Button>
-                </form>
-
-                <Separator v-if="props.passkeys.length" />
-
-                <!-- List -->
-                <div v-if="props.passkeys.length" class="space-y-3">
-                    <div v-for="passkey in props.passkeys" :key="passkey.id" class="flex items-center justify-between gap-4 rounded-lg border p-4">
-                        <div class="flex items-center gap-3">
-                            <Fingerprint class="text-muted-foreground size-5" />
-                            <div>
-                                <p class="font-medium">{{ passkey.name }}</p>
-                                <p class="text-muted-foreground text-xs">
-                                    <span v-if="passkey.last_used_at">Last used {{ new Date(passkey.last_used_at).toLocaleString() }}</span>
-                                    <span v-else>Never used</span>
-                                    · Added {{ new Date(passkey.created_at).toLocaleDateString() }}
-                                </p>
-                            </div>
-                        </div>
-                        <Button variant="ghost" size="icon" @click="deletePasskey(passkey)" aria-label="Delete passkey">
-                            <Trash2 class="size-4" />
-                        </Button>
-                    </div>
                 </div>
-                <p v-else class="text-muted-foreground text-sm">No passkeys registered yet.</p>
+
+                <div v-else class="rounded-lg border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead class="h-11 pl-5">Name</TableHead>
+                                <TableHead class="h-11 w-48">Last used</TableHead>
+                                <TableHead class="h-11 w-40">Added</TableHead>
+                                <TableHead class="h-11 w-16 pr-5 text-right">Delete</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow v-for="passkey in props.passkeys" :key="passkey.id">
+                                <TableCell class="py-4 pl-5">
+                                    <div class="flex items-center gap-4">
+                                        <div class="bg-muted flex size-10 shrink-0 items-center justify-center rounded-md">
+                                            <Fingerprint class="text-muted-foreground size-5" />
+                                        </div>
+                                        <p class="leading-tight font-medium">{{ passkey.name }}</p>
+                                    </div>
+                                </TableCell>
+                                <TableCell class="text-muted-foreground py-4 text-sm">
+                                    {{ passkey.last_used_at ? new Date(passkey.last_used_at).toLocaleString() : 'Never' }}
+                                </TableCell>
+                                <TableCell class="text-muted-foreground py-4 text-sm">
+                                    {{ new Date(passkey.created_at).toLocaleDateString() }}
+                                </TableCell>
+                                <TableCell class="py-4 pr-5 text-right">
+                                    <Button variant="ghost" size="icon" @click="deletePasskey(passkey)" aria-label="Delete passkey">
+                                        <Trash2 class="size-4 text-red-600" />
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
+
+            <!-- Register a passkey -->
+            <Dialog v-model:open="registerOpen">
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle class="flex items-center gap-2">
+                            <Fingerprint class="size-5" />
+                            Register a passkey
+                        </DialogTitle>
+                        <DialogDescription> Give this passkey a name so you can recognize the device later. </DialogDescription>
+                    </DialogHeader>
+
+                    <form id="register-passkey-form" @submit.prevent="registerPasskey" class="grid gap-2">
+                        <Label for="passkey-name">Name this passkey</Label>
+                        <Input id="passkey-name" v-model="passkeyName" placeholder="MacBook Pro, iPhone, YubiKey…" autocomplete="off" />
+                        <p v-if="passkeyError" class="text-destructive text-sm">{{ passkeyError }}</p>
+                    </form>
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="registerOpen = false">Cancel</Button>
+                        <Button type="submit" form="register-passkey-form" :disabled="registeringPasskey">
+                            <Loader2 v-if="registeringPasskey" class="mr-1 size-4 animate-spin" />
+                            <Plus v-else class="mr-1 size-4" />
+                            Register
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </SettingsLayout>
     </AppLayout>
 </template>

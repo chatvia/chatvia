@@ -16,6 +16,7 @@ use App\Http\Controllers\Agent\Analytics\Topic\AgentTopicsDataController;
 use App\Http\Controllers\Agent\Analytics\Topic\DismissSuggestedTopicController;
 use App\Http\Controllers\Agent\Analytics\Topic\PromoteSuggestedTopicController;
 use App\Http\Controllers\Agent\Analytics\Topic\SuggestedTopicsDataController;
+use App\Http\Controllers\Agent\Audit\AgentAuditController;
 use App\Http\Controllers\Agent\Bar\BarPreviewController;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogReviseAnswerController;
@@ -24,6 +25,11 @@ use App\Http\Controllers\Agent\ChatLog\ConversationMessageController as ChatLogC
 use App\Http\Controllers\Agent\ChatLog\ConversationPulseController as ChatLogConversationPulseController;
 use App\Http\Controllers\Agent\ChatLog\CountryController as ChatLogCountriesController;
 use App\Http\Controllers\Agent\ChatLog\TopicController as ChatLogTopicsController;
+use App\Http\Controllers\Agent\Eval\AgentEvalCaseController;
+use App\Http\Controllers\Agent\Eval\AgentEvalController;
+use App\Http\Controllers\Agent\Eval\AgentEvalRunController;
+use App\Http\Controllers\Agent\Eval\RunAgentEvalController;
+use App\Http\Controllers\Agent\Guardrail\AgentGuardrailController;
 use App\Http\Controllers\Agent\Handoff\AgentHandoffController;
 use App\Http\Controllers\Agent\Handoff\HandoffTypingController;
 use App\Http\Controllers\Agent\Handoff\MarkHandoffReadController;
@@ -241,6 +247,24 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('logs', [AgentChatLogController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('logs');
         Route::get('logs/conversations', [ChatLogConversationsController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('logs.conversations');
         Route::get('logs/messages/{conversation}', ChatLogConversationMessagesController::class)->middleware('agent.permission:agent.chat.view')->name('logs.messages');
+
+        // Per-agent tool-call audit log (Governed MCP Gateway), scoped to this agent.
+        Route::get('audit', AgentAuditController::class)->middleware('agent.permission:agent.audit.view')->name('audit');
+
+        // Per-agent Eval Suites (Agent Governance + Evals — Phase 1). View lists
+        // cases + recent runs; manage edits cases and triggers a run (async).
+        Route::get('evals', AgentEvalController::class)->middleware('agent.permission:agent.evals.view')->name('evals');
+        Route::get('evals/runs/{run}', [AgentEvalRunController::class, 'show'])->middleware('agent.permission:agent.evals.view')->name('evals.runs.show');
+        Route::post('evals/runs', RunAgentEvalController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.runs.store');
+        Route::delete('evals/runs/{run}', [AgentEvalRunController::class, 'destroy'])->middleware('agent.permission:agent.evals.manage')->name('evals.runs.destroy');
+        Route::delete('evals/runs', [AgentEvalRunController::class, 'clear'])->middleware('agent.permission:agent.evals.manage')->name('evals.runs.clear');
+        Route::post('evals/cases', [AgentEvalCaseController::class, 'store'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.store');
+        Route::patch('evals/cases/{case}', [AgentEvalCaseController::class, 'update'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.update');
+        Route::delete('evals/cases/{case}', [AgentEvalCaseController::class, 'destroy'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.destroy');
+
+        // Per-agent AI-safety Guardrails — config form + immutable trigger log.
+        Route::get('guardrails', [AgentGuardrailController::class, 'show'])->middleware('agent.permission:agent.guardrails.view')->name('guardrails');
+        Route::post('guardrails', [AgentGuardrailController::class, 'update'])->middleware('agent.permission:agent.guardrails.manage')->name('guardrails.update');
         Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->middleware(['capability:pulse', 'agent.permission:agent.chat.pulse'])->name('logs.pulse');
         Route::get('logs/topics', ChatLogTopicsController::class)->middleware('agent.permission:agent.chat.view')->name('logs.topics');
         Route::get('logs/countries', ChatLogCountriesController::class)->middleware('agent.permission:agent.chat.view')->name('logs.countries');

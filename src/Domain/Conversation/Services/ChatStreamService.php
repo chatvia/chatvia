@@ -13,6 +13,7 @@ use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\Data\StreamRequestData;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sources\ErrorSource;
+use Domain\Conversation\Services\Streaming\Sources\GuardBlockSource;
 use Domain\Conversation\Services\Streaming\Sources\HandoffSource;
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
 use Domain\Conversation\Services\Streaming\Sources\MistralPdfSource;
@@ -35,6 +36,7 @@ readonly class ChatStreamService
         private LlmSource $llmSource,
         private MistralPdfSource $mistralPdfSource,
         private QASource $qaSource,
+        private GuardBlockSource $guardBlockSource,
         private HandoffSource $handoffSource,
         private ErrorSource $errorSource,
         private ReplaySource $replaySource,
@@ -169,6 +171,14 @@ readonly class ChatStreamService
 
             return $this->chatService->enrichContextWithKnowledge($context);
         }, 'chat');
+
+        // 3b. Input guardrail blocked the message (injection / off-topic / toxic)
+        // → stream the refusal instead of calling the LLM. No model call, no credit.
+        if ($context->guardBlocked) {
+            return $this->streamer->respond(
+                $this->guardBlockSource->events($context)
+            );
+        }
 
         // 4. Q&A match → stream the answer using the same envelope.
         if ($context->hasQAMatch()) {

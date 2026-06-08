@@ -2,6 +2,7 @@
 
 namespace Domain\Analytics\Actions;
 
+use Domain\Analytics\Data\ConversationAnalysisData;
 use Domain\Analytics\Events\MessageAnalyzed;
 use Domain\Analytics\Services\ConversationAnalyzer;
 use Domain\Billing\Enums\CapabilityEnum;
@@ -50,7 +51,7 @@ class AnalyzeMessageAction
         // Attribute the tone/sentiment LLM call's tokens to the workspace (analytics).
         $analysis = $this->usage->track(
             $agent->user_id,
-            fn (): \Domain\Analytics\Data\ConversationAnalysisData => $this->analyzer->analyzeMessage($message->content),
+            fn (): ConversationAnalysisData => $this->analyzer->analyzeMessage($message->content),
             'analysis',
         );
 

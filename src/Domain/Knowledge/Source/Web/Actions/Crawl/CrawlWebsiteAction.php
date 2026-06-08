@@ -27,7 +27,7 @@ class CrawlWebsiteAction
         $website->update([
             'status' => 'crawled',
             'took_in_seconds' => $tookInSeconds,
-            'job_id' => $internalJobId,
+            'internal_ingestion_job_id' => $internalJobId,
         ]);
 
         $website->urls()->createMany(

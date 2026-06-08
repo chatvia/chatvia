@@ -74,10 +74,10 @@ const openAgent = (agent: Agent) => {
     <AppLayout>
         <Head title="My Agents" />
 
-        <div class="mx-auto w-full max-w-6xl space-y-6 py-8">
+        <div class="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h1 class="text-xl font-semibold">My Agents</h1>
+                    <h1 class="text-2xl font-bold tracking-tight">My Agents</h1>
                     <p class="text-muted-foreground text-sm">Create and manage your AI agents.</p>
                 </div>
                 <Button v-if="canCreateAgent" @click="showCreateAgentModal = true">

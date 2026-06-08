@@ -9,11 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -23,6 +25,7 @@ import xml from 'highlight.js/lib/languages/xml';
 import {
     Bot,
     Check,
+    CircleHelp,
     Clock,
     Code,
     Copy,
@@ -74,7 +77,7 @@ interface PromptOption {
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData & { id?: number | string };
     authToken: string | null;
-    starters: string[];
+    starters: { text: string; icon: string | null }[];
     knowledgeQuestions: string[];
     prompts: PromptOption[];
     hasPermission: boolean;
@@ -180,7 +183,6 @@ watch(previewSurface, (next) => {
 const textForm = useForm({
     welcome_message: str(a.welcome_message, str(ad.welcome_message)),
     chat_window_title: str(a.chat_window_title, str(ad.chat_window_title)),
-    chat_footer_text: str(a.chat_footer_text, str(ad.chat_footer_text)),
     composer_placeholder: str(a.composer_placeholder, str(ad.composer_placeholder)),
 });
 const isSavingText = ref(false);
@@ -291,14 +293,14 @@ const saveAnalytics = () => {
 // sub_domain stay editable via the agent's Rename dialog at the top-level.
 
 // ── Starters → agents.starters.update (agent-level)
-const starters = ref<string[]>([...props.starters]);
+const starters = ref<{ text: string; icon: string | null }[]>([...props.starters]);
 const isSavingStarters = ref(false);
 const saveStarters = async () => {
     isSavingStarters.value = true;
     // Drop blank/whitespace-only lines so empty fields never persist as starters.
-    const cleaned = starters.value.map((s) => s.trim()).filter(Boolean);
+    const cleaned = starters.value.map((s) => ({ text: s.text.trim(), icon: s.icon })).filter((s) => s.text);
     try {
-        await axios.put(route('agents.starters.update', { agent: props.agent.external_id }), { text: cleaned });
+        await axios.put(route('agents.starters.update', { agent: props.agent.external_id }), { starters: cleaned });
         starters.value = cleaned;
         toast.success('Starters saved');
         bumpPreview();
@@ -694,6 +696,20 @@ const bumpPreview = () => {
 };
 const refreshPreview = () => bumpPreview();
 
+// Copy the agent's external id (the public identifier used in embed snippets,
+// routes, and the API) straight from the preview toolbar.
+const isExternalIdCopied = ref(false);
+const copyExternalId = async () => {
+    try {
+        await navigator.clipboard.writeText(props.agent.external_id);
+        isExternalIdCopied.value = true;
+        toast.success('Agent ID copied to clipboard');
+        setTimeout(() => (isExternalIdCopied.value = false), 2000);
+    } catch {
+        toast.error('Could not copy to clipboard');
+    }
+};
+
 // ── JavaScript API reference — shown for Widget + Bar (both surfaces install
 // via the same `window.chatvia` script global). Hosted Chat is a full-page
 // URL, no JS API; the template branch for hosted_chat doesn't render the
@@ -805,7 +821,6 @@ const copyApiCode = async (code: string) => {
                                         <TextSection
                                             v-model:welcome-message="textForm.welcome_message"
                                             v-model:chat-window-title="textForm.chat_window_title"
-                                            v-model:chat-footer-text="textForm.chat_footer_text"
                                             v-model:composer-placeholder="textForm.composer_placeholder"
                                             :errors="textForm.errors as Record<string, string>"
                                             :disabled="locked"
@@ -835,9 +850,34 @@ const copyApiCode = async (code: string) => {
                                         <div class="divide-y rounded-md border">
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
-                                                    <Label for="allow-file-uploads" class="cursor-pointer text-sm font-medium"
-                                                        >Allow file uploads</Label
-                                                    >
+                                                    <div class="flex items-center gap-1.5">
+                                                        <Label for="allow-file-uploads" class="cursor-pointer text-sm font-medium"
+                                                            >Allow file uploads</Label
+                                                        >
+                                                        <Popover>
+                                                            <PopoverTrigger as-child>
+                                                                <button
+                                                                    type="button"
+                                                                    class="text-muted-foreground hover:text-foreground cursor-pointer rounded-full transition-colors"
+                                                                    aria-label="How are file uploads charged?"
+                                                                >
+                                                                    <CircleHelp class="h-3.5 w-3.5" />
+                                                                </button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
+                                                                <p class="text-foreground font-medium">File uploads</p>
+                                                                <p class="text-muted-foreground mt-1.5">
+                                                                    Visitors can attach a PDF and ask questions about it.
+                                                                </p>
+                                                                <p class="text-muted-foreground mt-1.5">
+                                                                    Each page counts as one message, on top of the normal
+                                                                    message for the question. So a 10-page PDF costs 11 messages
+                                                                    per question (1 + 10 pages). This is charged every time a
+                                                                    question is asked while the PDF is in the chat.
+                                                                </p>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </div>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
                                                         Show the paperclip button so visitors can attach PDFs.
                                                     </p>
@@ -878,9 +918,35 @@ const copyApiCode = async (code: string) => {
                                         <div class="divide-y rounded-md border">
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
-                                                    <Label for="chatlog-enabled" class="cursor-pointer text-sm font-medium"
-                                                        >Store conversations</Label
-                                                    >
+                                                    <div class="flex items-center gap-1.5">
+                                                        <Label for="chatlog-enabled" class="cursor-pointer text-sm font-medium"
+                                                            >Store conversations</Label
+                                                        >
+                                                        <Popover>
+                                                            <PopoverTrigger as-child>
+                                                                <button
+                                                                    type="button"
+                                                                    class="text-muted-foreground hover:text-foreground cursor-pointer rounded-full transition-colors"
+                                                                    aria-label="What does storing conversations mean?"
+                                                                >
+                                                                    <CircleHelp class="h-3.5 w-3.5" />
+                                                                </button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
+                                                                <p class="text-foreground font-medium">Store conversations</p>
+                                                                <p class="text-muted-foreground mt-1.5">
+                                                                    When on, every chat is saved to your account so it appears in Chat Logs and feeds
+                                                                    the analytics below.
+                                                                </p>
+                                                                <p class="text-muted-foreground mt-1.5">
+                                                                    When off, nothing is saved on our side. The logged-in chatter can still see their
+                                                                    own messages in the chat window during their session, but those messages aren't
+                                                                    persisted — only that chatter can see them, and they're gone once the session
+                                                                    ends.
+                                                                </p>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </div>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
                                                         When off, messages aren't saved — so the analytics below can't collect data either.
                                                     </p>
@@ -911,7 +977,32 @@ const copyApiCode = async (code: string) => {
                                         <div class="divide-y rounded-md border" :class="{ 'opacity-60': !chatlogForm.chatlog }">
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
-                                                    <Label for="analytics-sentiment" class="cursor-pointer text-sm font-medium">Sentiment</Label>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <Label for="analytics-sentiment" class="cursor-pointer text-sm font-medium">Sentiment</Label>
+                                                        <Popover>
+                                                            <PopoverTrigger as-child>
+                                                                <button
+                                                                    type="button"
+                                                                    class="text-muted-foreground hover:text-foreground cursor-pointer rounded-full transition-colors"
+                                                                    aria-label="What does Sentiment track?"
+                                                                >
+                                                                    <CircleHelp class="h-3.5 w-3.5" />
+                                                                </button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
+                                                                <p class="text-foreground font-medium">Sentiment</p>
+                                                                <p class="text-muted-foreground mt-1.5">
+                                                                    After each chat, the model reads the conversation and labels the overall mood as
+                                                                    positive, neutral, or negative.
+                                                                </p>
+                                                                <p class="text-muted-foreground mt-1.5">
+                                                                    The results roll up on the Sentiment dashboard so you can spot unhappy visitors
+                                                                    and watch trends over time. Needs Store conversations on — there's nothing to
+                                                                    analyze otherwise.
+                                                                </p>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </div>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
                                                         Track whether visitors feel positive, neutral or negative.
                                                     </p>
@@ -924,7 +1015,31 @@ const copyApiCode = async (code: string) => {
                                             </div>
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
-                                                    <Label for="analytics-tone" class="cursor-pointer text-sm font-medium">Tone</Label>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <Label for="analytics-tone" class="cursor-pointer text-sm font-medium">Tone</Label>
+                                                        <Popover>
+                                                            <PopoverTrigger as-child>
+                                                                <button
+                                                                    type="button"
+                                                                    class="text-muted-foreground hover:text-foreground cursor-pointer rounded-full transition-colors"
+                                                                    aria-label="What does Tone track?"
+                                                                >
+                                                                    <CircleHelp class="h-3.5 w-3.5" />
+                                                                </button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
+                                                                <p class="text-foreground font-medium">Tone</p>
+                                                                <p class="text-muted-foreground mt-1.5">
+                                                                    Tone looks at how visitors express themselves — friendly, frustrated, curious, and
+                                                                    more — rather than just positive or negative.
+                                                                </p>
+                                                                <p class="text-muted-foreground mt-1.5">
+                                                                    It's detected automatically after each chat and feeds the Tone dashboard, so you
+                                                                    can see how people tend to approach your agent. Needs Store conversations on.
+                                                                </p>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </div>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
                                                         Track the communication style — friendly, frustrated, curious and more.
                                                     </p>
@@ -933,7 +1048,31 @@ const copyApiCode = async (code: string) => {
                                             </div>
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
-                                                    <Label for="analytics-topics" class="cursor-pointer text-sm font-medium">Topics</Label>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <Label for="analytics-topics" class="cursor-pointer text-sm font-medium">Topics</Label>
+                                                        <Popover>
+                                                            <PopoverTrigger as-child>
+                                                                <button
+                                                                    type="button"
+                                                                    class="text-muted-foreground hover:text-foreground cursor-pointer rounded-full transition-colors"
+                                                                    aria-label="What does Topics track?"
+                                                                >
+                                                                    <CircleHelp class="h-3.5 w-3.5" />
+                                                                </button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
+                                                                <p class="text-foreground font-medium">Topics</p>
+                                                                <p class="text-muted-foreground mt-1.5">
+                                                                    Topics scans conversations and groups them by what people ask about, so you don't
+                                                                    have to tag chats by hand.
+                                                                </p>
+                                                                <p class="text-muted-foreground mt-1.5">
+                                                                    New topics are detected automatically and rolled up on the Topics dashboard,
+                                                                    showing you the most common themes. Needs Store conversations on.
+                                                                </p>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </div>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
                                                         Automatically detect and group what visitors ask about.
                                                     </p>
@@ -1631,35 +1770,68 @@ const copyApiCode = async (code: string) => {
                     <div class="bg-muted/40 flex h-full flex-col border-l">
                         <div class="border-border flex flex-shrink-0 items-center justify-between border-b px-4 py-2">
                             <div class="text-foreground text-sm font-medium">Live Preview</div>
-                            <div class="flex items-center gap-1">
-                                <button
-                                    v-for="d in ['desktop', 'tablet', 'mobile'] as const"
-                                    :key="d"
-                                    type="button"
-                                    @click="device = d"
-                                    class="text-muted-foreground hover:text-foreground rounded-md p-1.5 transition-colors"
-                                    :class="{ 'text-foreground bg-background shadow-sm': device === d }"
-                                    :title="d"
-                                >
-                                    <component :is="d === 'desktop' ? Monitor : d === 'tablet' ? Tablet : Smartphone" class="h-4 w-4" />
-                                </button>
-                                <button
-                                    type="button"
-                                    class="text-muted-foreground hover:text-foreground rounded-md p-1.5 transition-colors"
-                                    title="Refresh preview"
-                                    @click="refreshPreview"
-                                >
-                                    <RotateCcw class="h-4 w-4" />
-                                </button>
-                                <button
-                                    type="button"
-                                    class="text-muted-foreground hover:text-foreground rounded-md p-1.5 transition-colors"
-                                    title="Open in new tab"
-                                    @click="openFullPreview"
-                                >
-                                    <ExternalLink class="h-4 w-4" />
-                                </button>
-                            </div>
+                            <TooltipProvider :delay-duration="0">
+                                <div class="flex items-center gap-1">
+                                    <Tooltip v-for="d in ['desktop', 'tablet', 'mobile'] as const" :key="d">
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                @click="device = d"
+                                                class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md p-1.5 transition-colors"
+                                                :class="{ 'text-foreground bg-background shadow-sm': device === d }"
+                                            >
+                                                <component :is="d === 'desktop' ? Monitor : d === 'tablet' ? Tablet : Smartphone" class="h-4 w-4" />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p class="capitalize">{{ d }}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md p-1.5 transition-colors"
+                                                :class="{ 'text-foreground': isExternalIdCopied }"
+                                                @click="copyExternalId"
+                                            >
+                                                <component :is="isExternalIdCopied ? Check : Copy" class="h-4 w-4" />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{{ isExternalIdCopied ? 'Copied!' : 'Copy agent ID' }}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md p-1.5 transition-colors"
+                                                @click="refreshPreview"
+                                            >
+                                                <RotateCcw class="h-4 w-4" />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Refresh preview</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger as-child>
+                                            <button
+                                                type="button"
+                                                class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md p-1.5 transition-colors"
+                                                @click="openFullPreview"
+                                            >
+                                                <ExternalLink class="h-4 w-4" />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Open in new tab</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </div>
+                            </TooltipProvider>
                         </div>
                         <div class="flex flex-1 items-center justify-center overflow-hidden p-4">
                             <div :class="frameClass" class="transition-all duration-300">

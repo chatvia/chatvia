@@ -8,7 +8,6 @@ use Domain\Knowledge\Ingestion\Jobs\Media\MediaIngestionJob;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Support\Facades\Bus;
-use InvalidArgumentException;
 
 class Ingestion
 {
@@ -24,10 +23,10 @@ class Ingestion
 
         if ($sourceFile->isAudioFile() || $sourceFile->isVideoFile()) {
             dispatch(new MediaIngestionJob($sourceFile, $agent));
-        } elseif ($sourceFile->isPdfFile() || $sourceFile->isWordFile()) {
-            dispatch(new DocumentIngestionJob($sourceFile, $agent));
         } else {
-            throw new InvalidArgumentException('Invalid agent file type');
+            // Everything else (PDF, Office, images, and the exotic OCR formats)
+            // is parsed by Mistral OCR via the document pipeline.
+            dispatch(new DocumentIngestionJob($sourceFile, $agent));
         }
     }
 

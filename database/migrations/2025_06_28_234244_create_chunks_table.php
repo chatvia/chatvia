@@ -19,8 +19,6 @@ return new class extends Migration
             $table->string('chunkable_type');
             $table->unsignedBigInteger('chunkable_id');
 
-            $table->enum('type', ['text', 'image', 'table']);
-
             $table->unsignedInteger('chunk_index');
             $table->text('chunk');
             $table->text('summary')->nullable();

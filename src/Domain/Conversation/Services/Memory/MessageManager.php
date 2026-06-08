@@ -338,7 +338,30 @@ class MessageManager
 
     public function addFeedback(string $conversationId, string $messageId, ?string $feedback): void
     {
+        // Warm-cache path: syncs the cached copy and, when the message is still
+        // present in the cache, writes the DB row + records the analytics snapshot.
         $this->updateMessage($conversationId, $messageId, ['feedback' => $feedback]);
+
+        // Cold-cache fallback. updateMessage() above iterates the cached message
+        // list and no-ops entirely when the conversation's cache has expired or
+        // been evicted (ChatCache::get() returns [] with no DB fallback). That
+        // silently dropped feedback on older / reopened conversations — and on
+        // anything after a Redis restart — even though the controller still
+        // returned 200 OK and the widget lit the button up. Persist straight to
+        // the DB (the source of truth the dashboard reads) so feedback is never
+        // lost regardless of cache state. The guard makes this a no-op when the
+        // warm path already applied the value, and RecordFeedbackGivenAction
+        // upserts, so analytics is never double-counted.
+        $message = Message::where('external_id', $messageId)->first(['id', 'feedback']);
+
+        if ($message && $message->feedback !== $feedback) {
+            $message->update(['feedback' => $feedback]);
+
+            // Model attribution lives only in the cache; it's unavailable on a
+            // cold cache, so the analytics snapshot records the feedback value
+            // without a model name (feedback totals stay correct either way).
+            $this->dispatchFeedbackAnalytics($conversationId, $messageId, $feedback, null);
+        }
     }
 
     /**

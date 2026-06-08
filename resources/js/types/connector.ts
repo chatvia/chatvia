@@ -17,6 +17,9 @@ export interface Connector {
     tokenHelpUrl: string | null;
     tokenPattern: string | null;
     tokenPlaceholder: string | null;
+    // When true, no fixed mcpUrl exists — the connect modal also asks the user
+    // for their own MCP server URL (token connectors without a hosted server).
+    requiresUrl: boolean;
     comingSoon: boolean;
 }
 

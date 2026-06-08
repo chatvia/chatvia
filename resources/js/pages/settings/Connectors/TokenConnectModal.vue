@@ -21,14 +21,18 @@ const emit = defineEmits<{
 }>();
 
 const token = ref('');
+const serverUrl = ref('');
 const saving = ref(false);
 const error = ref<string | null>(null);
+
+const requiresUrl = computed(() => props.connector?.requiresUrl ?? false);
 
 watch(
     () => props.open,
     (open) => {
         if (open) {
             token.value = '';
+            serverUrl.value = '';
             error.value = null;
         }
     },
@@ -49,15 +53,16 @@ async function submit(): Promise<void> {
     saving.value = true;
 
     try {
-        const response = await axios.post(route('settings.connectors.connect', { slug: props.connector.slug }), {
-            token: token.value,
-        });
+        const payload: Record<string, string> = { token: token.value };
+        if (requiresUrl.value) payload.url = serverUrl.value;
+        const response = await axios.post(route('settings.connectors.connect', { slug: props.connector.slug }), payload);
         emit('connected', response.data.data, response.data.tools_count);
         emit('update:open', false);
         toast.success(`Connected ${props.connector.name}`);
     } catch (e: unknown) {
         const axiosErr = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
-        error.value = axiosErr.response?.data?.message ?? axiosErr.response?.data?.errors?.token?.[0] ?? 'Could not connect — please try again.';
+        const errors = axiosErr.response?.data?.errors;
+        error.value = axiosErr.response?.data?.message ?? errors?.url?.[0] ?? errors?.token?.[0] ?? 'Could not connect — please try again.';
     } finally {
         saving.value = false;
     }
@@ -84,6 +89,22 @@ async function submit(): Promise<void> {
             </DialogHeader>
 
             <form class="space-y-4 py-2" @submit.prevent="submit">
+                <div v-if="requiresUrl" class="space-y-1.5">
+                    <Label for="server-url">MCP server URL</Label>
+                    <Input
+                        id="server-url"
+                        v-model="serverUrl"
+                        type="url"
+                        autocomplete="off"
+                        placeholder="https://your-zendesk-mcp.example.com/mcp"
+                        :disabled="saving"
+                        required
+                    />
+                    <p class="text-muted-foreground text-xs">
+                        Zendesk has no hosted MCP server — paste the URL of your own (self-hosted or partner-managed) Zendesk MCP server.
+                    </p>
+                </div>
+
                 <div class="space-y-1.5">
                     <Label for="token">{{ connector.tokenLabel ?? 'Token' }}</Label>
                     <Input
@@ -110,7 +131,7 @@ async function submit(): Promise<void> {
 
                 <DialogFooter>
                     <Button type="button" variant="ghost" :disabled="saving" @click="emit('update:open', false)"> Cancel </Button>
-                    <Button type="submit" :disabled="saving || !token">
+                    <Button type="submit" :disabled="saving || !token || (requiresUrl && !serverUrl)">
                         <LoaderCircle v-if="saving" class="mr-1 h-4 w-4 animate-spin" />
                         Connect
                     </Button>

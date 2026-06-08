@@ -4,6 +4,13 @@
         ['label' => 'Features', 'link' => '/#features'],
         ['label' => 'Pricing', 'link' => '/pricing'],
     ];
+
+    // Chatters have no dashboard — send them straight to the first agent they
+    // can access instead. Resolved once here so both the desktop and mobile
+    // menus reuse it; null for guests and non-chatters.
+    $authUser = auth()->user();
+    $isChatter = $authUser?->isChatter() ?? false;
+    $chatterAgent = $isChatter ? $authUser->listAccessibleAgents()->first() : null;
 @endphp
 <!-- Site header -->
 <header
@@ -37,9 +44,25 @@
                 <!-- Desktop sign in links -->
                 <ul class="flex grow justify-end flex-wrap items-center gap-3">
                     @auth
+                        @if (! $isChatter)
+                            <li>
+                                <a class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
+                                    href="{{ route('dashboard') }}">Dashboard</a>
+                            </li>
+                        @elseif ($chatterAgent)
+                            <li>
+                                <a class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
+                                    href="{{ $chatterAgent->chat_url }}">{{ $chatterAgent->name }}</a>
+                            </li>
+                        @endif
                         <li>
-                            <a class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
-                                href="{{ route('dashboard') }}">Dashboard</a>
+                            <form method="post" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out cursor-pointer">
+                                    Logout
+                                </button>
+                            </form>
                         </li>
                     @else
                         @if (host_config('user')['demo'] === true)
@@ -107,8 +130,20 @@
                             @endforeach
                             <li class="pt-3 border-t border-slate-200 mt-3">
                                 @auth
-                                    <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition"
-                                        href="{{ route('dashboard') }}" @click="expanded = false">Dashboard</a>
+                                    @if (! $isChatter)
+                                        <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition"
+                                            href="{{ route('dashboard') }}" @click="expanded = false">Dashboard</a>
+                                    @elseif ($chatterAgent)
+                                        <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition"
+                                            href="{{ $chatterAgent->chat_url }}" @click="expanded = false">{{ $chatterAgent->name }}</a>
+                                    @endif
+                                    <form method="post" action="{{ route('logout') }}" class="mt-1">
+                                        @csrf
+                                        <button type="submit"
+                                            class="flex w-full font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition cursor-pointer">
+                                            Logout
+                                        </button>
+                                    </form>
                                 @else
                                     <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition"
                                         href="{{ route('login') }}" @click="expanded = false">Log in</a>

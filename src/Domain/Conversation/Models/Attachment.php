@@ -32,6 +32,7 @@ use Throwable;
  * @property string $filename
  * @property string $mime_type
  * @property int $size_bytes
+ * @property int|null $pages PDF page count (null for non-PDFs)
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read string $url Public URL on the public disk
@@ -45,6 +46,7 @@ use Throwable;
     'filename',
     'mime_type',
     'size_bytes',
+    'pages',
 ])]
 #[Table(name: 'chat_attachments')]
 class Attachment extends Model

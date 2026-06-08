@@ -17,7 +17,7 @@ import { getInitials } from '@/composables/useInitials';
 import type { Auth, SharedData } from '@/types';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Check, ChevronsUpDown, Loader2, Plus, Settings } from 'lucide-vue-next';
+import { Check, ChevronsUpDown, Loader2, Plus, Settings, Users } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface Team {
@@ -158,7 +158,10 @@ const createTeam = () => {
                     <div class="grid gap-4 py-4">
                         <div class="grid gap-2">
                             <Label for="team-name">Team Name</Label>
-                            <Input id="team-name" v-model="createForm.name" placeholder="Enter team name" required />
+                            <div class="relative">
+                                <Users class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                                <Input id="team-name" v-model="createForm.name" placeholder="Enter team name" class="pl-9" required />
+                            </div>
                             <InputError :message="createForm.errors.name" />
                         </div>
                     </div>
@@ -166,6 +169,7 @@ const createTeam = () => {
                         <Button type="button" variant="outline" @click="isCreateDialogOpen = false"> Cancel </Button>
                         <Button type="submit" :disabled="createForm.processing">
                             <Loader2 v-if="createForm.processing" class="mr-2 size-4 animate-spin" />
+                            <Plus v-else class="mr-2 size-4" />
                             Create Team
                         </Button>
                     </DialogFooter>

@@ -408,7 +408,7 @@ class Agent extends Model
     }
 
     /**
-     * One row holding this agent's ordered conversation starters (JSON `text`).
+     * One row holding this agent's ordered conversation starters (JSON `starters`).
      *
      * @return HasOne<AgentStarter, $this>
      */
@@ -418,14 +418,14 @@ class Agent extends Model
     }
 
     /**
-     * The agent's effective starters as a plain string list — read from the
-     * agent's own ordered starter set.
+     * The agent's effective starters — read from the agent's own ordered starter
+     * set. Each entry is `{ text, icon }` (icon = optional Heroicon name or null).
      *
-     * @return array<int, string>
+     * @return array<int, array{text: string, icon: string|null}>
      */
     public function resolvedStarters(): array
     {
-        return $this->starterSet?->text ?? [];
+        return $this->starterSet?->starters ?? [];
     }
 
     /**

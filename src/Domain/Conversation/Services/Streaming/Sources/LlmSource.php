@@ -9,10 +9,13 @@ use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
+use Domain\Conversation\Services\Streaming\Sources\Concerns\InjectsToolSystemNote;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Guardrail\Services\GuardrailRecorder;
+use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
@@ -22,12 +25,16 @@ use Throwable;
 
 class LlmSource
 {
+    use InjectsToolSystemNote;
+
     public function __construct(
         private readonly LlmProviderInterface $llmProvider,
         private readonly ChatService $chatService,
         private readonly RequestDedupeStore $dedupe,
         private readonly ToolSelector $toolSelector,
         private readonly ToolLoopRunner $runner,
+        private readonly GuardrailService $guardrails,
+        private readonly GuardrailRecorder $guardrailRecorder,
     ) {}
 
     /**
@@ -233,37 +240,25 @@ class LlmSource
     }
 
     /**
-     * Append the tool-usage system note to the system message (or prepend one
-     * if absent). Called once per turn when the agent has tools. The note
-     * always includes the "don't claim success without a real tool result"
-     * guard, and adds the approval heads-up when approval is enabled.
-     *
-     * @param  array<int, array<string, mixed>>  $llmMessages
-     */
-    private function injectToolSystemNote(array &$llmMessages, bool $approvalEnabled): void
-    {
-        $note = trim(prompt('tools/approval', ['approval' => $approvalEnabled]));
-        if ($note === '') {
-            return;
-        }
-
-        foreach ($llmMessages as $i => $message) {
-            if (($message['role'] ?? null) === 'system') {
-                $llmMessages[$i]['content'] = rtrim((string) ($message['content'] ?? ''))."\n\n".$note;
-
-                return;
-            }
-        }
-
-        array_unshift($llmMessages, ['role' => 'system', 'content' => $note]);
-    }
-
-    /**
      * @return Generator<int, StreamEvent>
      */
     private function finishTurn(ChatContext $context): Generator
     {
         $assistantId = $context->assistantMessageId;
+
+        // Output guardrails: redact PII / replace a toxic answer. The corrected
+        // text becomes the persisted + replayed message; a `replace` event tells
+        // the client to swap what it already streamed live.
+        $original = $context->streamedMessage;
+        if ($original !== '') {
+            $guard = $this->guardrails->inspectOutput($context->requestData->agent, $original);
+            if ($guard->triggered()) {
+                $context->resetStreamedMessage();
+                $context->appendStreamedMessage($guard->text);
+                $this->guardrailRecorder->record($context, $original, $guard);
+                yield StreamEvent::replace($assistantId, $guard->text);
+            }
+        }
 
         if ($context->requestData->streamSources && $context->sources->isNotEmpty()) {
             yield StreamEvent::sources($assistantId, $context->sources->toArray());

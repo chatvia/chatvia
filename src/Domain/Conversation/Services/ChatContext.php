@@ -70,6 +70,15 @@ class ChatContext
      */
     public array $toolCallNames = [];
 
+    /**
+     * Set by the input guardrail when the visitor's message must be refused. The
+     * turn then routes to GuardBlockSource instead of the LLM — no model call,
+     * no message credit.
+     */
+    public bool $guardBlocked = false;
+
+    public ?string $guardRefusal = null;
+
     private float $startTime;
 
     private ?float $endTime = null;

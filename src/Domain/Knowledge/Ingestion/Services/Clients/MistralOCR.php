@@ -20,17 +20,20 @@ class MistralOCR
     /**
      * @return Collection<int,PageData>
      */
-    public function fromUrl(string $url): Collection
+    public function fromUrl(string $url, bool $isImage = false): Collection
     {
+        // Mistral OCR takes images under image_url and everything else (PDF,
+        // Office, the exotic doc formats) under document_url.
+        $document = $isImage
+            ? ['type' => 'image_url', 'image_url' => $url]
+            : ['type' => 'document_url', 'document_url' => $url];
+
         $response = $this->mistral
             ->client()
             ->timeout(3600)
             ->post('https://api.mistral.ai/v1/ocr', [
                 'model' => 'mistral-ocr-latest',
-                'document' => [
-                    'type' => 'document_url',
-                    'document_url' => $url,
-                ],
+                'document' => $document,
                 'table_format' => 'markdown',
                 'include_image_base64' => true,
             ])->throw();
@@ -91,7 +94,7 @@ class MistralOCR
         $tempUrl = Storage::temporaryUrl($filePath, now()->addDay());
 
         try {
-            $response = $this->fromUrl($tempUrl);
+            $response = $this->fromUrl($tempUrl, is_image_file($file));
         } catch (Throwable $exception) {
             Storage::delete($filePath);
             throw $exception;

@@ -33,6 +33,15 @@ final readonly class StreamEvent
         return new self(EventType::Sources, $assistantMessageId, ['sources' => $sources]);
     }
 
+    /**
+     * Output guardrail correction: tell the client to replace the message it
+     * already streamed with the redacted / safe `text`.
+     */
+    public static function replace(string $assistantMessageId, string $text): self
+    {
+        return new self(EventType::Replace, $assistantMessageId, ['text' => $text]);
+    }
+
     public static function error(string $assistantMessageId, ErrorCode $code, string $message): self
     {
         return new self(EventType::Error, $assistantMessageId, [

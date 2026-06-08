@@ -5,7 +5,7 @@
  * `[DONE]` lines. Errors are first-class events, not text content.
  */
 
-export type StreamEventType = 'start' | 'delta' | 'meta' | 'sources' | 'tool' | 'error' | 'done';
+export type StreamEventType = 'start' | 'delta' | 'meta' | 'sources' | 'tool' | 'replace' | 'error' | 'done';
 
 export type StreamErrorCode =
     | 'subscription_expired'
@@ -116,8 +116,14 @@ export type StreamEnvelope =
     | (BaseEnvelope & { type: 'meta'; data: StreamMetaData })
     | (BaseEnvelope & { type: 'sources'; data: StreamSourcesData })
     | (BaseEnvelope & { type: 'tool'; data: StreamToolData })
+    | (BaseEnvelope & { type: 'replace'; data: StreamReplaceData })
     | (BaseEnvelope & { type: 'error'; data: StreamErrorData })
     | (BaseEnvelope & { type: 'done'; data: StreamDoneData });
+
+/** An output guardrail corrected the answer: replace the rendered message with `text`. */
+export interface StreamReplaceData {
+    text: string;
+}
 
 export type StreamState = 'idle' | 'connecting' | 'streaming' | 'error' | 'done';
 
@@ -133,6 +139,7 @@ export interface StreamCallbacks {
     onMeta?: (key: string, value: unknown, id: string) => void;
     onSources?: (sources: unknown[], id: string) => void;
     onTool?: (data: StreamToolData, id: string) => void;
+    onReplace?: (text: string, id: string) => void;
     onError?: (error: StreamError, id: string | null) => void;
     onDone?: (data: StreamDoneData, id: string) => void;
 }

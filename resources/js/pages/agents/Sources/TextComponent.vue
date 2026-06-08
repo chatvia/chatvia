@@ -9,6 +9,7 @@ import IngestionProgressBar from '@/components/ui/IngestionProgressBar.vue';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useDateFormat } from '@/composables/useDateFormat';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { useForm } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
@@ -383,15 +384,8 @@ const getStatusLabel = (status: string): string => {
     }
 };
 
-const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-};
+// Dates follow the user's chosen format (Settings → Date & time), with a 24h time.
+const { formatDateTime: formatDate } = useDateFormat();
 
 // Load text entries on component mount
 fetchTextEntries();

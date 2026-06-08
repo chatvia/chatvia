@@ -11,6 +11,11 @@ class UploadAttachmentRequest extends FormRequest
 {
     use ValidatesPdfAttachment;
 
+    protected function workspaceUserId(): ?int
+    {
+        return current_agent_from_widget()?->user_id;
+    }
+
     public function toData(Agent $agent, ?int $conversationId): UploadAttachmentData
     {
         // The session id is a client-supplied header that becomes a storage path

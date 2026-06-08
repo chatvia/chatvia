@@ -206,7 +206,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
 
     private function error(string $message): ToolDispatchResult
     {
-        return ToolDispatchResult::text('Tool error: '.$message);
+        return ToolDispatchResult::error('Tool error: '.$message);
     }
 
     private function record(AgentMcpServer $server, Agent $agent, string $toolName, ?string $error): void

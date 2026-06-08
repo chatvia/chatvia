@@ -5,8 +5,10 @@ namespace Domain\Conversation\Actions\Attachments;
 use Domain\Conversation\Actions\Conversations\CreateConversationAction;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Domain\Conversation\Models\Attachment;
+use Domain\Knowledge\Document\PdfInfo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * Persist a visitor- or member-uploaded attachment to the public Scaleway
@@ -37,6 +39,26 @@ class StoreAttachmentAction
             'filename' => $data->file->getClientOriginalName(),
             'mime_type' => $data->file->getMimeType() ?? 'application/octet-stream',
             'size_bytes' => $data->file->getSize() ?: 0,
+            'pages' => $this->pageCount($data),
         ]);
+    }
+
+    /**
+     * Page count for PDFs, captured here so page-based billing can read it back
+     * without re-downloading the file from S3. Non-PDFs and files pdfinfo can't
+     * read return null — validation already gates real PDFs, so this only ever
+     * fails soft on an edge case rather than 500-ing the upload.
+     */
+    private function pageCount(UploadAttachmentData $data): ?int
+    {
+        if (! is_pdf_file($data->file)) {
+            return null;
+        }
+
+        try {
+            return app(PdfInfo::class)->getInfo($data->file->getPathname())->length;
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

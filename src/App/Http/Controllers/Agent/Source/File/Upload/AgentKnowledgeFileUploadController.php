@@ -28,7 +28,7 @@ class AgentKnowledgeFileUploadController
         $uploadedFile = $request->file('file');
 
         abort_if(
-            boolean: ! is_pdf_file($uploadedFile) && ! is_word_file($uploadedFile) && ! is_audio_file($uploadedFile) && ! is_video_file($uploadedFile),
+            boolean: ! is_ocr_supported($uploadedFile) && ! is_audio_file($uploadedFile) && ! is_video_file($uploadedFile),
             code: 422,
             message: 'File upload failed'
         );

@@ -288,4 +288,143 @@ return [
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://mcp.zapier.com/api/mcp/mcp',
     ],
+
+    'zendesk' => [
+        'slug' => 'zendesk',
+        'name' => 'Zendesk',
+        'description' => 'Read tickets, users, and Help Center articles from your Zendesk Support account.',
+        'category' => 'Communication',
+        'icon' => 'zendesk',
+        'brand_color' => '03363D',
+        'logo_url' => '/images/logos/connectors/zendesk.svg',
+        'priority' => 35,
+        // Zendesk does not host a first-party MCP server, so there is no fixed
+        // endpoint to bake in. Each workspace runs its own Zendesk MCP server
+        // (self-hosted / community / partner) and supplies that URL together
+        // with a Zendesk API token at connect time. `requires_url` flips the
+        // token connect modal into URL + token mode; `mcp_url` stays empty.
+        'auth_strategy' => 'token',
+        'requires_url' => true,
+        'mcp_url' => '',
+        'auth_type' => 'bearer',
+        'token_label' => 'Zendesk API token',
+        'token_help_url' => 'https://support.zendesk.com/hc/en-us/articles/4408889192858-Managing-access-to-the-Zendesk-API',
+        'token_placeholder' => 'Your Zendesk API token',
+    ],
+
+    'hubspot' => [
+        'slug' => 'hubspot',
+        'name' => 'HubSpot',
+        'description' => 'Read and update contacts, companies, deals, and tickets in your HubSpot CRM.',
+        'category' => 'Sales',
+        'icon' => 'hubspot',
+        'brand_color' => 'FF7A59',
+        'logo_url' => '/images/logos/connectors/hubspot.svg',
+        'priority' => 45,
+        // HubSpot's hosted MCP authenticates with OAuth 2.1 + PKCE but has no
+        // open Dynamic Client Registration: create an "MCP Auth App" in HubSpot
+        // (Settings → Integrations → MCP Auth Apps) to get credentials, then set
+        // the env vars below. Callback URL: APP_URL + '/connectors/oauth/callback'.
+        // The requested scopes must match those granted to the MCP Auth App.
+        'auth_strategy' => 'oauth',
+        'mcp_url' => 'https://mcp.hubspot.com',
+        'oauth_client_id' => env('HUBSPOT_OAUTH_CLIENT_ID'),
+        'oauth_client_secret' => env('HUBSPOT_OAUTH_CLIENT_SECRET'),
+        'oauth_authorization_endpoint' => 'https://app.hubspot.com/oauth/authorize',
+        'oauth_token_endpoint' => 'https://api.hubapi.com/oauth/v1/token',
+        'oauth_scopes' => 'crm.objects.contacts.read crm.objects.companies.read crm.objects.deals.read tickets',
+    ],
+
+    'box' => [
+        'slug' => 'box',
+        'name' => 'Box',
+        'description' => 'Search and read files, folders, and metadata from your Box account.',
+        'category' => 'Productivity',
+        'icon' => 'box',
+        'brand_color' => '0061D5',
+        'logo_url' => '/images/logos/connectors/box.svg',
+        'priority' => 55,
+        // Box's hosted MCP server (https://mcp.box.com) does not support Dynamic
+        // Client Registration. Create a Box MCP server entry in the Box Admin
+        // Console (Integrations) to get a Client ID / Secret, then set the env
+        // vars below. Callback URL: APP_URL + '/connectors/oauth/callback'.
+        'auth_strategy' => 'oauth',
+        'mcp_url' => 'https://mcp.box.com',
+        'oauth_client_id' => env('BOX_OAUTH_CLIENT_ID'),
+        'oauth_client_secret' => env('BOX_OAUTH_CLIENT_SECRET'),
+        'oauth_authorization_endpoint' => 'https://account.box.com/api/oauth2/authorize',
+        'oauth_token_endpoint' => 'https://api.box.com/oauth2/token',
+        'oauth_scopes' => 'root_readwrite',
+    ],
+
+    'asana' => [
+        'slug' => 'asana',
+        'name' => 'Asana',
+        'description' => 'Read and update tasks, projects, and portfolios across your Asana workspace.',
+        'category' => 'Productivity',
+        'icon' => 'asana',
+        'brand_color' => 'F06A6A',
+        'logo_url' => '/images/logos/connectors/asana.svg',
+        'priority' => 65,
+        // Asana's V2 MCP server (https://mcp.asana.com/v2/mcp) does not support
+        // Dynamic Client Registration. Register an OAuth app at
+        // https://app.asana.com/0/my-apps, add APP_URL + '/connectors/oauth/callback'
+        // to its redirect URLs (Asana allowlists them), then set the env vars below.
+        'auth_strategy' => 'oauth',
+        'mcp_url' => 'https://mcp.asana.com/v2/mcp',
+        'oauth_client_id' => env('ASANA_OAUTH_CLIENT_ID'),
+        'oauth_client_secret' => env('ASANA_OAUTH_CLIENT_SECRET'),
+        'oauth_authorization_endpoint' => 'https://app.asana.com/-/oauth_authorize',
+        'oauth_token_endpoint' => 'https://app.asana.com/-/oauth_token',
+        'oauth_scopes' => 'default',
+    ],
+
+    'sentry' => [
+        'slug' => 'sentry',
+        'name' => 'Sentry',
+        'description' => 'Read issues, errors, and releases from your Sentry projects.',
+        'category' => 'Developer Tools',
+        'icon' => 'sentry',
+        'brand_color' => '362D59',
+        'logo_url' => '/images/logos/connectors/sentry.svg',
+        'priority' => 75,
+        // Sentry's hosted MCP (https://mcp.sentry.dev/mcp) supports OAuth Dynamic
+        // Client Registration — no app registration needed.
+        'auth_strategy' => 'oauth',
+        'mcp_url' => 'https://mcp.sentry.dev/mcp',
+    ],
+
+    'fireflies' => [
+        'slug' => 'fireflies',
+        'name' => 'Fireflies',
+        'description' => 'Search meeting transcripts, summaries, and action items from Fireflies.ai.',
+        'category' => 'Productivity',
+        'icon' => 'fireflies',
+        'brand_color' => 'FF6B00',
+        'logo_url' => '/images/logos/connectors/fireflies.svg',
+        'priority' => 85,
+        // Fireflies authenticates with a Bearer API key (Fireflies → Settings →
+        // Developer Settings). Fixed endpoint, so no user-supplied URL.
+        'auth_strategy' => 'token',
+        'mcp_url' => 'https://api.fireflies.ai/mcp',
+        'auth_type' => 'bearer',
+        'token_label' => 'Fireflies API key',
+        'token_help_url' => 'https://app.fireflies.ai/settings',
+        'token_placeholder' => 'Your Fireflies API key',
+    ],
+
+    'amplitude' => [
+        'slug' => 'amplitude',
+        'name' => 'Amplitude',
+        'description' => 'Query product analytics — events, charts, and cohorts — from your Amplitude project.',
+        'category' => 'Analytics',
+        'icon' => 'amplitude',
+        'brand_color' => '1E61F0',
+        'logo_url' => '/images/logos/connectors/amplitude.svg',
+        'priority' => 95,
+        // Amplitude's hosted MCP (https://mcp.amplitude.com/mcp) supports OAuth
+        // Dynamic Client Registration — no app registration needed.
+        'auth_strategy' => 'oauth',
+        'mcp_url' => 'https://mcp.amplitude.com/mcp',
+    ],
 ];

@@ -16,6 +16,16 @@ class StreamRequestData extends Data
         // for anonymous visitors and dashboard/chat senders. Stamps Session.user_id,
         // drives the per-chatter message limit, and records analytics chatter_user_id.
         public ?int $chatterUserId = null,
+        // The signed-in chatter's display name (users.name), resolved up front so
+        // buildSystemPrompt() can address them by name without a mid-stream query.
+        // Only set alongside chatterUserId; null for anonymous/owner/employee senders.
+        public ?string $chatterName = null,
+        // The authenticated user who caused this turn — ANY type (chatter, owner,
+        // teammate), or null for an anonymous visitor. Unlike chatterUserId this is
+        // not filtered to chatters and never affects billing/prompts; it exists so
+        // the governance audit attributes the action to whoever is logged in.
+        public ?int $actorUserId = null,
+        public ?string $actorName = null,
         // In Chat, when the user creates a new conversation, their message will be saved with the conversation ID.
         public bool $saveUserMessageImmediately = false,
         public bool $streamSources = false,

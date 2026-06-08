@@ -65,6 +65,9 @@ return [
         'image/svg+xml', // svg
         'image/tiff', // tiff
         'image/webp', // webp
+        'image/avif', // avif
+        'image/heic', // heic
+        'image/heif', // heif
     ],
     'spreadsheets' => [
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
@@ -86,5 +89,22 @@ return [
     ],
     'markdown' => [
         'text/markdown', // md
+    ],
+
+    /*
+     * Extensions Mistral OCR can parse natively (sent to the OCR API as-is).
+     * Keyed by how we page-count the file at upload time — MIME is unreliable
+     * for the exotic text formats (.tex/.bib/.opml → text/plain, .fb2 → xml,
+     * .ipynb → json), so validation/routing/metering key off the extension.
+     *
+     *   image  → Mistral image_url; counts as 1 page.
+     *   office → LibreOffice → PDF → pdfinfo (exact page count). pdf is here
+     *            for routing convenience; FileAnalyzer skips its LibreOffice hop.
+     *   pandoc → no LibreOffice/LaTeX path; estimate pages from extracted text.
+     */
+    'ocr' => [
+        'image' => ['jpg', 'jpeg', 'png', 'avif', 'tiff', 'tif', 'gif', 'heic', 'heif', 'bmp', 'webp'],
+        'office' => ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'csv', 'odt', 'ods', 'odp', 'rtf', 'txt', 'html', 'htm', 'md', 'markdown'],
+        'pandoc' => ['epub', 'fb2', 'ipynb', 'xml', 'tex', 'bib', 'opml', '1', 'man'],
     ],
 ];

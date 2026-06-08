@@ -5,6 +5,7 @@ use App\Http\Controllers\Settings\Account\DataExportController;
 use App\Http\Controllers\Settings\Account\DeleteAccountController;
 use App\Http\Controllers\Settings\Account\PasskeyController;
 use App\Http\Controllers\Settings\Account\PasswordController;
+use App\Http\Controllers\Settings\Account\PreferencesController;
 use App\Http\Controllers\Settings\Account\ProfileController;
 use App\Http\Controllers\Settings\Account\SocialController;
 use App\Http\Controllers\Settings\Account\TwoFactorController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Settings\Connector\Provisioning\RefreshConnectorControl
 use App\Http\Controllers\Settings\Function\FunctionAgentController;
 use App\Http\Controllers\Settings\Function\FunctionController;
 use App\Http\Controllers\Settings\Function\ToggleFunctionController;
+use App\Http\Controllers\Settings\Governance\GovernanceAuditController;
 use App\Http\Controllers\Settings\Member\SettingsMemberController;
 use App\Http\Controllers\Settings\Prompt\PromptController;
 use App\Http\Controllers\Settings\Usage\SettingsUsageController;
@@ -42,7 +44,6 @@ use App\Http\Controllers\Team\Switching\TeamListController;
 use App\Http\Controllers\Team\Switching\TeamSwitchController;
 use App\Http\Middleware\Auth\DenyIfEmployee;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::redirect('settings', '/settings/profile');
@@ -142,6 +143,12 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
 
     Route::get('settings/usage', SettingsUsageController::class)->name('settings.usage');
 
+    // Governance — the tool-call audit log (Governed MCP Gateway). Read-only;
+    // gated by the new account.governance team permission.
+    Route::middleware('team.permission:account.governance')->group(function (): void {
+        Route::get('settings/governance', GovernanceAuditController::class)->name('settings.governance');
+    });
+
     // Workspace-level chat members (chatters) — list, fetch the agents one
     // member can access (toggle attach/detach from the detail sheet), send a
     // password-reset link, or remove a chatter outright. All gated by
@@ -165,9 +172,9 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
             ->name('settings.members.agents.detach');
     });
 
-    Route::get('settings/appearance', function () {
-        return Inertia::render('settings/Appearance');
-    })->name('appearance');
+    // Date & time preference — its form lives on the Profile page (merged from
+    // the former standalone Preferences page), so only the write endpoint remains.
+    Route::patch('settings/preferences', [PreferencesController::class, 'update'])->name('settings.preferences.update');
 
     // Team switching and list (allowed for staff)
     Route::post('my/teams/{team}/switch', TeamSwitchController::class)->name('teams.switch');

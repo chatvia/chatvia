@@ -2,6 +2,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
+import { useDateFormat } from '@/composables/useDateFormat';
 import { Link } from '@inertiajs/vue3';
 import { CalendarClock, MessageSquare, Zap } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -25,16 +26,14 @@ const hasSentimentAccess = computed(() => hasCapability('sentiment'));
 const hasToneAccess = computed(() => hasCapability('tone'));
 const hasTopicsAccess = computed(() => hasCapability('topics'));
 
-// "Aug 15, 2026" — explicit calendar date for the detail panel. The sidebar
-// shows the relative form ("in 5 months"); here the user is reading the
-// conversation in depth so the exact date is more useful.
+// Explicit calendar date for the detail panel, in the user's chosen format
+// (Settings → Date & time). The sidebar shows the relative form ("in 5
+// months"); here the user is reading the conversation in depth so the exact
+// date is more useful.
+const { formatDate } = useDateFormat();
+
 function formatExpiresOn(iso: string | null | undefined): string {
-    if (!iso) return '';
-    return new Date(iso).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
+    return formatDate(iso);
 }
 
 function formatExpiresRelative(iso: string | null | undefined): string {

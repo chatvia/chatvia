@@ -14,8 +14,9 @@ use Throwable;
 
 /**
  * Persist a knowledge-source upload to disk, attach it to the agent, and
- * queue ingestion. Throws when the file type is not one of the supported
- * kinds (PDF / Word / audio / video) — the controller maps that to a 422.
+ * queue ingestion. Throws when the file type is not one Mistral OCR can parse
+ * (see config/mimes.php `ocr`) nor audio/video — the controller maps that to a
+ * 422.
  *
  * Body previously lived on Agent::addFile() — moved here so the model
  * carries data + relations and the orchestration (storage write, analyzer
@@ -28,8 +29,8 @@ class UploadKnowledgeSourceFileAction
         UploadedFile $file,
         SourceStatus $status = SourceStatus::Uploaded,
     ): SourceFile {
-        if (! is_pdf_file($file) && ! is_word_file($file) && ! is_audio_file($file) && ! is_video_file($file)) {
-            throw new RuntimeException('Unsupported file type. Accepted: PDF, Word, audio, video.');
+        if (! is_ocr_supported($file) && ! is_audio_file($file) && ! is_video_file($file)) {
+            throw new RuntimeException('Unsupported file type.');
         }
 
         $path = Storage::putFile(
@@ -45,7 +46,7 @@ class UploadKnowledgeSourceFileAction
                 $sourceFile = SourceFile::create([
                     'user_id' => $agent->user_id,
                     'filename' => $file->getClientOriginalName(),
-                    'filetype' => get_file_type($file->getMimeType()),
+                    'filetype' => file_category($file),
                     'filepath' => $path,
                     'size_in_kb' => round($file->getSize() / 1024),
                     'mime_type' => $file->getClientMimeType(),

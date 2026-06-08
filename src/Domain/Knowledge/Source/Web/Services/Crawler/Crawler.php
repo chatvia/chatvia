@@ -3,69 +3,39 @@
 namespace Domain\Knowledge\Source\Web\Services\Crawler;
 
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
-use Spatie\Browsershot\Browsershot;
-use Spatie\Crawler\Crawler as CrawlerSpatie;
-use Support\Browsershot\BrowsershotConfigurator;
+use Domain\Knowledge\Source\Web\Services\Firecrawl;
 
+/**
+ * Stage 1 URL discovery. Backed by FireCrawl's `/map` endpoint — it returns the
+ * site's URLs in a single cheap call instead of a headless-browser crawl. The
+ * include/exclude path globs are applied locally because `/map` has no glob
+ * filter of its own.
+ */
 final class Crawler
 {
-    private int $concurrency = 10;
+    /**
+     * Safety cap mirroring the previous headless crawler's total limit, so a
+     * sprawling sitemap can't balloon into thousands of URL rows. The UI can
+     * still pass a smaller explicit limit.
+     */
+    private const DEFAULT_LIMIT = 1000;
 
-    private int $totalCrawlLimit = 1000;
-
-    public static function create(): self
-    {
-        return new self;
-    }
-
-    public function setConcurrency(int $concurrency): self
-    {
-        $this->concurrency = $concurrency;
-
-        return $this;
-    }
-
-    public function setTotalCrawlLimit(int $limit): self
-    {
-        $this->totalCrawlLimit = $limit;
-
-        return $this;
-    }
+    public function __construct(
+        private readonly Firecrawl $firecrawl,
+    ) {}
 
     public function crawl(CrawlerData $data): array
     {
-        $queue = new CrawlerQueue;
-
-        $crawler = CrawlerSpatie::create()
-            ->setCrawlQueue($queue)
-            ->setCrawlObserver(new CrawlerObserver)
-            ->setCrawlProfile(new CrawlerProfile($data->url))
-            ->setConcurrency($this->concurrency)
-            ->setTotalCrawlLimit($this->totalCrawlLimit)
-            ->setDelayBetweenRequests($data->slow_crawling ? 1000 : 0)
-            ->setBrowsershot($this->createBrowsershot())
-//            ->executeJavaScript()
-            ->respectRobots();
-
-        if ($data->limit) {
-            $crawler = $crawler->setTotalCrawlLimit($data->limit);
-        }
-
-        $crawler->startCrawling($data->url);
-
-        $crawledLinks = array_keys($queue->getUrls());
+        $links = $this->firecrawl->map($data->url, $data->limit ?? self::DEFAULT_LIMIT);
 
         if ($data->include_paths || $data->exclude_paths) {
-            $urls = collect($this->filterUrls($crawledLinks, $data->include_paths, $data->exclude_paths));
-        } else {
-            $urls = collect($crawledLinks);
+            $links = $this->filterUrls($links, $data->include_paths, $data->exclude_paths);
         }
 
-        $urls = $urls->unique(function (string $link) {
-            return rtrim($link, '/');
-        });
-
-        return $urls->toArray();
+        return collect($links)
+            ->unique(static fn (string $link): string => rtrim($link, '/'))
+            ->values()
+            ->all();
     }
 
     private function filterUrls(array $links, ?string $includePaths = null, ?string $excludePaths = null): array
@@ -132,20 +102,5 @@ final class Crawler
 
         // Wrap in delimiters and anchors
         return '#^'.$regex.'#';
-    }
-
-    private function createBrowsershot(): Browsershot
-    {
-        $browsershot = app(BrowsershotConfigurator::class)->configure(new Browsershot);
-
-        // Add common Chrome flags for server environments
-        $browsershot->addChromiumArguments([
-            'no-sandbox',
-            'disable-setuid-sandbox',
-            'disable-dev-shm-usage',
-            'disable-gpu',
-        ]);
-
-        return $browsershot;
     }
 }

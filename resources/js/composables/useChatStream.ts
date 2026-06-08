@@ -188,6 +188,12 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
             case 'tool':
                 callbacks.onTool?.(env.data, env.id);
                 return null;
+            case 'replace':
+                // Output guardrail correction: drop any buffered (uncorrected)
+                // tail and hand the consumer the full safe text to render.
+                pacer.cancel();
+                callbacks.onReplace?.(env.data.text, env.id);
+                return null;
             case 'error':
                 pacer.cancel();
                 reportError({ code: env.data.code, message: env.data.message, retryable: env.data.retryable }, env.id, callbacks);

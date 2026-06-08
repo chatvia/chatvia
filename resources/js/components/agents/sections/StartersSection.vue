@@ -4,14 +4,21 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import HeroIcon from '@/components/ui/HeroIcon.vue';
+import IconPicker from '@/components/ui/IconPicker.vue';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Info, Plus, Search, Sparkles, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
+interface Starter {
+    text: string;
+    icon: string | null;
+}
+
 const props = withDefaults(
     defineProps<{
-        starters: string[];
+        starters: Starter[];
         // Questions mined from the agent's knowledge-base chunks. Empty when the
         // agent has no ingested sources — the picker button stays hidden.
         knowledgeQuestions?: string[];
@@ -22,19 +29,26 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-    'update:starters': [value: string[]];
+    'update:starters': [value: Starter[]];
 }>();
 
-// One editable field per starter. When the list is empty (and editable) we still
-// show a single blank field so there is always somewhere to type.
-const rows = computed(() => {
+// One editable row per starter. When the list is empty (and editable) we still
+// show a single blank row so there is always somewhere to type.
+const rows = computed<Starter[]>(() => {
     if (props.disabled) return props.starters;
-    return props.starters.length ? props.starters : [''];
+    return props.starters.length ? props.starters : [{ text: '', icon: null }];
 });
 
-const updateAt = (index: number, value: string) => {
+const updateText = (index: number, value: string) => {
     const next = [...props.starters];
-    next[index] = value;
+    next[index] = { text: value, icon: next[index]?.icon ?? null };
+    emit('update:starters', next);
+};
+
+const updateIcon = (index: number, icon: string | null) => {
+    const next = [...props.starters];
+    // Editing the icon of the (not-yet-persisted) placeholder row creates it.
+    next[index] = { text: next[index]?.text ?? '', icon };
     emit('update:starters', next);
 };
 
@@ -45,7 +59,7 @@ const removeAt = (index: number) => {
     );
 };
 
-const addRow = () => emit('update:starters', [...props.starters, '']);
+const addRow = () => emit('update:starters', [...props.starters, { text: '', icon: null }]);
 
 // ── Knowledge Base picker ────────────────────────────────────────────────
 const dialogOpen = ref(false);
@@ -53,7 +67,7 @@ const search = ref('');
 const selected = ref<string[]>([]);
 
 // A question already used as a starter can't be picked again.
-const isAdded = (q: string) => props.starters.includes(q);
+const isAdded = (q: string) => props.starters.some((s) => s.text === q);
 const isSelected = (q: string) => selected.value.includes(q);
 
 const filteredQuestions = computed(() => {
@@ -76,7 +90,7 @@ const addSelected = () => {
     if (!selected.value.length) return;
     const merged = [...props.starters];
     for (const q of selected.value) {
-        if (!merged.includes(q)) merged.push(q);
+        if (!merged.some((s) => s.text === q)) merged.push({ text: q, icon: null });
     }
     emit('update:starters', merged);
     dialogOpen.value = false;
@@ -96,7 +110,9 @@ watch(dialogOpen, (open) => {
         <div class="flex items-start justify-between gap-4">
             <div>
                 <h3 class="text-sm font-medium">Conversation Starters</h3>
-                <p class="text-muted-foreground mt-1 text-xs">Suggest questions to help users start conversations. One question per line.</p>
+                <p class="text-muted-foreground mt-1 text-xs">
+                    Suggest questions to help users start conversations. Each can carry an optional icon.
+                </p>
             </div>
 
             <Button
@@ -114,12 +130,18 @@ watch(dialogOpen, (open) => {
 
         <div class="space-y-2">
             <div v-for="(starter, index) in rows" :key="index" class="flex items-center gap-2">
+                <!-- Icon: editable picker, or a static glyph in read-only mode. -->
+                <IconPicker v-if="!disabled" :model-value="starter.icon" @update:model-value="updateIcon(index, $event)" />
+                <span v-else-if="starter.icon" class="text-muted-foreground flex h-9 w-9 shrink-0 items-center justify-center">
+                    <HeroIcon :name="starter.icon" class="h-4 w-4" />
+                </span>
+
                 <Input
-                    :model-value="starter"
+                    :model-value="starter.text"
                     :disabled="disabled"
                     :placeholder="index === 0 ? 'E.g., How can I track my order?' : 'Add another conversation starter'"
                     class="flex-1"
-                    @update:model-value="updateAt(index, String($event ?? ''))"
+                    @update:model-value="updateText(index, String($event ?? ''))"
                     @keydown.enter.prevent="addRow"
                 />
                 <Button

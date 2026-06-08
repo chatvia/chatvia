@@ -45,6 +45,23 @@ it('posts the expected OCR envelope with bearer auth', function (): void {
     });
 });
 
+it('sends images under image_url instead of document_url', function (): void {
+    Http::fake([
+        'api.mistral.ai/v1/ocr' => Http::response(ocrResponse([
+            'index' => 0,
+            'markdown' => 'text on the image',
+            'images' => [],
+            'tables' => [],
+        ]), 200),
+    ]);
+
+    app(MistralOCR::class)->fromUrl('https://files.test/scan.png', isImage: true);
+
+    Http::assertSent(function (Request $request): bool {
+        return $request['document'] === ['type' => 'image_url', 'image_url' => 'https://files.test/scan.png'];
+    });
+});
+
 it('maps an OCR page to PageData with stripped content, checksum, images, tables, hyperlinks', function (): void {
     Http::fake([
         'api.mistral.ai/v1/ocr' => Http::response(ocrResponse([

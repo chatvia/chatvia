@@ -35,6 +35,10 @@ defineEmits<{
                     placeholder="Chat with our AI Assistant"
                     :disabled="disabled"
                     class="pl-9"
+                    autocomplete="off"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    data-form-type="other"
                     @update:model-value="$emit('update:chatWindowTitle', String($event))"
                 />
             </div>
@@ -53,6 +57,10 @@ defineEmits<{
                     placeholder="Hi there! How can I help you today?"
                     :disabled="disabled"
                     class="pl-9"
+                    autocomplete="off"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    data-form-type="other"
                     @update:model-value="$emit('update:welcomeMessage', String($event))"
                 />
             </div>
@@ -71,6 +79,10 @@ defineEmits<{
                     placeholder="Ask anything..."
                     :disabled="disabled"
                     class="pl-9"
+                    autocomplete="off"
+                    data-1p-ignore
+                    data-lpignore="true"
+                    data-form-type="other"
                     @update:model-value="$emit('update:composerPlaceholder', String($event))"
                 />
             </div>

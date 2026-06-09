@@ -22,7 +22,14 @@ return [
         'logo_url' => '/images/logos/connectors/web-search.svg',
         'provider' => 'chatvia',
         'priority' => 5,
-        'auth_strategy' => 'none',
+        // We host the MCP server but never pay for the upstream search — the
+        // customer supplies their own Mistral API key, sent to /mcp/web-search
+        // as a Bearer token and read back by WebSearchTool.
+        'auth_strategy' => 'token',
+        'auth_type' => 'bearer',
+        'token_label' => 'Mistral API key',
+        'token_help_url' => 'https://console.mistral.ai/api-keys',
+        'token_placeholder' => 'Your Mistral API key',
         'mcp_url' => env('APP_URL').'/mcp/web-search',
     ],
 
@@ -36,7 +43,13 @@ return [
         'logo_url' => '/images/logos/connectors/weather.svg',
         'provider' => 'chatvia',
         'priority' => 10,
-        'auth_strategy' => 'none',
+        // Customer supplies their own OpenWeatherMap API key — sent to
+        // /mcp/weather as a Bearer token and read back by CurrentWeatherTool.
+        'auth_strategy' => 'token',
+        'auth_type' => 'bearer',
+        'token_label' => 'OpenWeatherMap API key',
+        'token_help_url' => 'https://home.openweathermap.org/api_keys',
+        'token_placeholder' => 'Your OpenWeatherMap API key',
         'mcp_url' => env('APP_URL').'/mcp/weather',
     ],
 
@@ -50,7 +63,13 @@ return [
         'logo_url' => '/images/logos/connectors/currency-convertor.svg',
         'provider' => 'chatvia',
         'priority' => 20,
-        'auth_strategy' => 'none',
+        // Customer supplies their own ExchangeRate-API key — sent to
+        // /mcp/currency as a Bearer token and read back by ExchangeRateTool.
+        'auth_strategy' => 'token',
+        'auth_type' => 'bearer',
+        'token_label' => 'ExchangeRate-API key',
+        'token_help_url' => 'https://app.exchangerate-api.com/dashboard',
+        'token_placeholder' => 'Your ExchangeRate-API key',
         'mcp_url' => env('APP_URL').'/mcp/currency',
     ],
 
@@ -333,6 +352,31 @@ return [
         'oauth_authorization_endpoint' => 'https://app.hubspot.com/oauth/authorize',
         'oauth_token_endpoint' => 'https://api.hubapi.com/oauth/v1/token',
         'oauth_scopes' => 'crm.objects.contacts.read crm.objects.companies.read crm.objects.deals.read tickets',
+    ],
+
+    'salesforce' => [
+        'slug' => 'salesforce',
+        'name' => 'Salesforce',
+        'description' => 'Read and update accounts, contacts, opportunities, and cases from your Salesforce org.',
+        'category' => 'Sales',
+        'icon' => 'salesforce',
+        'brand_color' => '00A1E0',
+        'logo_url' => '/images/logos/connectors/salesforce.svg',
+        'priority' => 48,
+        // Salesforce Hosted MCP Servers (GA Apr 2026) authenticate with OAuth 2.0
+        // + PKCE, but the client is PER-ORG: each workspace creates its own
+        // External Client App (Consumer Key) and there is no Dynamic Client
+        // Registration — so no single global app to bake in like GitHub/HubSpot.
+        // `requires_client_id` routes connect through a modal that collects the
+        // workspace's Consumer Key + org environment + MCP server; the OAuth
+        // endpoints and the MCP URL (api.salesforce.com/platform/mcp/v1/...) are
+        // derived from those choices in SalesforceConnectController. mcp_api +
+        // refresh_token (offline) scopes are required for a durable refresh token.
+        'auth_strategy' => 'oauth',
+        'requires_client_id' => true,
+        'mcp_url' => '',
+        'oauth_scopes' => 'mcp_api refresh_token',
+        'token_help_url' => 'https://developer.salesforce.com/docs/platform/hosted-mcp-servers/guide/create-external-client-app.html',
     ],
 
     'box' => [

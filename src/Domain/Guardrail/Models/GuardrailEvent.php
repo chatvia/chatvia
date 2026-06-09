@@ -38,8 +38,6 @@ class GuardrailEvent extends Model
     /** Insert-only audit log. */
     public const UPDATED_AT = null;
 
-    protected $table = 'guardrail_events';
-
     protected $guarded = ['id'];
 
     protected $casts = [

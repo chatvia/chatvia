@@ -164,6 +164,10 @@ onMounted(() => {
                                 :disabled="!canCreateAnyAgent"
                                 class="pl-9"
                                 placeholder="E.g., Customer Support"
+                                autocomplete="off"
+                                data-1p-ignore
+                                data-lpignore="true"
+                                data-form-type="other"
                             />
                         </div>
                         <p v-if="form.errors.name" class="text-destructive text-sm">{{ form.errors.name }}</p>

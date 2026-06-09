@@ -20,6 +20,12 @@ export type StreamErrorCode =
 export interface StreamStartData {
     assistant_message_id: string;
     user_message_id: string | null;
+    /**
+     * The persisted user message, PII-masked by the input guardrail. Present on
+     * live turns so the client can swap the raw text it rendered optimistically.
+     * Absent on replay (the stored message is already masked).
+     */
+    user_message?: string | null;
     request_id: string | null;
     language: string | null;
     replayed: boolean;

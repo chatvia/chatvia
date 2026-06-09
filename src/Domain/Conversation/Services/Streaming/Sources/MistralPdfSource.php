@@ -65,6 +65,7 @@ class MistralPdfSource
         yield StreamEvent::start($assistantId, [
             'assistant_message_id' => $assistantId,
             'user_message_id' => $context->userMessageId,
+            'user_message' => $context->payload->message,
             'request_id' => $context->requestData->requestId,
             'language' => $context->queryLanguage,
             'replayed' => false,

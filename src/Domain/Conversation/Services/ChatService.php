@@ -64,18 +64,25 @@ readonly class ChatService
         // (no LLM call, no credit) — see ChatStreamService.
         $guard = $this->guardrails->inspectInput($data->agent, $data->message->message);
 
+        // The guarded text has PII masked (identical to the original when there's
+        // no PII). It becomes BOTH what we persist/display AND — when PII was
+        // found — what the LLM sees, so a raw identifier never lands in the
+        // stored record, the chat log, the replayed history, or the model
+        // context. This honours the "mask … in the message" guarantee. Without
+        // PII we still send the rewritten query for better retrieval.
+        //
         // PDFs are delivered to the model as `document_url` chunks by
-        // MistralPdfSource, so the visible user content stays clean. When input
-        // PII was redacted, the LLM gets the masked text instead of the rewritten
-        // query.
-        $messageForLlm = ($guard->text !== $data->message->message && ! $guard->blocked) ? $guard->text : $query;
+        // MistralPdfSource, so the visible user content stays clean.
+        $storedMessage = $guard->text;
+        $piiRedacted = $storedMessage !== $data->message->message;
+        $messageForLlm = $piiRedacted ? $storedMessage : $query;
 
         $payload = ChatInputPayload::from([
             'external_session_id' => $data->externalSessionId,
             'external_conversation_id' => $data->conversationId,
             'external_message_id' => $userMessageId,
             'model' => $data->message->model->external_name,
-            'message' => $data->message->message,
+            'message' => $storedMessage,
             'sent_at' => $data->message->createdAt ? Carbon::parse($data->message->createdAt) : now(),
             'updated_message_info' => [],
             'message_for_llm' => $messageForLlm,
@@ -106,8 +113,10 @@ readonly class ChatService
             // doesn't exist anywhere — breaking regenerate/edit later when
             // the client sends that stale id back to the server.
             $cachedMessages = $this->memory->getMessagesForConversation();
+            // CreateConversationAction persists the first user message already
+            // masked, so match on the masked text — not the raw original.
             $existingUserMessage = collect($cachedMessages)
-                ->last(fn (array $message): bool => $message['role'] === 'user' && $message['content'] === $data->message->message);
+                ->last(fn (array $message): bool => $message['role'] === 'user' && $message['content'] === $storedMessage);
 
             if ($existingUserMessage) {
                 $userMessageId = $existingUserMessage['id'];
@@ -125,10 +134,12 @@ readonly class ChatService
         );
 
         // Carry the block decision to ChatStreamService, and log every input
-        // verdict (PII redaction / injection block / topic / toxicity).
+        // verdict (PII redaction / injection block / topic / toxicity). Record
+        // the masked text, never the raw message — the audit snippet must not
+        // itself become a PII sink.
         $context->guardBlocked = $guard->blocked;
         $context->guardRefusal = $guard->refusalMessage;
-        $this->guardrailRecorder->record($context, $data->message->message, $guard);
+        $this->guardrailRecorder->record($context, $storedMessage, $guard);
 
         return $context;
     }

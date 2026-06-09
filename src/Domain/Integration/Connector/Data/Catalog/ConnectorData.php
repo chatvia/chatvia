@@ -32,6 +32,11 @@ class ConnectorData extends Data
         // for services without a first-party hosted MCP server (e.g. Zendesk).
         public bool $requiresUrl = false,
         public bool $comingSoon = false,
+        // When true, this is an OAuth connector whose client is registered
+        // per-workspace (no global app / no DCR) — the workspace supplies its
+        // own client_id at connect time (e.g. Salesforce External Client App).
+        // Drives a "configure OAuth client" modal instead of a direct redirect.
+        public bool $requiresClientId = false,
         // Pre-registered OAuth (services that don't support RFC 7591 DCR —
         // GitHub, Slack, Microsoft, …). All null when DCR is used.
         public ?string $oauthClientId = null,
@@ -75,6 +80,7 @@ class ConnectorData extends Data
             tokenPlaceholder: $entry['token_placeholder'] ?? null,
             requiresUrl: (bool) ($entry['requires_url'] ?? false),
             comingSoon: (bool) ($entry['coming_soon'] ?? false),
+            requiresClientId: (bool) ($entry['requires_client_id'] ?? false),
             oauthClientId: $entry['oauth_client_id'] ?? null,
             oauthClientSecret: $entry['oauth_client_secret'] ?? null,
             oauthAuthorizationEndpoint: $entry['oauth_authorization_endpoint'] ?? null,

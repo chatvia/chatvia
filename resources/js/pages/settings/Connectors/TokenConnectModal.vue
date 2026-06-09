@@ -96,12 +96,13 @@ async function submit(): Promise<void> {
                         v-model="serverUrl"
                         type="url"
                         autocomplete="off"
-                        placeholder="https://your-zendesk-mcp.example.com/mcp"
+                        :placeholder="`https://your-${connector.slug}-mcp.example.com/mcp`"
                         :disabled="saving"
                         required
                     />
                     <p class="text-muted-foreground text-xs">
-                        Zendesk has no hosted MCP server — paste the URL of your own (self-hosted or partner-managed) Zendesk MCP server.
+                        {{ connector.name }} has no hosted MCP server — paste the URL of your own (self-hosted or partner-managed)
+                        {{ connector.name }} MCP server.
                     </p>
                 </div>
 

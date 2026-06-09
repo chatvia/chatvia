@@ -18,6 +18,7 @@ use App\Http\Controllers\Settings\Connector\Manage\ToggleConnectorController;
 use App\Http\Controllers\Settings\Connector\Provisioning\CustomAddController;
 use App\Http\Controllers\Settings\Connector\Provisioning\OAuthStartController;
 use App\Http\Controllers\Settings\Connector\Provisioning\RefreshConnectorController;
+use App\Http\Controllers\Settings\Connector\Provisioning\SalesforceConnectController;
 use App\Http\Controllers\Settings\Function\FunctionAgentController;
 use App\Http\Controllers\Settings\Function\FunctionController;
 use App\Http\Controllers\Settings\Function\ToggleFunctionController;
@@ -105,6 +106,7 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::get('settings/connectors/data', [ConnectorController::class, 'index'])->name('settings.connectors.data');
     Route::post('settings/connectors/{slug}/connect', ConnectController::class)->name('settings.connectors.connect');
     Route::get('settings/connectors/{slug}/oauth/start', OAuthStartController::class)->name('settings.connectors.oauth.start');
+    Route::post('settings/connectors/salesforce/connect', SalesforceConnectController::class)->name('settings.connectors.salesforce.connect');
     Route::post('settings/connectors/custom/add', CustomAddController::class)->name('settings.connectors.custom.add');
     Route::post('settings/connectors/{slug}/enable', ToggleConnectorController::class)->name('settings.connectors.enable');
     Route::delete('settings/connectors/{slug}', [ConnectorController::class, 'destroy'])->name('settings.connectors.destroy');

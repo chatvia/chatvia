@@ -44,6 +44,12 @@ return new class extends Migration
             $table->text('oauth_refresh_token')->nullable();
             $table->timestamp('oauth_expires_at')->nullable();
             $table->string('oauth_scopes', 255)->nullable();
+            // Per-workspace OAuth client (bring-your-own apps, e.g. Salesforce
+            // External Client App). Stored on the row — not the shared,
+            // auth-server-keyed connector_oauth_clients table — so each workspace
+            // keeps its own client_id and background refresh can recover it.
+            $table->text('oauth_client_id')->nullable();
+            $table->text('oauth_client_secret')->nullable();
 
             $table->timestamps();
 

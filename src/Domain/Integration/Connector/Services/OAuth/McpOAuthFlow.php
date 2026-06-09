@@ -4,6 +4,7 @@ namespace Domain\Integration\Connector\Services\OAuth;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
+use Domain\Integration\Connector\Data\OAuth\BringYourOwnOAuthData;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpCatalog;
@@ -69,6 +70,50 @@ class McpOAuthFlow
             customSlug: $slug,
             connector: null,
         );
+    }
+
+    /**
+     * Kick off the authorize redirect for a connector whose OAuth client is
+     * registered per-workspace (no global app / no DCR — e.g. Salesforce). The
+     * caller has already resolved the workspace's client_id + concrete endpoints
+     * + MCP URL, so we skip discovery and the registrar entirely and drive PKCE
+     * straight off the supplied values. The client_id/secret ride through the
+     * pending state and are persisted on the server row in complete() so the
+     * background refresh can recover them.
+     */
+    public function beginWithClient(User $user, ConnectorData $connector, BringYourOwnOAuthData $byo): string
+    {
+        $codeVerifier = $this->generateCodeVerifier();
+        $codeChallenge = $this->codeChallengeFor($codeVerifier);
+        $state = Str::random(48);
+
+        $pending = new PendingOAuthState(
+            userId: $user->id,
+            connectorSlug: $connector->slug,
+            authServerUrl: $byo->authServerUrl,
+            tokenEndpoint: $byo->tokenEndpoint,
+            clientId: $byo->clientId,
+            codeVerifier: $codeVerifier,
+            mcpUrl: $byo->mcpUrl,
+            clientSecret: $byo->clientSecret,
+            scopes: $connector->oauthScopes,
+        );
+
+        $this->stateStore()->put($this->stateKey($state), $pending->toArray(), self::STATE_TTL_SECONDS);
+
+        $authorizeParams = [
+            'response_type' => 'code',
+            'client_id' => $byo->clientId,
+            'redirect_uri' => $this->registrar->redirectUri(),
+            'code_challenge' => $codeChallenge,
+            'code_challenge_method' => 'S256',
+            'state' => $state,
+        ];
+        if ($connector->oauthScopes) {
+            $authorizeParams['scope'] = $connector->oauthScopes;
+        }
+
+        return $this->buildAuthorizeUrl($byo->authorizationEndpoint, $authorizeParams);
     }
 
     private function beginCommon(
@@ -179,6 +224,11 @@ class McpOAuthFlow
                 'last_error' => null,
                 'oauth_authorization_server' => $pending->authServerUrl,
                 'oauth_token_endpoint' => $pending->tokenEndpoint,
+                // Keep the client used for this connection on the row so the
+                // background refresh can recover it without the shared,
+                // auth-server-keyed registry (which can't hold per-org clients).
+                'oauth_client_id' => $pending->clientId,
+                'oauth_client_secret' => $pending->clientSecret,
                 'oauth_refresh_token' => $tokens['refresh_token'] ?? null,
                 'oauth_expires_at' => isset($tokens['expires_in'])
                     ? now()->addSeconds((int) $tokens['expires_in'])
@@ -326,6 +376,20 @@ class McpOAuthFlow
      */
     private function clientForServer(AgentMcpServer $server): ConnectorOAuthClient
     {
+        // Prefer a client stored directly on the row (per-workspace BYO clients,
+        // and anything connected after that column was added) over the shared
+        // auth-server-keyed registry — which cannot represent per-org client_ids.
+        if ($server->oauth_client_id) {
+            $client = new ConnectorOAuthClient;
+            $client->client_id = (string) $server->oauth_client_id;
+            $client->client_secret = $server->oauth_client_secret;
+            $client->token_endpoint = (string) $server->oauth_token_endpoint;
+            $client->authorization_endpoint = '';
+            $client->auth_server_url = (string) $server->oauth_authorization_server;
+
+            return $client; // transient — only client_id/secret are read for refresh
+        }
+
         $client = $this->registrar->findByAuthServer((string) $server->oauth_authorization_server);
 
         if (! $client) {

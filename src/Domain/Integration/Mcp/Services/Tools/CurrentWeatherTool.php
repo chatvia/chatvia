@@ -3,6 +3,7 @@
 namespace Domain\Integration\Mcp\Services\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Http;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -33,10 +34,13 @@ class CurrentWeatherTool extends Tool
         ]);
 
         $units = $validated['units'] ?? 'metric';
-        $apiKey = config('services.openweather.key');
+
+        // The customer supplies their own OpenWeatherMap key when they connect
+        // this connector; McpClient forwards it as a Bearer token.
+        $apiKey = app(HttpRequest::class)->bearerToken();
 
         if (! $apiKey) {
-            return Response::error('OpenWeatherMap API key is not configured on the server.');
+            return Response::error('No OpenWeatherMap API key was provided. Reconnect the Weather connector with a valid key.');
         }
 
         $response = Http::timeout(10)->get('https://api.openweathermap.org/data/2.5/weather', [

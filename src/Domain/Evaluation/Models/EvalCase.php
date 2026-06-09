@@ -23,8 +23,6 @@ class EvalCase extends Model
 {
     use HasExternalId;
 
-    protected $table = 'eval_cases';
-
     protected $guarded = ['id'];
 
     protected $casts = [

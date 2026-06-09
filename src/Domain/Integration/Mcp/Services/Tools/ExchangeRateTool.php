@@ -3,6 +3,7 @@
 namespace Domain\Integration\Mcp\Services\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Laravel\Mcp\Request;
@@ -39,12 +40,15 @@ class ExchangeRateTool extends Tool
         $from = strtoupper($validated['from'] ?? 'USD');
         $amount = (float) ($validated['amount'] ?? 1);
 
-        $apiKey = config('services.exchange_rate.key');
+        // The customer supplies their own ExchangeRate-API key when they connect
+        // this connector; McpClient forwards it as a Bearer token.
+        $apiKey = app(HttpRequest::class)->bearerToken();
         if (! $apiKey) {
-            return Response::error('Exchange-rate API key is not configured on the server.');
+            return Response::error('No ExchangeRate-API key was provided. Reconnect the Currency Converter connector with a valid key.');
         }
 
-        // Rates change once daily — cache by base currency for an hour.
+        // Rates change once daily and are identical for every key, so cache the
+        // USD base table for an hour, shared across customers.
         $rates = Cache::remember(
             'exchange_rates:USD',
             now()->addHour(),

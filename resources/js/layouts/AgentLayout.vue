@@ -48,6 +48,7 @@ import {
     MessageSquare,
     Pencil,
     Plug,
+    Send,
     ShieldCheck,
     SmilePlus,
     Trash2,
@@ -129,6 +130,13 @@ const uiNavigationItems = computed(() => {
             icon: Code,
             route: 'agents.setup',
             tooltip: 'Configure your agent — applies across every surface',
+        });
+        baseItems.push({
+            id: 'channels',
+            label: 'Channels',
+            icon: Send,
+            route: 'agents.channels',
+            tooltip: 'Deploy your agent — website, widget, and Telegram',
         });
     }
 

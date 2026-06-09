@@ -1,18 +1,16 @@
 name: Tests
 
-# Workflow disabled - uncomment 'on:' section below to re-enable
-# on:
-#   push:
-#     branches:
-#       - main
-#       - develop
-#   pull_request:
-#     branches:
-#       - main
-#       - develop
-#   workflow_call:
-
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_call:
+  workflow_dispatch:
 
 jobs:
   tests:

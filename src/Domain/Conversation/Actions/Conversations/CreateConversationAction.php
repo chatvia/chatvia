@@ -9,6 +9,7 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Memory\TurnState;
+use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Operations\Query\QueryRewriter;
 use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Str;
@@ -20,6 +21,7 @@ class CreateConversationAction
         private readonly TurnState $session,
         private readonly QueryRewriter $queryRewriter,
         private readonly TokenUsageContext $usage,
+        private readonly GuardrailService $guardrails,
     ) {}
 
     public function execute(CreateConversationData $data): string
@@ -39,14 +41,20 @@ class CreateConversationAction
             ->withContext($data->agent, $sessionId)
             ->createConversation(title: 'New Chat', source: ConversationSource::HostedChat);
 
+        // Mask PII before it is persisted so the stored message and the replayed
+        // history never hold a raw identifier — the streaming path masks the same
+        // text identically, so the first-turn reuse-match in ChatService still
+        // lines up. No classifier call here; blocking is handled in streaming.
+        $storedMessage = $this->guardrails->redactPii($data->agent, $data->message);
+
         $payload = ChatInputPayload::from([
             'external_session_id' => $sessionId,
             'external_conversation_id' => $conversationId,
             'external_message_id' => Str::uuid()->toString(),
             'model' => $data->agent->llm?->external_name ?? 'unknown',
-            'message' => $data->message,
+            'message' => $storedMessage,
             'sent_at' => now(),
-            'message_for_llm' => $query,
+            'message_for_llm' => $this->guardrails->redactPii($data->agent, $query),
             'user_id' => $data->chatterUserId,
             'language' => $lang,
             'ip_address' => $data->ipAddress,

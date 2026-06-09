@@ -89,6 +89,7 @@ class AgentMcpServer extends Model
             'headers' => 'encrypted:array',
             'auth_value' => 'encrypted',
             'oauth_refresh_token' => 'encrypted',
+            'oauth_client_secret' => 'encrypted',
             'is_enabled' => 'boolean',
             'timeout_ms' => 'int',
             'catalog_tools_count' => 'int',

@@ -5,6 +5,7 @@ use Domain\Guardrail\Data\ClassifierVerdictData;
 use Domain\Guardrail\Enums\GuardOutcome;
 use Domain\Guardrail\Enums\GuardStage;
 use Domain\Guardrail\Enums\GuardType;
+use Domain\Guardrail\Enums\PiiFilterType;
 use Domain\Guardrail\Services\Detectors\PiiDetector;
 use Domain\Guardrail\Services\GuardrailClassifier;
 use Domain\Guardrail\Services\GuardrailService;
@@ -19,7 +20,7 @@ function guardAgent(array $overrides = []): Agent
 {
     $settings = array_merge([
         'enabled' => true,
-        'pii' => true,
+        'filters' => PiiFilterType::defaults(),
         'injection' => true,
         'toxicity' => true,
         'blocked_topics' => [],
@@ -53,10 +54,32 @@ it('redacts PII in the input without blocking', function (): void {
     $result = guardService()->inspectInput(guardAgent(), 'Email me at a@b.com');
 
     expect($result->blocked)->toBeFalse()
-        ->and($result->text)->toBe('Email me at [redacted-email]')
+        ->and($result->text)->toBe('Email me at [EMAIL_1]')
         ->and($result->verdicts)->toHaveCount(1)
         ->and($result->verdicts[0]->guardType)->toBe(GuardType::Pii)
         ->and($result->verdicts[0]->outcome)->toBe(GuardOutcome::Redacted);
+});
+
+it('masks PII for the stored record via redactPii without a classifier call', function (): void {
+    // Strict classifier: redactPii must mask via regex only — no LLM call.
+    $classifier = Mockery::mock(GuardrailClassifier::class);
+    $classifier->shouldNotReceive('classify');
+    $service = new GuardrailService(new PiiDetector, $classifier);
+
+    expect($service->redactPii(guardAgent(), 'Email me at a@b.com'))
+        ->toBe('Email me at [EMAIL_1]');
+});
+
+it('leaves the stored text untouched when guards are off or no filters are selected', function (): void {
+    expect(guardService()->redactPii(guardAgent(['enabled' => false]), 'a@b.com'))->toBe('a@b.com')
+        ->and(guardService()->redactPii(guardAgent(['filters' => []]), 'a@b.com'))->toBe('a@b.com');
+});
+
+it('only masks the PII types whose filters are enabled', function (): void {
+    // US SSN filter on, email filter off → email survives, SSN is masked.
+    $result = guardService()->inspectInput(guardAgent(['filters' => ['us_ssn']]), 'a@b.com SSN 123-45-6789');
+
+    expect($result->text)->toBe('a@b.com SSN [US_SSN_1]');
 });
 
 it('blocks the turn on a prompt-injection input', function (): void {
@@ -89,14 +112,14 @@ it('flags but does not block low-severity toxic input', function (): void {
 it('redacts PII in the agent answer', function (): void {
     $result = guardService()->inspectOutput(guardAgent(['toxicity' => false]), 'Sure — reach billing at billing@acme.com.');
 
-    expect($result->text)->toContain('[redacted-email]')
+    expect($result->text)->toContain('[EMAIL_1]')
         ->and($result->verdicts[0]->stage)->toBe(GuardStage::Output)
         ->and($result->verdicts[0]->outcome)->toBe(GuardOutcome::Redacted);
 });
 
 it('replaces a toxic answer with the refusal', function (): void {
     $verdict = new ClassifierVerdictData(toxic: true, toxicitySeverity: 'high', toxicityCategories: ['hate']);
-    $result = guardService($verdict)->inspectOutput(guardAgent(['pii' => false]), 'something toxic');
+    $result = guardService($verdict)->inspectOutput(guardAgent(['filters' => []]), 'something toxic');
 
     expect($result->blocked)->toBeTrue()
         ->and($result->text)->toBe('I can’t help with that.')

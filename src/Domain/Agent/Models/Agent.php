@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\QueryBuilders\AgentQueryBuilder;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
+use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Topic\Models\Topic;
@@ -446,6 +447,16 @@ class Agent extends Model
     public function leads(): HasMany
     {
         return $this->hasMany(Lead::class);
+    }
+
+    /**
+     * The agent's Telegram channel (bot), if connected. One bot per agent.
+     *
+     * @return HasOne<AgentTelegramBot, $this>
+     */
+    public function telegramBot(): HasOne
+    {
+        return $this->hasOne(AgentTelegramBot::class);
     }
 
     /**

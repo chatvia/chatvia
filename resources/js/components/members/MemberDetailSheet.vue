@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useAgentAttachments } from '@/composables/useAgentAttachments';
 import axios from 'axios';
-import { Check, Copy, KeyRound, LoaderCircle, Trash2, Users, X } from 'lucide-vue-next';
+import { Bot, Check, Copy, Gauge, KeyRound, LoaderCircle, Power, Trash2, Users, Wrench, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -178,10 +178,10 @@ const copyId = async () => {
 
             <Tabs default-value="limits" class="px-6 py-6">
                 <TabsList class="grid w-full grid-cols-4">
-                    <TabsTrigger value="limits">Limits</TabsTrigger>
-                    <TabsTrigger value="agents">Agents</TabsTrigger>
-                    <TabsTrigger value="status">Status</TabsTrigger>
-                    <TabsTrigger value="actions">Actions</TabsTrigger>
+                    <TabsTrigger value="limits"><Gauge class="mr-1.5 size-3.5" />Limits</TabsTrigger>
+                    <TabsTrigger value="agents"><Bot class="mr-1.5 size-3.5" />Agents</TabsTrigger>
+                    <TabsTrigger value="status"><Power class="mr-1.5 size-3.5" />Status</TabsTrigger>
+                    <TabsTrigger value="actions"><Wrench class="mr-1.5 size-3.5" />Actions</TabsTrigger>
                 </TabsList>
 
                 <!-- LIMITS — monthly message cap -->
@@ -194,7 +194,15 @@ const copyId = async () => {
                             </p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <Input v-model="messagesLimit" type="number" min="1" placeholder="No limit" class="w-40" />
+                            <div class="relative w-40 shrink-0">
+                                <Gauge class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                                <Input v-model="messagesLimit" type="number" min="1" placeholder="No limit" class="pl-9" />
+                            </div>
+                            <Button :disabled="isSaving" @click="save">
+                                <LoaderCircle v-if="isSaving" class="mr-2 size-4 animate-spin" />
+                                <Check v-else class="mr-2 size-4" />
+                                Save
+                            </Button>
                             <Button
                                 v-if="member.messages_limit !== null"
                                 variant="ghost"
@@ -211,11 +219,6 @@ const copyId = async () => {
                             {{ member.messages_used }} of {{ member.messages_limit }} used this month.
                         </p>
                     </div>
-
-                    <Button :disabled="isSaving" @click="save">
-                        <LoaderCircle v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
-                        Save changes
-                    </Button>
                 </TabsContent>
 
                 <!-- AGENTS — grant / revoke access -->

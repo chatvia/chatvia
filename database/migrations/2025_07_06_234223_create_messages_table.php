@@ -62,7 +62,7 @@ return new class extends Migration
             $table->foreignId('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
             $table->foreignIdFor(Language::class)->nullable()->index()->constrained()->nullOnDelete();
 
-            $table->enum('source', ['hosted_chat', 'widget', 'bar']);
+            $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram']);
             $table->boolean('is_visible')->default(false);
             $table->string('title')->nullable();
 

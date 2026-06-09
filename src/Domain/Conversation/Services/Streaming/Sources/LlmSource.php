@@ -63,6 +63,9 @@ class LlmSource
         yield StreamEvent::start($assistantId, [
             'assistant_message_id' => $assistantId,
             'user_message_id' => $context->userMessageId,
+            // Masked user text (PII redacted) so the client can swap the raw
+            // message it rendered optimistically — mirrors the answer `replace`.
+            'user_message' => $context->payload->message,
             'request_id' => $context->requestData->requestId,
             'language' => $context->queryLanguage,
             'replayed' => false,
@@ -255,7 +258,9 @@ class LlmSource
             if ($guard->triggered()) {
                 $context->resetStreamedMessage();
                 $context->appendStreamedMessage($guard->text);
-                $this->guardrailRecorder->record($context, $original, $guard);
+                // Record the corrected (masked / safe) text — the audit snippet
+                // must not store the raw answer's PII.
+                $this->guardrailRecorder->record($context, $guard->text, $guard);
                 yield StreamEvent::replace($assistantId, $guard->text);
             }
         }

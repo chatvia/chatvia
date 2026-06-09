@@ -499,6 +499,16 @@ function buildStreamCallbacks({ userIndex, assistantIndex, isNewConversation = f
             if (data.user_message_id && messages.value[userIndex] && messages.value[userIndex].role === 'user') {
                 messages.value[userIndex].id = data.user_message_id;
             }
+            // An input guardrail masked PII in the message — swap the raw text we
+            // rendered optimistically for the server's redacted version.
+            if (
+                typeof data.user_message === 'string' &&
+                messages.value[userIndex] &&
+                messages.value[userIndex].role === 'user' &&
+                messages.value[userIndex].content !== data.user_message
+            ) {
+                messages.value[userIndex].content = data.user_message;
+            }
             streamingAssistantId.value = data.assistant_message_id;
 
             // A (resume) stream beginning supersedes any approval cards on this

@@ -12,11 +12,12 @@ use Spatie\LaravelData\Data;
 class GuardrailSettingsData extends Data
 {
     /**
+     * @param  list<string>  $filters  Selected PII filter keys (see PiiFilterType).
      * @param  list<string>  $blocked_topics
      */
     public function __construct(
         public bool $enabled,
-        public bool $pii,
+        public array $filters,
         public bool $injection,
         public bool $toxicity,
         public array $blocked_topics,
@@ -31,7 +32,7 @@ class GuardrailSettingsData extends Data
     {
         return [
             'enabled' => $this->enabled,
-            'pii' => $this->pii,
+            'filters' => array_values($this->filters),
             'injection' => $this->injection,
             'toxicity' => $this->toxicity,
             'blocked_topics' => $this->blocked_topics,

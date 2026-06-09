@@ -3,6 +3,7 @@
 namespace Domain\Integration\Mcp\Services\Tools;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Laravel\Mcp\Request;
@@ -30,11 +31,13 @@ class WebSearchTool extends Tool
             'query.required' => 'You must provide a search query (what to look up on the web).',
         ]);
 
-        $apiKey = (string) config('services.mistral.api_key');
+        // The customer supplies their own Mistral key when they connect this
+        // connector; McpClient forwards it as a Bearer token.
+        $apiKey = (string) app(HttpRequest::class)->bearerToken();
         $baseUrl = rtrim((string) config('services.mistral.base_url', 'https://api.mistral.ai/v1'), '/');
 
         if ($apiKey === '') {
-            return Response::error('Mistral API key is not configured on the server (set MISTRAL_API_KEY).');
+            return Response::error('No Mistral API key was provided. Reconnect the Web Search connector with a valid key.');
         }
 
         $agentId = $this->getOrCreateAgent($apiKey, $baseUrl);
@@ -86,12 +89,16 @@ class WebSearchTool extends Tool
 
     /**
      * Lazily create (and cache) the Mistral agent that owns the web_search tool.
-     * Cached forever per-process; flush via `php artisan cache:forget mcp.web_search.mistral_agent_id`
-     * if you need to recreate the agent.
+     * The agent is provisioned on the *customer's* Mistral account (their key),
+     * so the cache is keyed per-key — one fingerprint per distinct API key —
+     * rather than globally. Cached forever; flush via
+     * `php artisan cache:forget {key}` if you need to recreate an agent.
      */
     private function getOrCreateAgent(string $apiKey, string $baseUrl): ?string
     {
-        return Cache::rememberForever(self::AGENT_CACHE_KEY, function () use ($apiKey, $baseUrl): ?string {
+        $cacheKey = self::AGENT_CACHE_KEY.':'.hash('sha256', $apiKey);
+
+        return Cache::rememberForever($cacheKey, function () use ($apiKey, $baseUrl): ?string {
             $response = Http::withToken($apiKey)
                 ->timeout(20)
                 ->acceptJson()

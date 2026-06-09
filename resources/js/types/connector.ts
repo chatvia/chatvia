@@ -21,6 +21,7 @@ export interface Connector {
     // for their own MCP server URL (token connectors without a hosted server).
     requiresUrl: boolean;
     comingSoon: boolean;
+    requiresClientId: boolean;
 }
 
 /**

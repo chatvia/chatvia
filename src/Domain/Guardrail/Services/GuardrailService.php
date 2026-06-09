@@ -9,7 +9,9 @@ use Domain\Guardrail\Data\GuardVerdictData;
 use Domain\Guardrail\Enums\GuardOutcome;
 use Domain\Guardrail\Enums\GuardStage;
 use Domain\Guardrail\Enums\GuardType;
+use Domain\Guardrail\Enums\PiiFilterType;
 use Domain\Guardrail\Services\Detectors\PiiDetector;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -38,6 +40,42 @@ class GuardrailService
     }
 
     /**
+     * PII-only redaction for the stored record. Unlike inspectInput this runs no
+     * classifier (no LLM call) and never blocks — it just masks PII so a raw
+     * identifier never lands in the persisted message or the replayed history.
+     * Returns the text unchanged when guards are off or no filters are selected.
+     */
+    public function redactPii(Agent $agent, string $text): string
+    {
+        if (! $this->enabledFor($agent)) {
+            return $text;
+        }
+
+        $filters = $this->piiFilters($agent->settings('guardrails'));
+
+        return $filters === [] ? $text : $this->pii->redact($text, $filters)['text'];
+    }
+
+    /**
+     * The PII filter keys selected for this agent, validated against the known
+     * catalog and returned in canonical pipeline order. Defaults to the standard
+     * set when unset; an empty stored array means PII redaction is off.
+     *
+     * @param  Collection<string, mixed>  $settings
+     * @return list<string>
+     */
+    private function piiFilters(Collection $settings): array
+    {
+        $stored = $settings->get('filters', PiiFilterType::defaults());
+
+        if (! is_array($stored)) {
+            return [];
+        }
+
+        return array_values(array_intersect(PiiFilterType::keys(), $stored));
+    }
+
+    /**
      * Guard the visitor's message before it reaches the LLM. PII is redacted in
      * place; a genuine injection, off-topic, or toxic message blocks the turn.
      */
@@ -51,8 +89,9 @@ class GuardrailService
         $verdicts = [];
 
         // PII — regex redaction, never blocks.
-        if ((bool) $settings->get('pii', true)) {
-            $pii = $this->pii->redact($text);
+        $piiFilters = $this->piiFilters($settings);
+        if ($piiFilters !== []) {
+            $pii = $this->pii->redact($text, $piiFilters);
             if ($pii['count'] > 0) {
                 $text = $pii['text'];
                 $verdicts[] = new GuardVerdictData(
@@ -129,8 +168,9 @@ class GuardrailService
         $verdicts = [];
         $blocked = false;
 
-        if ((bool) $settings->get('pii', true)) {
-            $pii = $this->pii->redact($text);
+        $piiFilters = $this->piiFilters($settings);
+        if ($piiFilters !== []) {
+            $pii = $this->pii->redact($text, $piiFilters);
             if ($pii['count'] > 0) {
                 $text = $pii['text'];
                 $verdicts[] = new GuardVerdictData(

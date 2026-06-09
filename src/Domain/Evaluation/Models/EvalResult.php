@@ -22,8 +22,6 @@ class EvalResult extends Model
     /** Insert-only. */
     public const UPDATED_AT = null;
 
-    protected $table = 'eval_results';
-
     protected $guarded = ['id'];
 
     protected $casts = [

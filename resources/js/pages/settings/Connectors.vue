@@ -16,6 +16,7 @@ import { toast } from 'vue-sonner';
 
 import ConnectorDetailSheet from '@/components/connectors/ConnectorDetailSheet.vue';
 import AddConnectorModal from './Connectors/AddConnectorModal.vue';
+import SalesforceConnectModal from './Connectors/SalesforceConnectModal.vue';
 import TokenConnectModal from './Connectors/TokenConnectModal.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Connectors', href: '/settings/connectors' }];
@@ -31,6 +32,8 @@ const detailOpen = ref(false);
 
 const tokenConnectTarget = ref<Connector | null>(null);
 const tokenConnectOpen = ref(false);
+const salesforceTarget = ref<Connector | null>(null);
+const salesforceOpen = ref(false);
 
 function logoUrl(c: Connector | null): string | null {
     if (!c) return null;
@@ -80,6 +83,13 @@ async function startConnect(connector: Connector): Promise<void> {
     if (connector.comingSoon) return;
 
     if (connector.authStrategy === 'oauth') {
+        // Per-workspace OAuth (no global app): collect the workspace's own OAuth
+        // client first, then redirect. Otherwise a one-click platform-app redirect.
+        if (connector.requiresClientId) {
+            salesforceTarget.value = connector;
+            salesforceOpen.value = true;
+            return;
+        }
         window.location.href = route('settings.connectors.oauth.start', { slug: connector.slug });
         return;
     }
@@ -357,6 +367,8 @@ onMounted(() => {
             />
 
             <TokenConnectModal v-model:open="tokenConnectOpen" :connector="tokenConnectTarget" @connected="onTokenConnected" />
+
+            <SalesforceConnectModal v-model:open="salesforceOpen" :connector="salesforceTarget" />
         </SettingsLayout>
     </AppLayout>
 </template>

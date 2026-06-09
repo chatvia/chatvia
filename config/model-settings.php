@@ -76,11 +76,11 @@ return [
                 'welcome_message' => 'What can I help with? ',
                 'chat_window_title' => 'Chat',
                 'composer_placeholder' => 'Ask anything...',
-                // Composer affordances. Default on so existing behaviour is
-                // preserved; agent owners can turn either off in Setup when
-                // the use case (e.g. compliance, FAQ-only bots) doesn't want
-                // visitors uploading files or recording voice notes.
-                'allow_file_uploads' => true,
+                // Composer affordances. File uploads default off — most agents
+                // don't need visitors attaching files, and owners can opt in
+                // from Setup when the use case calls for it. Voice input stays
+                // on by default.
+                'allow_file_uploads' => false,
                 'allow_voice_input' => true,
             ],
             // Bar surface — surface-specific behaviour only (text/branding now
@@ -120,19 +120,19 @@ return [
                 'presence_penalty' => 0.0,
                 'frequency_penalty' => 0.0,
             ],
-            // Per-agent data & insight switches (Setup → Settings). All default
-            // on so existing agents keep working; owners can switch any off.
-            //  - chatlog: master switch for persisting conversations. Off stops
-            //    StoreMessageJob, so nothing is logged — and the insights below
-            //    get no data to work with.
-            //  - sentiment/tone/topics: the optional LLM-powered insights. These
-            //    also gate on the plan-tier capability — a dimension runs only
-            //    when the plan allows it AND the agent hasn't switched it off.
+            // Per-agent data & insight switches (Setup → Settings).
+            //  - chatlog: master switch for persisting conversations, on by
+            //    default. Off stops StoreMessageJob, so nothing is logged — and
+            //    the insights below get no data to work with.
+            //  - sentiment/tone/topics: the optional LLM-powered insights,
+            //    default off so owners opt in to the extra analysis. Each also
+            //    gates on the plan-tier capability — a dimension runs only when
+            //    the plan allows it AND the agent has switched it on.
             'analytics' => [
                 'chatlog' => true,
-                'sentiment' => true,
-                'tone' => true,
-                'topics' => true,
+                'sentiment' => false,
+                'tone' => false,
+                'topics' => false,
             ],
             'leads' => [
                 'fields' => [

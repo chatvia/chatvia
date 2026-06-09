@@ -1,0 +1,65 @@
+<?php
+
+use Domain\Agent\Models\Agent;
+use Domain\Channel\Telegram\Actions\ConnectTelegramBotAction;
+use Domain\Channel\Telegram\Models\AgentTelegramBot;
+use Tests\Support\Telegram\FakeTelegramClient;
+
+/**
+ * Connect is the only write in the Telegram channel that carries real behaviour:
+ * it validates the token with Telegram, stores it encrypted with a fresh webhook
+ * secret, and registers our webhook — and must reject a bad token without writing.
+ */
+it('connects a bot, stores it encrypted, and registers the webhook', function (): void {
+    $agent = Agent::factory()->create();
+    $client = new FakeTelegramClient;
+
+    $bot = (new ConnectTelegramBotAction($client))->execute($agent, '123456:ABCDEF_token_value_here');
+
+    expect($bot)->not->toBeNull();
+
+    $row = AgentTelegramBot::query()->firstOrFail();
+
+    expect($row->agent_id)->toBe($agent->id)
+        ->and($row->bot_username)->toBe('demo_bot')
+        ->and($row->enabled)->toBeTrue()
+        ->and(strlen($row->webhook_secret))->toBe(48)
+        // Encrypted cast round-trips to the original token.
+        ->and($row->bot_token)->toBe('123456:ABCDEF_token_value_here')
+        // The stored ciphertext is not the plaintext token.
+        ->and($row->getRawOriginal('bot_token'))->not->toBe('123456:ABCDEF_token_value_here');
+
+    expect($client->webhooks)->toHaveCount(1)
+        ->and($client->webhooks[0]['secret'])->toBe($row->webhook_secret)
+        ->and($client->webhooks[0]['url'])->toContain('telegram/webhook');
+});
+
+it('returns null and stores nothing when Telegram rejects the token', function (): void {
+    $agent = Agent::factory()->create();
+    $client = new FakeTelegramClient;
+    $client->me = null; // Telegram: invalid token.
+
+    $bot = (new ConnectTelegramBotAction($client))->execute($agent, 'bogus');
+
+    expect($bot)->toBeNull();
+    expect(AgentTelegramBot::query()->count())->toBe(0);
+    expect($client->webhooks)->toBeEmpty();
+});
+
+it('reconnects in place — one bot row per agent, token rotated', function (): void {
+    $agent = Agent::factory()->create();
+    $client = new FakeTelegramClient;
+    $action = new ConnectTelegramBotAction($client);
+
+    $action->execute($agent, '111:first_token_value_aaaaaaaaaa');
+    $first = AgentTelegramBot::query()->firstOrFail();
+
+    $action->execute($agent, '222:second_token_value_bbbbbbbbbb');
+
+    expect(AgentTelegramBot::query()->count())->toBe(1);
+
+    $row = AgentTelegramBot::query()->firstOrFail();
+    expect($row->id)->toBe($first->id)
+        ->and($row->bot_token)->toBe('222:second_token_value_bbbbbbbbbb')
+        ->and($row->webhook_secret)->not->toBe($first->webhook_secret);
+});

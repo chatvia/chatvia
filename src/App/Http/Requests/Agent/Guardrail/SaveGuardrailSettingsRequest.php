@@ -3,7 +3,9 @@
 namespace App\Http\Requests\Agent\Guardrail;
 
 use Domain\Guardrail\Data\GuardrailSettingsData;
+use Domain\Guardrail\Enums\PiiFilterType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Validates the per-agent guardrail settings form. The route already enforces
@@ -23,7 +25,8 @@ class SaveGuardrailSettingsRequest extends FormRequest
     {
         return [
             'enabled' => ['required', 'boolean'],
-            'pii' => ['required', 'boolean'],
+            'filters' => ['nullable', 'array'],
+            'filters.*' => ['string', Rule::in(PiiFilterType::keys())],
             'injection' => ['required', 'boolean'],
             'toxicity' => ['required', 'boolean'],
             'blocked_topics' => ['nullable', 'array'],
@@ -37,7 +40,8 @@ class SaveGuardrailSettingsRequest extends FormRequest
     {
         return new GuardrailSettingsData(
             enabled: $this->boolean('enabled'),
-            pii: $this->boolean('pii'),
+            // Validated against the catalog and re-ordered into canonical pipeline order.
+            filters: array_values(array_intersect(PiiFilterType::keys(), (array) $this->input('filters', []))),
             injection: $this->boolean('injection'),
             toxicity: $this->boolean('toxicity'),
             blocked_topics: array_values(array_filter(

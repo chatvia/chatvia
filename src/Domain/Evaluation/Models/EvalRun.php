@@ -27,8 +27,6 @@ class EvalRun extends Model
 
     public const STATUS_FAILED = 'failed';
 
-    protected $table = 'eval_runs';
-
     protected $guarded = ['id'];
 
     protected $casts = [

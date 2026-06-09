@@ -291,6 +291,60 @@ curl -X POST https://api.chatvia.ai/v1/chat \
   }'
 ```
 
+### 📨 Telegram channel (local testing)
+
+An agent can be reached from Telegram. A Telegram user messages the bot → our webhook → the agent replies. Telegram only calls **public HTTPS** webhooks, so a local `.test` host isn't reachable directly. Use a tunnel (we use [cloudflared](https://github.com/cloudflare/cloudflared)).
+
+> **Telegram is for public agents only.** A Telegram sender is anonymous, so a protected (private) agent will refuse to answer. Make the agent public on its **Security** page first.
+
+**1. Start a tunnel to your local site.** Herd/Valet serve HTTPS with a local cert, so rewrite the `Host` header and skip cert verification:
+
+```bash
+cloudflared tunnel --url https://chatvia.test \
+  --http-host-header chatvia.test \
+  --origin-server-name chatvia.test \
+  --no-tls-verify
+```
+
+It prints a public URL, e.g. `https://eva-cash-deviant-founded.trycloudflare.com`. Verify it serves the app (expect `302`, not `404`/`530`):
+
+```bash
+curl -I https://YOUR-TUNNEL.trycloudflare.com/login
+```
+
+**2. Connect the bot.** Create a bot with [@BotFather](https://t.me/BotFather) (`/newbot`), then on the agent's **Channels** page paste the token and click **Connect**. The bot is saved; the auto-registered webhook points at `chatvia.test` (which Telegram can't reach), so re-point it at the tunnel next.
+
+**3. Point Telegram's webhook at the tunnel** (reuses the stored token + secret — replace the host):
+
+```bash
+php artisan tinker --execute="
+\$b = \Domain\Channel\Telegram\Models\AgentTelegramBot::latest('id')->first();
+\$url = 'https://YOUR-TUNNEL.trycloudflare.com/telegram/webhook/'.\$b->webhook_secret;
+app(\Domain\Channel\Telegram\Services\TelegramClient::class)->setWebhook(\$b->bot_token, \$url, \$b->webhook_secret);
+echo 'Webhook set: '.\$url;
+"
+```
+
+**4. Process replies.** The webhook hands the agent turn to a queued job, so run a worker (replies only happen while it runs):
+
+```bash
+php artisan queue:work redis --queue=default,messages --tries=1
+# or run Horizon: php artisan horizon
+```
+
+**5. Message the bot.** It should reply within a few seconds, with Markdown rendered as Telegram formatting.
+
+**Debugging** — check what Telegram sees (look at `last_error_message`) and tail the log:
+
+```bash
+# Get the raw token, then query Telegram
+php artisan tinker --execute="echo \Domain\Channel\Telegram\Models\AgentTelegramBot::latest('id')->first()->bot_token;"
+curl "https://api.telegram.org/bot<TOKEN>/getWebhookInfo"
+php artisan pail   # live app logs
+```
+
+> The free `trycloudflare.com` URL changes every time you restart the tunnel — re-run **step 3** with the new URL whenever it rotates.
+
 ## 🧪 Testing
 
 ```bash

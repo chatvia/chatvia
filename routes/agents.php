@@ -18,6 +18,8 @@ use App\Http\Controllers\Agent\Analytics\Topic\PromoteSuggestedTopicController;
 use App\Http\Controllers\Agent\Analytics\Topic\SuggestedTopicsDataController;
 use App\Http\Controllers\Agent\Audit\AgentAuditController;
 use App\Http\Controllers\Agent\Bar\BarPreviewController;
+use App\Http\Controllers\Agent\Channel\AgentChannelsController;
+use App\Http\Controllers\Agent\Channel\AgentTelegramChannelController;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogReviseAnswerController;
 use App\Http\Controllers\Agent\ChatLog\ConversationController as ChatLogConversationsController;
@@ -265,6 +267,11 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Per-agent AI-safety Guardrails — config form + immutable trigger log.
         Route::get('guardrails', [AgentGuardrailController::class, 'show'])->middleware('agent.permission:agent.guardrails.view')->name('guardrails');
         Route::post('guardrails', [AgentGuardrailController::class, 'update'])->middleware('agent.permission:agent.guardrails.manage')->name('guardrails.update');
+
+        // Channels — where the agent is deployed (Hosted Chat / Widget / Bar) + the Telegram bot.
+        Route::get('channels', AgentChannelsController::class)->middleware('agent.permission:agent.setup')->name('channels');
+        Route::post('channels/telegram', [AgentTelegramChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.telegram.connect');
+        Route::delete('channels/telegram', [AgentTelegramChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.telegram.disconnect');
         Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->middleware(['capability:pulse', 'agent.permission:agent.chat.pulse'])->name('logs.pulse');
         Route::get('logs/topics', ChatLogTopicsController::class)->middleware('agent.permission:agent.chat.view')->name('logs.topics');
         Route::get('logs/countries', ChatLogCountriesController::class)->middleware('agent.permission:agent.chat.view')->name('logs.countries');

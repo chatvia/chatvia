@@ -38,6 +38,7 @@ const {
     search,
     messages,
     messagesData,
+    currentConversationData,
     fetchInitialData,
     fetchMessages,
     handoff,
@@ -49,9 +50,14 @@ const canViewPulse = computed(() => hasPermission('agent.chat.pulse'));
 const canTakeover = computed(() => hasPermission('agent.chat.takeover'));
 const canDeleteConversation = computed(() => hasPermission('agent.chat.delete'));
 
-// Live Chat (handoff) is widget-only + gated by the handoff capability; the
-// controller resolves both into a single flag passed as a page prop.
+// Live Chat (handoff) is gated by the takeover permission + the handoff
+// capability (resolved by the controller into a single page prop). It only works
+// for widget conversations — a live agent can stream replies back into the
+// embedded widget, but not into the hosted-chat playground, the bar, or Telegram.
 const handoffEnabled = computed(() => Boolean(usePage().props.handoffEnabled));
+const liveChatAvailable = computed(
+    () => canTakeover.value && handoffEnabled.value && currentConversationData.value?.source === 'widget',
+);
 
 // Whether conversations are still being logged for this agent. When off we show
 // a banner so the user understands why no new chats are appearing (existing
@@ -215,6 +221,15 @@ watch(
         }
     },
 );
+
+// If the Live Chat tab disappears while it's active (e.g. switching to a
+// hosted-chat conversation), fall back to the Chat tab so we don't leave an
+// empty panel selected.
+watch(liveChatAvailable, (available) => {
+    if (!available && activeTab.value === 'handoff') {
+        activeTab.value = 'chat';
+    }
+});
 </script>
 
 <template>
@@ -323,7 +338,7 @@ watch(
                                         Details
                                     </TabsTrigger>
                                     <TabsTrigger
-                                        v-if="canTakeover && handoffEnabled"
+                                        v-if="liveChatAvailable"
                                         value="handoff"
                                         class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                         :class="{ 'text-amber-600 dark:text-amber-400': handoff.isHandedOff.value }"
@@ -352,7 +367,7 @@ watch(
 
                             <!-- Handoff/Live Chat Tab Content -->
                             <TabsContent
-                                v-if="canTakeover && handoffEnabled"
+                                v-if="liveChatAvailable"
                                 value="handoff"
                                 class="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
                             >

@@ -2,103 +2,77 @@
 
 namespace Domain\Guardrail\Services\Detectors;
 
+use Domain\Guardrail\Enums\PiiFilterType;
+use Domain\Guardrail\Services\Detectors\Filters\CardFilter;
+use Domain\Guardrail\Services\Detectors\Filters\DanishCprFilter;
+use Domain\Guardrail\Services\Detectors\Filters\EmailFilter;
+use Domain\Guardrail\Services\Detectors\Filters\GermanSsnFilter;
+use Domain\Guardrail\Services\Detectors\Filters\PhoneFilter;
+use Domain\Guardrail\Services\Detectors\Filters\UsSsnFilter;
+use Illuminate\Pipeline\Pipeline;
+
 /**
  * Rules-based PII detection + redaction. Deterministic, instant, and free — no
  * LLM call. Catches the high-risk identifiers an AI agent must never echo or
- * leak: email addresses, phone numbers, credit-card numbers (Luhn-validated to
- * avoid masking ordinary long digit strings), and US-style SSNs.
+ * leak: emails, phone numbers, credit cards (Luhn-validated), US SSNs, German
+ * social-insurance numbers, and Danish CPR numbers. These are all *structured*
+ * identifiers with rigid formats, so regex (+ checksum/date validation) is the
+ * right tool — an LLM/NER pass is only worth it for unstructured PII like names
+ * or addresses, which this detector does not target.
  *
- * Redaction order matters: emails and structured numbers (card, SSN) are masked
- * before the looser phone pattern so it can't swallow their digits.
+ * Each identifier is a dedicated {@see Filters\PiiFilter} run through a pipeline.
+ * The set that runs is chosen per agent (see PiiFilterType / the guardrails.filters
+ * setting); the canonical order comes from PiiFilterType's case order — emails and
+ * structured numbers are masked before the looser phone pattern so it can't
+ * swallow their digits.
+ *
+ * Each span is replaced with a typed, numbered placeholder ([EMAIL_1], [PHONE_2],
+ * …). Distinct values get distinct numbers so the model can tell two emails apart,
+ * and a repeated value reuses its number so coreference survives ("mail X … resend
+ * to X" → both become [EMAIL_1]). This matches the placeholder convention used by
+ * Presidio / LLM-gateway redactors.
  */
 class PiiDetector
 {
-    private const EMAIL = '/[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/';
-
-    private const SSN = '/\b\d{3}-\d{2}-\d{4}\b/';
-
-    // Candidate card: 13–19 digits with optional space/dash grouping.
-    private const CARD = '/\b(?:\d[ \-]?){13,19}\b/';
-
-    // Candidate phone: a +prefix or digit, then 7+ more digit/separator chars.
-    private const PHONE = '/(?<!\w)\+?\d[\d().\-\s]{7,}\d(?!\w)/';
-
     /**
-     * Redact every PII span in the text. Returns the masked text, the distinct
-     * PII categories found, and the total number of spans masked.
+     * Redact PII spans in the text. `$only` restricts redaction to those filter
+     * keys (see {@see PiiFilterType}); null runs every filter. Returns the masked
+     * text, the distinct PII categories found, and the total spans masked.
      *
+     * @param  list<string>|null  $only
      * @return array{text: string, types: list<string>, count: int}
      */
-    public function redact(string $text): array
+    public function redact(string $text, ?array $only = null): array
     {
-        $types = [];
-        $count = 0;
-
-        $mask = function (string $pattern, string $token, string $type, ?callable $accept = null) use (&$text, &$types, &$count): void {
-            $hits = 0;
-            $text = (string) preg_replace_callback($pattern, function (array $m) use ($token, $accept, &$hits): string {
-                if ($accept !== null && ! $accept($m[0])) {
-                    return $m[0];
-                }
-                $hits++;
-
-                return $token;
-            }, $text);
-
-            if ($hits > 0) {
-                $types[] = $type;
-                $count += $hits;
+        $filters = [];
+        foreach (PiiFilterType::cases() as $type) {
+            if ($only === null || in_array($type->value, $only, true)) {
+                $filters[] = $this->filterClass($type);
             }
-        };
-
-        $mask(self::EMAIL, '[redacted-email]', 'email');
-        $mask(self::SSN, '[redacted-ssn]', 'ssn');
-        $mask(self::CARD, '[redacted-card]', 'card', fn (string $s): bool => $this->isCard($s));
-        $mask(self::PHONE, '[redacted-phone]', 'phone', fn (string $s): bool => $this->isPhone($s));
-
-        return ['text' => $text, 'types' => array_values(array_unique($types)), 'count' => $count];
-    }
-
-    /**
-     * A digit run is a card only if it has 13–19 digits AND passes the Luhn
-     * checksum — this rejects order numbers, IDs, and other long integers.
-     */
-    private function isCard(string $candidate): bool
-    {
-        $digits = preg_replace('/\D/', '', $candidate) ?? '';
-        $len = strlen($digits);
-
-        return $len >= 13 && $len <= 19 && $this->luhn($digits);
-    }
-
-    private function luhn(string $digits): bool
-    {
-        $sum = 0;
-        $alt = false;
-        for ($i = strlen($digits) - 1; $i >= 0; $i--) {
-            $n = (int) $digits[$i];
-            if ($alt) {
-                $n *= 2;
-                if ($n > 9) {
-                    $n -= 9;
-                }
-            }
-            $sum += $n;
-            $alt = ! $alt;
         }
 
-        return $sum % 10 === 0;
+        if ($filters === []) {
+            return ['text' => $text, 'types' => [], 'count' => 0];
+        }
+
+        return app(Pipeline::class)
+            ->send(new PiiRedactionState($text))
+            ->through($filters)
+            ->then(fn (PiiRedactionState $state): array => $state->result());
     }
 
     /**
-     * Require 9–15 digits so the loose pattern doesn't mask short numbers; the
-     * card pass has already consumed (and removed) any real card numbers.
+     * @return class-string<Filters\PiiFilter>
      */
-    private function isPhone(string $candidate): bool
+    private function filterClass(PiiFilterType $type): string
     {
-        $digits = preg_replace('/\D/', '', $candidate) ?? '';
-        $len = strlen($digits);
-
-        return $len >= 9 && $len <= 15;
+        return match ($type) {
+            PiiFilterType::Email => EmailFilter::class,
+            PiiFilterType::CreditCard => CardFilter::class,
+            PiiFilterType::UsSsn => UsSsnFilter::class,
+            PiiFilterType::GermanSsn => GermanSsnFilter::class,
+            PiiFilterType::DanishCpr => DanishCprFilter::class,
+            PiiFilterType::Phone => PhoneFilter::class,
+        };
     }
 }

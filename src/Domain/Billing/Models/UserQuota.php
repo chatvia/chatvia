@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $teams_limit
  * @property int $extra_agents_limit
  * @property int $extra_custom_domains_limit
+ * @property int $extra_members_limit
  * @property-read User $user
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserQuota newModelQuery()
@@ -58,6 +59,16 @@ class UserQuota extends Model
     public function totalCustomDomainsLimit(): int
     {
         return (int) $this->custom_domains_limit + (int) $this->extra_custom_domains_limit;
+    }
+
+    /**
+     * Effective workspace-users (seats) limit — plan quota plus any active
+     * Members subscription quantity. The bucket is shared by team members and
+     * chatters; use for seat gates instead of the raw `workspace_users_limit`.
+     */
+    public function totalWorkspaceUsersLimit(): int
+    {
+        return (int) $this->workspace_users_limit + (int) $this->extra_members_limit;
     }
 
     public function user(): BelongsTo

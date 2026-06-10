@@ -80,6 +80,12 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
                                 <SelectItem value="hosted_chat">Chat</SelectItem>
                                 <SelectItem value="widget">Widget</SelectItem>
                                 <SelectItem value="bar">Bar</SelectItem>
+                                <SelectItem value="telegram">Telegram</SelectItem>
+                                <SelectItem value="slack">Slack</SelectItem>
+                                <SelectItem value="messenger">Messenger</SelectItem>
+                                <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                                <SelectItem value="msteams">Microsoft Teams</SelectItem>
+                                <SelectItem value="instagram">Instagram</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

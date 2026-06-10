@@ -33,6 +33,12 @@ class StartTrialCheckoutAction
             throw new InvalidArgumentException("Unknown billing package: {$data->package}");
         }
 
+        // Contact-sales packages (Enterprise) have no Stripe price — they are
+        // provisioned manually through the demo/sales flow, never self-serve.
+        if ($plans[$data->package]['contact_sales'] ?? false) {
+            throw new InvalidArgumentException("Package is not self-serve: {$data->package}");
+        }
+
         $stripePriceId = $data->yearly
             ? $plans[$data->package]['stripe_yearly_price_id']
             : $plans[$data->package]['stripe_monthly_price_id'];

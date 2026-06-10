@@ -336,16 +336,20 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
-     * Whether this account owns the active "remove branding" add-on — the
-     * workspace-wide entitlement that hides the "Powered by Chatvia" badge on
-     * every agent's widget and hosted chat. Resolved through the account owner's
-     * Cashier billing, so employees/chatters inherit the workspace answer.
+     * Whether this account may hide the "Powered by Chatvia" badge — the
+     * workspace-wide entitlement that hides it on every agent's widget and
+     * hosted chat. Granted two ways: the plan bundles white-label (Pro and
+     * Enterprise carry the `removeBranding` capability), OR the account owns
+     * the standalone "remove branding" add-on (the path lower tiers use).
+     * Resolved through the account owner's plan + Cashier billing, so
+     * employees/chatters inherit the workspace answer.
      */
     public function canHideBranding(): bool
     {
         return $this->remember(
             'canHideBranding',
-            fn (): bool => (bool) $this->accountBilling()?->subscribed(Addon::RemoveBranding->value),
+            fn (): bool => $this->capabilities->removeBranding
+                || (bool) $this->accountBilling()?->subscribed(Addon::RemoveBranding->value),
         );
     }
 
@@ -911,7 +915,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function remainingWorkspaceUsersQuota(): int
     {
-        return max(0, $this->fixedQuotaLimit('workspace_users_limit') - $this->workspaceUsersCount());
+        return max(0, $this->totalWorkspaceUsersLimit() - $this->workspaceUsersCount());
     }
 
     /**
@@ -928,7 +932,18 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function canAddWorkspaceUser(): bool
     {
-        return $this->workspaceUsersCount() < $this->fixedQuotaLimit('workspace_users_limit');
+        return $this->workspaceUsersCount() < $this->totalWorkspaceUsersLimit();
+    }
+
+    /**
+     * Effective seat limit — the plan's `workspace_users_limit` (with the
+     * default-package fallback for accounts that have no `user_quotas` row yet)
+     * plus any active Members add-on quantity mirrored onto `extra_members_limit`.
+     * Both team-member invites and chatter creation gate against this.
+     */
+    public function totalWorkspaceUsersLimit(): int
+    {
+        return $this->fixedQuotaLimit('workspace_users_limit') + (int) ($this->quota?->extra_members_limit ?? 0);
     }
 
     /**

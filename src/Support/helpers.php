@@ -1,6 +1,5 @@
 <?php
 
-use App\Hosting\HostConfig;
 use Domain\Agent\Models\Agent as AgentModel;
 use Domain\Agent\Services\Agent;
 use Domain\Knowledge\Document\LibreOffice;
@@ -385,32 +384,6 @@ if (! function_exists('current_agent_from_widget')) {
         }
 
         return AgentModel::where('external_id', $agentId)->first();
-    }
-}
-
-if (! function_exists('landing')) {
-    function landing(?string $key = null): string|array|null
-    {
-        $landing = HostConfig::landing(request()->host());
-
-        if ($key) {
-            return $landing[$key] ?? null;
-        }
-
-        return $landing;
-    }
-}
-
-if (! function_exists('host_config')) {
-    function host_config(?string $key = null): mixed
-    {
-        $config = HostConfig::get(request()->host());
-
-        if ($key) {
-            return $config[$key];
-        }
-
-        return $config;
     }
 }
 

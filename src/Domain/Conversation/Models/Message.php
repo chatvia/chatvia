@@ -114,6 +114,7 @@ class Message extends Model
     protected function casts(): array
     {
         return [
+            'content' => 'encrypted',
             'confidence_score' => 'float',
             'metadata' => 'array',
             'read_at' => 'datetime',

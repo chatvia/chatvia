@@ -9,6 +9,7 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -81,8 +82,19 @@ class KnowledgeBase
         $rerankMs = 0.0;
 
         if ($results) {
-            // Dispatch stats update to background job for better performance
+            // Dispatch stats update to background job for better performance.
+            // Dispatched before decryption so the chunk ciphertext (not the
+            // plaintext) is what transits the queue payload — the stats job
+            // never reads the chunk text.
             UpdateRetrievalStatsJob::dispatch($results, $agent);
+
+            // hybridSearchForAgent returns raw DB::select rows, so the Chunk
+            // model's `encrypted` cast on `chunk` never ran. Decrypt in place
+            // before any downstream consumer (rerank, processResults, chunks())
+            // touches the text.
+            foreach ($results as $result) {
+                $result->chunk = Crypt::decryptString($result->chunk);
+            }
 
             // --- Phase 3: rerank (model call) or DB-confidence filter ---
             // Only rerank if we have multiple results, reranking is enabled in

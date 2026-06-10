@@ -1,8 +1,11 @@
 @php
-    $navigation = landing('navigation') ?? [
+    $navigation = [
         ['label' => 'Home', 'link' => '/'],
         ['label' => 'Features', 'link' => '/#features'],
         ['label' => 'Pricing', 'link' => '/pricing'],
+        ['label' => 'Mission', 'link' => route('mission')],
+        ['label' => 'Security', 'link' => route('security')],
+        ['label' => 'DPA', 'link' => route('dpa')],
     ];
 
     // Chatters have no dashboard — send them straight to the first agent they
@@ -32,7 +35,7 @@
             <nav class="hidden md:flex md:grow">
 
                 <!-- Desktop menu links -->
-                <ul class="flex grow justify-center flex-wrap items-center gap-1">
+                <ul class="flex grow justify-start flex-wrap items-center gap-1">
                     @foreach ($navigation as $navItem)
                         <li>
                             <a class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
@@ -65,12 +68,6 @@
                             </form>
                         </li>
                     @else
-                        @if (host_config('user')['demo'] === true)
-                            <li>
-                                <a class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
-                                    href="{{ route('demo') }}">Book demo</a>
-                            </li>
-                        @endif
                         <li>
                             <a class="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 flex items-center transition duration-150 ease-in-out"
                                 href="{{ route('login') }}">Log in</a>
@@ -150,12 +147,6 @@
                                 @endauth
                             </li>
                             @guest
-                                @if (host_config('user')['demo'] === true)
-                                    <li>
-                                        <a class="flex font-medium text-slate-700 hover:text-slate-900 py-2.5 px-3 rounded-lg transition"
-                                            href="{{ route('demo') }}" @click="expanded = false">Book demo</a>
-                                    </li>
-                                @endif
                                 <li class="pt-2">
                                     <a class="flex font-semibold text-white bg-indigo-600 hover:bg-indigo-700 py-3 px-4 rounded-lg justify-center transition"
                                         href="{{ route('home') }}#pricing" @click="expanded = false">Get started</a>

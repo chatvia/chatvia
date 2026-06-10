@@ -31,6 +31,7 @@ interface Package {
         formatted: string;
     };
     is_popular: boolean;
+    contact_sales?: boolean;
 }
 
 interface LLM {
@@ -121,6 +122,10 @@ const isSubscribing = ref(false);
 const subscribingPackage = ref('');
 
 const getPackagePrice = (pkg: Package) => {
+    if (pkg.contact_sales) {
+        return 'Custom';
+    }
+
     let priceCents: number;
 
     if (isYearly.value && pkg.id !== 'free') {
@@ -142,7 +147,7 @@ const getPackagePrice = (pkg: Package) => {
 };
 
 const getOriginalPrice = (pkg: Package) => {
-    if (pkg.id === 'free' || !isDiscountActive.value) return null;
+    if (pkg.id === 'free' || pkg.contact_sales || !isDiscountActive.value) return null;
 
     let originalPriceCents: number;
 
@@ -163,7 +168,7 @@ const getPackagePeriod = () => {
 };
 
 const getYearlyTotal = (pkg: Package) => {
-    if (!isYearly.value || pkg.id === 'free') return null;
+    if (!isYearly.value || pkg.id === 'free' || pkg.contact_sales) return null;
 
     let yearlyPriceCents = pkg.yearly_price;
 
@@ -234,8 +239,18 @@ const getPackageAction = (packageId: string) => {
     }
 };
 
+// Resolve a package object from its id (props.packages may be array or map)
+const findPackage = (packageId: string): Package | undefined => {
+    const packagesArray = Array.isArray(props.packages) ? props.packages : (Object.values(props.packages) as Package[]);
+    return packagesArray.find((pkg) => pkg.id === packageId);
+};
+
 // Get button text based on package action
 const getButtonText = (packageId: string) => {
+    if (findPackage(packageId)?.contact_sales) {
+        return 'Contact sales';
+    }
+
     const action = getPackageAction(packageId);
 
     switch (action) {
@@ -254,6 +269,13 @@ const getButtonText = (packageId: string) => {
 
 // Handle package selection
 const handlePackageSelection = (packageId: string) => {
+    // Contact-sales packages (Enterprise) aren't self-serve — send to the demo
+    // form instead of the Stripe subscribe flow.
+    if (findPackage(packageId)?.contact_sales) {
+        window.location.href = route('demo');
+        return;
+    }
+
     const action = getPackageAction(packageId);
 
     if (action === 'current') {
@@ -449,14 +471,14 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                         </div>
                                         <!-- Discount badge -->
                                         <div
-                                            v-if="isDiscountActive && pkg.id !== 'free'"
+                                            v-if="isDiscountActive && pkg.id !== 'free' && !pkg.contact_sales"
                                             class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800"
                                         >
                                             <Sparkles class="h-3 w-3" />
                                             {{ billingConfig.discount.percentage }}% OFF
                                         </div>
                                     </div>
-                                    <div class="text-muted-foreground mt-2 text-sm">{{ getPackagePeriod() }}</div>
+                                    <div v-if="!pkg.contact_sales" class="text-muted-foreground mt-2 text-sm">{{ getPackagePeriod() }}</div>
                                     <div v-if="getSavingsText(pkg)" class="mt-1 text-xs font-medium text-green-600">
                                         {{ getSavingsText(pkg) }}
                                     </div>

@@ -35,14 +35,17 @@ class ChatCache
     {
         $this->tagsFor($conversationId)->put(
             key: $key,
-            value: $value,
+            value: CacheCipher::encrypt($value),
             ttl: $this->getMessageRetention()
         );
     }
 
     public function get(string $key, mixed $default = [], ?string $conversationId = null): mixed
     {
-        return $this->tagsFor($conversationId)->get($key, $default);
+        return CacheCipher::decrypt(
+            $this->tagsFor($conversationId)->get($key),
+            $default
+        );
     }
 
     public function has(string $key, ?string $conversationId = null): bool

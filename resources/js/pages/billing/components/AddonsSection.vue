@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useForm } from '@inertiajs/vue3';
-import { Bot, CheckCircle, CreditCard, Globe, Loader2, MessageCircle, Sparkles, Zap } from 'lucide-vue-next';
+import { Bot, CheckCircle, CreditCard, Globe, Loader2, MessageCircle, Sparkles, Users, Zap } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 interface AutoRecharge {
@@ -45,6 +45,7 @@ interface AddonsData {
     extra_agents: AddonSubscriptionState;
     custom_domains: AddonSubscriptionState;
     remove_branding: AddonSubscriptionState;
+    members: AddonSubscriptionState;
 }
 
 const props = defineProps<{
@@ -171,6 +172,35 @@ const subscribeRemoveBranding = (): void => {
 const cancelRemoveBrandingForm = useForm({});
 const cancelRemoveBranding = (): void => {
     cancelRemoveBrandingForm.post(route('billing.addons.remove-branding.cancel'), {
+        preserveScroll: true,
+        onSuccess: () => emit('refresh'),
+    });
+};
+
+// --- Members (recurring subscription) ---
+const isMembersDialogOpen = ref(false);
+const membersQuantity = ref(Math.max(1, props.addons.members.quantity || 1));
+const isSubscribingMembers = ref(false);
+const membersUnitPrice = 9;
+const membersTotal = computed(() => (membersQuantity.value * membersUnitPrice).toFixed(2));
+
+watch(
+    () => props.addons.members.quantity,
+    (qty) => {
+        if (qty > 0) {
+            membersQuantity.value = qty;
+        }
+    },
+);
+
+const subscribeMembers = (): void => {
+    isSubscribingMembers.value = true;
+    window.location.href = route('billing.addons.members', { quantity: membersQuantity.value });
+};
+
+const cancelMembersForm = useForm({});
+const cancelMembers = (): void => {
+    cancelMembersForm.post(route('billing.addons.members.cancel'), {
         preserveScroll: true,
         onSuccess: () => emit('refresh'),
     });
@@ -616,10 +646,104 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                         </div>
                     </div>
                 </div>
+
+                <!-- Members -->
+                <div class="bg-muted/30 hover:bg-muted/50 flex flex-col gap-3 rounded-lg border p-4 transition-colors">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
+                                <Users class="text-muted-foreground h-4 w-4" />
+                            </div>
+                            <h3 class="text-sm font-semibold">Members</h3>
+                        </div>
+                        <Badge v-if="addons.members.active" variant="default" class="gap-1">
+                            <CheckCircle class="h-3 w-3" />
+                            +{{ addons.members.quantity }}
+                        </Badge>
+                        <Badge v-else variant="outline">None</Badge>
+                    </div>
+                    <p class="text-muted-foreground text-xs leading-relaxed">Add more team members to your workspace.</p>
+                    <p v-if="addons.members.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">
+                        Ends {{ addons.members.cancels_at }}
+                    </p>
+                    <div class="mt-auto flex items-end justify-between gap-2 pt-1">
+                        <div>
+                            <span class="text-lg font-bold">$9</span>
+                            <span class="text-muted-foreground text-xs"> / member</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <AlertDialog v-if="addons.members.active">
+                                <AlertDialogTrigger as-child>
+                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">Cancel</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Cancel Members subscription?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Your additional member seats will be removed immediately and you won't be charged again.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Keep subscription</AlertDialogCancel>
+                                        <AlertDialogAction @click="cancelMembers">Yes, cancel</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                            <Dialog v-model:open="isMembersDialogOpen">
+                                <DialogTrigger as-child>
+                                    <Button variant="outline" size="sm" :disabled="!subscribed">
+                                        {{ addons.members.active ? 'Change' : 'Subscribe' }}
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent class="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle class="flex items-center gap-2">
+                                            <Users class="text-primary h-5 w-5" />
+                                            {{ addons.members.active ? 'Change Members' : 'Subscribe to Members' }}
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            Add additional team members to your workspace. Billed monthly at $9 per member.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div class="space-y-4 py-4">
+                                        <div class="space-y-2">
+                                            <Label for="members-quantity">Number of members</Label>
+                                            <Input
+                                                id="members-quantity"
+                                                v-model.number="membersQuantity"
+                                                type="number"
+                                                min="1"
+                                                max="200"
+                                                @keydown="handleNumericKeyPress"
+                                            />
+                                        </div>
+                                        <div class="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
+                                            <div class="flex items-center justify-between">
+                                                <span class="font-medium">Monthly cost:</span>
+                                                <span class="text-primary font-bold">${{ membersTotal }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <DialogFooter class="gap-2">
+                                        <Button variant="outline" @click="isMembersDialogOpen = false">Cancel</Button>
+                                        <Button
+                                            :disabled="isSubscribingMembers || membersQuantity < 1"
+                                            class="gap-2"
+                                            @click="subscribeMembers"
+                                        >
+                                            <Loader2 v-if="isSubscribingMembers" class="h-4 w-4 animate-spin" />
+                                            {{ addons.members.active ? 'Update Quantity' : 'Subscribe' }}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <p v-if="!subscribed" class="text-muted-foreground mt-4 text-center text-xs">
-                Extra Agents, Custom Domain, and Remove Branding require an active main subscription.
+                Extra Agents, Custom Domain, Remove Branding, and Members require an active main subscription.
             </p>
         </CardContent>
     </Card>

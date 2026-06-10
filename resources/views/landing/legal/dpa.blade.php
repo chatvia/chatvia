@@ -28,8 +28,8 @@
                     </p>
 
                     <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900 mb-6">
-                        <strong>Note:</strong> This DPA becomes effective only when signed by both parties. To have us
-                        countersign, contact
+                        <strong>Note:</strong> This DPA becomes effective only when signed by both parties. Chatvia
+                        executes DPAs for customers on <strong>Pro</strong> plans. To have us countersign, contact
                         <a href="mailto:info@chatvia.ai" class="font-medium underline">info@chatvia.ai</a>.
                     </div>
 
@@ -58,8 +58,12 @@
                         <div class="grid sm:grid-cols-2 gap-5">
                             <div>
                                 <label for="country" class="block text-sm font-medium mb-1">Country</label>
-                                <input id="country" name="country" type="text" placeholder="Germany"
-                                    class="form-input py-2 w-full" />
+                                <select id="country" name="country" class="form-select py-2 w-full">
+                                    <option value="">Select country&hellip;</option>
+                                    @foreach ($countries as $country)
+                                        <option value="{{ $country }}">{{ $country }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div>
                                 <label for="contact_email" class="block text-sm font-medium mb-1">Contact Email</label>

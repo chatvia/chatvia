@@ -16,6 +16,11 @@ return [
     | NOTE: Capabilities are defined in BillingPackageCapabilitiesData DTO.
     | Use BillingPackageCapabilitiesData::forPlan('starter') at runtime.
     |
+    | NOTE: `monthly_price` / `yearly_price` (in cents) are DISPLAY values only.
+    | The amount actually charged comes from the Stripe Price objects behind the
+    | STRIPE_*_PRICE_ID env vars — changing the numbers here without creating
+    | matching Stripe prices only changes what the UI shows, not what Stripe bills.
+    |
     */
 
     'discount' => [
@@ -26,35 +31,35 @@ return [
     'packages' => [
         /*
         |----------------------------------------------------------------------
-        | Starter Plan - $30/month
+        | Starter Plan - €99/month
         |----------------------------------------------------------------------
         */
         'starter' => [
             'name' => 'Starter',
-            'description' => 'For individuals and small projects.',
+            'description' => 'For small businesses getting started.',
             'features' => [
                 'monthly' => [
-                    'messages' => '4,000 messages/credits per month',
-                    'tokens' => '7M tokens per month',
-                    'agents' => '3 AI agents',
-                    'pages' => '1000 pages (PDF, Word, Text)',
-                    'links' => '1,000 website links',
-                    'minutes' => '300 minutes audio/video',
+                    'messages' => '6,000 messages/credits per month',
+                    'tokens' => '10M tokens per month',
+                    'agents' => '5 AI agents',
+                    'pages' => '2,000 pages (PDF, Word, Text)',
+                    'links' => '2,000 website links',
+                    'minutes' => '500 minutes audio/video',
                     'teams' => '1 team',
-                    'members' => '3 members (team members + chatters)',
+                    'members' => '5 members (team members + chatters)',
                     'mcp' => 'MCP',
                     'function_calling' => 'Function Calling',
                     'retention' => '90 days of chat history',
                 ],
                 'yearly' => [
-                    'messages' => '50,000 messages/credits per year',
-                    'tokens' => '70M tokens per year',
-                    'agents' => '3 AI agents',
-                    'pages' => '1000 pages (PDF, Word, Text)',
-                    'links' => '1,000 website links',
-                    'minutes' => '300 minutes audio/video',
+                    'messages' => '78,000 messages/credits per year',
+                    'tokens' => '100M tokens per year',
+                    'agents' => '5 AI agents',
+                    'pages' => '2,000 pages (PDF, Word, Text)',
+                    'links' => '2,000 website links',
+                    'minutes' => '500 minutes audio/video',
                     'teams' => '1 team',
-                    'members' => '3 members (team members + chatters)',
+                    'members' => '5 members (team members + chatters)',
                     'mcp' => 'MCP',
                     'function_calling' => 'Function Calling',
                     'retention' => '90 days of chat history',
@@ -62,24 +67,24 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_STARTER_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STARTER_YEARLY_PRICE_ID'),
-            'monthly_price' => 4900,
-            'yearly_price' => 46800,
+            'monthly_price' => 9900,
+            'yearly_price' => 94800,
             'is_popular' => false,
 
             'quota_limits' => [
                 'monthly' => [
-                    'messages_limit' => 4000,
+                    'messages_limit' => 6000,
                 ],
                 'yearly' => [
-                    'messages_limit' => 50000,
+                    'messages_limit' => 78000,
                 ],
                 'fixed' => [
-                    'agents_limit' => 3,
-                    'pages_limit' => 1000,
-                    'minutes_limit' => 300,
-                    'links_limit' => 1000,
+                    'agents_limit' => 5,
+                    'pages_limit' => 2000,
+                    'minutes_limit' => 500,
+                    'links_limit' => 2000,
                     'custom_domains_limit' => 0,
-                    'workspace_users_limit' => 3,
+                    'workspace_users_limit' => 5,
                     'teams_limit' => 1,
                 ],
             ],
@@ -87,7 +92,7 @@ return [
 
         /*
         |----------------------------------------------------------------------
-        | Standard Plan - $100/month
+        | Standard Plan - €199/month
         |----------------------------------------------------------------------
         */
         'standard' => [
@@ -95,29 +100,33 @@ return [
             'description' => 'For growing teams and businesses.',
             'features' => [
                 'monthly' => [
-                    'messages' => '10,000 messages/credits per month',
-                    'tokens' => '14M tokens per month',
-                    'agents' => '5 AI agents',
-                    'pages' => '3,000 pages (PDF, Word, Text)',
-                    'links' => '3,000 website links',
-                    'minutes' => '1,200 minutes audio/video',
+                    'messages' => '15,000 messages/credits per month',
+                    'tokens' => '21M tokens per month',
+                    'agents' => '10 AI agents',
+                    'pages' => '5,000 pages (PDF, Word, Text)',
+                    'links' => '5,000 website links',
+                    'minutes' => '2,000 minutes audio/video',
                     'sentiment' => 'Sentiment analysis',
-                    'teams' => '3 team',
-                    'members' => '10 members (team members + chatters)',
+                    'handoff' => 'Handoff',
+                    'api' => 'API access',
+                    'teams' => '5 team',
+                    'members' => '20 members (team members + chatters)',
                     'mcp' => 'MCP',
                     'function_calling' => 'Function Calling',
                     'retention' => '180 days of chat history',
                 ],
                 'yearly' => [
-                    'messages' => '140,000 messages/credits per year',
-                    'tokens' => '140M tokens per year',
-                    'agents' => '5 AI agents',
-                    'pages' => '3,000 pages (PDF, Word, Text)',
-                    'links' => '3,000 website links',
-                    'minutes' => '1,200 minutes audio/video',
+                    'messages' => '192,000 messages/credits per year',
+                    'tokens' => '210M tokens per year',
+                    'agents' => '10 AI agents',
+                    'pages' => '5,000 pages (PDF, Word, Text)',
+                    'links' => '5,000 website links',
+                    'minutes' => '2,000 minutes audio/video',
                     'sentiment' => 'Sentiment analysis',
-                    'teams' => '3 team',
-                    'members' => '10 members (team members + chatters)',
+                    'handoff' => 'Handoff',
+                    'api' => 'API access',
+                    'teams' => '5 team',
+                    'members' => '20 members (team members + chatters)',
                     'mcp' => 'MCP',
                     'function_calling' => 'Function Calling',
                     'retention' => '180 days of chat history',
@@ -125,32 +134,32 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_STANDARD_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STANDARD_YEARLY_PRICE_ID'),
-            'monthly_price' => 9900,
-            'yearly_price' => 94800,
+            'monthly_price' => 19900,
+            'yearly_price' => 190800,
             'is_popular' => true,
 
             'quota_limits' => [
                 'monthly' => [
-                    'messages_limit' => 10000,
+                    'messages_limit' => 15000,
                 ],
                 'yearly' => [
-                    'messages_limit' => 140000,
+                    'messages_limit' => 192000,
                 ],
                 'fixed' => [
-                    'agents_limit' => 5,
-                    'pages_limit' => 3000,
-                    'minutes_limit' => 1200,
-                    'links_limit' => 3000,
+                    'agents_limit' => 10,
+                    'pages_limit' => 5000,
+                    'minutes_limit' => 2000,
+                    'links_limit' => 5000,
                     'custom_domains_limit' => 0,
-                    'workspace_users_limit' => 10,
-                    'teams_limit' => 3,
+                    'workspace_users_limit' => 20,
+                    'teams_limit' => 5,
                 ],
             ],
         ],
 
         /*
         |----------------------------------------------------------------------
-        | Pro Plan - $400/month
+        | Pro Plan - €499/month
         |----------------------------------------------------------------------
         */
         'pro' => [
@@ -158,8 +167,8 @@ return [
             'description' => 'For organizations that need it all.',
             'features' => [
                 'monthly' => [
-                    'messages' => '40,000 messages/credits per month',
-                    'tokens' => '50M tokens per month',
+                    'messages' => '50,000 messages/credits per month',
+                    'tokens' => '65M tokens per month',
                     'agents' => '20 AI agents',
                     'pages' => '10,000 pages (PDF, Word, Text)',
                     'links' => '10,000 website links',
@@ -173,13 +182,14 @@ return [
                     'function_calling' => 'Function Calling',
                     'api' => 'API access',
                     'integrations' => 'Custom integrations',
+                    'branding' => 'White-label (remove Chatvia branding)',
                     'teams' => '10 team',
                     'members' => '100 members (team members + chatters)',
                     'retention' => '366 days of chat history',
                 ],
                 'yearly' => [
-                    'messages' => '500,000 messages/credits per year',
-                    'tokens' => '500M tokens per year',
+                    'messages' => '648,000 messages/credits per year',
+                    'tokens' => '650M tokens per year',
                     'agents' => '20 AI agents',
                     'pages' => '10,000 pages (PDF, Word, Text)',
                     'links' => '10,000 website links',
@@ -193,6 +203,7 @@ return [
                     'function_calling' => 'Function Calling',
                     'api' => 'API access',
                     'integrations' => 'Custom integrations',
+                    'branding' => 'White-label (remove Chatvia branding)',
                     'teams' => '10 team',
                     'members' => '100 members (team members + chatters)',
                     'retention' => '366 days of chat history',
@@ -200,25 +211,117 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_PRO_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_PRO_YEARLY_PRICE_ID'),
-            'monthly_price' => 34900,
-            'yearly_price' => 334800,
+            'monthly_price' => 49900,
+            'yearly_price' => 478800,
             'is_popular' => false,
 
             'quota_limits' => [
                 'monthly' => [
-                    'messages_limit' => 40000,
+                    'messages_limit' => 50000,
                 ],
                 'yearly' => [
-                    'messages_limit' => 500000,
+                    'messages_limit' => 648000,
                 ],
                 'fixed' => [
                     'agents_limit' => 20,
                     'pages_limit' => 10000,
                     'minutes_limit' => 10000,
                     'links_limit' => 10000,
-                    'custom_domains_limit' => 1,
+                    'custom_domains_limit' => 2,
                     'workspace_users_limit' => 100,
                     'teams_limit' => 10,
+                ],
+            ],
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Enterprise Plan - Contact sales
+        |----------------------------------------------------------------------
+        | Not purchasable through Stripe Checkout. `contact_sales` tells the
+        | pricing UIs to show "Custom" instead of a price and route the CTA to
+        | the demo/contact form. Prices are 0 and the Stripe price IDs are null,
+        | so this package never matches a Stripe webhook in getPackageByPriceId().
+        | The quota_limits below are display-only — Enterprise accounts are
+        | provisioned manually, never via the self-serve subscription flow.
+        */
+        'enterprise' => [
+            'name' => 'Enterprise',
+            'description' => 'For organizations with security, compliance, and scale needs.',
+            'contact_sales' => true,
+            'features' => [
+                'monthly' => [
+                    'messages' => 'Custom message volume',
+                    'agents' => 'Unlimited AI agents',
+                    'pages' => 'Custom knowledge base',
+                    'links' => 'Custom website links',
+                    'minutes' => 'Custom audio/video',
+                    'sentiment' => 'Sentiment analysis',
+                    'tone' => 'Tone analysis',
+                    'topics' => 'Topic analysis',
+                    'pulse' => 'Conversation Pulse',
+                    'handoff' => 'Handoff',
+                    'mcp' => 'MCP',
+                    'function_calling' => 'Function Calling',
+                    'api' => 'API access',
+                    'integrations' => 'Custom integrations',
+                    'branding' => 'White-label (remove Chatvia branding)',
+                    'residency' => 'EU data residency',
+                    'sso' => 'SSO / SAML',
+                    'sla' => 'Uptime SLA',
+                    'support' => 'Dedicated support',
+                    'dpa' => 'Custom contract & DPA',
+                    'teams' => 'Unlimited teams',
+                    'members' => 'Unlimited members',
+                    'retention' => 'Custom data retention',
+                ],
+                'yearly' => [
+                    'messages' => 'Custom message volume',
+                    'agents' => 'Unlimited AI agents',
+                    'pages' => 'Custom knowledge base',
+                    'links' => 'Custom website links',
+                    'minutes' => 'Custom audio/video',
+                    'sentiment' => 'Sentiment analysis',
+                    'tone' => 'Tone analysis',
+                    'topics' => 'Topic analysis',
+                    'pulse' => 'Conversation Pulse',
+                    'handoff' => 'Handoff',
+                    'mcp' => 'MCP',
+                    'function_calling' => 'Function Calling',
+                    'api' => 'API access',
+                    'integrations' => 'Custom integrations',
+                    'branding' => 'White-label (remove Chatvia branding)',
+                    'residency' => 'EU data residency',
+                    'sso' => 'SSO / SAML',
+                    'sla' => 'Uptime SLA',
+                    'support' => 'Dedicated support',
+                    'dpa' => 'Custom contract & DPA',
+                    'teams' => 'Unlimited teams',
+                    'members' => 'Unlimited members',
+                    'retention' => 'Custom data retention',
+                ],
+            ],
+            'stripe_monthly_price_id' => null,
+            'stripe_yearly_price_id' => null,
+            'monthly_price' => 0,
+            'yearly_price' => 0,
+            'is_popular' => false,
+
+            'quota_limits' => [
+                'monthly' => [
+                    'messages_limit' => 200000,
+                ],
+                'yearly' => [
+                    'messages_limit' => 2400000,
+                ],
+                'fixed' => [
+                    'agents_limit' => 100,
+                    'pages_limit' => 100000,
+                    'minutes_limit' => 100000,
+                    'links_limit' => 100000,
+                    'custom_domains_limit' => 10,
+                    'workspace_users_limit' => 1000,
+                    'teams_limit' => 100,
                 ],
             ],
         ],
@@ -282,6 +385,15 @@ return [
             'billing_unit' => 'per month',
             'icon' => 'sparkles',
             'stripe_price_id' => env('STRIPE_REMOVE_BRANDING_PRICE_ID'),
+        ],
+        'members' => [
+            'name' => 'Members',
+            'description' => 'Add more team members to your workspace.',
+            'price_cents' => 900,
+            'price_formatted' => '$9',
+            'billing_unit' => 'per member/month',
+            'icon' => 'users',
+            'stripe_price_id' => env('STRIPE_MEMBERS_PRICE_ID'),
         ],
     ],
 
@@ -348,5 +460,6 @@ return [
         'starter' => 'zap',
         'standard' => 'star',
         'pro' => 'crown',
+        'enterprise' => 'building',
     ],
 ];

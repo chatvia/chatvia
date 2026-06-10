@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Support\Casts\EncryptedTolerant;
 
 /**
  * @property int $id
@@ -22,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string $status
  * @property string|null $name
  * @property string|null $email
+ * @property string|null $email_hash
  * @property string|null $phone
  * @property string|null $job_title
  * @property string|null $company
@@ -74,7 +76,38 @@ class Lead extends Model
     {
         return [
             'contacted_at' => 'datetime',
+            'name' => EncryptedTolerant::class,
+            'email' => EncryptedTolerant::class,
+            'phone' => EncryptedTolerant::class,
+            'job_title' => EncryptedTolerant::class,
+            'company' => EncryptedTolerant::class,
+            'location' => EncryptedTolerant::class,
+            'message' => EncryptedTolerant::class,
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Keep the deterministic blind index in lock-step with the (now
+        // encrypted, hence un-queryable) email so per-agent dedup and the
+        // (agent_id, email_hash) unique constraint still work. See CaptureLeadTool.
+        static::saving(static function (Lead $lead): void {
+            $lead->email_hash = self::hashEmail($lead->email);
+        });
+    }
+
+    /**
+     * Deterministic HMAC of a normalised email — a blind index used for lead
+     * lookups and the unique constraint, since the encrypted `email` column
+     * itself can no longer be queried.
+     */
+    public static function hashEmail(?string $email): ?string
+    {
+        $normalised = $email === null ? '' : mb_strtolower(trim($email));
+
+        return $normalised === ''
+            ? null
+            : hash_hmac('sha256', $normalised, (string) config('app.key'));
     }
 
     // Relationships

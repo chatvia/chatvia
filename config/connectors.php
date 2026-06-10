@@ -12,25 +12,25 @@
 
 return [
 
-    'web-search' => [
-        'slug' => 'web-search',
-        'name' => 'Web Search',
-        'description' => 'Search the live web for up-to-date information — news, prices, recent events — with cited sources.',
+    'perplexity' => [
+        'slug' => 'perplexity',
+        'name' => 'Perplexity',
+        'description' => 'Search the live web with Perplexity Sonar — news, prices, recent events — with cited sources.',
         'category' => 'Utilities',
-        'icon' => 'web-search',
-        'brand_color' => 'F97316',
-        'logo_url' => '/images/logos/connectors/web-search.svg',
+        'icon' => 'perplexity',
+        'brand_color' => '22B8CD',
+        'logo_url' => '/images/logos/connectors/perplexity.svg',
         'provider' => 'chatvia',
         'priority' => 5,
         // We host the MCP server but never pay for the upstream search — the
-        // customer supplies their own Mistral API key, sent to /mcp/web-search
-        // as a Bearer token and read back by WebSearchTool.
+        // customer supplies their own Perplexity API key, sent to /mcp/perplexity
+        // as a Bearer token and read back by PerplexityTool.
         'auth_strategy' => 'token',
         'auth_type' => 'bearer',
-        'token_label' => 'Mistral API key',
-        'token_help_url' => 'https://console.mistral.ai/api-keys',
-        'token_placeholder' => 'Your Mistral API key',
-        'mcp_url' => env('APP_URL').'/mcp/web-search',
+        'token_label' => 'Perplexity API key',
+        'token_help_url' => 'https://www.perplexity.ai/account/api/keys',
+        'token_placeholder' => 'Your Perplexity API key',
+        'mcp_url' => env('APP_URL').'/mcp/perplexity',
     ],
 
     'weather' => [
@@ -171,13 +171,15 @@ return [
         'brand_color' => '0052CC',
         'logo_url' => '/images/logos/connectors/atlassian.svg',
         'priority' => 60,
+        // Atlassian's `authv2` MCP endpoint is a spec-compliant OAuth 2.1 server
+        // with Dynamic Client Registration — its metadata advertises a
+        // `registration_endpoint` (auth.atlassian.com/{id}/dcr/register), so we
+        // discover + register automatically like Linear/Fireflies. No
+        // pre-registered Atlassian app or env vars needed. (Leaving the explicit
+        // oauth_* endpoints here would trip McpOAuthFlow's pre-flight guard and
+        // force the pre-registered path, so they must stay absent.)
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://mcp.atlassian.com/v1/mcp/authv2',
-        'oauth_client_id' => env('ATLASSIAN_OAUTH_CLIENT_ID'),
-        'oauth_client_secret' => env('ATLASSIAN_OAUTH_CLIENT_SECRET'),
-        'oauth_authorization_endpoint' => 'https://auth.atlassian.com/authorize',
-        'oauth_token_endpoint' => 'https://auth.atlassian.com/oauth/token',
-        'oauth_scopes' => 'read:jira-work read:jira-user read:confluence-content.all read:confluence-space.summary read:confluence-user offline_access',
     ],
 
     'gmail' => [
@@ -447,14 +449,14 @@ return [
         'brand_color' => 'FF6B00',
         'logo_url' => '/images/logos/connectors/fireflies.svg',
         'priority' => 85,
-        // Fireflies authenticates with a Bearer API key (Fireflies → Settings →
-        // Developer Settings). Fixed endpoint, so no user-supplied URL.
-        'auth_strategy' => 'token',
+        // Fireflies' hosted MCP is a spec-compliant OAuth 2.1 server with
+        // Dynamic Client Registration (its metadata advertises a
+        // `registration_endpoint`), so — like Linear — we just point at the
+        // MCP URL and McpOAuthFlow discovers + registers automatically. No
+        // pre-registered app or env vars needed (unlike GitHub, which lacks
+        // DCR). Users sign in with Fireflies instead of pasting an API key.
+        'auth_strategy' => 'oauth',
         'mcp_url' => 'https://api.fireflies.ai/mcp',
-        'auth_type' => 'bearer',
-        'token_label' => 'Fireflies API key',
-        'token_help_url' => 'https://app.fireflies.ai/settings',
-        'token_placeholder' => 'Your Fireflies API key',
     ],
 
     'amplitude' => [

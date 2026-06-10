@@ -16,6 +16,7 @@ enum Addon: string
     case ExtraAgents = 'extra_agents';
     case CustomDomains = 'custom_domains';
     case RemoveBranding = 'remove_branding';
+    case Members = 'members';
 
     /**
      * The `user_quotas` column this addon's subscription quantity mirrors onto,
@@ -29,6 +30,7 @@ enum Addon: string
             self::ExtraAgents => 'extra_agents_limit',
             self::CustomDomains => 'extra_custom_domains_limit',
             self::RemoveBranding => null,
+            self::Members => 'extra_members_limit',
         };
     }
 }

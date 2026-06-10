@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import Banner from '@/components/Banner.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import TeamSwitcher from '@/components/TeamSwitcher.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
@@ -16,12 +15,13 @@ import {
 } from '@/components/ui/navigation-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import UpgradeButton from '@/components/UpgradeButton.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import type { Auth, BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BarChart3, BookOpen, BotMessageSquare, Code2, CreditCard, HelpCircle, LayoutGrid, Menu, Users, Zap } from 'lucide-vue-next';
+import { BarChart3, BookOpen, BotMessageSquare, Code2, CreditCard, HelpCircle, LayoutGrid, Menu, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Props {
@@ -34,7 +34,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 const auth = computed(() => page.props.auth as Auth);
-const onTrial = computed(() => Boolean(page.props.onTrial));
 
 const isCurrentRoute = computed(() => (url: string) => {
     const currentUrl = page.url;
@@ -124,11 +123,8 @@ const rightNavItems: NavItem[] = [
 </script>
 
 <template>
-    <!-- Banner above header -->
-    <Banner />
-
     <!-- Fixed header -->
-    <div class="bg-background fixed right-0 left-0 z-50" :class="onTrial ? 'top-12' : 'top-0'">
+    <div class="bg-background fixed top-0 right-0 left-0 z-50">
         <div class="border-sidebar-border/80 border-b">
             <div class="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                 <!-- Mobile Menu -->
@@ -212,14 +208,7 @@ const rightNavItems: NavItem[] = [
                 <div class="ml-auto flex items-center space-x-2">
                     <TeamSwitcher class="hidden md:flex" />
                     <div class="relative flex items-center space-x-1">
-                        <Link
-                            v-if="!auth.user.is_paid && !isStaff"
-                            :href="route('billing.packages')"
-                            class="bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary/20 group hidden transform items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition-all duration-300 ease-out hover:scale-105 hover:shadow-lg focus:ring-2 focus:ring-offset-2 focus:outline-none active:scale-95 lg:flex"
-                        >
-                            <Zap class="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-12" />
-                            Upgrade
-                        </Link>
+                        <UpgradeButton />
 
                         <div class="hidden space-x-1 lg:flex">
                             <template v-for="item in rightNavItems" :key="item.title">
@@ -271,7 +260,7 @@ const rightNavItems: NavItem[] = [
             </div>
         </div>
     </div>
-    <div :class="[props.breadcrumbs.length > 1 ? 'h-28' : 'h-16', onTrial ? 'mt-12' : 'mt-0']"></div>
+    <div :class="props.breadcrumbs.length > 1 ? 'h-28' : 'h-16'"></div>
 </template>
 
 <style scoped>

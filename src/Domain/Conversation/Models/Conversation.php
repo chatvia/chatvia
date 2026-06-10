@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Support\Casts\EncryptedTolerant;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -135,6 +136,7 @@ class Conversation extends Model
     protected function casts(): array
     {
         return [
+            'title' => EncryptedTolerant::class,
             'source' => ConversationSource::class,
             'handoff_at' => 'datetime',
             'last_activity_at' => 'datetime',

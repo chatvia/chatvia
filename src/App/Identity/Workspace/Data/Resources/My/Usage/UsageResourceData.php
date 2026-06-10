@@ -59,7 +59,7 @@ class UsageResourceData extends Data
             messages: new UsageStatsData(limit: $consumableMessages, used: $totalSentMessage, remaining: max(0, $consumableMessages - $totalSentMessage)),
             tokens: new UsageStatsData(limit: 0, used: $tokensUsed, remaining: 0),
             teams: new UsageStatsData(limit: $quota->teams_limit, used: $teamsUsed, remaining: max(0, $quota->teams_limit - $teamsUsed)),
-            members: new UsageStatsData(limit: $quota->workspace_users_limit, used: $workspaceUsersUsed, remaining: max(0, $quota->workspace_users_limit - $workspaceUsersUsed)),
+            members: new UsageStatsData(limit: $quota->totalWorkspaceUsersLimit(), used: $workspaceUsersUsed, remaining: max(0, $quota->totalWorkspaceUsersLimit() - $workspaceUsersUsed)),
         );
     }
 }

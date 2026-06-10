@@ -88,6 +88,11 @@ class Chunk extends Model
     protected function casts(): array
     {
         return [
+            // Encrypt the human-readable content at rest. The searchable
+            // embedding columns stay plaintext (vector/BM25 search needs them).
+            'chunk' => 'encrypted',
+            'summary' => 'encrypted',
+            'questions' => 'encrypted',
             'embedding' => Vector::class,
             'keywords' => 'json',
             'metadata' => 'json',

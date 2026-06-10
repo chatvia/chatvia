@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Services\Streaming\Requests;
 
+use Domain\Conversation\Services\Memory\CacheCipher;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
 
@@ -19,7 +20,7 @@ class RequestDedupeStore
      */
     public function find(string $requestId): ?array
     {
-        $value = $this->cache()->get($this->key($requestId));
+        $value = CacheCipher::decrypt($this->cache()->get($this->key($requestId)));
 
         return is_array($value) ? $value : null;
     }
@@ -33,12 +34,12 @@ class RequestDedupeStore
     ): void {
         $this->cache()->put(
             $this->key($requestId),
-            [
+            CacheCipher::encrypt([
                 'assistant_message_id' => $assistantMessageId,
                 'content' => $content,
                 'language' => $language,
                 'sources' => $sources,
-            ],
+            ]),
             $this->ttl()
         );
     }

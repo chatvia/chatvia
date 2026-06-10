@@ -344,6 +344,7 @@ topics: boolean;
 handoff: boolean;
 api: boolean;
 pulse: boolean;
+removeBranding: boolean;
 retentionDays: number;
 };
 export type BillingPackageFeaturesData = {
@@ -385,6 +386,7 @@ extra_message_credits: Domain.Billing.Data.Resources.Subscription.BillingAddonMe
 extra_agents: Domain.Billing.Data.Resources.Subscription.BillingAddonSubscriptionData;
 custom_domains: Domain.Billing.Data.Resources.Subscription.BillingAddonSubscriptionData;
 remove_branding: Domain.Billing.Data.Resources.Subscription.BillingAddonSubscriptionData;
+members: Domain.Billing.Data.Resources.Subscription.BillingAddonSubscriptionData;
 };
 export type BillingAutoRechargeData = {
 enabled: boolean;

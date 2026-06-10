@@ -22,6 +22,7 @@ class BillingPackageCapabilitiesData extends Data
         public bool $handoff = false,
         public bool $api = false,
         public bool $pulse = false,
+        public bool $removeBranding = false,
         // Days a conversation (and its cached memory) lives before the
         // scheduled prune deletes it. Set per plan in the factory methods
         // below; ChatCache reads it for the Redis TTL and the conversation
@@ -46,6 +47,8 @@ class BillingPackageCapabilitiesData extends Data
     {
         return new self(
             sentiment: true,
+            handoff: true,
+            api: true,
             retentionDays: 180,
         );
     }
@@ -59,6 +62,21 @@ class BillingPackageCapabilitiesData extends Data
             handoff: true,
             api: true,
             pulse: true,
+            removeBranding: true,
+            retentionDays: 366,
+        );
+    }
+
+    public static function enterprise(): self
+    {
+        return new self(
+            sentiment: true,
+            tone: true,
+            topics: true,
+            handoff: true,
+            api: true,
+            pulse: true,
+            removeBranding: true,
             retentionDays: 366,
         );
     }
@@ -75,6 +93,7 @@ class BillingPackageCapabilitiesData extends Data
             'starter' => self::starter(),
             'standard' => self::standard(),
             'pro' => self::pro(),
+            'enterprise' => self::enterprise(),
             default => new self,
         };
     }
@@ -88,6 +107,7 @@ class BillingPackageCapabilitiesData extends Data
             handoff: $capabilities['handoff'] ?? false,
             api: $capabilities['api'] ?? false,
             pulse: $capabilities['pulse'] ?? false,
+            removeBranding: $capabilities['removeBranding'] ?? false,
             retentionDays: $capabilities['retentionDays'] ?? self::DEFAULT_RETENTION_DAYS,
         );
     }

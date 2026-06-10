@@ -4,6 +4,7 @@ namespace Domain\Integration\Mcp\Services\Tools;
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
+use Domain\Lead\Models\Lead;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Log;
@@ -96,7 +97,7 @@ class CaptureLeadTool extends Tool
         }
 
         $existing = ! empty($validated['email'])
-            ? $agent->leads()->where('email', $validated['email'])->first()
+            ? $agent->leads()->where('email_hash', Lead::hashEmail($validated['email']))->first()
             : null;
 
         $payload = [];

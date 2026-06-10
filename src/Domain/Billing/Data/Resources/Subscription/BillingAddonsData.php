@@ -26,6 +26,7 @@ class BillingAddonsData extends Data
         public BillingAddonSubscriptionData $extra_agents,
         public BillingAddonSubscriptionData $custom_domains,
         public BillingAddonSubscriptionData $remove_branding,
+        public BillingAddonSubscriptionData $members,
     ) {}
 
     public static function fromUser(User $user): self
@@ -45,6 +46,7 @@ class BillingAddonsData extends Data
         $extraAgentsSub = $billing?->subscription('extra_agents');
         $customDomainsSub = $billing?->subscription('custom_domains');
         $removeBrandingSub = $billing?->subscription('remove_branding');
+        $membersSub = $billing?->subscription('members');
 
         return new self(
             auto_recharge: new BillingAutoRechargeData(
@@ -71,6 +73,11 @@ class BillingAddonsData extends Data
                 active: (bool) $removeBrandingSub?->active(),
                 quantity: $removeBrandingSub && $removeBrandingSub->active() ? 1 : 0,
                 cancels_at: $removeBrandingSub?->ends_at?->toFormattedDateString(),
+            ),
+            members: new BillingAddonSubscriptionData(
+                active: (bool) $membersSub?->active(),
+                quantity: $membersSub && $membersSub->active() ? (int) $membersSub->quantity : 0,
+                cancels_at: $membersSub?->ends_at?->toFormattedDateString(),
             ),
         );
     }

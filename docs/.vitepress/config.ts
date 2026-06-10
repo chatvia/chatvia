@@ -68,6 +68,14 @@ export default defineConfig({
           ],
         },
         {
+          text: 'Channels',
+          items: [
+            { text: 'WhatsApp', link: '/guide/channels/whatsapp' },
+            { text: 'Microsoft Teams', link: '/guide/channels/msteams' },
+            { text: 'Instagram', link: '/guide/channels/instagram' },
+          ],
+        },
+        {
           text: 'Account & access',
           items: [
             { text: 'Profile', link: '/guide/account/profile' },

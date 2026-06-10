@@ -97,7 +97,9 @@ readonly class ConversationManager
 
         // Persist title to DB too so a later cache rebuild from
         // chat_conversations doesn't reset the sidebar to "New Chat".
-        Conversation::where('external_id', $conversationId)->update([
+        // Update the loaded model (not the query builder) so the `title`
+        // encrypted cast is applied — a builder ->update() writes raw/plaintext.
+        Conversation::where('external_id', $conversationId)->first()?->update([
             'title' => $cleanTitle,
             'is_visible' => true,
         ]);

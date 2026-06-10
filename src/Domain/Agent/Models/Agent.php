@@ -6,7 +6,12 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\QueryBuilders\AgentQueryBuilder;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
+use Domain\Channel\Instagram\Models\AgentInstagramAccount;
+use Domain\Channel\Messenger\Models\AgentMessengerPage;
+use Domain\Channel\Slack\Models\AgentSlackApp;
+use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
+use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Topic\Models\Topic;
@@ -457,6 +462,56 @@ class Agent extends Model
     public function telegramBot(): HasOne
     {
         return $this->hasOne(AgentTelegramBot::class);
+    }
+
+    /**
+     * The agent's Slack channel (app), if connected. One app per agent.
+     *
+     * @return HasOne<AgentSlackApp, $this>
+     */
+    public function slackApp(): HasOne
+    {
+        return $this->hasOne(AgentSlackApp::class);
+    }
+
+    /**
+     * The agent's Messenger channel (Facebook Page), if connected. One page per agent.
+     *
+     * @return HasOne<AgentMessengerPage, $this>
+     */
+    public function messengerPage(): HasOne
+    {
+        return $this->hasOne(AgentMessengerPage::class);
+    }
+
+    /**
+     * The agent's WhatsApp channel (business number), if connected. One number per agent.
+     *
+     * @return HasOne<AgentWhatsappNumber, $this>
+     */
+    public function whatsappNumber(): HasOne
+    {
+        return $this->hasOne(AgentWhatsappNumber::class);
+    }
+
+    /**
+     * The agent's Microsoft Teams channel (Azure bot), if connected. One bot per agent.
+     *
+     * @return HasOne<AgentTeamsBot, $this>
+     */
+    public function teamsBot(): HasOne
+    {
+        return $this->hasOne(AgentTeamsBot::class);
+    }
+
+    /**
+     * The agent's Instagram channel (professional account), if connected. One account per agent.
+     *
+     * @return HasOne<AgentInstagramAccount, $this>
+     */
+    public function instagramAccount(): HasOne
+    {
+        return $this->hasOne(AgentInstagramAccount::class);
     }
 
     /**

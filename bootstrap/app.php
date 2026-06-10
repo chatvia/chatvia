@@ -42,10 +42,18 @@ $app = Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function (Application $app): void {
             Route::middleware('throttle:widgets')->group(__DIR__.'/../routes/widget.php');
-            // Telegram webhook — a bare public route (no web group, so no session
-            // or CSRF). Authenticity is verified by the per-bot secret in the URL
-            // + the X-Telegram-Bot-Api-Secret-Token header inside the controller.
+            // Messaging-channel webhooks — bare public routes (no web group, so
+            // no session or CSRF). Authenticity is verified inside the controller:
+            // Telegram by the per-bot secret in the URL + the
+            // X-Telegram-Bot-Api-Secret-Token header, Slack and Messenger by the
+            // per-app secret in the URL + an HMAC request signature, Teams by
+            // the Bot Framework's signed Bearer JWT.
             Route::group([], __DIR__.'/../routes/telegram.php');
+            Route::group([], __DIR__.'/../routes/slack.php');
+            Route::group([], __DIR__.'/../routes/messenger.php');
+            Route::group([], __DIR__.'/../routes/whatsapp.php');
+            Route::group([], __DIR__.'/../routes/msteams.php');
+            Route::group([], __DIR__.'/../routes/instagram.php');
         }
     )
     ->withSchedule(function (Schedule $schedule): void {
@@ -59,7 +67,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             RedirectToAgent::class,
             HandleAppearance::class,
-//            ContentSecurityPolicy::class,
+            //            ContentSecurityPolicy::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             ForceWww::class,
@@ -72,7 +80,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             AuthenticateChatViaSignInToken::class,
             EnsureChatIsAccessible::class,
             EnsureAgentHasMessagesCapacity::class,
-//            ContentSecurityPolicy::class,
+            //            ContentSecurityPolicy::class,
             ChatHandleInertiaRequests::class,
         ]);
 

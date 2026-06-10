@@ -5,7 +5,6 @@ namespace Domain\Conversation\QueryBuilders;
 use Domain\Conversation\Models\Message;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 /**
  * @template TModel of Message
@@ -38,7 +37,11 @@ class MessageQueryBuilder extends Builder
             return collect();
         }
 
-        $rows = DB::table('chat_messages')
+        // Hydrate via Eloquent (not DB::table) so the model's `encrypted`
+        // cast on `content` decrypts the ciphertext before we excerpt it.
+        // DISTINCT ON + ORDER BY compile identically on the Eloquent builder
+        // under Postgres.
+        $rows = Message::query()
             ->select('chat_conversation_id', 'content')
             ->whereIn('chat_conversation_id', $ids)
             ->orderBy('chat_conversation_id')
@@ -47,7 +50,7 @@ class MessageQueryBuilder extends Builder
             ->distinct('chat_conversation_id')
             ->get();
 
-        return $rows->mapWithKeys(fn ($row): array => [
+        return $rows->mapWithKeys(fn (Message $row): array => [
             $row->chat_conversation_id => str($row->content ?? '')->stripTags()->limit($excerptLength)->value(),
         ]);
     }

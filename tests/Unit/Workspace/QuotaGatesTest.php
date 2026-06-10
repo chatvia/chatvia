@@ -39,3 +39,28 @@ it('uses the configured default-package limits as the fallback values', function
         ->and($user->canAddWorkspaceUser())->toBeTrue()
         ->and($user->canCreateTeam())->toBeTrue();
 });
+
+/**
+ * The Members add-on mirrors its subscription quantity onto
+ * `extra_members_limit`, which must lift the shared workspace seat cap that
+ * both team-member invites and chatter creation gate against.
+ */
+it('lets the Members add-on lift the workspace seat limit past the plan base', function (): void {
+    $user = User::factory()->create(['type' => UserType::Workspace]);
+
+    // Exhaust the base plan: no seats free beyond those already in use.
+    $user->quota()->update([
+        'workspace_users_limit' => $user->workspaceUsersCount(),
+        'extra_members_limit' => 0,
+    ]);
+
+    expect($user->fresh()->canAddWorkspaceUser())->toBeFalse();
+
+    // Buying 2 Members seats reopens capacity.
+    $user->quota()->update(['extra_members_limit' => 2]);
+    $fresh = $user->fresh();
+
+    expect($fresh->quota->totalWorkspaceUsersLimit())->toBe($fresh->workspaceUsersCount() + 2)
+        ->and($fresh->canAddWorkspaceUser())->toBeTrue()
+        ->and($fresh->remainingWorkspaceUsersQuota())->toBe(2);
+});

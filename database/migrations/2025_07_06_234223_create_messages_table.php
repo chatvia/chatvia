@@ -62,9 +62,9 @@ return new class extends Migration
             $table->foreignId('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
             $table->foreignIdFor(Language::class)->nullable()->index()->constrained()->nullOnDelete();
 
-            $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram']);
+            $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram']);
             $table->boolean('is_visible')->default(false);
-            $table->string('title')->nullable();
+            $table->text('title')->nullable(); // encrypted at rest (Conversation::casts)
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
             $table->enum('tone', ToneEnum::values())->nullable();
@@ -148,8 +148,10 @@ return new class extends Migration
             $table->foreignId('chat_conversation_id')->nullable()->constrained('chat_conversations')->cascadeOnDelete();
             // Optional link to the user message that introduced this file —
             // populated by ChatService once the user turn is saved so chips
-            // can render on the right bubble.
-            $table->foreignId('chat_message_id')->nullable()->constrained('chat_messages')->nullOnDelete();
+            // can render on the right bubble. Cascades on delete to match
+            // Message::booted(), which already removes a message's attachments
+            // (and their S3 objects) when the message is deleted.
+            $table->foreignId('chat_message_id')->nullable()->constrained('chat_messages')->cascadeOnDelete();
 
             $table->string('filepath', 2048);
             $table->string('filename');

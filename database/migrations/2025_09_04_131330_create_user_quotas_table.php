@@ -22,6 +22,7 @@ return new class extends Migration
 
             $table->unsignedInteger('extra_agents_limit')->default(0);
             $table->unsignedInteger('extra_custom_domains_limit')->default(0);
+            $table->unsignedInteger('extra_members_limit')->default(0);
         });
     }
 

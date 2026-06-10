@@ -17,12 +17,15 @@ return new class extends Migration
 
             $table->enum('status', ['new', 'contacted', 'qualified', 'converted', 'lost'])->default('new');
 
-            $table->string('name')->nullable();
-            $table->string('email')->nullable();
-            $table->string('phone', 50)->nullable();
-            $table->string('job_title')->nullable();
-            $table->string('company')->nullable();
-            $table->string('location')->nullable();
+            // PII + message are encrypted at rest (Lead::casts), so these are
+            // text (ciphertext overflows varchar) and not directly queryable.
+            $table->text('name')->nullable();
+            $table->text('email')->nullable();
+            $table->string('email_hash')->nullable(); // HMAC blind index for dedup/lookup
+            $table->text('phone')->nullable();
+            $table->text('job_title')->nullable();
+            $table->text('company')->nullable();
+            $table->text('location')->nullable();
             $table->text('message')->nullable();
 
             $table->string('referrer_url')->nullable();
@@ -35,7 +38,7 @@ return new class extends Migration
             $table->timestamp('contacted_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['agent_id', 'email']);
+            $table->unique(['agent_id', 'email_hash']);
             $table->index(['agent_id', 'created_at']);
             $table->index(['agent_id', 'status']);
         });

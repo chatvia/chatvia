@@ -453,7 +453,19 @@ export function useChatLog() {
     }
 
     function getSourceDisplayName(source: string): string {
-        const names: Record<string, string> = { widget: 'Widget', playground: 'Playground', api: 'API' };
+        const names: Record<string, string> = {
+            hosted_chat: 'Chat',
+            widget: 'Widget',
+            bar: 'Bar',
+            telegram: 'Telegram',
+            slack: 'Slack',
+            messenger: 'Messenger',
+            whatsapp: 'WhatsApp',
+            msteams: 'Microsoft Teams',
+            instagram: 'Instagram',
+            playground: 'Playground',
+            api: 'API',
+        };
         return names[source] || source;
     }
 

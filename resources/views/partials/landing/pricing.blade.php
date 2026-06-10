@@ -43,7 +43,7 @@
                 <div class="max-w-sm mx-auto grid gap-6 lg:grid-cols-{{ count(config('billing.packages')) }} items-start lg:max-w-none">
                     @php
                         $packages = config('billing.packages');
-                        $packageOrder = ['free', 'starter', 'standard', 'pro'];
+                        $packageOrder = ['starter', 'standard', 'pro', 'enterprise'];
                     @endphp
 
                     @foreach($packageOrder as $packageKey)
@@ -75,6 +75,10 @@
                                                     <span class="{{ $textColor }} font-medium" x-text="yearly ? '/year' : '/mo'"></span>
                                                 </div>
                                                 <div x-show="yearly" class="{{ $textColor }} text-xs mt-1 opacity-75">(billed yearly)</div>
+                                            @elseif($package['contact_sales'] ?? false)
+                                                <div class="inline-flex items-baseline">
+                                                    <span class="{{ $textColor }} font-bold text-3xl">Custom</span>
+                                                </div>
                                             @else
                                                 <div class="inline-flex items-baseline">
                                                     <span class="{{ $textColor }} font-bold text-3xl">$0</span>
@@ -115,8 +119,8 @@
 
                                     <div class="mt-8">
                                             <a class="btn text-zinc-100 bg-linear-to-r from-zinc-700 to-zinc-900 hover:from-zinc-900 hover:to-zinc-900 w-full shadow-sm"
-                                               href="#pricing">
-                                                Start Free Trial
+                                               href="{{ ($package['contact_sales'] ?? false) ? route('contact') : '#pricing' }}">
+                                                {{ ($package['contact_sales'] ?? false) ? 'Contact sales' : 'Start Free Trial' }}
                                             </a>
                                     </div>
                                 </div>

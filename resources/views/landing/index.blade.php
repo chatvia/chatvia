@@ -10,9 +10,9 @@
 
 @php
     $preloadImages = $landing['features']['slide']['tabs'] ?? [
-        ['img' => 'images/chatvia/chat-widget.png'],
-        ['img' => 'images/chatvia/gpt.png'],
-        ['img' => 'images/chatvia/training.png'],
+        ['img' => 'images/chatvia/v2/widget.png'],
+        ['img' => 'images/chatvia/v2/connectors.png'],
+        ['img' => 'images/chatvia/v2/control-panel.png'],
     ];
 @endphp
 @push('preload')
@@ -32,11 +32,15 @@
 
             @include('landing.partials.hero')
 
+            @include('landing.partials.integrations')
+
 {{--            @include('landing.partials.trust-badges')--}}
 
 {{--            @include('landing.partials.core-features')--}}
 
             @include('landing.partials.features-bar')
+
+            @include('landing.partials.feature-cards')
 
             @include('landing.partials.features')
 

@@ -26,11 +26,11 @@
         </div>
     </div>
 
-    <div class="relative max-w-5xl mx-auto px-4 sm:px-6">
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6">
         <div class="pt-28 pb-12  md:pb-20">
 
             <!-- Hero content -->
-            <div class="text-center" data-aos="fade-up">
+            <div class="text-center max-w-4xl mx-auto" data-aos="fade-up">
 
                 <!-- Badge -->
                 <div
@@ -49,9 +49,8 @@
                 </h1>
 
                 <p
-                    class="text-base sm:text-2xl md:text-xl text-slate-600 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0">
-                    Create and train AI agents that book meetings, check inventory, and
-                    trigger workflows in your existing tools.
+                    class="text-base sm:text-2xl md:text-xl text-slate-600 mb-5 max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
+                    Create AI agents that book meetings, check inventory, and trigger workflows — using everything they know about your business.
                     <span class="block mt-3">
                         <span class="relative inline-block">
                             <span class="relative z-10 text-slate-900 font-extrabold">No code, no engineers.</span>
@@ -59,7 +58,28 @@
                                 class="absolute bottom-1 left-0 right-0 h-2.5 sm:h-3 bg-linear-to-r from-yellow-200 via-yellow-300 to-amber-200 -rotate-1 opacity-80"></span>
                         </span>
                     </span>
+                    <span class="block mt-4">
+                        <span class="relative inline-block">
+                            <span class="relative z-10 text-slate-900 font-bold text-sm sm:text-base">Fully hosted in EU. Zero US data processing.</span>
+                            <span
+                                class="absolute bottom-0.5 left-0 right-0 h-2 sm:h-2.5 bg-linear-to-r from-emerald-200 via-emerald-300 to-teal-200 -rotate-1 opacity-80"></span>
+                        </span>
+                    </span>
                 </p>
+
+                <!-- EU hosting proof: GDPR seal + the countries we run in -->
+                <div class="flex items-center justify-center gap-4 mb-8 sm:mb-10">
+                    <img src="{{ asset('images/gdpr-compliant.svg') }}" alt="GDPR Compliant" class="h-12 sm:h-14 w-auto" />
+                    <div class="h-8 w-px bg-slate-200" aria-hidden="true"></div>
+                    <div class="flex items-center gap-1.5">
+                        <img src="{{ asset('images/germany.svg') }}" alt="Germany" title="Germany"
+                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full" />
+                        <img src="{{ asset('images/france.svg') }}" alt="France" title="France"
+                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full" />
+                        <img src="{{ asset('images/denmark.svg') }}" alt="Denmark" title="Denmark"
+                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full" />
+                    </div>
+                </div>
 
                 <!-- CTA Button -->
                 <div class="mb-6 px-4 sm:px-0">
@@ -73,44 +93,18 @@
                     </a>
                 </div>
 
-                <!-- Trust badges -->
-                <div class="flex flex-wrap items-center justify-center gap-3 mb-12">
-                    <!-- GDPR -->
-                    <div
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200 text-sm text-slate-600">
-                        <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                        </svg>
-                        <span class="font-medium">GDPR Compliant</span>
-                    </div>
-                    <!-- Hosted in EU -->
-                    <div
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200 text-sm text-slate-600">
-                        <img src="{{ asset('images/flags/eu.svg') }}" alt="EU Flag" class="w-4 h-4 object-contain" />
-                        <span class="font-medium">Hosted in EU</span>
-                    </div>
-                    <!-- Made in Denmark -->
-                    <div
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-slate-200 text-sm text-slate-600">
-                        <img src="{{ asset('images/flags/dk.svg') }}" alt="Denmark Flag"
-                            class="w-4 h-4 object-contain" />
-                        <span class="font-medium">Made in Denmark</span>
-                    </div>
-                </div>
+            </div>
 
-                <!-- Hero Image -->
-                <div class="relative max-w-5xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-                    <!-- Glow behind image -->
-                    <div class="absolute -inset-4 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-2xl"></div>
+            <!-- Hero Image -->
+            <div class="relative max-w-7xl mx-auto mt-14 sm:mt-16" data-aos="fade-up" data-aos-delay="100">
+                <!-- Glow behind image -->
+                <div class="absolute -inset-6 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 blur-3xl"></div>
 
-                    <!-- Image container -->
-                    <div class="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-slate-900/10 bg-white">
-                        <img src="{{ asset('images/agent-stats.png') }}"
-                            alt="ChatVia Agent Statistics Dashboard - Track conversations, messages, and customer sentiment"
-                            class="w-full h-auto" />
-                    </div>
+                <!-- Image container -->
+                <div class="relative overflow-hidden shadow-2xl ring-1 ring-slate-900/10 bg-white">
+                    <img src="{{ asset('images/main.png') }}"
+                        alt="ChatVia Agent Statistics Dashboard - Track conversations, messages, and customer sentiment"
+                        class="w-full h-auto" />
                 </div>
             </div>
 

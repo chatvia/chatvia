@@ -5,7 +5,6 @@ namespace App\Http\Middleware\Web;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use Support\Enums\User\DateFormat;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
@@ -26,12 +25,6 @@ class HandleInertiaRequests extends Middleware
             // and the User Appends accessors all hit the same in-memory data.
             $user->loadMissing(['parentWorkspace.billing.subscriptions', 'billing.subscriptions']);
         }
-
-        $billing = $user?->accountBilling();
-        $subscription = $billing?->subscription();
-        $onTrial = (bool) $billing?->onTrial();
-        $dateFormat = ($user?->date_format ?? DateFormat::default())->phpFormat();
-        $trialEndsAt = $onTrial ? $subscription?->trial_ends_at?->format($dateFormat) : null;
 
         return [
             ...parent::share($request),
@@ -54,9 +47,6 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'subscribed' => (bool) $user?->hasActiveSubscription(),
-            'onTrial' => $onTrial,
-            'trialEndsAt' => $trialEndsAt,
-            'subscriptionStartsAt' => $trialEndsAt,
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),
 

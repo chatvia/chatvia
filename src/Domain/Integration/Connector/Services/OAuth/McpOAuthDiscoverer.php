@@ -27,8 +27,7 @@ class McpOAuthDiscoverer
 {
     public function discover(string $mcpUrl, ?ConnectorData $connector = null): OAuthServerMetadata
     {
-        $resourceMetadataUrl = $this->probeForResourceMetadataUrl($mcpUrl);
-        $authServers = $this->fetchProtectedResource($resourceMetadataUrl);
+        $authServers = $this->fetchProtectedResource($this->resourceMetadataCandidates($mcpUrl));
 
         if ($authServers === []) {
             throw new McpOAuthException('The MCP server did not advertise any authorization servers.');
@@ -54,47 +53,86 @@ class McpOAuthDiscoverer
             ->get($url);
     }
 
-    private function probeForResourceMetadataUrl(string $mcpUrl): string
+    /**
+     * Build the ordered list of protected-resource metadata URLs to try:
+     *
+     *   1. The exact URL the server names in its `WWW-Authenticate` challenge
+     *      (RFC 9728 §5.1) — authoritative when present.
+     *   2. The RFC 9728 §3.1 well-known URL with the resource's path inserted
+     *      after `/.well-known/oauth-protected-resource`. Path-scoped servers
+     *      (e.g. Zapier at /api/mcp/mcp) publish here and do NOT emit the
+     *      challenge hint, so the root form below 404s for them.
+     *   3. The path-less well-known URL at the origin root.
+     *
+     * @return array<int, string>
+     */
+    private function resourceMetadataCandidates(string $mcpUrl): array
     {
+        $candidates = [];
+
         try {
-            $response = $this->safeGet($mcpUrl);
-        } catch (Throwable $e) {
-            throw new McpOAuthException('Could not reach the MCP server for OAuth discovery: '.$e->getMessage(), previous: $e);
+            $header = $this->safeGet($mcpUrl)->header('WWW-Authenticate');
+            if ($header && preg_match('/resource_metadata="?([^",\s]+)"?/i', $header, $m)) {
+                $candidates[] = $m[1];
+            }
+        } catch (Throwable) {
+            // Best-effort: even an unreachable probe still has predictable
+            // well-known URLs worth trying below.
         }
 
-        $header = $response->header('WWW-Authenticate');
-        if ($header && preg_match('/resource_metadata="([^"]+)"/i', $header, $m)) {
-            return $m[1];
+        $origin = rtrim($this->originOf($mcpUrl), '/');
+        $path = rtrim((string) (parse_url($mcpUrl, PHP_URL_PATH) ?: ''), '/');
+
+        if ($path !== '') {
+            $candidates[] = $origin.'/.well-known/oauth-protected-resource'.$path;
         }
+        $candidates[] = $origin.'/.well-known/oauth-protected-resource';
 
-        // Convention fallback: many MCP servers expose the metadata at a
-        // predictable path even without the WWW-Authenticate hint.
-        $base = rtrim($this->originOf($mcpUrl), '/');
-
-        return $base.'/.well-known/oauth-protected-resource';
+        return array_values(array_unique($candidates));
     }
 
     /**
+     * Try each candidate protected-resource URL in order, returning the
+     * `authorization_servers` from the first that resolves. Throws with the
+     * last failure only if none do.
+     *
+     * @param  array<int, string>  $candidateUrls
      * @return array<int, string>
      */
-    private function fetchProtectedResource(string $url): array
+    private function fetchProtectedResource(array $candidateUrls): array
     {
-        try {
-            $response = $this->safeGet($url);
-        } catch (Throwable $e) {
-            throw new McpOAuthException('Could not fetch protected-resource metadata: '.$e->getMessage(), previous: $e);
+        $lastError = 'Could not fetch protected-resource metadata.';
+
+        foreach ($candidateUrls as $url) {
+            try {
+                $response = $this->safeGet($url);
+            } catch (Throwable $e) {
+                $lastError = 'Could not fetch protected-resource metadata: '.$e->getMessage();
+
+                continue;
+            }
+
+            if ($response->failed()) {
+                $lastError = "Protected-resource metadata request failed ({$response->status()}).";
+
+                continue;
+            }
+
+            $body = $response->json();
+            if (! is_array($body) || ! isset($body['authorization_servers']) || ! is_array($body['authorization_servers'])) {
+                $lastError = 'Protected-resource metadata did not list authorization_servers.';
+
+                continue;
+            }
+
+            $servers = array_values(array_filter($body['authorization_servers'], 'is_string'));
+            if ($servers !== []) {
+                return $servers;
+            }
+            $lastError = 'Protected-resource metadata did not list authorization_servers.';
         }
 
-        if ($response->failed()) {
-            throw new McpOAuthException("Protected-resource metadata request failed ({$response->status()}).");
-        }
-
-        $body = $response->json();
-        if (! is_array($body) || ! isset($body['authorization_servers']) || ! is_array($body['authorization_servers'])) {
-            throw new McpOAuthException('Protected-resource metadata did not list authorization_servers.');
-        }
-
-        return array_values(array_filter($body['authorization_servers'], 'is_string'));
+        throw new McpOAuthException($lastError);
     }
 
     private function fetchAuthServerMetadata(string $authServerUrl, ?ConnectorData $connector): OAuthServerMetadata

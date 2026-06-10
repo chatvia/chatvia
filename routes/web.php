@@ -22,16 +22,20 @@ use App\Http\Controllers\Landing\Legal\ConsentController;
 use App\Http\Controllers\Landing\Legal\DpaController;
 use App\Http\Controllers\Landing\Legal\PrivacyController;
 use App\Http\Controllers\Landing\Legal\RefundController;
+use App\Http\Controllers\Landing\Legal\SecurityController;
 use App\Http\Controllers\Landing\Legal\SubprocessorsController;
 use App\Http\Controllers\Landing\Legal\TermsController;
+use App\Http\Controllers\Landing\Marketing\ContactController;
 use App\Http\Controllers\Landing\Marketing\DocController;
+use App\Http\Controllers\Landing\Marketing\MissionController;
 use App\Http\Controllers\Landing\Marketing\PricingController;
-use App\Http\Controllers\Landing\Marketing\RequestDemoController;
 use App\Http\Controllers\Landing\Marketing\UseCaseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/pricing', PricingController::class)->name('pricing');
+Route::get('/mission', MissionController::class)->name('mission');
+Route::get('/security', SecurityController::class)->name('security');
 
 // Consent routes
 Route::get('/consent', [ConsentController::class, 'show'])->name('consent.show');
@@ -46,8 +50,8 @@ Route::get('/changelog', ChangelogController::class)->name('changelog');
 Route::get('/blog', BlogController::class)->name('blog');
 Route::get('/blog/{post:slug}', PostController::class)->name('blog.post');
 
-Route::get('demo', RequestDemoController::class)->name('demo');
-Route::post('demo', RequestDemoController::class)->name('demo.submit');
+Route::get('contact', ContactController::class)->name('contact');
+Route::post('contact', ContactController::class)->name('contact.submit');
 
 Route::get('docs', DocController::class)->name('docs');
 

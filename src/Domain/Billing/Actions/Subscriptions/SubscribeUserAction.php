@@ -16,11 +16,22 @@ class SubscribeUserAction
             return null;
         }
 
+        // Contact-sales packages (Enterprise) have no Stripe price — they are
+        // provisioned manually through the demo/sales flow, never self-serve.
+        if ($plans[$data->package]['contact_sales'] ?? false) {
+            return null;
+        }
+
         $stripePriceId = $data->yearly
             ? $plans[$data->package]['stripe_yearly_price_id']
             : $plans[$data->package]['stripe_monthly_price_id'];
 
-        $billing = $data->user->accountBilling();
+        // Provision the account's billing row on demand. Seeded accounts (and
+        // any user created before the UserObserver provisioned one) reach
+        // checkout without a `user_billing` row, so accountBilling() is null.
+        // Cashier needs the Billable row to exist before it can open checkout;
+        // firstOrCreate is idempotent for everyone who already has one.
+        $billing = $data->user->workspace()->billing()->firstOrCreate([]);
 
         // Push our local email/name onto the Stripe customer BEFORE the
         // checkout session is created. Without this, customers that were

@@ -64,11 +64,11 @@ class TurnState
         $sessionData = ['conversations' => []];
 
         if ($this->isMemberAuth()) {
-            $this->getChatCache($sessionId)->forever($sessionId, $sessionData);
+            $this->getChatCache($sessionId)->forever($sessionId, CacheCipher::encrypt($sessionData));
         } else {
             $this->getChatCache($sessionId)->put(
                 key: $sessionId,
-                value: $sessionData,
+                value: CacheCipher::encrypt($sessionData),
                 ttl: now()->addDays(self::GUEST_SESSION_TTL_DAYS)
             );
         }

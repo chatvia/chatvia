@@ -2,21 +2,17 @@
 
 namespace App\Http\Controllers\Landing\Marketing;
 
-use App\Hosting\HostConfig;
 use Domain\Billing\Services\Billing;
 use Domain\Llm\Models\Llm;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
 
 class PricingController
 {
-    public function __invoke(Request $request, Billing $billing): Factory|View
+    public function __invoke(Billing $billing): Factory|View
     {
-        $config = HostConfig::get($request->host());
-
         return view('landing.pricing', [
-            'landing' => $config['landing'],
+            'landing' => [],
             'pricing' => true,
             'packages' => $billing->getAvailablePackages(),
             'models' => Llm::query()

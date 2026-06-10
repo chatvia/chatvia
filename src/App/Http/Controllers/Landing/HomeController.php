@@ -2,23 +2,19 @@
 
 namespace App\Http\Controllers\Landing;
 
-use App\Hosting\HostConfig;
 use Domain\Billing\Services\Billing;
 use Domain\Llm\Models\Llm;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
 
 class HomeController
 {
-    public function __invoke(Request $request, Billing $billing): Factory|View
+    public function __invoke(Billing $billing): Factory|View
     {
-        $config = HostConfig::get($request->host());
-
         return view('landing.index', [
-            'landing' => $config['landing'],
-            'demo' => $config['user']['demo'],
-            'pricing' => $config['pricing']['show'],
+            'landing' => [],
+            'demo' => false,
+            'pricing' => true,
             'packages' => $billing->getAvailablePackages(),
             'models' => Llm::query()
                 ->orderBy('descriptive_name')

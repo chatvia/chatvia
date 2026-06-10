@@ -84,14 +84,19 @@ class AgentTextController
     {
         $texts = $agent
             ->texts()
-            ->select('source_texts.id', 'source_texts.excerpt', 'length', 'status', 'source_texts.created_at', 'source_texts.updated_at', 'expected_chunks')
+            ->select('source_texts.id', 'source_texts.excerpt', 'length', 'status', 'source_texts.created_at', 'source_texts.updated_at', 'expected_chunks', 'source_texts.filepath')
             ->withCount(['agents', 'chunks'])
             ->latest('source_texts.created_at')
             ->get();
 
-        return $texts->map(function ($text) {
+        return $texts->map(function (SourceText $text) {
+            // `content` lives in storage, not the DB — read it to count words,
+            // then hide the internal filepath so it never reaches the client.
+            $content = Storage::exists($text->filepath) ? (string) Storage::get($text->filepath) : '';
+
             $text['progress'] = $text->ingestionProgress();
-            $text['word_count'] = str_word_count($text->content);
+            $text['word_count'] = str_word_count($content);
+            $text->makeHidden('filepath');
 
             return $text;
         });

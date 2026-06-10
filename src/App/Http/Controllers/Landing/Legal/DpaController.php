@@ -10,6 +10,7 @@ use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
 use Support\Browsershot\BrowsershotConfigurator;
+use Support\Localization\Country\Models\Country;
 
 class DpaController
 {
@@ -20,7 +21,9 @@ class DpaController
     /** Self-service "Generate your DPA" page. */
     public function show(): View
     {
-        return view('landing.legal.dpa');
+        return view('landing.legal.dpa', [
+            'countries' => Country::orderBy('name')->pluck('name'),
+        ]);
     }
 
     /** Render a customer-specific DPA (both parties filled in) as a downloadable PDF. */

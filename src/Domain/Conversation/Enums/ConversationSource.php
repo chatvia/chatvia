@@ -8,8 +8,9 @@ namespace Domain\Conversation\Enums;
  *
  * An agent exposes several surfaces simultaneously — Hosted Chat (the standalone
  * chat page served at `{sub_domain}.app`), Widget (the embeddable floating-bubble
- * script), Bar (the embeddable search bar), and Telegram (the bot channel).
- * Playground previews reuse the same enum since they render the same surfaces.
+ * script), Bar (the embeddable search bar), and the messaging channels (Telegram,
+ * Slack, Messenger, WhatsApp, Microsoft Teams, Instagram). Playground previews
+ * reuse the same enum since they render the same surfaces.
  */
 enum ConversationSource: string
 {
@@ -17,4 +18,9 @@ enum ConversationSource: string
     case Widget = 'widget';
     case Bar = 'bar';
     case Telegram = 'telegram';
+    case Slack = 'slack';
+    case Messenger = 'messenger';
+    case Whatsapp = 'whatsapp';
+    case MsTeams = 'msteams';
+    case Instagram = 'instagram';
 }

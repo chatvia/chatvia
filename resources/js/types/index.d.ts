@@ -32,9 +32,6 @@ export interface SharedData extends PageProps {
     sidebarOpen: boolean;
     tenant: string;
     subscribed: boolean;
-    onTrial: boolean;
-    trialEndsAt?: string | null;
-    subscriptionStartsAt?: string | null;
     permissions: Record<number, string[]>;
     currentTeam: CurrentTeam | null;
 

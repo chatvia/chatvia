@@ -4,19 +4,44 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
-import { Calendar, Circle, Download, Filter, Globe, LoaderCircle, MessageSquare, RefreshCcw, Search, ThumbsDown, ThumbsUp, X } from 'lucide-vue-next';
+import {
+    Calendar,
+    Circle,
+    Download,
+    Facebook,
+    Filter,
+    Globe,
+    Instagram,
+    LoaderCircle,
+    MessageSquare,
+    Phone,
+    RefreshCcw,
+    Search,
+    Send,
+    Slack,
+    ThumbsDown,
+    ThumbsUp,
+    Users,
+    X,
+} from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useChatLog } from './useChatLog';
 
 const { hasCapability } = useCapabilityGuard();
 const hasTopicsAccess = computed(() => hasCapability('topics'));
 
-type ConversationSource = 'hosted_chat' | 'widget' | 'bar';
+type ConversationSource = 'hosted_chat' | 'widget' | 'bar' | 'telegram' | 'slack' | 'messenger' | 'whatsapp' | 'msteams' | 'instagram';
 
 const sourceMeta: Record<ConversationSource, { label: string; icon: typeof Globe }> = {
     hosted_chat: { label: 'Chat', icon: MessageSquare },
     widget: { label: 'Widget', icon: Globe },
     bar: { label: 'Bar', icon: Search },
+    telegram: { label: 'Telegram', icon: Send },
+    slack: { label: 'Slack', icon: Slack },
+    messenger: { label: 'Messenger', icon: Facebook },
+    whatsapp: { label: 'WhatsApp', icon: Phone },
+    msteams: { label: 'Teams', icon: Users },
+    instagram: { label: 'Instagram', icon: Instagram },
 };
 
 const {

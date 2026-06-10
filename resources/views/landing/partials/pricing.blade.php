@@ -1,338 +1,291 @@
 <!-- Pricing -->
 @if ($pricing && isset($packages))
-    <section class="relative" id="pricing">
-
-        <!-- Dark background -->
-        <div class="absolute inset-0 bg-slate-900 pointer-events-none -z-10 h-1/3 lg:h-2/3" aria-hidden="true"></div>
-
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6">
+    <section class="relative bg-white" id="pricing">
+        <div class="relative max-w-7xl mx-auto px-6 lg:px-8">
             <div class="py-12 md:py-20">
 
                 <!-- Section header -->
-                <div class="max-w-3xl mx-auto text-center pb-12">
-                    <h2 class="h2 font-display text-slate-100">
+                <div class="max-w-3xl mx-auto text-center">
+                    <h2 class="h2 font-display text-slate-900">
                         Pricing
                     </h2>
                 </div>
 
-                <!-- Pricing tables -->
+                @php
+                    // Tier geometry for the desktop comparison table.
+                    $tierCount = count($packages);
+                    $colCount = $tierCount + 1;            // label column + one per tier
+                    $colPct = 100 / $colCount;
+
+                    // 0-based position of the popular tier among the packages (drives the
+                    // highlighted-column background overlay below).
+                    $popIndex = null;
+                    $i = 0;
+                    foreach ($packages as $p) {
+                        if ($p['is_popular'] ?? false) { $popIndex = $i; break; }
+                        $i++;
+                    }
+                    $popMarginPct = $popIndex !== null ? ($popIndex + 1) * $colPct : null;
+
+                    // Cell helpers.
+                    $fmt = fn ($n): string => number_format((int) $n);
+                    $cap = fn (array $p, string $k): bool => (bool) ($p['capabilities'][$k] ?? false);
+                    $has = fn (array $p, string $k): bool => array_key_exists($k, $p['features_monthly'] ?? []);
+                    $isCs = fn (array $p): bool => (bool) ($p['contact_sales'] ?? false);
+
+                    // Comparison rows, grouped. A row resolves to a number/string (shown as
+                    // text) or a bool (check / dash). Derived from quota_limits + the plan
+                    // capabilities DTO so the table can never drift from what the plan grants.
+                    // A row may also carry `monthly`/`yearly` closures (toggle-aware value) and
+                    // a `tooltip` (explanatory "?" next to the label).
+                    $groups = [
+                        'Usage' => [
+                            [
+                                'label' => 'Messages / month',
+                                'value' => fn ($p) => $isCs($p) ? 'Custom' : $fmt($p['quota_limits']['monthly']['messages_limit'] ?? 0),
+                                // When yearly is selected the plan grants an annual allowance —
+                                // divide by 12 to show the equivalent monthly figure.
+                                'monthly' => fn ($p) => $fmt($p['quota_limits']['monthly']['messages_limit'] ?? 0),
+                                'yearly' => fn ($p) => $fmt((int) round(($p['quota_limits']['yearly']['messages_limit'] ?? 0) / 12)),
+                            ],
+                            ['label' => 'AI agents', 'value' => fn ($p) => $isCs($p) ? 'Unlimited' : $fmt($p['quota_limits']['fixed']['agents_limit'] ?? 0)],
+                            ['label' => 'Knowledge pages', 'value' => fn ($p) => $isCs($p) ? 'Custom' : $fmt($p['quota_limits']['fixed']['pages_limit'] ?? 0)],
+                            ['label' => 'Website links', 'value' => fn ($p) => $isCs($p) ? 'Custom' : $fmt($p['quota_limits']['fixed']['links_limit'] ?? 0)],
+                            ['label' => 'Audio / video minutes', 'value' => fn ($p) => $isCs($p) ? 'Custom' : $fmt($p['quota_limits']['fixed']['minutes_limit'] ?? 0)],
+                            ['label' => 'Team members', 'value' => fn ($p) => $isCs($p) ? 'Unlimited' : $fmt($p['quota_limits']['fixed']['workspace_users_limit'] ?? 0)],
+                            ['label' => 'Teams', 'value' => fn ($p) => $isCs($p) ? 'Unlimited' : $fmt($p['quota_limits']['fixed']['teams_limit'] ?? 0)],
+                            ['label' => 'Chat history', 'value' => fn ($p) => $isCs($p) ? 'Custom' : (($p['capabilities']['retentionDays'] ?? 0) . ' days'), 'tooltip' => 'How long each conversation is stored before it is automatically deleted.'],
+                        ],
+                        'Features' => [
+                            ['label' => 'Sentiment analysis', 'value' => fn ($p) => $cap($p, 'sentiment'), 'tooltip' => 'Automatically detects whether each conversation feels positive, neutral, or negative.'],
+                            ['label' => 'Tone analysis', 'value' => fn ($p) => $cap($p, 'tone'), 'tooltip' => 'Reads the emotional tone of a chat so your replies can stay on-brand.'],
+                            ['label' => 'Topic analysis', 'value' => fn ($p) => $cap($p, 'topics'), 'tooltip' => 'Groups conversations by subject so you can see what people ask about most.'],
+                            ['label' => 'Conversation Pulse', 'value' => fn ($p) => $cap($p, 'pulse'), 'tooltip' => 'A live health score for each conversation that blends sentiment and tone to flag chats that need attention.'],
+                            ['label' => 'Handoff to humans', 'value' => fn ($p) => $cap($p, 'handoff'), 'tooltip' => 'Let a human agent step in and take over from the AI during a live chat.'],
+                            ['label' => 'API access', 'value' => fn ($p) => $cap($p, 'api'), 'tooltip' => 'Connect Chatvia to your own apps and workflows through our API.'],
+                            ['label' => 'MCP', 'value' => fn ($p) => $has($p, 'mcp'), 'tooltip' => 'Connect external tools and data to your agent using the Model Context Protocol.'],
+                            ['label' => 'Function calling', 'value' => fn ($p) => $has($p, 'function_calling'), 'tooltip' => 'Let your agent call your own functions and webhooks to take actions during a chat.'],
+                            ['label' => 'Custom integrations', 'value' => fn ($p) => $has($p, 'integrations'), 'tooltip' => 'Hook up your own tools and services to extend what your agents can do.'],
+                            ['label' => 'White-label (remove branding)', 'value' => fn ($p) => $cap($p, 'removeBranding'), 'tooltip' => 'Hide the "Powered by Chatvia" badge across your widget and chat pages.'],
+                        ],
+                        'Security & support' => [
+                            ['label' => 'SSO / SAML', 'value' => fn ($p) => $has($p, 'sso'), 'tooltip' => 'Let your team sign in through your company identity provider, like Okta or Azure AD.'],
+                            ['label' => 'Uptime SLA', 'value' => fn ($p) => $has($p, 'sla'), 'tooltip' => 'A written guarantee on how often the service stays available.'],
+                            ['label' => 'Dedicated support', 'value' => fn ($p) => $has($p, 'support'), 'tooltip' => 'A named contact and faster response times for your team.'],
+                            ['label' => 'Custom contract & DPA', 'value' => fn ($p) => $has($p, 'dpa'), 'tooltip' => 'A tailored agreement and data-processing terms for your legal team.'],
+                        ],
+                    ];
+
+                    // Heroicon paths reused for the included / not-included cells.
+                    $checkPath = 'M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z';
+                    $minusPath = 'M4 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 10Z';
+                @endphp
+
                 <div x-data="{ annual: true }">
 
-                    <!-- Pricing toggle -->
-                    <div class="flex justify-center items-center space-x-4 sm:space-x-7 mb-16">
-                        <div class="text-sm text-slate-500 font-medium text-right min-w-[8rem]">Pay
-                            Monthly
-                        </div>
+                    <!-- Billing toggle -->
+                    <div class="flex justify-center items-center space-x-4 sm:space-x-7 mt-10 mb-4">
+                        <div class="text-sm text-slate-500 font-medium text-right min-w-[8rem]">Pay Monthly</div>
                         <div class="form-switch shrink-0">
                             <input type="checkbox" id="toggle" class="sr-only" x-model="annual" />
-                            <label class="bg-slate-700" for="toggle">
+                            <label class="bg-slate-300" for="toggle">
                                 <span aria-hidden="true"></span>
                                 <span class="sr-only">Pay annually</span>
                             </label>
                         </div>
-                        <div class="text-sm text-slate-500 font-medium min-w-[8rem]">Pay Yearly <span
-                                class="text-emerald-500">(-{{ $billingConfig['ui']['yearly_savings_percentage'] ?? 50 }}%)</span>
+                        <div class="text-sm text-slate-500 font-medium min-w-[8rem]">Pay Yearly
+                            <span class="text-emerald-500">(-{{ $billingConfig['ui']['yearly_savings_percentage'] ?? 20 }}%)</span>
                         </div>
                     </div>
 
-                    <div
-                        class="max-w-sm mx-auto grid gap-8 lg:grid-cols-{{ min(count($packages), 4) }} lg:gap-6 items-start lg:max-w-none pt-4">
-
+                    <!-- xs to lg: stacked cards -->
+                    <div class="mx-auto mt-12 max-w-md space-y-8 lg:hidden">
                         @foreach ($packages as $packageKey => $package)
-                            @php
-                                $numericIndex = $loop->index;
-                                // Get all LLM models for tooltip
-                                $llmModels = \Domain\Llm\Models\Llm::select('descriptive_name')
-                                    ->orderBy('descriptive_name')
-                                    ->get()
-                                    ->pluck('descriptive_name')
-                                    ->toArray();
-                            @endphp
+                            @php $pop = $package['is_popular'] ?? false; @endphp
+                            <section class="p-8 {{ $pop ? 'rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200' : '' }}">
+                                <h3 class="text-sm font-semibold text-slate-900">{{ $package['name'] }}</h3>
 
-                            <div class="relative flex flex-col h-full px-6 py-5 bg-white shadow-lg" data-aos="fade-up"
-                                @if ($numericIndex > 0) data-aos-delay="{{ (int) $numericIndex * 100 }}" @endif>
-                                @if ($package['is_popular'])
-                                    <div class="absolute top-0 right-0 mr-6 -mt-4">
-                                        <div
-                                            class="inline-flex text-sm font-medium py-1 px-3 text-emerald-700 bg-emerald-200 rounded-full">
-                                            {{ $billingConfig['ui']['popular_badge_text'] ?? 'Most Popular' }}
-                                        </div>
-                                    </div>
-                                @endif
-
-
-                                <div class="mb-4 pb-4 border-b border-slate-200">
-                                    <div class="text-lg font-medium text-slate-800 mb-1">{{ $package['name'] }}</div>
-                                    <div class="inline-flex items-baseline mb-3">
-                                        <span
-                                            class="h3 font-medium text-slate-500">{{ $billingConfig['currencySymbol'] }}</span>
-                                        <span
-                                            x-text="annual ? '{{ number_format($package['yearly_price'] / 12 / 100) }}' : '{{ number_format($package['monthly_price'] / 100) }}'"
-                                            class="h2 leading-7 font-display text-slate-800"></span>
-                                        <span class="font-medium text-slate-400">/mo</span>
-                                    </div>
-                                    <div class="text-xs -mt-2 mb-2 h-5">
-                                        <span x-show="annual" class="text-slate-400">
-                                            Billed yearly at
-                                            {{ $billingConfig['currencySymbol'] }}{{ number_format($package['yearly_price'] / 100, 0) }}
-                                        </span>
-                                    </div>
-                                    <div class="text-slate-500">{{ $package['description'] }}</div>
+                                <p class="mt-2 flex items-baseline gap-x-1 text-slate-900">
+                                    @if ($isCs($package))
+                                        <span class="text-4xl font-semibold">Custom</span>
+                                    @else
+                                        <span class="text-4xl font-semibold">{{ $billingConfig['currencySymbol'] }}<span
+                                                x-text="annual ? '{{ number_format($package['yearly_price'] / 12 / 100) }}' : '{{ number_format($package['monthly_price'] / 100) }}'"></span></span>
+                                        <span class="text-sm font-semibold text-slate-500">/month</span>
+                                    @endif
+                                </p>
+                                <div class="mt-1 h-5 text-xs text-slate-500">
+                                    @if ($isCs($package))
+                                        Let's talk
+                                    @else
+                                        <span x-show="annual">Billed yearly at {{ $billingConfig['currencySymbol'] }}{{ number_format($package['yearly_price'] / 100, 0) }}</span>
+                                    @endif
                                 </div>
 
-                                <div class="p-3 rounded-sm bg-slate-50">
-                                    <form method="POST" action="{{ route('trial.checkout') }}"
-                                        class="w-full trial-form">
+                                @if ($isCs($package))
+                                    <a href="{{ route('contact') }}"
+                                        class="mt-8 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700">
+                                        Contact sales
+                                    </a>
+                                @else
+                                    <form method="POST" action="{{ route('trial.checkout') }}" class="trial-form">
                                         @csrf
                                         <input type="hidden" name="package" value="{{ $packageKey }}">
                                         <input type="hidden" name="yearly" class="yearly-input" value="0">
                                         <button type="submit"
-                                            class="btn-sm text-white bg-blue-600 hover:bg-blue-700 w-full group cursor-pointer"
+                                            class="mt-8 block w-full rounded-md px-3 py-2 text-center text-sm font-semibold {{ $pop ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-blue-600 ring-1 ring-inset ring-blue-200 hover:ring-blue-300' }}"
                                             onclick="this.form.querySelector('.yearly-input').value = document.getElementById('toggle').checked ? '1' : '0'">
-                                            Start 7-Day Free Trial <span
-                                                class="tracking-normal text-blue-300 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span>
+                                            Start free trial
                                         </button>
                                     </form>
-                                </div>
+                                @endif
 
-                                {{--                                <div class="font-medium mb-3"> --}}
-
-                                {{--                                    @if ($numericIndex === 0) --}}
-                                {{--                                        Features include: --}}
-                                {{--                                    @else --}}
-                                {{--                                        @php --}}
-                                {{--                                            $previousPackage = $packages->values()[$numericIndex - 1]; --}}
-                                {{--                                        @endphp --}}
-                                {{--                                        All features of {{ $previousPackage['name'] }} plus: --}}
-                                {{--                                    @endif --}}
-                                {{--                                </div> --}}
-                                <div class="mt-3"></div>
-                                <div class="grow">
-                                    <!-- Monthly Features -->
-                                    <ul class="text-slate-500 space-y-3 absolute" x-show="!annual">
-                                        @foreach ($package['features_monthly'] as $key => $feature)
-                                            @php
-                                                $featureLabel = $feature;
-
-                                                $isNewFeature = false;
-                                                if ($numericIndex > 0) {
-                                                    $previousPackage = $packages->values()[$numericIndex - 1];
-                                                    $isNewFeature = !in_array(
-                                                        $feature,
-                                                        $previousPackage['features_monthly'],
-                                                    );
-                                                }
-
-                                                // Check if the feature needs a tooltip
-                                                $tooltipText = null;
-                                                $tooltipIsList = false;
-                                                $featureLower = strtolower($featureLabel);
-
-                                                if (stripos($featureLower, 'model') !== false) {
-                                                    $tooltipText = $llmModels;
-                                                    $tooltipIsList = true;
-                                                } elseif (stripos($featureLower, 'tone analysis') !== false) {
-                                                    $tooltipText =
-                                                        'Automatically detects and analyzes the emotional tone of conversations to help maintain appropriate communication style and professionalism.';
-                                                } elseif (stripos($featureLower, 'sentiment analysis') !== false) {
-                                                    $tooltipText =
-                                                        'Real-time analysis of customer sentiment (positive, negative, neutral) to help prioritize responses and improve customer satisfaction.';
-                                                } elseif (stripos($featureLower, 'topic analysis') !== false) {
-                                                    $tooltipText =
-                                                        'Intelligently identifies and categorizes conversation topics to help organize support tickets, route inquiries, and gain insights into customer needs.';
-                                                } elseif (stripos($featureLower, 'handoff') !== false) {
-                                                    $tooltipText =
-                                                        'Seamlessly transfer conversations from AI to human agents when complex issues arise or when customers request human assistance.';
-                                                } elseif (stripos($featureLower, 'pulse') !== false || stripos($featureLower, 'conversation pulse') !== false) {
-                                                    $tooltipText =
-                                                        'Track real-time conversation health metrics including sentiment trends, emotional tone shifts, and conversation flow to proactively identify and address customer concerns.';
-                                                }
-                                            @endphp
-                                            <li class="flex items-center">
-                                                <svg class="w-3 h-3 fill-current text-emerald-500 mr-3 shrink-0"
-                                                    viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                    <path
-                                                        d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
-                                                </svg>
-
-                                                @if ($tooltipText)
-                                                    <div class="relative group" x-data="{ tooltipOpen: false }" @click.away="tooltipOpen = false">
-                                                        <span
-                                                            @click="tooltipOpen = !tooltipOpen"
-                                                            class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 cursor-help">{{ $featureLabel }}</span>
-
-                                                        <!-- Tooltip -->
-                                                        <div
-                                                            x-show="tooltipOpen"
-                                                            x-transition
-                                                            @mouseenter="tooltipOpen = true"
-                                                            @mouseleave="tooltipOpen = false"
-                                                            class="absolute top-full left-0 mt-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 w-64"
-                                                            :class="{ '!opacity-100 !visible': tooltipOpen }">
-                                                            @if ($tooltipIsList && is_array($tooltipText))
-                                                                <div class="text-xs text-slate-100">
-                                                                    <div class="font-medium text-emerald-400 mb-2">
-                                                                        Available Models:</div>
-                                                                    <ul class="space-y-1.5">
-                                                                        @foreach ($tooltipText as $model)
-                                                                            <li class="flex items-start">
-                                                                                <span
-                                                                                    class="text-emerald-400 mr-2">•</span>
-                                                                                <span>{{ $model }}</span>
-                                                                            </li>
-                                                                        @endforeach
-                                                                    </ul>
-                                                                </div>
-                                                            @else
-                                                                <div class="text-xs text-slate-100 leading-relaxed">
-                                                                    {{ $tooltipText }}
-                                                                </div>
-                                                            @endif
-                                                            <!-- Tooltip Arrow -->
-                                                            <div class="absolute bottom-full left-4 mb-px">
-                                                                <div
-                                                                    class="border-4 border-transparent border-b-slate-900">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @elseif ($key === 'api')
-                                                    <a href="https://chatvia.ai/docs/api" target="_blank" rel="noopener noreferrer"
-                                                        class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 hover:text-blue-600">{{ $featureLabel }}</a>
-                                                @else
-                                                    <span
-                                                        @if ($isNewFeature) class="font-medium text-slate-700" @endif>{{ $featureLabel }}</span>
-                                                @endif
-                                            </li>
+                                <ul role="list" class="mt-8 space-y-3 text-sm text-slate-700">
+                                    @foreach ($groups as $rows)
+                                        @foreach ($rows as $row)
+                                            @php $value = ($row['value'])($package); @endphp
+                                            @if (! is_bool($value) || $value)
+                                                <li class="flex gap-x-3">
+                                                    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="h-6 w-5 flex-none text-emerald-500">
+                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="{{ $checkPath }}" />
+                                                    </svg>
+                                                    <span>{{ $row['label'] }}@if (isset($row['monthly']) && ! $isCs($package)) <span class="text-slate-500">(<span x-text="annual ? '{{ $row['yearly']($package) }}' : '{{ $row['monthly']($package) }}'"></span>)</span>@elseif (! is_bool($value)) <span class="text-slate-500">({{ $value }})</span>@endif</span>
+                                                </li>
+                                            @endif
                                         @endforeach
-                                    </ul>
-
-                                    <!-- Yearly Features -->
-                                    <ul class="text-slate-500 space-y-3 absolute" x-show="annual">
-                                        @foreach ($package['features_yearly'] as $key => $feature)
-                                            @php
-                                                $featureLabel = $feature;
-
-                                                $isNewFeature = false;
-                                                if ($numericIndex > 0) {
-                                                    $previousPackage = $packages->values()[$numericIndex - 1];
-                                                    $isNewFeature = !in_array(
-                                                        $feature,
-                                                        $previousPackage['features_yearly'],
-                                                    );
-                                                }
-
-                                                // Check if the feature needs a tooltip
-                                                $tooltipText = null;
-                                                $tooltipIsList = false;
-                                                $featureLower = strtolower($featureLabel);
-
-                                                if (stripos($featureLower, 'message') !== false) {
-                                                    $tooltipText =
-                                                        $featureLabel . ' will be credited to your account yearly';
-                                                } elseif (stripos($featureLower, 'model') !== false) {
-                                                    $tooltipText = $llmModels;
-                                                    $tooltipIsList = true;
-                                                } elseif (stripos($featureLower, 'tone analysis') !== false) {
-                                                    $tooltipText =
-                                                        'Automatically detects and analyzes the emotional tone of conversations to help maintain appropriate communication style and professionalism.';
-                                                } elseif (stripos($featureLower, 'sentiment analysis') !== false) {
-                                                    $tooltipText =
-                                                        'Real-time analysis of customer sentiment (positive, negative, neutral) to help prioritize responses and improve customer satisfaction.';
-                                                } elseif (stripos($featureLower, 'topic analysis') !== false) {
-                                                    $tooltipText =
-                                                        'Intelligently identifies and categorizes conversation topics to help organize support tickets, route inquiries, and gain insights into customer needs.';
-                                                } elseif (stripos($featureLower, 'handoff') !== false) {
-                                                    $tooltipText =
-                                                        'Seamlessly transfer conversations from AI to human agents when complex issues arise or when customers request human assistance.';
-                                                } elseif (stripos($featureLower, 'pulse') !== false || stripos($featureLower, 'conversation pulse') !== false) {
-                                                    $tooltipText =
-                                                        'Track real-time conversation health metrics including sentiment trends, emotional tone shifts, and conversation flow to proactively identify and address customer concerns.';
-                                                }
-                                            @endphp
-                                            <li class="flex items-center">
-                                                <svg class="w-3 h-3 fill-current text-emerald-500 mr-3 shrink-0"
-                                                    viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                    <path
-                                                        d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
-                                                </svg>
-
-                                                @if ($tooltipText)
-                                                    <div class="relative group" x-data="{ tooltipOpen: false }" @click.away="tooltipOpen = false">
-                                                        <span
-                                                            @click="tooltipOpen = !tooltipOpen"
-                                                            class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 cursor-help">{{ $featureLabel }}</span>
-
-                                                        <!-- Tooltip -->
-                                                        <div
-                                                            x-show="tooltipOpen"
-                                                            x-transition
-                                                            @mouseenter="tooltipOpen = true"
-                                                            @mouseleave="tooltipOpen = false"
-                                                            class="absolute top-full left-0 mt-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 w-64"
-                                                            :class="{ '!opacity-100 !visible': tooltipOpen }">
-                                                            @if ($tooltipIsList && is_array($tooltipText))
-                                                                <div class="text-xs text-slate-100">
-                                                                    <div class="font-medium text-emerald-400 mb-2">
-                                                                        Available Models:</div>
-                                                                    <ul class="space-y-1.5">
-                                                                        @foreach ($tooltipText as $model)
-                                                                            <li class="flex items-start">
-                                                                                <span
-                                                                                    class="text-emerald-400 mr-2">•</span>
-                                                                                <span>{{ $model }}</span>
-                                                                            </li>
-                                                                        @endforeach
-                                                                    </ul>
-                                                                </div>
-                                                            @else
-                                                                <div class="text-xs text-slate-100 leading-relaxed">
-                                                                    {{ $tooltipText }}
-                                                                </div>
-                                                            @endif
-                                                            <!-- Tooltip Arrow -->
-                                                            <div class="absolute bottom-full left-4 mb-px">
-                                                                <div
-                                                                    class="border-4 border-transparent border-b-slate-900">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @elseif ($key === 'api')
-                                                    <a href="https://chatvia.ai/docs/api" target="_blank" rel="noopener noreferrer"
-                                                        class="@if ($isNewFeature) font-medium text-slate-700 @else text-slate-500 @endif border-b border-dotted border-slate-400 hover:text-blue-600">{{ $featureLabel }}</a>
-                                                @else
-                                                    <span
-                                                        @if ($isNewFeature) class="font-medium text-slate-700" @endif>{{ $featureLabel }}</span>
-                                                @endif
-                                            </li>
-                                        @endforeach
-                                    </ul>
-
-                                    <!-- Invisible spacer to maintain height based on the longest feature list -->
-                                    <ul class="text-slate-500 space-y-3 invisible">
-                                        @php
-                                            $maxFeatures = max(
-                                                count($package['features_monthly']),
-                                                count($package['features_yearly']),
-                                            );
-                                        @endphp
-                                        @for ($i = 0; $i < $maxFeatures; $i++)
-                                            <li class="flex items-center">
-                                                <svg class="w-3 h-3 fill-current text-emerald-500 mr-3 shrink-0"
-                                                    viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
-                                                    <path
-                                                        d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
-                                                </svg>
-                                                <span>Placeholder feature</span>
-                                            </li>
-                                        @endfor
-                                    </ul>
-                                </div>
-
-                            </div>
+                                    @endforeach
+                                </ul>
+                            </section>
                         @endforeach
+                    </div>
 
+                    <!-- lg+: comparison table -->
+                    <div class="isolate mt-16 hidden lg:block">
+                        <div class="relative -mx-8">
+                            @if ($popIndex !== null)
+                                <div class="absolute inset-x-4 inset-y-0 -z-10 flex">
+                                    <div class="flex px-4" style="margin-left: {{ $popMarginPct }}%; width: {{ $colPct }}%;" aria-hidden="true">
+                                        <div class="w-full rounded-t-xl border-x border-t border-blue-200 bg-blue-50/60"></div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <table class="w-full table-fixed border-separate border-spacing-x-8 text-left">
+                                <caption class="sr-only">Pricing plan comparison</caption>
+                                <colgroup>
+                                    <col style="width: {{ $colPct }}%" />
+                                    @foreach ($packages as $package)
+                                        <col style="width: {{ $colPct }}%" />
+                                    @endforeach
+                                </colgroup>
+
+                                <thead>
+                                    <tr>
+                                        <td></td>
+                                        @foreach ($packages as $package)
+                                            <th scope="col" class="px-6 pt-6 xl:px-8 xl:pt-8">
+                                                <span class="text-sm font-semibold text-slate-900">{{ $package['name'] }}</span>
+                                            </th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <!-- Price + CTA -->
+                                    <tr>
+                                        <th scope="row"><span class="sr-only">Price</span></th>
+                                        @foreach ($packages as $packageKey => $package)
+                                            @php $pop = $package['is_popular'] ?? false; @endphp
+                                            <td class="px-6 pt-2 xl:px-8">
+                                                @if ($isCs($package))
+                                                    <div class="flex items-baseline gap-x-1 text-slate-900">
+                                                        <span class="text-4xl font-semibold">Custom</span>
+                                                    </div>
+                                                    <div class="mt-1 h-5 text-xs text-slate-500">Let's talk</div>
+                                                    <a href="{{ route('contact') }}"
+                                                        class="mt-8 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700">
+                                                        Contact sales
+                                                    </a>
+                                                @else
+                                                    <div class="flex items-baseline gap-x-1 text-slate-900">
+                                                        <span class="text-4xl font-semibold">{{ $billingConfig['currencySymbol'] }}<span
+                                                                x-text="annual ? '{{ number_format($package['yearly_price'] / 12 / 100) }}' : '{{ number_format($package['monthly_price'] / 100) }}'"></span></span>
+                                                        <span class="text-sm font-semibold text-slate-500">/month</span>
+                                                    </div>
+                                                    <div class="mt-1 h-5 text-xs text-slate-500">
+                                                        <span x-show="annual">Billed yearly at {{ $billingConfig['currencySymbol'] }}{{ number_format($package['yearly_price'] / 100, 0) }}</span>
+                                                    </div>
+                                                    <form method="POST" action="{{ route('trial.checkout') }}" class="trial-form">
+                                                        @csrf
+                                                        <input type="hidden" name="package" value="{{ $packageKey }}">
+                                                        <input type="hidden" name="yearly" class="yearly-input" value="0">
+                                                        <button type="submit"
+                                                            class="mt-8 block w-full rounded-md px-3 py-2 text-center text-sm font-semibold {{ $pop ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-blue-600 ring-1 ring-inset ring-blue-200 hover:ring-blue-300' }}"
+                                                            onclick="this.form.querySelector('.yearly-input').value = document.getElementById('toggle').checked ? '1' : '0'">
+                                                            Start free trial
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </td>
+                                        @endforeach
+                                    </tr>
+
+                                    @foreach ($groups as $groupName => $rows)
+                                        <tr>
+                                            <th scope="colgroup" colspan="{{ $colCount }}"
+                                                class="pb-4 {{ $loop->first ? 'pt-8' : 'pt-16' }} text-sm font-semibold text-slate-900">
+                                                {{ $groupName }}
+                                                <div class="absolute inset-x-8 mt-4 h-px bg-slate-900/10"></div>
+                                            </th>
+                                        </tr>
+                                        @foreach ($rows as $row)
+                                            <tr>
+                                                <th scope="row" class="py-4 text-sm font-normal text-slate-700">
+                                                    <span class="inline-flex items-center gap-x-1.5">
+                                                        <span>{{ $row['label'] }}</span>
+                                                        @if (! empty($row['tooltip']))
+                                                            <span class="group relative inline-flex">
+                                                                <span tabindex="0" role="button" aria-label="What is {{ $row['label'] }}?"
+                                                                    class="flex size-4 cursor-help items-center justify-center rounded-full bg-slate-200 text-[10px] font-semibold text-slate-500 hover:bg-slate-300">?</span>
+                                                                <span role="tooltip"
+                                                                    class="pointer-events-none absolute bottom-full left-0 z-20 mb-2 w-64 rounded-lg bg-slate-900 px-3 py-2 text-xs font-normal leading-snug text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                                                                    {{ $row['tooltip'] }}
+                                                                </span>
+                                                            </span>
+                                                        @endif
+                                                    </span>
+                                                    <div class="absolute inset-x-8 mt-4 h-px bg-slate-900/5"></div>
+                                                </th>
+                                                @foreach ($packages as $package)
+                                                    @php $value = ($row['value'])($package); @endphp
+                                                    <td class="px-6 py-4 xl:px-8">
+                                                        @if (isset($row['monthly']) && ! $isCs($package))
+                                                            <div class="text-center text-sm text-slate-600">
+                                                                <span x-text="annual ? '{{ $row['yearly']($package) }}' : '{{ $row['monthly']($package) }}'"></span>
+                                                            </div>
+                                                        @elseif (is_bool($value))
+                                                            @if ($value)
+                                                                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="mx-auto size-5 text-emerald-500">
+                                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="{{ $checkPath }}" />
+                                                                </svg>
+                                                                <span class="sr-only">Included in {{ $package['name'] }}</span>
+                                                            @else
+                                                                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="mx-auto size-5 text-slate-300">
+                                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="{{ $minusPath }}" />
+                                                                </svg>
+                                                                <span class="sr-only">Not included in {{ $package['name'] }}</span>
+                                                            @endif
+                                                        @else
+                                                            <div class="text-center text-sm text-slate-600">{{ $value }}</div>
+                                                        @endif
+                                                    </td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                 </div>

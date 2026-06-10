@@ -172,6 +172,18 @@ return [
         'qa_model' => env('MISTRAL_QA_MODEL', 'mistral-medium-latest'),
     ],
 
+    'perplexity' => [
+        // The Perplexity connector is BYO-key: each customer supplies their own
+        // API key at connect time, so no api_key lives here. These just set the
+        // upstream endpoint + the model each tool calls. `agent_model` drives
+        // the /v1/agent tools (web_search, fetch_url, finance_search,
+        // people_search, run_code); ask/research stay on chat-completions.
+        'base_url' => env('PERPLEXITY_BASE_URL', 'https://api.perplexity.ai'),
+        'agent_model' => env('PERPLEXITY_AGENT_MODEL', 'perplexity/sonar'),
+        'ask_model' => env('PERPLEXITY_ASK_MODEL', 'sonar-pro'),
+        'research_model' => env('PERPLEXITY_RESEARCH_MODEL', 'sonar-reasoning-pro'),
+    ],
+
     'chunker' => [
         'hash_key' => env('CHUNKER_HASH_KEY'),
     ],

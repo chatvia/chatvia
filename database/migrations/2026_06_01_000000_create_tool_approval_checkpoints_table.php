@@ -24,7 +24,7 @@ return new class extends Migration
 
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
 
-            $table->string('conversation_external_id');
+            $table->uuid('conversation_external_id');
             $table->uuid('assistant_message_id');
             $table->string('request_id')->nullable();
 
@@ -32,9 +32,9 @@ return new class extends Migration
             // budget from where it stopped.
             $table->unsignedSmallInteger('iteration')->default(0);
 
-            // pending | resolved | expired. Guarded transactionally so a
-            // double-submit can never run the tools twice.
-            $table->string('status', 16)->default('pending');
+            // Guarded transactionally so a double-submit can never run the
+            // tools twice.
+            $table->enum('status', ['pending', 'resolved', 'expired'])->default('pending');
 
             // The exact `$llmMessages` array at pause time (includes the
             // assistant turn carrying the tool_calls).

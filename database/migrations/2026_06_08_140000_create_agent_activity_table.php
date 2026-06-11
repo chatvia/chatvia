@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -22,7 +23,9 @@ return new class extends Migration
             // The agent acted through. FK nulls on delete; agent_name survives it.
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
             $table->string('agent_name');
-            $table->unsignedBigInteger('workspace_id'); // tenant scope (agent owner)
+            // Tenant scope (agent owner). The audit trail is tenant data —
+            // it dies with the workspace (GDPR: no orphaned tool args/names).
+            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
 
             // The actor (a chatter). FK nulls on delete; user_name survives it.
             // user_name === null ⇒ anonymous visitor.
@@ -30,19 +33,19 @@ return new class extends Migration
             $table->string('user_name')->nullable();
 
             // Correlation.
-            $table->string('conversation_external_id')->nullable();
+            $table->uuid('conversation_external_id')->nullable();
             $table->string('trace_id'); // = assistant message id
             $table->string('request_id')->nullable();
             $table->string('tool_call_id');
 
             // The tool + connector. tool_name is UNPREFIXED (e.g. current-weather-tool).
             $table->string('tool_name');
-            $table->string('tool_kind', 16); // mcp | function
+            $table->enum('tool_kind', ['mcp', 'function']);
             $table->string('connector_slug')->nullable();
             $table->string('connector_name')->nullable();
 
             // Outcome.
-            $table->string('outcome', 16); // auto | approved | denied | rate_limited
+            $table->enum('outcome', ['auto', 'approved', 'denied', 'rate_limited']);
             $table->boolean('gated')->default(false);
             $table->boolean('is_error')->default(false);
             $table->unsignedInteger('latency_ms')->nullable();
@@ -57,15 +60,23 @@ return new class extends Migration
             // When a gated call was resolved (decider == the actor user).
             $table->timestampTz('decided_at')->nullable();
 
-            $table->timestampTz('created_at')->nullable(); // immutable; no updated_at
+            $table->timestampTz('created_at')->useCurrent(); // immutable; no updated_at
 
             // Postgres does not auto-index FK columns — index them explicitly.
-            $table->index('agent_id');
+            // The (…, id) composites serve the audit pages' ORDER BY id DESC
+            // top-N walks (cursor pagination); a bare agent_id prefix would be
+            // redundant with them.
+            $table->index(['agent_id', 'id']);
+            $table->index(['workspace_id', 'id']);
             $table->index('user_id');
             $table->index(['workspace_id', 'created_at']);
             $table->index('connector_slug');
             $table->index('outcome');
         });
+
+        // Cheap insert-order index for the retention prune's
+        // `WHERE created_at < ?` sweep — BRIN, since rows arrive in time order.
+        DB::statement('CREATE INDEX agent_activity_created_at_brin ON agent_activity USING brin (created_at)');
     }
 
     public function down(): void

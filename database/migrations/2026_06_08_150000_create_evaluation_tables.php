@@ -23,10 +23,11 @@ return new class extends Migration
             $table->uuid('external_id')->unique(); // stable, non-guessable id used in routes
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
             $table->string('agent_name');
-            $table->unsignedBigInteger('workspace_id');
+            // Tenant scope — eval definitions die with the workspace.
+            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
             $table->string('name');
             $table->text('input'); // the test prompt sent to the agent
-            $table->string('scorer_type', 32); // contains | regex | exact | json_schema | llm_judge
+            $table->enum('scorer_type', ['contains', 'regex', 'exact', 'json_schema', 'llm_judge']);
             $table->jsonb('scorer_config')->nullable(); // expected substring / regex / schema / judge rubric
             $table->text('expected_output')->nullable(); // reference answer for exact / judge
             $table->boolean('active')->default(true);
@@ -42,8 +43,9 @@ return new class extends Migration
             $table->uuid('external_id')->unique(); // stable, non-guessable id used in routes
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
             $table->string('agent_name');
-            $table->unsignedBigInteger('workspace_id');
-            $table->string('status', 16)->default('running'); // running | completed | failed
+            // Tenant scope — runs die with the workspace.
+            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
+            $table->enum('status', ['running', 'completed', 'failed'])->default('running');
             $table->unsignedInteger('total_cases')->default(0);
             $table->unsignedInteger('passed_count')->default(0);
             $table->unsignedInteger('failed_count')->default(0);
@@ -57,9 +59,8 @@ return new class extends Migration
             $table->timestampTz('finished_at')->nullable();
             $table->timestampsTz();
 
-            $table->index('agent_id');
             $table->index('workspace_id');
-            $table->index(['agent_id', 'id']); // previous-run lookup (order by id desc)
+            $table->index(['agent_id', 'id']); // previous-run lookup (order by id desc); also serves bare agent_id
         });
 
         // Immutable per-case result of a run.
@@ -69,7 +70,7 @@ return new class extends Migration
             $table->foreignId('run_id')->constrained('eval_runs')->cascadeOnDelete();
             $table->foreignId('case_id')->nullable()->constrained('eval_cases')->nullOnDelete();
             $table->string('case_name');
-            $table->string('scorer_type', 32);
+            $table->enum('scorer_type', ['contains', 'regex', 'exact', 'json_schema', 'llm_judge']);
             $table->boolean('pass')->default(false);
             $table->decimal('score', 5, 4)->nullable(); // 0..1
             $table->text('actual_output')->nullable(); // the agent's answer (redacted + size-capped)
@@ -81,10 +82,9 @@ return new class extends Migration
             $table->unsignedInteger('latency_ms')->nullable();
             $table->unsignedInteger('tokens')->nullable();
             $table->string('trace_id')->nullable(); // = the eval assistant message id (joins spectra_requests)
-            $table->timestampTz('created_at')->nullable(); // immutable; no updated_at
+            $table->timestampTz('created_at')->useCurrent(); // immutable; no updated_at
 
-            $table->index('run_id');
-            $table->index(['run_id', 'pass']);
+            $table->index(['run_id', 'pass']); // also serves bare run_id (FK)
         });
     }
 

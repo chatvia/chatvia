@@ -165,6 +165,9 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['chat_conversation_id', 'mime_type']);
+            // The chat_message_id FK cascades from chat_messages deletes;
+            // without an index every parent delete seq-scans this table.
+            $table->index('chat_message_id');
         });
 
         $this->createPartialIndexes();

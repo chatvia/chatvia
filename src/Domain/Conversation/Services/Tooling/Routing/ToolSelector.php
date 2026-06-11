@@ -37,6 +37,14 @@ class ToolSelector
      */
     public function selectForTurn(Agent $agent, string $userMessage, ?string $conversationId): array
     {
+        // Most agents have no tools at all — skip the router entirely (its
+        // first step is an external embedding call plus the hybrid ranking
+        // SQL) when the pool is empty. The registry pool is cached, so this
+        // guard costs nothing on the turns that do route.
+        if ($this->registry->for($agent) === []) {
+            return [];
+        }
+
         try {
             // Tool routing embeds the user message (SemanticToolRouter::route →
             // embedQuery) — and runs inside the streaming generator, after the

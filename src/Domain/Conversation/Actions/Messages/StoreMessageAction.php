@@ -125,7 +125,16 @@ class StoreMessageAction
             'locale' => $locale,
         ]);
 
-        $sessionUpdates = ['last_activity_at' => now()];
+        $sessionUpdates = [];
+
+        // Throttle the activity stamp: last_activity_at is indexed, so every
+        // write is a non-HOT update fanning into all of the table's indexes.
+        // Minute resolution is plenty for the chat-log "last seen" display,
+        // and it spares the assistant turn (which lands seconds after the
+        // user turn) the second write entirely.
+        if ($session->last_activity_at === null || $session->last_activity_at->lt(now()->subMinute())) {
+            $sessionUpdates['last_activity_at'] = now();
+        }
 
         // Backfill the chatter onto a session created without one (the TurnState
         // case above). Only fills a null — never reassigns an existing owner.
@@ -133,7 +142,9 @@ class StoreMessageAction
             $sessionUpdates['user_id'] = $payload->user_id;
         }
 
-        $session->update($sessionUpdates);
+        if ($sessionUpdates !== []) {
+            $session->update($sessionUpdates);
+        }
 
         if ($session->ip_address && ! $session->country_id) {
             SessionLocationUnknown::dispatch($session);
@@ -162,10 +173,23 @@ class StoreMessageAction
             ],
         );
 
-        $conversation->update([
-            'last_activity_at' => now(),
-            'is_visible' => true,
-        ]);
+        // Same minute-resolution throttle as the session stamp above —
+        // last_activity_at and the timestamp-bumped updated_at are indexed,
+        // so unconditional writes churn every index on the two hottest
+        // tables for no display benefit.
+        $conversationUpdates = [];
+
+        if ($conversation->last_activity_at === null || $conversation->last_activity_at->lt(now()->subMinute())) {
+            $conversationUpdates['last_activity_at'] = now();
+        }
+
+        if (! $conversation->is_visible) {
+            $conversationUpdates['is_visible'] = true;
+        }
+
+        if ($conversationUpdates !== []) {
+            $conversation->update($conversationUpdates);
+        }
 
         return $conversation;
     }
@@ -249,8 +273,10 @@ class StoreMessageAction
         ?int $completionTokens,
         ?int $costInMicroCents,
     ): array {
+        // Resolve through the cached catalog — this runs once per stored
+        // message, and the LLM list is a static lookup table.
         $llmId = $payload->model
-            ? Llm::where('external_name', $payload->model)->value('id')
+            ? Llm::catalog()->firstWhere('external_name', $payload->model)?->id
             : null;
 
         // Tool artifacts (charts, etc.) live in `metadata.artifacts` so they

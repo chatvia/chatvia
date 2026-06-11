@@ -37,6 +37,11 @@ Schedule::command('app:prune-agent-activity')->dailyAt('04:00');
 // whatever has newly crossed that age.
 Schedule::command('app:analyze-conversations')->hourly();
 
+// Drain the Redis token-usage buffer (RecordLlmTokenUsage) into
+// user_usages.tokens — one UPDATE per active workspace per minute instead of
+// one contended row-increment per LLM op on the request path.
+Schedule::command('app:flush-token-usage-buffer')->everyMinute();
+
 // Retrain the vchordrq k-means partitioning on the chunks indexes against the
 // CURRENT rows (migrate:fresh builds them on an empty table, so the initial
 // centroids are placeholders). CONCURRENTLY, so retrieval and ingestion stay

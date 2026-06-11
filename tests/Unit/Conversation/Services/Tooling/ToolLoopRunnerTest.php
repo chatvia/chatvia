@@ -206,7 +206,7 @@ function tlrContext(Agent $agent, Llm $llm): ChatContext
 
 beforeEach(function (): void {
     Spectra::fake();
-    config(['agent.tools.max_iterations' => 5]);
+    config(['chatvia.agent.tools.max_iterations' => 5]);
 });
 
 // --- applyPendingCalls: the approve / deny / auto semantics ------------------
@@ -439,7 +439,7 @@ it('pauses the whole turn and persists a pending checkpoint when a tool call nee
 });
 
 it('stops at the configured max_iterations cap instead of looping unbounded', function (): void {
-    config(['agent.tools.max_iterations' => 2]);
+    config(['chatvia.agent.tools.max_iterations' => 2]);
 
     $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
     $dispatcher = tlrDispatcher();

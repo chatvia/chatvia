@@ -36,7 +36,7 @@ it('rejects a file type that is neither OCR-supported nor media', function (): v
     $path = tempnam(sys_get_temp_dir(), 'fa_').'.xyz';
     file_put_contents($path, 'just some bytes');
 
-    expect(fn () => FileAnalyzer::analyze($path))->toThrow(LogicException::class);
+    expect(fn (): FileAnalysisData => FileAnalyzer::analyze($path))->toThrow(LogicException::class);
 
     @unlink($path);
 });

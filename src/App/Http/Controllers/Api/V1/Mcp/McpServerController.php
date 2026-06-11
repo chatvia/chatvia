@@ -27,8 +27,9 @@ class McpServerController
     {
         /** @var User $user */
         $user = $request->user();
+        $owner = $user->workspace();
 
-        $servers = $user->mcpServers()
+        $servers = $owner->mcpServers()
             ->whereNull('connector_slug')
             ->latest()
             ->get();
@@ -64,7 +65,7 @@ class McpServerController
         $user = $request->user();
 
         /** @var AgentMcpServer $server */
-        $server = $user->mcpServers()
+        $server = $user->workspace()->mcpServers()
             ->whereNull('connector_slug')
             ->where('external_id', $externalId)
             ->firstOrFail();

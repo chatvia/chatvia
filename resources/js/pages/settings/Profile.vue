@@ -25,7 +25,7 @@ import { getInitials } from '@/composables/useInitials';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
-import { CheckCircle, Loader2, Mail, Save, Trash2, Upload, User as UserIcon } from 'lucide-vue-next';
+import { Check, CheckCircle, Copy, Fingerprint, Loader2, Mail, Save, Trash2, Upload, User as UserIcon } from 'lucide-vue-next';
 
 interface DateFormatOption {
     value: DateFormatKey;
@@ -50,6 +50,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const page = usePage<SharedData>();
 const user = computed(() => page.props.auth.user as User);
+
+const externalIdCopied = ref(false);
+const copyExternalId = async () => {
+    await navigator.clipboard.writeText(user.value.external_id);
+    externalIdCopied.value = true;
+    setTimeout(() => (externalIdCopied.value = false), 2000);
+};
 
 const form = useForm({
     name: user.value.name,
@@ -167,6 +174,19 @@ const submitDateFormat = () => {
                                 <Mail class="mr-1 size-3.5" />
                                 {{ user.email }}
                             </p>
+                        </div>
+                        <div class="flex items-center justify-center sm:justify-start">
+                            <button
+                                type="button"
+                                @click="copyExternalId"
+                                class="text-muted-foreground hover:text-foreground group inline-flex min-w-0 cursor-pointer items-center gap-1.5 text-xs transition-colors"
+                                :title="externalIdCopied ? 'Copied!' : 'Copy account ID'"
+                            >
+                                <Fingerprint class="size-3.5 shrink-0" />
+                                <code class="truncate font-mono">{{ user.external_id }}</code>
+                                <Check v-if="externalIdCopied" class="size-3.5 shrink-0 text-green-600" />
+                                <Copy v-else class="size-3.5 shrink-0 opacity-60 transition-opacity group-hover:opacity-100" />
+                            </button>
                         </div>
                         <InputError :message="photoForm.errors.photo" />
                         <button

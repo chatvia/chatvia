@@ -37,11 +37,11 @@ beforeEach(function (): void {
 
         public ?string $checkedAppId = null;
 
-        public function verify(?string $authorization, string $appId, ?string $serviceUrl = null): bool
+        public function verify(?string $authorization, string $appId): ?array
         {
             $this->checkedAppId = $appId;
 
-            return $this->valid;
+            return $this->valid ? [] : null;
         }
     };
     $this->app->instance(TeamsActivityVerifier::class, $this->verifier);

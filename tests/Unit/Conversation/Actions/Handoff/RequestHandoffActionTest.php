@@ -20,27 +20,10 @@ use Illuminate\Support\Str;
  */
 function makeHandoffScenario(string $initialStatus = 'ai', bool $proPlan = true, array $widgetSettings = []): Conversation
 {
-    if ($proPlan) {
-        // Subscribe the owning workspace to the Pro plan so HANDOFF is granted.
-        // We override the env-driven config price so the test owns the value.
-        $priceId = 'price_test_pro_'.Str::random(6);
-        config(['billing.packages.pro.stripe_monthly_price_id' => $priceId]);
-    }
-
-    $agent = Agent::factory()->create();
-
-    if ($proPlan) {
-        // Insert a Cashier-compatible subscription row pointing at the pro price.
-        $agent->user->billing->subscriptions()->create([
-            'type' => 'default',
-            'stripe_id' => 'sub_test_'.Str::random(8),
-            'stripe_status' => 'active',
-            'stripe_price' => config('billing.packages.pro.stripe_monthly_price_id'),
-            'quantity' => 1,
-        ]);
-        // Clear the per-request memo bucket so capabilities re-resolve after seeding.
-        $agent->user->refresh();
-    }
+    // proPlanAgent() (tests/Pest.php) provisions billing + an active Pro
+    // subscription explicitly — factory users carry no billing rows anymore,
+    // so the HANDOFF capability must be seeded through the shared helper.
+    $agent = $proPlan ? proPlanAgent() : Agent::factory()->create();
 
     foreach ($widgetSettings as $key => $value) {
         $agent->setSetting($key, $value, 'widget');

@@ -9,7 +9,7 @@ use Domain\Channel\Whatsapp\Services\WhatsappFormatter;
  * have no syntax (bold line is the convention), and there is no link markup
  * (URLs auto-link bare).
  */
-beforeEach(fn () => $this->fmt = new WhatsappFormatter);
+beforeEach(fn (): WhatsappFormatter => $this->fmt = new WhatsappFormatter);
 
 it('converts bold, bullets, and headings to WhatsApp markup', function (): void {
     $text = $this->fmt->toWhatsapp("# Weather\n\nHere's **Baghdad**:\n\n- **Temp:** 39°C\n- **Wind:** 1.7 m/s");

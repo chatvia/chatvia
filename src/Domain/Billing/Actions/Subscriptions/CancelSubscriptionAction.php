@@ -3,7 +3,7 @@
 namespace Domain\Billing\Actions\Subscriptions;
 
 use App\Identity\Workspace\Models\User;
-use Stripe\SubscriptionSchedule;
+use Laravel\Cashier\Cashier;
 
 class CancelSubscriptionAction
 {
@@ -15,7 +15,7 @@ class CancelSubscriptionAction
             $currentMetadata = $subscription->asStripeSubscription()->metadata->toArray();
 
             if (isset($currentMetadata['schedule_id'])) {
-                SubscriptionSchedule::retrieve($currentMetadata['schedule_id'])->release();
+                Cashier::stripe()->subscriptionSchedules->retrieve($currentMetadata['schedule_id'])->release();
             }
 
             if (isset($currentMetadata['pending_change']) && $currentMetadata['pending_change'] === 'true') {

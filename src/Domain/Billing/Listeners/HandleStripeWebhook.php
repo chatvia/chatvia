@@ -11,6 +11,7 @@ use Domain\Membership\Team\Services\TeamService;
 use Exception;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -18,6 +19,7 @@ use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Events\WebhookReceived;
 use Laravel\Cashier\Subscription;
 use Support\Enums\User\UserType;
+use Throwable;
 
 class HandleStripeWebhook
 {
@@ -34,6 +36,22 @@ class HandleStripeWebhook
             return;
         }
 
+        try {
+            $this->process($event);
+        } catch (Throwable $exception) {
+            // Release the idempotency claim so Stripe's retry can reprocess
+            // the event — otherwise a transient failure here would mark the
+            // event as handled and permanently drop it.
+            if ($eventId) {
+                Cache::forget("stripe:event:{$eventId}");
+            }
+
+            throw $exception;
+        }
+    }
+
+    private function process(WebhookReceived $event): void
+    {
         $data = $event->payload['data']['object'];
 
         $type = $event->payload['type'];
@@ -225,29 +243,36 @@ class HandleStripeWebhook
                 ? strtoupper($customer->address->country)
                 : null;
 
-            // `type` must be set explicitly: the UserObserver only auto-provisions
-            // the UserBilling row (and starter quota defaults) for Workspace/Admin
-            // users, and it reads $user->type at `created` time — before the DB
-            // column default is reflected back into the model — so an omitted type
-            // reads as null and the billing row is silently skipped, leaving the
-            // Stripe customer unlinked.
             /** @var User $user */
-            $user = User::create([
-                'name' => $name,
-                'email' => $email,
-                'type' => UserType::Workspace,
-                'password' => Hash::make($password),
-                'domain' => parse_url(config('app.url'), PHP_URL_HOST),
-                'registered_ip' => $metadata['user_ip'] ?? null,
-                'registered_country_code' => $countryCode,
-                'email_verified_at' => now(),
-            ]);
+            $user = DB::transaction(function () use ($name, $email, $password, $countryCode, $metadata, $data): User {
+                // `type` must be set explicitly: the UserObserver only auto-provisions
+                // the UserBilling row (and starter quota defaults) for Workspace/Admin
+                // users, and it reads $user->type at `created` time — before the DB
+                // column default is reflected back into the model — so an omitted type
+                // reads as null and the billing row is silently skipped, leaving the
+                // Stripe customer unlinked.
+                /** @var User $user */
+                $user = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'type' => UserType::Workspace,
+                    'password' => Hash::make($password),
+                    'domain' => parse_url(config('app.url'), PHP_URL_HOST),
+                    'registered_ip' => $metadata['user_ip'] ?? null,
+                    'registered_country_code' => $countryCode,
+                    'email_verified_at' => now(),
+                ]);
 
-            $user->billing()->updateOrCreate([], ['stripe_id' => $data['customer']]);
+                $user->billing()->updateOrCreate([], ['stripe_id' => $data['customer']]);
 
-            app(TeamService::class)->createDefaultTeam($user);
+                app(TeamService::class)->createDefaultTeam($user);
+
+                return $user;
+            });
 
             // Welcome email with login instructions and the temporary password.
+            // Sent after commit so a rollback can't email an account that
+            // doesn't exist.
             $package = $metadata['package'] ?? 'starter';
             $user->notify(new TrialWelcomeNotification($password, $package));
 
@@ -291,31 +316,33 @@ class HandleStripeWebhook
         $isSinglePrice = count($items) === 1;
         $firstItem = $items[0] ?? null;
 
-        /** @var Subscription $subscription */
-        $subscription = $billing->subscriptions()->updateOrCreate(
-            ['stripe_id' => $stripeSubscription->id],
-            [
-                'type' => $stripeSubscription->metadata['type'] ?? 'default',
-                'stripe_status' => $stripeSubscription->status,
-                'stripe_price' => $isSinglePrice ? $firstItem?->price->id : null,
-                'quantity' => $isSinglePrice ? ($firstItem?->quantity ?? null) : null,
-                'trial_ends_at' => $stripeSubscription->trial_end
-                    ? Carbon::createFromTimestamp($stripeSubscription->trial_end)
-                    : null,
-                'ends_at' => null,
-            ]
-        );
-
-        foreach ($items as $item) {
-            $subscription->items()->updateOrCreate(
-                ['stripe_id' => $item->id],
+        DB::transaction(function () use ($billing, $stripeSubscription, $items, $isSinglePrice, $firstItem): void {
+            /** @var Subscription $subscription */
+            $subscription = $billing->subscriptions()->updateOrCreate(
+                ['stripe_id' => $stripeSubscription->id],
                 [
-                    'stripe_product' => $item->price->product,
-                    'stripe_price' => $item->price->id,
-                    'quantity' => $item->quantity ?? null,
+                    'type' => $stripeSubscription->metadata['type'] ?? 'default',
+                    'stripe_status' => $stripeSubscription->status,
+                    'stripe_price' => $isSinglePrice ? $firstItem?->price->id : null,
+                    'quantity' => $isSinglePrice ? ($firstItem?->quantity ?? null) : null,
+                    'trial_ends_at' => $stripeSubscription->trial_end
+                        ? Carbon::createFromTimestamp($stripeSubscription->trial_end)
+                        : null,
+                    'ends_at' => null,
                 ]
             );
-        }
+
+            foreach ($items as $item) {
+                $subscription->items()->updateOrCreate(
+                    ['stripe_id' => $item->id],
+                    [
+                        'stripe_product' => $item->price->product,
+                        'stripe_price' => $item->price->id,
+                        'quantity' => $item->quantity ?? null,
+                    ]
+                );
+            }
+        });
     }
 
     /**

@@ -2,26 +2,24 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Helpdesk\Actions\CreateTicketAction;
-use Domain\Helpdesk\Actions\ReplyToTicketAction;
 use Domain\Helpdesk\Data\CreateTicketData;
-use Domain\Helpdesk\Data\ReplyToTicketData;
 use Domain\Helpdesk\Models\Ticket;
-use Domain\Helpdesk\Models\TicketReply;
 
-/**
- * Coverage for the Helpdesk Actions (CreateTicketAction / ReplyToTicketAction).
- * The Helpdesk domain shipped with zero tests despite a clear customer-facing
- * surface (ticket submission + replies).
+/*
+ * Coverage for the Helpdesk Actions (CreateTicketAction). The Helpdesk domain
+ * shipped with zero tests despite a clear customer-facing surface (ticket
+ * submission). Ticket replies are a trivial inline write in
+ * ReplyToTicketController, covered at the HTTP level.
  *
- * CreateTicketAction has a known wart: `assigned_to => 1` is hardcoded — the
- * tests pin the present-day behaviour but the magic number should move to a
- * config or owner-resolution helper in a follow-up. The seeded demo user
- * (ahmad@mayahi.net) is id=1, so this works in the seeded test DB; in production
- * it pins assignment to whoever has user id=1 today.
+ * Assignment: `helpdesk.default_assignee_id` wins when configured; otherwise
+ * the ticket falls back to an Admin-type user (the old hardcoded
+ * `assigned_to => 1` is gone). The tests create their own admin instead of
+ * relying on any seeded user.
  */
 beforeEach(function (): void {
-    // Confirm the assumption rather than letting the test silently rely on it.
-    expect(User::find(1))->not->toBeNull('Test DB must have a user with id=1 (seeded demo user) for assigned_to=1 to satisfy the FK.');
+    // The admin fallback needs an Admin-type user to exist, or the FK on
+    // tickets.assigned_to has nothing to point at.
+    $this->admin = User::factory()->admin()->create();
 });
 
 describe('CreateTicketAction', function (): void {
@@ -42,71 +40,33 @@ describe('CreateTicketAction', function (): void {
             ->and($ticket->priority)->toBe('high');
     });
 
-    it('pins assigned_to to the magic-number default (user id=1)', function (): void {
-        // Documents the hardcoded `assigned_to => 1` in the Action. When that
-        // magic number is replaced with a config/owner-resolution helper, this
-        // assertion is expected to change — that's the signal to update it.
-        $user = User::factory()->create();
+    it('assigns the ticket to the configured default assignee when one is set', function (): void {
+        $assignee = User::factory()->create();
+        config(['helpdesk.default_assignee_id' => $assignee->id]);
 
         $ticket = app(CreateTicketAction::class)->execute(new CreateTicketData(
-            user: $user,
+            user: User::factory()->create(),
             title: 't',
             message: 'm',
             priority: 'medium',
         ));
 
-        expect($ticket->assigned_to)->toBe(1);
-    });
-});
-
-describe('ReplyToTicketAction', function (): void {
-    it('creates a user-typed reply attached to the ticket with the right author + body', function (): void {
-        $ticketOwner = User::factory()->create();
-        $ticket = app(CreateTicketAction::class)->execute(new CreateTicketData(
-            user: $ticketOwner,
-            title: 'Need help',
-            message: 'Original.',
-            priority: 'medium',
-        ));
-
-        $replier = User::factory()->create();
-
-        app(ReplyToTicketAction::class)->execute(new ReplyToTicketData(
-            ticket: $ticket,
-            user: $replier,
-            message: 'Thanks for the report — looking into it.',
-        ));
-
-        $reply = $ticket->replies()->first();
-
-        expect($reply)->toBeInstanceOf(TicketReply::class)
-            ->and($reply->user_id)->toBe($replier->id)
-            ->and($reply->type)->toBe('user')
-            ->and($reply->message)->toBe('Thanks for the report — looking into it.');
+        expect($ticket->assigned_to)->toBe($assignee->id);
     });
 
-    it('appends each reply rather than replacing — multiple calls accumulate', function (): void {
-        $owner = User::factory()->create();
+    it('falls back to an admin user when no default assignee is configured', function (): void {
+        config(['helpdesk.default_assignee_id' => null]);
+
         $ticket = app(CreateTicketAction::class)->execute(new CreateTicketData(
-            user: $owner,
+            user: User::factory()->create(),
             title: 't',
             message: 'm',
             priority: 'medium',
         ));
 
-        app(ReplyToTicketAction::class)->execute(new ReplyToTicketData(
-            ticket: $ticket,
-            user: $owner,
-            message: 'first',
-        ));
-        app(ReplyToTicketAction::class)->execute(new ReplyToTicketData(
-            ticket: $ticket,
-            user: $owner,
-            message: 'second',
-        ));
+        $assignee = User::find($ticket->assigned_to);
 
-        $messages = $ticket->replies()->orderBy('id')->pluck('message')->all();
-
-        expect($messages)->toBe(['first', 'second']);
+        expect($assignee)->not->toBeNull()
+            ->and($assignee->isAdmin())->toBeTrue();
     });
 });

@@ -63,6 +63,12 @@ const openDialog = () => {
 const destroy = () => {
     destroyForm.delete(route('settings.account.destroy'), {
         preserveScroll: true,
+        onSuccess: () => {
+            // Account and session are gone — do a full-page native redirect to the
+            // public home page so no stale Inertia/auth state lingers. (The server
+            // returns 204 rather than redirecting, since '/' is a non-Inertia page.)
+            window.location.href = '/';
+        },
     });
 };
 </script>

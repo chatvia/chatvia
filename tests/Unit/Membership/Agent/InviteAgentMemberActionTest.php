@@ -60,7 +60,7 @@ it('rejects an email that belongs to a non-chatter account', function (): void {
     [, $agent] = inviteWorkspaceAndAgent();
     User::factory()->create(['type' => UserType::Workspace, 'email' => 'boss@example.com']);
 
-    expect(fn () => invite($agent, 'boss@example.com'))
+    expect(fn (): AgentMemberInvitationData => invite($agent, 'boss@example.com'))
         ->toThrow(AgentMemberInvitationRejectedException::class);
 });
 
@@ -74,7 +74,7 @@ it('rejects an email owned by a chatter under a different workspace', function (
         'email' => 'foreign@example.com',
     ]);
 
-    expect(fn () => invite($agent, 'foreign@example.com'))
+    expect(fn (): AgentMemberInvitationData => invite($agent, 'foreign@example.com'))
         ->toThrow(AgentMemberInvitationRejectedException::class);
 });
 

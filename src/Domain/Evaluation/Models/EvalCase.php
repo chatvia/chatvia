@@ -4,6 +4,7 @@ namespace Domain\Evaluation\Models;
 
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Enums\ScorerType;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,11 +20,10 @@ use Support\Concerns\HasExternalId;
  * @property ScorerType $scorer_type
  * @property array<string, mixed>|null $scorer_config
  */
+#[Guarded(['id'])]
 class EvalCase extends Model
 {
     use HasExternalId;
-
-    protected $guarded = ['id'];
 
     protected $casts = [
         'scorer_type' => ScorerType::class,

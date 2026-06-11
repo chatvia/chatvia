@@ -5,9 +5,12 @@ namespace Domain\Conversation\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Tools\RecordToolCallAuditAction;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * Immutable per-tool-call governance audit row (`agent_activity`) for the
@@ -23,17 +26,35 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @property int|null $agent_id
  * @property string $agent_name
+ * @property int $workspace_id
  * @property int|null $user_id
  * @property string|null $user_name
+ * @property string|null $conversation_external_id
+ * @property string $trace_id
+ * @property string|null $request_id
+ * @property string $tool_call_id
+ * @property string $tool_name
+ * @property string $tool_kind
+ * @property string|null $connector_slug
+ * @property string|null $connector_name
+ * @property string $outcome
+ * @property bool $gated
+ * @property bool $is_error
+ * @property int|null $latency_ms
+ * @property array<string, mixed>|null $arguments
+ * @property string|null $arguments_sha256
+ * @property bool $arguments_truncated
+ * @property string|null $result_text
+ * @property bool $result_truncated
+ * @property Carbon|null $decided_at
+ * @property Carbon|null $created_at
  */
+#[Guarded(['id'])]
+#[Table(name: 'agent_activity')]
 class AgentActivity extends Model
 {
     /** Insert-only audit log. */
     public const UPDATED_AT = null;
-
-    protected $table = 'agent_activity';
-
-    protected $guarded = ['id'];
 
     protected $casts = [
         'arguments' => 'array',
@@ -44,11 +65,17 @@ class AgentActivity extends Model
         'decided_at' => 'datetime',
     ];
 
+    /**
+     * @return BelongsTo<Agent, $this>
+     */
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

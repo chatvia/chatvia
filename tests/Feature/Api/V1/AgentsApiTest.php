@@ -31,6 +31,7 @@ describe('POST /api/v1/agents', function (): void {
             ->postJson('/api/v1/agents', [
                 'name' => 'Support Bot',
                 'team_id' => $this->user->primaryTeam()->external_id,
+                'is_public' => false,
             ])
             ->assertOk()
             ->assertJsonPath('data.name', 'Support Bot')
@@ -47,7 +48,7 @@ describe('POST /api/v1/agents', function (): void {
         );
 
         $this->withHeaders(authHeaders($this->token))
-            ->postJson('/api/v1/agents', ['name' => 'Team Bot', 'team_id' => $team->external_id])
+            ->postJson('/api/v1/agents', ['name' => 'Team Bot', 'team_id' => $team->external_id, 'is_public' => false])
             ->assertOk()
             ->assertJsonPath('data.name', 'Team Bot');
 
@@ -61,12 +62,22 @@ describe('POST /api/v1/agents', function (): void {
             ->assertJsonValidationErrors(['team_id']);
     });
 
+    it('requires an explicit is_public choice (agents default to protected)', function (): void {
+        $this->withHeaders(authHeaders($this->token))
+            ->postJson('/api/v1/agents', [
+                'name' => 'Bot',
+                'team_id' => $this->user->primaryTeam()->external_id,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['is_public']);
+    });
+
     it('rejects a team_id the caller does not own', function (): void {
-        // UserObserver auto-provisions a default team on factory create.
-        $otherUser = User::factory()->create();
+        // Factory users get no default team anymore — provision one explicitly.
+        $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
 
         $this->withHeaders(authHeaders($this->token))
-            ->postJson('/api/v1/agents', ['name' => 'Bot', 'team_id' => $otherUser->primaryTeam()->external_id])
+            ->postJson('/api/v1/agents', ['name' => 'Bot', 'team_id' => $otherUser->primaryTeam()->external_id, 'is_public' => false])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['team_id']);
     });

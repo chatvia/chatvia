@@ -8,7 +8,10 @@ class HTMLCleaner
 {
     private function unwantedTags(): array
     {
-        // TODO: this should be the way around (allowed list not blacklist)
+        // Blacklist of non-content tags stripped before chunking so scripts,
+        // media, forms and nav boilerplate don't pollute chunk quality.
+        // Flipping to a content-tag whitelist would be safer but needs
+        // validation against real crawled HTML so meaningful tags aren't lost.
         return [
             'script',
             'style',

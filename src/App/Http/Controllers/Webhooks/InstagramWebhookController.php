@@ -53,7 +53,8 @@ class InstagramWebhookController
                 }
 
                 // Process each message at most once — Meta re-delivers with
-                // decreasing frequency for up to 36 hours.
+                // decreasing frequency for up to 36 hours, so the 2-day TTL
+                // outlives that window.
                 $mid = $event['message']['mid'] ?? null;
                 if ($mid !== null && ! Cache::add("ig:mid:{$account->id}:{$mid}", true, now()->addDays(2))) {
                     continue;
@@ -73,6 +74,7 @@ class InstagramWebhookController
     private function account(string $secret): ?AgentInstagramAccount
     {
         return AgentInstagramAccount::query()
+            ->with('agent')
             ->where('webhook_secret', $secret)
             ->where('enabled', true)
             ->first();

@@ -4,7 +4,6 @@ use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Account\UpdateBillingInformationAction;
 use Domain\Billing\Data\BillingAddressData;
 use Domain\Billing\Data\UpdateBillingInformationData;
-use Domain\Billing\Models\UserBilling;
 use Mockery as m;
 use Stripe\StripeClient;
 
@@ -18,11 +17,10 @@ it('persists name and email to the user and forwards them to Stripe', function (
         'email' => 'old@example.test',
     ]);
     // The action's updateStripeCustomer() path only fires when a Stripe
-    // customer already exists, so seed one and stub the StripeClient that
-    // Cashier resolves from the container.
-    UserBilling::query()
-        ->where('user_id', $user->id)
-        ->update(['stripe_id' => 'cus_fake']);
+    // customer already exists. Factory users carry no UserBilling row (the
+    // Stripe webhook provisions billing now), so create one with a customer
+    // id, and stub the StripeClient that Cashier resolves from the container.
+    $user->billing()->create(['stripe_id' => 'cus_fake']);
 
     $customers = m::mock();
     $customers->shouldReceive('update')->andReturn((object) ['id' => 'cus_fake']);

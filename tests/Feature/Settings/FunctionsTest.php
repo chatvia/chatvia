@@ -2,9 +2,13 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
+    // The settings controllers gate every action on has_team_permission(),
+    // which requires the user to have a current/primary team.
+    app(TeamService::class)->createDefaultTeam($this->user);
 });
 
 function makeFunction(User $user, array $overrides = []): AgentFunction

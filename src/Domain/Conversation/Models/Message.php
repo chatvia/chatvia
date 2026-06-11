@@ -132,6 +132,10 @@ class Message extends Model
     /**
      * Cascade attachment deletes (and their S3 objects) when the message
      * is deleted via Eloquent — mirrors {@see Conversation::booted}.
+     *
+     * Any model owning attachments MUST repeat this hook, or S3 objects
+     * will leak when rows are deleted — deliberately duplicated, not
+     * extracted to a trait.
      */
     protected static function booted(): void
     {

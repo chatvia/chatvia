@@ -7,7 +7,7 @@ use Domain\Integration\Connector\Services\Salesforce\SalesforceEndpointBuilder;
  * Hosted MCP URL + OAuth endpoints. The MCP host is global; only the prod/sandbox
  * path segment and the OAuth login host vary.
  */
-beforeEach(fn () => $this->builder = new SalesforceEndpointBuilder);
+beforeEach(fn (): SalesforceEndpointBuilder => $this->builder = new SalesforceEndpointBuilder);
 
 it('builds production endpoints with the default login host', function (): void {
     $byo = $this->builder->build('3MVG9key', null, 'production', null, 'sobject-all');

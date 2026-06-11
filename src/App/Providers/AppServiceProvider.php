@@ -21,10 +21,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Routing\Route;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\ParallelTesting;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Storage;
@@ -41,9 +39,9 @@ use Stripe\Stripe;
 
 /**
  * Framework-only concerns: request macros, rate limiters, Stripe, Cashier,
- * Scramble, morph map, gates, parallel testing, BunnyCDN driver, and the
- * Microsoft socialite extension. All domain wiring (observers, DI against
- * contracts, event listeners) lives in {@see DomainServiceProvider}.
+ * Scramble, morph map, gates, BunnyCDN driver, and the Microsoft socialite
+ * extension. All domain wiring (observers, DI against contracts, event
+ * listeners) lives in {@see DomainServiceProvider}.
  */
 class AppServiceProvider extends ServiceProvider
 {
@@ -67,7 +65,6 @@ class AppServiceProvider extends ServiceProvider
         $this->extendSocialiteProviders();
         $this->configureRateLimiters();
         $this->configureScramble();
-        $this->configureParallelTesting();
         $this->registerBunnyCdnDriver();
     }
 
@@ -335,32 +332,6 @@ class AppServiceProvider extends ServiceProvider
             $openApi->secure(
                 SecurityScheme::http('bearer', 'Bearer'),
             );
-        });
-    }
-
-    // Parallel testing creates per-worker databases (testing_test_N) and
-    // migrates them before the first test runs. Our schema relies on
-    // PostgreSQL extensions (vector, vchord, vchord_bm25, pg_tokenizer,
-    // pg_trgm) that aren't created by the migrations themselves, so we
-    // install them on each fresh test DB before migrations execute.
-    private function configureParallelTesting(): void
-    {
-        if (! $this->app->environment('testing')) {
-            return;
-        }
-
-        ParallelTesting::setUpTestDatabaseBeforeMigrating(function (): void {
-            $extensions = [
-                'vector',
-                'pg_trgm',
-                'pg_tokenizer',
-                'vchord',
-                'vchord_bm25',
-            ];
-
-            foreach ($extensions as $extension) {
-                rescue(fn () => DB::statement("CREATE EXTENSION IF NOT EXISTS {$extension} CASCADE"));
-            }
         });
     }
 

@@ -55,9 +55,7 @@ const canDeleteConversation = computed(() => hasPermission('agent.chat.delete'))
 // for widget conversations — a live agent can stream replies back into the
 // embedded widget, but not into the hosted-chat playground, the bar, or Telegram.
 const handoffEnabled = computed(() => Boolean(usePage().props.handoffEnabled));
-const liveChatAvailable = computed(
-    () => canTakeover.value && handoffEnabled.value && currentConversationData.value?.source === 'widget',
-);
+const liveChatAvailable = computed(() => canTakeover.value && handoffEnabled.value && currentConversationData.value?.source === 'widget');
 
 // Whether conversations are still being logged for this agent. When off we show
 // a banner so the user understands why no new chats are appearing (existing
@@ -366,11 +364,7 @@ watch(liveChatAvailable, (available) => {
                             </TabsContent>
 
                             <!-- Handoff/Live Chat Tab Content -->
-                            <TabsContent
-                                v-if="liveChatAvailable"
-                                value="handoff"
-                                class="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
-                            >
+                            <TabsContent v-if="liveChatAvailable" value="handoff" class="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
                                 <HandoffPanel />
                             </TabsContent>
                         </Tabs>

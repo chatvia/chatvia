@@ -68,8 +68,9 @@ class WhatsappWebhookController
                         continue;
                     }
 
-                    // Process each message at most once — Meta re-delivers
-                    // with decreasing frequency for up to 7 days.
+                    // Process each message at most once — Meta re-sends
+                    // unacknowledged WhatsApp webhooks with decreasing
+                    // frequency for up to 7 days, hence the matching 7-day TTL.
                     $mid = (string) $message['id'];
                     if (! Cache::add("wa:mid:{$target->id}:{$mid}", true, now()->addDays(7))) {
                         continue;
@@ -94,6 +95,7 @@ class WhatsappWebhookController
     private function number(string $secret): ?AgentWhatsappNumber
     {
         return AgentWhatsappNumber::query()
+            ->with('agent')
             ->where('webhook_secret', $secret)
             ->where('enabled', true)
             ->first();
@@ -116,6 +118,7 @@ class WhatsappWebhookController
         }
 
         $sibling = AgentWhatsappNumber::query()
+            ->with('agent')
             ->where('phone_number_id', $phoneNumberId)
             ->where('enabled', true)
             ->first();

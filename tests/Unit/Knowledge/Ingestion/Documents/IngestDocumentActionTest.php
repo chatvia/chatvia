@@ -34,7 +34,7 @@ function idaFakeMistralOcr(): MistralOCR
             // when the SourceFile has no parser_filepath in the happy path.
         }
 
-        public function fromUrl(string $url): Collection
+        public function fromUrl(string $url, bool $isImage = false): Collection
         {
             return collect();
         }

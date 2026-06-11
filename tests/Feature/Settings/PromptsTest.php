@@ -8,6 +8,9 @@ use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
+    // The settings controllers gate every action on has_team_permission(),
+    // which requires the user to have a current/primary team.
+    app(TeamService::class)->createDefaultTeam($this->user);
 });
 
 function makePrompt(User $user, array $overrides = []): AgentPrompt
@@ -71,7 +74,6 @@ it('cannot update a prompt owned by another user', function (): void {
 });
 
 it('deletes a prompt and detaches it from agents', function (): void {
-    app(TeamService::class)->createDefaultTeam($this->user);
     $prompt = makePrompt($this->user);
 
     $agent = Agent::create([

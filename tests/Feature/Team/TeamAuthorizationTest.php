@@ -1,8 +1,10 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Models\UserQuota;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
+use Domain\Membership\Team\Services\TeamService;
 
 /*
  * Pins the team-management AUTHORIZATION outcome — owner allowed, non-owner
@@ -15,9 +17,20 @@ use Domain\Membership\Team\Data\CreateTeamData;
  */
 
 beforeEach(function (): void {
-    // UserObserver::created auto-provisions a primary team + billing + quota.
+    // Registration is trial-checkout-only now (the Stripe webhook provisions
+    // billing/quota/default team), so factory users start bare — provision the
+    // pieces these routes rely on explicitly.
     $this->owner = User::factory()->create();
     $this->outsider = User::factory()->create();
+
+    foreach ([$this->owner, $this->outsider] as $user) {
+        app(TeamService::class)->createDefaultTeam($user);
+        $user->billing()->firstOrCreate([]);
+        UserQuota::firstOrCreate(
+            ['user_id' => $user->id],
+            config('billing.packages.starter.quota_limits.fixed', []),
+        );
+    }
 
     // Headroom to spin up a second, deletable team (the primary can't be deleted).
     $this->owner->quota()->update(['teams_limit' => 10]);

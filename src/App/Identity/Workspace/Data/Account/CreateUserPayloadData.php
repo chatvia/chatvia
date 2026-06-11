@@ -17,13 +17,11 @@ class CreateUserPayloadData extends Data
          */
         public string $agent_id,
         /**
-         * Optional login email. Leave null for a token-only user (no password
-         * login). When set, it must be globally unique.
+         * The user's login email. Must be globally unique.
          */
         public ?string $email = null,
         /**
-         * Required when `email` is set — the user's password for email/password
-         * login. Ignored otherwise.
+         * The user's password for email/password login. Minimum 8 characters.
          */
         public ?string $password = null,
     ) {}

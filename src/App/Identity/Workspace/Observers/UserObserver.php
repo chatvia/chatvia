@@ -54,19 +54,14 @@ class UserObserver
         }
     }
 
-    public function deleting(User $user): void
-    {
-        // Must run on `deleting`, not `deleted`: `user_billing.user_id` and
-        // `subscriptions.user_billing_id` both `ON DELETE CASCADE`, so by the
-        // time `deleted` fires the billing row (and the Subscription->owner
-        // relation it backs) is already gone and `cancel()` blows up trying
-        // to reach Stripe through a null owner.
-        $billing = $user->billing;
-
-        if ($billing?->hasStripeId() && $billing->subscribed()) {
-            $billing->subscription()?->cancel();
-        }
-    }
+    // No `deleting`/`deleted` hook cancels Stripe subscriptions. That is owned by
+    // DeleteUserAccountAction::cancelSubscriptions(), which runs *outside* the
+    // delete transaction and is the only path that tears down a billing workspace.
+    // Cancelling here as well double-cancelled the subscription, and Stripe rejects
+    // re-cancelling one it has already closed ("A canceled subscription can only
+    // update its cancellation_details and metadata") — which 500'd the whole
+    // deletion. Any future direct-delete path (e.g. a staff admin tool) must route
+    // through that action rather than re-adding a cancel here.
 
     public function restored(User $user): void {}
 }

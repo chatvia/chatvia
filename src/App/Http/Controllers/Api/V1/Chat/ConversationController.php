@@ -37,7 +37,7 @@ class ConversationController
     {
         abort_unless($conversation->session->agent_id === $agent->id, 404);
 
-        $deleteConversation->execute($agent, $conversation);
+        $deleteConversation->execute($agent, $conversation, $request->user());
 
         return response()->json(null, 204);
     }

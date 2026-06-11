@@ -23,6 +23,7 @@ class TelegramWebhookController
         $ok = response()->json(['ok' => true]);
 
         $bot = AgentTelegramBot::query()
+            ->with('agent')
             ->where('webhook_secret', $secret)
             ->where('enabled', true)
             ->first();
@@ -31,7 +32,8 @@ class TelegramWebhookController
             return $ok;
         }
 
-        // Process each update at most once (Telegram re-delivers on timeout).
+        // Process each update at most once — Telegram keeps re-delivering an
+        // unacknowledged update for up to 24 hours, so the 1-day TTL covers it.
         $updateId = $request->input('update_id');
         if ($updateId !== null && ! Cache::add("tg:update:{$bot->id}:{$updateId}", true, now()->addDay())) {
             return $ok;

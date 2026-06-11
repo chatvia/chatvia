@@ -120,6 +120,9 @@ function publicStreamingAgent(): Agent
 
     $priceId = 'price_test_pro_'.Str::random(6);
     config(['billing.packages.pro.stripe_monthly_price_id' => $priceId]);
+    // UserObserver auto-provisioning is retired — create the billing row explicitly.
+    $owner->billing()->firstOrCreate([]);
+    $owner->refresh();
     $owner->billing->subscriptions()->create([
         'type' => 'default',
         'stripe_id' => 'sub_test_'.Str::random(8),
@@ -144,11 +147,10 @@ it('returns a 200 SSE stream for an authorized chat turn', function (): void {
     bindFakeStreamingLlm('Hello', ' there', '!');
 
     $agent = publicStreamingAgent();
-    // Token-primary capacity gate — give the owner an active cycle with budget.
+    // Message-based capacity gate — give the owner an active cycle with budget.
     UserCredit::factory()->create([
         'user_id' => $agent->user_id,
         'messages' => 4000,
-        'tokens' => 7_000_000,
         'started_at' => now()->subDay(),
         'ends_at' => now()->addDays(20),
     ]);
@@ -172,7 +174,6 @@ it('rejects a chat-stream request with no message (validation)', function (): vo
     UserCredit::factory()->create([
         'user_id' => $agent->user_id,
         'messages' => 4000,
-        'tokens' => 7_000_000,
         'started_at' => now()->subDay(),
         'ends_at' => now()->addDays(20),
     ]);

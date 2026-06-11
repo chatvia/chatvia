@@ -43,10 +43,10 @@ function cccBuildOrphanAttachment(int $count, ?Agent $agent = null): array
     return [$agent, $session, $ids];
 }
 
-it('caps the number of attachments bound to a new conversation at config(agent.files.upload.max_files)', function (): void {
-    config(['agent.files.upload.max_files' => 3]);
+it('caps the number of attachments bound to a new conversation at config(chatvia.agent.files.upload.max_files)', function (): void {
+    config(['chatvia.agent.files.upload.max_files' => 3]);
     // Skip the LLM round-trip in QueryRewriter — irrelevant to the cap.
-    config(['ai.query.rewriter.enabled' => false]);
+    config(['chatvia.ai.query.rewriter.enabled' => false]);
 
     [$agent, , $orphanIds] = cccBuildOrphanAttachment(50);
 
@@ -75,7 +75,7 @@ it('caps the number of attachments bound to a new conversation at config(agent.f
 });
 
 it('does NOT re-bind attachments that already belong to a different conversation', function (): void {
-    config(['agent.files.upload.max_files' => 100]);
+    config(['chatvia.agent.files.upload.max_files' => 100]);
 
     [$agent] = cccBuildOrphanAttachment(0);
 

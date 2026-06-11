@@ -25,8 +25,9 @@ class FunctionController
     {
         /** @var User $user */
         $user = $request->user();
+        $owner = $user->workspace();
 
-        return ['data' => $user->functions()->latest()->get()
+        return ['data' => $owner->functions()->latest()->get()
             ->map(fn (AgentFunction $f): FunctionData => FunctionData::fromModel($f))->all()];
     }
 
@@ -35,8 +36,9 @@ class FunctionController
     {
         /** @var User $user */
         $user = $request->user();
+        $owner = $user->workspace();
 
-        return ['data' => FunctionData::fromModel($createFunction->execute($user, $request->toData()))];
+        return ['data' => FunctionData::fromModel($createFunction->execute($owner, $request->toData()))];
     }
 
     /** @return array{data: FunctionData} */
@@ -68,6 +70,6 @@ class FunctionController
     {
         /** @var User $user */
         $user = $request->user();
-        abort_if($function->user_id !== $user->id, 404);
+        abort_if($function->user_id !== $user->workspace()->id, 404);
     }
 }

@@ -29,7 +29,8 @@ class RoleMemberController
     {
         $owner = $request->user()->workspace();
 
-        abort_unless($owner->ownsTeam($team), 403);
+        // Same gate as the web side (UpdateMemberRoleRequest): TeamPolicy::updateTeamMember.
+        abort_unless($request->user()->can('updateTeamMember', $team), 403);
         abort_unless($role->team_id === $team->id, 404);
 
         $validated = $request->validate(['user_id' => ['required', 'string']]);

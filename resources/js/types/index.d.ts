@@ -62,6 +62,9 @@ export interface SharedData extends PageProps {
 
 export interface User {
     id: number;
+    // Stable, non-guessable public identifier (UUID). The integer `id` stays
+    // internal; this is what's exposed through the API.
+    external_id: string;
     name: string;
     email: string;
     avatar?: string;

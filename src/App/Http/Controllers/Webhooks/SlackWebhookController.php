@@ -29,6 +29,7 @@ class SlackWebhookController
         $ok = response()->json(['ok' => true]);
 
         $app = AgentSlackApp::query()
+            ->with('agent')
             ->where('webhook_secret', $secret)
             ->where('enabled', true)
             ->first();
@@ -43,7 +44,8 @@ class SlackWebhookController
             return response()->json(['challenge' => $request->input('challenge')]);
         }
 
-        // Process each event at most once (Slack re-delivers on timeout).
+        // Process each event at most once — Slack retries a failed delivery at
+        // most 3 times within minutes, so the 1-day TTL comfortably covers it.
         $eventId = $request->input('event_id');
         if ($eventId !== null && ! Cache::add("slack:event:{$app->id}:{$eventId}", true, now()->addDay())) {
             return $ok;

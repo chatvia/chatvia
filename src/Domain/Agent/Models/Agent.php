@@ -57,6 +57,7 @@ use Support\Traits\HasSettings;
  * @property string|null $domain
  * @property string|null $system_instructions
  * @property int|null $agent_prompt_id
+ * @property int|null $llm_id
  * @property bool $is_public
  * @property array<array-key, mixed>|null $metadata
  * @property CreatedVia $source
@@ -64,8 +65,6 @@ use Support\Traits\HasSettings;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read AgentPrompt|null $agentPrompt
- * @property-read Collection<int, AgentFunction> $functions
- * @property-read Collection<int, AgentMcpServer> $mcpServers
  * @property-read Llm|null $llm
  * @property-read AgentSource|null $pivot
  * @property-read Collection<int, SourceFile> $audioFiles
@@ -411,6 +410,15 @@ class Agent extends Model
     public function detachConnector(AgentMcpServer $server): void
     {
         $this->mcpServers()->detach($server->id);
+    }
+
+    /**
+     * Whether the built-in Leads connector is attached and enabled — gates the
+     * Leads UI in the dashboard.
+     */
+    public function isLeadsEnabled(): bool
+    {
+        return $this->mcpServers()->where('slug', 'leads')->where('is_enabled', true)->exists();
     }
 
     /**

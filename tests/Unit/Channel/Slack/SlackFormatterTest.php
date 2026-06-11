@@ -7,7 +7,7 @@ use Domain\Channel\Slack\Services\SlackFormatter;
  * Slack's own markers (`*bold*`, `_italic_`, `<url|text>`), never CommonMark
  * (`**bold**`) or HTML tags, escape &, <, >, and preserve multibyte text.
  */
-beforeEach(fn () => $this->fmt = new SlackFormatter);
+beforeEach(fn (): SlackFormatter => $this->fmt = new SlackFormatter);
 
 it('converts bold, bullets, and headings to mrkdwn', function (): void {
     $text = $this->fmt->toMrkdwn("# Weather\n\nHere's **Baghdad**:\n\n- **Temp:** 39°C\n- **Wind:** 1.7 m/s");

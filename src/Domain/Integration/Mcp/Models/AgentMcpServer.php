@@ -42,13 +42,17 @@ use Support\Concerns\HasExternalId;
  * @property string|null $oauth_refresh_token
  * @property Carbon|null $oauth_expires_at
  * @property string|null $oauth_scopes
+ * @property string|null $oauth_client_id
+ * @property string|null $oauth_client_secret
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
  * @property-read Collection<int, Agent> $agents
  *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer attachedToAgent(\Domain\Agent\Models\Agent $agent)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer ownedBySameAccountAs(\Domain\Agent\Models\Agent $agent)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereAuthType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer whereAuthValue($value)

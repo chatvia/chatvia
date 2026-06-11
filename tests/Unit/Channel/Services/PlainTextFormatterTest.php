@@ -9,7 +9,7 @@ use Domain\Channel\Services\PlainTextFormatter;
  * bullets/numbers, and link URLs survive so the platform's auto-linking makes
  * them tappable.
  */
-beforeEach(fn () => $this->fmt = new PlainTextFormatter);
+beforeEach(fn (): PlainTextFormatter => $this->fmt = new PlainTextFormatter);
 
 it('strips bold, bullets, and headings to plain text', function (): void {
     $text = $this->fmt->toPlain("# Weather\n\nHere's **Baghdad**:\n\n- **Temp:** 39°C\n- **Wind:** 1.7 m/s");

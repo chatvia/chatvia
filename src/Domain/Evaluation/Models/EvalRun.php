@@ -3,6 +3,7 @@
 namespace Domain\Evaluation\Models;
 
 use Domain\Agent\Models\Agent;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +18,7 @@ use Support\Concerns\HasExternalId;
  * @property string $status
  * @property int|null $agent_id
  */
+#[Guarded(['id'])]
 class EvalRun extends Model
 {
     use HasExternalId;
@@ -26,8 +28,6 @@ class EvalRun extends Model
     public const STATUS_COMPLETED = 'completed';
 
     public const STATUS_FAILED = 'failed';
-
-    protected $guarded = ['id'];
 
     protected $casts = [
         'avg_score' => 'float',
@@ -40,11 +40,17 @@ class EvalRun extends Model
         return 'external_id';
     }
 
+    /**
+     * @return BelongsTo<Agent, $this>
+     */
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);
     }
 
+    /**
+     * @return HasMany<EvalResult, $this>
+     */
     public function results(): HasMany
     {
         return $this->hasMany(EvalResult::class, 'run_id');

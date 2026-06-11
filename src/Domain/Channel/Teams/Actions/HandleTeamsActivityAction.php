@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Teams\Actions;
 
+use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Teams\Jobs\HandleTeamsActivityJob;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Teams\Services\TeamsChatResolver;
@@ -28,6 +29,7 @@ class HandleTeamsActivityAction
         private readonly TeamsChatResolver $resolver,
         private readonly TeamsReplyRunner $runner,
         private readonly TeamsClient $client,
+        private readonly ChannelAccessGate $gate,
     ) {}
 
     /**
@@ -45,9 +47,7 @@ class HandleTeamsActivityAction
         $serviceUrl = (string) $activity['serviceUrl'];
 
         // Protected agents are never answered on Teams (defence in depth).
-        if (! $bot->agent->is_public) {
-            $this->client->postMessage($bot, $serviceUrl, $conversationId, self::UNAVAILABLE);
-
+        if (! $this->gate->allows($bot->agent, fn (): ?string => $this->client->postMessage($bot, $serviceUrl, $conversationId, self::UNAVAILABLE))) {
             return;
         }
 
@@ -72,7 +72,7 @@ class HandleTeamsActivityAction
         $reply = $this->runner->reply(
             $chat,
             $text,
-            fn (string $partial) => $this->client->updateMessage($bot, $serviceUrl, $conversationId, $activityId, $partial),
+            fn (string $partial): bool => $this->client->updateMessage($bot, $serviceUrl, $conversationId, $activityId, $partial),
         );
 
         $this->client->updateMessage($bot, $serviceUrl, $conversationId, $activityId, $reply);

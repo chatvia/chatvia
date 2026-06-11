@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Telegram\Actions;
 
+use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Telegram\Jobs\HandleTelegramUpdateJob;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
@@ -26,6 +27,7 @@ class HandleTelegramUpdateAction
         private readonly TelegramChatResolver $resolver,
         private readonly TelegramReplyRunner $runner,
         private readonly TelegramClient $client,
+        private readonly ChannelAccessGate $gate,
     ) {}
 
     /**
@@ -34,9 +36,7 @@ class HandleTelegramUpdateAction
     public function execute(AgentTelegramBot $bot, string $chatId, string $text, array $from = []): void
     {
         // Protected agents are never answered on Telegram (defence in depth).
-        if (! $bot->agent->is_public) {
-            $this->client->sendMessage($bot->bot_token, $chatId, self::UNAVAILABLE);
-
+        if (! $this->gate->allows($bot->agent, fn () => $this->client->sendMessage($bot->bot_token, $chatId, self::UNAVAILABLE))) {
             return;
         }
 

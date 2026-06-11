@@ -113,7 +113,7 @@ it('auto-runs a function whose requires_approval flag is off', function (): void
 });
 
 it('bypasses approval entirely when the global kill-switch is off', function (): void {
-    config(['agent.tools.approval_enabled' => false]);
+    config(['chatvia.agent.tools.approval_enabled' => false]);
 
     [$user, $agent] = approvalAgent();
     $name = makeMcpTool($user, McpToolPermission::Approval);

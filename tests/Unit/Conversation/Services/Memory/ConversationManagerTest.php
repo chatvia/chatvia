@@ -5,6 +5,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session as ChatSession;
+use Domain\Conversation\Services\Memory\CacheCipher;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Services\Memory\ConversationManager;
 use Illuminate\Support\Facades\Auth;
@@ -66,7 +67,12 @@ it('reprimes the cache after rebuilding from DB', function (): void {
 
     makeConversationManager($session, $agent)->getConversationsForSession();
 
-    $cached = Cache::driver('chat')->tags($session->external_id)->get($session->external_id);
+    // ChatCache encrypts every value at rest (CacheCipher), so the raw store
+    // holds a ciphertext string — decrypt before asserting the structure.
+    $raw = Cache::driver('chat')->tags($session->external_id)->get($session->external_id);
+    expect($raw)->toBeString();
+
+    $cached = CacheCipher::decrypt($raw);
     expect($cached['conversations'] ?? [])->toHaveCount(1)
         ->and($cached['conversations'][0]['title'])->toBe('Welcome');
 });

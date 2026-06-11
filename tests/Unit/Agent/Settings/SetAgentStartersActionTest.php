@@ -4,6 +4,10 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Settings\SetAgentStartersAction;
 use Domain\Agent\Models\AgentStarter;
 
+// Starters are compared with toEqual (==), not toBe (===): the jsonb column
+// canonicalizes key order inside each starter object, so 'icon' can come back
+// before 'text'. Item order (the list itself) is still asserted.
+
 it('writes the agent starters as an ordered array', function (): void {
     $agent = createAgent(User::factory()->create());
 
@@ -12,7 +16,7 @@ it('writes the agent starters as an ordered array', function (): void {
         ['text' => 'Second?', 'icon' => null],
     ]);
 
-    expect($agent->starterSet()->first()->starters)->toBe([
+    expect($agent->starterSet()->first()->starters)->toEqual([
         ['text' => 'First?', 'icon' => 'SparklesIcon'],
         ['text' => 'Second?', 'icon' => null],
     ]);
@@ -29,7 +33,7 @@ it('replaces existing starters and keeps a single row', function (): void {
     ]);
 
     expect(AgentStarter::where('agent_id', $agent->id)->count())->toBe(1)
-        ->and($agent->starterSet()->first()->starters)->toBe([
+        ->and($agent->starterSet()->first()->starters)->toEqual([
             ['text' => 'new-a', 'icon' => null],
             ['text' => 'new-b', 'icon' => 'BoltIcon'],
         ]);
@@ -43,7 +47,7 @@ it('reindexes sparse keys and defaults a missing icon to null', function (): voi
         7 => ['text' => 'a'],
     ]);
 
-    expect($agent->starterSet()->first()->starters)->toBe([
+    expect($agent->starterSet()->first()->starters)->toEqual([
         ['text' => 'b', 'icon' => null],
         ['text' => 'a', 'icon' => null],
     ]);

@@ -7,7 +7,7 @@ use Domain\Channel\Telegram\Services\TelegramFormatter;
  * emit ONLY Telegram-supported tags (never <p>/<ul>/<li>/<strong>, which 400 the
  * send), escape <, >, &, and preserve multibyte text (emoji).
  */
-beforeEach(fn () => $this->fmt = new TelegramFormatter);
+beforeEach(fn (): TelegramFormatter => $this->fmt = new TelegramFormatter);
 
 it('converts bold, bullets, and headings to the Telegram subset', function (): void {
     $html = $this->fmt->toHtml("# Weather\n\nHere's **Baghdad**:\n\n- **Temp:** 39°C\n- **Wind:** 1.7 m/s");

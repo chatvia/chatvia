@@ -132,7 +132,7 @@
             "Composer\\Config::disableProcessTimeout",
             "@putenv APP_ENV=testing",
             "@php artisan config:clear --ansi",
-            "@php artisan test --parallel"
+            "@php -d memory_limit=2G artisan test"
         ],
         "format": "vendor/bin/pint",
         "analyse": "vendor/bin/phpstan analyse --memory-limit=2G",

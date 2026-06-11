@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Slack\Actions\HandleSlackEventAction;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Models\SlackChannel;
@@ -12,6 +13,7 @@ use Tests\Support\Slack\FakeSlackClient;
 
 /**
  * The handle Action wires the inbound message end to end: strip the bot's own
+ *
  * @mention, resolve the channel, post a placeholder, stream the reply into it
  * via message edits, and stamp the channel. The pipeline (real LLM) is stubbed
  * here — this asserts the wiring, not the model's answer.
@@ -63,6 +65,7 @@ function slackHandleAction(FakeSlackClient $client, SlackReplyRunner $runner): H
         new SlackChannelResolver(app(ChatMemory::class), $client),
         $runner,
         $client,
+        new ChannelAccessGate,
     );
 }
 

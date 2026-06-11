@@ -2,6 +2,7 @@
 
 namespace Domain\Evaluation\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Support\Concerns\HasExternalId;
@@ -15,14 +16,13 @@ use Support\Concerns\HasExternalId;
  * @property bool $pass
  * @property float|null $score
  */
+#[Guarded(['id'])]
 class EvalResult extends Model
 {
     use HasExternalId;
 
     /** Insert-only. */
     public const UPDATED_AT = null;
-
-    protected $guarded = ['id'];
 
     protected $casts = [
         'pass' => 'boolean',

@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Models\UserQuota;
 use Support\Enums\User\UserType;
 
 /**
@@ -48,7 +49,14 @@ it('uses the configured default-package limits as the fallback values', function
 it('lets the Members add-on lift the workspace seat limit past the plan base', function (): void {
     $user = User::factory()->create(['type' => UserType::Workspace]);
 
-    // Exhaust the base plan: no seats free beyond those already in use.
+    // Registration no longer auto-provisions a user_quotas row (the trial
+    // checkout webhook does), so seed one explicitly before exhausting the
+    // base plan: no seats free beyond those already in use.
+    UserQuota::firstOrCreate(
+        ['user_id' => $user->id],
+        config('billing.packages.starter.quota_limits.fixed', []),
+    );
+
     $user->quota()->update([
         'workspace_users_limit' => $user->workspaceUsersCount(),
         'extra_members_limit' => 0,

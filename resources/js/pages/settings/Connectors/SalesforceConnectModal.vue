@@ -99,10 +99,20 @@ async function submit(): Promise<void> {
                 <div class="space-y-1.5">
                     <Label>Environment</Label>
                     <div class="grid grid-cols-2 gap-2">
-                        <Button type="button" :variant="environment === 'production' ? 'default' : 'outline'" :disabled="saving" @click="environment = 'production'">
+                        <Button
+                            type="button"
+                            :variant="environment === 'production' ? 'default' : 'outline'"
+                            :disabled="saving"
+                            @click="environment = 'production'"
+                        >
                             Production
                         </Button>
-                        <Button type="button" :variant="environment === 'sandbox' ? 'default' : 'outline'" :disabled="saving" @click="environment = 'sandbox'">
+                        <Button
+                            type="button"
+                            :variant="environment === 'sandbox' ? 'default' : 'outline'"
+                            :disabled="saving"
+                            @click="environment = 'sandbox'"
+                        >
                             Sandbox
                         </Button>
                     </div>
@@ -111,7 +121,15 @@ async function submit(): Promise<void> {
                 <!-- Consumer Key -->
                 <div class="space-y-1.5">
                     <Label for="sf-client-id">Consumer Key</Label>
-                    <Input id="sf-client-id" v-model="clientId" autocomplete="off" placeholder="3MVG9..." :disabled="saving" required class="font-mono" />
+                    <Input
+                        id="sf-client-id"
+                        v-model="clientId"
+                        autocomplete="off"
+                        placeholder="3MVG9..."
+                        :disabled="saving"
+                        required
+                        class="font-mono"
+                    />
                     <p v-if="connector.tokenHelpUrl" class="text-muted-foreground flex items-center gap-1 text-xs">
                         <a :href="connector.tokenHelpUrl" target="_blank" class="hover:underline">How to create an External Client App</a>
                         <ExternalLink class="h-3 w-3" />
@@ -121,7 +139,14 @@ async function submit(): Promise<void> {
                 <!-- Consumer Secret (optional) -->
                 <div class="space-y-1.5">
                     <Label for="sf-client-secret">Consumer Secret <span class="text-muted-foreground font-normal">(optional)</span></Label>
-                    <Input id="sf-client-secret" v-model="clientSecret" type="password" autocomplete="off" placeholder="Leave blank for a PKCE public app" :disabled="saving" />
+                    <Input
+                        id="sf-client-secret"
+                        v-model="clientSecret"
+                        type="password"
+                        autocomplete="off"
+                        placeholder="Leave blank for a PKCE public app"
+                        :disabled="saving"
+                    />
                 </div>
 
                 <!-- Server -->
@@ -140,8 +165,17 @@ async function submit(): Promise<void> {
                 <!-- My Domain (optional) -->
                 <div class="space-y-1.5">
                     <Label for="sf-my-domain">My Domain <span class="text-muted-foreground font-normal">(optional)</span></Label>
-                    <Input id="sf-my-domain" v-model="myDomain" type="url" autocomplete="off" placeholder="https://acme.my.salesforce.com" :disabled="saving" />
-                    <p class="text-muted-foreground text-xs">Leave blank to sign in via login.salesforce.com. Required if your org enforces My Domain.</p>
+                    <Input
+                        id="sf-my-domain"
+                        v-model="myDomain"
+                        type="url"
+                        autocomplete="off"
+                        placeholder="https://acme.my.salesforce.com"
+                        :disabled="saving"
+                    />
+                    <p class="text-muted-foreground text-xs">
+                        Leave blank to sign in via login.salesforce.com. Required if your org enforces My Domain.
+                    </p>
                 </div>
 
                 <p v-if="error" class="text-destructive border-destructive/40 bg-destructive/5 rounded-md border p-2 text-sm">

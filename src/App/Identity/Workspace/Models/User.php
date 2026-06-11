@@ -263,15 +263,15 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      * Same as `accountBilling()` but asserts the row exists. Use from code
      * that calls Cashier methods (createSetupIntent, redirectToBillingPortal,
      * findPaymentMethod, updateStripeCustomer, ...) — those live on the
-     * Billable `UserBilling`, not on `User`. UserObserver guarantees every
-     * registered user has a billing row, so the null path is a real bug
-     * (workspace mis-wiring, observer skipped in tests) and should crash
-     * loudly rather than return a misleading null.
+     * Billable `UserBilling`, not on `User`. The trial-checkout Stripe webhook
+     * provisions a billing row for every workspace owner, so the null path is
+     * a real bug (workspace mis-wiring, missing provisioning in tests) and
+     * should crash loudly rather than return a misleading null.
      */
     public function accountBillingOrFail(): UserBilling
     {
         return $this->accountBilling() ?? throw new \RuntimeException(
-            'No UserBilling row for user '.$this->id.'. UserObserver should have provisioned one on create.'
+            'No UserBilling row for user '.$this->id.'. The trial-checkout webhook provisions one for every workspace owner; tests must create it explicitly.'
         );
     }
 

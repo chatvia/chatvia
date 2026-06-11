@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Subscription;
+use Stripe\Exception\ApiErrorException;
 
 /**
  * Tear down a whole workspace: the owner, their employees + chatters, their
@@ -48,22 +49,23 @@ class DeleteUserAccountAction
     }
 
     /**
-     * Best-effort immediate cancellation of every Stripe subscription on the
-     * workspace's billing (a workspace can hold more than one — e.g. add-ons as
-     * separate subscriptions) before the `user_billing` row cascade-deletes in
-     * the teardown.
+     * Immediately cancel every Stripe subscription on the workspace's billing (a
+     * workspace can hold more than one — e.g. add-ons as separate subscriptions)
+     * before the teardown cascade-deletes the `user_billing` row. This is the
+     * single place account deletion talks to Stripe, and it runs *outside* the
+     * DB transaction so a slow or failing Stripe call never holds it open.
      *
-     * We use cancelNow() — not the grace-period cancel() UserObserver::deleting
-     * would otherwise apply — so we don't orphan a still-billing subscription.
-     * It covers both active and *trialing* subscriptions; already-canceled ones
-     * are skipped, and a generic trial (trial_ends_at with no subscription row)
-     * simply yields nothing to iterate.
+     * We use cancelNow() — not a grace-period cancel() — so we don't orphan a
+     * still-billing subscription. Already-canceled subscriptions are skipped: a
+     * subscription Stripe has already closed must not be cancelled again, which
+     * Stripe rejects ("A canceled subscription can only update its
+     * cancellation_details and metadata") — even when it still looks "subscribed"
+     * locally because its trial window hasn't lapsed.
      *
      * If Stripe rejects a call — most often because the subscription no longer
      * exists there (stale/test data: "No such subscription") — it can't bill
      * anyone, so we log it, mark it canceled locally, and carry on rather than
-     * failing the whole account deletion. Marking it canceled also stops
-     * UserObserver::deleting() from retrying the cancel during delete().
+     * failing the whole account deletion.
      */
     private function cancelSubscriptions(User $user): void
     {
@@ -79,7 +81,22 @@ class DeleteUserAccountAction
                 continue;
             }
 
-            $subscription->cancelNow();
+            try {
+                $subscription->cancelNow();
+            } catch (ApiErrorException $e) {
+                // Stripe rejected the cancel — most often the subscription no
+                // longer exists there (stale/test data: "No such subscription")
+                // or is already canceled. It can't bill anyone, so mark it
+                // canceled locally and carry on rather than failing the whole
+                // account deletion.
+                Log::warning('Account deletion: Stripe subscription cancel failed; marking canceled locally.', [
+                    'subscription_id' => $subscription->id,
+                    'stripe_id' => $subscription->stripe_id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                $subscription->markAsCanceled();
+            }
         }
     }
 }

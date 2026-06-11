@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Teams\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -21,14 +22,16 @@ use Illuminate\Support\Carbon;
  * @property string|null $peer_name
  * @property Carbon|null $last_message_at
  */
+#[Guarded(['id'])]
 class TeamsChat extends Model
 {
-    protected $guarded = ['id'];
-
     protected $casts = [
         'last_message_at' => 'datetime',
     ];
 
+    /**
+     * @return BelongsTo<AgentTeamsBot, $this>
+     */
     public function bot(): BelongsTo
     {
         return $this->belongsTo(AgentTeamsBot::class, 'agent_teams_bot_id');

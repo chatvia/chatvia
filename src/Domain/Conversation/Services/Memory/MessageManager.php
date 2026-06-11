@@ -265,8 +265,10 @@ class MessageManager
     }
 
     /**
-     * Get messages formatted for LLM consumption.
-     * Filters out assistant messages where llm_found_answer is false and their preceding user messages.
+     * Get the last N messages formatted for LLM consumption: role plus the
+     * LLM-facing content (`message_for_llm` when present, raw content
+     * otherwise). As an array of role/content pairs, or joined to a single
+     * string when $asText is true.
      */
     public function getLlmMessages(string $conversationId, bool $asText = false, ?int $limit = null): array|string
     {
@@ -279,37 +281,6 @@ class MessageManager
         if (empty($messages)) {
             return $asText ? '' : [];
         }
-
-        // Filter out assistant messages where llm_found_answer is false and their preceding user messages
-        $messagesToExclude = [];
-        $previousUserMessage = null;
-
-        //        foreach ($messages as $index => $message) {
-        //            if ($message['role'] === 'user') {
-        //                $previousUserMessage = $index;
-        //            } elseif ($message['role'] === 'assistant') {
-        //                if (($message['has_llm_found_answer'] ?? true) === false) {
-        //                    // Exclude this assistant message
-        //                    $messagesToExclude[] = $index;
-        //                    // Also exclude the previous user message if it exists
-        //                    if ($previousUserMessage !== null) {
-        //                        $messagesToExclude[] = $previousUserMessage;
-        //                    }
-        //                }
-        //                // Reset previous user message after processing assistant message
-        //                $previousUserMessage = null;
-        //            }
-        //        }
-
-        //        $filteredMessages = collect($messages)
-        //            ->reject(function ($message, $index) use ($messagesToExclude) {
-        //                return in_array($index, $messagesToExclude);
-        //            })
-        //            ->values()
-        //            ->toArray();
-
-        // Get last N messages for context window
-        //        $messages = array_slice($filteredMessages, -$limit);
 
         $formattedMessages = collect($messages)
             ->map(fn ($message): array => [

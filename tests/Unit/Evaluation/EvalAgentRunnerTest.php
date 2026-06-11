@@ -145,7 +145,7 @@ it('builds the headless request with VALID uuid session + conversation ids', fun
 
     $captured = null;
     $runner = fakeEvalRunner(
-        onRun: fn (ChatContext $context) => $context->streamedMessage = 'ok',
+        onRun: fn (ChatContext $context): string => $context->streamedMessage = 'ok',
         onInit: function (StreamRequestData $data) use (&$captured): void {
             $captured = $data;
         },
@@ -165,7 +165,7 @@ it('returns an error result when the agent has no model', function (): void {
     $agent->setRelation('agentPrompt', null);
     $agent->setRelation('llm', null);
 
-    $runner = fakeEvalRunner(fn () => null);
+    $runner = fakeEvalRunner(fn (): null => null);
 
     $result = $runner->run($agent, 'hello');
 

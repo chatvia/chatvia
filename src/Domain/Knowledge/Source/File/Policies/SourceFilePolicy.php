@@ -17,10 +17,16 @@ class SourceFilePolicy
 
     /**
      * Determine whether the user can view the model.
+     *
+     * Tenant isolation: a knowledge-base file may only be seen by the
+     * workspace that owns it (or a platform admin). workspace() resolves
+     * the parent account, so teammates of the owning workspace are allowed.
+     * Without this any authenticated user could read another tenant's
+     * proprietary training documents by id (cross-tenant IDOR).
      */
     public function view(User $user, SourceFile $agentFile): bool
     {
-        return $user->id === $agentFile->user_id;
+        return $user->isAdmin() || $user->workspace()->id === $agentFile->user_id;
     }
 
     /**

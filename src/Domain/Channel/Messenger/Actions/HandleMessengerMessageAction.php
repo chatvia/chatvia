@@ -7,6 +7,7 @@ use Domain\Channel\Messenger\Models\AgentMessengerPage;
 use Domain\Channel\Messenger\Services\MessengerClient;
 use Domain\Channel\Messenger\Services\MessengerReplyRunner;
 use Domain\Channel\Messenger\Services\MessengerThreadResolver;
+use Domain\Channel\Services\ChannelAccessGate;
 
 /**
  * Handles one inbound Messenger text message end to end: resolve the thread's
@@ -28,14 +29,13 @@ class HandleMessengerMessageAction
         private readonly MessengerThreadResolver $resolver,
         private readonly MessengerReplyRunner $runner,
         private readonly MessengerClient $client,
+        private readonly ChannelAccessGate $gate,
     ) {}
 
     public function execute(AgentMessengerPage $page, string $psid, string $text): void
     {
         // Protected agents are never answered on Messenger (defence in depth).
-        if (! $page->agent->is_public) {
-            $this->client->sendMessage($page->page_access_token, $psid, self::UNAVAILABLE);
-
+        if (! $this->gate->allows($page->agent, fn () => $this->client->sendMessage($page->page_access_token, $psid, self::UNAVAILABLE))) {
             return;
         }
 

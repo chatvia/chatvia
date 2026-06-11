@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Tickets;
 
 use App\Http\Requests\Tickets\ReplyToTicketRequest;
-use Domain\Helpdesk\Actions\ReplyToTicketAction;
 use Domain\Helpdesk\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
 
@@ -12,9 +11,15 @@ use Illuminate\Http\RedirectResponse;
  */
 class ReplyToTicketController
 {
-    public function __invoke(ReplyToTicketRequest $request, Ticket $ticket, ReplyToTicketAction $reply): RedirectResponse
+    public function __invoke(ReplyToTicketRequest $request, Ticket $ticket): RedirectResponse
     {
-        $reply->execute($request->toData($ticket));
+        $data = $request->toData($ticket);
+
+        $data->ticket->replies()->create([
+            'user_id' => $data->user->id,
+            'type' => 'user',
+            'message' => $data->message,
+        ]);
 
         return back()->with('success', 'Reply added successfully');
     }

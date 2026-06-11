@@ -17,10 +17,14 @@ class SourceWebsitePolicy
 
     /**
      * Determine whether the user can view the model.
+     *
+     * Tenant isolation: a knowledge-base source may only be seen by the
+     * workspace that owns it (or a platform admin). workspace() resolves
+     * the parent account, so teammates of the owning workspace are allowed.
      */
     public function view(User $user, SourceWebsite $agentWebsite): bool
     {
-        return $user->id === $agentWebsite->user_id;
+        return $user->isAdmin() || $user->workspace()->id === $agentWebsite->user_id;
     }
 
     /**

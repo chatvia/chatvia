@@ -7,14 +7,16 @@ use App\Http\Requests\Settings\Prompt\CreatePromptRequest;
 use App\Http\Requests\Settings\Prompt\UpdatePromptRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Prompt\Actions\CreatePromptAction;
-use Domain\Prompt\Actions\ListPromptsForManagementPageAction;
-use Domain\Prompt\Actions\ListPromptsForPickerAction;
 use Domain\Prompt\Actions\UpdatePromptAction;
+use Domain\Prompt\Data\Resources\AgentPromptPickerData;
 use Domain\Prompt\Data\Resources\AgentPromptPickerListData;
+use Domain\Prompt\Data\Resources\AgentPromptRowData;
+use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\LaravelData\DataCollection;
 
 /**
  * Account-level reusable prompts dashboard page. The user authors a prompt
@@ -26,19 +28,34 @@ class PromptController extends Controller
      * JSON list of the user's prompts — consumed by the agent Persona editor's
      * "Saved prompts" picker.
      */
-    public function index(Request $request, ListPromptsForPickerAction $list): AgentPromptPickerListData
+    public function index(Request $request): AgentPromptPickerListData
     {
         abort_unless(has_team_permission('account.prompts'), 404);
 
-        return $list->execute($request->user());
+        $prompts = $request->user()->prompts()
+            ->latest()
+            ->get()
+            ->map(fn (AgentPrompt $prompt): AgentPromptPickerData => AgentPromptPickerData::fromModel($prompt));
+
+        return new AgentPromptPickerListData(
+            data: new DataCollection(AgentPromptPickerData::class, $prompts),
+        );
     }
 
-    public function edit(Request $request, ListPromptsForManagementPageAction $list): Response
+    /**
+     * Settings → Prompts page — each row carries the per-prompt agent
+     * attachment count.
+     */
+    public function edit(Request $request): Response
     {
         abort_unless(has_team_permission('account.prompts'), 404);
 
         return Inertia::render('settings/Prompts', [
-            'prompts' => $list->execute($request->user()),
+            'prompts' => $request->user()->prompts()
+                ->withCount('agents')
+                ->latest()
+                ->get()
+                ->map(fn (AgentPrompt $prompt): AgentPromptRowData => AgentPromptRowData::fromModel($prompt)),
         ]);
     }
 

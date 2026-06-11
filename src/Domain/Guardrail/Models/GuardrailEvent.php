@@ -8,6 +8,7 @@ use Domain\Guardrail\Enums\GuardOutcome;
 use Domain\Guardrail\Enums\GuardStage;
 use Domain\Guardrail\Enums\GuardType;
 use Domain\Guardrail\Listeners\RecordGuardrailEvent;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,14 +32,13 @@ use Support\Concerns\HasExternalId;
  * @property GuardOutcome $outcome
  * @property array<string, mixed>|null $detail
  */
+#[Guarded(['id'])]
 class GuardrailEvent extends Model
 {
     use HasExternalId;
 
     /** Insert-only audit log. */
     public const UPDATED_AT = null;
-
-    protected $guarded = ['id'];
 
     protected $casts = [
         'stage' => GuardStage::class,
@@ -53,11 +53,17 @@ class GuardrailEvent extends Model
         return 'external_id';
     }
 
+    /**
+     * @return BelongsTo<Agent, $this>
+     */
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

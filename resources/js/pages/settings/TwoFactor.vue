@@ -20,7 +20,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { CheckCircle2, KeyRound, Loader2, Smartphone } from 'lucide-vue-next';
+import { CheckCircle2, KeyRound, Loader2, ShieldCheck, Smartphone } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 const props = defineProps<{
@@ -147,7 +147,7 @@ if (props.enabled && !props.confirmed) {
             </AlertDialogContent>
         </AlertDialog>
 
-        <SettingsLayout>
+        <SettingsLayout width="wide">
             <div class="space-y-8">
                 <div class="flex flex-col space-y-4">
                     <div class="flex items-center space-x-3">
@@ -161,7 +161,7 @@ if (props.enabled && !props.confirmed) {
 
                 <Separator />
 
-                <div class="flex items-center justify-between">
+                <div v-if="props.enabled" class="flex items-center justify-between">
                     <p class="text-sm font-medium">Status</p>
                     <span
                         v-if="props.confirmed"
@@ -173,10 +173,14 @@ if (props.enabled && !props.confirmed) {
                     <span v-else class="text-muted-foreground text-xs">Disabled</span>
                 </div>
 
-                <!-- Disabled state -->
-                <div v-if="!props.enabled">
-                    <Button :disabled="enableForm.processing" @click="enable2fa">
+                <!-- Disabled state — empty-state card mirroring the passkeys page -->
+                <div v-if="!props.enabled" class="rounded-lg border py-16 text-center">
+                    <Smartphone class="text-muted-foreground mx-auto size-8" />
+                    <p class="mt-3 text-sm font-medium">Two-factor authentication is off</p>
+                    <p class="text-muted-foreground mt-1 text-sm">Turn it on to require a 6-digit code at sign-in.</p>
+                    <Button class="mt-4" :disabled="enableForm.processing" @click="enable2fa">
                         <Loader2 v-if="enableForm.processing" class="mr-2 size-4 animate-spin" />
+                        <ShieldCheck v-else class="mr-1 size-4" />
                         Enable two-factor authentication
                     </Button>
                 </div>

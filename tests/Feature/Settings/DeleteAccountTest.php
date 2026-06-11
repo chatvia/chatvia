@@ -127,10 +127,12 @@ it('blocks deletion when the email confirmation has not happened', function (): 
 });
 
 it('deletes the account and logs out once confirmed', function (): void {
+    // Returns 204 (not a redirect) so the Inertia client can do a full-page native
+    // redirect to the non-Inertia home page — see DeleteUser.vue.
     $this->actingAs($this->workspace)
         ->withSession(['account_deletion_confirmed_at' => now()->timestamp])
         ->delete(route('settings.account.destroy'))
-        ->assertRedirect('/');
+        ->assertNoContent();
 
     expect(User::whereKey($this->workspace->id)->exists())->toBeFalse();
     $this->assertGuest();

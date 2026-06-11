@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agent\Setup;
 
 use App\Http\Requests\Agent\UpdateAgentDomainRequest;
-use Domain\Agent\Actions\Settings\UpdateAgentDomainAction;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\RedirectResponse;
 
@@ -12,12 +11,10 @@ class UpdateAgentDomainController
     public function __invoke(
         UpdateAgentDomainRequest $request,
         Agent $agent,
-        UpdateAgentDomainAction $action,
     ): RedirectResponse {
         abort_if($request->user()->cannot('update', $agent), 404);
 
-        $data = $request->toData();
-        $newValue = $data->domain;
+        $newValue = $request->toData()->domain;
 
         // Quota gate: setting a (new) domain requires available capacity.
         // Clearing the domain is always allowed.
@@ -43,7 +40,7 @@ class UpdateAgentDomainController
             }
         }
 
-        $action->execute($agent, $data);
+        $agent->update(['domain' => $newValue]);
 
         return back()->with('success', $newValue ? 'Custom domain updated.' : 'Custom domain removed.');
     }

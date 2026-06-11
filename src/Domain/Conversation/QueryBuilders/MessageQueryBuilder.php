@@ -42,7 +42,7 @@ class MessageQueryBuilder extends Builder
         // DISTINCT ON + ORDER BY compile identically on the Eloquent builder
         // under Postgres.
         $rows = Message::query()
-            ->select('chat_conversation_id', 'content')
+            ->select(['chat_conversation_id', 'content'])
             ->whereIn('chat_conversation_id', $ids)
             ->orderBy('chat_conversation_id')
             ->orderBy('created_at')

@@ -49,7 +49,7 @@ class AgentResourceData extends Data
             chat_embed_url: $agent->chat_embed_url,
             created_at: $agent->created_at,
             updated_at: $agent->updated_at,
-            leads_mcp_enabled: $agent->mcpServers()->where('slug', 'leads')->where('is_enabled', true)->exists(),
+            leads_mcp_enabled: $agent->isLeadsEnabled(),
         );
     }
 

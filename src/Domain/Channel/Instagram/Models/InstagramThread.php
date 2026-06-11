@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Instagram\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -17,14 +18,16 @@ use Illuminate\Support\Carbon;
  * @property string|null $name
  * @property Carbon|null $last_message_at
  */
+#[Guarded(['id'])]
 class InstagramThread extends Model
 {
-    protected $guarded = ['id'];
-
     protected $casts = [
         'last_message_at' => 'datetime',
     ];
 
+    /**
+     * @return BelongsTo<AgentInstagramAccount, $this>
+     */
     public function account(): BelongsTo
     {
         return $this->belongsTo(AgentInstagramAccount::class, 'agent_instagram_account_id');

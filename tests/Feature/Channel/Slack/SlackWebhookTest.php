@@ -97,13 +97,13 @@ it('dispatches a job for a signed direct message', function (): void {
 
     postSlackEvent($this->secret, slackEnvelope($dm), $this->signingSecret)->assertOk();
 
-    Bus::assertDispatched(HandleSlackEventJob::class, fn ($job) => $job->channelId === 'D123DM' && $job->text === 'hello in private');
+    Bus::assertDispatched(HandleSlackEventJob::class, fn ($job): bool => $job->channelId === 'D123DM' && $job->text === 'hello in private');
 });
 
 it('passes thread_ts through so the reply lands in the thread', function (): void {
     postSlackEvent($this->secret, slackEnvelope(slackMention() + ['thread_ts' => '1699.000001']), $this->signingSecret)->assertOk();
 
-    Bus::assertDispatched(HandleSlackEventJob::class, fn ($job) => $job->threadTs === '1699.000001');
+    Bus::assertDispatched(HandleSlackEventJob::class, fn ($job): bool => $job->threadTs === '1699.000001');
 });
 
 it('answers the url_verification challenge', function (): void {

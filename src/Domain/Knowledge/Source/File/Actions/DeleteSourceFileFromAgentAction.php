@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Services\Ingestion;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Illuminate\Support\Facades\DB;
 
 class DeleteSourceFileFromAgentAction
 {
@@ -17,7 +18,9 @@ class DeleteSourceFileFromAgentAction
             $this->ingestion->cancel($file);
         }
 
-        $file->agents()->detach($agent->id);
-        $file->delete();
+        DB::transaction(function () use ($agent, $file): void {
+            $file->agents()->detach($agent->id);
+            $file->delete();
+        });
     }
 }

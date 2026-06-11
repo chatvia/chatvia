@@ -62,38 +62,46 @@ function teamsConnectorJwt(object $testCase, array $overrides = []): string
 it('accepts a token signed by the Bot Framework keys for this bot', function (): void {
     $jwt = teamsConnectorJwt($this);
 
-    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID, TEAMS_VERIFIER_SERVICE_URL))->toBeTrue();
+    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID))->not->toBeNull();
 });
 
 it('rejects a token addressed to a different bot', function (): void {
     $jwt = teamsConnectorJwt($this, ['aud' => 'other-app-id']);
 
-    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID, TEAMS_VERIFIER_SERVICE_URL))->toBeFalse();
+    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID))->toBeNull();
 });
 
 it('rejects a token from a different issuer', function (): void {
     $jwt = teamsConnectorJwt($this, ['iss' => 'https://evil.example.com']);
 
-    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID, TEAMS_VERIFIER_SERVICE_URL))->toBeFalse();
+    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID))->toBeNull();
 });
 
 it('rejects an expired token', function (): void {
     $jwt = teamsConnectorJwt($this, ['exp' => time() - 1000]); // beyond the 300 s leeway
 
-    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID, TEAMS_VERIFIER_SERVICE_URL))->toBeFalse();
+    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID))->toBeNull();
 });
 
 it('rejects a token whose serviceurl claim does not match the activity', function (): void {
     $jwt = teamsConnectorJwt($this, ['serviceurl' => 'https://attacker.example.com/']);
 
-    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID, TEAMS_VERIFIER_SERVICE_URL))->toBeFalse();
+    $verifier = new TeamsActivityVerifier;
+    $claims = $verifier->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID);
+
+    expect($claims)->not->toBeNull()
+        ->and($verifier->matchesServiceUrl($claims, TEAMS_VERIFIER_SERVICE_URL))->toBeFalse();
 });
 
 it('accepts a token without a serviceurl claim (claim is optional)', function (): void {
     $claims = ['iss' => 'https://api.botframework.com', 'aud' => TEAMS_VERIFIER_APP_ID, 'exp' => time() + 600];
     $jwt = JWT::encode($claims, $this->privatePem, 'RS256', 'test-kid');
 
-    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID, TEAMS_VERIFIER_SERVICE_URL))->toBeTrue();
+    $verifier = new TeamsActivityVerifier;
+    $verified = $verifier->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID);
+
+    expect($verified)->not->toBeNull()
+        ->and($verifier->matchesServiceUrl($verified, TEAMS_VERIFIER_SERVICE_URL))->toBeTrue();
 });
 
 it('rejects a forged token signed with a different key', function (): void {
@@ -106,14 +114,14 @@ it('rejects a forged token signed with a different key', function (): void {
         'exp' => time() + 600,
     ], $foreignPem, 'RS256', 'test-kid');
 
-    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID, TEAMS_VERIFIER_SERVICE_URL))->toBeFalse();
+    expect((new TeamsActivityVerifier)->verify("Bearer {$jwt}", TEAMS_VERIFIER_APP_ID))->toBeNull();
 });
 
 it('rejects a missing or malformed Authorization header', function (): void {
     $verifier = new TeamsActivityVerifier;
 
-    expect($verifier->verify(null, TEAMS_VERIFIER_APP_ID))->toBeFalse()
-        ->and($verifier->verify('', TEAMS_VERIFIER_APP_ID))->toBeFalse()
-        ->and($verifier->verify('Bearer not-a-jwt', TEAMS_VERIFIER_APP_ID))->toBeFalse()
-        ->and($verifier->verify('Basic dXNlcjpwYXNz', TEAMS_VERIFIER_APP_ID))->toBeFalse();
+    expect($verifier->verify(null, TEAMS_VERIFIER_APP_ID))->toBeNull()
+        ->and($verifier->verify('', TEAMS_VERIFIER_APP_ID))->toBeNull()
+        ->and($verifier->verify('Bearer not-a-jwt', TEAMS_VERIFIER_APP_ID))->toBeNull()
+        ->and($verifier->verify('Basic dXNlcjpwYXNz', TEAMS_VERIFIER_APP_ID))->toBeNull();
 });

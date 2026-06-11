@@ -15,9 +15,11 @@ use Throwable;
  * shared signing secret: the connector sends a Bearer JWT signed with
  * Microsoft's published keys. A request is genuine when the signature checks
  * out against the Bot Framework JWKS (cached for a day), the issuer is the
- * connector, the audience is this bot's Microsoft App ID, and — defence in
- * depth — the token's `serviceurl` claim matches the activity's serviceUrl,
- * so a replayed token can't redirect replies elsewhere.
+ * connector, and the audience is this bot's Microsoft App ID. Defence in
+ * depth: {@see matchesServiceUrl} then checks the verified token's
+ * `serviceurl` claim against the activity's serviceUrl, so a replayed token
+ * can't redirect replies elsewhere — split off `verify()` so the caller can
+ * authenticate the request before parsing its body.
  */
 class TeamsActivityVerifier
 {
@@ -28,29 +30,42 @@ class TeamsActivityVerifier
     /** Accept this much clock skew on exp/nbf (mirrors the HMAC channels' replay window). */
     private const LEEWAY_SECONDS = 300;
 
-    public function verify(?string $authorization, string $appId, ?string $serviceUrl = null): bool
+    /**
+     * @return array<string, mixed>|null the verified token claims, or null when the request is not genuine
+     */
+    public function verify(?string $authorization, string $appId): ?array
     {
         if (! is_string($authorization) || ! str_starts_with($authorization, 'Bearer ')) {
-            return false;
+            return null;
         }
 
         try {
             JWT::$leeway = self::LEEWAY_SECONDS;
             $claims = (array) JWT::decode(substr($authorization, 7), $this->signingKeys());
         } catch (Throwable) {
-            return false;
+            return null;
         }
 
         if (($claims['iss'] ?? null) !== self::ISSUER || ($claims['aud'] ?? null) !== $appId) {
-            return false;
+            return null;
         }
 
-        if ($serviceUrl !== null && isset($claims['serviceurl'])
-            && rtrim((string) $claims['serviceurl'], '/') !== rtrim($serviceUrl, '/')) {
-            return false;
+        return $claims;
+    }
+
+    /**
+     * When the verified token carries a `serviceurl` claim it must match the
+     * activity's serviceUrl, so a replayed token can't redirect replies.
+     *
+     * @param  array<string, mixed>  $claims
+     */
+    public function matchesServiceUrl(array $claims, string $serviceUrl): bool
+    {
+        if (! isset($claims['serviceurl'])) {
+            return true;
         }
 
-        return true;
+        return rtrim((string) $claims['serviceurl'], '/') === rtrim($serviceUrl, '/');
     }
 
     /**

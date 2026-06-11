@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Subscriptions\GrantSubscriptionAction;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 beforeEach(function (): void {
     Cache::flush();
@@ -48,10 +49,23 @@ it('uses the yearly credit allotment and a one-year expiry for yearly grants', f
         ->and($user->credit->ends_at->isAfter(now()->addMonths(6)))->toBeTrue();
 });
 
-it('does nothing for an unknown package', function (): void {
+it('logs a warning and grants nothing for an unknown package', function (): void {
+    // StartTrialCheckoutAction stores strtolower($package) in Stripe metadata
+    // and renewals look that key back up in config/billing.php — a renamed
+    // plan key makes in-flight subscriptions land on this branch.
+    Log::spy();
+
     $user = User::factory()->workspace()->create();
+    $quotaBefore = $user->quota?->toArray();
 
     app(GrantSubscriptionAction::class)->execute($user, 'no-such-package', isYearly: false);
 
-    expect($user->fresh()->credit)->toBeNull();
+    Log::shouldHaveReceived('warning')
+        ->once()
+        ->with('Invalid package configuration', ['package' => 'no-such-package', 'cycle' => 'monthly']);
+
+    $user->refresh();
+
+    expect($user->credit)->toBeNull()
+        ->and($user->quota?->toArray())->toBe($quotaBefore);
 });

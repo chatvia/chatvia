@@ -26,7 +26,7 @@ class InviteTeamMemberRequest extends FormRequest
     {
         $team = $this->route('team');
         $validRoles = $team instanceof Team
-            ? $team->roles()->where('code', '!=', 'owner')->pluck('code')->toArray()
+            ? $team->invitableRoles()->pluck('code')->toArray()
             : [];
 
         return [

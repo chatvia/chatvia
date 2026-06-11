@@ -36,7 +36,7 @@ class WhatsappReplyRunner
             message: $message,
             source: 'whatsapp',
             requestIdPrefix: 'wa_',
-            onEvent: function () use ($token, $number, $chat, $inboundMessageId, &$lastTyping): void {
+            onEvent: function () use ($token, $number, $inboundMessageId, &$lastTyping): void {
                 if (microtime(true) - $lastTyping >= self::TYPING_REFRESH_SECONDS) {
                     $this->client->sendTypingIndicator($token, $number->phone_number_id, $inboundMessageId);
                     $lastTyping = microtime(true);

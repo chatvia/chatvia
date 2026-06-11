@@ -10,8 +10,6 @@ use App\Identity\Chatter\Actions\UpdateChatterAccessAction;
 use App\Identity\Chatter\Data\WorkspaceChatterRowData;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
-use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -93,13 +91,12 @@ class SettingsMemberController extends Controller
         Request $request,
         string $chatter,
         string $agent,
-        GrantAgentMembershipAction $grant,
     ): array {
 
         $member = $this->findChatter($request, $chatter);
         $agentModel = $this->findWorkspaceAgent($request, $agent);
 
-        $grant->execute($agentModel, $member);
+        $agentModel->chatters()->syncWithoutDetaching([$member->id]);
 
         return $this->buildAgentsPayload($request, $member);
     }
@@ -111,13 +108,12 @@ class SettingsMemberController extends Controller
         Request $request,
         string $chatter,
         string $agent,
-        RevokeAgentMembershipAction $detach,
     ): array {
 
         $member = $this->findChatter($request, $chatter);
         $agentModel = $this->findWorkspaceAgent($request, $agent);
 
-        $detach->execute($agentModel, $member);
+        $agentModel->chatters()->detach($member->id);
 
         return $this->buildAgentsPayload($request, $member);
     }

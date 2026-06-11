@@ -663,9 +663,7 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                         <Badge v-else variant="outline">None</Badge>
                     </div>
                     <p class="text-muted-foreground text-xs leading-relaxed">Add more team members to your workspace.</p>
-                    <p v-if="addons.members.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">
-                        Ends {{ addons.members.cancels_at }}
-                    </p>
+                    <p v-if="addons.members.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">Ends {{ addons.members.cancels_at }}</p>
                     <div class="mt-auto flex items-end justify-between gap-2 pt-1">
                         <div>
                             <span class="text-lg font-bold">$9</span>
@@ -726,11 +724,7 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                                     </div>
                                     <DialogFooter class="gap-2">
                                         <Button variant="outline" @click="isMembersDialogOpen = false">Cancel</Button>
-                                        <Button
-                                            :disabled="isSubscribingMembers || membersQuantity < 1"
-                                            class="gap-2"
-                                            @click="subscribeMembers"
-                                        >
+                                        <Button :disabled="isSubscribingMembers || membersQuantity < 1" class="gap-2" @click="subscribeMembers">
                                             <Loader2 v-if="isSubscribingMembers" class="h-4 w-4 animate-spin" />
                                             {{ addons.members.active ? 'Update Quantity' : 'Subscribe' }}
                                         </Button>

@@ -373,7 +373,12 @@ onUnmounted(() => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="run in props.runs" :key="run.id" class="hover:bg-muted/50 cursor-pointer" @click="openRun(run.external_id)">
+                                <TableRow
+                                    v-for="run in props.runs"
+                                    :key="run.id"
+                                    class="hover:bg-muted/50 cursor-pointer"
+                                    @click="openRun(run.external_id)"
+                                >
                                     <TableCell>
                                         <div v-if="run.triggered_by_name" class="flex items-center gap-2">
                                             <Avatar class="h-7 w-7">

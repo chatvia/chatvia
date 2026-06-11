@@ -82,24 +82,23 @@ class ModelSettingObserver
 
         // For additional safety, clear any potential cache tags if using Redis
         if (config('cache.default') === 'redis') {
-            $this->clearRedisCache($modelSetting, $cachePrefix);
-        }
-    }
-
-    /**
-     * Clear Redis cache using pattern matching (if available).
-     */
-    protected function clearRedisCache(ModelSetting $modelSetting, string $cachePrefix): void
-    {
-        try {
-            $redis = Redis::connection(config('cache.stores.redis.connection'));
-            $pattern = sprintf(
+            self::clearRedisPattern(sprintf(
                 '%s:%s.%s.%s.*',
                 config('cache.prefix'),
                 $cachePrefix,
                 $modelSetting->model_type,
                 $modelSetting->model_id
-            );
+            ));
+        }
+    }
+
+    /**
+     * Clear Redis cache keys matching the given pattern (if available).
+     */
+    private static function clearRedisPattern(string $pattern): void
+    {
+        try {
+            $redis = Redis::connection(config('cache.stores.redis.connection'));
 
             $keys = $redis->keys($pattern);
             if (! empty($keys)) {
@@ -135,23 +134,13 @@ class ModelSettingObserver
 
         // For Redis, try to clear all related cache keys
         if (config('cache.default') === 'redis') {
-            try {
-                $redis = Redis::connection(config('cache.stores.redis.connection'));
-                $pattern = sprintf(
-                    '%s:%s.%s.%s.*',
-                    config('cache.prefix'),
-                    $cachePrefix,
-                    $modelType,
-                    $modelId
-                );
-
-                $keys = $redis->keys($pattern);
-                if (! empty($keys)) {
-                    $redis->del($keys);
-                }
-            } catch (\Exception $e) {
-                \Log::debug('Failed to clear Redis cache pattern: '.$e->getMessage());
-            }
+            self::clearRedisPattern(sprintf(
+                '%s:%s.%s.%s.*',
+                config('cache.prefix'),
+                $cachePrefix,
+                $modelType,
+                $modelId
+            ));
         }
     }
 }

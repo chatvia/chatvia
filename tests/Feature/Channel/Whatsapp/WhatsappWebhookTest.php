@@ -200,7 +200,7 @@ it('handles every message in a batched delivery', function (): void {
 });
 
 it('walks every entry and change in one delivery — not just the first', function (): void {
-    $change = fn (string $wamid, string $body) => [
+    $change = fn (string $wamid, string $body): array => [
         'field' => 'messages',
         'value' => [
             'messaging_product' => 'whatsapp',

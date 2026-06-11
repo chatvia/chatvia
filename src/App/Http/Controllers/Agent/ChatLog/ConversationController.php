@@ -49,7 +49,7 @@ class ConversationController
             ->where('external_id', $conversationId)
             ->firstOrFail();
 
-        $deleteConversation->execute($agent, $conversation);
+        $deleteConversation->execute($agent, $conversation, $request->user());
 
         return response()->json(['success' => true, 'message' => 'Conversation deleted successfully.']);
     }

@@ -52,7 +52,7 @@ it('keeps every non-audio/video category inside the billable pages bucket', func
     $pagesBucket = ['pdf', 'word', 'markdown', 'text', 'presentation', 'spreadsheet', 'image', 'document'];
 
     $categories = collect(ocr_supported_extensions())
-        ->map(fn (string $ext) => file_category('x.'.$ext))
+        ->map(fn (string $ext): string => file_category('x.'.$ext))
         ->unique()
         ->values();
 

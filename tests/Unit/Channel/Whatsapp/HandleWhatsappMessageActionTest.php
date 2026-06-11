@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Whatsapp\Actions\HandleWhatsappMessageAction;
 use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Channel\Whatsapp\Models\WhatsappChat;
@@ -56,6 +57,7 @@ function whatsappHandleAction(FakeWhatsappClient $client, WhatsappReplyRunner $r
         app(WhatsappChatResolver::class),
         $runner,
         $client,
+        new ChannelAccessGate,
     );
 }
 

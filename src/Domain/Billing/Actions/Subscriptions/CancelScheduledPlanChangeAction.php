@@ -4,7 +4,7 @@ namespace Domain\Billing\Actions\Subscriptions;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Data\StripeScheduleData;
-use Stripe\SubscriptionSchedule;
+use Laravel\Cashier\Cashier;
 
 class CancelScheduledPlanChangeAction
 {
@@ -29,7 +29,7 @@ class CancelScheduledPlanChangeAction
             return false;
         }
 
-        SubscriptionSchedule::retrieve($metadata['schedule_id'])->release();
+        Cashier::stripe()->subscriptionSchedules->retrieve($metadata['schedule_id'])->release();
 
         $subscription->updateStripeSubscription([
             'metadata' => array_merge($metadata, StripeScheduleData::from([

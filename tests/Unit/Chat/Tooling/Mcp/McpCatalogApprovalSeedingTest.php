@@ -9,7 +9,7 @@ use Domain\Integration\Mcp\Services\McpCatalog;
 use Domain\Integration\Mcp\Services\McpClient;
 use Illuminate\Support\Facades\Queue;
 
-function approvalServer(): AgentMcpServer
+function approvalServer(?string $url = null, string $slug = 'seeding'): AgentMcpServer
 {
     $user = User::factory()->create();
 
@@ -19,8 +19,8 @@ function approvalServer(): AgentMcpServer
         'user_id' => $user->id,
         'connector_slug' => null,
         'name' => 'Seeding Server',
-        'slug' => 'seeding',
-        'url' => 'https://mcp.example.test',
+        'slug' => $slug,
+        'url' => $url ?? 'https://mcp.example.test',
         'transport' => 'streamable_http',
         'auth_type' => 'none',
         'is_enabled' => true,
@@ -36,7 +36,7 @@ function fakeTools(): array
     ];
 }
 
-it('seeds per-tool permission from annotations on first catalog', function (): void {
+it('seeds every remote tool to Approval — a third-party readOnlyHint is not trusted', function (): void {
     Queue::fake();
 
     $server = approvalServer();
@@ -45,9 +45,34 @@ it('seeds per-tool permission from annotations on first catalog', function (): v
 
     app(McpCatalog::class)->refresh($server);
 
-    expect(McpTool::where('name', 'read_tool')->first()->permission)->toBe(McpToolPermission::Allow)
-        ->and(McpTool::where('name', 'write_tool')->first()->permission)->toBe(McpToolPermission::Approval)
-        ->and(McpTool::where('name', 'unknown_tool')->first()->permission)->toBe(McpToolPermission::Approval);
+    $permissionOf = fn (string $name): McpToolPermission => McpTool::query()
+        ->where('mcp_server_id', $server->id)->where('name', $name)->first()->permission;
+
+    expect($permissionOf('read_tool'))->toBe(McpToolPermission::Approval)
+        ->and($permissionOf('write_tool'))->toBe(McpToolPermission::Approval)
+        ->and($permissionOf('unknown_tool'))->toBe(McpToolPermission::Approval);
+});
+
+it('auto-Allows read tools on a built-in (internal URL) server, gating writes', function (): void {
+    Queue::fake();
+
+    // An internal URL (under app.url + /mcp/) marks one of Chatvia's own
+    // built-in servers — the only place readOnlyHint is trusted for seeding.
+    $server = approvalServer(
+        url: rtrim((string) config('app.url'), '/').'/mcp/builtin-thing',
+        slug: 'builtin',
+    );
+
+    $this->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(fakeTools()));
+
+    app(McpCatalog::class)->refresh($server);
+
+    $permissionOf = fn (string $name): McpToolPermission => McpTool::query()
+        ->where('mcp_server_id', $server->id)->where('name', $name)->first()->permission;
+
+    expect($permissionOf('read_tool'))->toBe(McpToolPermission::Allow)
+        ->and($permissionOf('write_tool'))->toBe(McpToolPermission::Approval)
+        ->and($permissionOf('unknown_tool'))->toBe(McpToolPermission::Approval);
 });
 
 it('derives scope from the readOnlyHint annotation', function (): void {

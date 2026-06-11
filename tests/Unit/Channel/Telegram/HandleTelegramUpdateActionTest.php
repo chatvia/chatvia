@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Telegram\Actions\HandleTelegramUpdateAction;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
@@ -48,6 +49,7 @@ it('resolves the chat, sends the agent reply, and stamps last_message_at', funct
         app(TelegramChatResolver::class),
         stubReplyRunner('Hello from the agent'),
         $client,
+        new ChannelAccessGate,
     );
 
     $action->execute($bot, '555', 'hi there', ['first_name' => 'Sam']);
@@ -75,6 +77,7 @@ it('keeps one chat mapping across multiple inbound messages', function (): void 
         app(TelegramChatResolver::class),
         stubReplyRunner('ok'),
         $client,
+        new ChannelAccessGate,
     );
 
     $action->execute($bot, '900', 'first', ['first_name' => 'Ann']);
@@ -92,6 +95,7 @@ it('refuses to answer on a protected agent and creates no chat', function (): vo
         app(TelegramChatResolver::class),
         stubReplyRunner('should never be sent'),
         $client,
+        new ChannelAccessGate,
     );
 
     $action->execute($bot, '555', 'hello', ['first_name' => 'Sam']);

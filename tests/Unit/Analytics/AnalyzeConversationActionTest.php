@@ -26,6 +26,9 @@ function conversationFor(Agent $agent, int $userMessages = 3): Conversation
     $conversation = Conversation::factory()->create([
         'chat_session_id' => $session->id,
         'source' => ConversationSource::Widget,
+        // Pinned: the factory's random title can overflow the stale test DB's
+        // varchar(255) once encrypted (the in-repo migration declares text).
+        'title' => null,
     ]);
 
     for ($i = 0; $i < $userMessages; $i++) {
@@ -36,6 +39,16 @@ function conversationFor(Agent $agent, int $userMessages = 3): Conversation
     }
 
     return $conversation;
+}
+
+/**
+ * Topic assignment is opt-in (the `analytics` settings group defaults `topics`
+ * to false — see config/model-settings.php), so agents under test enable it
+ * explicitly. Sentiment/tone are stored by this pass regardless of settings.
+ */
+function acaEnableTopics(Agent $agent): void
+{
+    $agent->setSetting('topics', true, 'analytics');
 }
 
 /** @return array<string, int> */
@@ -60,6 +73,7 @@ it('assigns multiple topics, records a suggestion, sets fields and stamps analyz
     Event::fake([ConversationTopicAssigned::class]);
 
     $agent = proPlanAgent();
+    acaEnableTopics($agent);
     $ids = attachTopics($agent, ['Billing', 'Bug Report']);
     $conversation = conversationFor($agent);
 
@@ -100,6 +114,7 @@ it('is idempotent — a second run changes nothing', function (): void {
     Event::fake([ConversationTopicAssigned::class]);
 
     $agent = proPlanAgent();
+    acaEnableTopics($agent);
     $ids = attachTopics($agent, ['Billing']);
     $conversation = conversationFor($agent);
 
@@ -125,6 +140,7 @@ it('stores the full analysis regardless of plan capabilities', function (): void
     // everything it returns is stored; capability only gates the analytics
     // screens (route middleware), not the analysis itself.
     $agent = Agent::factory()->create();
+    acaEnableTopics($agent);
     $ids = attachTopics($agent, ['Billing']);
     $conversation = conversationFor($agent);
 
@@ -172,6 +188,7 @@ it('rolls the assigned topic into analytics_agent_topic_daily', function (): voi
     config(['queue.default' => 'sync']); // run the queued RecordAnalytics subscriber inline
 
     $agent = proPlanAgent();
+    acaEnableTopics($agent);
     $ids = attachTopics($agent, ['Billing']);
     $conversation = conversationFor($agent);
 

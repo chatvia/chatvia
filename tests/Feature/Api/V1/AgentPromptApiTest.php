@@ -24,6 +24,7 @@ it('creates an agent attached to a library prompt via prompt_id', function (): v
             'name' => 'Bot',
             'team_id' => $this->user->primaryTeam()->external_id,
             'prompt_id' => $prompt->external_id,
+            'is_public' => false,
         ])
         ->assertOk()
         ->assertJsonPath('data.prompt_id', $prompt->external_id)
@@ -40,6 +41,7 @@ it('creates an agent with custom system_instructions', function (): void {
             'name' => 'Bot',
             'team_id' => $this->user->primaryTeam()->external_id,
             'system_instructions' => 'Custom prompt',
+            'is_public' => false,
         ])
         ->assertOk()
         ->assertJsonPath('data.system_instructions', 'Custom prompt')

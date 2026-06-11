@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 
 /**
@@ -35,6 +36,11 @@ function teammateWithPermissions(User $owner, array $permissions): User
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
+
+    // Factory users start bare now (the Stripe webhook provisions on trial
+    // checkout) — create the default team + billing row explicitly.
+    app(TeamService::class)->createDefaultTeam($this->owner);
+    $this->owner->billing()->firstOrCreate([]);
 
     // Agent dashboard routes sit behind `user.subscribed`; subscribe the owner so
     // the gate under test is the permission one. Employees inherit owner billing.

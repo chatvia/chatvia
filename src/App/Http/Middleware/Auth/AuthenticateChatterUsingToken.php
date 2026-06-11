@@ -8,6 +8,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Logs a chatter into an agent's chat from a `?auth_token=` URL.
+ *
+ * Consumes a one-time auth token minted by ChatterAuthTokenService (cache-backed,
+ * 60-minute TTL). A token that resolves logs its chatter in on the web guard and
+ * is invalidated immediately — strictly single-use, unlike the multi-use
+ * `?token=` sign-in-link flow handled by AuthenticateChatViaSignInToken, which
+ * runs right after this middleware in the chat group. Either way the request is
+ * redirected to the clean chat home so the spent token never lingers in the URL.
+ */
 class AuthenticateChatterUsingToken
 {
     public function __construct(

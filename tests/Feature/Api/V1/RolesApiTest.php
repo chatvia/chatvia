@@ -4,14 +4,16 @@ use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
+use Domain\Membership\Team\Actions\Team\CreateTeamAction;
+use Domain\Membership\Team\Data\CreateTeamData;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Role;
+use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {
-    // UserObserver::created auto-provisions the default team + billing + quota.
-    $this->user = User::factory()->create();
+    $this->user = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
     $this->team = $this->user->primaryTeam();
     $this->token = $this->user->createToken('account')->plainTextToken;
 });
@@ -43,6 +45,19 @@ function makeRole(User $user, string $name): Role
         allAgents: true,
         agentExternalIds: [],
     ));
+}
+
+/**
+ * Provision an employee of the owner's workspace, attached to the given team
+ * under a permission-less role, and return an API token minted in their name.
+ */
+function makeMemberToken(User $owner, Team $team): string
+{
+    $member = User::factory()->employee($owner)->create();
+    $role = makeRole($owner, 'Member role '.Str::random(6));
+    $team->members()->attach($member->id, ['role_id' => $role->id]);
+
+    return $member->createToken('account')->plainTextToken;
 }
 
 describe('GET /api/v1/teams', function (): void {
@@ -123,6 +138,14 @@ describe('POST /api/v1/teams/{team}/roles', function (): void {
             ->postJson("/api/v1/teams/{$other->primaryTeam()->external_id}/roles", ['name' => 'Evil'])
             ->assertForbidden();
     });
+
+    it('forbids a workspace member without permission from creating a role', function (): void {
+        $memberToken = makeMemberToken($this->user, $this->team);
+
+        $this->withHeaders(roleHeaders($memberToken))
+            ->postJson("/api/v1/teams/{$this->team->external_id}/roles", ['name' => 'Sneaky'])
+            ->assertForbidden();
+    });
 });
 
 describe('PATCH /api/v1/teams/{team}/roles/{role}', function (): void {
@@ -149,6 +172,26 @@ describe('PATCH /api/v1/teams/{team}/roles/{role}', function (): void {
 
         $this->withHeaders(roleHeaders($this->token))
             ->patchJson("/api/v1/teams/{$this->team->external_id}/roles/{$otherRole->external_id}", ['name' => 'X'])
+            ->assertNotFound();
+    });
+
+    it('forbids a workspace member without permission from updating a role', function (): void {
+        $role = makeRole($this->user, 'Target');
+        $memberToken = makeMemberToken($this->user, $this->team);
+
+        $this->withHeaders(roleHeaders($memberToken))
+            ->patchJson("/api/v1/teams/{$this->team->external_id}/roles/{$role->external_id}", ['name' => 'Hijacked'])
+            ->assertForbidden();
+
+        expect($role->fresh()->name)->toBe('Target');
+    });
+
+    it('404s when updating a role through a different team in the same workspace', function (): void {
+        $role = makeRole($this->user, 'Primary role');
+        $teamB = app(CreateTeamAction::class)->execute(new CreateTeamData(owner: $this->user, name: 'Second team'));
+
+        $this->withHeaders(roleHeaders($this->token))
+            ->patchJson("/api/v1/teams/{$teamB->external_id}/roles/{$role->external_id}", ['name' => 'X'])
             ->assertNotFound();
     });
 });
@@ -186,5 +229,33 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
 
         expect($this->team->members()->where('users.id', $endUser->id)->count())->toBe(1)
             ->and($this->team->members()->where('users.id', $endUser->id)->wherePivot('role_id', $roleB->id)->exists())->toBeTrue();
+    });
+
+    it('forbids a workspace member without permission from assigning users to a role', function (): void {
+        $role = makeRole($this->user, 'Support');
+        $agent = makeRoleAgent($this->user, 'Bot');
+        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
+        $memberToken = makeMemberToken($this->user, $this->team);
+
+        $this->withHeaders(roleHeaders($memberToken))
+            ->postJson("/api/v1/teams/{$this->team->external_id}/roles/{$role->external_id}/users", [
+                'user_id' => $endUser->external_id,
+            ])
+            ->assertForbidden();
+
+        expect($this->team->members()->where('users.id', $endUser->id)->exists())->toBeFalse();
+    });
+
+    it('404s when assigning through a different team in the same workspace', function (): void {
+        $role = makeRole($this->user, 'Primary-team role');
+        $agent = makeRoleAgent($this->user, 'Bot');
+        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
+        $teamB = app(CreateTeamAction::class)->execute(new CreateTeamData(owner: $this->user, name: 'Other team'));
+
+        $this->withHeaders(roleHeaders($this->token))
+            ->postJson("/api/v1/teams/{$teamB->external_id}/roles/{$role->external_id}/users", [
+                'user_id' => $endUser->external_id,
+            ])
+            ->assertNotFound();
     });
 });

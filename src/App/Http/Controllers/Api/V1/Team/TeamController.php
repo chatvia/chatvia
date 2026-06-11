@@ -66,7 +66,8 @@ class TeamController
      */
     public function update(Request $request, Team $team, TeamPayloadData $payload, UpdateTeamAction $action): array
     {
-        abort_unless($request->user()->workspace()->ownsTeam($team), 403);
+        // Same gate as the web side (UpdateTeamRequest): TeamPolicy::update.
+        abort_unless($request->user()->can('update', $team), 403);
 
         return ['data' => TeamData::fromModel($action->execute(
             new UpdateTeamData(team: $team, name: $payload->name),

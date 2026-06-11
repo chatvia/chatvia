@@ -7,6 +7,7 @@ use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Domain\Channel\Instagram\Services\InstagramClient;
 use Domain\Channel\Instagram\Services\InstagramReplyRunner;
 use Domain\Channel\Instagram\Services\InstagramThreadResolver;
+use Domain\Channel\Services\ChannelAccessGate;
 
 /**
  * Handles one inbound Instagram Direct text message end to end: resolve the
@@ -28,14 +29,13 @@ class HandleInstagramMessageAction
         private readonly InstagramThreadResolver $resolver,
         private readonly InstagramReplyRunner $runner,
         private readonly InstagramClient $client,
+        private readonly ChannelAccessGate $gate,
     ) {}
 
     public function execute(AgentInstagramAccount $account, string $igsid, string $text): void
     {
         // Protected agents are never answered on Instagram (defence in depth).
-        if (! $account->agent->is_public) {
-            $this->client->sendMessage($account->access_token, $igsid, self::UNAVAILABLE);
-
+        if (! $this->gate->allows($account->agent, fn () => $this->client->sendMessage($account->access_token, $igsid, self::UNAVAILABLE))) {
             return;
         }
 

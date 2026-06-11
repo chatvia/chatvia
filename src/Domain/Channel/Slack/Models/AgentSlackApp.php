@@ -3,6 +3,7 @@
 namespace Domain\Channel\Slack\Models;
 
 use Domain\Agent\Models\Agent;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,11 +24,10 @@ use Support\Concerns\HasExternalId;
  * @property string $webhook_secret
  * @property bool $enabled
  */
+#[Guarded(['id'])]
 class AgentSlackApp extends Model
 {
     use HasExternalId;
-
-    protected $guarded = ['id'];
 
     protected $casts = [
         'bot_token' => 'encrypted',
@@ -40,6 +40,9 @@ class AgentSlackApp extends Model
         return 'external_id';
     }
 
+    /**
+     * @return BelongsTo<Agent, $this>
+     */
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);

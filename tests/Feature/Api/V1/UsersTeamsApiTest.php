@@ -1,17 +1,23 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Models\UserQuota;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
-    // UserObserver::created auto-provisions the default team + billing + quota.
+    // Registration is trial-checkout-only now (the Stripe webhook provisions
+    // billing/quota/default team), so provision explicitly. Bump the team
+    // quota so tests that POST /api/v1/teams aren't blocked by the starter
+    // ceiling of 1 (which the default team already fills).
     $this->user = User::factory()->create();
-    // Bump the team quota so tests that POST /api/v1/teams aren't blocked by
-    // the default plan's starter ceiling of 1 (which the auto-provisioned
-    // default team already fills).
+    $this->user->billing()->firstOrCreate([]);
+    UserQuota::firstOrCreate(
+        ['user_id' => $this->user->id],
+        config('billing.packages.starter.quota_limits.fixed', []),
+    );
     $this->user->quota()->update(['teams_limit' => 10]);
     $this->agent = createAgent($this->user);
     $this->token = $this->user->createToken('account')->plainTextToken;
@@ -29,6 +35,8 @@ describe('POST /api/v1/users', function (): void {
             ->postJson('/api/v1/users', [
                 'name' => 'Jane',
                 'agent_id' => $this->agent->external_id,
+                'email' => 'jane@example.test',
+                'password' => 'super-secret-pw',
             ])
             ->assertOk()
             ->assertJsonPath('data.name', 'Jane')
@@ -42,7 +50,7 @@ describe('POST /api/v1/users', function (): void {
 
         expect($created->workspace_id)->toBe($this->user->id)
             ->and($created->isChatter())->toBeTrue()
-            ->and($created->email)->toBeNull()
+            ->and($created->email)->toBe('jane@example.test')
             ->and($created->accessibleAgents()->whereKey($this->agent->id)->exists())->toBeTrue();
     });
 
@@ -60,6 +68,16 @@ describe('POST /api/v1/users', function (): void {
             ->assertJsonValidationErrors(['agent_id']);
     });
 
+    it('requires email and password (end-users are credentialed now)', function (): void {
+        $this->withHeaders(apiHeaders($this->token))
+            ->postJson('/api/v1/users', [
+                'name' => 'Jane',
+                'agent_id' => $this->agent->external_id,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email', 'password']);
+    });
+
     it('rejects an agent owned by a different account', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $otherAgent = createAgent($other);
@@ -68,6 +86,8 @@ describe('POST /api/v1/users', function (): void {
             ->postJson('/api/v1/users', [
                 'name' => 'Jane',
                 'agent_id' => $otherAgent->external_id,
+                'email' => 'jane@example.test',
+                'password' => 'super-secret-pw',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['agent_id']);

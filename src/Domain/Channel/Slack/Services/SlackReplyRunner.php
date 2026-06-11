@@ -24,7 +24,7 @@ class SlackReplyRunner
     ) {}
 
     /**
-     * @param  Closure(string): void|null  $onPartial  invoked with the accumulated reply-so-far
+     * @param  (Closure(string): mixed)|null  $onPartial  invoked with the accumulated reply-so-far; the return value is ignored
      */
     public function reply(SlackChannel $channel, string $message, ?Closure $onPartial = null): string
     {

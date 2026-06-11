@@ -28,7 +28,11 @@ it('creates a user and dispatches the Registered event', function (): void {
     Event::assertDispatched(Registered::class);
 });
 
-it('ensures a primary team is set up for the new user', function (): void {
+it('defers team, billing and quota provisioning to the trial-checkout webhook', function (): void {
+    // UserObserver::created auto-provisioning is retired: registration only
+    // creates the user row. The default team, UserBilling and UserQuota rows
+    // are provisioned by HandleStripeWebhook when the trial checkout lands —
+    // so a freshly registered user must have none of them yet.
     Event::fake([Registered::class]);
 
     $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
@@ -39,8 +43,10 @@ it('ensures a primary team is set up for the new user', function (): void {
         registered_ip: '127.0.0.1',
     ));
 
-    expect($user->ownedTeams()->count())->toBeGreaterThan(0)
-        ->and($user->primaryTeam())->not->toBeNull();
+    expect($user->ownedTeams()->count())->toBe(0)
+        ->and($user->current_team_id)->toBeNull()
+        ->and($user->billing()->exists())->toBeFalse()
+        ->and($user->quota()->exists())->toBeFalse();
 });
 
 it('hashes the password before storing it', function (): void {

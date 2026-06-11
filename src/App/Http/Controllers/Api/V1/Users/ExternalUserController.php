@@ -12,9 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Your end-users. Create one here for a specific agent, then either hand them
- * a chat sign-in link via `POST /api/v1/agents/{agent}/sign` or let
- * them sign in directly (if you provided an `email` + `password`). End-users
+ * Your end-users. Create one here for a specific agent (with an `email` +
+ * `password`), then either hand them a chat sign-in link via
+ * `POST /api/v1/agents/{agent}/sign` or let them sign in directly. End-users
  * never reach the dashboard — they can only chat with the agent(s) you've
  * granted them.
  */

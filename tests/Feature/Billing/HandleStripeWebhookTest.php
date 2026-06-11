@@ -1,9 +1,12 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Actions\Subscriptions\GrantSubscriptionAction;
 use Domain\Billing\Listeners\HandleStripeWebhook;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserCredit;
+use Domain\Billing\Models\UserQuota;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Cashier\Events\WebhookReceived;
 use Mockery as m;
@@ -76,7 +79,7 @@ function makeAddonSubscriptionCreatedPayload(string $eventId, string $customerId
 
 it('grants credit only once when the same Stripe event is delivered twice', function (): void {
     $user = User::factory()->create();
-    $user->billing()->update(['stripe_id' => 'cus_replay_test']);
+    $user->billing()->create(['stripe_id' => 'cus_replay_test']);
 
     $payload = makeSubscriptionCyclePayload('evt_replay_test_1', 'cus_replay_test');
 
@@ -92,9 +95,40 @@ it('grants credit only once when the same Stripe event is delivered twice', func
         ->and($countAfterReplay)->toBe(1);
 });
 
+it('releases the idempotency key when a handler throws so a Stripe retry reprocesses the event', function (): void {
+    // The claim is taken with Cache::add before the work runs; if a handler
+    // then fails, the claim must be released — otherwise Stripe's retry of
+    // the same evt_* would be skipped and the event permanently lost.
+    $user = User::factory()->create();
+    $user->billing()->create(['stripe_id' => 'cus_retry_release']);
+
+    $payload = makeSubscriptionCyclePayload('evt_retry_release', 'cus_retry_release');
+
+    $grant = m::mock(GrantSubscriptionAction::class);
+    $grant->shouldReceive('execute')->once()->andThrow(new RuntimeException('transient failure'));
+    app()->instance(GrantSubscriptionAction::class, $grant);
+
+    $listener = app(HandleStripeWebhook::class);
+
+    expect(fn () => $listener->handle(new WebhookReceived($payload)))
+        ->toThrow(RuntimeException::class, 'transient failure');
+
+    expect(Cache::has('stripe:event:evt_retry_release'))->toBeFalse()
+        ->and(UserCredit::where('user_id', $user->id)->count())->toBe(0);
+
+    // A second delivery of the SAME event id reprocesses through the real
+    // action and grants the credit.
+    app()->forgetInstance(GrantSubscriptionAction::class);
+
+    $listener->handle(new WebhookReceived($payload));
+
+    expect(UserCredit::where('user_id', $user->id)->count())->toBe(1)
+        ->and(Cache::has('stripe:event:evt_retry_release'))->toBeTrue();
+});
+
 it('grants credit again for a different Stripe event id', function (): void {
     $user = User::factory()->create();
-    $user->billing()->update(['stripe_id' => 'cus_replay_test_2']);
+    $user->billing()->create(['stripe_id' => 'cus_replay_test_2']);
 
     $listener = app(HandleStripeWebhook::class);
 
@@ -117,7 +151,7 @@ it('applies starter-plan quota limits and message credits on subscription_cycle'
     // package's quota_limits.fixed values and the configured monthly
     // message count as a UserCredit.
     $user = User::factory()->create();
-    $user->billing()->update(['stripe_id' => 'cus_cycle_starter']);
+    $user->billing()->create(['stripe_id' => 'cus_cycle_starter']);
 
     app(HandleStripeWebhook::class)->handle(new WebhookReceived(
         makeSubscriptionCyclePayload('evt_cycle_starter', 'cus_cycle_starter')
@@ -142,7 +176,7 @@ it('applies starter-plan quota limits and message credits on subscription_cycle'
 
 it('records a UserAddon for an extra_message_credits checkout', function (): void {
     $user = User::factory()->create();
-    $user->billing()->update(['stripe_id' => 'cus_addon_test']);
+    $user->billing()->create(['stripe_id' => 'cus_addon_test']);
 
     app(HandleStripeWebhook::class)->handle(new WebhookReceived(
         makeAddonCheckoutPayload('evt_addon_test', 'cus_addon_test', messages: 2500)
@@ -160,7 +194,7 @@ it('records a UserAddon for an extra_message_credits checkout', function (): voi
 
 it('mirrors extra_agents addon quantity onto user_quotas.extra_agents_limit', function (): void {
     $user = User::factory()->create();
-    $user->billing()->update(['stripe_id' => 'cus_extra_agents']);
+    $user->billing()->create(['stripe_id' => 'cus_extra_agents']);
 
     app(HandleStripeWebhook::class)->handle(new WebhookReceived(
         makeAddonSubscriptionCreatedPayload('evt_extra_agents', 'cus_extra_agents', addon: 'extra_agents', quantity: 5)
@@ -171,7 +205,11 @@ it('mirrors extra_agents addon quantity onto user_quotas.extra_agents_limit', fu
 
 it('ignores addon_subscription events for unknown addon names', function (): void {
     $user = User::factory()->create();
-    $user->billing()->update(['stripe_id' => 'cus_unknown_addon']);
+    $user->billing()->create(['stripe_id' => 'cus_unknown_addon']);
+    UserQuota::firstOrCreate(
+        ['user_id' => $user->id],
+        config('billing.packages.starter.quota_limits.fixed', []),
+    );
     $baselineExtraAgents = $user->fresh()->quota->extra_agents_limit;
 
     app(HandleStripeWebhook::class)->handle(new WebhookReceived(
@@ -276,7 +314,11 @@ it('provisions a user when Stripe POSTs a trial checkout.session.completed to th
 
 it('resets extra_agents_limit to 0 on customer.subscription.deleted', function (): void {
     $user = User::factory()->create();
-    $user->billing()->update(['stripe_id' => 'cus_deleted_sub']);
+    $user->billing()->create(['stripe_id' => 'cus_deleted_sub']);
+    UserQuota::firstOrCreate(
+        ['user_id' => $user->id],
+        config('billing.packages.starter.quota_limits.fixed', []),
+    );
     $user->quota()->update(['extra_agents_limit' => 4]);
 
     app(HandleStripeWebhook::class)->handle(new WebhookReceived([

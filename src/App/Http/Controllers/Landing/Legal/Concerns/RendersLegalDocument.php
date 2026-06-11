@@ -42,7 +42,7 @@ trait RendersLegalDocument
         // Remove the trailing "Template prepared … counsel" disclaimer.
         $markdown = (string) preg_replace('/\n>\s*Template prepared.*$/s', '', $markdown);
 
-        $html = (new GithubFlavoredMarkdownConverter())
+        $html = (new GithubFlavoredMarkdownConverter)
             ->convert(trim($markdown))
             ->getContent();
 

@@ -71,7 +71,7 @@ it('validates credentials via the phone number node', function (): void {
 
     expect($info)->toBe(['display_phone_number' => '+1 555-123-4567', 'verified_name' => 'Acme']);
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), '/111222333')
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/111222333')
         && str_contains($request->url(), 'display_phone_number%2Cverified_name'));
 });
 

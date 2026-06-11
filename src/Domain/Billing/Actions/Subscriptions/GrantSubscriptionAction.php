@@ -3,6 +3,7 @@
 namespace Domain\Billing\Actions\Subscriptions;
 
 use App\Identity\Workspace\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -35,23 +36,25 @@ class GrantSubscriptionAction
 
         $endsAt = $isYearly ? now()->addYear() : now()->addMonth();
 
-        // Persist the denormalised plan label (written on trial start + each
-        // renewal, which passes the current to_package).
-        $user->billing()->updateOrCreate([], ['plan' => $package]);
+        DB::transaction(function () use ($user, $package, $fixedLimit, $quotaLimit, $endsAt): void {
+            // Persist the denormalised plan label (written on trial start + each
+            // renewal, which passes the current to_package).
+            $user->billing()->updateOrCreate([], ['plan' => $package]);
 
-        // Set quota limits (fixed per package, not cumulative).
-        $user->quota()->updateOrCreate([], [
-            'agents_limit' => $fixedLimit['agents_limit'],
-            'pages_limit' => $fixedLimit['pages_limit'],
-            'minutes_limit' => $fixedLimit['minutes_limit'],
-            'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
-            'workspace_users_limit' => $fixedLimit['workspace_users_limit'],
-            'links_limit' => $fixedLimit['links_limit'],
-            'teams_limit' => $fixedLimit['teams_limit'],
-        ]);
+            // Set quota limits (fixed per package, not cumulative).
+            $user->quota()->updateOrCreate([], [
+                'agents_limit' => $fixedLimit['agents_limit'],
+                'pages_limit' => $fixedLimit['pages_limit'],
+                'minutes_limit' => $fixedLimit['minutes_limit'],
+                'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
+                'workspace_users_limit' => $fixedLimit['workspace_users_limit'],
+                'links_limit' => $fixedLimit['links_limit'],
+                'teams_limit' => $fixedLimit['teams_limit'],
+            ]);
 
-        // Add message credits for the billing period.
-        $user->addCredit($quotaLimit, $endsAt);
+            // Add message credits for the billing period.
+            $user->addCredit($quotaLimit, $endsAt);
+        });
 
         $user->refresh();
 

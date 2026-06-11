@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class DeleteAccountController extends Controller
 {
@@ -84,7 +85,7 @@ class DeleteAccountController extends Controller
     public function destroy(
         Request $request,
         DeleteUserAccountAction $deleteAccount,
-    ): RedirectResponse {
+    ): HttpResponse {
         /** @var User $user */
         $user = $request->user();
 
@@ -103,7 +104,11 @@ class DeleteAccountController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        // The account and its session are gone. The home page ('/') is a
+        // non-Inertia Blade view, so an Inertia visit can't follow a redirect into
+        // it — return 204 and let the client do a full-page native redirect to '/'
+        // (see DeleteUser.vue's onSuccess).
+        return response()->noContent();
     }
 
     private function confirmationIsFresh(Request $request): bool

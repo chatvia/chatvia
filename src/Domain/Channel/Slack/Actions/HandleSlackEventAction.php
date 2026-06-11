@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Slack\Actions;
 
+use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Slack\Jobs\HandleSlackEventJob;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Services\SlackChannelResolver;
@@ -27,6 +28,7 @@ class HandleSlackEventAction
         private readonly SlackChannelResolver $resolver,
         private readonly SlackReplyRunner $runner,
         private readonly SlackClient $client,
+        private readonly ChannelAccessGate $gate,
     ) {}
 
     public function execute(AgentSlackApp $app, string $channelId, string $text, ?string $threadTs = null): void
@@ -38,9 +40,7 @@ class HandleSlackEventAction
         }
 
         // Protected agents are never answered on Slack (defence in depth).
-        if (! $app->agent->is_public) {
-            $this->client->postMessage($app->bot_token, $channelId, self::UNAVAILABLE, $threadTs);
-
+        if (! $this->gate->allows($app->agent, fn (): ?string => $this->client->postMessage($app->bot_token, $channelId, self::UNAVAILABLE, $threadTs))) {
             return;
         }
 
@@ -60,7 +60,7 @@ class HandleSlackEventAction
         $reply = $this->runner->reply(
             $channel,
             $text,
-            fn (string $partial) => $this->client->updateMessage($app->bot_token, $channelId, $ts, $partial),
+            fn (string $partial): bool => $this->client->updateMessage($app->bot_token, $channelId, $ts, $partial),
         );
 
         $this->client->updateMessage($app->bot_token, $channelId, $ts, $reply);

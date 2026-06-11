@@ -20,11 +20,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
-use Support\Casts\EncryptedTolerant;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
+use Support\Casts\EncryptedTolerant;
 use Support\Localization\Language\Models\Language;
 use Support\Traits\SupportsExternalId;
 
@@ -162,6 +162,10 @@ class Conversation extends Model
      * skips Eloquent events — so the S3 objects would leak. Triggering
      * attachment deletes through Eloquent first fires the `Attachment`
      * `deleting` observer that wipes the underlying file.
+     *
+     * Any model owning attachments MUST repeat this hook (see
+     * {@see Message::booted}), or S3 objects will leak when rows are
+     * deleted — deliberately duplicated, not extracted to a trait.
      *
      * Runs on both soft- and force-delete: a soft-deleted conversation is
      * still "deleted" from the user's perspective, and they expect their

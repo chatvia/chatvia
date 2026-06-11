@@ -3,6 +3,7 @@
 namespace Domain\Channel\Messenger\Models;
 
 use Domain\Agent\Models\Agent;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -24,11 +25,10 @@ use Support\Concerns\HasExternalId;
  * @property string $webhook_secret
  * @property bool $enabled
  */
+#[Guarded(['id'])]
 class AgentMessengerPage extends Model
 {
     use HasExternalId;
-
-    protected $guarded = ['id'];
 
     protected $casts = [
         'page_access_token' => 'encrypted',
@@ -41,6 +41,9 @@ class AgentMessengerPage extends Model
         return 'external_id';
     }
 
+    /**
+     * @return BelongsTo<Agent, $this>
+     */
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);

@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Services\UserCreditSystem;
@@ -25,6 +26,10 @@ function attachmentDeleteAgent(bool $isPublic = true): Agent
 
     $priceId = 'price_test_pro_'.Str::random(6);
     config(['billing.packages.pro.stripe_monthly_price_id' => $priceId]);
+
+    // Registration is trial-checkout-only now (the Stripe webhook provisions
+    // billing), so factory users have no UserBilling row — create it explicitly.
+    $owner->billing()->firstOrCreate([]);
     $owner->billing->subscriptions()->create([
         'type' => 'default',
         'stripe_id' => 'sub_test_'.Str::random(8),
@@ -169,7 +174,15 @@ it('refuses to delete a conversation-bound attachment whose conversation belongs
 it('refuses to delete on a private agent when the auth user does not own the conversation', function (): void {
     $agent = attachmentDeleteAgent(isPublic: false);
     $owner = User::factory()->create();
-    $intruder = User::factory()->create();
+
+    // The intruder IS a legitimate chatter of this agent (agent_user grant),
+    // so EnsureChatIsAccessible's membership gate lets them through — the
+    // per-conversation ownership check in DeleteAttachmentRequest is what
+    // must refuse them.
+    // refresh(): CreateChatterAction returns the in-memory User::create()
+    // instance, which lacks DB-defaulted columns (current_team_id) that the
+    // Inertia share reads under strict mode.
+    $intruder = app(CreateChatterAction::class)->execute($agent->user, $agent, 'Intruder')->refresh();
 
     $conversation = makeConversation($agent, $owner);
     ChatCache::rememberOwner($conversation->external_id, $owner->id);
@@ -187,7 +200,11 @@ it('refuses to delete on a private agent when the auth user does not own the con
 
 it('lets the rightful owner delete on a private agent', function (): void {
     $agent = attachmentDeleteAgent(isPublic: false);
-    $owner = User::factory()->create();
+
+    // This route carries no {conversationId}, so EnsureChatIsAccessible
+    // gates it on agent membership (canAccessAgent) — the owner must be a
+    // provisioned chatter of the agent, not a bare factory user.
+    $owner = app(CreateChatterAction::class)->execute($agent->user, $agent, 'Owner')->refresh();
 
     $conversation = makeConversation($agent, $owner);
     ChatCache::rememberOwner($conversation->external_id, $owner->id);

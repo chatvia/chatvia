@@ -870,10 +870,9 @@ const copyApiCode = async (code: string) => {
                                                                     Visitors can attach a PDF and ask questions about it.
                                                                 </p>
                                                                 <p class="text-muted-foreground mt-1.5">
-                                                                    Each page counts as one message, on top of the normal
-                                                                    message for the question. So a 10-page PDF costs 11 messages
-                                                                    per question (1 + 10 pages). This is charged every time a
-                                                                    question is asked while the PDF is in the chat.
+                                                                    Each page counts as one message, on top of the normal message for the question. So
+                                                                    a 10-page PDF costs 11 messages per question (1 + 10 pages). This is charged every
+                                                                    time a question is asked while the PDF is in the chat.
                                                                 </p>
                                                             </PopoverContent>
                                                         </Popover>

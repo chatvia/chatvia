@@ -2,6 +2,7 @@
 
 namespace Support\Casts;
 
+use Domain\Conversation\Services\Memory\CacheCipher;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Crypt;
  * rows keep reading until they're next written (which encrypts them). New writes
  * are always encrypted, so the data converges to ciphertext over time without a
  * backfill migration. Mirrors the same tolerance in
- * {@see \Domain\Conversation\Services\Memory\CacheCipher} for the Redis layer.
+ * {@see CacheCipher} for the Redis layer.
  *
  * Uses encryptString/decryptString (no serialization) — for string columns,
  * format-compatible with the stock `encrypted` cast.

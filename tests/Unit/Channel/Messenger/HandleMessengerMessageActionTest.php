@@ -6,6 +6,7 @@ use Domain\Channel\Messenger\Models\AgentMessengerPage;
 use Domain\Channel\Messenger\Models\MessengerThread;
 use Domain\Channel\Messenger\Services\MessengerReplyRunner;
 use Domain\Channel\Messenger\Services\MessengerThreadResolver;
+use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Str;
 use Tests\Support\Messenger\FakeMessengerClient;
@@ -53,6 +54,7 @@ function messengerHandleAction(FakeMessengerClient $client, MessengerReplyRunner
         new MessengerThreadResolver(app(ChatMemory::class), $client),
         $runner,
         $client,
+        new ChannelAccessGate,
     );
 }
 

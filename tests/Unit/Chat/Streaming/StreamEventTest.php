@@ -86,6 +86,9 @@ class StreamEventTest extends TestCase
 
     public function test_event_type_enum_is_closed(): void
     {
-        $this->assertCount(7, EventType::cases());
+        $this->assertSame(
+            ['start', 'delta', 'meta', 'sources', 'tool', 'replace', 'error', 'done'],
+            array_column(EventType::cases(), 'value'),
+        );
     }
 }

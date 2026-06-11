@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Whatsapp\Actions;
 
+use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Whatsapp\Jobs\HandleWhatsappMessageJob;
 use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Channel\Whatsapp\Services\WhatsappChatResolver;
@@ -28,14 +29,13 @@ class HandleWhatsappMessageAction
         private readonly WhatsappChatResolver $resolver,
         private readonly WhatsappReplyRunner $runner,
         private readonly WhatsappClient $client,
+        private readonly ChannelAccessGate $gate,
     ) {}
 
     public function execute(AgentWhatsappNumber $number, string $waId, string $text, string $messageId, ?string $name = null): void
     {
         // Protected agents are never answered on WhatsApp (defence in depth).
-        if (! $number->agent->is_public) {
-            $this->client->sendMessage($number->access_token, $number->phone_number_id, $waId, self::UNAVAILABLE);
-
+        if (! $this->gate->allows($number->agent, fn () => $this->client->sendMessage($number->access_token, $number->phone_number_id, $waId, self::UNAVAILABLE))) {
             return;
         }
 

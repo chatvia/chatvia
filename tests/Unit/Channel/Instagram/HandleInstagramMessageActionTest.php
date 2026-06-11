@@ -6,6 +6,7 @@ use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Domain\Channel\Instagram\Models\InstagramThread;
 use Domain\Channel\Instagram\Services\InstagramReplyRunner;
 use Domain\Channel\Instagram\Services\InstagramThreadResolver;
+use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Str;
 use Tests\Support\Instagram\FakeInstagramClient;
@@ -53,6 +54,7 @@ function instagramHandleAction(FakeInstagramClient $client, InstagramReplyRunner
         new InstagramThreadResolver(app(ChatMemory::class), $client),
         $runner,
         $client,
+        new ChannelAccessGate,
     );
 }
 

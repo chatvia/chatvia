@@ -5,6 +5,7 @@ use Domain\Guardrail\Services\GuardrailClassifier;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use GuzzleHttp\Psr7\Response as PsrResponse;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\Client\Response as ClientResponse;
 use Psr\Http\Message\ResponseInterface;
 
@@ -30,7 +31,7 @@ function classifierProvider(?string $body, bool $throws = false): LlmProviderInt
             throw new RuntimeException('not used');
         }
 
-        public function completion(array $data)
+        public function completion(array $data): Response
         {
             if ($this->throws) {
                 throw new RuntimeException('provider down');

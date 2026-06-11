@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Landing\Legal;
 
+use App\Http\Requests\Landing\DownloadDpaRequest;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use League\CommonMark\GithubFlavoredMarkdownConverter;
 use Spatie\Browsershot\Browsershot;
@@ -27,17 +27,9 @@ class DpaController
     }
 
     /** Render a customer-specific DPA (both parties filled in) as a downloadable PDF. */
-    public function download(Request $request): PdfBuilder
+    public function download(DownloadDpaRequest $request): PdfBuilder
     {
-        $validated = $request->validate([
-            'company_name' => ['required', 'string', 'max:255'],
-            'registration_number' => ['nullable', 'string', 'max:100'],
-            'registered_address' => ['nullable', 'string', 'max:1000'],
-            'country' => ['nullable', 'string', 'max:120'],
-            'contact_email' => ['nullable', 'email', 'max:255'],
-            'signatory_name' => ['nullable', 'string', 'max:255'],
-            'signatory_title' => ['nullable', 'string', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         $filename = 'Chatvia-DPA-'.Str::slug($validated['company_name']);
 
@@ -74,6 +66,6 @@ class DpaController
 
         $body = (string) preg_replace('/\n+---\s*$/', '', $body);
 
-        return (new GithubFlavoredMarkdownConverter())->convert(trim($body))->getContent();
+        return (new GithubFlavoredMarkdownConverter)->convert(trim($body))->getContent();
     }
 }

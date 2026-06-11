@@ -49,8 +49,11 @@ class UpdateAgentDomainRequest extends FormRequest
 
     public function toData(): UpdateAgentDomainData
     {
+        // Normalized hostname (lowercase, trimmed); empty input means "clear".
+        $domain = strtolower(trim((string) $this->input('domain')));
+
         return new UpdateAgentDomainData(
-            domain: $this->input('domain') !== null ? trim((string) $this->input('domain')) : null,
+            domain: $domain === '' ? null : $domain,
         );
     }
 }

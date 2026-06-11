@@ -50,8 +50,8 @@ Route::get('/changelog', ChangelogController::class)->name('changelog');
 Route::get('/blog', BlogController::class)->name('blog');
 Route::get('/blog/{post:slug}', PostController::class)->name('blog.post');
 
-Route::get('contact', ContactController::class)->name('contact');
-Route::post('contact', ContactController::class)->name('contact.submit');
+Route::get('contact', [ContactController::class, 'show'])->name('contact');
+Route::post('contact', [ContactController::class, 'submit'])->name('contact.submit');
 
 Route::get('docs', DocController::class)->name('docs');
 

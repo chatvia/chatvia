@@ -27,6 +27,7 @@ class TeamsWebhookController
         $ok = response()->json(['ok' => true]);
 
         $bot = AgentTeamsBot::query()
+            ->with('agent')
             ->where('webhook_secret', $secret)
             ->where('enabled', true)
             ->first();
@@ -35,17 +36,29 @@ class TeamsWebhookController
             return $ok;
         }
 
-        $activity = $request->json()->all();
+        // Authenticate before touching the payload — the body is parsed only
+        // once the JWT has proven the request genuine.
+        $claims = $verifier->verify($request->header('Authorization'), $bot->app_id);
 
-        if (! $verifier->verify($request->header('Authorization'), $bot->app_id, $activity['serviceUrl'] ?? null)) {
+        if ($claims === null) {
             return $ok;
         }
+
+        $activity = $request->json()->all();
 
         if (! $this->shouldHandle($activity)) {
             return $ok;
         }
 
-        // Process each activity at most once (the connector re-delivers on timeout).
+        // Defence in depth: a replayed token can't redirect replies — the
+        // activity's serviceUrl must match the token's serviceurl claim.
+        if (! $verifier->matchesServiceUrl($claims, (string) $activity['serviceUrl'])) {
+            return $ok;
+        }
+
+        // Process each activity at most once — the connector re-delivers a
+        // timed-out activity shortly after (its delivery deadline is 15 s),
+        // so the 1-day TTL comfortably outlives the retry window.
         $activityId = $activity['id'] ?? null;
         if (is_string($activityId) && ! Cache::add("msteams:activity:{$bot->id}:{$activityId}", true, now()->addDay())) {
             return $ok;

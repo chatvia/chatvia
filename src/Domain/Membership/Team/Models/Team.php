@@ -96,6 +96,16 @@ class Team extends Model
     }
 
     /**
+     * Roles a member can be invited into or moved to — every role except `owner`.
+     *
+     * @return HasMany<Role, $this>
+     */
+    public function invitableRoles(): HasMany
+    {
+        return $this->roles()->where('code', '!=', 'owner');
+    }
+
+    /**
      * @return BelongsToMany<User, $this>
      */
     public function members(): BelongsToMany

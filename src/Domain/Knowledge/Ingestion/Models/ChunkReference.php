@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
 use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,16 +27,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 #[Guarded(['id'])]
 #[WithoutTimestamps]
+#[WithoutIncrementing]
 class ChunkReference extends Model
 {
-    // The table has a composite primary key (chunk_id, referenceable_type,
-    // referenceable_id) and no auto-incrementing `id` column. Without this,
-    // Eloquent inserts with `returning "id"` and Postgres errors with
-    // "column id does not exist". Uniqueness/dedup is enforced by the composite
-    // PK, which firstOrCreate()/createOrFirst() relies on to find the existing
-    // row after a duplicate insert.
-    public $incrementing = false;
-
     public function chunk(): BelongsTo
     {
         return $this->belongsTo(Chunk::class);

@@ -5,6 +5,7 @@ use Domain\Analytics\Actions\AnalyzeMessageAction;
 use Domain\Analytics\Enums\SentimentEnum;
 use Domain\Analytics\Enums\ToneEnum;
 use Domain\Analytics\Events\MessageAnalyzed;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
@@ -25,9 +26,14 @@ use Illuminate\Support\Str;
 function amaMakeMessage(Agent $agent, string $role = 'user'): Message
 {
     // Conversation links to its agent via the session (chat_session_id);
-    // there is no agent_id column on chat_conversations.
+    // there is no agent_id column on chat_conversations. Pin source + title —
+    // the factory's random picks are irrelevant to this test.
     $session = Session::factory()->create(['agent_id' => $agent->id]);
-    $conversation = Conversation::factory()->create(['chat_session_id' => $session->id]);
+    $conversation = Conversation::factory()->create([
+        'chat_session_id' => $session->id,
+        'source' => ConversationSource::Widget,
+        'title' => null,
+    ]);
 
     return Message::create([
         'external_id' => (string) Str::uuid(),
@@ -37,10 +43,22 @@ function amaMakeMessage(Agent $agent, string $role = 'user'): Message
     ]);
 }
 
+/**
+ * Sentiment + tone are opt-in (the `analytics` settings group defaults them to
+ * false — see config/model-settings.php), so an agent that should be analyzed
+ * needs both dimensions switched on explicitly.
+ */
+function amaEnableAnalytics(Agent $agent): void
+{
+    $agent->setSetting('sentiment', true, 'analytics');
+    $agent->setSetting('tone', true, 'analytics');
+}
+
 it('analyzes a user message, persists sentiment+tone, and dispatches MessageAnalyzed', function (): void {
     Event::fake([MessageAnalyzed::class]);
 
     $agent = proPlanAgent();
+    amaEnableAnalytics($agent);
     $message = amaMakeMessage($agent);
 
     fakeLlmCompletion(json_encode([
@@ -65,6 +83,7 @@ it('skips assistant messages without calling the LLM', function (): void {
     Event::fake([MessageAnalyzed::class]);
 
     $agent = proPlanAgent();
+    amaEnableAnalytics($agent);
     $message = amaMakeMessage($agent, role: 'assistant');
 
     // No HTTP fake configured — if analyzeMessage were called the HTTP layer
@@ -81,6 +100,7 @@ it('is idempotent: skips a message that already has sentiment AND tone', functio
     Event::fake([MessageAnalyzed::class]);
 
     $agent = proPlanAgent();
+    amaEnableAnalytics($agent);
     $message = amaMakeMessage($agent);
     $message->update([
         'sentiment' => SentimentEnum::POSITIVE->value,
@@ -99,6 +119,7 @@ it('returns NEUTRAL/NEUTRAL on a malformed analyzer response without throwing', 
     Event::fake([MessageAnalyzed::class]);
 
     $agent = proPlanAgent();
+    amaEnableAnalytics($agent);
     $message = amaMakeMessage($agent);
 
     fakeLlmCompletion('not json');

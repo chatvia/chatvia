@@ -2,6 +2,8 @@
 
 namespace Domain\Conversation\Services\Memory;
 
+use Domain\Conversation\Models\Message;
+use Domain\Knowledge\Ingestion\Models\Chunk;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Crypt;
 
@@ -11,8 +13,8 @@ use Illuminate\Support\Facades\Crypt;
  * Conversation transcripts, message content, titles, and retrieved sources live
  * in Redis for the plan's retention window. Without this they sit there as
  * plaintext (serialized) — so this mirrors the `encrypted` casts already on the
- * {@see \Domain\Conversation\Models\Message} and
- * {@see \Domain\Knowledge\Ingestion\Models\Chunk} models (same APP_KEY, same AES).
+ * {@see Message} and
+ * {@see Chunk} models (same APP_KEY, same AES).
  *
  * Reads tolerate legacy plaintext entries written before encryption was enabled
  * (a non-string value) and anything the encryptor can't read (returns the

@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Actions\Conversations;
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
@@ -12,13 +13,16 @@ class AdminDeleteConversationAction
         private readonly ChatMemory $chatMemory,
     ) {}
 
-    public function execute(Agent $agent, Conversation $conversation): void
+    public function execute(Agent $agent, Conversation $conversation, ?User $actor = null): void
     {
         $session = $conversation->session;
 
+        // Record WHO deleted, not just that an admin did. `deleted_by` is
+        // varchar(10) — too narrow for an email — so stamp the acting user's
+        // id; 'admin' stays the fallback for callers without an actor.
         $this->chatMemory
             ->withContext($agent, $session->external_id, $conversation->external_id)
-            ->deleteConversation(deletedBy: 'admin');
+            ->deleteConversation(deletedBy: $actor !== null ? (string) $actor->id : 'admin');
 
         $conversation->delete();
 

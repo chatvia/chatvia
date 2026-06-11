@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agent\Source\Text;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Source\Text\Actions\DetachSourceTextFromAgentAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +13,7 @@ use Illuminate\Http\Request;
  */
 class DetachAgentTextController
 {
-    public function __invoke(Request $request, Agent $agent, int $id, DetachSourceTextFromAgentAction $detach): JsonResponse
+    public function __invoke(Request $request, Agent $agent, int $id): JsonResponse
     {
         abort_if($request->user()->cannot('view', $agent), 404);
 
@@ -23,7 +22,7 @@ class DetachAgentTextController
 
         abort_if($request->user()->cannot('delete', $text), 403);
 
-        $detach->execute($agent, $text);
+        $agent->texts()->detach($text->id);
 
         return response()->json(['message' => 'Text unlinked from agent successfully.']);
     }

@@ -127,6 +127,10 @@ function proPlanAgent(): Agent
 
     $agent = Agent::factory()->create();
 
+    // Registration is trial-checkout-only now (the Stripe webhook provisions
+    // billing), so factory users have no UserBilling row — create it explicitly.
+    $agent->user->billing()->firstOrCreate([]);
+
     $agent->user->billing->subscriptions()->create([
         'type' => 'default',
         'stripe_id' => 'sub_test_'.Str::random(8),

@@ -8,6 +8,7 @@ use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
+use Support\MimeType;
 
 if (! function_exists('create_temp_dir')) {
     function create_temp_dir(string $append = ''): string
@@ -43,36 +44,12 @@ if (! function_exists('create_temp_file')) {
     }
 }
 
-if (! function_exists('is_word_file')) {
-    function is_word_file(UploadedFile|string $file): bool
-    {
-        $file = $file instanceof UploadedFile ? $file->path() : $file;
-        $mime = mime_content_type($file);
-
-        $wordMimeTypes = [
-            'application/msword',                                                                 // .doc
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',          // .docx
-        ];
-
-        return in_array($mime, $wordMimeTypes, true);
-    }
-}
-
 if (! function_exists('is_pdf_file')) {
     function is_pdf_file(UploadedFile|string $file): bool
     {
         $file = $file instanceof UploadedFile ? $file->path() : $file;
 
-        return File::mimeType($file) === 'application/pdf';
-    }
-}
-
-if (! function_exists('is_text_file')) {
-    function is_text_file(UploadedFile|string $file): bool
-    {
-        $file = $file instanceof UploadedFile ? $file->path() : $file;
-
-        return File::mimeType($file) === 'text/plain';
+        return MimeType::isPdf((string) File::mimeType($file));
     }
 }
 
@@ -227,59 +204,8 @@ if (! function_exists('has_team_permission')) {
 if (! function_exists('get_file_type')) {
     function get_file_type(string $mimeType): string
     {
-        $wordFiles = config('mimes.word');
-        $pdfFiles = config('mimes.pdf');
-        $textFiles = config('mimes.text');
-
-        // Presentation types
-        $presentationTypes = config('mimes.presentation');
-
-        // Image types
-        $imageTypes = config('mimes.images');
-
-        // Spreadsheet types
-        $spreadsheetTypes = config('mimes.spreadsheets');
-
-        // Audio types (limited to 20MB)
-        $audioTypes = config('mimes.audio');
-
-        // Video types
-        $videoTypes = config('mimes.video');
-
-        // Check each category
-        if (in_array($mimeType, $pdfFiles, true)) {
-            return 'pdf';
-        }
-
-        if (in_array($mimeType, $wordFiles, true)) {
-            return 'word';
-        }
-
-        if (in_array($mimeType, $textFiles, true)) {
-            return 'text';
-        }
-
-        if (in_array($mimeType, $presentationTypes, true)) {
-            return 'presentation';
-        }
-
-        if (in_array($mimeType, $imageTypes, true)) {
-            return 'image';
-        }
-
-        if (in_array($mimeType, $spreadsheetTypes, true)) {
-            return 'spreadsheet';
-        }
-
-        if (in_array($mimeType, $audioTypes, true)) {
-            return 'audio';
-        }
-
-        if (in_array($mimeType, $videoTypes, true)) {
-            return 'video';
-        }
-
-        throw new RuntimeException('Unsupported mime type');
+        return MimeType::category($mimeType)
+            ?? throw new RuntimeException('Unsupported mime type');
     }
 }
 
@@ -288,9 +214,7 @@ if (! function_exists('is_audio_file')) {
     {
         $filePath = $file instanceof UploadedFile ? $file->path() : $file;
 
-        $mimeType = File::mimeType($filePath);
-
-        return in_array($mimeType, config('mimes.audio'), true);
+        return MimeType::isAudio((string) File::mimeType($filePath));
     }
 }
 
@@ -299,9 +223,7 @@ if (! function_exists('is_video_file')) {
     {
         $filePath = $file instanceof UploadedFile ? $file->path() : $file;
 
-        $mimeType = File::mimeType($filePath);
-
-        return in_array($mimeType, config('mimes.video'), true);
+        return MimeType::isVideo((string) File::mimeType($filePath));
     }
 }
 

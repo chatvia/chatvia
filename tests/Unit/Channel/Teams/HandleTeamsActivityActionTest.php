@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Teams\Actions\HandleTeamsActivityAction;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Teams\Models\TeamsChat;
@@ -62,6 +63,7 @@ function teamsHandleAction(FakeTeamsClient $client, TeamsReplyRunner $runner): H
         new TeamsChatResolver(app(ChatMemory::class)),
         $runner,
         $client,
+        new ChannelAccessGate,
     );
 }
 

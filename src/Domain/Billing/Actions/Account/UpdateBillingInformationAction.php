@@ -3,6 +3,7 @@
 namespace Domain\Billing\Actions\Account;
 
 use Domain\Billing\Data\UpdateBillingInformationData;
+use Illuminate\Support\Facades\DB;
 
 class UpdateBillingInformationAction
 {
@@ -11,14 +12,20 @@ class UpdateBillingInformationAction
         $user = $data->user;
         $address = $data->address;
 
-        $user->update([
-            'name' => $data->name,
-            'email' => $data->email,
-        ]);
-
         // Cashier's `Billable` trait lives on `UserBilling`, not `User`.
         $billing = $user->accountBillingOrFail();
-        $billing->update(['billing_address' => $address->toArray()]);
+
+        DB::transaction(function () use ($user, $billing, $data, $address): void {
+            $user->update([
+                'name' => $data->name,
+                'email' => $data->email,
+            ]);
+
+            $billing->update(['billing_address' => $address->toArray()]);
+        });
+
+        // Stripe sync stays outside the transaction — an external call must
+        // not hold a DB transaction open or roll back the local update.
         $billing->updateStripeCustomer([
             'name' => $data->name,
             'email' => $data->email,

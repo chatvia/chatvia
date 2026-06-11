@@ -8,27 +8,34 @@ use Domain\Knowledge\Ingestion\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Exception;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class KnowledgeBase
 {
-    private string $cacheStore;
-
     private array $vectorChordConfig;
 
     public function __construct()
     {
-        $this->cacheStore = config('chatvia.vector.cache.store', 'redis');
         $this->vectorChordConfig = config('chatvia.vector', []);
     }
 
-    public function search(int|Agent $agent, string $query, int $limit = 4): array
+    public function search(int|Agent $agent, string $query): array
     {
+        // The tenant qual in every hybrid-search channel needs the workspace
+        // id; resolve it without an extra query when the caller already holds
+        // the model (the chat path always does).
+        $workspaceId = $agent instanceof Agent
+            ? (int) $agent->user_id
+            : (int) DB::table('agents')->where('id', $agent)->value('user_id');
+
         if ($agent instanceof Agent) {
             $agent = $agent->id;
+        }
+
+        if ($workspaceId === 0) {
+            return [];
         }
 
         // Cheap guard: an agent with no attached sources can never satisfy the
@@ -42,20 +49,15 @@ class KnowledgeBase
 
         $searchStart = microtime(true);
 
-        // --- Phase 1: query embedding (cached 24h) ---
+        // --- Phase 1: query embedding ---
         // Note: query embedding uses provider-specific query conventions
         // (Qwen3 instruction prefix etc.), distinct from how documents are
-        // embedded at ingestion time. Cache key versioned with ':query:' so old
-        // document-style cache entries can't collide. A sub-millisecond embed_ms
-        // below means a cache hit; anything larger is a cold embed_query() call.
-        $embeddingProvider = app(EmbeddingsProviderInterface::class);
-
+        // embedded at ingestion time. AbstractEmbeddingsProvider::embedQuery
+        // caches the vector for 24h under a model-versioned key, so a
+        // sub-millisecond embed_ms below means a cache hit; anything larger
+        // is a cold provider call.
         $embedStart = microtime(true);
-        $embedding = Cache::store($this->cacheStore)->remember(
-            'embed:query:'.$embeddingProvider->getModelName().':'.sha1($query),
-            3600 * 24,
-            fn (): string|array => embed_query($query)
-        );
+        $embedding = embed_query($query);
         $embedMs = (microtime(true) - $embedStart) * 1000;
 
         $vectorString = '['.implode(',', $embedding).']';
@@ -69,11 +71,11 @@ class KnowledgeBase
         // SET LOCAL needs a transaction so vchordrq settings don't leak
         // across requests on pooled connections (pgbouncer / Octane).
         $sqlStart = microtime(true);
-        $results = DB::transaction(function () use ($agent, $query, $vectorString, $candidateLimit, $accuracyLevel): array {
+        $results = DB::transaction(function () use ($agent, $workspaceId, $query, $vectorString, $candidateLimit, $accuracyLevel): array {
             $chunkBuilder = Chunk::query();
             $chunkBuilder->configureSearchAccuracy($accuracyLevel, $this->vectorChordConfig);
 
-            return $chunkBuilder->hybridSearchForAgent($agent, $query, $vectorString, $candidateLimit);
+            return $chunkBuilder->hybridSearchForAgent($agent, $workspaceId, $query, $vectorString, $candidateLimit);
         });
         $sqlMs = (microtime(true) - $sqlStart) * 1000;
 
@@ -193,13 +195,9 @@ class KnowledgeBase
             ->toArray();
     }
 
-    public function chunks(int|Agent $agent, string $query, int $limit = 4): Collection
+    public function chunks(int|Agent $agent, string $query): Collection
     {
-        if ($agent instanceof Agent) {
-            $agent = $agent->id;
-        }
-
-        $results = $this->search($agent, $query, $limit);
+        $results = $this->search($agent, $query);
 
         return collect($results)->pluck('chunk');
     }

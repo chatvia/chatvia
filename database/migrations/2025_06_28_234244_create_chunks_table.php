@@ -24,15 +24,18 @@ return new class extends Migration
             $table->text('summary')->nullable();
             $table->boolean('is_enhanced')->default(false);
             $table->string('chunked_using_model')->nullable();
-            $table->string('embedding_model')->nullable();
             $table->unsignedBigInteger('cost_in_micro_cents')->default(0);
             $table->unsignedInteger('tokens');
 
-            $table->vector('embedding', 1024);
+            // halfvec (fp16), not vector (fp32): embeddings are unit-normalized
+            // API outputs and the reranker re-scores from text, so fp16 loss is
+            // negligible for ANN ranking — at ~4 KB/row saved per vector this
+            // halves the heap + vchordrq index volume of the largest table.
+            $table->halfvec('embedding', 1024);
             $table->bm25vector('embedding_bm25');
 
             $table->text('questions')->nullable();
-            $table->vector('questions_embedding', 1024)->nullable();
+            $table->halfvec('questions_embedding', 1024)->nullable();
             $table->bm25vector('questions_embedding_bm25')->nullable();
 
             $table->jsonb('metadata')->nullable();
@@ -53,9 +56,13 @@ return new class extends Migration
 
         DB::statement('CREATE INDEX chunks_metadata_gin_idx ON chunks USING GIN (metadata)');
 
+        // Aggressive autoanalyze replaces the app-driven `ANALYZE chunks`
+        // that used to run after every ingestion batch: the threshold floor
+        // makes small-table deployments analyze promptly too.
         DB::statement(<<<'SQL'
 ALTER TABLE chunks SET (
-    autovacuum_analyze_scale_factor = 0.02,
+    autovacuum_analyze_scale_factor = 0.01,
+    autovacuum_analyze_threshold    = 1000,
     autovacuum_vacuum_scale_factor  = 0.05
 )
 SQL);
@@ -70,10 +77,16 @@ SQL);
     {
         $buildThreads = (int) config('chatvia.vector.build_threads', 4);
 
+        // lists=4096 matches the runtime tuning (probes=64 in
+        // config/chatvia.php is calibrated for it; ~4*sqrt(rows) at 1-10M
+        // rows). NOTE: this CREATE runs against an EMPTY table, so the
+        // k-means partitioning is a placeholder — run `vector:reindex` after
+        // the first bulk ingestion (and after each ~10x row growth) to
+        // retrain the centroids on real vectors; it's also scheduled weekly.
         $options = <<<EOT
 residual_quantization = true
 [build.internal]
-lists = [1000]
+lists = [4096]
 build_threads = {$buildThreads}
 spherical_centroids = false
 sampling_factor = 256
@@ -81,6 +94,6 @@ kmeans_iterations = 25
 
 EOT;
 
-        DB::statement("CREATE INDEX {$indexName} ON chunks USING vchordrq ({$column} vector_l2_ops) WITH (options = '{$options}')");
+        DB::statement("CREATE INDEX {$indexName} ON chunks USING vchordrq ({$column} halfvec_l2_ops) WITH (options = '{$options}')");
     }
 };

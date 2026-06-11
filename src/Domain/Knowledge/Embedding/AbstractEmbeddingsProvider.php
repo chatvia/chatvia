@@ -42,6 +42,19 @@ abstract class AbstractEmbeddingsProvider implements EmbeddingsProviderInterface
     }
 
     /**
+     * Portable fallback: one call per text. Providers whose API accepts an
+     * input array (Qwen3 / OpenAI-compatible) override this with a single
+     * batched request.
+     *
+     * @param  list<string>  $texts
+     * @return list<array<int, float>>
+     */
+    public function embedBatch(array $texts): array
+    {
+        return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
+    }
+
+    /**
      * Default implementation: no reranking support.
      *
      * @param  string  $query  The search query

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
-use Pgvector\Laravel\Vector;
+use Pgvector\Laravel\HalfVector;
 use Support\Concerns\HasExternalId;
 
 /**
@@ -27,14 +27,13 @@ use Support\Concerns\HasExternalId;
  * @property string $chunk
  * @property bool $is_enhanced
  * @property string|null $chunked_using_model
- * @property string|null $embedding_model
  * @property string|null $summary
  * @property string|null $questions
- * @property Vector|null $questions_embedding
+ * @property HalfVector|null $questions_embedding
  * @property string|null $questions_embedding_bm25
  * @property int $cost_in_micro_cents
  * @property int $tokens
- * @property Vector $embedding
+ * @property HalfVector $embedding
  * @property string $embedding_bm25
  * @property array<array-key, mixed>|null $metadata
  * @property string $checksum
@@ -48,7 +47,7 @@ use Support\Concerns\HasExternalId;
  * @property-read int|null $references_count
  *
  * @method static ChunkQueryBuilder<static>|Chunk configureSearchAccuracy(string $accuracyLevel, array $config)
- * @method static ChunkQueryBuilder<static>|Chunk hybridSearchForAgent(int $agentId, string $query, string $vectorString, int $limit = 4)
+ * @method static ChunkQueryBuilder<static>|Chunk hybridSearchForAgent(int $agentId, int $workspaceId, string $query, string $vectorString, int $limit = 4)
  * @method static ChunkQueryBuilder<static>|Chunk newModelQuery()
  * @method static ChunkQueryBuilder<static>|Chunk newQuery()
  * @method static ChunkQueryBuilder<static>|Chunk query()
@@ -93,7 +92,7 @@ class Chunk extends Model
             'chunk' => 'encrypted',
             'summary' => 'encrypted',
             'questions' => 'encrypted',
-            'embedding' => Vector::class,
+            'embedding' => HalfVector::class,
             'keywords' => 'json',
             'metadata' => 'json',
         ];

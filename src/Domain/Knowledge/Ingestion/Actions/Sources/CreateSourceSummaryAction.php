@@ -2,7 +2,6 @@
 
 namespace Domain\Knowledge\Ingestion\Actions\Sources;
 
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\ContentAnalyzer;
 use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
@@ -74,7 +73,6 @@ class CreateSourceSummaryAction
             'questions_embedding' => $questionsText !== '' ? embed($questionsText, true) : null,
             'questions_embedding_bm25' => $questionsText !== '' ? Bm25Tokenizer::expression($questionsText) : null,
             'chunked_using_model' => config('chatvia.ai.models.chunker'),
-            'embedding_model' => $this->embeddings->getModelName(),
             'cost_in_micro_cents' => CostCalculator::centsToMicroCents($costInCents),
             'tokens' => TikToken::countTokens($summary),
             'embedding' => embed(strip_tags($summary), true),

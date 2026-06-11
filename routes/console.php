@@ -36,3 +36,10 @@ Schedule::command('app:prune-agent-activity')->dailyAt('04:00');
 // (config: analytics.analysis.scan_age_hours); the hourly cadence just picks up
 // whatever has newly crossed that age.
 Schedule::command('app:analyze-conversations')->hourly();
+
+// Retrain the vchordrq k-means partitioning on the chunks indexes against the
+// CURRENT rows (migrate:fresh builds them on an empty table, so the initial
+// centroids are placeholders). CONCURRENTLY, so retrieval and ingestion stay
+// unblocked; weekly is a safety net during the growth phase — run it manually
+// after any large bulk ingestion.
+Schedule::command('vector:reindex')->sundays()->at('04:30');

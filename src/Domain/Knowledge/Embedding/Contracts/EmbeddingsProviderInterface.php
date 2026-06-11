@@ -11,6 +11,17 @@ interface EmbeddingsProviderInterface
     public function embed(string $text, bool $returnAsText = false): string|array;
 
     /**
+     * Generate document embeddings for many texts in as few provider calls
+     * as possible. Returns one vector per input, in input order. Ingestion
+     * uses this so a multi-page document doesn't pay one HTTP round-trip
+     * per chunk.
+     *
+     * @param  list<string>  $texts
+     * @return list<array<int, float>>
+     */
+    public function embedBatch(array $texts): array;
+
+    /**
      * Generate embeddings for a search query, applying any provider-specific
      * query-side conventions (Qwen3 instruction prefix, Cohere
      * input_type=search_query, etc.). Providers without such conventions

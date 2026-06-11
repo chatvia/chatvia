@@ -76,29 +76,58 @@ class TrainWebsiteUrlAction
         /** @var SourceWebsite $website */
         $website = $websiteUrl->agentWebsite;
 
-        foreach ($chunks as $idx => $chunk) {
-            $chunkChecksum = hash('sha256', $chunk);
+        // Embed only chunks the source doesn't already hold — a retrain of a
+        // changed page used to re-embed (and re-bill) every chunk, including
+        // the unchanged ones, one HTTP call each. One checksum probe + one
+        // batched embedding request covers the whole page instead.
+        $checksums = array_map(static fn (string $chunk): string => hash('sha256', $chunk), $chunks);
 
-            $chunkModel = Chunk::query()->updateOrCreate(
-                [
-                    'chunkable_type' => $website->getMorphClass(),
-                    'chunkable_id' => $website->id,
-                    'checksum' => $chunkChecksum,
-                ],
-                [
-                    'user_id' => $agent->user_id,
-                    'chunk_index' => $idx + 1,
-                    'chunk' => $chunk,
-                    'summary' => null,
-                    'chunked_using_model' => 'chunkfit',
-                    'embedding_model' => $this->embeddings->getModelName(),
-                    'cost_in_micro_cents' => 0,
-                    'tokens' => TikToken::countTokens($chunk),
-                    'embedding' => embed($chunk, true),
-                    'embedding_bm25' => Bm25Tokenizer::expression($chunk),
-                    'metadata' => [],
-                ]
-            );
+        $existing = Chunk::query()
+            ->where('chunkable_type', $website->getMorphClass())
+            ->where('chunkable_id', $website->id)
+            ->whereIn('checksum', $checksums)
+            ->pluck('id', 'checksum');
+
+        $missing = array_values(array_filter(
+            $chunks,
+            fn (int $idx): bool => ! $existing->has($checksums[$idx]),
+            ARRAY_FILTER_USE_KEY,
+        ));
+
+        $vectors = [];
+        foreach ($this->embeddings->embedBatch($missing) as $i => $vector) {
+            $vectors[hash('sha256', $missing[$i])] = '['.implode(',', $vector).']';
+        }
+
+        foreach ($chunks as $idx => $chunk) {
+            $chunkChecksum = $checksums[$idx];
+
+            if ($existing->has($chunkChecksum)) {
+                $chunkModel = Chunk::query()->findOrFail($existing->get($chunkChecksum));
+                if ($chunkModel->chunk_index !== $idx + 1) {
+                    $chunkModel->update(['chunk_index' => $idx + 1]);
+                }
+            } else {
+                $chunkModel = Chunk::query()->createOrFirst(
+                    [
+                        'chunkable_type' => $website->getMorphClass(),
+                        'chunkable_id' => $website->id,
+                        'checksum' => $chunkChecksum,
+                    ],
+                    [
+                        'user_id' => $agent->user_id,
+                        'chunk_index' => $idx + 1,
+                        'chunk' => $chunk,
+                        'summary' => null,
+                        'chunked_using_model' => 'chunkfit',
+                        'cost_in_micro_cents' => 0,
+                        'tokens' => TikToken::countTokens($chunk),
+                        'embedding' => $vectors[$chunkChecksum],
+                        'embedding_bm25' => Bm25Tokenizer::expression($chunk),
+                        'metadata' => [],
+                    ]
+                );
+            }
 
             $chunkModel->references()->firstOrCreate([
                 'referenceable_type' => $websiteUrl::class,

@@ -45,6 +45,11 @@ function knowledgeBaseEmbeddingFake(): void
                 return $this->embed($text, $returnAsText);
             }
 
+            public function embedBatch(array $texts): array
+            {
+                return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
+            }
+
             public function rerank(string $query, array $documents): ?array
             {
                 return null;
@@ -69,8 +74,6 @@ function knowledgeBaseEmbeddingFake(): void
 }
 
 beforeEach(function (): void {
-    // Array cache avoids needing a Redis server for the embed:query: memo.
-    config(['vector.cache.store' => 'array']);
     knowledgeBaseEmbeddingFake();
 });
 

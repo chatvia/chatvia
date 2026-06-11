@@ -9,6 +9,7 @@ use Domain\Billing\Models\UserQuota;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Membership\Team\Models\Team;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -141,7 +142,7 @@ class GetDashboardStatsAction
         $files = DB::table('source_files')
             ->join('agent_sources', function ($join): void {
                 $join->on('source_files.id', '=', 'agent_sources.sourceable_id')
-                    ->where('agent_sources.sourceable_type', '=', SourceFile::class);
+                    ->where('agent_sources.sourceable_type', '=', Relation::getMorphAlias(SourceFile::class));
             })
             ->whereIn('agent_sources.agent_id', $agentIds)
             ->distinct('source_files.id')
@@ -150,7 +151,7 @@ class GetDashboardStatsAction
         $websites = DB::table('source_websites')
             ->join('agent_sources', function ($join): void {
                 $join->on('source_websites.id', '=', 'agent_sources.sourceable_id')
-                    ->where('agent_sources.sourceable_type', '=', SourceWebsite::class);
+                    ->where('agent_sources.sourceable_type', '=', Relation::getMorphAlias(SourceWebsite::class));
             })
             ->whereIn('agent_sources.agent_id', $agentIds)
             ->distinct('source_websites.id')
@@ -160,7 +161,7 @@ class GetDashboardStatsAction
             ->join('source_websites', 'source_websites.id', '=', 'source_website_urls.source_website_id')
             ->join('agent_sources', function ($join): void {
                 $join->on('source_websites.id', '=', 'agent_sources.sourceable_id')
-                    ->where('agent_sources.sourceable_type', '=', SourceWebsite::class);
+                    ->where('agent_sources.sourceable_type', '=', Relation::getMorphAlias(SourceWebsite::class));
             })
             ->whereIn('agent_sources.agent_id', $agentIds)
             ->whereNotNull('source_website_urls.crawled_at')

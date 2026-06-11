@@ -54,10 +54,15 @@ class AgentSource extends MorphPivot
      * sources this agent owns exclusively. The agent-deleting cleanup uses this
      * to know which sources to fully delete vs. just detach.
      *
+     * `$type` accepts a model FQCN or a morph alias; the column always stores
+     * the enforced morph alias, so an FQCN is resolved before comparing.
+     *
      * @return Collection<int, int>
      */
     public static function exclusiveSourceIds(int $agentId, string $type): Collection
     {
+        $type = class_exists($type) ? (new $type)->getMorphClass() : $type;
+
         return DB::table('agent_sources as a')
             ->select('a.sourceable_id')
             ->where('a.agent_id', $agentId)

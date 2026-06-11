@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Slack\Services;
 
+use Domain\Channel\Services\ThreadMappingGuard;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Models\SlackChannel;
 use Domain\Conversation\Enums\ConversationSource;
@@ -20,6 +21,7 @@ class SlackChannelResolver
     public function __construct(
         private readonly ChatMemory $memory,
         private readonly SlackClient $client,
+        private readonly ThreadMappingGuard $guard,
     ) {}
 
     public function resolve(AgentSlackApp $app, string $channelId): SlackChannel
@@ -30,7 +32,13 @@ class SlackChannelResolver
             ->first();
 
         if ($existing !== null) {
-            return $existing;
+            if ($this->guard->conversationExists($existing->conversation_external_id)) {
+                return $existing;
+            }
+
+            // Conversation was retention-pruned — drop the stale mapping and
+            // mint a fresh session + conversation below.
+            $existing->delete();
         }
 
         $agent = $app->agent;

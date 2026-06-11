@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Whatsapp\Services;
 
+use Domain\Channel\Services\ThreadMappingGuard;
 use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Channel\Whatsapp\Models\WhatsappChat;
 use Domain\Conversation\Enums\ConversationSource;
@@ -19,6 +20,7 @@ class WhatsappChatResolver
 {
     public function __construct(
         private readonly ChatMemory $memory,
+        private readonly ThreadMappingGuard $guard,
     ) {}
 
     public function resolve(AgentWhatsappNumber $number, string $waId, ?string $name = null): WhatsappChat
@@ -29,7 +31,13 @@ class WhatsappChatResolver
             ->first();
 
         if ($existing !== null) {
-            return $existing;
+            if ($this->guard->conversationExists($existing->conversation_external_id)) {
+                return $existing;
+            }
+
+            // Conversation was retention-pruned — drop the stale mapping and
+            // mint a fresh session + conversation below.
+            $existing->delete();
         }
 
         $agent = $number->agent;

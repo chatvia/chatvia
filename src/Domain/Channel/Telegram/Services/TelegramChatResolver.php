@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Telegram\Services;
 
+use Domain\Channel\Services\ThreadMappingGuard;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
 use Domain\Conversation\Enums\ConversationSource;
@@ -17,6 +18,7 @@ class TelegramChatResolver
 {
     public function __construct(
         private readonly ChatMemory $memory,
+        private readonly ThreadMappingGuard $guard,
     ) {}
 
     /**
@@ -30,7 +32,13 @@ class TelegramChatResolver
             ->first();
 
         if ($existing !== null) {
-            return $existing;
+            if ($this->guard->conversationExists($existing->conversation_external_id)) {
+                return $existing;
+            }
+
+            // Conversation was retention-pruned — drop the stale mapping and
+            // mint a fresh session + conversation below.
+            $existing->delete();
         }
 
         $agent = $bot->agent;

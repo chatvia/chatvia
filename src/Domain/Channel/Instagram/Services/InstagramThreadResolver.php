@@ -4,6 +4,7 @@ namespace Domain\Channel\Instagram\Services;
 
 use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Domain\Channel\Instagram\Models\InstagramThread;
+use Domain\Channel\Services\ThreadMappingGuard;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatMemory;
@@ -20,6 +21,7 @@ class InstagramThreadResolver
     public function __construct(
         private readonly ChatMemory $memory,
         private readonly InstagramClient $client,
+        private readonly ThreadMappingGuard $guard,
     ) {}
 
     public function resolve(AgentInstagramAccount $account, string $igsid): InstagramThread
@@ -30,7 +32,13 @@ class InstagramThreadResolver
             ->first();
 
         if ($existing !== null) {
-            return $existing;
+            if ($this->guard->conversationExists($existing->conversation_external_id)) {
+                return $existing;
+            }
+
+            // Conversation was retention-pruned — drop the stale mapping and
+            // mint a fresh session + conversation below.
+            $existing->delete();
         }
 
         $agent = $account->agent;

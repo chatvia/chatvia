@@ -22,8 +22,13 @@ return new class extends Migration
             $table->string('conversation_id', 512); // Teams id ("a:…" personal, "19:…@thread.tacv2;messageid=…" channel thread)
             $table->text('service_url');
             $table->string('conversation_type')->nullable(); // personal | groupChat | channel
-            $table->uuid('session_external_id');
-            $table->uuid('conversation_external_id');
+            // FK'd to the parents' UNIQUE external_id columns so hard purges
+            // (retention force-delete) self-clean the mapping; the resolver
+            // re-validates against soft deletes before reusing a row.
+            $table->foreignUuid('session_external_id')->index()
+                ->constrained('chat_sessions', 'external_id')->cascadeOnDelete();
+            $table->foreignUuid('conversation_external_id')->index()
+                ->constrained('chat_conversations', 'external_id')->cascadeOnDelete();
             $table->string('peer_name')->nullable(); // the sender's display name at first contact (personal chats)
             $table->timestampTz('last_message_at')->nullable();
             $table->timestampsTz();

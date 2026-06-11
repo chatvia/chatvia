@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Teams\Services;
 
+use Domain\Channel\Services\ThreadMappingGuard;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Teams\Models\TeamsChat;
 use Domain\Conversation\Enums\ConversationSource;
@@ -20,6 +21,7 @@ class TeamsChatResolver
 {
     public function __construct(
         private readonly ChatMemory $memory,
+        private readonly ThreadMappingGuard $guard,
     ) {}
 
     public function resolve(
@@ -35,11 +37,17 @@ class TeamsChatResolver
             ->first();
 
         if ($existing !== null) {
-            if ($existing->service_url !== $serviceUrl) {
-                $existing->update(['service_url' => $serviceUrl]);
+            if ($this->guard->conversationExists($existing->conversation_external_id)) {
+                if ($existing->service_url !== $serviceUrl) {
+                    $existing->update(['service_url' => $serviceUrl]);
+                }
+
+                return $existing;
             }
 
-            return $existing;
+            // Conversation was retention-pruned — drop the stale mapping and
+            // mint a fresh session + conversation below.
+            $existing->delete();
         }
 
         $agent = $bot->agent;

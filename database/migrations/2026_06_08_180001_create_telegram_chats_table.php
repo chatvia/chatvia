@@ -18,8 +18,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('agent_telegram_bot_id')->constrained()->cascadeOnDelete();
             $table->string('chat_id'); // Telegram chat id (large / negative for groups)
-            $table->uuid('session_external_id');
-            $table->uuid('conversation_external_id');
+            // FK'd to the parents' UNIQUE external_id columns so hard purges
+            // (retention force-delete) self-clean the mapping; the resolver
+            // re-validates against soft deletes before reusing a row.
+            $table->foreignUuid('session_external_id')->index()
+                ->constrained('chat_sessions', 'external_id')->cascadeOnDelete();
+            $table->foreignUuid('conversation_external_id')->index()
+                ->constrained('chat_conversations', 'external_id')->cascadeOnDelete();
             $table->string('first_name')->nullable();
             $table->string('username')->nullable();
             $table->timestampTz('last_message_at')->nullable();

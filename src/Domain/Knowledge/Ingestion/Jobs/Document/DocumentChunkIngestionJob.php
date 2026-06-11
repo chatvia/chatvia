@@ -19,7 +19,10 @@ class DocumentChunkIngestionJob implements AttributesTokenUsage, ShouldQueue
 
     public bool $deleteWhenMissingModels = true;
 
-    public int $tries = 1;
+    // With allowFailures() on the batch, retries are the only path that
+    // recovers a page from a transient embed-API failure — match the
+    // sibling Text/Media chunk jobs.
+    public int $tries = 2;
 
     public int $backoff = 10;
 

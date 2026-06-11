@@ -30,6 +30,8 @@ class CreateSourceChunkAction
      */
     public function execute(Agent $agent, Model $source, PageData $page): ?Chunk
     {
+        // Cheap fast path: duplicate pages (blank/repeated pages in scanned
+        // PDFs) are a common case — skip the embed call entirely.
         if (Chunk::query()
             ->where('chunkable_type', $source->getMorphClass())
             ->where('chunkable_id', $source->getKey())
@@ -38,21 +40,31 @@ class CreateSourceChunkAction
             return null;
         }
 
-        return Chunk::query()->create([
-            'user_id' => $agent->user_id,
-            'chunkable_type' => $source->getMorphClass(),
-            'chunkable_id' => $source->getKey(),
-            'chunk_index' => $page->pageNumber,
-            'chunk' => $page->content,
-            'summary' => '',
-            'chunked_using_model' => config('chatvia.ai.models.chunker'),
-            'embedding_model' => $this->embeddings->getModelName(),
-            'cost_in_micro_cents' => 0,
-            'tokens' => TikToken::countTokens($page->content),
-            'embedding' => embed($page->content, true),
-            'embedding_bm25' => Bm25Tokenizer::expression($page->content),
-            'metadata' => [],
-            'checksum' => $page->checksum,
-        ]);
+        // createOrFirst, not create: per-page batch jobs run concurrently
+        // across workers, so two jobs can pass the exists() check with the
+        // same checksum — the second insert must absorb the unique violation
+        // instead of failing the job (and with it the whole batch).
+        $chunk = Chunk::query()->createOrFirst(
+            [
+                'chunkable_type' => $source->getMorphClass(),
+                'chunkable_id' => $source->getKey(),
+                'checksum' => $page->checksum,
+            ],
+            [
+                'user_id' => $agent->user_id,
+                'chunk_index' => $page->pageNumber,
+                'chunk' => $page->content,
+                'summary' => '',
+                'chunked_using_model' => config('chatvia.ai.models.chunker'),
+                'embedding_model' => $this->embeddings->getModelName(),
+                'cost_in_micro_cents' => 0,
+                'tokens' => TikToken::countTokens($page->content),
+                'embedding' => embed($page->content, true),
+                'embedding_bm25' => Bm25Tokenizer::expression($page->content),
+                'metadata' => [],
+            ],
+        );
+
+        return $chunk->wasRecentlyCreated ? $chunk : null;
     }
 }

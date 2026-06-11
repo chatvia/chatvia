@@ -20,7 +20,7 @@ class RetrainAgentYoutubeController
             404,
         );
 
-        $youtube->retrain($agent->id);
+        $youtube->retrain();
 
         return response()->json(['message' => 'YouTube video retraining started.']);
     }

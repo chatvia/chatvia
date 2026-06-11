@@ -42,7 +42,11 @@ class StartWebsiteIngestionAction
                     ->whereKey($websiteId)
                     ->update(['internal_chunking_batch_id' => $batch->id]);
             })
-            ->then(function (Batch $batch) use ($websiteId, $agentId): void {
+            // A single failed URL job must not cancel the rest of the crawl;
+            // finally() keeps the terminal status + broadcast unconditional
+            // (see IngestDocumentAction for the rationale).
+            ->allowFailures()
+            ->finally(function (Batch $batch) use ($websiteId, $agentId): void {
                 $agent = Agent::find($agentId);
                 $website = SourceWebsite::find($websiteId);
 
@@ -82,8 +86,6 @@ class StartWebsiteIngestionAction
 
                 WebsiteIngestionProgressed::dispatch($website, $agent->external_id);
                 WebsiteCrawlStarted::dispatch($website, $agent);
-
-                DB::statement('ANALYZE chunks');
             })
             ->dispatch();
 

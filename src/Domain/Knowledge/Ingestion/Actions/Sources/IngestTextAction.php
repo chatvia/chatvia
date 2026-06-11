@@ -12,7 +12,6 @@ use Domain\Knowledge\Source\Text\Events\TextIngestionStarted;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\DB;
 
 class IngestTextAction
 {
@@ -39,11 +38,19 @@ class IngestTextAction
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent Text ID: '.$sourceText->id)
-            ->then(function (Batch $batch) use ($agentTextId, $agent): void {
-                SourceText::find($agentTextId)?->update(['status' => SourceStatus::Completed->value]);
-                TextIngestionStarted::dispatch(SourceText::find($agentTextId), $agent);
+            // A single failed chunk job must not cancel the rest of the text;
+            // finally() keeps the terminal status + event unconditional (see
+            // IngestDocumentAction for the rationale).
+            ->allowFailures()
+            ->finally(function (Batch $batch) use ($agentTextId, $agent): void {
+                $text = SourceText::find($agentTextId);
 
-                DB::statement('ANALYZE chunks');
+                if (! $text) {
+                    return;
+                }
+
+                $text->update(['status' => SourceStatus::Completed->value]);
+                TextIngestionStarted::dispatch($text, $agent);
             })
             ->dispatch();
 

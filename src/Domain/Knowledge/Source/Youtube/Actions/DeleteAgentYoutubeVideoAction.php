@@ -9,8 +9,9 @@ class DeleteAgentYoutubeVideoAction
 {
     public function execute(Agent $agent, SourceYoutubeVideo $video): void
     {
-        $video->chunks()->where('agent_id', $agent->id)->delete();
-
+        // Chunks are per-source, not per-agent: only delete them (via the
+        // bootChunkable cascade, which also catches the summary chunk) when
+        // no other agent still uses this video.
         $otherAgents = $video->agents()->where('agents.id', '!=', $agent->id)->exists();
 
         if (! $otherAgents) {

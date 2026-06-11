@@ -9,12 +9,12 @@ use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
 use Domain\Knowledge\Ingestion\Services\TokenSplitter;
 use Domain\Knowledge\Source\Enums\SourceStatus;
+use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Llm\Operations\Media\Transcription;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -72,15 +72,25 @@ class IngestMediaAction
 
         $jobs = collect($texts)->map(fn (PageData $page): MediaChunkIngestionJob => new MediaChunkIngestionJob($agent, $sourceFile, $page));
 
-        $agentFileId = $agent->id;
+        $sourceFileId = $sourceFile->id;
+        $agentExternalId = $agent->external_id;
 
         $batch = Bus::batch($jobs)
-            ->name('Ingestion Agent File ID: '.$agent->id)
-            ->then(function (Batch $batch) use ($agentFileId): void {
-                $file = SourceFile::find($agentFileId);
-                $file?->update(['status' => SourceStatus::Completed->value]);
+            ->name('Ingestion Agent File ID: '.$sourceFileId)
+            // A single failed chunk job must not cancel the rest of the
+            // transcript; finally() keeps the terminal status + broadcast
+            // unconditional (see IngestDocumentAction for the rationale).
+            ->allowFailures()
+            ->finally(function (Batch $batch) use ($sourceFileId, $agentExternalId): void {
+                $file = SourceFile::find($sourceFileId);
 
-                DB::statement('ANALYZE chunks');
+                if (! $file) {
+                    return;
+                }
+
+                $file->update(['status' => SourceStatus::Completed->value]);
+
+                FileIngestionProgressed::dispatch($file, $agentExternalId);
             })
             ->dispatch();
 

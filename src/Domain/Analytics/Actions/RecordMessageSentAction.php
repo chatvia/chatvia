@@ -26,7 +26,12 @@ class RecordMessageSentAction
             $db, $event, $countryCode, $llmName,
             $isUser, $isAssistant, $tokens, $hasResponseTime
         ): void {
-            $db->table('analytics_events')->insert([
+            // insertOrIgnore against the message_sent partial unique is the
+            // idempotency anchor: the queue is at-least-once, and a redelivered
+            // job replaying the counter upserts below would double-count
+            // rollups (and the billed-usage display they feed). 0 rows
+            // inserted ⇒ this delivery already ran to commit — bail.
+            $inserted = $db->table('analytics_events')->insertOrIgnore([
                 'agent_id' => $event->agentId,
                 'workspace_id' => $event->workspaceId,
                 'chatter_user_id' => $event->chatterUserId,
@@ -43,6 +48,10 @@ class RecordMessageSentAction
                 'session_external_id' => $event->sessionExternalId,
                 'occurred_at' => $event->occurredAt,
             ]);
+
+            if ($inserted === 0 && $event->messageExternalId !== null) {
+                return;
+            }
 
             // Per-conversation metrics. The RETURNING (xmax = 0) trick tells us
             // whether this UPSERT was an INSERT (first MessageSent ever for this

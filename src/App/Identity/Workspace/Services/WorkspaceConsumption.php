@@ -7,6 +7,7 @@ use Closure;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 /**
  * Workspace-scoped knowledge consumption queries: pages, audio/video minutes,
@@ -59,7 +60,7 @@ readonly class WorkspaceConsumption
             ->agents()
             ->join('agent_sources', function ($join): void {
                 $join->on('agents.id', '=', 'agent_sources.agent_id')
-                    ->where('agent_sources.sourceable_type', '=', SourceWebsite::class);
+                    ->where('agent_sources.sourceable_type', '=', Relation::getMorphAlias(SourceWebsite::class));
             })
             ->join('source_websites', 'source_websites.id', '=', 'agent_sources.sourceable_id')
             ->join('source_website_urls', 'source_websites.id', '=', 'source_website_urls.source_website_id')
@@ -93,13 +94,16 @@ readonly class WorkspaceConsumption
     private function ownedSourceIds(string $sourceableType): Closure
     {
         $workspaceId = $this->user->workspace()->id;
+        // agent_sources stores the enforced morph alias ('source_file'),
+        // never the FQCN — comparing the class string matches zero rows.
+        $alias = Relation::getMorphAlias($sourceableType);
 
-        return function ($query) use ($workspaceId, $sourceableType): void {
+        return function ($query) use ($workspaceId, $alias): void {
             $query->select('agent_sources.sourceable_id')
                 ->from('agent_sources')
                 ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
                 ->where('agents.user_id', $workspaceId)
-                ->where('agent_sources.sourceable_type', '=', $sourceableType)
+                ->where('agent_sources.sourceable_type', '=', $alias)
                 ->distinct();
         };
     }

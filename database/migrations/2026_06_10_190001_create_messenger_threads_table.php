@@ -18,8 +18,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('agent_messenger_page_id')->constrained()->cascadeOnDelete();
             $table->string('psid'); // page-scoped user id — stable per (user, page) pair
-            $table->uuid('session_external_id');
-            $table->uuid('conversation_external_id');
+            // FK'd to the parents' UNIQUE external_id columns so hard purges
+            // (retention force-delete) self-clean the mapping; the resolver
+            // re-validates against soft deletes before reusing a row.
+            $table->foreignUuid('session_external_id')->index()
+                ->constrained('chat_sessions', 'external_id')->cascadeOnDelete();
+            $table->foreignUuid('conversation_external_id')->index()
+                ->constrained('chat_conversations', 'external_id')->cascadeOnDelete();
             $table->string('first_name')->nullable(); // looked up once at first contact (best-effort)
             $table->timestampTz('last_message_at')->nullable();
             $table->timestampsTz();

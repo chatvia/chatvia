@@ -105,18 +105,19 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
         return $this->belongsTo(User::class);
     }
 
-    public function retrain(?int $agentId = null): void
+    public function retrain(): void
     {
-        // Delete chunks only for the specific agent if provided
-        if ($agentId) {
-            $this->chunks()->where('agent_id', $agentId)->delete();
-        } else {
-            $this->chunks()->delete();
-        }
+        // Chunks are per-source (keyed by the chunkable morph, never by agent).
+        // Delete by the polymorphic key directly so the summary chunk
+        // (chunk_index=0, scoped out of the chunks() relation) is cleared too.
+        Chunk::query()
+            ->where('chunkable_type', $this->getMorphClass())
+            ->where('chunkable_id', $this->getKey())
+            ->delete();
 
         $this->update([
             'status' => SourceStatus::Pending->value,
-            'error_message' => null,
+            'failure_reason' => null,
         ]);
 
         // YoutubeIngestionJob is not yet implemented (the workflow path that

@@ -13,7 +13,6 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\File\File;
@@ -88,7 +87,11 @@ class IngestDocumentAction
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent File ID: '.$agentFileId)
-            ->then(function (Batch $batch) use ($agentFileId, $agentExternalId): void {
+            // A single failed page job must not cancel the rest of the
+            // document — without this, one failure short-circuits every
+            // remaining job and the terminal broadcast never fires.
+            ->allowFailures()
+            ->finally(function (Batch $batch) use ($agentFileId, $agentExternalId): void {
                 $file = SourceFile::find($agentFileId);
 
                 if (! $file) {
@@ -97,17 +100,14 @@ class IngestDocumentAction
 
                 $file->update(['status' => SourceStatus::Completed->value]);
 
-                // Refresh planner stats so vchordrq prefilter sees the new
-                // reltuples — autovacuum's default schedule waits far too long.
-                DB::statement('ANALYZE chunks');
-
                 // Authoritative "ingestion finished" signal. The per-chunk
                 // progress events can never reach 100% on their own — deduped or
                 // blank pages create no chunk, so importedChunks stays below
                 // expected_chunks — which leaves the client stuck on "ingesting".
-                // Broadcasting here, where ingestionProgress() returns 100 via
-                // the Completed-status short-circuit, guarantees the UI flips
-                // to "ingested" regardless of dedup, races, or a dropped frame.
+                // Broadcasting here (finally, so it runs even when stray page
+                // jobs failed), where ingestionProgress() returns 100 via the
+                // Completed-status short-circuit, guarantees the UI flips to
+                // "ingested" regardless of dedup, races, or a dropped frame.
                 FileIngestionProgressed::dispatch($file, $agentExternalId);
             })
             ->dispatch();

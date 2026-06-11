@@ -18,8 +18,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('agent_whatsapp_number_id')->constrained()->cascadeOnDelete();
             $table->string('wa_id'); // the user's WhatsApp id (their phone number, normalized by Meta)
-            $table->uuid('session_external_id');
-            $table->uuid('conversation_external_id');
+            // FK'd to the parents' UNIQUE external_id columns so hard purges
+            // (retention force-delete) self-clean the mapping; the resolver
+            // re-validates against soft deletes before reusing a row.
+            $table->foreignUuid('session_external_id')->index()
+                ->constrained('chat_sessions', 'external_id')->cascadeOnDelete();
+            $table->foreignUuid('conversation_external_id')->index()
+                ->constrained('chat_conversations', 'external_id')->cascadeOnDelete();
             $table->string('name')->nullable(); // profile name — arrives free in the webhook payload
             $table->timestampTz('last_message_at')->nullable();
             $table->timestampsTz();

@@ -4,6 +4,7 @@ namespace Domain\Channel\Messenger\Services;
 
 use Domain\Channel\Messenger\Models\AgentMessengerPage;
 use Domain\Channel\Messenger\Models\MessengerThread;
+use Domain\Channel\Services\ThreadMappingGuard;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatMemory;
@@ -20,6 +21,7 @@ class MessengerThreadResolver
     public function __construct(
         private readonly ChatMemory $memory,
         private readonly MessengerClient $client,
+        private readonly ThreadMappingGuard $guard,
     ) {}
 
     public function resolve(AgentMessengerPage $page, string $psid): MessengerThread
@@ -30,7 +32,13 @@ class MessengerThreadResolver
             ->first();
 
         if ($existing !== null) {
-            return $existing;
+            if ($this->guard->conversationExists($existing->conversation_external_id)) {
+                return $existing;
+            }
+
+            // Conversation was retention-pruned — drop the stale mapping and
+            // mint a fresh session + conversation below.
+            $existing->delete();
         }
 
         $agent = $page->agent;

@@ -18,7 +18,7 @@ use Support\Casts\EncryptedTolerant;
 /**
  * @property int $id
  * @property int|null $agent_id
- * @property int $chat_conversation_id
+ * @property int|null $chat_conversation_id
  * @property int|null $assigned_to
  * @property string $status
  * @property string|null $name

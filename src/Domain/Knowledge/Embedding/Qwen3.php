@@ -37,6 +37,41 @@ class Qwen3 extends AbstractEmbeddingsProvider
         return $embedding;
     }
 
+    /**
+     * One request, many documents — the OpenAI-compatible /embeddings
+     * endpoint accepts an input array and returns data[] in input order.
+     *
+     * @param  list<string>  $texts
+     * @return list<array<int, float>>
+     */
+    public function embedBatch(array $texts): array
+    {
+        if ($texts === []) {
+            return [];
+        }
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer '.$this->getApiKey(),
+        ])
+            ->throw()
+            ->post($this->endpoint('/embeddings'), [
+                'model' => $this->getModel(),
+                'input' => array_values($texts),
+                'dimensions' => $this->getDimensions(),
+            ]);
+
+        app(TokenUsageContext::class)->addFromResponse($response);
+
+        $data = $response->json('data');
+
+        // data[] carries an `index` per item; sort defensively so the result
+        // is positionally aligned with the input even if the API reorders.
+        usort($data, fn (array $a, array $b): int => $a['index'] <=> $b['index']);
+
+        return array_column($data, 'embedding');
+    }
+
     protected function doEmbedQuery(string $text): array
     {
         /** @var array<int, float> $vector */
@@ -83,7 +118,16 @@ class Qwen3 extends AbstractEmbeddingsProvider
 
     protected function getApiKey(): string
     {
-        return config('services.scalewayai.api_key');
+        $key = config('services.scalewayai.api_key');
+
+        // Fail with a clear message rather than a confusing "Return value must
+        // be of type string, null returned" TypeError when the key is unset
+        // (e.g. a misconfigured prod env). Callers catch + degrade gracefully.
+        if (! is_string($key) || $key === '') {
+            throw new \RuntimeException('Scaleway AI API key is not configured (services.scalewayai.api_key).');
+        }
+
+        return $key;
     }
 
     protected function getBaseUrl(): string

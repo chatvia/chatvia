@@ -43,6 +43,11 @@ beforeEach(function (): void {
             return $this->embed($text, $returnAsText);
         }
 
+        public function embedBatch(array $texts): array
+        {
+            return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
+        }
+
         public function rerank(string $query, array $documents): ?array
         {
             return null;

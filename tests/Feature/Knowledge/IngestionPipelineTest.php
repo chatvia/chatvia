@@ -58,6 +58,11 @@ function ingestionPipelineEmbeddingFake(): void
             return $this->embed($text, $returnAsText);
         }
 
+        public function embedBatch(array $texts): array
+        {
+            return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
+        }
+
         public function rerank(string $query, array $documents): ?array
         {
             return null;
@@ -153,10 +158,6 @@ function ingestionPipelineSeedChunk(User $owner, Agent $agent, string $content):
 beforeEach(function (): void {
     Storage::fake();
     ingestionPipelineEmbeddingFake();
-
-    // KnowledgeBase memoizes the cache store from config in its constructor;
-    // array avoids a Redis dependency for the embed:query: cache.
-    config(['chatvia.vector.cache.store' => 'array']);
 });
 
 it('creates an owned text source, stores the content, attaches it to the agent and queues ingestion', function (): void {

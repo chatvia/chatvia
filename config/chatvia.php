@@ -158,18 +158,12 @@ return [
     | Vector search (VectorChord / RAG)
     |--------------------------------------------------------------------------
     |
-    | Embedding-query cache, hybrid-search tuning, and the vchordrq build/probe
-    | parameters. NOTE: KnowledgeBase fetches the whole `chatvia.vector` array.
+    | Hybrid-search tuning and the vchordrq build/probe parameters.
+    | NOTE: KnowledgeBase fetches the whole `chatvia.vector` array.
     |
     */
 
     'vector' => [
-        'cache' => [
-            'ttl' => env('VECTOR_CACHE_TTL', 3600),
-            'prefix' => env('VECTOR_CACHE_PREFIX', 'rag_search:'),
-            'store' => env('VECTOR_CACHE_STORE', 'redis'),
-        ],
-
         'search' => [
             // Search accuracy mode: 'default', 'high_accuracy', or 'high_speed'
             'mode' => env('VECTOR_SEARCH_MODE', 'default'),
@@ -183,8 +177,6 @@ return [
             'relevance_threshold' => env('VECTOR_SEARCH_RELEVANCE_THRESHOLD', 0.55),
 
             'max_chunks' => env('VECTOR_SEARCH_MAX_CHUNKS', 5),
-
-            'candidate_limit' => env('VECTOR_SEARCH_CANDIDATE_LIMIT', 100),
 
             // vchordrq.probes — scale with sqrt(lists). For lists=4096, probes=64
             // is the recall sweet spot. Adjust when lists changes via vector:reindex.
@@ -205,11 +197,6 @@ return [
         // Threads used by vector:reindex (vchordrq build_threads). nproc is too
         // fragile to call from PHP, so pin it per environment.
         'build_threads' => env('VECTORCHORD_BUILD_THREADS', 4),
-
-        'performance' => [
-            'candidate_multiplier' => env('VECTOR_CANDIDATE_MULTIPLIER', 10),
-            'max_candidates' => env('VECTOR_MAX_CANDIDATES', 5000),
-        ],
     ],
 
     /*

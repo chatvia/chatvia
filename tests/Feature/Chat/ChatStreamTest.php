@@ -90,6 +90,11 @@ function bindFakeStreamingLlm(string ...$tokens): void
             return array_fill(0, 1024, 0.1);
         }
 
+        public function embedBatch(array $texts): array
+        {
+            return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
+        }
+
         public function rerank(string $query, array $documents): ?array
         {
             return null;

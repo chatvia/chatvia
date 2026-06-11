@@ -22,9 +22,17 @@ class ChunkQueryBuilder extends Builder
      * mode then accelerates the ORDER BY through the index. The previous
      * `candidate_chunks` CTE made the rankers read from an opaque intermediate
      * and bypassed every vector/BM25 index — leaving recall to brute force.
+     *
+     * Every channel also carries the scalar `c.user_id = ?` tenant qual: the
+     * EXISTS alone is a correlated SubPlan the prefilter must re-probe per
+     * visited tuple, so without the qual the scan cost (and the recall, once
+     * the probed lists run dry) scales with TOTAL platform data instead of
+     * the workspace's own. user_id is btree-indexed, giving the planner a
+     * cheap narrowing path for small tenants too.
      */
     public function hybridSearchForAgent(
         int $agentId,
+        int $workspaceId,
         string $query,
         string $vectorString,
         int $limit = 4,
@@ -36,14 +44,15 @@ class ChunkQueryBuilder extends Builder
 WITH vector_ranked AS (
     SELECT t.id, ROW_NUMBER() OVER (ORDER BY t.dist) AS rank, 'vector' AS search_type
     FROM (
-        SELECT c.id, c.embedding <-> ?::vector({$dims}) AS dist
+        SELECT c.id, c.embedding <-> ?::halfvec({$dims}) AS dist
         FROM chunks c
-        WHERE EXISTS (
-            SELECT 1 FROM agent_sources s
-            WHERE s.agent_id = ?
-              AND s.sourceable_id = c.chunkable_id
-              AND s.sourceable_type = c.chunkable_type
-        )
+        WHERE c.user_id = ?
+          AND EXISTS (
+              SELECT 1 FROM agent_sources s
+              WHERE s.agent_id = ?
+                AND s.sourceable_id = c.chunkable_id
+                AND s.sourceable_type = c.chunkable_type
+          )
         ORDER BY dist
         LIMIT ?
     ) t
@@ -51,9 +60,10 @@ WITH vector_ranked AS (
 question_ranked AS (
     SELECT t.id, ROW_NUMBER() OVER (ORDER BY t.dist) AS rank, 'question' AS search_type
     FROM (
-        SELECT c.id, c.questions_embedding <-> ?::vector({$dims}) AS dist
+        SELECT c.id, c.questions_embedding <-> ?::halfvec({$dims}) AS dist
         FROM chunks c
-        WHERE c.questions_embedding IS NOT NULL
+        WHERE c.user_id = ?
+          AND c.questions_embedding IS NOT NULL
           AND EXISTS (
               SELECT 1 FROM agent_sources s
               WHERE s.agent_id = ?
@@ -72,12 +82,13 @@ bm25_ranked AS (
             tokenizer_catalog.tokenize(?, 'llmlingua2')
         ) AS dist
         FROM chunks c
-        WHERE EXISTS (
-            SELECT 1 FROM agent_sources s
-            WHERE s.agent_id = ?
-              AND s.sourceable_id = c.chunkable_id
-              AND s.sourceable_type = c.chunkable_type
-        )
+        WHERE c.user_id = ?
+          AND EXISTS (
+              SELECT 1 FROM agent_sources s
+              WHERE s.agent_id = ?
+                AND s.sourceable_id = c.chunkable_id
+                AND s.sourceable_type = c.chunkable_type
+          )
         ORDER BY dist
         LIMIT ?
     ) t
@@ -90,7 +101,8 @@ question_bm25_ranked AS (
             tokenizer_catalog.tokenize(?, 'llmlingua2')
         ) AS dist
         FROM chunks c
-        WHERE c.questions_embedding_bm25 IS NOT NULL
+        WHERE c.user_id = ?
+          AND c.questions_embedding_bm25 IS NOT NULL
           AND EXISTS (
               SELECT 1 FROM agent_sources s
               WHERE s.agent_id = ?
@@ -127,12 +139,13 @@ SQL;
 
         // Param order matches each channel's textual `?` order: the ranking
         // expression (now selected in the inner query, before the WHERE) binds
-        // first, then the agent_id in EXISTS, then the per-channel LIMIT.
+        // first, then the tenant qual, the agent_id in EXISTS, and the
+        // per-channel LIMIT.
         $params = [
-            $vectorString, $agentId, $candidateLimit,
-            $vectorString, $agentId, $candidateLimit,
-            $query, $agentId, $candidateLimit,
-            $query, $agentId, $candidateLimit,
+            $vectorString, $workspaceId, $agentId, $candidateLimit,
+            $vectorString, $workspaceId, $agentId, $candidateLimit,
+            $query, $workspaceId, $agentId, $candidateLimit,
+            $query, $workspaceId, $agentId, $candidateLimit,
             $limit,
         ];
 

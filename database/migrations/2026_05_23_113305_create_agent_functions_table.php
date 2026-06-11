@@ -36,7 +36,9 @@ return new class extends Migration
             // at create (GET → false, write verbs → true), then user-editable.
             $table->boolean('requires_approval')->default(true);
 
-            $table->unsignedSmallInteger('timeout_ms')->default(10000);
+            // unsignedInteger, matching mcp_servers.timeout_ms — smallint caps
+            // at 32767 and validation already allows 30000.
+            $table->unsignedInteger('timeout_ms')->default(10000);
             $table->unsignedInteger('max_response_bytes')->default(65536);
 
             $table->boolean('is_enabled')->default(true);

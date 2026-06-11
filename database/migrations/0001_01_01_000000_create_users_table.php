@@ -32,7 +32,9 @@ return new class extends Migration
             $table->index(['workspace_id', 'type']);
 
             $table->ipAddress('registered_ip')->nullable();
-            $table->char('registered_country_code', 5)->nullable();
+            // ISO-2, matching every other country_code column (char() would
+            // blank-pad and break equality against varchar values).
+            $table->string('registered_country_code', 2)->nullable();
 
             $table->string('domain')->nullable();
 
@@ -65,7 +67,9 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
+            // No bare user_id index: strict prefix of the composite below,
+            // and sessions is written on every web request.
+            $table->foreignId('user_id')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('payload');

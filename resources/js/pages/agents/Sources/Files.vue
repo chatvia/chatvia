@@ -26,6 +26,7 @@ import {
     XCircle,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 import { useDateFormat } from '@/composables/useDateFormat';
@@ -34,6 +35,7 @@ import { usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
 
 const _page = usePage();
+const { t } = useI18n();
 const { hasPermission } = useTeamPermissions();
 
 // Check if user can delete sources
@@ -111,15 +113,11 @@ const isLoadingUsage = ref(false);
 // Description for file uploader based on file type
 const fileUploaderDescription = computed(() => {
     if (props.fileType === 'audio') {
-        return 'Upload audio files for transcription. Supported formats: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR, and 3GP. File size limit: 200 MB.';
+        return t('agents.sources.files.uploader_description_audio');
     } else if (props.fileType === 'video') {
-        return 'Upload video files for transcription. Supported formats: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime, and 3GPP. File size limit: 200 MB.';
+        return t('agents.sources.files.uploader_description_video');
     }
-    return (
-        'Documents: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Text (.txt), Markdown (.md), ' +
-        'EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). ' +
-        'Images: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Max 50 MB per file.'
-    );
+    return t('agents.sources.files.uploader_description_default');
 });
 
 // File uploader configuration for Knowledge page - dynamic based on file type
@@ -467,7 +465,7 @@ const formatFileType = (mimeType: string): string => {
         'application/msword': 'Word',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word',
     };
-    return typeMap[mimeType] || mimeType.split('/')[1]?.toUpperCase() || 'Unknown';
+    return typeMap[mimeType] || mimeType.split('/')[1]?.toUpperCase() || t('agents.sources.files.type_unknown');
 };
 
 // Dates follow the user's chosen format (Settings → Date & time).
@@ -505,10 +503,10 @@ const formatFileLength = (file: { length?: number; type?: string; mime_type?: st
 
     // Use the same logic as usesMinutesQuota to determine if it's audio/video
     if (usesMinutesQuota(file)) {
-        return `${file.length} minute${file.length !== 1 ? 's' : ''}`;
+        return t('agents.sources.files.minutes_count', file.length);
     } else {
         // For non-audio/video files, use length as pages
-        return `${file.length} page${file.length !== 1 ? 's' : ''}`;
+        return t('agents.sources.files.pages_count', file.length);
     }
 };
 
@@ -549,8 +547,8 @@ const _confirmDeleteUploadingFile = (fileId: string) => {
 const confirmDeleteUploadedFile = (file: UploadedFile) => {
     // Check permission first
     if (!canDeleteSources.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to delete sources.',
+        toast.error(t('agents.sources.common.permission_denied'), {
+            description: t('agents.sources.common.permission_denied_description'),
         });
         return;
     }
@@ -616,7 +614,7 @@ const clearAllFiles = async () => {
         }
 
         // Show user-friendly error message
-        toast.error(`Failed to clear uploaded files from server: ${error.response?.data?.message || error.message}`);
+        toast.error(t('agents.sources.files.clear_failed', { error: error.response?.data?.message || error.message }));
     }
 
     clearAllDialogOpen.value = false;
@@ -638,8 +636,8 @@ const _confirmDeleteSelectedFiles = () => {
 const confirmClearAllFiles = () => {
     // Check permission first
     if (!canDeleteSources.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to delete sources.',
+        toast.error(t('agents.sources.common.permission_denied'), {
+            description: t('agents.sources.common.permission_denied_description'),
         });
         return;
     }
@@ -668,8 +666,8 @@ const deleteSelectedFiles = () => {
 const confirmDeleteFile = (file: KnowledgeFile) => {
     // Check permission first
     if (!canDeleteSources.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to delete sources.',
+        toast.error(t('agents.sources.common.permission_denied'), {
+            description: t('agents.sources.common.permission_denied_description'),
         });
         return;
     }
@@ -721,7 +719,7 @@ const processAllFiles = async () => {
 
         // Show user-friendly error message
         const errorMessage = error.response?.data?.message || error.message;
-        toast.error(`Failed to process files: ${errorMessage}`);
+        toast.error(t('agents.sources.files.process_failed', { error: errorMessage }));
 
         // Still refresh to show any successfully processed files
         await fetchKnowledgeFiles();
@@ -763,7 +761,7 @@ const unlinkKnowledgeFile = async () => {
         // Refresh usage data from server after unlinking
         await fetchUsageData();
 
-        toast.success(`${fileToUnlink.name} has been unlinked from this agent.`);
+        toast.success(t('agents.sources.files.unlinked', { name: fileToUnlink.name }));
 
         // Close dialog first
         deleteDialogOpen.value = false;
@@ -784,7 +782,7 @@ const unlinkKnowledgeFile = async () => {
 
         // Show user-friendly error message
         const errorMessage = error.response?.data?.message || error.message;
-        toast.error(`Failed to unlink ${fileToUnlink.name}: ${errorMessage}`);
+        toast.error(t('agents.sources.files.unlink_failed', { name: fileToUnlink.name, error: errorMessage }));
     } finally {
         isUnlinking.value = false;
     }
@@ -819,7 +817,7 @@ const removeKnowledgeFile = async () => {
         // Refresh usage data from server after deletion
         await fetchUsageData();
 
-        toast.success(`${fileToRemove.name} has been deleted.`);
+        toast.success(t('agents.sources.files.deleted', { name: fileToRemove.name }));
 
         // Close dialog first
         deleteDialogOpen.value = false;
@@ -840,7 +838,7 @@ const removeKnowledgeFile = async () => {
 
         // Show user-friendly error message
         const errorMessage = error.response?.data?.message || error.message;
-        toast.error(`Failed to delete ${fileToRemove.name}: ${errorMessage}`);
+        toast.error(t('agents.sources.files.delete_failed', { name: fileToRemove.name, error: errorMessage }));
     } finally {
         isDeleting.value = false;
     }
@@ -931,7 +929,7 @@ const fetchUsageData = async () => {
         usageData.value = response.data;
     } catch (error) {
         console.error('Error fetching usage data:', error);
-        toast.error('Failed to load usage data.');
+        toast.error(t('agents.sources.files.usage_load_failed'));
     } finally {
         isLoadingUsage.value = false;
     }
@@ -940,7 +938,7 @@ const fetchUsageData = async () => {
 // Function to fetch and display file summary
 const showFileSummary = async (file: KnowledgeFile) => {
     if (file.status !== 'ingested') {
-        toast.error('Summary is only available for completed files.');
+        toast.error(t('agents.sources.files.summary_only_completed'));
         return;
     }
 
@@ -962,9 +960,9 @@ const showFileSummary = async (file: KnowledgeFile) => {
         console.error('Error fetching file summary:', error);
 
         if (error.response?.status === 404) {
-            toast.error('No summary available for this file.');
+            toast.error(t('agents.sources.files.summary_none'));
         } else {
-            toast.error('Failed to load file summary.');
+            toast.error(t('agents.sources.files.summary_load_failed'));
         }
 
         summaryData.value = null;
@@ -996,16 +994,16 @@ defineExpose({
                 :config="fileUploaderConfig"
                 :title="
                     props.fileType === 'pdf'
-                        ? 'Upload PDF Documents'
+                        ? t('agents.sources.files.upload_title_pdf')
                         : props.fileType === 'word'
-                          ? 'Upload Word Documents'
+                          ? t('agents.sources.files.upload_title_word')
                           : props.fileType === 'markdown'
-                            ? 'Upload Markdown Files'
+                            ? t('agents.sources.files.upload_title_markdown')
                             : props.fileType === 'audio'
-                              ? 'Upload Audio Files'
+                              ? t('agents.sources.files.upload_title_audio')
                               : props.fileType === 'video'
-                                ? 'Upload Video Files'
-                                : 'Upload New Documents'
+                                ? t('agents.sources.files.upload_title_video')
+                                : t('agents.sources.files.upload_title_default')
                 "
                 :description="fileUploaderDescription"
                 :show-quota="!isLoadingUsage"
@@ -1015,9 +1013,9 @@ defineExpose({
                         : usageData.pages.used + uploadingPagesOnly
                 "
                 :quota-limit="props.fileType === 'audio' || props.fileType === 'video' ? usageData.minutes?.limit || 0 : usageData.pages.limit"
-                :quota-label="props.fileType === 'audio' || props.fileType === 'video' ? 'minutes' : 'pages'"
+                :quota-label="props.fileType === 'audio' || props.fileType === 'video' ? t('agents.sources.files.quota_minutes') : t('agents.sources.files.quota_pages')"
                 :disabled="isProcessingFiles"
-                disabled-message="File uploads are disabled while training is in progress"
+                :disabled-message="t('agents.sources.files.uploads_disabled')"
                 @files-changed="(files) => (uploadingFiles = files)"
             />
 
@@ -1027,16 +1025,16 @@ defineExpose({
                     <CardHeader class="pb-3">
                         <div class="flex items-center justify-between">
                             <div>
-                                <CardTitle class="text-base">Ready to Train</CardTitle>
+                                <CardTitle class="text-base">{{ t('agents.sources.files.ready_to_train') }}</CardTitle>
                                 <CardDescription>
-                                    {{ uploadedFiles.length }} file{{ uploadedFiles.length !== 1 ? 's' : '' }} uploaded and ready for training
-                                    <span v-if="totalUploadedPagesOnly > 0" class="ml-1">
-                                        • {{ totalUploadedPagesOnly }} page{{ totalUploadedPagesOnly !== 1 ? 's' : '' }}
+                                    {{ t('agents.sources.files.uploaded_ready', uploadedFiles.length) }}
+                                    <span v-if="totalUploadedPagesOnly > 0" class="ms-1">
+                                        • {{ t('agents.sources.files.pages_count', totalUploadedPagesOnly) }}
                                     </span>
-                                    <span v-if="totalUploadedMinutes > 0" class="ml-1">
-                                        • {{ totalUploadedMinutes }} minute{{ totalUploadedMinutes !== 1 ? 's' : '' }}
+                                    <span v-if="totalUploadedMinutes > 0" class="ms-1">
+                                        • {{ t('agents.sources.files.minutes_count', totalUploadedMinutes) }}
                                     </span>
-                                    <span v-if="wouldExceedQuota" class="text-destructive ml-1 font-medium"> • Exceeds quota </span>
+                                    <span v-if="wouldExceedQuota" class="text-destructive ms-1 font-medium"> • {{ t('agents.sources.files.exceeds_quota') }} </span>
                                 </CardDescription>
                             </div>
                             <div class="flex items-center gap-2">
@@ -1047,17 +1045,17 @@ defineExpose({
                                     :disabled="isProcessingFiles"
                                     class="text-destructive hover:text-destructive/90"
                                 >
-                                    <Trash2 class="mr-2 h-4 w-4" />
-                                    Clear All
+                                    <Trash2 class="me-2 h-4 w-4" />
+                                    {{ t('agents.sources.files.clear_all') }}
                                 </Button>
                                 <Button
                                     size="sm"
                                     @click="processAllFiles"
                                     :disabled="isProcessingFiles || uploadedFiles.length === 0 || wouldExceedQuota"
                                 >
-                                    <LoaderCircle v-if="isProcessingFiles" class="mr-2 h-4 w-4 animate-spin" />
-                                    <Play v-else class="mr-2 h-4 w-4" />
-                                    {{ isProcessingFiles ? 'Training...' : 'Train' }}
+                                    <LoaderCircle v-if="isProcessingFiles" class="me-2 h-4 w-4 animate-spin" />
+                                    <Play v-else class="me-2 h-4 w-4" />
+                                    {{ isProcessingFiles ? t('agents.sources.files.training') : t('agents.sources.files.train') }}
                                 </Button>
                             </div>
                         </div>
@@ -1076,13 +1074,13 @@ defineExpose({
                                                     {{ formatFileType(file.mime_type) }}
                                                 </Badge>
                                                 <Badge variant="outline" class="text-xs">
-                                                    <CheckCircle class="mr-1 h-3 w-3" />
-                                                    Ready for Training
+                                                    <CheckCircle class="me-1 h-3 w-3" />
+                                                    {{ t('agents.sources.files.ready_for_training') }}
                                                 </Badge>
                                             </div>
                                             <div class="text-muted-foreground text-xs">
                                                 {{ formatFileSize(file.size) }}
-                                                <span v-if="formatFileLength(file)" class="ml-2"> • {{ formatFileLength(file) }} </span>
+                                                <span v-if="formatFileLength(file)" class="ms-2"> • {{ formatFileLength(file) }} </span>
                                             </div>
                                         </div>
                                     </div>
@@ -1096,12 +1094,12 @@ defineExpose({
                                                     :disabled="isProcessingFiles"
                                                     @click="confirmDeleteUploadedFile(file)"
                                                 >
-                                                    <span class="sr-only">Remove file</span>
+                                                    <span class="sr-only">{{ t('agents.sources.files.remove_file') }}</span>
                                                     <Trash2 class="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Remove file</p>
+                                                <p>{{ t('agents.sources.files.remove_file') }}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -1118,18 +1116,15 @@ defineExpose({
                         <div>
                             <CardTitle class="flex items-center gap-2">
                                 <Database class="h-5 w-5" />
-                                Trained Files
+                                {{ t('agents.sources.files.trained_title') }}
                             </CardTitle>
                             <CardDescription>
-                                Files trained and available to your agent. {{ processedKnowledgeFiles.length }} file{{
-                                    processedKnowledgeFiles.length !== 1 ? 's' : ''
-                                }}
-                                in total.
+                                {{ t('agents.sources.files.trained_description', processedKnowledgeFiles.length) }}
                             </CardDescription>
                         </div>
                         <Button variant="outline" size="sm" @click="attachFileDialogOpen = true" :disabled="isProcessingFiles">
-                            <LinkIcon class="mr-2 h-4 w-4" />
-                            Choose from already trained files
+                            <LinkIcon class="me-2 h-4 w-4" />
+                            {{ t('agents.sources.files.choose_trained') }}
                         </Button>
                     </div>
                 </CardHeader>
@@ -1137,10 +1132,10 @@ defineExpose({
                     <div class="space-y-4">
                         <div v-if="isLoadingFiles && isInitialLoad" class="text-muted-foreground p-4 text-center">
                             <LoaderCircle class="mx-auto mb-2 h-6 w-6 animate-spin" />
-                            Loading files...
+                            {{ t('agents.sources.files.loading') }}
                         </div>
                         <div v-else-if="processedKnowledgeFiles.length === 0" class="text-muted-foreground p-4 text-center">
-                            No files in knowledge base yet
+                            {{ t('agents.sources.files.empty') }}
                         </div>
                         <template v-else>
                             <ScrollArea v-if="processedKnowledgeFiles.length > 5" class="h-[400px] pr-4">
@@ -1163,7 +1158,7 @@ defineExpose({
                                                                     </div>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                    <p>Processing... This file will be ready soon</p>
+                                                                    <p>{{ t('agents.sources.files.status_processing') }}</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
@@ -1175,7 +1170,7 @@ defineExpose({
                                                                     </div>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                    <p>Ready to chat with</p>
+                                                                    <p>{{ t('agents.sources.files.status_ready') }}</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
@@ -1187,15 +1182,15 @@ defineExpose({
                                                                     </div>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                    <p>Processing failed. Please contact support.</p>
+                                                                    <p>{{ t('agents.sources.files.status_failed') }}</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
                                                     </div>
                                                     <div class="text-muted-foreground text-xs">
-                                                        {{ file.size_in_kb.toFixed(1) }} KB
-                                                        <span v-if="formatFileLength(file)" class="ml-2"> • {{ formatFileLength(file) }} </span>
-                                                        • Added {{ formatDate(file.created_at) }}
+                                                        {{ t('agents.sources.files.size_kb', { size: file.size_in_kb.toFixed(1) }) }}
+                                                        <span v-if="formatFileLength(file)" class="ms-2"> • {{ formatFileLength(file) }} </span>
+                                                        • {{ t('agents.sources.files.added_at', { date: formatDate(file.created_at) }) }}
                                                     </div>
                                                     <!-- Progress bar for processing files -->
                                                     <IngestionProgressBar v-if="file.status === 'ingesting'" :progress="file.progress ?? 0" />
@@ -1213,12 +1208,12 @@ defineExpose({
                                                                 :disabled="isProcessingFiles"
                                                                 @click="showFileSummary(file)"
                                                             >
-                                                                <span class="sr-only">View file summary</span>
+                                                                <span class="sr-only">{{ t('agents.sources.files.view_summary') }}</span>
                                                                 <Info class="h-4 w-4" />
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            <p>View file summary</p>
+                                                            <p>{{ t('agents.sources.files.view_summary') }}</p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
@@ -1232,19 +1227,17 @@ defineExpose({
                                                                 :disabled="isProcessingFiles"
                                                                 @click="confirmDeleteFile(file)"
                                                             >
-                                                                <span class="sr-only">Remove file</span>
+                                                                <span class="sr-only">{{ t('agents.sources.files.remove_file') }}</span>
                                                                 <Trash2 class="h-4 w-4" />
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
                                                             <div class="text-xs">
                                                                 <p v-if="isFileShared(file)">
-                                                                    Remove from agent<br />
-                                                                    <span class="text-muted-foreground"
-                                                                        >(Used in {{ file.agents_count }} agents)</span
-                                                                    >
+                                                                    {{ t('agents.sources.common.remove_from_agent') }}<br />
+                                                                    <span class="text-muted-foreground">{{ t('agents.sources.common.used_in_agents', { count: file.agents_count }) }}</span>
                                                                 </p>
-                                                                <p v-else>Delete from knowledge base</p>
+                                                                <p v-else>{{ t('agents.sources.common.delete_from_knowledge_base') }}</p>
                                                             </div>
                                                         </TooltipContent>
                                                     </Tooltip>
@@ -1273,7 +1266,7 @@ defineExpose({
                                                                 </div>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                                <p>Processing... This file will be ready soon</p>
+                                                                <p>{{ t('agents.sources.files.status_processing') }}</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
@@ -1284,9 +1277,9 @@ defineExpose({
                                                                     <CheckCircle class="h-4 w-4 flex-shrink-0 text-green-500" />
                                                                 </div>
                                                             </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                <p>Reacy to chat with</p>
-                                                            </TooltipContent>
+                                                                <TooltipContent>
+                                                                    <p>{{ t('agents.sources.files.status_ready') }}</p>
+                                                                </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                     <TooltipProvider v-else-if="file.status === 'failed'">
@@ -1297,15 +1290,15 @@ defineExpose({
                                                                 </div>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                                <p>Processing failed. Please contact support.</p>
+                                                                <p>{{ t('agents.sources.files.status_failed') }}</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                 </div>
                                                 <div class="text-muted-foreground text-xs">
-                                                    {{ file.size_in_kb.toFixed(1) }} KB
-                                                    <span v-if="formatFileLength(file)" class="ml-2"> • {{ formatFileLength(file) }} </span>
-                                                    • Added {{ formatDate(file.created_at) }}
+                                                    {{ t('agents.sources.files.size_kb', { size: file.size_in_kb.toFixed(1) }) }}
+                                                    <span v-if="formatFileLength(file)" class="ms-2"> • {{ formatFileLength(file) }} </span>
+                                                    • {{ t('agents.sources.files.added_at', { date: formatDate(file.created_at) }) }}
                                                 </div>
                                                 <!-- Progress bar for processing files -->
                                                 <IngestionProgressBar v-if="file.status === 'ingesting'" :progress="file.progress ?? 0" />
@@ -1323,12 +1316,12 @@ defineExpose({
                                                             :disabled="isProcessingFiles"
                                                             @click="showFileSummary(file)"
                                                         >
-                                                            <span class="sr-only">View file summary</span>
+                                                            <span class="sr-only">{{ t('agents.sources.files.view_summary') }}</span>
                                                             <Info class="h-4 w-4" />
                                                         </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
-                                                        <p>View file summary</p>
+                                                        <p>{{ t('agents.sources.files.view_summary') }}</p>
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
@@ -1342,17 +1335,17 @@ defineExpose({
                                                             :disabled="isProcessingFiles"
                                                             @click="confirmDeleteFile(file)"
                                                         >
-                                                            <span class="sr-only">Remove file</span>
+                                                            <span class="sr-only">{{ t('agents.sources.files.remove_file') }}</span>
                                                             <Trash2 class="h-4 w-4" />
                                                         </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
                                                         <div class="text-xs">
                                                             <p v-if="isFileShared(file)">
-                                                                Remove from agent<br />
-                                                                <span class="text-muted-foreground">(Used in {{ file.agents_count }} agents)</span>
+                                                                {{ t('agents.sources.common.remove_from_agent') }}<br />
+                                                                <span class="text-muted-foreground">{{ t('agents.sources.common.used_in_agents', { count: file.agents_count }) }}</span>
                                                             </p>
-                                                            <p v-else>Delete from knowledge base</p>
+                                                            <p v-else>{{ t('agents.sources.common.delete_from_knowledge_base') }}</p>
                                                         </div>
                                                     </TooltipContent>
                                                 </Tooltip>
@@ -1373,16 +1366,17 @@ defineExpose({
                         <DialogTitle>{{ fileToDelete.name }}</DialogTitle>
                         <DialogDescription>
                             <span v-if="isFileShared(fileToDelete)">
-                                This file is used in <strong>{{ fileToDelete.agents_count }} agents</strong>. You can unlink it from this agent or
-                                permanently delete it from all agents.
+                                {{ t('agents.sources.files.delete_shared_prefix') }}
+                                <strong>{{ t('agents.sources.common.agents_count', { count: fileToDelete.agents_count }) }}</strong>
+                                {{ t('agents.sources.files.delete_shared_suffix') }}
                             </span>
                             <span v-else>
-                                This will permanently remove this file from your agent's knowledge base. This action cannot be undone.
+                                {{ t('agents.sources.files.delete_description') }}
                             </span>
                         </DialogDescription>
                     </DialogHeader>
                     <div class="mt-4 flex items-center justify-end gap-2">
-                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeleting"> Cancel </Button>
+                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeleting"> {{ t('agents.sources.common.cancel') }} </Button>
                         <Button
                             v-if="isFileShared(fileToDelete)"
                             variant="secondary"
@@ -1390,15 +1384,15 @@ defineExpose({
                             :disabled="isUnlinking || isDeleting"
                             class="bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50"
                         >
-                            <LoaderCircle v-if="isUnlinking" class="mr-2 h-4 w-4 animate-spin" />
-                            <Unlink v-else class="mr-2 h-4 w-4" />
-                            {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
+                            <LoaderCircle v-if="isUnlinking" class="me-2 h-4 w-4 animate-spin" />
+                            <Unlink v-else class="me-2 h-4 w-4" />
+                            {{ isUnlinking ? t('agents.sources.common.unlinking') : t('agents.sources.common.unlink') }}
                         </Button>
                         <Button variant="destructive" @click="removeKnowledgeFile" :disabled="isUnlinking || isDeleting">
-                            <LoaderCircle v-if="isDeleting" class="mr-2 h-4 w-4 animate-spin" />
-                            <Trash2 v-else class="mr-2 h-4 w-4" />
-                            <span v-if="isDeleting">Deleting...</span>
-                            <span v-else>{{ isFileShared(fileToDelete) ? 'Delete permanently' : 'Delete' }}</span>
+                            <LoaderCircle v-if="isDeleting" class="me-2 h-4 w-4 animate-spin" />
+                            <Trash2 v-else class="me-2 h-4 w-4" />
+                            <span v-if="isDeleting">{{ t('agents.sources.common.deleting') }}</span>
+                            <span v-else>{{ isFileShared(fileToDelete) ? t('agents.sources.common.delete_permanently') : t('agents.sources.common.delete') }}</span>
                         </Button>
                     </div>
                 </DialogContent>
@@ -1407,30 +1401,30 @@ defineExpose({
             <!-- Delete Confirmation Dialog for Uploading Files -->
             <DeleteConfirmationDialog
                 v-model:open="deleteUploadingFileDialogOpen"
-                :title="`Delete ${uploadingFileToDelete?.file.name}?`"
-                description="This will cancel the upload and remove this file from the list."
-                confirm-text="Yes, delete file"
-                cancel-text="Cancel"
+                :title="t('agents.sources.files.delete_uploading_title', { name: uploadingFileToDelete?.file.name })"
+                :description="t('agents.sources.files.delete_uploading_description')"
+                :confirm-text="t('agents.sources.files.delete_uploading_confirm')"
+                :cancel-text="t('agents.sources.common.cancel')"
                 @confirm="deleteUploadingFile"
             />
 
             <!-- Bulk Delete Confirmation Dialog -->
             <DeleteConfirmationDialog
                 v-model:open="bulkDeleteDialogOpen"
-                :title="`Delete ${selectedFilesCount} selected file${selectedFilesCount !== 1 ? 's' : ''}?`"
-                description="This will remove all selected files from the uploading files list."
-                confirm-text="Yes, delete files"
-                cancel-text="Cancel"
+                :title="t('agents.sources.files.bulk_delete_title', selectedFilesCount)"
+                :description="t('agents.sources.files.bulk_delete_description')"
+                :confirm-text="t('agents.sources.files.bulk_delete_confirm')"
+                :cancel-text="t('agents.sources.common.cancel')"
                 @confirm="deleteSelectedFiles"
             />
 
             <!-- Delete All Confirmation Dialog -->
             <DeleteConfirmationDialog
                 v-model:open="clearAllDialogOpen"
-                title="Clear all files?"
-                description="This will remove all uploading files and permanently delete all uploaded files that haven't been processed yet. This action cannot be undone."
-                confirm-text="Yes, clear all"
-                cancel-text="Cancel"
+                :title="t('agents.sources.files.clear_all_title')"
+                :description="t('agents.sources.files.clear_all_description')"
+                :confirm-text="t('agents.sources.files.clear_all_confirm')"
+                :cancel-text="t('agents.sources.common.cancel')"
                 @confirm="clearAllFiles"
             />
 
@@ -1440,20 +1434,20 @@ defineExpose({
                     <DialogHeader>
                         <DialogTitle class="flex items-center gap-2">
                             <Info class="h-5 w-5 text-blue-600" />
-                            File Summary: {{ currentSummaryFile?.name }}
+                            {{ t('agents.sources.files.summary_title', { name: currentSummaryFile?.name }) }}
                         </DialogTitle>
-                        <DialogDescription> AI-generated analysis of the document content and structure. </DialogDescription>
+                        <DialogDescription> {{ t('agents.sources.files.summary_subtitle') }} </DialogDescription>
                     </DialogHeader>
 
                     <div v-if="isLoadingSummary" class="flex items-center justify-center py-8">
                         <LoaderCircle class="h-8 w-8 animate-spin text-blue-600" />
-                        <span class="text-muted-foreground ml-2">Loading summary...</span>
+                        <span class="text-muted-foreground ms-2">{{ t('agents.sources.files.summary_loading') }}</span>
                     </div>
 
                     <div v-else-if="summaryData" class="space-y-6">
                         <!-- Key Topics -->
                         <div v-if="summaryData.key_topics && summaryData.key_topics.length > 0">
-                            <h3 class="text-foreground mb-2 text-sm font-semibold">Key Topics</h3>
+                            <h3 class="text-foreground mb-2 text-sm font-semibold">{{ t('agents.sources.files.summary_key_topics') }}</h3>
                             <div class="flex flex-wrap gap-2">
                                 <Badge v-for="topic in summaryData.key_topics" :key="topic" variant="secondary" class="text-xs">
                                     {{ topic }}
@@ -1464,29 +1458,29 @@ defineExpose({
                         <!-- Document Characteristics -->
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div v-if="summaryData.writing_style">
-                                <h3 class="text-foreground mb-1 text-sm font-semibold">Writing Style</h3>
+                                <h3 class="text-foreground mb-1 text-sm font-semibold">{{ t('agents.sources.files.summary_writing_style') }}</h3>
                                 <p class="text-muted-foreground text-sm capitalize">{{ summaryData.writing_style }}</p>
                             </div>
 
                             <div v-if="summaryData.target_audience">
-                                <h3 class="text-foreground mb-1 text-sm font-semibold">Target Audience</h3>
+                                <h3 class="text-foreground mb-1 text-sm font-semibold">{{ t('agents.sources.files.summary_target_audience') }}</h3>
                                 <p class="text-muted-foreground text-sm capitalize">{{ summaryData.target_audience }}</p>
                             </div>
 
                             <div v-if="summaryData.complexity_level">
-                                <h3 class="text-foreground mb-1 text-sm font-semibold">Complexity Level</h3>
+                                <h3 class="text-foreground mb-1 text-sm font-semibold">{{ t('agents.sources.files.summary_complexity') }}</h3>
                                 <p class="text-muted-foreground text-sm capitalize">{{ summaryData.complexity_level }}</p>
                             </div>
 
                             <div v-if="summaryData.estimated_reading_time_minutes">
-                                <h3 class="text-foreground mb-1 text-sm font-semibold">Estimated Reading Time</h3>
-                                <p class="text-muted-foreground text-sm">{{ summaryData.estimated_reading_time_minutes }} minutes</p>
+                                <h3 class="text-foreground mb-1 text-sm font-semibold">{{ t('agents.sources.files.summary_reading_time') }}</h3>
+                                <p class="text-muted-foreground text-sm">{{ t('agents.sources.files.minutes_count', summaryData.estimated_reading_time_minutes) }}</p>
                             </div>
                         </div>
 
                         <!-- Formatting Elements -->
                         <div v-if="summaryData.formatting_elements && summaryData.formatting_elements.length > 0">
-                            <h3 class="text-foreground mb-2 text-sm font-semibold">Formatting Elements</h3>
+                            <h3 class="text-foreground mb-2 text-sm font-semibold">{{ t('agents.sources.files.summary_formatting') }}</h3>
                             <div class="flex flex-wrap gap-2">
                                 <Badge v-for="element in summaryData.formatting_elements" :key="element" variant="outline" class="text-xs">
                                     {{ element.replace(/_/g, ' ') }}
@@ -1498,15 +1492,15 @@ defineExpose({
                         <div v-if="summaryData.contains_sensitive_info" class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
                             <div class="flex items-center gap-2">
                                 <AlertCircle class="h-4 w-4 text-yellow-600" />
-                                <h3 class="text-sm font-semibold text-yellow-800">Sensitive Information Detected</h3>
+                                <h3 class="text-sm font-semibold text-yellow-800">{{ t('agents.sources.files.summary_sensitive_title') }}</h3>
                             </div>
-                            <p class="mt-1 text-sm text-yellow-700">This document may contain sensitive or confidential information.</p>
+                            <p class="mt-1 text-sm text-yellow-700">{{ t('agents.sources.files.summary_sensitive_description') }}</p>
                         </div>
                     </div>
 
                     <div v-else class="text-muted-foreground py-8 text-center">
                         <Info class="mx-auto mb-2 h-8 w-8 opacity-50" />
-                        <p>No summary data available for this file.</p>
+                        <p>{{ t('agents.sources.files.summary_empty') }}</p>
                     </div>
                 </DialogContent>
             </Dialog>

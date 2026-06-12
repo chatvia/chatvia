@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | **Owner** | Founder / Security Lead |
-| **Version** | 1.0 |
-| **Effective date** | 2026-06-09 |
+| **Version** | 1.1 |
+| **Effective date** | 2026-06-12 |
 | **Review cadence** | Annual (or on material change) |
 | **Classification** | Internal |
 
@@ -18,7 +18,12 @@ This register covers only sub-processors on the **production data path** — par
 
 ## 2. Data residency — EU only
 
-Chatvia's entire production sub-processor chain is established and operated within the **European Union**. Core compute and the database run on **Hetzner** in **Germany**; AI inference, object storage, **database backups**, and transactional email run on **Scaleway** in **France**. The remaining sub-processors are EU companies. The only processing with any non-EEA nexus is payment processing via **Stripe** (US parent), which is covered by Stripe's Data Processing Agreement and the **EU Standard Contractual Clauses** (GDPR Chapter V).
+Chatvia's production sub-processor chain for **personal data** is established and operated within the **European Union**. Core compute and the database run on **Hetzner** in **Germany**; AI inference, object storage, **database backups**, and transactional email run on **Scaleway** in **France**. The remaining EU sub-processors are EU companies.
+
+Two sub-processors have a non-EEA (US) nexus, both covered by the **EU Standard Contractual Clauses** (GDPR Chapter V):
+
+- **Stripe** (US parent) for payment processing, under Stripe's Data Processing Agreement; and
+- **Firecrawl** (US) for crawling **public websites only**. Firecrawl is used solely to fetch publicly accessible web pages a workspace chooses to add to its knowledge base. It receives only the public URL and returns the public page content — **no** conversation transcripts, Leads, end-user personal data, or private/login-protected content ever reach it. Because only public web content is sent, **no customer personal data leaves the EU through Firecrawl**.
 
 **No training on inference data.** Chat content transmitted to Scaleway for inference is **not used to train Scaleway's or any third party's models**. Inference is transient: prompts and completions are processed only to return a response and are not retained for model improvement.
 
@@ -60,6 +65,13 @@ Chatvia's entire production sub-processor chain is established and operated with
 - **Data processed:** Diagnostic / exception data, which may incidentally include user identifiers or request context within stack traces.
 - **Data Processing Agreement:** <https://flareapp.io/>
 
+### Firecrawl (firecrawl.dev) — United States (SCCs)
+
+- **Purpose:** Crawling and fetching **public web pages** when a workspace adds a public website as a knowledge-base source. Firecrawl retrieves the publicly accessible page and returns its text so it can be indexed for the agent.
+- **Data processed:** Only the **public website address (URL)** the workspace chooses to crawl, and the **public page content** Firecrawl returns. Firecrawl receives **no** conversation transcripts, Leads, end-user personal data, account data, or private/login-protected content — it reads only pages that are already public on the open internet.
+- **Transfers:** US-based; relies on the **EU Standard Contractual Clauses** (GDPR Chapter V). As only public web content is transmitted, no customer personal data is transferred.
+- **Data Processing Agreement:** confirm current DPA/terms at <https://www.firecrawl.dev/>
+
 DPA links are provided for reference; confirm the current link and terms with each provider at onboarding and at each annual review.
 
 **Excluded — not sub-processors.** Internal monitoring tools that run **inside Chatvia's own infrastructure without sending customer personal data to a third party** are not sub-processors and are excluded from this register.
@@ -69,7 +81,7 @@ DPA links are provided for reference; confirm the current link and terms with ea
 Chatvia applies the following controls to every sub-processor under **Article 28**:
 
 - **Written terms.** Each sub-processor is engaged under a DPA (or equivalent terms) imposing data-protection obligations no less protective than Chatvia's own, including confidentiality, security, and assistance duties (Art. 28(3)).
-- **EEA-first selection.** Sub-processors are selected to keep processing within the EEA wherever feasible — Hetzner (Germany) and Scaleway (France) for all core hosting, storage, inference, and email. Where a sub-processor has a non-EEA nexus (Stripe), the transfer relies on an adequacy decision or **EU Standard Contractual Clauses** (Art. 46).
+- **EEA-first selection.** Sub-processors are selected to keep processing within the EEA wherever feasible — Hetzner (Germany) and Scaleway (France) for all core hosting, storage, inference, and email. Where a sub-processor has a non-EEA nexus (Stripe for payments; Firecrawl for public-website crawling), the transfer relies on an adequacy decision or **EU Standard Contractual Clauses** (Art. 46). Firecrawl receives only public web content, never customer personal data.
 - **Security diligence.** Sub-processors are assessed for technical and organisational measures appropriate to the data (Art. 32) before activation.
 - **Solo-operator compensating control.** Chatvia is run by a sole founder/engineer. Sub-processor changes are made exclusively through version-controlled configuration (PR + CI + immutable Git history), and the active set is re-validated at each annual review and at every material change. This documented review substitutes for segregation-of-duties.
 

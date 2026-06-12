@@ -278,6 +278,43 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Security audit (Enterprise Security & Compliance)
+    |--------------------------------------------------------------------------
+    |
+    | The workspace-scoped security audit log records an immutable row in the
+    | dedicated security_audit_log table for auth, membership, configuration,
+    | and data operations. A structural clone of the governance tool-call audit:
+    | on by default, silent, metadata redacted + size-capped before storage and
+    | hashed (sha256) over the RAW payload for tamper-evidence.
+    |
+    */
+
+    'security_audit' => [
+        // Master switch. When false, RecordSecurityEvent drops the event before
+        // it touches the DB (CI, local debugging).
+        'enabled' => env('SECURITY_AUDIT_ENABLED', true),
+
+        // Default retention (days) for security_audit_log rows. A workspace may
+        // SHORTEN this via WorkspaceSecurityPolicy.retention_audit_days but not
+        // below `retention_floor_days`; the daily app:prune-security-audit-log
+        // sweep enforces both.
+        'retention_days' => (int) env('SECURITY_AUDIT_RETENTION_DAYS', 365),
+
+        // Hard floor (days) for per-workspace retention overrides — some regimes
+        // mandate a minimum audit window. Overrides clamp up to this.
+        'retention_floor_days' => (int) env('SECURITY_AUDIT_RETENTION_FLOOR_DAYS', 30),
+
+        // Size cap (bytes) for the stored metadata. The full raw metadata is
+        // hashed (sha256) BEFORE truncation, for integrity.
+        'max_metadata_bytes' => (int) env('SECURITY_AUDIT_MAX_METADATA_BYTES', 8192),
+
+        // Metadata keys whose values are replaced with "[redacted]" before the
+        // audit row is written (defends against secrets/PII echoed in payloads).
+        'redact_keys' => ['password', 'token', 'secret', 'authorization', 'api_key', 'apikey', 'access_token', 'webhook_secret'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Agent evaluation (#9 Agent Governance + Evals)
     |--------------------------------------------------------------------------
     |

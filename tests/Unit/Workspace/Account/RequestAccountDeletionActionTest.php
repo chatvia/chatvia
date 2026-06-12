@@ -18,7 +18,7 @@ it('dispatches AccountDeletionRequested with a signed confirmation link for the 
         AccountDeletionRequested::class,
         fn (AccountDeletionRequested $event): bool => $event->email === $user->email
             && $event->name === $user->name
-            && str_contains($event->url, '/settings/delete-account/confirm/'.$user->id)
+            && str_contains($event->url, '/my/account/delete-account/confirm/'.$user->id)
             && str_contains($event->url, 'signature=')
             && str_contains($event->url, 'expires='),
     );

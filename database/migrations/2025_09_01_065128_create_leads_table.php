@@ -12,10 +12,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
-            // SET NULL, not CASCADE: a captured lead is standalone CRM data and
-            // must survive the agents → chat_sessions → chat_conversations
-            // cascade chain (agent or chatter deletion would otherwise
-            // hard-delete the whole lead book through this FK).
+            // SET NULL: a lead must survive the agents → sessions → conversations cascade.
             $table->foreignId('chat_conversation_id')->nullable()->index()->constrained('chat_conversations')->nullOnDelete();
             $table->foreignId('assigned_to')->nullable()->index()->constrained('users')->nullOnDelete();
 

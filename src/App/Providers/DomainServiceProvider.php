@@ -5,7 +5,10 @@ namespace App\Providers;
 use App\Identity\Workspace\Events\AccountDeletionRequested;
 use App\Identity\Workspace\Events\DataExportReady;
 use App\Identity\Workspace\Events\MagicLinkRequested;
+use App\Identity\Workspace\Listeners\RecordFailedLoginSecurityEvent;
 use App\Identity\Workspace\Listeners\RecordKnownDevice;
+use App\Identity\Workspace\Listeners\RecordLoginSecurityEvent;
+use App\Identity\Workspace\Listeners\RecordLogoutSecurityEvent;
 use App\Identity\Workspace\Listeners\SendAccountDeletionConfirmationEmail;
 use App\Identity\Workspace\Listeners\SendDataExportReadyNotification;
 use App\Identity\Workspace\Listeners\SendMagicLinkEmail;
@@ -16,15 +19,18 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\ModelSetting;
 use Domain\Agent\Observers\AgentObserver;
 use Domain\Agent\Observers\ModelSettingObserver;
+use Domain\Analytics\Events\McpToolInvoked;
 use Domain\Analytics\Listeners\RecordAnalytics;
 use Domain\Billing\Events\MessageCreditsLow;
 use Domain\Billing\Listeners\HandleStripeWebhook;
 use Domain\Billing\Listeners\RecordLlmTokenUsage;
 use Domain\Billing\Listeners\TriggerAutoRecharge;
+use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Conversation\Events\SessionLocationUnknown;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Listeners\LocateSession;
 use Domain\Conversation\Listeners\RecordToolCallAudit;
+use Domain\Conversation\Listeners\SendAgentRateLimitNotification;
 use Domain\Conversation\Services\Streaming\Transformers\OpenAiCompatibleTransformer;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Dispatcher\RoutingToolDispatcher;
@@ -33,6 +39,7 @@ use Domain\Guardrail\Events\GuardrailTriggered;
 use Domain\Guardrail\Listeners\RecordGuardrailEvent;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Function\Observers\AgentFunctionObserver;
+use Domain\Integration\Mcp\Listeners\UpdateMcpInvocationCounters;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Observers\AgentMcpServerObserver;
 use Domain\Knowledge\Embedding\Cohere;
@@ -59,7 +66,11 @@ use Domain\Membership\Agent\Events\AgentMemberInvited;
 use Domain\Membership\Agent\Listeners\SendAgentMemberInvitationEmail;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Listeners\SendTeamInvitationEmail;
+use Domain\Security\Events\SecurityEventOccurred;
+use Domain\Security\Listeners\RecordSecurityEvent;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -147,6 +158,16 @@ class DomainServiceProvider extends ServiceProvider
     private function registerEventListeners(): void
     {
         Event::listen(Login::class, RecordKnownDevice::class);
+
+        // Enterprise security audit log — one parametric event, persisted off
+        // the request by a queued listener. The auth listeners run on the web
+        // thread to capture live IP/UA (NOT queued); they denormalize that onto
+        // the event so the downstream recorder can run on a worker.
+        Event::listen(SecurityEventOccurred::class, RecordSecurityEvent::class);
+        Event::listen(Login::class, RecordLoginSecurityEvent::class);
+        Event::listen(Failed::class, RecordFailedLoginSecurityEvent::class);
+        Event::listen(Logout::class, RecordLogoutSecurityEvent::class);
+
         Event::listen(AgentMemberInvited::class, SendAgentMemberInvitationEmail::class);
         Event::listen(TeamInvitationCreated::class, SendTeamInvitationEmail::class);
         Event::listen(MagicLinkRequested::class, SendMagicLinkEmail::class);
@@ -158,6 +179,8 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(LlmTokensConsumed::class, RecordLlmTokenUsage::class);
         Event::listen(ToolCallCompleted::class, RecordToolCallAudit::class);
         Event::listen(GuardrailTriggered::class, RecordGuardrailEvent::class);
+        Event::listen(McpToolInvoked::class, UpdateMcpInvocationCounters::class);
+        Event::listen(AgentRateLimitExceeded::class, SendAgentRateLimitNotification::class);
 
         Event::subscribe(RecordAnalytics::class);
     }

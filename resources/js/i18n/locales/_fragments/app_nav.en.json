@@ -1,0 +1,91 @@
+{
+    "app": {
+        "header": {
+            "dashboard": "Dashboard",
+            "agents": "Agents",
+            "usage": "Usage",
+            "ask_your_data": "Ask your data",
+            "billing": "Billing",
+            "support": "Support",
+            "teams": "Teams",
+            "documentation": "Documentation",
+            "api": "API",
+            "nav_menu_sr": "Navigation Menu",
+            "upgrade": "Upgrade",
+            "subscribed": "You're subscribed"
+        }
+    },
+    "agents": {
+        "nav": {
+            "default_title": "Agent Settings",
+            "playground": "Playground",
+            "playground_tooltip": "Preview your agent on every surface",
+            "setup": "Setup",
+            "setup_tooltip": "Configure your agent — applies across every surface",
+            "channels": "Channels",
+            "channels_tooltip": "Deploy your agent — website, widget, and Telegram",
+            "groups": {
+                "insights": "Insights",
+                "training": "Training",
+                "access": "Access",
+                "settings": "Settings",
+                "danger_zone": "Danger Zone"
+            },
+            "analytics": "Analytics",
+            "analytics_tooltip": "View usage analytics and insights",
+            "chats": "Chats",
+            "sentiment": "Sentiment",
+            "tone": "Tone",
+            "topics": "Topics",
+            "sources": "Sources",
+            "chat": "Chat",
+            "chat_tooltip": "Inspect raw chat messages by session",
+            "audit": "Audit",
+            "audit_tooltip": "Tool-call audit log for this agent",
+            "evals": "Evals",
+            "evals_tooltip": "Test suites that grade this agent's answers",
+            "guardrails": "Guardrails",
+            "guardrails_tooltip": "AI-safety guards: PII, prompt-injection, topics, toxicity",
+            "leads": "Leads",
+            "leads_tooltip": "Manage leads captured by your agent",
+            "knowledge_sources": "Sources",
+            "knowledge_sources_tooltip": "Manage agent knowledge and training data",
+            "functions": "Functions",
+            "functions_tooltip": "Manage custom functions your agent can call",
+            "connectors": "Connectors",
+            "connectors_tooltip": "Attach connectors so your agent can use external tools",
+            "members": "Members",
+            "members_tooltip": "People granted access to chat with this agent",
+            "security": "Security",
+            "security_tooltip": "Access control, signing secret and rate limits for this agent",
+            "identity": "Identity",
+            "rate_limiting": "Rate Limiting",
+            "rename": "Rename",
+            "rename_tooltip": "Rename this agent",
+            "delete_agent": "Delete Agent",
+            "delete_agent_tooltip": "Permanently delete this agent",
+            "expand_sidebar": "Expand sidebar",
+            "delete_dialog": {
+                "title": "Delete Agent",
+                "description": "This action cannot be undone. This will permanently delete the agent {name} and all of its data.",
+                "confirm_label": "Please type {name} to confirm",
+                "confirm_placeholder": "Enter agent name to confirm",
+                "name_mismatch": "Agent name does not match",
+                "submit": "Delete Agent",
+                "deleted_toast": "Agent deleted successfully",
+                "delete_error_toast": "Failed to delete agent. Please try again."
+            },
+            "rename_dialog": {
+                "title": "Rename Agent",
+                "description": "Enter a new name for your agent {name}.",
+                "name_label": "Agent name",
+                "name_placeholder": "Enter new agent name",
+                "subdomain_label": "Subdomain",
+                "subdomain_placeholder": "your-subdomain",
+                "subdomain_hint": "Only lowercase letters, numbers, and hyphens allowed.",
+                "save": "Save",
+                "updated_toast": "Agent updated successfully"
+            }
+        }
+    }
+}

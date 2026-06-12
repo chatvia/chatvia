@@ -10,6 +10,9 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Bot, Loader2, Plus, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const page = usePage<SharedData>();
 
@@ -72,56 +75,56 @@ const openAgent = (agent: Agent) => {
 
 <template>
     <AppLayout>
-        <Head title="My Agents" />
+        <Head :title="t('agents.list.title')" />
 
         <div class="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">My Agents</h1>
-                    <p class="text-muted-foreground text-sm">Create and manage your AI agents.</p>
+                    <h1 class="text-2xl font-bold tracking-tight">{{ t('agents.list.heading') }}</h1>
+                    <p class="text-muted-foreground text-sm">{{ t('agents.list.subtitle') }}</p>
                 </div>
                 <Button v-if="canCreateAgent" @click="showCreateAgentModal = true">
-                    <Plus class="mr-1 h-4 w-4" />
-                    Create agent
+                    <Plus class="me-1 h-4 w-4" />
+                    {{ t('agents.list.create_agent') }}
                 </Button>
             </div>
 
             <div class="relative max-w-sm">
-                <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                <Input v-model="searchQuery" placeholder="Search agents" class="pl-9" />
+                <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                <Input v-model="searchQuery" :placeholder="t('agents.list.search_placeholder')" class="ps-9" />
             </div>
 
             <div v-if="isLoading" class="text-muted-foreground flex items-center gap-2 py-12 text-sm">
                 <Loader2 class="h-4 w-4 animate-spin" />
-                Loading agents
+                {{ t('agents.list.loading') }}
             </div>
 
             <Card v-else-if="agents.length === 0" class="flex h-64 flex-col items-center justify-center">
                 <Bot class="text-muted-foreground h-12 w-12 opacity-50" />
-                <h3 class="mt-4 text-xl font-medium">No agents yet</h3>
+                <h3 class="mt-4 text-xl font-medium">{{ t('agents.list.empty_title') }}</h3>
                 <p v-if="canCreateAgent" class="text-muted-foreground mt-2 text-center">
-                    Create your first AI agent to start building conversational experiences
+                    {{ t('agents.list.empty_description') }}
                 </p>
-                <p v-else class="text-muted-foreground mt-2 text-center">Only team owners can create agents. Contact your team owner.</p>
+                <p v-else class="text-muted-foreground mt-2 text-center">{{ t('agents.list.empty_no_permission') }}</p>
                 <Button v-if="canCreateAgent" size="lg" @click="showCreateAgentModal = true" class="mt-6 flex items-center gap-2">
                     <Plus class="h-4 w-4" />
-                    Create agent
+                    {{ t('agents.list.create_agent') }}
                 </Button>
             </Card>
 
             <div v-else-if="filteredAgents.length === 0" class="text-muted-foreground py-12 text-center text-sm">
-                No agents found matching "{{ searchQuery }}".
-                <Button variant="link" class="ml-1 h-auto p-0" @click="searchQuery = ''">Clear search</Button>
+                {{ t('agents.list.no_results', { query: searchQuery }) }}
+                <Button variant="link" class="ms-1 h-auto p-0" @click="searchQuery = ''">{{ t('agents.list.clear_search') }}</Button>
             </div>
 
             <div v-else class="rounded-lg border">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead class="h-11 pl-5">Agent name</TableHead>
-                            <TableHead class="h-11 w-32">Messages</TableHead>
-                            <TableHead class="h-11 w-32">Members</TableHead>
-                            <TableHead class="h-11 w-40 pr-5">Created</TableHead>
+                            <TableHead class="h-11 ps-5">{{ t('agents.list.table.name') }}</TableHead>
+                            <TableHead class="h-11 w-32">{{ t('agents.list.table.messages') }}</TableHead>
+                            <TableHead class="h-11 w-32">{{ t('agents.list.table.members') }}</TableHead>
+                            <TableHead class="h-11 w-40 pe-5">{{ t('agents.list.table.created') }}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -131,7 +134,7 @@ const openAgent = (agent: Agent) => {
                             class="hover:bg-muted/40 cursor-pointer"
                             @click="openAgent(agent)"
                         >
-                            <TableCell class="py-4 pl-5">
+                            <TableCell class="py-4 ps-5">
                                 <div class="flex items-center gap-4">
                                     <div class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
                                         <Bot class="h-5 w-5" />
@@ -143,7 +146,7 @@ const openAgent = (agent: Agent) => {
                             </TableCell>
                             <TableCell class="py-4 text-sm">{{ agent.total_messages || 0 }}</TableCell>
                             <TableCell class="py-4 text-sm">{{ agent.total_members || 0 }}</TableCell>
-                            <TableCell class="text-muted-foreground py-4 pr-5 text-sm">{{ formatDate(agent.created_at) }}</TableCell>
+                            <TableCell class="text-muted-foreground py-4 pe-5 text-sm">{{ formatDate(agent.created_at) }}</TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>

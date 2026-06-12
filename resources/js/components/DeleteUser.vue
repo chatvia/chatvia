@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Components
 import InputError from '@/components/InputError.vue';
@@ -43,7 +46,7 @@ const destroyForm = useForm({});
 const sendConfirmationLink = (e: Event) => {
     e.preventDefault();
 
-    passwordForm.post(route('settings.account.delete.request'), {
+    passwordForm.post(route('account.delete.request'), {
         preserveScroll: true,
         onSuccess: () => {
             linkSent.value = true;
@@ -61,7 +64,7 @@ const openDialog = () => {
 };
 
 const destroy = () => {
-    destroyForm.delete(route('settings.account.destroy'), {
+    destroyForm.delete(route('account.destroy'), {
         preserveScroll: true,
         onSuccess: () => {
             // Account and session are gone — do a full-page native redirect to the
@@ -78,9 +81,9 @@ const destroy = () => {
         <div>
             <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
                 <Trash2 class="size-6" />
-                Delete account
+                {{ t('account.delete.title') }}
             </h1>
-            <p class="text-muted-foreground mt-1 text-sm">Permanently delete your account and everything in it.</p>
+            <p class="text-muted-foreground mt-1 text-sm">{{ t('account.delete.subtitle') }}</p>
         </div>
 
         <Separator />
@@ -89,11 +92,15 @@ const destroy = () => {
         <div class="flex items-start gap-3 rounded-lg border p-4">
             <Download class="text-muted-foreground mt-0.5 size-5 shrink-0" />
             <div class="space-y-1">
-                <p class="text-sm font-medium">Want a copy of your data first?</p>
+                <p class="text-sm font-medium">{{ t('account.delete.data_export_title') }}</p>
                 <p class="text-muted-foreground text-sm">
-                    Once your account is gone, your data is gone with it. You can
-                    <Link href="/settings/data-export" class="text-foreground font-medium underline underline-offset-4">download an archive</Link>
-                    of everything we hold about you before you delete.
+                    <i18n-t keypath="account.delete.data_export_description" tag="span">
+                        <template #link>
+                            <Link href="/my/account/data-export" class="text-foreground font-medium underline underline-offset-4">
+                                {{ t('account.delete.data_export_link') }}
+                            </Link>
+                        </template>
+                    </i18n-t>
                 </p>
             </div>
         </div>
@@ -103,23 +110,23 @@ const destroy = () => {
             <div class="flex items-start gap-3 text-red-600 dark:text-red-100">
                 <AlertTriangle class="mt-0.5 size-5 shrink-0" />
                 <div class="space-y-1">
-                    <p class="font-medium">This cannot be undone</p>
-                    <p class="text-sm">Deleting your account permanently removes everything in it, including:</p>
+                    <p class="font-medium">{{ t('account.delete.cannot_undo') }}</p>
+                    <p class="text-sm">{{ t('account.delete.removes_intro') }}</p>
                 </div>
             </div>
 
             <ul class="ml-8 list-disc space-y-1 text-sm text-red-600 dark:text-red-100">
-                <li>Your agents and their settings</li>
-                <li>All conversations and messages</li>
-                <li>Knowledge sources, documents, and uploaded files</li>
-                <li>Your team, members, API keys, and connectors</li>
+                <li>{{ t('account.delete.removes_agents') }}</li>
+                <li>{{ t('account.delete.removes_conversations') }}</li>
+                <li>{{ t('account.delete.removes_knowledge') }}</li>
+                <li>{{ t('account.delete.removes_team') }}</li>
             </ul>
 
             <!-- Agents that will be deleted -->
             <div v-if="props.agents.length" class="ml-8 space-y-2">
                 <p class="flex items-center gap-2 text-sm font-medium text-red-600 dark:text-red-100">
                     <Bot class="size-4 shrink-0" />
-                    {{ props.agents.length }} {{ props.agents.length === 1 ? 'agent' : 'agents' }} will be permanently deleted:
+                    {{ t('account.delete.agents_will_delete', { count: props.agents.length }, props.agents.length) }}
                 </p>
                 <div class="flex flex-wrap gap-1.5">
                     <span
@@ -138,7 +145,7 @@ const destroy = () => {
                 class="ml-8 flex items-start gap-2 rounded-md bg-red-100/60 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-100"
             >
                 <CreditCard class="mt-0.5 size-4 shrink-0" />
-                <span>Your active subscription will be canceled and you won't be billed again.</span>
+                <span>{{ t('account.delete.subscription_cancel') }}</span>
             </div>
 
             <!-- State B: email confirmed → final, explicit delete -->
@@ -147,32 +154,32 @@ const destroy = () => {
                     class="flex items-start gap-2 rounded-md border border-red-200 bg-white/60 p-3 text-sm text-red-700 dark:border-red-200/20 dark:bg-transparent dark:text-red-100"
                 >
                     <ShieldAlert class="mt-0.5 size-4 shrink-0" />
-                    <span>Email confirmed. This is your last step — there's no going back after this.</span>
+                    <span>{{ t('account.delete.email_confirmed') }}</span>
                 </div>
 
                 <AlertDialog>
                     <AlertDialogTrigger as-child>
                         <Button variant="destructive">
-                            <Trash2 class="mr-2 size-4" />
-                            Permanently delete my account
+                            <Trash2 class="me-2 size-4" />
+                            {{ t('account.delete.delete_button') }}
                         </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Permanently delete your account?</AlertDialogTitle>
+                            <AlertDialogTitle>{{ t('account.delete.final_dialog_title') }}</AlertDialogTitle>
                             <AlertDialogDescription>
-                                This will permanently delete your account and all of its data, and cannot be undone.
-                                {{ props.hasSubscription ? 'Your subscription will also be canceled.' : '' }}
+                                {{ t('account.delete.final_dialog_description') }}
+                                {{ props.hasSubscription ? t('account.delete.final_dialog_subscription') : '' }}
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{{ t('common.cancel') }}</AlertDialogCancel>
                             <AlertDialogAction
                                 class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 :disabled="destroyForm.processing"
                                 @click="destroy"
                             >
-                                Yes, delete everything
+                                {{ t('account.delete.final_confirm') }}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
@@ -187,20 +194,19 @@ const destroy = () => {
                 >
                     <MailCheck class="mt-0.5 size-4 shrink-0" />
                     <span>
-                        Check your email — we sent a confirmation link to finish deleting your account. It expires in 30 minutes. Open the link to
-                        continue.
+                        {{ t('account.delete.check_email') }}
                     </span>
                 </div>
                 <Button variant="ghost" size="sm" class="text-red-600 hover:text-red-700 dark:text-red-100" @click="openDialog">
-                    Send the link again
+                    {{ t('account.delete.resend_link') }}
                 </Button>
             </template>
 
             <!-- State A: initial → enter password -->
             <template v-else>
                 <Button variant="destructive" @click="openDialog">
-                    <Trash2 class="mr-2 size-4" />
-                    Delete account
+                    <Trash2 class="me-2 size-4" />
+                    {{ t('account.delete.title') }}
                 </Button>
             </template>
         </div>
@@ -210,14 +216,12 @@ const destroy = () => {
             <DialogContent>
                 <form class="space-y-6" @submit="sendConfirmationLink">
                     <DialogHeader class="space-y-3">
-                        <DialogTitle>Confirm your password</DialogTitle>
-                        <DialogDescription>
-                            Enter your password to continue. We'll email you a confirmation link to finish deleting your account.
-                        </DialogDescription>
+                        <DialogTitle>{{ t('account.delete.password_dialog_title') }}</DialogTitle>
+                        <DialogDescription>{{ t('account.delete.password_dialog_description') }}</DialogDescription>
                     </DialogHeader>
 
                     <div class="grid gap-2">
-                        <Label for="password" class="sr-only">Password</Label>
+                        <Label for="password" class="sr-only">{{ t('confirm_password.password_label') }}</Label>
                         <div class="relative">
                             <Lock class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
                             <Input
@@ -227,18 +231,18 @@ const destroy = () => {
                                 type="password"
                                 name="password"
                                 autocomplete="current-password"
-                                placeholder="Password"
-                                class="pl-9"
+                                :placeholder="t('account.delete.password_placeholder')"
+                                class="ps-9"
                             />
                         </div>
                         <InputError :message="passwordForm.errors.password" />
                     </div>
 
                     <DialogFooter class="gap-2">
-                        <Button type="button" variant="secondary" @click="dialogOpen = false">Cancel</Button>
+                        <Button type="button" variant="secondary" @click="dialogOpen = false">{{ t('common.cancel') }}</Button>
                         <Button type="submit" variant="destructive" :disabled="passwordForm.processing">
-                            <Loader2 v-if="passwordForm.processing" class="mr-2 size-4 animate-spin" />
-                            Send confirmation email
+                            <Loader2 v-if="passwordForm.processing" class="me-2 size-4 animate-spin" />
+                            {{ t('account.delete.send_confirmation') }}
                         </Button>
                     </DialogFooter>
                 </form>

@@ -2,13 +2,18 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Notifications\AgentRateLimitNotification;
 use Domain\Billing\Models\UserCredit;
+use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Membership\Team\Services\TeamService;
 use GuzzleHttp\Psr7\Response as PsrResponse;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -187,4 +192,87 @@ it('rejects a chat-stream request with no message (validation)', function (): vo
         'https://chatvia.test/chat/stream/'.Str::uuid()."?agent={$agent->external_id}",
         [],
     )->assertStatus(422)->assertJsonValidationErrors(['message']);
+});
+
+it('dispatches a rate-limit event once the agent exceeds its per-minute cap', function (): void {
+    Event::fake([AgentRateLimitExceeded::class]);
+
+    $agent = publicStreamingAgent();
+    $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 1, group: 'security');
+    $agent->setSetting(key: 'notify_owner_on_rate_limit', value: true, group: 'security');
+    UserCredit::factory()->create([
+        'user_id' => $agent->user_id,
+        'messages' => 4000,
+        'started_at' => now()->subDay(),
+        'ends_at' => now()->addDays(20),
+    ]);
+
+    // The per-agent gate runs synchronously before the SSE body streams, so the
+    // bare POST exercises it — no need to consume the stream (which would fight
+    // the streamer's own output buffering).
+    $send = fn (): TestResponse => $this->post(
+        'https://chatvia.test/chat/stream/'.Str::uuid()."?agent={$agent->external_id}",
+        ['message' => 'Hi there'],
+        ['Accept' => 'text/event-stream'],
+    );
+
+    $send()->assertOk();
+    $send()->assertOk();
+
+    Event::assertDispatched(
+        AgentRateLimitExceeded::class,
+        fn (AgentRateLimitExceeded $e): bool => $e->agent->is($agent) && $e->limitPerMinute === 1,
+    );
+});
+
+it('emails the owner when a rate-limited agent has alerts enabled', function (): void {
+    Notification::fake();
+
+    $agent = publicStreamingAgent();
+    $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 1, group: 'security');
+    $agent->setSetting(key: 'notify_owner_on_rate_limit', value: true, group: 'security');
+    UserCredit::factory()->create([
+        'user_id' => $agent->user_id,
+        'messages' => 4000,
+        'started_at' => now()->subDay(),
+        'ends_at' => now()->addDays(20),
+    ]);
+
+    $send = fn (): TestResponse => $this->post(
+        'https://chatvia.test/chat/stream/'.Str::uuid()."?agent={$agent->external_id}",
+        ['message' => 'Hi there'],
+        ['Accept' => 'text/event-stream'],
+    );
+
+    $send();
+    $send();
+
+    Notification::assertSentTo(
+        $agent->user,
+        AgentRateLimitNotification::class,
+    );
+});
+
+it('does not email the owner when rate-limit alerts are disabled', function (): void {
+    Notification::fake();
+
+    $agent = publicStreamingAgent();
+    $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 1, group: 'security');
+    UserCredit::factory()->create([
+        'user_id' => $agent->user_id,
+        'messages' => 4000,
+        'started_at' => now()->subDay(),
+        'ends_at' => now()->addDays(20),
+    ]);
+
+    $send = fn (): TestResponse => $this->post(
+        'https://chatvia.test/chat/stream/'.Str::uuid()."?agent={$agent->external_id}",
+        ['message' => 'Hi there'],
+        ['Accept' => 'text/event-stream'],
+    );
+
+    $send();
+    $send();
+
+    Notification::assertNothingSent();
 });

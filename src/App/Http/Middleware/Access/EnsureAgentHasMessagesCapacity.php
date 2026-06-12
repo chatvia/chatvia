@@ -17,8 +17,9 @@ class EnsureAgentHasMessagesCapacity
             return Inertia::render('agents/chat/AgentNotFound');
         }
 
-        // Token-primary: gate on the token budget. "Messages" stays a
-        // display/advertising unit; the real allowance is metered in tokens.
+        // Billing is message-based: gate on the workspace owner's cached
+        // can-send-messages flag (refreshed from the DB on cache miss, after
+        // each consumption, and every 5 minutes by app:cache-message-usage).
         if (app(UserCreditSystem::class)->setUserId($agentUserId)->canSendMessages() === false) {
             return Inertia::render('agents/chat/AgentNoMessages');
         }

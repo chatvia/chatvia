@@ -15,6 +15,7 @@ import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { AlertCircle, CheckCircle, ChevronDown, Edit3, HelpCircle, LoaderCircle, Plus, Save, Trash2, Unlink } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -40,6 +41,7 @@ interface QAEntry {
 
 const props = defineProps<Props>();
 
+const { t } = useI18n();
 const { hasPermission } = useTeamPermissions();
 
 // Dates follow the user's chosen format (Settings → Date & time).
@@ -112,11 +114,11 @@ const createEntry = () => {
         onSuccess: () => {
             closeCreateForm();
             fetchQAEntries();
-            toast.success('Q&A entry created successfully');
+            toast.success(t('agents.sources.qa.created'));
         },
         onError: (errors) => {
             console.error('Validation errors:', errors);
-            toast.error('Failed to create Q&A entry');
+            toast.error(t('agents.sources.qa.create_failed'));
         },
         onFinish: () => {
             isSubmitting.value = false;
@@ -144,7 +146,7 @@ const editEntry = async (entry: QAEntry) => {
         showCreateForm.value = true;
     } catch (error) {
         console.error('Error fetching Q&A entry:', error);
-        toast.error('Failed to load Q&A entry');
+        toast.error(t('agents.sources.qa.load_failed'));
     } finally {
         isLoading.value = false;
     }
@@ -165,11 +167,11 @@ const updateEntry = () => {
             onSuccess: () => {
                 closeCreateForm();
                 fetchQAEntries();
-                toast.success('Q&A entry updated successfully');
+                toast.success(t('agents.sources.qa.updated'));
             },
             onError: (errors) => {
                 console.error('Validation errors:', errors);
-                toast.error('Failed to update Q&A entry');
+                toast.error(t('agents.sources.qa.update_failed'));
             },
             onFinish: () => {
                 isSubmitting.value = false;
@@ -181,8 +183,8 @@ const updateEntry = () => {
 const confirmDelete = (entry: QAEntry) => {
     // Check permission first
     if (!canDeleteSources.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to delete sources.',
+        toast.error(t('agents.sources.common.permission_denied'), {
+            description: t('agents.sources.common.permission_denied_description'),
         });
         return;
     }
@@ -204,11 +206,11 @@ const deleteEntry = async () => {
             }),
         );
 
-        toast.success('Q&A entry deleted successfully');
+        toast.success(t('agents.sources.qa.deleted'));
         fetchQAEntries();
     } catch (error) {
         console.error('Error deleting Q&A entry:', error);
-        toast.error('Failed to delete Q&A entry');
+        toast.error(t('agents.sources.qa.delete_failed'));
     } finally {
         isDeleting.value = false;
         deleteDialogOpen.value = false;
@@ -227,11 +229,11 @@ const unlinkEntry = async (entry: QAEntry) => {
             }),
         );
 
-        toast.success('Q&A entry unlinked successfully');
+        toast.success(t('agents.sources.qa.unlinked'));
         fetchQAEntries();
     } catch (error) {
         console.error('Error unlinking Q&A entry:', error);
-        toast.error('Failed to unlink Q&A entry');
+        toast.error(t('agents.sources.qa.unlink_failed'));
     } finally {
         isUnlinking.value = false;
     }
@@ -244,7 +246,7 @@ const fetchQAEntries = async () => {
         qaEntries.value = response.data.data || [];
     } catch (error) {
         console.error('Error fetching Q&A entries:', error);
-        toast.error('Failed to load Q&A entries');
+        toast.error(t('agents.sources.qa.load_entries_failed'));
     } finally {
         isLoading.value = false;
     }
@@ -279,13 +281,13 @@ const getStatusColor = (status: string) => {
 const getStatusText = (status: string) => {
     switch (status) {
         case 'ingested':
-            return 'Ingested';
+            return t('agents.sources.qa.status.ingested');
         case 'ingesting':
-            return 'Ingesting';
+            return t('agents.sources.qa.status.ingesting');
         case 'failed':
-            return 'Failed';
+            return t('agents.sources.qa.status.failed');
         default:
-            return 'Pending';
+            return t('agents.sources.qa.status.pending');
     }
 };
 
@@ -303,13 +305,13 @@ fetchQAEntries();
                         <div>
                             <CardTitle class="flex items-center gap-2">
                                 <HelpCircle class="h-5 w-5" />
-                                Q&A Knowledge Base
+                                {{ t('agents.sources.qa.title') }}
                             </CardTitle>
-                            <CardDescription> Craft responses for key questions, ensuring your AI shares relevant info. </CardDescription>
+                            <CardDescription> {{ t('agents.sources.qa.description') }} </CardDescription>
                         </div>
                         <Button @click="openCreateForm" size="sm">
-                            <Plus class="mr-2 h-4 w-4" />
-                            Add Q&A
+                            <Plus class="me-2 h-4 w-4" />
+                            {{ t('agents.sources.qa.add') }}
                         </Button>
                     </div>
                 </CardHeader>
@@ -319,25 +321,25 @@ fetchQAEntries();
             <Card v-if="showCreateForm">
                 <CardHeader>
                     <div class="flex items-center justify-between">
-                        <CardTitle>{{ editingEntry ? 'Edit Q&A' : 'Add Q&A' }}</CardTitle>
-                        <Button @click="closeCreateForm" variant="ghost" size="sm"> Cancel </Button>
+                        <CardTitle>{{ editingEntry ? t('agents.sources.qa.edit') : t('agents.sources.qa.add') }}</CardTitle>
+                        <Button @click="closeCreateForm" variant="ghost" size="sm"> {{ t('agents.sources.common.cancel') }} </Button>
                     </div>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <!-- Title -->
                     <div class="space-y-2">
-                        <Label for="title">Title</Label>
-                        <Input id="title" v-model="form.title" placeholder="Ex: Refund requests" :disabled="isSubmitting" />
+                        <Label for="title">{{ t('agents.sources.qa.title_label') }}</Label>
+                        <Input id="title" v-model="form.title" :placeholder="t('agents.sources.qa.title_placeholder')" :disabled="isSubmitting" />
                         <InputError :message="form.errors.title" />
                     </div>
 
                     <!-- Questions -->
                     <div class="space-y-2">
-                        <Label>Questions</Label>
+                        <Label>{{ t('agents.sources.qa.questions_label') }}</Label>
                         <div v-for="question in form.questions" :key="question.id" class="flex gap-2">
                             <Input
                                 v-model="question.question"
-                                :placeholder="`Ex: How do I request a refund?`"
+                                :placeholder="t('agents.sources.qa.question_placeholder')"
                                 :disabled="isSubmitting"
                                 class="flex-1"
                             />
@@ -352,17 +354,17 @@ fetchQAEntries();
                             </Button>
                         </div>
                         <Button @click="addQuestion" variant="outline" size="sm" :disabled="isSubmitting">
-                            <Plus class="mr-2 h-4 w-4" />
-                            Add question
+                            <Plus class="me-2 h-4 w-4" />
+                            {{ t('agents.sources.qa.add_question') }}
                         </Button>
                         <InputError :message="form.errors.questions" />
                     </div>
 
                     <!-- Answer -->
                     <div class="space-y-2">
-                        <Label for="answer">Answer</Label>
-                        <Textarea id="answer" v-model="form.answer" placeholder="Enter your answer..." rows="8" :disabled="isSubmitting" />
-                        <div class="text-muted-foreground text-sm">{{ form.answer.length }} characters</div>
+                        <Label for="answer">{{ t('agents.sources.qa.answer_label') }}</Label>
+                        <Textarea id="answer" v-model="form.answer" :placeholder="t('agents.sources.qa.answer_placeholder')" rows="8" :disabled="isSubmitting" />
+                        <div class="text-muted-foreground text-sm">{{ t('agents.sources.qa.char_count', { count: form.answer.length }) }}</div>
                         <InputError :message="form.errors.answer" />
                     </div>
 
@@ -372,9 +374,9 @@ fetchQAEntries();
                             @click="submitForm"
                             :disabled="isSubmitting || !form.title || !form.answer || form.questions.every((q) => !q.question)"
                         >
-                            <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                            <Save v-else class="mr-2 h-4 w-4" />
-                            {{ editingEntry ? 'Update Q&A' : 'Add Q&A' }}
+                            <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
+                            <Save v-else class="me-2 h-4 w-4" />
+                            {{ editingEntry ? t('agents.sources.qa.update') : t('agents.sources.qa.add') }}
                         </Button>
                     </div>
                 </CardContent>
@@ -390,13 +392,13 @@ fetchQAEntries();
             <Card v-else-if="qaEntries.length === 0 && !showCreateForm">
                 <CardContent class="flex flex-col items-center justify-center py-12 text-center">
                     <HelpCircle class="text-muted-foreground mb-4 h-12 w-12" />
-                    <h3 class="mb-2 text-lg font-medium">No Q&A entries yet</h3>
+                    <h3 class="mb-2 text-lg font-medium">{{ t('agents.sources.qa.empty_title') }}</h3>
                     <p class="text-muted-foreground mb-4 max-w-sm">
-                        Start building your knowledge base by adding frequently asked questions and their answers.
+                        {{ t('agents.sources.qa.empty_description') }}
                     </p>
                     <Button @click="openCreateForm">
-                        <Plus class="mr-2 h-4 w-4" />
-                        Add your first Q&A
+                        <Plus class="me-2 h-4 w-4" />
+                        {{ t('agents.sources.qa.add_first') }}
                     </Button>
                 </CardContent>
             </Card>
@@ -410,7 +412,7 @@ fetchQAEntries();
                                 <CardTitle class="text-lg">{{ entry.title }}</CardTitle>
                                 <div class="mt-2 space-y-1">
                                     <p v-for="(question, index) in entry.questions" :key="index" class="text-muted-foreground text-sm">
-                                        Q{{ index + 1 }}: {{ question.question }}
+                                        {{ t('agents.sources.qa.question_prefix', { number: index + 1 }) }} {{ question.question }}
                                     </p>
                                 </div>
                             </div>
@@ -440,20 +442,20 @@ fetchQAEntries();
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuGroup>
                                             <DropdownMenuItem @click="editEntry(entry)">
-                                                <Edit3 class="mr-2 h-4 w-4" />
-                                                Edit
+                                                <Edit3 class="me-2 h-4 w-4" />
+                                                {{ t('agents.sources.qa.edit_action') }}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 v-if="entry.agents_count && entry.agents_count > 1"
                                                 @click="unlinkEntry(entry)"
                                                 :disabled="isUnlinking"
                                             >
-                                                <Unlink class="mr-2 h-4 w-4" />
-                                                Unlink
+                                                <Unlink class="me-2 h-4 w-4" />
+                                                {{ t('agents.sources.common.unlink') }}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem @click="confirmDelete(entry)" class="text-red-600">
-                                                <Trash2 class="mr-2 h-4 w-4" />
-                                                Delete
+                                                <Trash2 class="me-2 h-4 w-4" />
+                                                {{ t('agents.sources.common.delete') }}
                                             </DropdownMenuItem>
                                         </DropdownMenuGroup>
                                     </DropdownMenuContent>
@@ -476,8 +478,8 @@ fetchQAEntries();
 
                         <!-- Meta Info -->
                         <div class="text-muted-foreground mt-4 flex items-center gap-4 text-xs">
-                            <span>Created {{ formatDate(entry.created_at) }}</span>
-                            <span v-if="entry.agents_count && entry.agents_count > 1"> Used by {{ entry.agents_count }} agents </span>
+                            <span>{{ t('agents.sources.qa.created_at', { date: formatDate(entry.created_at) }) }}</span>
+                            <span v-if="entry.agents_count && entry.agents_count > 1"> {{ t('agents.sources.qa.used_by_agents', { count: entry.agents_count }) }} </span>
                         </div>
                     </CardContent>
                 </Card>
@@ -487,15 +489,15 @@ fetchQAEntries();
             <Dialog v-model:open="deleteDialogOpen">
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete Q&A Entry</DialogTitle>
-                        <DialogDescription> Are you sure you want to delete this Q&A entry? This action cannot be undone. </DialogDescription>
+                        <DialogTitle>{{ t('agents.sources.qa.delete_title') }}</DialogTitle>
+                        <DialogDescription> {{ t('agents.sources.qa.delete_description') }} </DialogDescription>
                     </DialogHeader>
                     <div class="mt-4 flex justify-end gap-2">
-                        <Button @click="deleteDialogOpen = false" variant="outline" :disabled="isDeleting"> Cancel </Button>
+                        <Button @click="deleteDialogOpen = false" variant="outline" :disabled="isDeleting"> {{ t('agents.sources.common.cancel') }} </Button>
                         <Button @click="deleteEntry" variant="destructive" :disabled="isDeleting">
-                            <LoaderCircle v-if="isDeleting" class="mr-2 h-4 w-4 animate-spin" />
-                            <Trash2 v-else class="mr-2 h-4 w-4" />
-                            Delete
+                            <LoaderCircle v-if="isDeleting" class="me-2 h-4 w-4 animate-spin" />
+                            <Trash2 v-else class="me-2 h-4 w-4" />
+                            {{ t('agents.sources.common.delete') }}
                         </Button>
                     </div>
                 </DialogContent>

@@ -30,6 +30,7 @@ use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamRoleResolver;
 use Domain\Membership\Team\Services\TeamService;
 use Domain\Prompt\Models\AgentPrompt;
+use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -46,6 +47,7 @@ use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
@@ -276,6 +278,21 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
+     * Org-wide security & compliance policy for this user's account — the
+     * workspace owner's `WorkspaceSecurityPolicy` row, created on first read so
+     * no caller (middleware, command, Action) ever sees null. Resolved through
+     * `workspace()` and memoized, mirroring `accountBilling()`, so employees and
+     * chatters inherit the workspace answer through a single resolution path.
+     */
+    public function securityPolicy(): WorkspaceSecurityPolicy
+    {
+        return $this->remember(
+            'securityPolicy',
+            fn (): WorkspaceSecurityPolicy => WorkspaceSecurityPolicy::forWorkspace($this->workspace()->id),
+        );
+    }
+
+    /**
      * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with('agents')` / `load('agents')`) builds the relation on a bare
      * instance and returns the wrong rows for an employee/chatter; eager-load
@@ -313,7 +330,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
     public function isWorkspace(): bool
     {
-        return $this->type === UserType::Workspace;
+        return in_array($this->type, UserType::workspaceTypes(), true);
     }
 
     public function isEmployee(): bool
@@ -621,10 +638,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         );
     }
 
-    /** @see TeamRoleResolver::hasPermission */
+    /** @see TeamRoleResolver::hasPermission — via the memoized teamRole(). */
     public function hasTeamPermission(Team $team, string $permission): bool
     {
-        return app(TeamRoleResolver::class)->hasPermission($this, $team, $permission);
+        $role = $this->teamRole($team);
+
+        return $role !== null && $role->hasPermissionTo($permission);
     }
 
     /**
@@ -981,23 +1000,53 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     /**
      * Switch the account off with an optional reason (shown to admins on the
      * Members page). Idempotent — re-deactivating refreshes the reason.
+     *
+     * Deactivating a workspace is an account-wide off switch: every member it
+     * owns (employees + chatters) is switched off alongside the owner so they
+     * lose access too. Members already off keep their original timestamp.
      */
     public function deactivate(?string $reason = null): void
     {
-        $this->update([
-            'deactivated_at' => now(),
-            'deactivation_reason' => $reason,
-        ]);
+        $now = now();
+
+        DB::transaction(function () use ($reason, $now): void {
+            $this->update([
+                'deactivated_at' => $now,
+                'deactivation_reason' => $reason,
+            ]);
+
+            if ($this->isWorkspace()) {
+                $this->users()
+                    ->whereNull('deactivated_at')
+                    ->update([
+                        'deactivated_at' => $now,
+                        'deactivation_reason' => $reason,
+                    ]);
+            }
+        });
     }
 
     /**
-     * Switch the account back on and clear the stored reason.
+     * Switch the account back on and clear the stored reason. Reactivating a
+     * workspace mirrors the deactivation cascade — every member switched off
+     * with it is restored, so the account becomes usable again.
      */
     public function reactivate(): void
     {
-        $this->update([
-            'deactivated_at' => null,
-            'deactivation_reason' => null,
-        ]);
+        DB::transaction(function (): void {
+            $this->update([
+                'deactivated_at' => null,
+                'deactivation_reason' => null,
+            ]);
+
+            if ($this->isWorkspace()) {
+                $this->users()
+                    ->whereNotNull('deactivated_at')
+                    ->update([
+                        'deactivated_at' => null,
+                        'deactivation_reason' => null,
+                    ]);
+            }
+        });
     }
 }

@@ -22,7 +22,10 @@ import {
 } from 'chart.js';
 import { BarChart3, Coins, Globe2, LoaderCircle, MessageCircle, MessageSquare, ThumbsDown, ThumbsUp, TrendingUp, Zap } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Bar, Line } from 'vue-chartjs';
+
+const { t } = useI18n();
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, ChartTooltip, Filler);
@@ -122,7 +125,7 @@ const fetchAnalytics = async () => {
             isInitialLoad.value = false;
         }
     } catch (err: any) {
-        error.value = err.response?.data?.message || 'Failed to load analytics';
+        error.value = err.response?.data?.message || t('agents.analytics.load_error');
         console.error('Error fetching analytics:', err);
     } finally {
         loading.value = false;
@@ -148,7 +151,7 @@ onMounted(() => {
 
 // Helper functions
 const formatDuration = (seconds: number | null): string => {
-    if (!seconds) return 'N/A';
+    if (!seconds) return t('agents.analytics.na');
     const minutes = Math.floor(seconds / 60);
     const secs = Math.round(seconds % 60);
     if (minutes > 0) {
@@ -168,15 +171,14 @@ const getFlagPath = (countryCode: string): string => {
 // Helper to get peak activity hour formatted
 const getPeakActivity = () => {
     const hour = analytics.value?.peak_activity_hour;
-    return hour != null ? formatHour(hour) : 'N/A';
+    return hour != null ? formatHour(hour) : t('agents.analytics.na');
 };
 
-// Helper to get busiest day
 const getBusiestDay = () => {
     const days = analytics.value?.activity_by_day_of_week || [];
-    if (!days.length) return 'N/A';
+    if (!days.length) return t('agents.analytics.na');
     const busiest = [...days].sort((a, b) => b.count - a.count)[0];
-    return busiest?.day || 'N/A';
+    return busiest?.day || t('agents.analytics.na');
 };
 
 // Chart data for conversations trend - Dynamic based on date range
@@ -221,7 +223,7 @@ const chartData = computed(() => ({
     labels: conversationChartData.value.map((d) => d.dayMonth),
     datasets: [
         {
-            label: 'Conversations',
+            label: t('agents.analytics.chart_conversations'),
             data: conversationChartData.value.map((d) => d.conversations),
             borderColor: 'rgb(99, 102, 241)',
             backgroundColor: 'rgba(99, 102, 241, 0.1)',
@@ -239,7 +241,7 @@ const chartData = computed(() => ({
     ],
 }));
 
-const chartOptions: ChartOptions<'line'> = {
+const chartOptions = computed<ChartOptions<'line'>>(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -265,7 +267,6 @@ const chartOptions: ChartOptions<'line'> = {
                     const currentIndex = context.dataIndex;
                     const currentDate = context.label;
 
-                    // Get previous day value if it exists
                     if (currentIndex > 0) {
                         const previousValue = context.dataset.data[currentIndex - 1];
                         const previousDate = context.chart.data.labels[currentIndex - 1];
@@ -274,13 +275,13 @@ const chartOptions: ChartOptions<'line'> = {
                         const percentage = previousValue > 0 ? ((difference / previousValue) * 100).toFixed(1) : '0.0';
 
                         return [
-                            `${currentDate}: ${currentValue} conversations`,
-                            `${previousDate}: ${previousValue} conversations`,
-                            `Change: ${sign}${difference} (${sign}${percentage}%)`,
+                            t('agents.analytics.chart_tooltip_conversations', { date: currentDate, count: currentValue }),
+                            t('agents.analytics.chart_tooltip_conversations', { date: previousDate, count: previousValue }),
+                            t('agents.analytics.chart_tooltip_change', { sign, diff: difference, percent: percentage }),
                         ];
                     }
 
-                    return `${currentDate}: ${currentValue} conversations`;
+                    return t('agents.analytics.chart_tooltip_conversations', { date: currentDate, count: currentValue });
                 },
             },
         },
@@ -320,7 +321,7 @@ const chartOptions: ChartOptions<'line'> = {
         axis: 'x',
         intersect: false,
     },
-};
+}));
 
 // Hourly activity chart data
 const hourlyChartData = computed(() => {
@@ -329,7 +330,7 @@ const hourlyChartData = computed(() => {
         labels: hours.map((h) => formatHour(h.hour)),
         datasets: [
             {
-                label: 'Conversations',
+                label: t('agents.analytics.chart_conversations'),
                 data: hours.map((h) => h.count),
                 backgroundColor: 'rgba(99, 102, 241, 0.8)',
                 borderColor: 'rgb(99, 102, 241)',
@@ -341,7 +342,7 @@ const hourlyChartData = computed(() => {
     };
 });
 
-const hourlyChartOptions: ChartOptions<'bar'> = {
+const hourlyChartOptions = computed<ChartOptions<'bar'>>(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -358,7 +359,7 @@ const hourlyChartOptions: ChartOptions<'bar'> = {
             displayColors: false,
             callbacks: {
                 label: function (context: any) {
-                    return `${context.parsed.y} conversations`;
+                    return t('agents.analytics.chart_tooltip_count', { count: context.parsed.y });
                 },
             },
         },
@@ -396,7 +397,7 @@ const hourlyChartOptions: ChartOptions<'bar'> = {
             },
         },
     },
-};
+}));
 
 // Day of week chart data
 const dayOfWeekChartData = computed(() => {
@@ -405,7 +406,7 @@ const dayOfWeekChartData = computed(() => {
         labels: days.map((d) => d.day),
         datasets: [
             {
-                label: 'Conversations',
+                label: t('agents.analytics.chart_conversations'),
                 data: days.map((d) => d.count),
                 backgroundColor: 'rgba(99, 102, 241, 0.8)',
                 borderColor: 'rgb(99, 102, 241)',
@@ -416,7 +417,7 @@ const dayOfWeekChartData = computed(() => {
     };
 });
 
-const dayOfWeekChartOptions: ChartOptions<'bar'> = {
+const dayOfWeekChartOptions = computed<ChartOptions<'bar'>>(() => ({
     indexAxis: 'y',
     responsive: true,
     maintainAspectRatio: false,
@@ -434,7 +435,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
             displayColors: false,
             callbacks: {
                 label: function (context: any) {
-                    return `${context.parsed.x} conversations`;
+                    return t('agents.analytics.chart_tooltip_count', { count: context.parsed.x });
                 },
             },
         },
@@ -469,11 +470,11 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
             },
         },
     },
-};
+}));
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Agent Statistics">
+    <AgentLayout :agent="agent" :title="t('agents.analytics.title')">
         <!-- Loading State -->
         <div v-if="loading" class="flex items-center justify-center py-12">
             <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />
@@ -485,7 +486,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                 <CardContent class="pt-6">
                     <div class="space-y-2 text-center">
                         <p class="text-destructive font-medium">{{ error }}</p>
-                        <button @click="fetchAnalytics" class="text-muted-foreground hover:text-foreground text-sm underline">Try again</button>
+                        <button @click="fetchAnalytics" class="text-muted-foreground hover:text-foreground text-sm underline">{{ t('agents.analytics.try_again') }}</button>
                     </div>
                 </CardContent>
             </Card>
@@ -500,10 +501,9 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                     <!-- Refreshing Indicator -->
                     <div v-if="isRefreshing" class="text-muted-foreground flex items-center gap-2 text-sm">
                         <LoaderCircle class="h-4 w-4 animate-spin" />
-                        <span>Updating...</span>
+                        <span>{{ t('agents.analytics.updating') }}</span>
                     </div>
-                    <!-- No Data Message -->
-                    <div v-if="isDatePickerDisabled" class="text-muted-foreground text-sm">No conversation data available yet</div>
+                    <div v-if="isDatePickerDisabled" class="text-muted-foreground text-sm">{{ t('agents.analytics.no_data_yet') }}</div>
                 </div>
             </div>
 
@@ -514,7 +514,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                     <CardContent class="!p-3 !pb-3">
                         <div class="flex items-center gap-2">
                             <MessageCircle class="text-muted-foreground h-4 w-4" />
-                            <p class="text-muted-foreground text-sm font-medium">Total conversations</p>
+                            <p class="text-muted-foreground text-sm font-medium">{{ t('agents.analytics.total_conversations') }}</p>
                         </div>
                         <p class="mt-1 text-xl font-bold">{{ (analytics?.total_conversations ?? 0).toLocaleString() }}</p>
                     </CardContent>
@@ -525,7 +525,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                     <CardContent class="!p-3 !pb-3">
                         <div class="flex items-center gap-2">
                             <MessageSquare class="text-muted-foreground h-4 w-4" />
-                            <p class="text-muted-foreground text-sm font-medium">Total messages</p>
+                            <p class="text-muted-foreground text-sm font-medium">{{ t('agents.analytics.total_messages') }}</p>
                         </div>
                         <p class="mt-1 text-xl font-bold">{{ (analytics?.total_messages ?? 0).toLocaleString() }}</p>
                     </CardContent>
@@ -536,7 +536,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                     <CardContent class="!p-3 !pb-3">
                         <div class="flex items-center gap-2">
                             <ThumbsUp class="text-muted-foreground h-4 w-4" />
-                            <p class="text-muted-foreground text-sm font-medium">Thumbs up messages</p>
+                            <p class="text-muted-foreground text-sm font-medium">{{ t('agents.analytics.thumbs_up') }}</p>
                         </div>
                         <p class="mt-1 text-xl font-bold">{{ analytics?.feedback?.positive ?? 0 }}</p>
                     </CardContent>
@@ -547,7 +547,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                     <CardContent class="!p-3 !pb-3">
                         <div class="flex items-center gap-2">
                             <ThumbsDown class="text-muted-foreground h-4 w-4" />
-                            <p class="text-muted-foreground text-sm font-medium">Thumbs down messages</p>
+                            <p class="text-muted-foreground text-sm font-medium">{{ t('agents.analytics.thumbs_down') }}</p>
                         </div>
                         <p class="mt-1 text-xl font-bold">{{ analytics?.feedback?.negative ?? 0 }}</p>
                     </CardContent>
@@ -560,12 +560,12 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                     <div class="flex items-center justify-between">
                         <CardTitle class="flex items-center gap-2">
                             <TrendingUp class="h-5 w-5" />
-                            Conversations Started
+                            {{ t('agents.analytics.conversations_started') }}
                         </CardTitle>
                         <Tabs v-model="activeChartTab" default-value="daily">
                             <TabsList class="grid grid-cols-2">
-                                <TabsTrigger value="daily">Daily View</TabsTrigger>
-                                <TabsTrigger value="hourly">Hourly View</TabsTrigger>
+                                <TabsTrigger value="daily">{{ t('agents.analytics.daily_view') }}</TabsTrigger>
+                                <TabsTrigger value="hourly">{{ t('agents.analytics.hourly_view') }}</TabsTrigger>
                             </TabsList>
                         </Tabs>
                     </div>
@@ -578,7 +578,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                         >
                             <div class="text-center">
                                 <BarChart3 class="mx-auto h-8 w-8 opacity-50" />
-                                <p class="mt-2">No conversation data available</p>
+                                <p class="mt-2">{{ t('agents.analytics.no_conversation_data') }}</p>
                             </div>
                         </div>
                         <div v-else class="h-[300px] w-full">
@@ -592,19 +592,19 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                             <div class="flex items-center justify-between px-2 text-sm">
                                 <div class="flex items-center gap-4">
                                     <span class="text-muted-foreground"
-                                        >Peak hour: <span class="text-foreground font-medium">{{ getPeakActivity() }}</span></span
+                                        >{{ t('agents.analytics.peak_hour') }}: <span class="text-foreground font-medium">{{ getPeakActivity() }}</span></span
                                     >
                                     <span class="text-muted-foreground"
-                                        >Busiest day: <span class="text-foreground font-medium">{{ getBusiestDay() }}</span></span
+                                        >{{ t('agents.analytics.busiest_day') }}: <span class="text-foreground font-medium">{{ getBusiestDay() }}</span></span
                                     >
                                 </div>
                                 <Dialog v-model:open="isDayOfWeekDialogOpen">
                                     <DialogTrigger as-child>
-                                        <Button variant="outline" size="sm"> View by Day of Week </Button>
+                                        <Button variant="outline" size="sm">{{ t('agents.analytics.view_by_day') }}</Button>
                                     </DialogTrigger>
                                     <DialogContent class="max-w-2xl">
                                         <DialogHeader>
-                                            <DialogTitle>Activity by Day of Week</DialogTitle>
+                                            <DialogTitle>{{ t('agents.analytics.activity_by_day') }}</DialogTitle>
                                         </DialogHeader>
                                         <div class="mt-4 h-[400px] w-full">
                                             <Bar :data="dayOfWeekChartData" :options="dayOfWeekChartOptions" />
@@ -615,7 +615,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
 
                             <!-- Hourly Activity Chart -->
                             <div>
-                                <h4 class="mb-3 px-2 text-sm font-medium">Activity by Hour</h4>
+                                <h4 class="mb-3 px-2 text-sm font-medium">{{ t('agents.analytics.activity_by_hour') }}</h4>
                                 <div class="h-[280px] w-full">
                                     <Bar :data="hourlyChartData" :options="hourlyChartOptions" />
                                 </div>
@@ -631,23 +631,23 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                     <div class="flex items-center justify-between">
                         <CardTitle class="flex items-center gap-2">
                             <Globe2 class="h-5 w-5" />
-                            Chats by Country
+                            {{ t('agents.analytics.chats_by_country') }}
                         </CardTitle>
                         <Dialog v-model:open="isCountryDialogOpen" v-if="analytics?.country_usage?.length">
                             <DialogTrigger as-child>
-                                <Button variant="outline" size="sm"> View All </Button>
+                                <Button variant="outline" size="sm">{{ t('agents.analytics.view_all') }}</Button>
                             </DialogTrigger>
                             <DialogContent class="flex max-h-[80vh] max-w-2xl flex-col overflow-hidden">
                                 <DialogHeader>
-                                    <DialogTitle>All Countries</DialogTitle>
+                                    <DialogTitle>{{ t('agents.analytics.all_countries') }}</DialogTitle>
                                 </DialogHeader>
-                                <div class="flex-1 overflow-y-auto pr-2">
+                                <div class="flex-1 overflow-y-auto pe-2">
                                     <div class="space-y-3">
                                         <div class="bg-background sticky top-0 z-10 flex items-center justify-between border-b pb-3">
-                                            <div class="text-muted-foreground flex-1 text-sm font-medium">Country</div>
-                                            <div class="text-muted-foreground w-32 text-right text-sm font-medium">Progress</div>
-                                            <div class="text-muted-foreground w-16 text-right text-sm font-medium">Chats</div>
-                                            <div class="text-muted-foreground w-16 text-right text-sm font-medium">%</div>
+                                            <div class="text-muted-foreground flex-1 text-sm font-medium">{{ t('agents.analytics.country') }}</div>
+                                            <div class="text-muted-foreground w-32 text-right text-sm font-medium">{{ t('agents.analytics.progress') }}</div>
+                                            <div class="text-muted-foreground w-16 text-right text-sm font-medium">{{ t('agents.analytics.chats') }}</div>
+                                            <div class="text-muted-foreground w-16 text-right text-sm font-medium">{{ t('agents.analytics.percent') }}</div>
                                         </div>
 
                                         <div
@@ -681,7 +681,7 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                     </div>
                 </CardHeader>
                 <CardContent class="overflow-hidden">
-                    <div v-if="!analytics?.country_usage?.length" class="text-muted-foreground py-8 text-center">No geographic data available</div>
+                    <div v-if="!analytics?.country_usage?.length" class="text-muted-foreground py-8 text-center">{{ t('agents.analytics.no_geo_data') }}</div>
                     <div v-else class="overflow-hidden">
                         <WorldMap :country-data="analytics?.country_usage ?? []" />
                     </div>
@@ -693,37 +693,37 @@ const dayOfWeekChartOptions: ChartOptions<'bar'> = {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Zap class="h-5 w-5" />
-                        Performance & usage
+                        {{ t('agents.analytics.performance_usage') }}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="grid grid-cols-2 gap-6 md:grid-cols-4">
                         <div>
-                            <p class="text-muted-foreground mb-1 text-sm">Avg response time</p>
+                            <p class="text-muted-foreground mb-1 text-sm">{{ t('agents.analytics.avg_response_time') }}</p>
                             <p class="text-2xl font-bold">{{ analytics?.avg_response_time ?? 0 }}s</p>
                         </div>
                         <div>
-                            <p class="text-muted-foreground mb-1 text-sm">First response time</p>
+                            <p class="text-muted-foreground mb-1 text-sm">{{ t('agents.analytics.first_response_time') }}</p>
                             <p class="text-2xl font-bold">{{ formatDuration(analytics?.avg_first_response_time ?? null) }}</p>
                         </div>
                         <div>
-                            <p class="text-muted-foreground mb-1 text-sm">Avg session duration</p>
+                            <p class="text-muted-foreground mb-1 text-sm">{{ t('agents.analytics.avg_session_duration') }}</p>
                             <p class="text-2xl font-bold">{{ formatDuration(analytics?.avg_conversation_duration ?? null) }}</p>
                         </div>
                         <div>
-                            <p class="text-muted-foreground mb-1 text-sm">Avg messages / chat</p>
+                            <p class="text-muted-foreground mb-1 text-sm">{{ t('agents.analytics.avg_messages_per_chat') }}</p>
                             <p class="text-2xl font-bold">{{ Number(analytics?.avg_messages_per_conversation ?? 0).toFixed(1) }}</p>
                         </div>
                         <div>
-                            <p class="text-muted-foreground mb-1 text-sm">Unique sessions</p>
+                            <p class="text-muted-foreground mb-1 text-sm">{{ t('agents.analytics.unique_sessions') }}</p>
                             <p class="text-2xl font-bold">{{ (analytics?.unique_sessions ?? 0).toLocaleString() }}</p>
                         </div>
                         <div>
-                            <p class="text-muted-foreground mb-1 flex items-center gap-1 text-sm"><Coins class="h-3.5 w-3.5" /> Total tokens</p>
+                            <p class="text-muted-foreground mb-1 flex items-center gap-1 text-sm"><Coins class="h-3.5 w-3.5" /> {{ t('agents.analytics.total_tokens') }}</p>
                             <p class="text-2xl font-bold">{{ (analytics?.total_tokens_used ?? 0).toLocaleString() }}</p>
                         </div>
                         <div>
-                            <p class="text-muted-foreground mb-1 text-sm">Avg tokens / message</p>
+                            <p class="text-muted-foreground mb-1 text-sm">{{ t('agents.analytics.avg_tokens_per_message') }}</p>
                             <p class="text-2xl font-bold">{{ Math.round(analytics?.avg_tokens_per_message ?? 0).toLocaleString() }}</p>
                         </div>
                     </div>

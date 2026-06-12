@@ -18,11 +18,13 @@ function invokeMcpTool(int $agentId, string $serverSlug, string $toolName, ?stri
     app(RecordMcpToolInvocationAction::class)->execute(new McpToolInvoked(
         agentId: $agentId,
         workspaceId: 700000,
+        serverId: 1,
         serverSlug: $serverSlug,
         toolName: $toolName,
         toolDescription: $description,
         serverName: 'GitHub',
         connectorSlug: 'github',
+        error: null,
         occurredAt: Carbon::parse('2026-06-01 09:00'),
     ));
 }

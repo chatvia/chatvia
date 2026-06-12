@@ -2,6 +2,7 @@
 
 namespace Domain\Integration\Connector\Data\Catalog;
 
+use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Spatie\LaravelData\Attributes\Hidden;
 use Spatie\LaravelData\Data;
 
@@ -21,6 +22,10 @@ class ConnectorData extends Data
         // 'chatvia' for built-in MCPs we host (weather, currency, …);
         // 'featured' for third-party integrations (Slack, Atlassian, …).
         public string $provider = 'featured',
+        // Explicit McpServerCategory value from config ('builtin' / 'integration').
+        // Null falls back to the provider+auth derivation in serverCategory().
+        #[Hidden]
+        public ?string $mcpCategory = null,
         public ?string $logoUrl = null,
         public ?string $authType = null,
         public ?string $tokenLabel = null,
@@ -72,6 +77,7 @@ class ConnectorData extends Data
             mcpUrl: (string) $entry['mcp_url'],
             priority: (int) $entry['priority'],
             provider: (string) ($entry['provider'] ?? 'featured'),
+            mcpCategory: $entry['server_category'] ?? null,
             logoUrl: $entry['logo_url'] ?? null,
             authType: $entry['auth_type'] ?? null,
             tokenLabel: $entry['token_label'] ?? null,
@@ -100,5 +106,21 @@ class ConnectorData extends Data
             && $this->oauthClientId !== null
             && $this->oauthAuthorizationEndpoint !== null
             && $this->oauthTokenEndpoint !== null;
+    }
+
+    /**
+     * The {@see McpServerCategory} a connected row of this connector carries.
+     * Chatvia-hosted presets with no external auth (Leads, Interactive Charts)
+     * are Builtin; everything else connects to an external service → Integration.
+     */
+    public function serverCategory(): McpServerCategory
+    {
+        if ($this->mcpCategory !== null) {
+            return McpServerCategory::from($this->mcpCategory);
+        }
+
+        return $this->provider === 'chatvia' && $this->authStrategy === 'none'
+            ? McpServerCategory::Builtin
+            : McpServerCategory::Integration;
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Agent\Invitations\AgentInvitationSocialCallbackControll
 use App\Http\Controllers\Agent\Invitations\AgentInvitationSocialStartController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\Sessions\MagicLinkController;
+use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\Team\Invitations\AcceptTeamInvitationController;
 use App\Http\Controllers\Team\Invitations\TeamInvitationController;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,18 @@ Route::get('chat-invitation/oauth/{provider}/callback', AgentInvitationSocialCal
 // logout / two-factor / passkey routes are registered by Laravel Fortify. See
 // config/fortify.php for enabled features and FortifyServiceProvider for the
 // view callbacks and the authenticateUsing closure.
+
+// First-time password setup for accounts created by the trial-checkout
+// webhook (provisioned with a random password that is never emailed).
+// RequirePasswordSetup — in the web group — funnels flagged users here.
+Route::middleware('auth')->group(function (): void {
+    Route::get('set-password', [SetPasswordController::class, 'show'])
+        ->name('password.setup');
+
+    Route::post('set-password', [SetPasswordController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('password.setup.store');
+});
 
 Route::middleware('guest')->group(function (): void {
     Route::post('magic-link', [MagicLinkController::class, 'store'])

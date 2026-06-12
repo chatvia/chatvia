@@ -34,6 +34,11 @@ export interface SharedData extends PageProps {
     subscribed: boolean;
     permissions: Record<number, string[]>;
     currentTeam: CurrentTeam | null;
+    // Persisted UI language for the signed-in user (`auto` follows the browser).
+    locale?: string;
+    // Pennant feature flags, keyed by feature name (e.g. `security`). Resolved
+    // per request from the workspace's live plan entitlement.
+    features: Record<string, boolean>;
 
     // Chat-flow / widget contexts share the resolved agent and surface flash
     // messages, request schema, and the active subdomain. Most pages don't
@@ -76,6 +81,9 @@ export interface User {
     // Preferred date display format key — see Support\Enums\User\DateFormat and
     // the useDateFormat composable. Null/undefined falls back to ISO.
     date_format?: string | null;
+    // Preferred UI language key (e.g. `en`, `ar`). Null/undefined follows the
+    // browser locale — see resources/js/i18n and the language switcher.
+    locale?: string | null;
     capabilities?: App.Billing.Data.Resources.Package.BillingPackageCapabilitiesData;
 }
 

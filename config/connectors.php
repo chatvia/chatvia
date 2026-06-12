@@ -30,6 +30,7 @@ return [
         'token_label' => 'Perplexity API key',
         'token_help_url' => 'https://www.perplexity.ai/account/api/keys',
         'token_placeholder' => 'Your Perplexity API key',
+        'server_category' => 'integration',
         'mcp_url' => env('APP_URL').'/mcp/perplexity',
     ],
 
@@ -50,6 +51,7 @@ return [
         'token_label' => 'OpenWeatherMap API key',
         'token_help_url' => 'https://home.openweathermap.org/api_keys',
         'token_placeholder' => 'Your OpenWeatherMap API key',
+        'server_category' => 'integration',
         'mcp_url' => env('APP_URL').'/mcp/weather',
     ],
 
@@ -70,6 +72,7 @@ return [
         'token_label' => 'ExchangeRate-API key',
         'token_help_url' => 'https://app.exchangerate-api.com/dashboard',
         'token_placeholder' => 'Your ExchangeRate-API key',
+        'server_category' => 'integration',
         'mcp_url' => env('APP_URL').'/mcp/currency',
     ],
 
@@ -84,6 +87,12 @@ return [
         'provider' => 'chatvia',
         'priority' => 30,
         'auth_strategy' => 'none',
+        // First-party builtin: always-on for every agent via the global
+        // (user_id IS NULL) mcp_servers row synced by app:sync-builtin-mcp.
+        'server_category' => 'builtin',
+        // Hidden from the attachable catalog — it's always on, so there's
+        // nothing to attach and no per-agent 'charts' row to collide with.
+        'visible' => false,
         'mcp_url' => env('APP_URL').'/mcp/charts',
     ],
 
@@ -98,6 +107,9 @@ return [
         'provider' => 'chatvia',
         'priority' => 40,
         'auth_strategy' => 'none',
+        // First-party builtin, but NOT synced as a global always-on row, so it
+        // stays per-agent opt-in (lead capture is an agent-specific choice).
+        'server_category' => 'builtin',
         'mcp_url' => env('APP_URL').'/mcp/leads',
     ],
 

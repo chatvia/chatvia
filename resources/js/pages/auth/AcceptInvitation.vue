@@ -7,6 +7,9 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Lock, LockKeyhole, Mail, User, Users } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     invitation: {
@@ -48,12 +51,12 @@ const submit = () => {
 
 <template>
     <AuthBase
-        :title="userExists ? 'Login to accept invitation' : 'Create your account'"
-        :description="userExists ? 'Enter your password to join the team' : 'Fill in your details to join the team'"
+        :title="userExists ? t('auth.accept_invitation.title_existing') : t('auth.accept_invitation.title_new')"
+        :description="userExists ? t('auth.accept_invitation.description_existing') : t('auth.accept_invitation.description_new')"
     >
-        <Head :title="userExists ? 'Accept Invitation' : 'Create Account & Join Team'" />
+        <Head :title="userExists ? t('auth.accept_invitation.head_existing') : t('auth.accept_invitation.head_new')" />
 
-        <div class="absolute top-4 right-4">
+        <div class="absolute top-4 end-4">
             <ThemeSwitcher />
         </div>
 
@@ -64,8 +67,8 @@ const submit = () => {
                     <Users class="text-primary h-7 w-7" />
                 </div>
                 <p class="text-muted-foreground text-base leading-relaxed">
-                    You've been invited to join <span class="text-foreground font-semibold">{{ team.name }}</span> as
-                    {{ role.name.match(/^[aeiou]/i) ? 'an' : 'a' }} <span class="text-foreground font-semibold">{{ role.name }}</span>
+                    {{ t('auth.accept_invitation.invited_to_join') }} <span class="text-foreground font-semibold">{{ team.name }}</span>
+                    {{ t('auth.accept_invitation.as') }} <span class="text-foreground font-semibold">{{ role.name }}</span>
                 </p>
             </div>
 
@@ -73,9 +76,9 @@ const submit = () => {
             <form @submit.prevent="submit" class="space-y-5">
                 <!-- Name Field (only for new users) -->
                 <div v-if="!userExists" class="space-y-2">
-                    <Label for="name" class="text-base font-medium">Name</Label>
+                    <Label for="name" class="text-base font-medium">{{ t('auth.accept_invitation.name_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <User class="h-5 w-5" />
                         </div>
                         <Input
@@ -86,8 +89,8 @@ const submit = () => {
                             :tabindex="1"
                             autocomplete="name"
                             v-model="form.name"
-                            placeholder="Your name"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="t('auth.accept_invitation.name_placeholder')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.name" />
@@ -95,28 +98,28 @@ const submit = () => {
 
                 <!-- Email Display (readonly) -->
                 <div class="space-y-2">
-                    <Label class="text-base font-medium">Email address</Label>
+                    <Label class="text-base font-medium">{{ t('auth.accept_invitation.email_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <Mail class="h-5 w-5" />
                         </div>
                         <input
                             type="email"
                             :value="invitation.email"
                             disabled
-                            class="border-input bg-muted ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-12 w-full cursor-not-allowed rounded-md border px-3 py-2 pl-10 text-base file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
+                            class="border-input bg-muted ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-12 w-full cursor-not-allowed rounded-md border px-3 py-2 ps-10 text-base file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
                         />
                     </div>
-                    <p class="text-muted-foreground text-xs">This is the email address the invitation was sent to</p>
+                    <p class="text-muted-foreground text-xs">{{ t('auth.accept_invitation.email_hint') }}</p>
                 </div>
 
                 <!-- Password Field -->
                 <div class="space-y-2">
                     <Label for="password" class="text-base font-medium">
-                        {{ userExists ? 'Your password' : 'Create a password' }}
+                        {{ userExists ? t('auth.accept_invitation.password_label_existing') : t('auth.accept_invitation.password_label_new') }}
                     </Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <Lock class="h-5 w-5" />
                         </div>
                         <Input
@@ -127,8 +130,8 @@ const submit = () => {
                             :tabindex="userExists ? 1 : 2"
                             :autocomplete="userExists ? 'current-password' : 'new-password'"
                             v-model="form.password"
-                            :placeholder="userExists ? 'Enter your password' : 'Create a password'"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="userExists ? t('auth.accept_invitation.password_placeholder_existing') : t('auth.accept_invitation.password_placeholder_new')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.password" />
@@ -136,9 +139,9 @@ const submit = () => {
 
                 <!-- Confirm Password Field (only for new users) -->
                 <div v-if="!userExists" class="space-y-2">
-                    <Label for="password_confirmation" class="text-base font-medium">Confirm password</Label>
+                    <Label for="password_confirmation" class="text-base font-medium">{{ t('auth.accept_invitation.confirm_password_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <LockKeyhole class="h-5 w-5" />
                         </div>
                         <Input
@@ -148,8 +151,8 @@ const submit = () => {
                             :tabindex="3"
                             autocomplete="new-password"
                             v-model="form.password_confirmation"
-                            placeholder="Confirm password"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="t('auth.accept_invitation.confirm_password_placeholder')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.password_confirmation" />
@@ -157,7 +160,7 @@ const submit = () => {
 
                 <!-- Terms and Conditions (only for new users) -->
                 <div v-if="!userExists" class="space-y-3">
-                    <div class="flex items-start space-x-3">
+                    <div class="flex items-start gap-3">
                         <div class="flex h-5 items-center">
                             <input
                                 id="policy"
@@ -169,16 +172,16 @@ const submit = () => {
                         </div>
                         <div class="text-sm">
                             <label for="policy" class="text-muted-foreground">
-                                I agree to the
+                                {{ t('auth.accept_invitation.agree_to') }}
                                 <a href="/privacy-policy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer"
-                                    >Privacy Policy</a
+                                    >{{ t('auth.accept_invitation.privacy_policy') }}</a
                                 >
                             </label>
                             <InputError :message="form.errors.policy" />
                         </div>
                     </div>
 
-                    <div class="flex items-start space-x-3">
+                    <div class="flex items-start gap-3">
                         <div class="flex h-5 items-center">
                             <input
                                 id="terms"
@@ -190,9 +193,9 @@ const submit = () => {
                         </div>
                         <div class="text-sm">
                             <label for="terms" class="text-muted-foreground">
-                                I agree to the
+                                {{ t('auth.accept_invitation.agree_to') }}
                                 <a href="/terms-of-service" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer"
-                                    >Terms of Service</a
+                                    >{{ t('auth.accept_invitation.terms_of_service') }}</a
                                 >
                             </label>
                             <InputError :message="form.errors.terms" />
@@ -207,12 +210,12 @@ const submit = () => {
                     :tabindex="userExists ? 2 : 6"
                     :disabled="form.processing || (!userExists && (!form.policy || !form.terms))"
                 >
-                    <LoaderCircle v-if="form.processing" class="mr-2 h-5 w-5 animate-spin" />
+                    <LoaderCircle v-if="form.processing" class="me-2 h-5 w-5 animate-spin" />
                     <span v-if="!form.processing">
-                        {{ userExists ? 'Login & Join Team' : 'Create Account & Join Team' }}
+                        {{ userExists ? t('auth.accept_invitation.submit_existing') : t('auth.accept_invitation.submit_new') }}
                     </span>
                     <span v-else>
-                        {{ userExists ? 'Logging in...' : 'Creating account...' }}
+                        {{ userExists ? t('auth.accept_invitation.logging_in') : t('auth.accept_invitation.creating_account') }}
                     </span>
                 </Button>
 

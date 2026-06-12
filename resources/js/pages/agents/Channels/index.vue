@@ -17,9 +17,12 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { Building2, Check, Fingerprint, Hash, KeyRound, Link2, LoaderCircle, Lock, Plug, Settings2, ShieldCheck, Unplug } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import CopyField from './CopyField.vue';
 import CredentialInput from './CredentialInput.vue';
+
+const { t } = useI18n();
 
 interface Props {
     agent: { external_id: string; name: string; is_public: boolean };
@@ -57,50 +60,54 @@ const items = computed<ChannelItem[]>(() => [
     {
         kind: 'telegram',
         name: 'Telegram',
-        tagline: props.telegram.connected ? `Chatting as @${props.telegram.bot_username}` : 'Let people chat with your agent inside Telegram.',
+        tagline: props.telegram.connected
+            ? t('agents.channels.telegram.tagline_connected', { username: props.telegram.bot_username })
+            : t('agents.channels.telegram.tagline'),
         logo: '/images/logos/channels/telegram.svg',
-        badge: props.telegram.connected ? { label: 'Connected', variant: 'default' } : undefined,
+        badge: props.telegram.connected ? { label: t('agents.channels.connected'), variant: 'default' } : undefined,
     },
     {
         kind: 'slack',
         name: 'Slack',
         tagline: props.slack.connected
-            ? `Connected to ${props.slack.team_name}`
-            : 'Mention your agent in a Slack channel — it streams the answer back.',
+            ? t('agents.channels.slack.tagline_connected', { team: props.slack.team_name })
+            : t('agents.channels.slack.tagline'),
         logo: '/images/logos/channels/slack.svg',
-        badge: props.slack.connected ? { label: 'Connected', variant: 'default' } : undefined,
+        badge: props.slack.connected ? { label: t('agents.channels.connected'), variant: 'default' } : undefined,
     },
     {
         kind: 'messenger',
         name: 'Messenger',
         tagline: props.messenger.connected
-            ? `Replying as ${props.messenger.page_name}`
-            : 'Let your Facebook Page answer with your agent on Messenger.',
+            ? t('agents.channels.messenger.tagline_connected', { page: props.messenger.page_name })
+            : t('agents.channels.messenger.tagline'),
         logo: '/images/logos/channels/messenger.svg',
-        badge: props.messenger.connected ? { label: 'Connected', variant: 'default' } : undefined,
+        badge: props.messenger.connected ? { label: t('agents.channels.connected'), variant: 'default' } : undefined,
     },
     {
         kind: 'whatsapp',
         name: 'WhatsApp',
         tagline: props.whatsapp.connected
-            ? `Replying as ${props.whatsapp.verified_name ?? props.whatsapp.display_phone_number}`
-            : 'Let people message your agent on your WhatsApp business number.',
+            ? t('agents.channels.whatsapp.tagline_connected', { name: props.whatsapp.verified_name ?? props.whatsapp.display_phone_number })
+            : t('agents.channels.whatsapp.tagline'),
         logo: '/images/logos/channels/whatsapp.svg',
-        badge: props.whatsapp.connected ? { label: 'Connected', variant: 'default' } : undefined,
+        badge: props.whatsapp.connected ? { label: t('agents.channels.connected'), variant: 'default' } : undefined,
     },
     {
         kind: 'msteams',
         name: 'Microsoft Teams',
-        tagline: props.msteams.connected ? 'Connected to your Azure bot' : 'Chat with your agent in Teams — it streams the answer back.',
+        tagline: props.msteams.connected ? t('agents.channels.msteams.tagline_connected') : t('agents.channels.msteams.tagline'),
         logo: '/images/logos/channels/msteams.svg',
-        badge: props.msteams.connected ? { label: 'Connected', variant: 'default' } : undefined,
+        badge: props.msteams.connected ? { label: t('agents.channels.connected'), variant: 'default' } : undefined,
     },
     {
         kind: 'instagram',
         name: 'Instagram',
-        tagline: props.instagram.connected ? `Replying as @${props.instagram.username}` : 'Let your agent answer DMs on your Instagram account.',
+        tagline: props.instagram.connected
+            ? t('agents.channels.instagram.tagline_connected', { username: props.instagram.username })
+            : t('agents.channels.instagram.tagline'),
         logo: '/images/logos/channels/instagram.svg',
-        badge: props.instagram.connected ? { label: 'Connected', variant: 'default' } : undefined,
+        badge: props.instagram.connected ? { label: t('agents.channels.connected'), variant: 'default' } : undefined,
     },
 ]);
 
@@ -137,7 +144,7 @@ const connectTelegram = () => {
         preserveState: true,
         onSuccess: () => {
             telegramForm.reset();
-            toast.success('Telegram connected');
+            toast.success(t('agents.channels.telegram.connected_toast'));
         },
     });
 };
@@ -151,7 +158,7 @@ const connectSlack = () => {
         preserveState: true,
         onSuccess: () => {
             slackForm.reset();
-            toast.success('Slack connected — one more step in Slack');
+            toast.success(t('agents.channels.slack.connected_toast'));
         },
     });
 };
@@ -165,7 +172,7 @@ const connectMessenger = () => {
         preserveState: true,
         onSuccess: () => {
             messengerForm.reset();
-            toast.success('Messenger connected — one more step in your Meta app');
+            toast.success(t('agents.channels.messenger.connected_toast'));
         },
     });
 };
@@ -179,7 +186,7 @@ const connectWhatsapp = () => {
         preserveState: true,
         onSuccess: () => {
             whatsappForm.reset();
-            toast.success('WhatsApp connected — one more step in your Meta app');
+            toast.success(t('agents.channels.whatsapp.connected_toast'));
         },
     });
 };
@@ -193,7 +200,7 @@ const connectMsteams = () => {
         preserveState: true,
         onSuccess: () => {
             msteamsForm.reset();
-            toast.success('Microsoft Teams connected — one more step in Azure');
+            toast.success(t('agents.channels.msteams.connected_toast'));
         },
     });
 };
@@ -207,7 +214,7 @@ const connectInstagram = () => {
         preserveState: true,
         onSuccess: () => {
             instagramForm.reset();
-            toast.success('Instagram connected — one more step in your Meta app');
+            toast.success(t('agents.channels.instagram.connected_toast'));
         },
     });
 };
@@ -226,19 +233,15 @@ const disconnect = () => {
         preserveState: true,
         onSuccess: () => {
             disconnectOpen.value = false;
-            toast.success(`${name} disconnected`);
+            toast.success(t('agents.channels.disconnected_toast', { name }));
         },
     });
 };
 </script>
 
 <template>
-    <AgentLayout
-        :agent="props.agent"
-        title="Channels"
-        description="Connect your agent to messaging apps so people can chat with it where they already are."
-    >
-        <Head :title="`Channels — ${props.agent.name}`" />
+    <AgentLayout :agent="props.agent" :title="t('agents.channels.title')" :description="t('agents.channels.description')">
+        <Head :title="t('agents.channels.head_title', { name: props.agent.name })" />
 
         <div class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-4xl">
@@ -248,15 +251,15 @@ const disconnect = () => {
                         :key="item.kind"
                         class="bg-card hover:border-foreground/20 relative flex flex-col rounded-xl border p-5 transition hover:shadow-sm sm:aspect-square"
                     >
-                        <Badge v-if="item.badge" :variant="item.badge.variant" class="absolute top-3 right-3">{{ item.badge.label }}</Badge>
+                        <Badge v-if="item.badge" :variant="item.badge.variant" class="absolute top-3 end-3">{{ item.badge.label }}</Badge>
                         <div class="flex flex-1 flex-col items-center justify-center gap-3 text-center">
                             <img :src="item.logo" :alt="item.name" class="size-14" />
                             <p class="font-medium">{{ item.name }}</p>
                             <p class="text-muted-foreground line-clamp-2 text-sm">{{ item.tagline }}</p>
                         </div>
                         <Button variant="outline" class="mt-4 w-full" @click="openChannel(item)">
-                            <Settings2 class="mr-2 size-4" />
-                            Setup
+                            <Settings2 class="me-2 size-4" />
+                            {{ t('agents.channels.setup') }}
                         </Button>
                     </div>
                 </div>
@@ -285,7 +288,7 @@ const disconnect = () => {
                                         <Check class="size-5 text-emerald-600" />
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="text-sm font-medium">Connected</p>
+                                        <p class="text-sm font-medium">{{ t('agents.channels.connected') }}</p>
                                         <p class="text-muted-foreground truncate text-sm">@{{ props.telegram.bot_username }}</p>
                                     </div>
                                 </div>
@@ -297,12 +300,12 @@ const disconnect = () => {
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    This agent is private, so it won’t answer on Telegram. Make it public again on the Security page, or disconnect.
+                                    {{ t('agents.channels.private_banner', { channel: 'Telegram' }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
-                                        <Unplug class="mr-2 size-4" />
-                                        Disconnect
+                                        <Unplug class="me-2 size-4" />
+                                        {{ t('agents.channels.disconnect') }}
                                     </Button>
                                 </div>
                             </template>
@@ -310,15 +313,18 @@ const disconnect = () => {
                             <!-- Protected agent: messaging channels are public-only -->
                             <template v-else-if="!props.agent.is_public">
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
-                                    <p class="text-sm font-medium">This agent is private</p>
+                                    <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
-                                        Telegram is available for public agents only. Make this agent public on its
-                                        <Link
-                                            :href="route('agents.identity', props.agent.external_id)"
-                                            class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                            >Security</Link
-                                        >
-                                        page, then connect it here.
+                                        <i18n-t keypath="agents.channels.public_only" tag="span" scope="global">
+                                            <template #channel>Telegram</template>
+                                            <template #security>
+                                                <Link
+                                                    :href="route('agents.identity', props.agent.external_id)"
+                                                    class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                    >{{ t('agents.channels.security') }}</Link
+                                                >
+                                            </template>
+                                        </i18n-t>
                                     </p>
                                 </div>
                             </template>
@@ -359,15 +365,15 @@ const disconnect = () => {
                                 />
                                 <div class="border-t pt-5">
                                     <Button class="w-full" :disabled="telegramForm.processing || !telegramForm.bot_token" @click="connectTelegram">
-                                        <LoaderCircle v-if="telegramForm.processing" class="mr-2 size-4 animate-spin" />
-                                        <Plug v-else class="mr-2 size-4" />
-                                        Connect
+                                        <LoaderCircle v-if="telegramForm.processing" class="me-2 size-4 animate-spin" />
+                                        <Plug v-else class="me-2 size-4" />
+                                        {{ t('agents.channels.connect') }}
                                     </Button>
                                 </div>
                             </template>
 
                             <template v-else>
-                                <p class="text-muted-foreground text-sm">You don’t have permission to manage this agent’s channels.</p>
+                                <p class="text-muted-foreground text-sm">{{ t('agents.channels.no_permission') }}</p>
                             </template>
                         </template>
 
@@ -380,7 +386,7 @@ const disconnect = () => {
                                         <Check class="size-5 text-emerald-600" />
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="text-sm font-medium">Connected</p>
+                                        <p class="text-sm font-medium">{{ t('agents.channels.connected') }}</p>
                                         <p class="text-muted-foreground truncate text-sm">{{ props.slack.team_name }}</p>
                                     </div>
                                 </div>
@@ -431,12 +437,12 @@ const disconnect = () => {
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    This agent is private, so it won’t answer on Slack. Make it public again on the Security page, or disconnect.
+                                    {{ t('agents.channels.private_banner', { channel: 'Slack' }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
-                                        <Unplug class="mr-2 size-4" />
-                                        Disconnect
+                                        <Unplug class="me-2 size-4" />
+                                        {{ t('agents.channels.disconnect') }}
                                     </Button>
                                 </div>
                             </template>
@@ -444,7 +450,7 @@ const disconnect = () => {
                             <!-- Protected agent: messaging channels are public-only -->
                             <template v-else-if="!props.agent.is_public">
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
-                                    <p class="text-sm font-medium">This agent is private</p>
+                                    <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
                                         Slack is available for public agents only. Make this agent public on its
                                         <Link
@@ -524,15 +530,15 @@ const disconnect = () => {
                                         :disabled="slackForm.processing || !slackForm.bot_token || !slackForm.signing_secret"
                                         @click="connectSlack"
                                     >
-                                        <LoaderCircle v-if="slackForm.processing" class="mr-2 size-4 animate-spin" />
-                                        <Plug v-else class="mr-2 size-4" />
-                                        Connect
+                                        <LoaderCircle v-if="slackForm.processing" class="me-2 size-4 animate-spin" />
+                                        <Plug v-else class="me-2 size-4" />
+                                        {{ t('agents.channels.connect') }}
                                     </Button>
                                 </div>
                             </template>
 
                             <template v-else>
-                                <p class="text-muted-foreground text-sm">You don’t have permission to manage this agent’s channels.</p>
+                                <p class="text-muted-foreground text-sm">{{ t('agents.channels.no_permission') }}</p>
                             </template>
                         </template>
 
@@ -545,7 +551,7 @@ const disconnect = () => {
                                         <Check class="size-5 text-emerald-600" />
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="text-sm font-medium">Connected</p>
+                                        <p class="text-sm font-medium">{{ t('agents.channels.connected') }}</p>
                                         <p class="text-muted-foreground truncate text-sm">{{ props.messenger.page_name }}</p>
                                     </div>
                                 </div>
@@ -596,12 +602,12 @@ const disconnect = () => {
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    This agent is private, so it won’t answer on Messenger. Make it public again on the Security page, or disconnect.
+                                    {{ t('agents.channels.private_banner', { channel: 'Messenger' }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
-                                        <Unplug class="mr-2 size-4" />
-                                        Disconnect
+                                        <Unplug class="me-2 size-4" />
+                                        {{ t('agents.channels.disconnect') }}
                                     </Button>
                                 </div>
                             </template>
@@ -609,7 +615,7 @@ const disconnect = () => {
                             <!-- Protected agent: messaging channels are public-only -->
                             <template v-else-if="!props.agent.is_public">
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
-                                    <p class="text-sm font-medium">This agent is private</p>
+                                    <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
                                         Messenger is available for public agents only. Make this agent public on its
                                         <Link
@@ -686,15 +692,15 @@ const disconnect = () => {
                                         :disabled="messengerForm.processing || !messengerForm.page_access_token || !messengerForm.app_secret"
                                         @click="connectMessenger"
                                     >
-                                        <LoaderCircle v-if="messengerForm.processing" class="mr-2 size-4 animate-spin" />
-                                        <Plug v-else class="mr-2 size-4" />
-                                        Connect
+                                        <LoaderCircle v-if="messengerForm.processing" class="me-2 size-4 animate-spin" />
+                                        <Plug v-else class="me-2 size-4" />
+                                        {{ t('agents.channels.connect') }}
                                     </Button>
                                 </div>
                             </template>
 
                             <template v-else>
-                                <p class="text-muted-foreground text-sm">You don’t have permission to manage this agent’s channels.</p>
+                                <p class="text-muted-foreground text-sm">{{ t('agents.channels.no_permission') }}</p>
                             </template>
                         </template>
 
@@ -707,7 +713,7 @@ const disconnect = () => {
                                         <Check class="size-5 text-emerald-600" />
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="text-sm font-medium">Connected</p>
+                                        <p class="text-sm font-medium">{{ t('agents.channels.connected') }}</p>
                                         <p class="text-muted-foreground truncate text-sm">
                                             {{ props.whatsapp.verified_name ?? props.whatsapp.display_phone_number }}
                                             <template v-if="props.whatsapp.verified_name && props.whatsapp.display_phone_number">
@@ -769,12 +775,12 @@ const disconnect = () => {
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    This agent is private, so it won’t answer on WhatsApp. Make it public again on the Security page, or disconnect.
+                                    {{ t('agents.channels.private_banner', { channel: 'WhatsApp' }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
-                                        <Unplug class="mr-2 size-4" />
-                                        Disconnect
+                                        <Unplug class="me-2 size-4" />
+                                        {{ t('agents.channels.disconnect') }}
                                     </Button>
                                 </div>
                             </template>
@@ -782,7 +788,7 @@ const disconnect = () => {
                             <!-- Protected agent: messaging channels are public-only -->
                             <template v-else-if="!props.agent.is_public">
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
-                                    <p class="text-sm font-medium">This agent is private</p>
+                                    <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
                                         WhatsApp is available for public agents only. Make this agent public on its
                                         <Link
@@ -892,15 +898,15 @@ const disconnect = () => {
                                         "
                                         @click="connectWhatsapp"
                                     >
-                                        <LoaderCircle v-if="whatsappForm.processing" class="mr-2 size-4 animate-spin" />
-                                        <Plug v-else class="mr-2 size-4" />
-                                        Connect
+                                        <LoaderCircle v-if="whatsappForm.processing" class="me-2 size-4 animate-spin" />
+                                        <Plug v-else class="me-2 size-4" />
+                                        {{ t('agents.channels.connect') }}
                                     </Button>
                                 </div>
                             </template>
 
                             <template v-else>
-                                <p class="text-muted-foreground text-sm">You don’t have permission to manage this agent’s channels.</p>
+                                <p class="text-muted-foreground text-sm">{{ t('agents.channels.no_permission') }}</p>
                             </template>
                         </template>
 
@@ -913,7 +919,7 @@ const disconnect = () => {
                                         <Check class="size-5 text-emerald-600" />
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="text-sm font-medium">Connected</p>
+                                        <p class="text-sm font-medium">{{ t('agents.channels.connected') }}</p>
                                         <p class="text-muted-foreground truncate text-sm">App {{ props.msteams.app_id }}</p>
                                     </div>
                                 </div>
@@ -970,13 +976,12 @@ const disconnect = () => {
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    This agent is private, so it won’t answer on Microsoft Teams. Make it public again on the Security page, or
-                                    disconnect.
+                                    {{ t('agents.channels.private_banner', { channel: 'Microsoft Teams' }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
-                                        <Unplug class="mr-2 size-4" />
-                                        Disconnect
+                                        <Unplug class="me-2 size-4" />
+                                        {{ t('agents.channels.disconnect') }}
                                     </Button>
                                 </div>
                             </template>
@@ -984,7 +989,7 @@ const disconnect = () => {
                             <!-- Protected agent: messaging channels are public-only -->
                             <template v-else-if="!props.agent.is_public">
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
-                                    <p class="text-sm font-medium">This agent is private</p>
+                                    <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
                                         Microsoft Teams is available for public agents only. Make this agent public on its
                                         <Link
@@ -1071,15 +1076,15 @@ const disconnect = () => {
                                         :disabled="msteamsForm.processing || !msteamsForm.app_id || !msteamsForm.app_secret"
                                         @click="connectMsteams"
                                     >
-                                        <LoaderCircle v-if="msteamsForm.processing" class="mr-2 size-4 animate-spin" />
-                                        <Plug v-else class="mr-2 size-4" />
-                                        Connect
+                                        <LoaderCircle v-if="msteamsForm.processing" class="me-2 size-4 animate-spin" />
+                                        <Plug v-else class="me-2 size-4" />
+                                        {{ t('agents.channels.connect') }}
                                     </Button>
                                 </div>
                             </template>
 
                             <template v-else>
-                                <p class="text-muted-foreground text-sm">You don’t have permission to manage this agent’s channels.</p>
+                                <p class="text-muted-foreground text-sm">{{ t('agents.channels.no_permission') }}</p>
                             </template>
                         </template>
 
@@ -1092,7 +1097,7 @@ const disconnect = () => {
                                         <Check class="size-5 text-emerald-600" />
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="text-sm font-medium">Connected</p>
+                                        <p class="text-sm font-medium">{{ t('agents.channels.connected') }}</p>
                                         <p class="text-muted-foreground truncate text-sm">@{{ props.instagram.username }}</p>
                                     </div>
                                 </div>
@@ -1151,12 +1156,12 @@ const disconnect = () => {
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    This agent is private, so it won’t answer on Instagram. Make it public again on the Security page, or disconnect.
+                                    {{ t('agents.channels.private_banner', { channel: 'Instagram' }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
-                                        <Unplug class="mr-2 size-4" />
-                                        Disconnect
+                                        <Unplug class="me-2 size-4" />
+                                        {{ t('agents.channels.disconnect') }}
                                     </Button>
                                 </div>
                             </template>
@@ -1164,7 +1169,7 @@ const disconnect = () => {
                             <!-- Protected agent: messaging channels are public-only -->
                             <template v-else-if="!props.agent.is_public">
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
-                                    <p class="text-sm font-medium">This agent is private</p>
+                                    <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
                                         Instagram is available for public agents only. Make this agent public on its
                                         <Link
@@ -1239,15 +1244,15 @@ const disconnect = () => {
                                         :disabled="instagramForm.processing || !instagramForm.access_token || !instagramForm.app_secret"
                                         @click="connectInstagram"
                                     >
-                                        <LoaderCircle v-if="instagramForm.processing" class="mr-2 size-4 animate-spin" />
-                                        <Plug v-else class="mr-2 size-4" />
-                                        Connect
+                                        <LoaderCircle v-if="instagramForm.processing" class="me-2 size-4 animate-spin" />
+                                        <Plug v-else class="me-2 size-4" />
+                                        {{ t('agents.channels.connect') }}
                                     </Button>
                                 </div>
                             </template>
 
                             <template v-else>
-                                <p class="text-muted-foreground text-sm">You don’t have permission to manage this agent’s channels.</p>
+                                <p class="text-muted-foreground text-sm">{{ t('agents.channels.no_permission') }}</p>
                             </template>
                         </template>
                     </div>
@@ -1259,16 +1264,15 @@ const disconnect = () => {
         <AlertDialog v-model:open="disconnectOpen">
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Disconnect {{ selected?.name }}</AlertDialogTitle>
+                    <AlertDialogTitle>{{ t('agents.channels.disconnect_dialog.title', { name: selected?.name }) }}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        People won’t be able to chat with this agent on {{ selected?.name }} anymore. You can reconnect with the same credentials
-                        later.
+                        {{ t('agents.channels.disconnect_dialog.description', { name: selected?.name }) }}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{{ t('agents.channels.disconnect_dialog.cancel') }}</AlertDialogCancel>
                     <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="disconnect">
-                        Disconnect
+                        {{ t('agents.channels.disconnect') }}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const form = useForm({
     data_region: '',
@@ -25,7 +28,7 @@ const submitConsent = () => {
 </script>
 
 <template>
-    <Head title="Data Processing Consent - ChatVia" />
+    <Head :title="t('consent.head_title')" />
 
     <div class="bg-background min-h-screen">
         <!-- Header -->
@@ -35,7 +38,7 @@ const submitConsent = () => {
                     <div class="flex items-center">
                         <h1 class="text-2xl font-bold">ChatVia</h1>
                     </div>
-                    <div class="text-muted-foreground text-sm">Data Processing Consent</div>
+                    <div class="text-muted-foreground text-sm">{{ t('consent.header_subtitle') }}</div>
                 </div>
             </div>
         </header>
@@ -45,19 +48,14 @@ const submitConsent = () => {
             <div class="space-y-8">
                 <!-- Page Title -->
                 <div class="text-center">
-                    <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">Data Processing Consent</h2>
-                    <p class="text-muted-foreground mt-4 text-lg">
-                        Before you start using ChatVia, we need to know how you want your data to be processed. This page will help you understand
-                        your rights and choices.
-                    </p>
-                    <p class="text-muted-foreground mt-2 text-sm">
-                        Please note that this page describes the data processing, which is a preliminary stage to make your data ready for your agent.
-                    </p>
+                    <h2 class="text-3xl font-bold tracking-tight sm:text-4xl">{{ t('consent.page_title') }}</h2>
+                    <p class="text-muted-foreground mt-4 text-lg">{{ t('consent.intro') }}</p>
+                    <p class="text-muted-foreground mt-2 text-sm">{{ t('consent.intro_note') }}</p>
                 </div>
 
                 <div class="bg-muted/50 rounded-lg border p-6">
                     <h3 class="mb-3 flex items-center text-lg font-semibold">
-                        <svg class="mr-2 h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="me-2 h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -65,40 +63,31 @@ const submitConsent = () => {
                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                         </svg>
-                        How ChatVia Works
+                        {{ t('consent.how_it_works_title') }}
                     </h3>
                     <div class="text-muted-foreground space-y-3 text-sm">
-                        <p>
-                            When you create a training-based agent, ChatVia will send your data to different providers for processing. Here are the
-                            key points about our data processing:
-                        </p>
-                        <ul class="ml-4 list-inside list-disc space-y-2">
+                        <p>{{ t('consent.how_it_works_intro') }}</p>
+                        <ul class="ms-4 list-inside list-disc space-y-2">
                             <li>
-                                <strong>Data Processing Infrastructure:</strong> We use Cohere (<a
+                                <strong>{{ t('consent.infra_label') }}</strong> {{ t('consent.infra_text_before') }}<a
                                     href="https://cohere.com/privacy"
                                     class="text-primary hover:underline"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    >privacy policy</a
-                                >), Mistral for EU users, and Google/OpenAI for US users.
+                                    >{{ t('consent.privacy_policy_link') }}</a
+                                >{{ t('consent.infra_text_after') }}
                             </li>
-                            <li><strong>Data Storage:</strong> Your data will be stored and encrypted locally in the EU (Germany/Finland).</li>
-                            <li>
-                                <strong>No Training:</strong> We don't train models on your data. Instead, we use RAG (Retrieval-Augmented Generation)
-                                and GraphRAG to find relevant information and send it to your chosen model for processing.
-                            </li>
-                            <li><strong>Data Control:</strong> You can easily delete your data at any time through your account settings.</li>
+                            <li><strong>{{ t('consent.storage_label') }}</strong> {{ t('consent.storage_text') }}</li>
+                            <li><strong>{{ t('consent.no_training_label') }}</strong> {{ t('consent.no_training_text') }}</li>
+                            <li><strong>{{ t('consent.control_label') }}</strong> {{ t('consent.control_text') }}</li>
                         </ul>
                     </div>
                 </div>
 
                 <!-- Data Storage Region Selection -->
                 <div class="bg-card rounded-lg border p-6 shadow-sm">
-                    <h3 class="mb-4 text-xl font-semibold">Choose Your Data Storage Region</h3>
-                    <p class="text-muted-foreground mb-6">
-                        Select where you would like your data to be stored and processed. This choice affects which data protection laws apply to your
-                        information.
-                    </p>
+                    <h3 class="mb-4 text-xl font-semibold">{{ t('consent.region_title') }}</h3>
+                    <p class="text-muted-foreground mb-6">{{ t('consent.region_description') }}</p>
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <!-- EU Option -->
@@ -107,7 +96,7 @@ const submitConsent = () => {
                             :class="selectedRegion === 'eu' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'"
                             @click="selectRegion('eu')"
                         >
-                            <div class="flex items-start space-x-3">
+                            <div class="flex items-start gap-3">
                                 <div class="flex-shrink-0">
                                     <div
                                         class="flex h-6 w-6 items-center justify-center rounded-full border-2"
@@ -120,30 +109,27 @@ const submitConsent = () => {
                                     <div class="mb-2 flex items-center gap-3">
                                         <!-- EU Flag -->
                                         <span class="text-2xl">🇪🇺</span>
-                                        <h4 class="text-lg font-semibold">European Union (EU)</h4>
+                                        <h4 class="text-lg font-semibold">{{ t('consent.eu_title') }}</h4>
                                     </div>
-                                    <p class="text-muted-foreground mt-2 text-sm">
-                                        Your data will be stored and processed within the European Union, ensuring full GDPR compliance and maximum
-                                        privacy protection.
-                                    </p>
+                                    <p class="text-muted-foreground mt-2 text-sm">{{ t('consent.eu_description') }}</p>
                                     <div class="mt-3 space-y-1">
                                         <div class="flex items-center text-sm text-green-600">
-                                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg class="me-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Full GDPR protection
+                                            {{ t('consent.eu_feature_1') }}
                                         </div>
                                         <div class="flex items-center text-sm text-green-600">
-                                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg class="me-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Data remains within EU borders
+                                            {{ t('consent.eu_feature_2') }}
                                         </div>
                                         <div class="flex items-center text-sm text-green-600">
-                                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg class="me-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Processed using Mistral AI
+                                            {{ t('consent.eu_feature_3') }}
                                         </div>
                                     </div>
                                 </div>
@@ -156,7 +142,7 @@ const submitConsent = () => {
                             :class="selectedRegion === 'us' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'"
                             @click="selectRegion('us')"
                         >
-                            <div class="flex items-start space-x-3">
+                            <div class="flex items-start gap-3">
                                 <div class="flex-shrink-0">
                                     <div
                                         class="flex h-6 w-6 items-center justify-center rounded-full border-2"
@@ -169,30 +155,27 @@ const submitConsent = () => {
                                     <div class="mb-2 flex items-center gap-3">
                                         <!-- US Flag -->
                                         <span class="text-2xl">🇺🇸</span>
-                                        <h4 class="text-lg font-semibold">United States (US)</h4>
+                                        <h4 class="text-lg font-semibold">{{ t('consent.us_title') }}</h4>
                                     </div>
-                                    <p class="text-muted-foreground mt-2 text-sm">
-                                        Your data will be stored and processed in the United States, with strong privacy protections and access to the
-                                        latest AI infrastructure. This region provides direct access to leading AI providers.
-                                    </p>
+                                    <p class="text-muted-foreground mt-2 text-sm">{{ t('consent.us_description') }}</p>
                                     <div class="mt-3 space-y-1">
                                         <div class="flex items-center text-sm text-blue-600">
-                                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg class="me-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Access to OpenAI and Google AI
+                                            {{ t('consent.us_feature_1') }}
                                         </div>
                                         <div class="flex items-center text-sm text-blue-600">
-                                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg class="me-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Optimized performance and speed
+                                            {{ t('consent.us_feature_2') }}
                                         </div>
                                         <div class="flex items-center text-sm text-blue-600">
-                                            <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg class="me-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            Strong data protection standards
+                                            {{ t('consent.us_feature_3') }}
                                         </div>
                                     </div>
                                 </div>
@@ -203,10 +186,10 @@ const submitConsent = () => {
 
                 <!-- Additional Consent Options -->
                 <div class="bg-card rounded-lg border p-6 shadow-sm">
-                    <h3 class="mb-4 text-xl font-semibold">Additional Preferences</h3>
+                    <h3 class="mb-4 text-xl font-semibold">{{ t('consent.preferences_title') }}</h3>
                     <div class="space-y-4">
                         <!-- Marketing Consent -->
-                        <div class="flex items-start space-x-3">
+                        <div class="flex items-start gap-3">
                             <div class="flex h-5 items-center">
                                 <input
                                     id="marketing"
@@ -215,16 +198,14 @@ const submitConsent = () => {
                                     class="text-primary focus:ring-primary h-4 w-4 rounded border-gray-300"
                                 />
                             </div>
-                            <div class="ml-3 text-sm">
-                                <label for="marketing" class="text-foreground cursor-pointer font-medium"> Marketing Communications </label>
-                                <p class="text-muted-foreground">
-                                    Receive updates about new features, tips, and special offers. You can unsubscribe at any time.
-                                </p>
+                            <div class="ms-3 text-sm">
+                                <label for="marketing" class="text-foreground cursor-pointer font-medium">{{ t('consent.marketing_label') }}</label>
+                                <p class="text-muted-foreground">{{ t('consent.marketing_description') }}</p>
                             </div>
                         </div>
 
                         <!-- Analytics Consent -->
-                        <div class="flex items-start space-x-3">
+                        <div class="flex items-start gap-3">
                             <div class="flex h-5 items-center">
                                 <input
                                     id="analytics"
@@ -233,11 +214,9 @@ const submitConsent = () => {
                                     class="text-primary focus:ring-primary h-4 w-4 rounded border-gray-300"
                                 />
                             </div>
-                            <div class="ml-3 text-sm">
-                                <label for="analytics" class="text-foreground cursor-pointer font-medium"> Analytics & Performance </label>
-                                <p class="text-muted-foreground">
-                                    Help us improve ChatVia by allowing anonymous usage analytics and performance monitoring.
-                                </p>
+                            <div class="ms-3 text-sm">
+                                <label for="analytics" class="text-foreground cursor-pointer font-medium">{{ t('consent.analytics_label') }}</label>
+                                <p class="text-muted-foreground">{{ t('consent.analytics_description') }}</p>
                             </div>
                         </div>
                     </div>
@@ -246,7 +225,7 @@ const submitConsent = () => {
                 <!-- GDPR Information -->
                 <div class="bg-muted/50 rounded-lg border p-6">
                     <h3 class="mb-3 flex items-center text-lg font-semibold">
-                        <svg class="mr-2 h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="me-2 h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -254,26 +233,24 @@ const submitConsent = () => {
                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                         </svg>
-                        Your Rights Under GDPR
+                        {{ t('consent.gdpr_title') }}
                     </h3>
                     <div class="text-muted-foreground space-y-2 text-sm">
-                        <p>Regardless of your chosen region, if you are an EU resident, you have the following rights under GDPR:</p>
-                        <ul class="ml-4 list-inside list-disc space-y-1">
-                            <li><strong>Right to Access:</strong> Request a copy of your personal data</li>
-                            <li><strong>Right to Rectification:</strong> Correct inaccurate or incomplete data</li>
-                            <li><strong>Right to Erasure:</strong> Request deletion of your personal data</li>
-                            <li><strong>Right to Portability:</strong> Transfer your data to another service</li>
-                            <li><strong>Right to Object:</strong> Object to processing of your personal data</li>
+                        <p>{{ t('consent.gdpr_intro') }}</p>
+                        <ul class="ms-4 list-inside list-disc space-y-1">
+                            <li><strong>{{ t('consent.right_access_label') }}</strong> {{ t('consent.right_access_text') }}</li>
+                            <li><strong>{{ t('consent.right_rectification_label') }}</strong> {{ t('consent.right_rectification_text') }}</li>
+                            <li><strong>{{ t('consent.right_erasure_label') }}</strong> {{ t('consent.right_erasure_text') }}</li>
+                            <li><strong>{{ t('consent.right_portability_label') }}</strong> {{ t('consent.right_portability_text') }}</li>
+                            <li><strong>{{ t('consent.right_object_label') }}</strong> {{ t('consent.right_object_text') }}</li>
                         </ul>
                         <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
                             <p class="text-amber-800">
-                                <strong>Important:</strong> When using AI models from third-party providers (such as OpenAI, Google, or Mistral), your
-                                chat interactions may be subject to their respective privacy policies and data processing practices. We recommend
-                                reviewing their privacy policies for complete transparency.
+                                <strong>{{ t('consent.important_label') }}</strong> {{ t('consent.important_text') }}
                             </p>
                         </div>
                         <p class="mt-3">
-                            To exercise these rights or for any privacy-related questions, contact us at
+                            {{ t('consent.contact_text') }}
                             <a href="mailto:privacy@chatvia.com" class="text-primary hover:underline">privacy@chatvia.com</a>
                         </p>
                     </div>
@@ -286,7 +263,7 @@ const submitConsent = () => {
                         :disabled="!selectedRegion || form.processing"
                         class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-8 py-3 text-base font-medium disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <svg v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <svg v-if="form.processing" class="me-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path
                                 class="opacity-75"
@@ -294,16 +271,17 @@ const submitConsent = () => {
                                 d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                             ></path>
                         </svg>
-                        {{ form.processing ? 'Saving...' : 'Save Preferences' }}
+                        {{ form.processing ? t('consent.saving') : t('consent.save_preferences') }}
                     </button>
                 </div>
 
                 <!-- Footer Note -->
                 <div class="text-muted-foreground text-center text-sm">
                     <p>
-                        By clicking "Save Preferences", you acknowledge that you have read and understood our
-                        <a href="/privacy-policy" class="text-primary hover:underline">Privacy Policy</a> and
-                        <a href="/terms-of-service" class="text-primary hover:underline">Terms of Service</a>.
+                        {{ t('consent.footer_before') }}
+                        <a href="/privacy-policy" class="text-primary hover:underline">{{ t('consent.footer_privacy') }}</a>
+                        {{ t('consent.footer_and') }}
+                        <a href="/terms-of-service" class="text-primary hover:underline">{{ t('consent.footer_terms') }}</a>.
                     </p>
                 </div>
             </div>

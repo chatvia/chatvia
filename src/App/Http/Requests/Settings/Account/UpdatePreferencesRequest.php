@@ -21,6 +21,7 @@ class UpdatePreferencesRequest extends FormRequest
     {
         return [
             'date_format' => ['required', Rule::enum(DateFormat::class)],
+            'locale' => ['nullable', 'string', Rule::in(array_keys(config('chatvia.languages')))],
         ];
     }
 }

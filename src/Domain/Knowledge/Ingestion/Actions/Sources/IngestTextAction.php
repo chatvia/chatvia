@@ -38,10 +38,7 @@ class IngestTextAction
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent Text ID: '.$sourceText->id)
-            // A single failed chunk job must not cancel the rest of the text;
-            // finally() keeps the terminal status + event unconditional (see
-            // IngestDocumentAction for the rationale).
-            ->allowFailures()
+            ->allowFailures() // one failed chunk must not cancel the batch
             ->finally(function (Batch $batch) use ($agentTextId, $agent): void {
                 $text = SourceText::find($agentTextId);
 

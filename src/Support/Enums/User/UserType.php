@@ -18,4 +18,15 @@ enum UserType: string
     case Workspace = 'workspace';
     case Employee = 'employee';
     case Chatter = 'chatter';
+
+    /**
+     * Account types that own a workspace dashboard. `Admin` is a `Workspace`
+     * with additional Filament access, so it must satisfy every workspace check.
+     *
+     * @return array<int, self>
+     */
+    public static function workspaceTypes(): array
+    {
+        return [self::Workspace, self::Admin];
+    }
 }

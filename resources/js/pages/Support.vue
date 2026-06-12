@@ -21,8 +21,11 @@ import TableHeader from '@/components/ui/table/TableHeader.vue';
 import TableRow from '@/components/ui/table/TableRow.vue';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Plus } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Support', href: '/support' }];
+const { t } = useI18n();
+
+const breadcrumbs: BreadcrumbItem[] = [{ title: t('support.title'), href: '/support' }];
 
 type Ticket = {
     id: number;
@@ -73,10 +76,10 @@ const formatDate = (dateString: string) => {
 
 const statusBadge = (status: string) => {
     const s = status.toLowerCase();
-    if (s === 'open') return { variant: 'secondary' as const, label: 'Open' };
-    if (s === 'in_progress') return { variant: 'outline' as const, label: 'In Progress' };
-    if (s === 'resolved') return { variant: 'outline' as const, label: 'Resolved' };
-    if (s === 'closed') return { variant: 'destructive' as const, label: 'Closed' };
+    if (s === 'open') return { variant: 'secondary' as const, label: t('support.status_open') };
+    if (s === 'in_progress') return { variant: 'outline' as const, label: t('support.status_in_progress') };
+    if (s === 'resolved') return { variant: 'outline' as const, label: t('support.status_resolved') };
+    if (s === 'closed') return { variant: 'destructive' as const, label: t('support.status_closed') };
     return { variant: 'outline' as const, label: status };
 };
 
@@ -90,10 +93,10 @@ const statusBadgeClass = (status: string) => {
 
 const priorityBadge = (priority: string) => {
     const p = priority.toLowerCase();
-    if (p === 'urgent') return { variant: 'destructive' as const, label: 'Urgent' };
-    if (p === 'high') return { variant: 'default' as const, label: 'High' };
-    if (p === 'medium') return { variant: 'secondary' as const, label: 'Medium' };
-    if (p === 'low') return { variant: 'outline' as const, label: 'Low' };
+    if (p === 'urgent') return { variant: 'destructive' as const, label: t('support.priority_urgent') };
+    if (p === 'high') return { variant: 'default' as const, label: t('support.priority_high') };
+    if (p === 'medium') return { variant: 'secondary' as const, label: t('support.priority_medium') };
+    if (p === 'low') return { variant: 'outline' as const, label: t('support.priority_low') };
     return { variant: 'outline' as const, label: priority };
 };
 
@@ -118,19 +121,19 @@ const onSubmit = () => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Support" />
+        <Head :title="t('support.title')" />
 
         <div class="container mx-auto max-w-5xl py-8">
             <div class="space-y-8">
                 <!-- Header -->
                 <div class="flex items-center justify-between">
                     <div class="space-y-2">
-                        <h1 class="text-3xl font-bold tracking-tight">Support</h1>
-                        <p class="text-muted-foreground">View your tickets or create a new one.</p>
+                        <h1 class="text-3xl font-bold tracking-tight">{{ t('support.title') }}</h1>
+                        <p class="text-muted-foreground">{{ t('support.subtitle') }}</p>
                     </div>
                     <Button class="gap-2" @click="isCreateOpen = true">
                         <Plus class="h-4 w-4" />
-                        Create New Ticket
+                        {{ t('support.create_ticket') }}
                     </Button>
                 </div>
 
@@ -139,30 +142,30 @@ const onSubmit = () => {
                     <div class="w-full max-w-5xl">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Your Tickets</CardTitle>
-                                <CardDescription>Previously submitted tickets</CardDescription>
+                                <CardTitle>{{ t('support.your_tickets') }}</CardTitle>
+                                <CardDescription>{{ t('support.your_tickets_description') }}</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div v-if="isLoading" class="text-muted-foreground flex items-center justify-center py-12">
-                                    <Loader2 class="mr-2 h-5 w-5 animate-spin" /> Loading tickets...
+                                    <Loader2 class="me-2 h-5 w-5 animate-spin" /> {{ t('support.loading') }}
                                 </div>
 
                                 <div v-else>
                                     <div v-if="tickets.length === 0" class="text-muted-foreground py-12 text-center">
-                                        No tickets yet. Click "Create New Ticket" to get started.
+                                        {{ t('support.empty') }}
                                     </div>
 
                                     <div v-else class="overflow-x-auto">
                                         <Table class="text-sm">
                                             <TableHeader>
                                                 <TableRow>
-                                                    <TableHead class="w-16">ID</TableHead>
-                                                    <TableHead>Type</TableHead>
-                                                    <TableHead>Status</TableHead>
-                                                    <TableHead>Priority</TableHead>
-                                                    <TableHead>Created</TableHead>
-                                                    <TableHead class="hidden lg:table-cell">Message</TableHead>
-                                                    <TableHead class="hidden text-right md:table-cell">Replies</TableHead>
+                                                    <TableHead class="w-16">{{ t('support.th_id') }}</TableHead>
+                                                    <TableHead>{{ t('support.th_type') }}</TableHead>
+                                                    <TableHead>{{ t('support.th_status') }}</TableHead>
+                                                    <TableHead>{{ t('support.th_priority') }}</TableHead>
+                                                    <TableHead>{{ t('support.th_created') }}</TableHead>
+                                                    <TableHead class="hidden lg:table-cell">{{ t('support.th_message') }}</TableHead>
+                                                    <TableHead class="hidden text-right md:table-cell">{{ t('support.th_replies') }}</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -203,63 +206,63 @@ const onSubmit = () => {
                 <Dialog v-model:open="isCreateOpen">
                     <DialogContent class="sm:max-w-[600px]">
                         <DialogHeader>
-                            <DialogTitle>Create New Ticket</DialogTitle>
-                            <DialogDescription>Choose a type and describe your request.</DialogDescription>
+                            <DialogTitle>{{ t('support.create_ticket') }}</DialogTitle>
+                            <DialogDescription>{{ t('support.create_ticket_description') }}</DialogDescription>
                         </DialogHeader>
 
                         <form class="space-y-6" @submit.prevent="onSubmit">
                             <div class="grid gap-2">
-                                <Label for="support-title">Type</Label>
+                                <Label for="support-title">{{ t('support.label_type') }}</Label>
                                 <Select v-model="form.title" required>
                                     <SelectTrigger id="support-title" class="w-full">
-                                        <SelectValue placeholder="Select a type" />
+                                        <SelectValue :placeholder="t('support.type_placeholder')" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Request a feature">Request a feature</SelectItem>
-                                        <SelectItem value="Report a bug">Report a bug</SelectItem>
-                                        <SelectItem value="Request integration">Request integration</SelectItem>
-                                        <SelectItem value="Request adding model">Request adding model</SelectItem>
-                                        <SelectItem value="Refund Request">Refund Request</SelectItem>
-                                        <SelectItem value="Billing Issue">Billing Issue</SelectItem>
-                                        <SelectItem value="Other">Other</SelectItem>
+                                        <SelectItem value="Request a feature">{{ t('support.type_feature') }}</SelectItem>
+                                        <SelectItem value="Report a bug">{{ t('support.type_bug') }}</SelectItem>
+                                        <SelectItem value="Request integration">{{ t('support.type_integration') }}</SelectItem>
+                                        <SelectItem value="Request adding model">{{ t('support.type_add_model') }}</SelectItem>
+                                        <SelectItem value="Refund Request">{{ t('support.type_refund') }}</SelectItem>
+                                        <SelectItem value="Billing Issue">{{ t('support.type_billing') }}</SelectItem>
+                                        <SelectItem value="Other">{{ t('support.type_other') }}</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <InputError :message="form.errors.title" />
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="priority">Priority</Label>
+                                <Label for="priority">{{ t('support.label_priority') }}</Label>
                                 <Select v-model="form.priority" required>
                                     <SelectTrigger id="priority" class="w-full">
-                                        <SelectValue placeholder="Select priority" />
+                                        <SelectValue :placeholder="t('support.priority_placeholder')" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="low">Low</SelectItem>
-                                        <SelectItem value="medium">Medium</SelectItem>
-                                        <SelectItem value="high">High</SelectItem>
-                                        <SelectItem value="urgent">Urgent</SelectItem>
+                                        <SelectItem value="low">{{ t('support.priority_low') }}</SelectItem>
+                                        <SelectItem value="medium">{{ t('support.priority_medium') }}</SelectItem>
+                                        <SelectItem value="high">{{ t('support.priority_high') }}</SelectItem>
+                                        <SelectItem value="urgent">{{ t('support.priority_urgent') }}</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <InputError :message="(form as any).errors?.priority" />
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="support-message">Message</Label>
+                                <Label for="support-message">{{ t('support.label_message') }}</Label>
                                 <Textarea
                                     id="support-message"
                                     v-model="form.message"
                                     rows="8"
-                                    placeholder="Describe your request or issue in detail..."
+                                    :placeholder="t('support.message_placeholder')"
                                     required
                                 />
                                 <InputError :message="form.errors.message" />
                             </div>
 
                             <DialogFooter class="gap-2">
-                                <Button type="button" variant="outline" @click="isCreateOpen = false">Cancel</Button>
+                                <Button type="button" variant="outline" @click="isCreateOpen = false">{{ t('support.cancel') }}</Button>
                                 <Button type="submit" :disabled="form.processing || !form.title || !form.message">
-                                    <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
-                                    {{ form.processing ? 'Submitting...' : 'Submit' }}
+                                    <Loader2 v-if="form.processing" class="me-2 h-4 w-4 animate-spin" />
+                                    {{ form.processing ? t('support.submitting') : t('support.submit') }}
                                 </Button>
                             </DialogFooter>
                         </form>

@@ -12,6 +12,7 @@ use App\Http\Middleware\Auth\AuthenticateChatterUsingToken;
 use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
 use App\Http\Middleware\Auth\AuthenticateMember;
 use App\Http\Middleware\Auth\MemberGuestMiddleware;
+use App\Http\Middleware\Auth\RequirePasswordSetup;
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use App\Http\Middleware\Chat\EnsureChatIsAccessible;
 use App\Http\Middleware\Chat\RedirectToAgent;
@@ -20,6 +21,7 @@ use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\ForceWww;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
+use App\Http\Middleware\Web\SetLocale;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -27,6 +29,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+use Laravel\Pennant\Middleware\EnsureFeaturesAreActive;
 use Sentry\Laravel\Integration as SentryIntegration;
 use Support\Exceptions\DomainValidationException;
 
@@ -67,6 +70,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             RedirectToAgent::class,
             HandleAppearance::class,
+            SetLocale::class,
+            RequirePasswordSetup::class,
             //            ContentSecurityPolicy::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
@@ -92,6 +97,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'api.agent' => EnsureCanAccessApiAgent::class,
             'can.access.dashboard' => EnsureCanAccessDashboard::class,
             'capability' => EnsureUserHasCapability::class,
+            'features' => EnsureFeaturesAreActive::class,
             'agent.permission' => EnsureAgentPermission::class,
             'team.permission' => EnsureTeamPermission::class,
         ]);

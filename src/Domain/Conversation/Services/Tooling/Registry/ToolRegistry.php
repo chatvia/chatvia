@@ -4,9 +4,11 @@ namespace Domain\Conversation\Services\Tooling\Registry;
 
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\McpTool;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -80,38 +82,115 @@ class ToolRegistry
     }
 
     /**
-     * Full attached-MCP pool, no ranking. Used by the cache + fallback
-     * path; per-turn ranked retrieval goes through `McpToolHybridSearch`.
+     * Full attached-MCP pool, no ranking — the union of CUSTOM tools (per-server
+     * `mcp_tools`) and PRESET tools (the shared `connector_tools` catalog reached
+     * through the `mcp_server_tool` membership). Used by the cache + fallback
+     * path; per-turn ranked retrieval goes through `ToolHybridSearch`.
      *
      * @return array<int, ToolEntry>
      */
     private function compileMcpTools(int $agentId): array
     {
+        $entries = [
+            ...$this->compileCustomMcpTools($agentId),
+            ...$this->compilePresetMcpTools($agentId),
+        ];
+
+        // De-dupe a slug present as both an attached row and a global one.
+        return Collection::make($entries)
+            ->unique(fn (ToolEntry $entry): string => $entry->name)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Per-server-shaped servers — their own `mcp_tools` rows. Covers custom
+     * servers AND presets with a workspace-supplied URL (requires_url /
+     * BYO-OAuth), which never share the central catalog.
+     *
+     * @return array<int, ToolEntry>
+     */
+    private function compileCustomMcpTools(int $agentId): array
+    {
         $tools = McpTool::query()
             ->select(['mcp_tools.*', 'mcp_servers.slug as server_slug'])
             ->join('mcp_servers', 'mcp_servers.id', '=', 'mcp_tools.mcp_server_id')
-            ->join('agent_mcp_server', function ($join) use ($agentId): void {
+            ->leftJoin('agent_mcp_server', function ($join) use ($agentId): void {
                 $join->on('agent_mcp_server.mcp_server_id', '=', 'mcp_servers.id')
                     ->where('agent_mcp_server.agent_id', $agentId);
             })
             ->where('mcp_servers.is_enabled', true)
+            ->where('mcp_servers.uses_central_catalog', false)
             ->where('mcp_tools.permission', '!=', 'blocked')
+            // Tools attached to THIS agent, OR a global always-on built-in
+            // (user_id IS NULL, category 'builtin') available to every agent.
+            ->where(function ($q): void {
+                $q->whereNotNull('agent_mcp_server.agent_id')
+                    ->orWhere(function ($q2): void {
+                        $q2->whereNull('mcp_servers.user_id')
+                            ->where('mcp_servers.category', McpServerCategory::Builtin->value);
+                    });
+            })
             ->orderBy('mcp_servers.slug')
             ->orderBy('mcp_tools.name')
             ->get();
 
-        return $tools->map(function (McpTool $tool): ToolEntry {
-            $prefix = 'mcp__'.$tool->getAttribute('server_slug').'__';
-
-            return new ToolEntry(
+        return $tools
+            ->map(fn (McpTool $tool): ToolEntry => new ToolEntry(
                 kind: 'mcp',
-                sourceId: $tool->id,
-                name: $prefix.$tool->name,
+                sourceId: 'mcp_tool:'.$tool->id,
+                name: 'mcp__'.$tool->getAttribute('server_slug').'__'.$tool->name,
                 description: $tool->description,
                 parameters: $tool->input_schema ?? [],
                 embedding: null,
-            );
-        })->all();
+            ))
+            ->all();
+    }
+
+    /**
+     * Preset/builtin servers — the shared `connector_tools` catalog, scoped to
+     * this agent through the `mcp_server_tool` membership (permission taken from
+     * the membership row, not the catalog).
+     *
+     * @return array<int, ToolEntry>
+     */
+    private function compilePresetMcpTools(int $agentId): array
+    {
+        $rows = DB::table('connector_tools as ct')
+            ->select(['ct.id as connector_tool_id', 'ct.name', 'ct.description', 'ct.input_schema', 'mcp_servers.slug as server_slug'])
+            ->join('mcp_server_tool as mst', 'mst.connector_tool_id', '=', 'ct.id')
+            ->join('mcp_servers', 'mcp_servers.id', '=', 'mst.mcp_server_id')
+            ->leftJoin('agent_mcp_server', function ($join) use ($agentId): void {
+                $join->on('agent_mcp_server.mcp_server_id', '=', 'mcp_servers.id')
+                    ->where('agent_mcp_server.agent_id', $agentId);
+            })
+            ->where('mcp_servers.is_enabled', true)
+            ->where('mst.permission', '!=', 'blocked')
+            ->where(function ($q): void {
+                $q->whereNotNull('agent_mcp_server.agent_id')
+                    ->orWhere(function ($q2): void {
+                        $q2->whereNull('mcp_servers.user_id')
+                            ->where('mcp_servers.category', McpServerCategory::Builtin->value);
+                    });
+            })
+            ->orderBy('mcp_servers.slug')
+            ->orderBy('ct.name')
+            ->get();
+
+        return $rows
+            ->map(function (object $row): ToolEntry {
+                $schema = is_string($row->input_schema) ? json_decode($row->input_schema, true) : $row->input_schema;
+
+                return new ToolEntry(
+                    kind: 'mcp',
+                    sourceId: 'connector_tool:'.$row->connector_tool_id,
+                    name: 'mcp__'.$row->server_slug.'__'.$row->name,
+                    description: (string) $row->description,
+                    parameters: is_array($schema) ? $schema : [],
+                    embedding: null,
+                );
+            })
+            ->all();
     }
 
     /**
@@ -140,7 +219,7 @@ class ToolRegistry
 
             return new ToolEntry(
                 kind: 'function',
-                sourceId: $fn->id,
+                sourceId: 'function:'.$fn->id,
                 name: $fn->internal_name,
                 description: $fn->description,
                 parameters: $parameters,

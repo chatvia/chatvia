@@ -13,6 +13,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Activity, Info, LoaderCircle, MessageSquare, Phone, RefreshCcw, Search, Tag, Trash2, UserCheck, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 // Sub-components
@@ -27,6 +28,8 @@ import HandoffPanel from './HandoffPanel.vue';
 import { useChatLog } from './useChatLog';
 
 type Message = Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData;
+
+const { t } = useI18n();
 
 const {
     agent,
@@ -63,7 +66,9 @@ const liveChatAvailable = computed(() => canTakeover.value && handoffEnabled.val
 const chatlogEnabled = computed(() => usePage().props.chatlogEnabled !== false);
 
 // Page title
-const title = computed(() => (conversationTitle.value ? `Chat Log – ${conversationTitle.value}` : 'Chat Log'));
+const title = computed(() =>
+    conversationTitle.value ? t('agents.chatlog.title_with_conversation', { title: conversationTitle.value }) : t('agents.chatlog.title'),
+);
 
 // Lead capture is an opt-in MCP server (slug `leads`) on the agent. When it's
 // off, no leads are ever captured, so the Lead button is hidden entirely.
@@ -96,8 +101,8 @@ function confirmDeleteConversation() {
     if (!currentConversationId.value) return;
 
     if (!canDeleteConversation.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to delete conversations.',
+        toast.error(t('agents.chatlog.delete.permission_denied_title'), {
+            description: t('agents.chatlog.delete.permission_denied_description'),
         });
         return;
     }
@@ -117,7 +122,7 @@ async function deleteConversation() {
             }),
         );
 
-        toast.success('Conversation deleted successfully');
+        toast.success(t('agents.chatlog.delete.success'));
         showDeleteConversationDialog.value = false;
 
         // Clear the current conversation state before redirecting
@@ -134,8 +139,8 @@ async function deleteConversation() {
         });
     } catch (error: any) {
         console.error('Failed to delete conversation:', error);
-        toast.error('Failed to delete conversation', {
-            description: error.response?.data?.message || 'An error occurred while deleting the conversation.',
+        toast.error(t('agents.chatlog.delete.error_title'), {
+            description: error.response?.data?.message || t('agents.chatlog.delete.error_description'),
         });
     } finally {
         isDeletingConversation.value = false;
@@ -191,7 +196,7 @@ async function updateAnswer() {
         currentReviseMessageId.value = null;
     } catch (error: any) {
         console.error('Failed to save Q&A:', error);
-        toast.error(error.response?.data?.message || 'Failed to save Q&A entry');
+        toast.error(error.response?.data?.message || t('agents.chatlog.revise.save_error'));
     } finally {
         isUpdatingAnswer.value = false;
     }
@@ -237,10 +242,9 @@ watch(liveChatAvailable, (available) => {
                  off (Setup → Settings). Existing conversations still render below. -->
             <Alert v-if="!chatlogEnabled" class="text-foreground flex-shrink-0 rounded-none border-x-0 border-t-0">
                 <Info class="h-4 w-4" />
-                <AlertTitle>Chat log is off</AlertTitle>
+                <AlertTitle>{{ t('agents.chatlog.banner_off_title') }}</AlertTitle>
                 <AlertDescription>
-                    New conversations aren't being saved. Turn the chat log back on in Setup → Settings to resume logging — existing conversations are
-                    still shown below.
+                    {{ t('agents.chatlog.banner_off_description') }}
                 </AlertDescription>
             </Alert>
 
@@ -256,17 +260,17 @@ watch(liveChatAvailable, (available) => {
                             <div class="flex items-center gap-3">
                                 <!-- Search Bar -->
                                 <div class="relative max-w-md flex-1">
-                                    <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                    <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
                                     <Input
                                         v-model="search"
-                                        placeholder="Search messages..."
-                                        class="bg-muted/50 h-9 border-0 pr-9 pl-9 focus-visible:ring-1"
+                                        :placeholder="t('agents.chatlog.search_placeholder')"
+                                        class="bg-muted/50 h-9 border-0 pe-9 ps-9 focus-visible:ring-1"
                                         :disabled="!currentConversationId"
                                     />
                                     <button
                                         v-if="search"
                                         @click="clearSearch"
-                                        class="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
+                                        class="text-muted-foreground hover:text-foreground absolute top-1/2 end-3 -translate-y-1/2 transition-colors"
                                     >
                                         <X class="h-4 w-4" />
                                     </button>
@@ -299,12 +303,12 @@ watch(liveChatAvailable, (available) => {
                                 <Button
                                     v-if="leadsEnabled"
                                     size="sm"
-                                    class="ml-auto h-9"
+                                    class="ms-auto h-9"
                                     :variant="hasLeadForCurrentConversation ? 'default' : 'outline'"
                                     :disabled="!hasLeadForCurrentConversation"
                                     @click="openLeadPanel"
                                 >
-                                    <UserCheck class="mr-1.5 h-4 w-4" /> Lead
+                                    <UserCheck class="me-1.5 h-4 w-4" /> {{ t('agents.chatlog.lead') }}
                                 </Button>
                             </div>
                         </div>
@@ -317,23 +321,23 @@ watch(liveChatAvailable, (available) => {
                                         value="chat"
                                         class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                     >
-                                        <MessageSquare class="mr-2 h-4 w-4" />
-                                        Chat
+                                        <MessageSquare class="me-2 h-4 w-4" />
+                                        {{ t('agents.chatlog.tabs.chat') }}
                                     </TabsTrigger>
                                     <TabsTrigger
                                         v-if="canViewPulse"
                                         value="pulse"
                                         class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                     >
-                                        <Activity class="mr-2 h-4 w-4" />
-                                        Pulse
+                                        <Activity class="me-2 h-4 w-4" />
+                                        {{ t('agents.chatlog.tabs.pulse') }}
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="details"
                                         class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                     >
-                                        <Tag class="mr-2 h-4 w-4" />
-                                        Details
+                                        <Tag class="me-2 h-4 w-4" />
+                                        {{ t('agents.chatlog.tabs.details') }}
                                     </TabsTrigger>
                                     <TabsTrigger
                                         v-if="liveChatAvailable"
@@ -341,9 +345,9 @@ watch(liveChatAvailable, (available) => {
                                         class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                         :class="{ 'text-amber-600 dark:text-amber-400': handoff.isHandedOff.value }"
                                     >
-                                        <Phone class="mr-2 h-4 w-4" />
-                                        Live Chat
-                                        <span v-if="handoff.userIsOnline.value" class="ml-1.5 h-2 w-2 animate-pulse rounded-full bg-green-500" />
+                                        <Phone class="me-2 h-4 w-4" />
+                                        {{ t('agents.chatlog.tabs.live_chat') }}
+                                        <span v-if="handoff.userIsOnline.value" class="ms-1.5 h-2 w-2 animate-pulse rounded-full bg-green-500" />
                                     </TabsTrigger>
                                 </TabsList>
                             </div>
@@ -380,48 +384,48 @@ watch(liveChatAvailable, (available) => {
         <Dialog v-model:open="showReviseDialog">
             <DialogContent class="max-w-xl">
                 <DialogHeader>
-                    <DialogTitle>Improve answer</DialogTitle>
+                    <DialogTitle>{{ t('agents.chatlog.revise.title') }}</DialogTitle>
                 </DialogHeader>
 
                 <div class="space-y-4 py-4">
                     <div class="space-y-2">
-                        <Label for="user-message" class="text-sm font-medium">User message</Label>
+                        <Label for="user-message" class="text-sm font-medium">{{ t('agents.chatlog.revise.user_message') }}</Label>
                         <Textarea
                             id="user-message"
                             v-model="reviseUserMessage"
-                            placeholder="Enter user message..."
+                            :placeholder="t('agents.chatlog.revise.user_message_placeholder')"
                             class="min-h-[100px] resize-none"
                             disabled
                         />
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="bot-response" class="text-sm font-medium">Bot response</Label>
+                        <Label for="bot-response" class="text-sm font-medium">{{ t('agents.chatlog.revise.bot_response') }}</Label>
                         <Textarea
                             id="bot-response"
                             v-model="reviseBotResponse"
-                            placeholder="Enter bot response..."
+                            :placeholder="t('agents.chatlog.revise.bot_response_placeholder')"
                             class="min-h-[120px] resize-none"
                             disabled
                         />
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="expected-response" class="text-sm font-medium">Expected response</Label>
+                        <Label for="expected-response" class="text-sm font-medium">{{ t('agents.chatlog.revise.expected_response') }}</Label>
                         <Textarea
                             id="expected-response"
                             v-model="reviseExpectedResponse"
-                            placeholder="Enter the expected response..."
+                            :placeholder="t('agents.chatlog.revise.expected_response_placeholder')"
                             class="min-h-[150px] resize-none"
                         />
                     </div>
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" @click="cancelRevise" :disabled="isUpdatingAnswer"> Cancel </Button>
+                    <Button variant="outline" @click="cancelRevise" :disabled="isUpdatingAnswer"> {{ t('agents.chatlog.revise.cancel') }} </Button>
                     <Button @click="updateAnswer" :disabled="!reviseExpectedResponse.trim() || isUpdatingAnswer">
-                        <LoaderCircle v-if="isUpdatingAnswer" class="mr-2 h-4 w-4 animate-spin" />
-                        {{ isUpdatingAnswer ? 'Saving...' : 'Save as Q&A' }}
+                        <LoaderCircle v-if="isUpdatingAnswer" class="me-2 h-4 w-4 animate-spin" />
+                        {{ isUpdatingAnswer ? t('agents.chatlog.revise.saving') : t('agents.chatlog.revise.save') }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -431,15 +435,17 @@ watch(liveChatAvailable, (available) => {
         <Dialog v-model:open="showDeleteConversationDialog">
             <DialogContent class="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Delete Conversation</DialogTitle>
-                    <DialogDescription> Are you sure you want to delete this conversation? This action cannot be undone. </DialogDescription>
+                    <DialogTitle>{{ t('agents.chatlog.delete.dialog_title') }}</DialogTitle>
+                    <DialogDescription> {{ t('agents.chatlog.delete.dialog_description') }} </DialogDescription>
                 </DialogHeader>
 
                 <DialogFooter>
-                    <Button variant="outline" @click="showDeleteConversationDialog = false" :disabled="isDeletingConversation"> Cancel </Button>
+                    <Button variant="outline" @click="showDeleteConversationDialog = false" :disabled="isDeletingConversation">
+                        {{ t('agents.chatlog.delete.cancel') }}
+                    </Button>
                     <Button variant="destructive" @click="deleteConversation" :disabled="isDeletingConversation">
-                        <LoaderCircle v-if="isDeletingConversation" class="mr-2 h-4 w-4 animate-spin" />
-                        {{ isDeletingConversation ? 'Deleting...' : 'Delete' }}
+                        <LoaderCircle v-if="isDeletingConversation" class="me-2 h-4 w-4 animate-spin" />
+                        {{ isDeletingConversation ? t('agents.chatlog.delete.deleting') : t('agents.chatlog.delete.delete') }}
                     </Button>
                 </DialogFooter>
             </DialogContent>

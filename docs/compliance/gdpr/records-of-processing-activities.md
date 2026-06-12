@@ -75,14 +75,15 @@ Chatvia engages the following sub-processors. Controllers are notified of additi
 | **Scaleway Object Storage** (S3-compatible) | Attachment / export / backup storage | **France (EU)** |
 | Email / notification provider | Transactional email delivery | EU (per provider config) |
 | Error & performance monitoring | Flare (telemetry may include incidental PII in error context) | Per provider region; PII minimisation applied |
+| **Firecrawl** | Crawling public websites a workspace adds to its knowledge base — receives only the public URL and public page content; **no personal data, transcripts, or Leads** | **US (SCCs)** |
 
 > A current, dated sub-processor list is maintained at the Chatvia Trust / sub-processor page and is the authoritative version.
 
 ## 7. International transfers
 
-Primary processing — hosting, database, LLM inference and object storage — occurs **entirely within the EU — Hetzner (Germany) for compute & database, Scaleway (France) for AI inference, object storage & backups**. No transfer of personal data to a third country occurs for the core service path.
+Primary processing — hosting, database, LLM inference and object storage — occurs **entirely within the EU — Hetzner (Germany) for compute & database, Scaleway (France) for AI inference, object storage & backups**. No transfer of personal data to a third country occurs for the core service path. Website crawling via **Firecrawl (US)** is the only sub-processor with a US nexus on the ingestion path; it receives only public web addresses and public page content — **no personal data is transferred to it**.
 
-Where any ancillary sub-processor (e.g. monitoring) processes data outside the EEA, transfers are covered by:
+Where any ancillary sub-processor (e.g. monitoring, public-website crawling) processes data outside the EEA, transfers are covered by:
 
 - an **EU adequacy decision**, where one exists; or
 - the **EU Standard Contractual Clauses (SCCs)** plus a transfer impact assessment and supplementary technical measures (encryption in transit, data minimisation).

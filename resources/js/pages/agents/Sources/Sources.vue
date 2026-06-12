@@ -4,6 +4,7 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Files from './Files.vue';
 import QaComponent from './QaComponent.vue';
 import TextComponent from './TextComponent.vue';
@@ -26,6 +27,7 @@ interface SourceStats {
 
 const props = defineProps<Props>();
 const page = usePage();
+const { t } = useI18n();
 const stats = ref<SourceStats | null>(null);
 const isLoadingStats = ref(true);
 
@@ -33,57 +35,57 @@ const isLoadingStats = ref(true);
 const contentTypes = [
     {
         id: 'files',
-        label: 'Files',
+        label: 'agents.sources.overview.files.label',
         icon: 'pi-file',
-        description: 'Upload and manage documents (PDF, Word, etc.)',
+        description: 'agents.sources.overview.files.description',
         route: 'agents.sources.files',
         statsKey: 'files',
     },
     {
         id: 'text',
-        label: 'Text',
+        label: 'agents.sources.overview.text.label',
         icon: 'pi-align-justify',
-        description: 'Add custom text content and notes directly',
+        description: 'agents.sources.overview.text.description',
         route: 'agents.sources.text.index',
         statsKey: 'texts',
     },
     {
         id: 'web',
-        label: 'Website',
+        label: 'agents.sources.overview.web.label',
         icon: 'pi-globe',
-        description: 'Crawl websites and web pages for knowledge',
+        description: 'agents.sources.overview.web.description',
         route: 'agents.sources.web',
         statsKey: 'websites',
     },
     {
         id: 'audio',
-        label: 'Audio',
+        label: 'agents.sources.overview.audio.label',
         icon: 'pi-volume-up',
-        description: 'Upload audio files and podcasts for transcription',
+        description: 'agents.sources.overview.audio.description',
         route: 'agents.sources.audio',
         statsKey: 'audio',
     },
     {
         id: 'video',
-        label: 'Video',
+        label: 'agents.sources.overview.video.label',
         icon: 'pi-video',
-        description: 'Upload video files for transcription and analysis',
+        description: 'agents.sources.overview.video.description',
         route: 'agents.sources.video',
         statsKey: 'video',
     },
     {
         id: 'youtube',
-        label: 'YouTube',
+        label: 'agents.sources.overview.youtube.label',
         icon: 'pi-youtube',
-        description: 'Import YouTube videos and extract transcripts',
+        description: 'agents.sources.overview.youtube.description',
         route: 'agents.sources.youtube.index',
         statsKey: 'youtube',
     },
     {
         id: 'qa',
-        label: 'Q&A',
+        label: 'agents.sources.overview.qa.label',
         icon: 'pi-question-circle',
-        description: 'Craft responses for key questions',
+        description: 'agents.sources.overview.qa.description',
         route: 'agents.sources.qa.index',
         statsKey: 'qa',
     },
@@ -201,7 +203,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Sources">
+    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.sources')">
         <div class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-6xl">
                 <!-- Dynamic Component Based on Selection -->
@@ -229,10 +231,12 @@ onMounted(() => {
                             <i
                                 :class="`pi ${contentTypes.find((t) => t.id === selectedContentType)?.icon} text-muted-foreground mx-auto mb-4 text-6xl`"
                             />
-                            <h3 class="mb-2 text-lg font-medium">{{ contentTypes.find((t) => t.id === selectedContentType)?.label }} Coming Soon</h3>
+                            <h3 class="mb-2 text-lg font-medium">
+                                {{ t('agents.sources.overview.coming_soon', { type: t(contentTypes.find((type) => type.id === selectedContentType)?.label ?? '') }) }}
+                            </h3>
                             <p class="text-muted-foreground max-w-md">
-                                {{ contentTypes.find((t) => t.id === selectedContentType)?.description }}
-                                This feature is currently under development.
+                                {{ t(contentTypes.find((type) => type.id === selectedContentType)?.description ?? '') }}
+                                {{ t('agents.sources.overview.under_development') }}
                             </p>
                         </div>
                     </CardContent>

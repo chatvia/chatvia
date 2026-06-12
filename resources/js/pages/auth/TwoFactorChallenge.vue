@@ -7,6 +7,9 @@ import AuthLayout from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { KeyRound, LoaderCircle, ShieldCheck } from 'lucide-vue-next';
 import { nextTick, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 type Mode = 'code' | 'recovery';
 const mode = ref<Mode>('code');
@@ -34,14 +37,14 @@ const switchTo = async (next: Mode) => {
 </script>
 
 <template>
-    <AuthLayout title="Two-factor authentication" description="Enter the code from your authenticator app to continue.">
-        <Head title="Two-factor challenge" />
+    <AuthLayout :title="t('auth.two_factor.title')" :description="t('auth.two_factor.description')">
+        <Head :title="t('auth.two_factor.head')" />
 
         <form @submit.prevent="submit" class="space-y-6">
             <div v-if="mode === 'code'" class="space-y-2">
-                <Label for="code" class="text-base font-medium">Authentication code</Label>
+                <Label for="code" class="text-base font-medium">{{ t('auth.two_factor.code_label') }}</Label>
                 <div class="relative">
-                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                         <ShieldCheck class="h-5 w-5" />
                     </div>
                     <Input
@@ -54,16 +57,16 @@ const switchTo = async (next: Mode) => {
                         autofocus
                         v-model="form.code"
                         placeholder="123456"
-                        class="h-12 pl-10 text-base tracking-widest"
+                        class="h-12 ps-10 text-base tracking-widest"
                     />
                 </div>
                 <InputError :message="form.errors.code" />
             </div>
 
             <div v-else class="space-y-2">
-                <Label for="recovery_code" class="text-base font-medium">Recovery code</Label>
+                <Label for="recovery_code" class="text-base font-medium">{{ t('auth.two_factor.recovery_code_label') }}</Label>
                 <div class="relative">
-                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                         <KeyRound class="h-5 w-5" />
                     </div>
                     <Input
@@ -74,16 +77,16 @@ const switchTo = async (next: Mode) => {
                         required
                         v-model="form.recovery_code"
                         placeholder="xxxxxxxx-xxxxxxxx"
-                        class="h-12 pl-10 text-base"
+                        class="h-12 ps-10 text-base"
                     />
                 </div>
                 <InputError :message="form.errors.recovery_code" />
             </div>
 
             <Button type="submit" class="h-12 w-full text-base font-semibold" :disabled="form.processing">
-                <LoaderCircle v-if="form.processing" class="mr-2 h-5 w-5 animate-spin" />
-                <span v-if="!form.processing">Verify</span>
-                <span v-else>Verifying...</span>
+                <LoaderCircle v-if="form.processing" class="me-2 h-5 w-5 animate-spin" />
+                <span v-if="!form.processing">{{ t('auth.two_factor.verify') }}</span>
+                <span v-else>{{ t('auth.two_factor.verifying') }}</span>
             </Button>
 
             <div class="text-center">
@@ -93,10 +96,10 @@ const switchTo = async (next: Mode) => {
                     @click="switchTo('recovery')"
                     class="text-primary hover:text-primary/80 text-sm font-medium"
                 >
-                    Use a recovery code
+                    {{ t('auth.two_factor.use_recovery_code') }}
                 </button>
                 <button v-else type="button" @click="switchTo('code')" class="text-primary hover:text-primary/80 text-sm font-medium">
-                    Use an authenticator code
+                    {{ t('auth.two_factor.use_authenticator_code') }}
                 </button>
             </div>
         </form>

@@ -167,6 +167,14 @@ return [
                 'allowed_scope' => '',    // optional: only answer within this described scope
                 'refusal_message' => 'Sorry, I can’t help with that request.',
             ],
+            // Per-agent chat throttle (Security page). Caps how many messages the
+            // agent will answer per minute (aggregate across all visitors) before
+            // returning a rate-limit error; owners adjust it to fit their traffic.
+            // Optionally email the workspace owner the first time it trips.
+            'security' => [
+                'chat_rate_limit_per_minute' => 20,
+                'notify_owner_on_rate_limit' => false,
+            ],
         ],
     ],
 
@@ -248,6 +256,10 @@ return [
             'blocked_topics.*' => ['string', 'max:120'],
             'allowed_scope' => ['nullable', 'string', 'max:2000'],
             'refusal_message' => ['nullable', 'string', 'max:500'],
+        ],
+        'security' => [
+            'chat_rate_limit_per_minute' => ['nullable', 'integer', 'min:1', 'max:1000'],
+            'notify_owner_on_rate_limit' => ['nullable', 'boolean'],
         ],
     ],
 ];

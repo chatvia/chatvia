@@ -1,0 +1,39 @@
+{
+    "nav": {
+        "platform": "Platform"
+    },
+    "theme": {
+        "toggle": "Toggle theme",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+    },
+    "team_switcher": {
+        "select_team": "Select Team",
+        "no_teams": "No teams available",
+        "manage_teams": "Manage Teams"
+    },
+    "agents": {
+        "create_modal": {
+            "title": "Create Agent",
+            "limit_title": "Agent Limit Reached",
+            "limit_description": "You've reached your agent limit.",
+            "upgrade_plan": "Upgrade Plan",
+            "name_label": "Agent Name",
+            "name_placeholder": "E.g., Customer Support",
+            "load_error": "Failed to load usage information",
+            "limit_toast_title": "Agent limit reached",
+            "limit_toast_description": "You've reached your agent limit."
+        }
+    },
+    "confirm_password": {
+        "title": "Confirm your password",
+        "description": "For your security, please confirm your password before changing security settings.",
+        "password_label": "Password",
+        "password_required": "Password is required.",
+        "incorrect": "Incorrect password.",
+        "error": "Could not confirm password. Please try again.",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+    }
+}

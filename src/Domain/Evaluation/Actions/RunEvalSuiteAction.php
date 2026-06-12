@@ -4,11 +4,13 @@ namespace Domain\Evaluation\Actions;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Billing\Services\UserCreditSystem;
 use Domain\Evaluation\Jobs\ScoreEvalCaseJob;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalRun;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Kicks off a full eval suite for an agent: snapshots the run, fans the active
@@ -18,8 +20,20 @@ use Illuminate\Support\Facades\Bus;
  */
 class RunEvalSuiteAction
 {
+    public function __construct(
+        private readonly UserCreditSystem $creditSystem,
+    ) {}
+
     public function execute(Agent $agent, ?User $triggeredBy = null): EvalRun
     {
+        // Evals bill like live chat — one message per scored case — so a
+        // workspace that can't send messages can't start a suite either.
+        if (! $this->creditSystem->setUserId($agent->user_id)->canSendMessages()) {
+            throw ValidationException::withMessages([
+                'run' => 'No message credits left — every eval case costs one message. Top up or upgrade to run the suite.',
+            ]);
+        }
+
         $cases = EvalCase::query()
             ->forAgent($agent->id)
             ->active()

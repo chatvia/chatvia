@@ -1,0 +1,39 @@
+{
+    "nav": {
+        "platform": "المنصة"
+    },
+    "theme": {
+        "toggle": "تبديل المظهر",
+        "light": "فاتح",
+        "dark": "داكن",
+        "system": "النظام"
+    },
+    "team_switcher": {
+        "select_team": "اختر فريقاً",
+        "no_teams": "لا توجد فرق متاحة",
+        "manage_teams": "إدارة الفرق"
+    },
+    "agents": {
+        "create_modal": {
+            "title": "إنشاء وكيل",
+            "limit_title": "تم الوصول إلى حد الوكلاء",
+            "limit_description": "لقد وصلت إلى الحد الأقصى لعدد الوكلاء.",
+            "upgrade_plan": "ترقية الخطة",
+            "name_label": "اسم الوكيل",
+            "name_placeholder": "مثال: دعم العملاء",
+            "load_error": "تعذّر تحميل معلومات الاستخدام",
+            "limit_toast_title": "تم الوصول إلى حد الوكلاء",
+            "limit_toast_description": "لقد وصلت إلى الحد الأقصى لعدد الوكلاء."
+        }
+    },
+    "confirm_password": {
+        "title": "تأكيد كلمة المرور",
+        "description": "لأمانك، يرجى تأكيد كلمة المرور قبل تغيير إعدادات الأمان.",
+        "password_label": "كلمة المرور",
+        "password_required": "كلمة المرور مطلوبة.",
+        "incorrect": "كلمة المرور غير صحيحة.",
+        "error": "تعذّر تأكيد كلمة المرور. يرجى المحاولة مرة أخرى.",
+        "cancel": "إلغاء",
+        "confirm": "تأكيد"
+    }
+}

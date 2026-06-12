@@ -1,0 +1,108 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "title": "Evals",
+                "head_title": "Evals — {name}",
+                "description": "Test suites that grade this agent's real answers — same knowledge, tools, and model as production. Run the suite and track whether changes make the agent better or worse.",
+                "run_suite": "Run suite",
+                "cases_heading": "Cases",
+                "cases_summary": "{total} total · {active} active",
+                "from_knowledge": "From knowledge",
+                "add_case": "Add case",
+                "table": {
+                    "case": "Case",
+                    "scorer": "Scorer",
+                    "status": "Status",
+                    "actions": "Actions",
+                    "by": "By",
+                    "pass_rate": "Pass rate",
+                    "passed_failed": "Passed / Failed",
+                    "avg_score": "Avg score",
+                    "when": "When"
+                },
+                "status_active": "Active",
+                "status_inactive": "Inactive",
+                "empty_cases": "No eval cases yet. Add one to start measuring answer quality.",
+                "recent_runs": "Recent runs",
+                "recent_runs_description": "Every run is scored against the cases active at that moment.",
+                "clear": "Clear",
+                "empty_runs": "No runs yet. Click \"Run suite\" to score the active cases.",
+                "case_dialog": {
+                    "edit_title": "Edit case",
+                    "add_title": "Add case",
+                    "description": "The input is sent to the agent exactly as a visitor would ask it.",
+                    "name_label": "Name",
+                    "name_placeholder": "e.g. Refund policy is accurate",
+                    "input_label": "Input prompt",
+                    "input_placeholder": "What is your refund policy?",
+                    "scorer_label": "Scorer",
+                    "scorer_placeholder": "Pick a scorer",
+                    "expected_substring": "Expected substring",
+                    "expected_substring_placeholder": "e.g. 30 days",
+                    "case_sensitive": "Case-sensitive",
+                    "pattern_label": "Pattern",
+                    "pattern_placeholder": "/\\b30 days\\b/i",
+                    "required_keys": "Required keys",
+                    "required_keys_placeholder": "comma,separated,keys",
+                    "required_keys_hint": "The answer must be valid JSON containing each key.",
+                    "grading_criteria": "Grading criteria",
+                    "grading_criteria_placeholder": "The answer must state that refunds are available within 30 days of purchase.",
+                    "expected_answer": "Expected answer",
+                    "reference_answer": "Reference answer (optional)",
+                    "active_label": "Active (included in runs)",
+                    "save": "Save"
+                },
+                "knowledge_dialog": {
+                    "title": "Add cases from knowledge",
+                    "description": "Pick questions from this agent's knowledge base. Each becomes a case graded by the AI judge against its source text.",
+                    "search_placeholder": "Search questions...",
+                    "added_badge": "Added",
+                    "no_search_results": "No questions match your search.",
+                    "no_questions": "No questions found in this agent's knowledge base yet.",
+                    "add_cases": "Add cases",
+                    "add_count": "Add {count} case | Add {count} cases"
+                },
+                "delete_case_title": "Delete case",
+                "delete_case_description": "Delete \"{name}\"? Past run results keep their copy of this case — only future runs are affected.",
+                "delete_run_title": "Delete run",
+                "delete_run_description": "Delete this run and its per-case results? This can't be undone. Cases aren't affected.",
+                "clear_runs_title": "Clear run history",
+                "clear_runs_description": "Delete all {count} run for this agent and their results? This can't be undone. Cases aren't affected. | Delete all {count} runs for this agent and their results? This can't be undone. Cases aren't affected.",
+                "clear_all": "Clear all",
+                "scorers": {
+                    "contains": {
+                        "label": "Contains text",
+                        "help": "Passes if the answer contains a substring."
+                    },
+                    "regex": {
+                        "label": "Regex match",
+                        "help": "Passes if the answer matches a regular expression."
+                    },
+                    "exact": {
+                        "label": "Exact match",
+                        "help": "Passes only if the answer equals the reference answer exactly."
+                    },
+                    "json_schema": {
+                        "label": "JSON shape",
+                        "help": "Passes if the answer is valid JSON with the required keys."
+                    },
+                    "llm_judge": {
+                        "label": "AI judge",
+                        "help": "An open-weight model grades the answer against your criteria."
+                    }
+                },
+                "toasts": {
+                    "case_updated": "Case updated",
+                    "case_added": "Case added",
+                    "cases_added": "{count} case added | {count} cases added",
+                    "case_deleted": "Case deleted",
+                    "run_started": "Eval run started",
+                    "run_start_error": "Could not start the run",
+                    "run_deleted": "Run deleted",
+                    "history_cleared": "Run history cleared"
+                }
+            }
+        }
+    }
+}

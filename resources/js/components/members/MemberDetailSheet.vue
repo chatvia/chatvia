@@ -54,7 +54,7 @@ const save = async () => {
     try {
         const raw = messagesLimit.value;
         const limit = raw === null || raw === '' ? null : Number(raw);
-        const { data } = await axios.patch(route('settings.members.update', { chatter: props.member.external_id }), {
+        const { data } = await axios.patch(route('people.members.update', { chatter: props.member.external_id }), {
             messages_limit: limit,
             deactivated: deactivated.value,
             deactivation_reason: deactivationReason.value || null,
@@ -75,7 +75,7 @@ const removeLimit = async () => {
     if (!props.member) return;
     isSaving.value = true;
     try {
-        const { data } = await axios.patch(route('settings.members.update', { chatter: props.member.external_id }), {
+        const { data } = await axios.patch(route('people.members.update', { chatter: props.member.external_id }), {
             messages_limit: null,
             deactivated: props.member.is_deactivated,
             deactivation_reason: props.member.deactivation_reason,

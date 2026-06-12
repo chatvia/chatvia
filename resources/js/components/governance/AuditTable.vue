@@ -38,11 +38,10 @@ interface AuditRow {
     conversation_external_id: string | null;
 }
 
+// Cursor paginator: the audit log is unbounded, so the backend never
+// computes a total — prev/next URLs are the whole navigation contract.
 interface Paginator<T> {
     data: T[];
-    current_page: number;
-    last_page: number;
-    total: number;
     prev_page_url: string | null;
     next_page_url: string | null;
 }
@@ -195,8 +194,6 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
                     <option v-for="a in agents" :key="a.id" :value="String(a.id)">{{ a.name }}</option>
                 </select>
             </div>
-
-            <span class="text-muted-foreground ml-auto text-sm">{{ rows.total }} events</span>
         </div>
 
         <!-- Table -->
@@ -247,9 +244,8 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
             </Table>
         </div>
 
-        <!-- Pagination -->
-        <div v-if="rows.last_page > 1" class="flex items-center justify-between">
-            <span class="text-muted-foreground text-sm">Page {{ rows.current_page }} of {{ rows.last_page }}</span>
+        <!-- Pagination (cursor: only prev/next, no page count) -->
+        <div v-if="rows.prev_page_url || rows.next_page_url" class="flex items-center justify-end">
             <div class="flex gap-2">
                 <Button variant="outline" size="sm" :disabled="!rows.prev_page_url" @click="go(rows.prev_page_url)">Previous</Button>
                 <Button variant="outline" size="sm" :disabled="!rows.next_page_url" @click="go(rows.next_page_url)">Next</Button>

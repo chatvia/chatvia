@@ -50,7 +50,7 @@ class PromptController extends Controller
     {
         abort_unless(has_team_permission('account.prompts'), 404);
 
-        return Inertia::render('settings/Prompts', [
+        return Inertia::render('workspace/library/Prompts', [
             'prompts' => $request->user()->prompts()
                 ->withCount('agents')
                 ->latest()

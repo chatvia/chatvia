@@ -18,6 +18,9 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { Ban, Check, History, LoaderCircle, MessageSquareOff, Plus, Save, ShieldAlert, Target, Trash2, User, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface GuardSettings {
     enabled: boolean;
@@ -49,12 +52,12 @@ const activeTab = ref<'config' | 'activity'>('config');
 const { formatDateTime } = useDateFormat();
 
 const GUARD_LABELS: Record<string, string> = {
-    prompt_injection: 'Prompt injection',
-    pii: 'PII',
-    blocked_topic: 'Blocked topic',
-    toxicity: 'Toxicity',
+    prompt_injection: 'agents.guardrails.guard_labels.prompt_injection',
+    pii: 'agents.guardrails.guard_labels.pii',
+    blocked_topic: 'agents.guardrails.guard_labels.blocked_topic',
+    toxicity: 'agents.guardrails.guard_labels.toxicity',
 };
-const guardLabel = (t: string) => GUARD_LABELS[t] ?? t;
+const guardLabel = (type: string) => (GUARD_LABELS[type] ? t(GUARD_LABELS[type]) : type);
 
 const outcomeVariant = (o: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
     if (o === 'blocked') return 'destructive';
@@ -79,7 +82,7 @@ form.transform((d) => ({
     filters: [...d.filters],
     injection: d.injection,
     toxicity: d.toxicity,
-    blocked_topics: d.blocked_topics.map((t) => t.trim()).filter(Boolean),
+    blocked_topics: d.blocked_topics.map((topic) => topic.trim()).filter(Boolean),
     allowed_scope: d.allowed_scope,
     refusal_message: d.refusal_message,
 }));
@@ -87,8 +90,8 @@ form.transform((d) => ({
 const save = () => {
     form.post(route('agents.guardrails.update', props.agent.external_id), {
         preserveScroll: true,
-        onSuccess: () => toast.success('Guardrails saved'),
-        onError: () => toast.error('Could not save guardrails'),
+        onSuccess: () => toast.success(t('agents.guardrails.saved')),
+        onError: () => toast.error(t('agents.guardrails.save_error')),
     });
 };
 
@@ -151,7 +154,7 @@ const openTopics = () => {
 const addTopic = () => topicsDraft.value.push('');
 const removeTopic = (index: number) => topicsDraft.value.splice(index, 1);
 const applyTopics = () => {
-    const cleaned = topicsDraft.value.map((t) => t.trim()).filter(Boolean);
+    const cleaned = topicsDraft.value.map((topic) => topic.trim()).filter(Boolean);
     form.blocked_topics = [...new Set(cleaned)];
     topicsOpen.value = false;
 };
@@ -159,10 +162,10 @@ const applyTopics = () => {
 const GUARDS = [
     {
         key: 'injection' as const,
-        label: 'Prompt-injection defense',
-        help: 'Block jailbreak/override attempts, and strip injected instructions from retrieved sources.',
+        label: 'agents.guardrails.injection_label',
+        help: 'agents.guardrails.injection_help',
     },
-    { key: 'toxicity' as const, label: 'Toxicity / moderation', help: 'Block abusive input and replace an unsafe answer.' },
+    { key: 'toxicity' as const, label: 'agents.guardrails.toxicity_label', help: 'agents.guardrails.toxicity_help' },
 ];
 
 // ---- Trigger detail --------------------------------------------------------
@@ -191,10 +194,10 @@ const prettyDetail = (detail: unknown): string => {
 <template>
     <AgentLayout
         :agent="props.agent"
-        title="Guardrails"
-        description="AI-safety guards on live chat: PII redaction, prompt-injection defense, blocked topics, and toxicity — applied to the visitor's message and the agent's answer."
+        :title="t('agents.guardrails.title')"
+        :description="t('agents.guardrails.description')"
     >
-        <Head :title="`Guardrails — ${props.agent.name}`" />
+        <Head :title="t('agents.guardrails.head_title', { name: props.agent.name })" />
 
         <div class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-5xl">
@@ -202,11 +205,11 @@ const prettyDetail = (detail: unknown): string => {
                     <TabsList>
                         <TabsTrigger value="config" class="cursor-pointer">
                             <ShieldAlert class="h-4 w-4" />
-                            Configuration
+                            {{ t('agents.guardrails.configuration') }}
                         </TabsTrigger>
                         <TabsTrigger value="activity" class="cursor-pointer">
                             <History class="h-4 w-4" />
-                            Activity
+                            {{ t('agents.guardrails.activity') }}
                         </TabsTrigger>
                     </TabsList>
 
@@ -221,8 +224,8 @@ const prettyDetail = (detail: unknown): string => {
                                     @click="toggle('enabled')"
                                 >
                                     <div>
-                                        <Label class="pointer-events-none text-sm font-medium">Enable guardrails</Label>
-                                        <p class="text-muted-foreground text-sm">Master switch for this agent.</p>
+                                        <Label class="pointer-events-none text-sm font-medium">{{ t('agents.guardrails.enable_guardrails') }}</Label>
+                                        <p class="text-muted-foreground text-sm">{{ t('agents.guardrails.master_switch') }}</p>
                                     </div>
                                     <Switch v-model="form.enabled" :disabled="!canManage" class="pointer-events-none" />
                                 </div>
@@ -240,9 +243,9 @@ const prettyDetail = (detail: unknown): string => {
                                             @click="togglePii"
                                         >
                                             <div>
-                                                <Label class="pointer-events-none text-sm font-medium">PII detection &amp; redaction</Label>
+                                                <Label class="pointer-events-none text-sm font-medium">{{ t('agents.guardrails.pii_label') }}</Label>
                                                 <p class="text-muted-foreground text-sm">
-                                                    Replace the selected identifiers with placeholders like [EMAIL_1] in the message and the answer.
+                                                    {{ t('agents.guardrails.pii_help') }}
                                                 </p>
                                             </div>
                                             <Switch :model-value="piiEnabled" :disabled="!canManage" class="pointer-events-none" />
@@ -253,8 +256,8 @@ const prettyDetail = (detail: unknown): string => {
                                                 filter.label
                                             }}</Badge>
                                             <Button v-if="canManage" type="button" variant="link" class="h-auto p-0 text-sm" @click="openFilters">
-                                                <ShieldAlert class="mr-1.5 h-4 w-4" />
-                                                Manage filters
+                                                <ShieldAlert class="me-1.5 h-4 w-4" />
+                                                {{ t('agents.guardrails.manage_filters') }}
                                             </Button>
                                         </div>
                                     </div>
@@ -267,60 +270,60 @@ const prettyDetail = (detail: unknown): string => {
                                         @click="toggle(guard.key)"
                                     >
                                         <div>
-                                            <Label class="pointer-events-none text-sm font-medium">{{ guard.label }}</Label>
-                                            <p class="text-muted-foreground text-sm">{{ guard.help }}</p>
+                                            <Label class="pointer-events-none text-sm font-medium">{{ t(guard.label) }}</Label>
+                                            <p class="text-muted-foreground text-sm">{{ t(guard.help) }}</p>
                                         </div>
                                         <Switch v-model="form[guard.key]" :disabled="!canManage" class="pointer-events-none" />
                                     </div>
 
                                     <!-- Blocked topics -->
                                     <div class="space-y-1.5 pt-2">
-                                        <Label>Blocked topics</Label>
+                                        <Label>{{ t('agents.guardrails.blocked_topics') }}</Label>
                                         <div class="flex flex-wrap items-center gap-2">
                                             <Badge v-for="topic in form.blocked_topics" :key="topic" variant="secondary" class="font-normal">{{
                                                 topic
                                             }}</Badge>
                                             <span v-if="!form.blocked_topics.length" class="text-muted-foreground text-sm"
-                                                >None yet — all topics are allowed.</span
+                                                >{{ t('agents.guardrails.no_blocked_topics') }}</span
                                             >
                                             <Button v-if="canManage" type="button" variant="link" class="h-auto p-0 text-sm" @click="openTopics">
-                                                <Ban class="mr-1.5 h-4 w-4" />
-                                                Manage blocked topics
+                                                <Ban class="me-1.5 h-4 w-4" />
+                                                {{ t('agents.guardrails.manage_blocked_topics') }}
                                             </Button>
                                         </div>
                                         <p class="text-muted-foreground text-xs">
-                                            The agent refuses questions matching these. Leave empty to allow all topics.
+                                            {{ t('agents.guardrails.blocked_topics_help') }}
                                         </p>
                                     </div>
 
                                     <!-- Allowed scope -->
                                     <div class="space-y-1.5">
-                                        <Label for="scope">Allowed scope (optional)</Label>
+                                        <Label for="scope">{{ t('agents.guardrails.allowed_scope') }}</Label>
                                         <div class="relative">
-                                            <Target class="text-muted-foreground absolute top-3 left-3 h-4 w-4" />
+                                            <Target class="text-muted-foreground absolute top-3 start-3 h-4 w-4" />
                                             <Textarea
                                                 id="scope"
                                                 v-model="form.allowed_scope"
                                                 :disabled="!canManage"
                                                 rows="2"
-                                                class="pl-9"
-                                                placeholder="Only answer questions about our product, billing, and support."
+                                                class="ps-9"
+                                                :placeholder="t('agents.guardrails.allowed_scope_placeholder')"
                                             />
                                         </div>
-                                        <p class="text-muted-foreground text-xs">If set, the agent refuses anything outside this scope.</p>
+                                        <p class="text-muted-foreground text-xs">{{ t('agents.guardrails.allowed_scope_help') }}</p>
                                     </div>
 
                                     <!-- Refusal message -->
                                     <div class="space-y-1.5">
-                                        <Label for="refusal">Refusal message</Label>
+                                        <Label for="refusal">{{ t('agents.guardrails.refusal_message') }}</Label>
                                         <div class="relative">
-                                            <MessageSquareOff class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                            <MessageSquareOff class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
                                             <Input
                                                 id="refusal"
                                                 v-model="form.refusal_message"
                                                 :disabled="!canManage"
-                                                class="pl-9"
-                                                placeholder="Sorry, I can’t help with that request."
+                                                class="ps-9"
+                                                :placeholder="t('agents.guardrails.refusal_message_placeholder')"
                                             />
                                         </div>
                                     </div>
@@ -328,9 +331,9 @@ const prettyDetail = (detail: unknown): string => {
 
                                 <div v-if="canManage" class="flex justify-end">
                                     <Button :disabled="form.processing" @click="save">
-                                        <LoaderCircle v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
-                                        <Save v-else class="mr-2 h-4 w-4" />
-                                        Save
+                                        <LoaderCircle v-if="form.processing" class="me-2 h-4 w-4 animate-spin" />
+                                        <Save v-else class="me-2 h-4 w-4" />
+                                        {{ t('agents.guardrails.save') }}
                                     </Button>
                                 </div>
                             </CardContent>
@@ -341,9 +344,9 @@ const prettyDetail = (detail: unknown): string => {
                     <TabsContent value="activity" class="mt-6">
                         <section class="space-y-3">
                             <div>
-                                <h2 class="text-base font-semibold">Recent triggers</h2>
+                                <h2 class="text-base font-semibold">{{ t('agents.guardrails.recent_triggers') }}</h2>
                                 <p class="text-muted-foreground text-sm">
-                                    {{ props.triggers.total }} logged · only blocks, redactions, and flags are recorded.
+                                    {{ t('agents.guardrails.triggers_logged', { total: props.triggers.total }) }}
                                 </p>
                             </div>
 
@@ -351,12 +354,12 @@ const prettyDetail = (detail: unknown): string => {
                                 <Table class="[&_td]:px-4 [&_td]:py-3 [&_th]:px-4">
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>By</TableHead>
-                                            <TableHead>Guard</TableHead>
-                                            <TableHead>Stage</TableHead>
-                                            <TableHead>Outcome</TableHead>
-                                            <TableHead>Severity</TableHead>
-                                            <TableHead class="text-right">When</TableHead>
+                                            <TableHead>{{ t('agents.guardrails.table.by') }}</TableHead>
+                                            <TableHead>{{ t('agents.guardrails.table.guard') }}</TableHead>
+                                            <TableHead>{{ t('agents.guardrails.table.stage') }}</TableHead>
+                                            <TableHead>{{ t('agents.guardrails.table.outcome') }}</TableHead>
+                                            <TableHead>{{ t('agents.guardrails.table.severity') }}</TableHead>
+                                            <TableHead class="text-end">{{ t('agents.guardrails.table.when') }}</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -376,7 +379,7 @@ const prettyDetail = (detail: unknown): string => {
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <span :class="row.user_name ? 'text-sm' : 'text-muted-foreground text-sm'">{{
-                                                        row.user_name ?? 'visitor'
+                                                        row.user_name ?? t('agents.guardrails.visitor')
                                                     }}</span>
                                                 </div>
                                             </TableCell>
@@ -388,13 +391,13 @@ const prettyDetail = (detail: unknown): string => {
                                                 ><Badge :variant="outcomeVariant(row.outcome)" class="capitalize">{{ row.outcome }}</Badge></TableCell
                                             >
                                             <TableCell class="text-muted-foreground text-sm capitalize">{{ row.severity ?? '—' }}</TableCell>
-                                            <TableCell class="text-muted-foreground text-right whitespace-nowrap">{{
+                                            <TableCell class="text-muted-foreground text-end whitespace-nowrap">{{
                                                 formatDateTime(row.created_at)
                                             }}</TableCell>
                                         </TableRow>
                                         <TableRow v-if="props.triggers.data.length === 0">
                                             <TableCell colspan="6" class="text-muted-foreground py-10 text-center text-sm">
-                                                No triggers yet — every message has passed the guards (or guards are off).
+                                                {{ t('agents.guardrails.no_triggers') }}
                                             </TableCell>
                                         </TableRow>
                                     </TableBody>
@@ -403,7 +406,7 @@ const prettyDetail = (detail: unknown): string => {
 
                             <div v-if="props.triggers.last_page > 1" class="flex items-center justify-between">
                                 <span class="text-muted-foreground text-sm"
-                                    >Page {{ props.triggers.current_page }} of {{ props.triggers.last_page }}</span
+                                    >{{ t('agents.guardrails.page_of', { current: props.triggers.current_page, last: props.triggers.last_page }) }}</span
                                 >
                                 <div class="flex gap-2">
                                     <Button
@@ -411,14 +414,14 @@ const prettyDetail = (detail: unknown): string => {
                                         size="sm"
                                         :disabled="!props.triggers.prev_page_url"
                                         @click="go(props.triggers.prev_page_url)"
-                                        >Previous</Button
+                                        >{{ t('agents.guardrails.previous') }}</Button
                                     >
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         :disabled="!props.triggers.next_page_url"
                                         @click="go(props.triggers.next_page_url)"
-                                        >Next</Button
+                                        >{{ t('agents.guardrails.next') }}</Button
                                     >
                                 </div>
                             </div>
@@ -432,9 +435,9 @@ const prettyDetail = (detail: unknown): string => {
         <Dialog v-model:open="filtersOpen">
             <DialogContent class="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>PII filters</DialogTitle>
+                    <DialogTitle>{{ t('agents.guardrails.pii_filters_title') }}</DialogTitle>
                     <DialogDescription>
-                        Choose which identifiers to detect and replace with placeholders. Leave all off to disable PII redaction.
+                        {{ t('agents.guardrails.pii_filters_description') }}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -453,12 +456,12 @@ const prettyDetail = (detail: unknown): string => {
 
                 <DialogFooter>
                     <Button type="button" variant="ghost" @click="filtersOpen = false">
-                        <X class="mr-2 h-4 w-4" />
-                        Cancel
+                        <X class="me-2 h-4 w-4" />
+                        {{ t('agents.guardrails.cancel') }}
                     </Button>
                     <Button type="button" @click="applyFilters">
-                        <Check class="mr-2 h-4 w-4" />
-                        Done
+                        <Check class="me-2 h-4 w-4" />
+                        {{ t('agents.guardrails.done') }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -468,20 +471,20 @@ const prettyDetail = (detail: unknown): string => {
         <Dialog v-model:open="topicsOpen">
             <DialogContent class="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Blocked topics</DialogTitle>
+                    <DialogTitle>{{ t('agents.guardrails.blocked_topics') }}</DialogTitle>
                     <DialogDescription
-                        >The agent refuses any question matching one of these topics. Leave the list empty to allow all topics.</DialogDescription
+                        >{{ t('agents.guardrails.blocked_topics_dialog_description') }}</DialogDescription
                     >
                 </DialogHeader>
 
                 <div class="space-y-2">
                     <div v-for="(topic, index) in topicsDraft" :key="index" class="flex items-center gap-2">
                         <div class="relative flex-1">
-                            <Ban class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Ban class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
                             <Input
                                 v-model="topicsDraft[index]"
-                                :placeholder="index === 0 ? 'e.g. medical advice' : 'Add another topic'"
-                                class="pl-9"
+                                :placeholder="index === 0 ? t('agents.guardrails.topic_placeholder_first') : t('agents.guardrails.topic_placeholder_more')"
+                                class="ps-9"
                                 @keydown.enter.prevent="addTopic"
                             />
                         </div>
@@ -490,29 +493,29 @@ const prettyDetail = (detail: unknown): string => {
                             variant="ghost"
                             size="icon"
                             class="text-muted-foreground hover:text-destructive shrink-0"
-                            aria-label="Remove topic"
+                            :aria-label="t('agents.guardrails.remove_topic')"
                             @click="removeTopic(index)"
                         >
                             <Trash2 class="h-4 w-4" />
                         </Button>
                     </div>
 
-                    <p v-if="!topicsDraft.length" class="text-muted-foreground text-sm">No topics — the agent answers about anything.</p>
+                    <p v-if="!topicsDraft.length" class="text-muted-foreground text-sm">{{ t('agents.guardrails.no_topics_draft') }}</p>
                 </div>
 
                 <Button type="button" variant="outline" size="sm" class="w-fit" @click="addTopic">
-                    <Plus class="mr-2 h-4 w-4" />
-                    Add topic
+                    <Plus class="me-2 h-4 w-4" />
+                    {{ t('agents.guardrails.add_topic') }}
                 </Button>
 
                 <DialogFooter>
                     <Button type="button" variant="ghost" @click="topicsOpen = false">
-                        <X class="mr-2 h-4 w-4" />
-                        Cancel
+                        <X class="me-2 h-4 w-4" />
+                        {{ t('agents.guardrails.cancel') }}
                     </Button>
                     <Button type="button" @click="applyTopics">
-                        <Check class="mr-2 h-4 w-4" />
-                        Done
+                        <Check class="me-2 h-4 w-4" />
+                        {{ t('agents.guardrails.done') }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -527,25 +530,25 @@ const prettyDetail = (detail: unknown): string => {
                         <Badge v-if="selected" :variant="outcomeVariant(selected.outcome)" class="capitalize">{{ selected?.outcome }}</Badge>
                     </DialogTitle>
                     <DialogDescription>
-                        {{ selected?.stage }} · {{ selected ? formatDateTime(selected.created_at) : '' }} · by {{ selected?.user_name ?? 'visitor' }}
+                        {{ selected?.stage }} · {{ selected ? formatDateTime(selected.created_at) : '' }} · {{ t('agents.guardrails.by_user', { name: selected?.user_name ?? t('agents.guardrails.visitor') }) }}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div v-if="selected" class="space-y-4 text-sm">
                     <div>
-                        <p class="text-muted-foreground mb-1 text-xs font-medium uppercase">Snippet (redacted, capped)</p>
+                        <p class="text-muted-foreground mb-1 text-xs font-medium uppercase">{{ t('agents.guardrails.snippet') }}</p>
                         <p class="bg-muted/40 max-h-48 overflow-y-auto rounded-md p-3 break-words whitespace-pre-wrap">
                             {{ selected.snippet || '—' }}
                         </p>
                     </div>
                     <div v-if="selected.detail">
-                        <p class="text-muted-foreground mb-1 text-xs font-medium uppercase">Detail</p>
+                        <p class="text-muted-foreground mb-1 text-xs font-medium uppercase">{{ t('agents.guardrails.detail') }}</p>
                         <pre class="bg-muted/40 max-h-48 overflow-y-auto rounded-md p-3 text-xs break-words whitespace-pre-wrap">{{
                             prettyDetail(selected.detail)
                         }}</pre>
                     </div>
                     <div class="text-muted-foreground text-xs">
-                        Conversation: {{ selected.conversation_external_id ?? '—' }} · Trace: {{ selected.trace_id ?? '—' }}
+                        {{ t('agents.guardrails.conversation_trace', { conversation: selected.conversation_external_id ?? '—', trace: selected.trace_id ?? '—' }) }}
                     </div>
                 </div>
             </DialogContent>

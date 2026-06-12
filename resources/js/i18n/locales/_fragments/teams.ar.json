@@ -1,0 +1,139 @@
+{
+    "teams": {
+        "breadcrumb": "الفِرق",
+        "common": {
+            "cancel": "إلغاء",
+            "create_role": "إنشاء دور"
+        },
+        "index": {
+            "title": "الفِرق",
+            "heading": "الفِرق",
+            "subtitle": "أدِر فِرقك وتعاوَن مع الآخرين.",
+            "create_team": "إنشاء فريق",
+            "search_placeholder": "ابحث في الفِرق",
+            "empty_title": "لا توجد فِرق بعد",
+            "empty_description": "أنشئ فريقك الأول لبدء التعاون مع الآخرين",
+            "no_results": "لا توجد فِرق مطابقة لـ \"{query}\".",
+            "clear_search": "مسح البحث",
+            "primary": "أساسي",
+            "open_menu": "فتح القائمة",
+            "manage": "إدارة",
+            "leave": "مغادرة",
+            "delete": "حذف",
+            "table": {
+                "name": "اسم الفريق",
+                "agents": "الوكلاء",
+                "members": "الأعضاء",
+                "created": "تاريخ الإنشاء"
+            },
+            "leave_dialog": {
+                "title": "مغادرة الفريق",
+                "description": "هل أنت متأكد أنك تريد مغادرة \"{name}\"؟"
+            },
+            "delete_dialog": {
+                "title": "حذف الفريق",
+                "description": "هل أنت متأكد أنك تريد حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء."
+            },
+            "create_dialog": {
+                "title": "إنشاء فريق جديد",
+                "description": "أنشئ فريقًا للتعاون مع الآخرين.",
+                "name_label": "اسم الفريق",
+                "name_placeholder": "أدخل اسم الفريق"
+            }
+        },
+        "show": {
+            "title": "الفريق: {name}",
+            "back": "العودة إلى الفِرق",
+            "copied": "تم النسخ!",
+            "copy_team_id": "نسخ معرّف الفريق",
+            "add_member": "إضافة عضو",
+            "view_members": "عرض الأعضاء ({count})",
+            "role": "الدور",
+            "actions": "الإجراءات",
+            "roles": {
+                "title": "الأدوار والصلاحيات",
+                "description": "حدّد الأدوار وصلاحياتها لأعضاء الفريق.",
+                "empty": "لا توجد أدوار مخصصة بعد. أنشئ دورًا لإسناد صلاحيات محددة لأعضاء الفريق.",
+                "copy_role_id": "نسخ معرّف الدور",
+                "edit_role": "تعديل الدور",
+                "delete_role": "حذف الدور",
+                "agent_access_label": "وصول الوكلاء:",
+                "all_agents": "جميع الوكلاء",
+                "no_agents_assigned": "لا يوجد وكلاء مُسندون",
+                "agent_count": "{count} وكيل | {count} وكلاء",
+                "delete_description": "هل أنت متأكد أنك تريد حذف الدور \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء."
+            },
+            "members": {
+                "title": "أعضاء الفريق",
+                "description": "الأعضاء الذين لديهم وصول إلى هذا الفريق.",
+                "you": "أنت",
+                "change_role": "تغيير الدور",
+                "change_role_title": "تغيير دور العضو",
+                "update_role_description": "حدّث دور {name}.",
+                "select_role_placeholder": "اختر دورًا",
+                "update_role": "تحديث الدور",
+                "remove": "إزالة",
+                "remove_title": "إزالة عضو من الفريق",
+                "remove_description": "هل أنت متأكد أنك تريد إزالة {name} من هذا الفريق؟ سيفقد الوصول إلى جميع موارد الفريق.",
+                "remove_confirm": "إزالة العضو",
+                "table": {
+                    "member": "العضو"
+                }
+            },
+            "invitations": {
+                "title": "الدعوات المعلّقة",
+                "description": "هذه الدعوات في انتظار القبول.",
+                "table": {
+                    "email": "البريد الإلكتروني",
+                    "sent": "أُرسلت"
+                }
+            },
+            "invite": {
+                "title": "إضافة عضو إلى الفريق",
+                "description": "أضِف مستخدمًا موجودًا أو ادعُ شخصًا جديدًا للانضمام إلى هذا الفريق.",
+                "select_existing": "اختيار موجود",
+                "invite_by_email": "الدعوة عبر البريد الإلكتروني",
+                "select_user_label": "اختر مستخدمًا",
+                "select_user_placeholder": "اختر مستخدمًا...",
+                "email_label": "البريد الإلكتروني",
+                "email_placeholder": "colleague{'@'}example.com",
+                "send_invitation": "إرسال الدعوة"
+            },
+            "role_members": {
+                "title": "أعضاء {name}",
+                "description": "الأعضاء الذين يحملون هذا الدور. يمكنك إزالة وصولهم إلى هذا الفريق.",
+                "empty": "لا يوجد أعضاء بهذا الدور بعد.",
+                "close": "إغلاق"
+            }
+        },
+        "roles": {
+            "details": "تفاصيل الدور",
+            "role_name_label": "اسم الدور",
+            "role_name_placeholder": "مثال: وكيل دعم، محرّر محتوى",
+            "agent_access": "وصول الوكلاء",
+            "agent_access_description": "اختر الوكلاء الذين يمكن لهذا الدور عرضهم والتفاعل معهم.",
+            "all_agents": "جميع الوكلاء",
+            "all_agents_description": "الوصول إلى جميع الوكلاء الحاليين والمستقبليين",
+            "select_specific": "اختر وكلاء محددين:",
+            "select_agents": "اختر الوكلاء...",
+            "agents_more": "{names} +{count} آخرين",
+            "no_agents_available": "لا يوجد وكلاء متاحون",
+            "permissions": {
+                "title": "الصلاحيات",
+                "description": "اختر الإجراءات التي يمكن للمستخدمين بهذا الدور تنفيذها.",
+                "requires": "يتطلّب:"
+            },
+            "create": {
+                "subtitle": "عرّف دورًا جديدًا للفريق"
+            },
+            "edit": {
+                "title": "تعديل الدور: {name}",
+                "breadcrumb": "تعديل: {name}",
+                "heading": "تعديل الدور",
+                "subtitle_prefix": "تحديث الدور",
+                "subtitle_middle": "للفريق",
+                "save": "حفظ"
+            }
+        }
+    }
+}

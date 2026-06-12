@@ -50,6 +50,7 @@ readonly class ConversationManager
         // so it exists when widget tries to subscribe or check handoff status
         $conversation = Conversation::create([
             'chat_session_id' => $session->id,
+            'agent_id' => $agent->id,
             'source' => $source,
             'title' => $title,
             'expires_at' => $expiresAt,

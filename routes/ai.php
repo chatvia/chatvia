@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\Auth\VerifyInternalMcpRequest;
+use Domain\Integration\Mcp\Services\Servers\AccountAnalyticsServer;
 use Domain\Integration\Mcp\Services\Servers\ChartsServer;
 use Domain\Integration\Mcp\Services\Servers\CurrencyConverterServer;
 use Domain\Integration\Mcp\Services\Servers\LeadsServer;
@@ -25,3 +26,11 @@ Mcp::web('/mcp/currency', CurrencyConverterServer::class)->middleware([VerifyInt
 Mcp::web('/mcp/charts', ChartsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
 Mcp::web('/mcp/leads', LeadsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
 Mcp::web('/mcp/perplexity', PerplexityServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
+
+/**
+ * Internal, owner-scoped analytics server. NOT a featured connector and never
+ * attached to an agent — it answers the workspace owner's "Ask your data" chat.
+ * Same HMAC gate; VerifyInternalMcpRequest also accepts a signed
+ * X-Chatvia-Workspace-Id here (workspace mode) instead of a per-agent check.
+ */
+Mcp::web('/mcp/account-analytics', AccountAnalyticsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);

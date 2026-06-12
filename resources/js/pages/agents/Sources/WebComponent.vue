@@ -32,6 +32,7 @@ import {
     Unlink,
 } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 import { Checkbox } from '@/components/ui/checkbox';
@@ -78,6 +79,7 @@ interface DiscoveredLink {
 
 const props = defineProps<Props>();
 
+const { t } = useI18n();
 const { hasPermission } = useTeamPermissions();
 
 // Check if user can delete sources
@@ -252,14 +254,14 @@ const getCrawlCriteriaMessage = (source: WebSource): string => {
     const criteria = [];
 
     if (include_paths?.trim()) {
-        criteria.push(`includes: ${include_paths}`);
+        criteria.push(t('agents.sources.web.criteria_includes', { paths: include_paths }));
     }
 
     if (exclude_paths?.trim()) {
-        criteria.push(`excludes: ${exclude_paths}`);
+        criteria.push(t('agents.sources.web.criteria_excludes', { paths: exclude_paths }));
     }
 
-    return criteria.length > 0 ? `Crawl criteria: ${criteria.join(', ')}` : '';
+    return criteria.length > 0 ? t('agents.sources.web.crawl_criteria', { criteria: criteria.join(', ') }) : '';
 };
 
 // Website selection computed properties
@@ -357,17 +359,17 @@ const getStatusIcon = (status: string) => {
 const getStatusLabel = (status: string): string => {
     switch (status) {
         case 'pending':
-            return 'Pending';
+            return t('agents.sources.web.status.pending');
         case 'crawling':
-            return 'Crawling';
+            return t('agents.sources.web.status.crawling');
         case 'crawled':
-            return 'Crawled';
+            return t('agents.sources.web.status.crawled');
         case 'ingesting':
-            return 'Training';
+            return t('agents.sources.web.status.training');
         case 'ingested':
-            return 'Trained';
+            return t('agents.sources.web.status.trained');
         case 'failed':
-            return 'Failed';
+            return t('agents.sources.web.status.failed');
         default:
             return status;
     }
@@ -404,17 +406,17 @@ const linkLimitWarning = computed(() => {
     if (remaining === 0) {
         return {
             type: 'critical',
-            message: `You've used all ${limit} links in your plan. Upgrade to train more links.`,
+            message: t('agents.sources.web.limit_all_used', { limit }),
         };
     } else if (usagePercentage >= 95) {
         return {
             type: 'critical',
-            message: `You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%). Only ${remaining} link${remaining !== 1 ? 's' : ''} remaining for training. Consider upgrading your plan.`,
+            message: t('agents.sources.web.limit_critical', { used, limit, percentage: usagePercentage.toFixed(1), remaining }),
         };
     } else if (usagePercentage >= 80) {
         return {
             type: 'warning',
-            message: `You've used ${used}/${limit} links (${usagePercentage.toFixed(1)}%). ${remaining} link${remaining !== 1 ? 's' : ''} remaining for training.`,
+            message: t('agents.sources.web.limit_warning', { used, limit, percentage: usagePercentage.toFixed(1), remaining }),
         };
     }
 
@@ -523,7 +525,7 @@ const fetchWebSources = async (isBackgroundRefresh = false) => {
         });
     } catch (error) {
         console.error('Error fetching web sources:', error);
-        toast.error('Failed to load web sources.');
+        toast.error(t('agents.sources.web.load_failed'));
     } finally {
         if (!isBackgroundRefresh) {
             isLoadingSources.value = false;
@@ -536,24 +538,24 @@ const addWebsite = () => {
     try {
         // Client-side validation
         if (!websiteForm.url.trim()) {
-            toast.error('Please enter a website URL.');
+            toast.error(t('agents.sources.web.error_enter_url'));
             return;
         }
 
         if (!isValidUrl.value) {
-            toast.error('Please enter a valid URL format (e.g., https://example.com).');
+            toast.error(t('agents.sources.web.error_invalid_url'));
             return;
         }
 
         // Validate URL protocol
         if (!websiteForm.url.trim()) {
-            toast.error('Please enter a domain or path');
+            toast.error(t('agents.sources.web.error_enter_domain'));
             return;
         }
 
         // Validate URL length
         if (websiteForm.url.length > 2048) {
-            toast.error('URL is too long. Please use a shorter URL.');
+            toast.error(t('agents.sources.web.error_url_too_long'));
             return;
         }
 
@@ -584,11 +586,11 @@ const addWebsite = () => {
                     };
 
                     webSources.value.unshift(newSource);
-                    toast.success('Website added and crawling will begin shortly!');
+                    toast.success(t('agents.sources.web.added_crawling'));
                 } else {
                     // Fallback: refresh the sources list from server
                     fetchWebSources();
-                    toast.success('Website added successfully!');
+                    toast.success(t('agents.sources.web.added'));
                 }
 
                 // Reset just the URL field to empty (not the full URL)
@@ -600,19 +602,19 @@ const addWebsite = () => {
                 // Handle different types of errors
                 if (errors.url) {
                     // URL validation error
-                    toast.error(`URL Error: ${errors.url}`);
+                    toast.error(t('agents.sources.web.error_url_prefixed', { error: errors.url }));
                 } else if (errors.robots) {
                     // Robots setting error
-                    toast.error(`Settings Error: ${errors.robots}`);
+                    toast.error(t('agents.sources.web.error_settings_prefixed', { error: errors.robots }));
                 } else if (errors.include_paths) {
                     // Include paths error
-                    toast.error(`Include Paths Error: ${errors.include_paths}`);
+                    toast.error(t('agents.sources.web.error_include_paths_prefixed', { error: errors.include_paths }));
                 } else if (errors.exclude_paths) {
                     // Exclude paths error
-                    toast.error(`Exclude Paths Error: ${errors.exclude_paths}`);
+                    toast.error(t('agents.sources.web.error_exclude_paths_prefixed', { error: errors.exclude_paths }));
                 } else if (errors.slow_crawling) {
                     // Slow crawling error
-                    toast.error(`Settings Error: ${errors.slow_crawling}`);
+                    toast.error(t('agents.sources.web.error_settings_prefixed', { error: errors.slow_crawling }));
                 } else if (typeof errors === 'string') {
                     // General string error
                     toast.error(errors);
@@ -622,11 +624,11 @@ const addWebsite = () => {
                     if (errorMessages.length > 0) {
                         toast.error(errorMessages[0]);
                     } else {
-                        toast.error('Failed to add website. Please check your input.');
+                        toast.error(t('agents.sources.web.add_failed'));
                     }
                 } else {
                     // Fallback error message
-                    toast.error('Failed to add website. Please check your input and try again.');
+                    toast.error(t('agents.sources.web.add_failed_retry'));
                 }
             },
             onFinish: () => {
@@ -636,15 +638,15 @@ const addWebsite = () => {
         });
     } catch (error) {
         console.error('Unexpected error during form submission:', error);
-        toast.error('An unexpected error occurred. Please try again.');
+        toast.error(t('agents.sources.web.unexpected_error'));
     }
 };
 
 const confirmDeleteSource = (source: WebSource) => {
     // Check permission first
     if (!canDeleteSources.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to delete sources.',
+        toast.error(t('agents.sources.common.permission_denied'), {
+            description: t('agents.sources.common.permission_denied_description'),
         });
         return;
     }
@@ -671,7 +673,7 @@ const unlinkWebsite = async () => {
             }),
         );
 
-        toast.success('Website unlinked from agent successfully!');
+        toast.success(t('agents.sources.web.unlinked'));
 
         deleteDialogOpen.value = false;
         sourceToDelete.value = null;
@@ -681,7 +683,7 @@ const unlinkWebsite = async () => {
     } catch (error: any) {
         console.error('Error unlinking website:', error);
         const errorMessage = error.response?.data?.message || error.message;
-        toast.error(`Failed to unlink website: ${errorMessage}`);
+        toast.error(t('agents.sources.web.unlink_failed', { error: errorMessage }));
     } finally {
         isUnlinking.value = false;
     }
@@ -711,10 +713,10 @@ const deleteWebSource = async () => {
         // Refresh usage data after deletion
         await fetchUsageData();
 
-        toast.success('Website deleted successfully.');
+        toast.success(t('agents.sources.web.deleted'));
     } catch (error: any) {
         console.error('Error deleting website:', error);
-        toast.error(error.response?.data?.message || 'Failed to delete website.');
+        toast.error(error.response?.data?.message || t('agents.sources.web.delete_failed'));
     } finally {
         isDeletingSource.value = false;
     }
@@ -787,7 +789,7 @@ const handleCrawlingUpdate = async (event: any) => {
                 ...source,
                 status: 'crawling',
             };
-            toast.success(`Crawling started for ${source.name}`);
+            toast.success(t('agents.sources.web.crawling_started', { name: source.name }));
             break;
 
         case 'crawled':
@@ -796,7 +798,7 @@ const handleCrawlingUpdate = async (event: any) => {
                 status: 'crawled',
                 urls_count: 0, // We'll get the actual urls_count when we fetch the links
             };
-            toast.success(`Crawling completed for ${source.name}! Fetching discovered links...`);
+            toast.success(t('agents.sources.web.crawling_completed', { name: source.name }));
 
             // Always fetch links when crawling finishes, regardless of event data
             if (website_id) {
@@ -812,7 +814,7 @@ const handleCrawlingUpdate = async (event: any) => {
                 ...source,
                 status: 'ingesting',
             };
-            toast.info(`Training started for ${source.name}`);
+            toast.info(t('agents.sources.web.training_started', { name: source.name }));
             break;
 
         case 'ingested':
@@ -821,7 +823,7 @@ const handleCrawlingUpdate = async (event: any) => {
                 status: 'ingested',
                 discovered_links: undefined, // Remove links since they're now trained
             };
-            toast.success(`Training completed for ${source.name}!`);
+            toast.success(t('agents.sources.web.training_completed', { name: source.name }));
 
             // Clean up selection state for this trained website
             if (website_id) {
@@ -842,9 +844,9 @@ const handleCrawlingUpdate = async (event: any) => {
             webSources.value[sourceIndex] = {
                 ...source,
                 status: 'failed',
-                error_message: event.error_message || 'Operation failed',
+                error_message: event.error_message || t('agents.sources.web.operation_failed_generic'),
             };
-            toast.error(`Operation failed for ${source.name}`);
+            toast.error(t('agents.sources.web.operation_failed', { name: source.name }));
             break;
 
         default:
@@ -939,7 +941,7 @@ const handleUrlIngestionUpdate = (event: any) => {
             linkSuccessTimeouts.value.set(link_id, timeoutId);
             break;
         case 'failed':
-            toast.error('Link training failed');
+            toast.error(t('agents.sources.web.link_training_failed'));
             break;
     }
 };
@@ -976,7 +978,7 @@ const handleCollapsibleToggle = async (sourceId: number, isExpanding: boolean) =
         }
     } catch (error) {
         console.error(`Failed to fetch links for website ${sourceId}:`, error);
-        toast.error(`Failed to load links for website. Please try again.`);
+        toast.error(t('agents.sources.web.links_load_failed'));
 
         // Still update the source to remove loading state by setting empty links
         const sourceIndex = webSources.value.findIndex((s) => s.id === sourceId);
@@ -1141,7 +1143,7 @@ const deleteLink = async (websiteId: number, linkId: number) => {
     const totalLinks = source?.urls_count || 0;
 
     if (totalLinks <= 1) {
-        toast.error('Cannot delete the last link. At least one link must remain.');
+        toast.error(t('agents.sources.web.cannot_delete_last_link'));
         return;
     }
 
@@ -1173,10 +1175,10 @@ const deleteLink = async (websiteId: number, linkId: number) => {
         // Refresh usage data after deletion
         await fetchUsageData();
 
-        toast.success('Link deleted successfully.');
+        toast.success(t('agents.sources.web.link_deleted'));
     } catch (error: any) {
         console.error('Error deleting link:', error);
-        toast.error(error.response?.data?.message || 'Failed to delete link.');
+        toast.error(error.response?.data?.message || t('agents.sources.web.link_delete_failed'));
     }
 };
 
@@ -1184,7 +1186,7 @@ const deleteLink = async (websiteId: number, linkId: number) => {
 const deleteSelectedLinks = async (websiteId: number) => {
     const selectedLinksForWebsite = selectedLinks.value.get(websiteId);
     if (!selectedLinksForWebsite || selectedLinksForWebsite.size === 0) {
-        toast.error('No links selected for deletion.');
+        toast.error(t('agents.sources.web.no_links_selected'));
         return;
     }
 
@@ -1193,7 +1195,7 @@ const deleteSelectedLinks = async (websiteId: number) => {
     const totalLinks = source?.urls_count || 0;
 
     if (totalLinks > 0 && selectedLinksForWebsite.size >= totalLinks) {
-        toast.error('Cannot delete all links. At least one link must remain.');
+        toast.error(t('agents.sources.web.cannot_delete_all_links'));
         return;
     }
 
@@ -1231,10 +1233,10 @@ const deleteSelectedLinks = async (websiteId: number) => {
         // Refresh usage data after deletion
         await fetchUsageData();
 
-        toast.success(`Deleted ${deletedCount} link${deletedCount !== 1 ? 's' : ''} successfully.`);
+        toast.success(t('agents.sources.web.links_deleted', deletedCount));
     } catch (error: any) {
         console.error('Error deleting links:', error);
-        toast.error(error.response?.data?.message || 'Failed to delete links.');
+        toast.error(error.response?.data?.message || t('agents.sources.web.links_delete_failed'));
     }
 };
 
@@ -1255,15 +1257,15 @@ const toggleWebsiteSelection = (websiteId: number, checked: boolean | string) =>
             const remaining = usageData.value?.links.remaining || 0;
 
             if (remaining <= 0) {
-                toast.error('No links remaining', {
-                    description: 'Please upgrade your plan to train websites.',
+                toast.error(t('agents.sources.web.no_links_remaining'), {
+                    description: t('agents.sources.web.no_links_remaining_description'),
                     duration: 5000,
                 });
             } else {
                 const currentTotal = selectedWebsitesTotalLinks.value;
                 const exceedBy = currentTotal + websiteLinks - remaining;
-                toast.error('Cannot select website', {
-                    description: `${websiteLinks} links would exceed your quota by ${exceedBy}. Deselect other websites or upgrade.`,
+                toast.error(t('agents.sources.web.cannot_select'), {
+                    description: t('agents.sources.web.cannot_select_description', { links: websiteLinks, exceedBy }),
                     duration: 5000,
                 });
             }
@@ -1296,8 +1298,8 @@ const toggleSelectAllWebsites = (checked: boolean | string | 'indeterminate') =>
         // Show message if not all could be selected
         if (newSelected.size < crawledSources.value.length) {
             const skipped = crawledSources.value.length - newSelected.size;
-            toast.info(`Selected ${newSelected.size} of ${crawledSources.value.length} websites`, {
-                description: `${skipped} website${skipped !== 1 ? 's were' : ' was'} skipped to stay within your ${remaining} link limit.`,
+            toast.info(t('agents.sources.web.selected_count', { selected: newSelected.size, total: crawledSources.value.length }), {
+                description: t('agents.sources.web.selected_skipped', { skipped, remaining }),
             });
         }
     }
@@ -1359,11 +1361,11 @@ const trainSelectedWebsites = async () => {
     }
 
     if (failedWebsites.length > 0) {
-        toast.error(`Failed to start training for: ${failedWebsites.join(', ')}`);
+        toast.error(t('agents.sources.web.training_start_failed', { websites: failedWebsites.join(', ') }));
     }
 
     if (successCount === 0 && failedWebsites.length === 0) {
-        toast.error('Failed to start training for any websites.');
+        toast.error(t('agents.sources.web.training_start_failed_all'));
     }
 
     isTraining.value = false;
@@ -1447,7 +1449,7 @@ const fetchDialogLinks = async (websiteId: number, page: number = 1, searchQuery
         };
     } catch (error) {
         console.error('Failed to fetch links:', error);
-        toast.error('Failed to load links');
+        toast.error(t('agents.sources.web.dialog_links_load_failed'));
     } finally {
         dialogLinksLoading.value = false;
     }
@@ -1491,7 +1493,7 @@ const deleteDialogLink = async (linkId: number) => {
             }),
         );
 
-        toast.success('Link deleted successfully');
+        toast.success(t('agents.sources.web.link_deleted'));
 
         // Reload current page with search query
         await fetchDialogLinks(currentWebsite.value.id, dialogLinksPagination.value.currentPage, dialogSearchQuery.value);
@@ -1500,7 +1502,7 @@ const deleteDialogLink = async (linkId: number) => {
         await fetchUsageData();
     } catch (error: any) {
         console.error('Failed to delete link:', error);
-        toast.error(error.response?.data?.message || 'Failed to delete link');
+        toast.error(error.response?.data?.message || t('agents.sources.web.link_delete_failed'));
     }
 };
 
@@ -1545,7 +1547,7 @@ const toggleSelectAllDialogLinks = (checked: boolean | string | 'indeterminate')
 
 const deleteSelectedDialogLinks = async () => {
     if (!currentWebsite.value || dialogSelectedLinks.value.size === 0) {
-        toast.error('No links selected for deletion.');
+        toast.error(t('agents.sources.web.no_links_selected'));
         return;
     }
 
@@ -1565,7 +1567,7 @@ const deleteSelectedDialogLinks = async () => {
         // Clear selection
         dialogSelectedLinks.value.clear();
 
-        toast.success(`Deleted ${deletedCount} link${deletedCount !== 1 ? 's' : ''} successfully.`);
+        toast.success(t('agents.sources.web.links_deleted', deletedCount));
 
         // Reload current page with search query
         await fetchDialogLinks(currentWebsite.value.id, dialogLinksPagination.value.currentPage, dialogSearchQuery.value);
@@ -1574,7 +1576,7 @@ const deleteSelectedDialogLinks = async () => {
         await fetchUsageData();
     } catch (error: any) {
         console.error('Failed to delete links:', error);
-        toast.error(error.response?.data?.message || 'Failed to delete links.');
+        toast.error(error.response?.data?.message || t('agents.sources.web.links_delete_failed'));
     }
 };
 
@@ -1625,10 +1627,10 @@ const retrainDialogLink = async (linkId: number) => {
             }),
         );
 
-        toast.success('Link retraining started successfully');
+        toast.success(t('agents.sources.web.link_retrain_started'));
     } catch (error: any) {
         console.error('Failed to retrain link:', error);
-        toast.error(error.response?.data?.message || 'Failed to retrain link');
+        toast.error(error.response?.data?.message || t('agents.sources.web.link_retrain_failed'));
 
         // Revert status on error
         const linkIndex = dialogLinks.value.findIndex((link) => link.id === linkId);
@@ -1668,13 +1670,13 @@ const retrainEntireWebsite = async () => {
             },
         );
 
-        toast.success('Website retraining started successfully');
+        toast.success(t('agents.sources.web.retrain_started'));
 
         // Refresh the sources list
         await fetchWebSources();
     } catch (error: any) {
         console.error('Failed to retrain website:', error);
-        toast.error(error.response?.data?.message || 'Failed to retrain website');
+        toast.error(error.response?.data?.message || t('agents.sources.web.retrain_failed'));
     } finally {
         retrainDialogOpen.value = false;
         websiteToRetrain.value = null;
@@ -1715,8 +1717,8 @@ onUnmounted(() => {
         <div class="w-full max-w-6xl space-y-6">
             <!-- Smart Monitoring Info Banner -->
             <InfoBanner
-                title="Smart Monitoring"
-                message="Your websites will be periodically checked for changes and automatically re-crawled when necessary to keep your agent's knowledge up-to-date."
+                :title="t('agents.sources.web.monitoring_title')"
+                :message="t('agents.sources.web.monitoring_message')"
                 storage-key="smart-monitoring-banner-dismissed"
                 variant="info"
             />
@@ -1736,13 +1738,13 @@ onUnmounted(() => {
                         <div>
                             <CardTitle class="flex items-center gap-2">
                                 <Globe class="h-5 w-5" />
-                                Crawler
+                                {{ t('agents.sources.web.crawler_title') }}
                             </CardTitle>
-                            <CardDescription> Fetch links from websites to crawl and include in your agent's knowledge base. </CardDescription>
+                            <CardDescription> {{ t('agents.sources.web.crawler_description') }} </CardDescription>
                         </div>
                         <Button variant="outline" size="sm" @click="settingsExpanded = !settingsExpanded">
-                            <Settings class="mr-2 h-4 w-4" />
-                            Settings
+                            <Settings class="me-2 h-4 w-4" />
+                            {{ t('agents.sources.web.settings') }}
                             <ChevronDown v-if="!settingsExpanded" class="ml-1 h-4 w-4" />
                             <ChevronUp v-else class="ml-1 h-4 w-4" />
                         </Button>
@@ -1752,15 +1754,15 @@ onUnmounted(() => {
                     <!-- Link Usage Info -->
                     <div v-if="usageData" class="bg-muted/20 mb-4 rounded-lg p-3">
                         <div class="flex items-center justify-between">
-                            <span class="text-muted-foreground text-sm"> {{ usageData.links.used }} / {{ usageData.links.limit }} links used </span>
+                            <span class="text-muted-foreground text-sm"> {{ t('agents.sources.web.links_used', { used: usageData.links.used, limit: usageData.links.limit }) }} </span>
                             <span class="text-sm font-medium" :class="usageData.links.remaining <= 0 ? 'text-red-600' : 'text-green-600'">
-                                {{ usageData.links.remaining }} remaining
+                                {{ t('agents.sources.web.links_remaining', { remaining: usageData.links.remaining }) }}
                             </span>
                         </div>
                         <div class="mt-1 flex items-center justify-between text-xs">
-                            <span v-if="usageData.links.remaining <= 0" class="font-medium text-red-600"> Upgrade required to train more links </span>
+                            <span v-if="usageData.links.remaining <= 0" class="font-medium text-red-600"> {{ t('agents.sources.web.upgrade_required') }} </span>
                             <span v-else-if="usageData.links.used / usageData.links.limit >= 0.9" class="font-medium text-yellow-600">
-                                Consider upgrading
+                                {{ t('agents.sources.web.consider_upgrading') }}
                             </span>
                         </div>
                     </div>
@@ -1814,9 +1816,9 @@ onUnmounted(() => {
 
                             <!-- Add Button -->
                             <Button @click="addWebsite" :disabled="!isValidUrl || websiteForm.processing">
-                                <LoaderCircle v-if="websiteForm.processing" class="mr-2 h-4 w-4 animate-spin" />
-                                <Globe v-else class="mr-2 h-4 w-4" />
-                                {{ websiteForm.processing ? 'Fetching...' : 'Fetch Links' }}
+                                <LoaderCircle v-if="websiteForm.processing" class="me-2 h-4 w-4 animate-spin" />
+                                <Globe v-else class="me-2 h-4 w-4" />
+                                {{ websiteForm.processing ? t('agents.sources.web.fetching') : t('agents.sources.web.fetch_links') }}
                             </Button>
                         </div>
 
@@ -1825,40 +1827,40 @@ onUnmounted(() => {
                             <CollapsibleContent>
                                 <div class="bg-muted/20 space-y-4 rounded-lg border p-4">
                                     <div class="mb-3">
-                                        <h3 class="text-sm font-semibold">Crawl Settings</h3>
+                                        <h3 class="text-sm font-semibold">{{ t('agents.sources.web.crawl_settings') }}</h3>
                                     </div>
 
                                     <!-- Include Paths -->
                                     <div class="space-y-2">
-                                        <Label for="include-paths">Include only paths</Label>
+                                        <Label for="include-paths">{{ t('agents.sources.web.include_paths_label') }}</Label>
                                         <Input
                                             id="include-paths"
                                             type="text"
-                                            placeholder="Ex: blog/*, dev/*"
+                                            :placeholder="t('agents.sources.web.paths_placeholder')"
                                             v-model="crawlSettings.include_paths"
                                             :class="{ 'border-red-500': websiteForm.errors.include_paths }"
                                             class="text-sm"
                                         />
                                         <InputError :message="websiteForm.errors.include_paths" />
                                         <div class="text-muted-foreground text-xs">
-                                            Use wildcards (*) to match patterns. Leave empty to include all paths.
+                                            {{ t('agents.sources.web.include_paths_hint') }}
                                         </div>
                                     </div>
 
                                     <!-- Exclude Paths -->
                                     <div class="space-y-2">
-                                        <Label for="exclude-paths">Exclude paths</Label>
+                                        <Label for="exclude-paths">{{ t('agents.sources.web.exclude_paths_label') }}</Label>
                                         <Input
                                             id="exclude-paths"
                                             type="text"
-                                            placeholder="Ex: blog/*, dev/*"
+                                            :placeholder="t('agents.sources.web.paths_placeholder')"
                                             class="text-sm"
                                             :class="{ 'border-red-500': websiteForm.errors.exclude_paths }"
                                             v-model="crawlSettings.exclude_paths"
                                         />
                                         <InputError :message="websiteForm.errors.exclude_paths" />
                                         <div class="text-muted-foreground text-xs">
-                                            Use wildcards (*) to match patterns. These paths will be skipped.
+                                            {{ t('agents.sources.web.exclude_paths_hint') }}
                                         </div>
                                     </div>
 
@@ -1866,8 +1868,8 @@ onUnmounted(() => {
                                     <div class="space-y-3">
                                         <div class="flex items-center justify-between">
                                             <div class="space-y-0.5">
-                                                <Label for="slow-crawling">Slow Crawling</Label>
-                                                <div class="text-muted-foreground text-xs">Uses longer delays for more respectful crawling</div>
+                                                <Label for="slow-crawling">{{ t('agents.sources.web.slow_crawling_label') }}</Label>
+                                                <div class="text-muted-foreground text-xs">{{ t('agents.sources.web.slow_crawling_hint') }}</div>
                                             </div>
                                             <Switch
                                                 id="slow-crawling"
@@ -1907,10 +1909,10 @@ onUnmounted(() => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <NetworkIcon class="h-5 w-5" />
-                        Crawling...
+                        {{ t('agents.sources.web.crawling_title') }}
                     </CardTitle>
                     <CardDescription>
-                        {{ crawlingSources.length }} website{{ crawlingSources.length !== 1 ? 's' : '' }} currently being crawled.
+                        {{ t('agents.sources.web.crawling_count', crawlingSources.length) }}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1936,10 +1938,10 @@ onUnmounted(() => {
                                                         <p>
                                                             {{
                                                                 source.status === 'crawling'
-                                                                    ? 'Currently crawling...'
+                                                                    ? t('agents.sources.web.tooltip_crawling')
                                                                     : source.status === 'pending'
-                                                                      ? 'Ready to crawl'
-                                                                      : 'Processing'
+                                                                      ? t('agents.sources.web.tooltip_ready_crawl')
+                                                                      : t('agents.sources.web.tooltip_processing')
                                                             }}
                                                         </p>
                                                     </TooltipContent>
@@ -1956,7 +1958,7 @@ onUnmounted(() => {
                                                 {{ getCrawlCriteriaMessage(source) }}
                                             </div>
                                             <div class="mt-1">
-                                                <span> Added {{ formatDate(source.created_at) }} </span>
+                                                <span> {{ t('agents.sources.web.added_at', { date: formatDate(source.created_at) }) }} </span>
                                             </div>
                                         </div>
                                     </div>
@@ -1971,12 +1973,12 @@ onUnmounted(() => {
                                                     variant="ghost"
                                                     @click="confirmDeleteSource(source)"
                                                 >
-                                                    <span class="sr-only">Remove source</span>
+                                                    <span class="sr-only">{{ t('agents.sources.web.remove_source') }}</span>
                                                     <Trash2 class="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Delete web source</p>
+                                                <p>{{ t('agents.sources.web.delete_source') }}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -1992,10 +1994,10 @@ onUnmounted(() => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <NetworkIcon class="h-5 w-5" />
-                        Crawled
+                        {{ t('agents.sources.web.crawled_title') }}
                     </CardTitle>
                     <CardDescription>
-                        {{ crawledSources.length }} website{{ crawledSources.length !== 1 ? 's' : '' }} crawled and ready for training.
+                        {{ t('agents.sources.web.crawled_count', crawledSources.length) }}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -2010,32 +2012,28 @@ onUnmounted(() => {
                                 class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                             />
                             <Label for="select-all-websites" class="cursor-pointer text-sm font-medium select-none">
-                                Select All Websites ({{ crawledSources.length }})
+                                {{ t('agents.sources.web.select_all_websites', { count: crawledSources.length }) }}
                             </Label>
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="text-muted-foreground text-sm">
                                 <template v-if="selectedWebsiteCount > 0">
-                                    {{ selectedWebsiteCount }} selected ({{ selectedWebsitesTotalLinks }} link{{
-                                        selectedWebsitesTotalLinks !== 1 ? 's' : ''
-                                    }})
+                                    {{ t('agents.sources.web.selected_with_links', { count: selectedWebsiteCount, links: selectedWebsitesTotalLinks }) }}
                                 </template>
-                                <template v-else> No websites selected </template>
+                                <template v-else> {{ t('agents.sources.web.no_websites_selected') }} </template>
                             </span>
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Button @click="trainSelectedWebsites" :disabled="!canTrain || isTraining" size="sm">
-                                            <LoaderCircle v-if="isTraining" class="mr-2 h-4 w-4 animate-spin" />
-                                            <Database v-else class="mr-2 h-4 w-4" />
-                                            Train
+                                            <LoaderCircle v-if="isTraining" class="me-2 h-4 w-4 animate-spin" />
+                                            <Database v-else class="me-2 h-4 w-4" />
+                                            {{ t('agents.sources.web.train') }}
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent v-if="!canTrain && selectedWebsiteCount > 0 && usageData">
                                         <p>
-                                            Selected links ({{ selectedWebsitesTotalLinks }}) exceed your remaining quota ({{
-                                                usageData.links.remaining
-                                            }})
+                                            {{ t('agents.sources.web.train_exceeds_quota', { selected: selectedWebsitesTotalLinks, remaining: usageData.links.remaining }) }}
                                         </p>
                                     </TooltipContent>
                                 </Tooltip>
@@ -2067,7 +2065,7 @@ onUnmounted(() => {
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <Badge variant="secondary" class="text-xs"> {{ source.urls_count }} links </Badge>
+                                                            <Badge variant="secondary" class="text-xs"> {{ t('agents.sources.web.links_badge', { count: source.urls_count }) }} </Badge>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
                                                             <p>{{ getStatusLabel(source.status) }}</p>
@@ -2083,18 +2081,16 @@ onUnmounted(() => {
                                                                 variant="outline"
                                                                 class="border-yellow-500 text-xs text-yellow-700 dark:text-yellow-400"
                                                             >
-                                                                <AlertCircle class="mr-1 h-3 w-3" />
-                                                                {{ usageData.links.remaining <= 0 ? 'Upgrade required' : 'Exceeds quota' }}
+                                                                <AlertCircle class="me-1 h-3 w-3" />
+                                                                {{ usageData.links.remaining <= 0 ? t('agents.sources.web.badge_upgrade_required') : t('agents.sources.web.badge_exceeds_quota') }}
                                                             </Badge>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
                                                             <p v-if="usageData.links.remaining <= 0">
-                                                                You have no links remaining in your plan. Please upgrade to train this website.
+                                                                {{ t('agents.sources.web.no_links_remaining_plan') }}
                                                             </p>
                                                             <p v-else>
-                                                                This website has {{ source.urls_count }} links, which would exceed your remaining
-                                                                {{ usageData.links.remaining }} link{{ usageData.links.remaining !== 1 ? 's' : '' }}.
-                                                                Deselect other websites first or upgrade your plan.
+                                                                {{ t('agents.sources.web.website_exceeds_remaining', { links: source.urls_count, remaining: usageData.links.remaining }) }}
                                                             </p>
                                                         </TooltipContent>
                                                     </Tooltip>
@@ -2110,7 +2106,7 @@ onUnmounted(() => {
                                                     {{ getCrawlCriteriaMessage(source) }}
                                                 </div>
                                                 <div class="mt-1">
-                                                    <span> Added {{ formatDate(source.created_at) }} </span>
+                                                    <span> {{ t('agents.sources.web.added_at', { date: formatDate(source.created_at) }) }} </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -2123,7 +2119,7 @@ onUnmounted(() => {
                                                 size="sm"
                                                 variant="ghost"
                                             >
-                                                <span class="sr-only">{{ open ? 'Collapse' : 'Expand' }} discovered links</span>
+                                                <span class="sr-only">{{ open ? t('agents.sources.web.collapse_links') : t('agents.sources.web.expand_links') }}</span>
                                                 <ChevronUp v-if="open" class="h-4 w-4" />
                                                 <ChevronDown v-else class="h-4 w-4" />
                                             </Button>
@@ -2137,12 +2133,12 @@ onUnmounted(() => {
                                                         variant="ghost"
                                                         @click="confirmDeleteSource(source)"
                                                     >
-                                                        <span class="sr-only">Remove source</span>
+                                                        <span class="sr-only">{{ t('agents.sources.web.remove_source') }}</span>
                                                         <Trash2 class="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Delete web source</p>
+                                                    <p>{{ t('agents.sources.web.delete_source') }}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -2155,9 +2151,9 @@ onUnmounted(() => {
                                         <!-- Header with search and controls -->
                                         <div class="mb-3 flex items-center justify-between">
                                             <div class="text-muted-foreground text-sm font-medium">
-                                                Discovered Links
+                                                {{ t('agents.sources.web.discovered_links') }}
                                                 <span v-if="linkSearchQueries.get(source.id)?.trim()" class="ml-1 text-xs text-blue-600"
-                                                    >(filtered)</span
+                                                    >{{ t('agents.sources.web.filtered') }}</span
                                                 >
                                             </div>
                                             <Button
@@ -2168,7 +2164,7 @@ onUnmounted(() => {
                                                 class="h-7 text-xs"
                                             >
                                                 <Trash2 class="mr-1 h-3 w-3" />
-                                                Delete selected links
+                                                {{ t('agents.sources.web.delete_selected_links') }}
                                             </Button>
                                         </div>
 
@@ -2177,7 +2173,7 @@ onUnmounted(() => {
                                             <Input
                                                 :value="linkSearchQueries.get(source.id) || ''"
                                                 @input="(e: Event) => updateSearchQuery(source.id, (e.target as HTMLInputElement).value)"
-                                                placeholder="Search links..."
+                                                :placeholder="t('agents.sources.web.search_links_placeholder')"
                                                 class="h-8 text-xs"
                                             />
                                         </div>
@@ -2194,7 +2190,7 @@ onUnmounted(() => {
                                                 class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                             />
                                             <Label :for="`select-all-${source.id}`" class="cursor-pointer text-xs font-medium select-none">
-                                                Select All on Page ({{ source.discovered_links.length }})
+                                                {{ t('agents.sources.web.select_all_on_page', { count: source.discovered_links.length }) }}
                                             </Label>
                                         </div>
 
@@ -2207,7 +2203,7 @@ onUnmounted(() => {
                                                     class="flex items-center justify-center py-8"
                                                 >
                                                     <LoaderCircle class="text-muted-foreground h-6 w-6 animate-spin" />
-                                                    <span class="text-muted-foreground ml-2 text-sm">Loading links...</span>
+                                                    <span class="text-muted-foreground ms-2 text-sm">{{ t('agents.sources.web.loading_links') }}</span>
                                                 </div>
 
                                                 <!-- Links loaded -->
@@ -2251,7 +2247,7 @@ onUnmounted(() => {
                                                         v-if="getFilteredLinks(source.id, source.discovered_links).length === 0"
                                                         class="text-muted-foreground py-4 text-center text-xs"
                                                     >
-                                                        No links match your search
+                                                        {{ t('agents.sources.web.no_links_match') }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -2266,11 +2262,11 @@ onUnmounted(() => {
                                                 :disabled="!linksPagination.get(source.id)?.hasPrevPage || linksPagination.get(source.id)?.isLoading"
                                                 class="h-8"
                                             >
-                                                <ChevronRight class="mr-1 h-4 w-4 rotate-180" />
-                                                Previous
+                                                <ChevronRight class="me-1 h-4 w-4 rotate-180" />
+                                                {{ t('agents.sources.web.previous') }}
                                             </Button>
                                             <span class="text-muted-foreground text-xs">
-                                                Page {{ linksPagination.get(source.id)?.currentPage || 1 }}
+                                                {{ t('agents.sources.web.page', { page: linksPagination.get(source.id)?.currentPage || 1 }) }}
                                             </span>
                                             <Button
                                                 variant="outline"
@@ -2279,8 +2275,8 @@ onUnmounted(() => {
                                                 :disabled="!linksPagination.get(source.id)?.hasNextPage || linksPagination.get(source.id)?.isLoading"
                                                 class="h-8"
                                             >
-                                                Next
-                                                <ChevronRight class="ml-1 h-4 w-4" />
+                                                {{ t('agents.sources.web.next') }}
+                                                <ChevronRight class="ms-1 h-4 w-4" />
                                             </Button>
                                         </div>
                                     </div>
@@ -2327,7 +2323,7 @@ onUnmounted(() => {
                                                     {{ getCrawlCriteriaMessage(source) }}
                                                 </div>
                                                 <div class="mt-1">
-                                                    <span> Added {{ formatDate(source.created_at) }} </span>
+                                                    <span> {{ t('agents.sources.web.added_at', { date: formatDate(source.created_at) }) }} </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -2342,12 +2338,12 @@ onUnmounted(() => {
                                                         variant="ghost"
                                                         @click="confirmDeleteSource(source)"
                                                     >
-                                                        <span class="sr-only">Remove source</span>
+                                                        <span class="sr-only">{{ t('agents.sources.web.remove_source') }}</span>
                                                         <Trash2 class="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Delete web source</p>
+                                                    <p>{{ t('agents.sources.web.delete_source') }}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -2364,10 +2360,10 @@ onUnmounted(() => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <BrainIcon class="h-5 w-5" />
-                        Training
+                        {{ t('agents.sources.web.training_title') }}
                     </CardTitle>
                     <CardDescription>
-                        {{ trainingSources.length }} website{{ trainingSources.length !== 1 ? 's' : '' }} currently being trained.
+                        {{ t('agents.sources.web.training_count', trainingSources.length) }}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -2386,13 +2382,13 @@ onUnmounted(() => {
                                                 <ExternalLink class="h-3 w-3" />
                                             </a>
                                             <div class="mt-1">
-                                                <span> Added {{ formatDate(source.created_at) }} </span>
+                                                <span> {{ t('agents.sources.web.added_at', { date: formatDate(source.created_at) }) }} </span>
                                             </div>
 
                                             <!-- Loading indicator -->
                                             <div v-if="source.status === 'ingesting'" class="mt-2 flex items-center gap-2 text-blue-600">
                                                 <LoaderCircle class="h-3.5 w-3.5 animate-spin" />
-                                                <span class="text-xs">Training in progress...</span>
+                                                <span class="text-xs">{{ t('agents.sources.web.training_in_progress') }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -2412,7 +2408,7 @@ onUnmounted(() => {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>View all links</p>
+                                                <p>{{ t('agents.sources.web.view_all_links') }}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -2425,12 +2421,12 @@ onUnmounted(() => {
                                                     variant="ghost"
                                                     @click="confirmDeleteSource(source)"
                                                 >
-                                                    <span class="sr-only">Remove source</span>
+                                                    <span class="sr-only">{{ t('agents.sources.web.remove_source') }}</span>
                                                     <Trash2 class="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Delete website (will cancel training)</p>
+                                                <p>{{ t('agents.sources.web.delete_cancel_training') }}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -2448,18 +2444,15 @@ onUnmounted(() => {
                         <div>
                             <CardTitle class="flex items-center gap-2">
                                 <Database class="h-5 w-5" />
-                                Trained
+                                {{ t('agents.sources.web.trained_title') }}
                             </CardTitle>
                             <CardDescription>
-                                Websites trained and available to your agent. {{ completedSources.length }} website{{
-                                    completedSources.length !== 1 ? 's' : ''
-                                }}
-                                in total.
+                                {{ t('agents.sources.web.trained_description', completedSources.length) }}
                             </CardDescription>
                         </div>
                         <Button @click="openAttachWebsiteDialog" variant="outline" size="sm" class="flex items-center gap-2">
                             <Link2 class="h-4 w-4" />
-                            Link Website
+                            {{ t('agents.sources.web.link_website') }}
                         </Button>
                     </div>
                 </CardHeader>
@@ -2467,10 +2460,10 @@ onUnmounted(() => {
                     <div class="space-y-4">
                         <div v-if="isLoadingSources && isInitialLoad" class="text-muted-foreground p-4 text-center">
                             <LoaderCircle class="mx-auto mb-2 h-6 w-6 animate-spin" />
-                            Loading web sources...
+                            {{ t('agents.sources.web.loading_sources') }}
                         </div>
                         <div v-else-if="completedSources.length === 0" class="text-muted-foreground p-4 text-center">
-                            No websites in knowledge base yet
+                            {{ t('agents.sources.web.no_websites') }}
                         </div>
                         <template v-else>
                             <ScrollArea v-if="completedSources.length > 5" class="h-[400px] pr-4">
@@ -2507,7 +2500,7 @@ onUnmounted(() => {
                                                                 <ExternalLink class="h-3 w-3" />
                                                             </a>
                                                             <div class="mt-1">
-                                                                <span> Added {{ formatDate(source.created_at) }} </span>
+                                                                <span> {{ t('agents.sources.web.added_at', { date: formatDate(source.created_at) }) }} </span>
                                                             </div>
                                                         </div>
                                                         <!-- Error message for failed sources -->
@@ -2535,7 +2528,7 @@ onUnmounted(() => {
                                                                 </Button>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                                <p>View all links</p>
+                                                                <p>{{ t('agents.sources.web.view_all_links') }}</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
@@ -2553,7 +2546,7 @@ onUnmounted(() => {
                                                                 </Button>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                                <p>Retrain entire website</p>
+                                                                <p>{{ t('agents.sources.web.retrain_entire') }}</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
@@ -2565,9 +2558,9 @@ onUnmounted(() => {
                                                         variant="ghost"
                                                         @click="toggleSourceExpansion(source.id)"
                                                     >
-                                                        <span class="sr-only"
-                                                            >{{ expandedSources.get(source.id) ? 'Collapse' : 'Expand' }} discovered links</span
-                                                        >
+                                                        <span class="sr-only">{{
+                                                            expandedSources.get(source.id) ? t('agents.sources.web.collapse_links') : t('agents.sources.web.expand_links')
+                                                        }}</span>
                                                         <ChevronDown v-if="expandedSources.get(source.id)" class="h-4 w-4" />
                                                         <ChevronRight v-else class="h-4 w-4" />
                                                     </Button>
@@ -2580,12 +2573,12 @@ onUnmounted(() => {
                                                                     variant="ghost"
                                                                     @click="confirmDeleteSource(source)"
                                                                 >
-                                                                    <span class="sr-only">Remove source</span>
+                                                                    <span class="sr-only">{{ t('agents.sources.web.remove_source') }}</span>
                                                                     <Trash2 class="h-4 w-4" />
                                                                 </Button>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                                <p>Delete web source</p>
+                                                                <p>{{ t('agents.sources.web.delete_source') }}</p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
@@ -2602,11 +2595,11 @@ onUnmounted(() => {
                                                         <!-- Header with search and controls -->
                                                         <div class="mb-3 flex items-center justify-between">
                                                             <div class="text-muted-foreground text-sm font-medium">
-                                                                Discovered Links
+                                                                {{ t('agents.sources.web.discovered_links') }}
                                                                 <span
                                                                     v-if="linkSearchQueries.get(source.id)?.trim()"
                                                                     class="ml-1 text-xs text-blue-600"
-                                                                    >(filtered)</span
+                                                                    >{{ t('agents.sources.web.filtered') }}</span
                                                                 >
                                                             </div>
                                                             <Button
@@ -2617,7 +2610,7 @@ onUnmounted(() => {
                                                                 class="h-7 text-xs"
                                                             >
                                                                 <Trash2 class="mr-1 h-3 w-3" />
-                                                                Delete selected links
+                                                                {{ t('agents.sources.web.delete_selected_links') }}
                                                             </Button>
                                                         </div>
 
@@ -2628,7 +2621,7 @@ onUnmounted(() => {
                                                                 @input="
                                                                     (e: Event) => updateSearchQuery(source.id, (e.target as HTMLInputElement).value)
                                                                 "
-                                                                placeholder="Search links..."
+                                                                :placeholder="t('agents.sources.web.search_links_placeholder')"
                                                                 class="h-8 text-xs"
                                                             />
                                                         </div>
@@ -2649,7 +2642,7 @@ onUnmounted(() => {
                                                                 :for="`select-all-${source.id}`"
                                                                 class="cursor-pointer text-xs font-medium select-none"
                                                             >
-                                                                Select All on Page ({{ source.discovered_links.length }})
+                                                                {{ t('agents.sources.web.select_all_on_page', { count: source.discovered_links.length }) }}
                                                             </Label>
                                                         </div>
 
@@ -2662,7 +2655,7 @@ onUnmounted(() => {
                                                                     class="flex items-center justify-center py-8"
                                                                 >
                                                                     <LoaderCircle class="text-muted-foreground h-6 w-6 animate-spin" />
-                                                                    <span class="text-muted-foreground ml-2 text-sm">Loading links...</span>
+                                                                    <span class="text-muted-foreground ms-2 text-sm">{{ t('agents.sources.web.loading_links') }}</span>
                                                                 </div>
 
                                                                 <div v-else class="space-y-2">
@@ -2706,7 +2699,7 @@ onUnmounted(() => {
                                                                         v-if="getFilteredLinks(source.id, source.discovered_links || []).length === 0"
                                                                         class="text-muted-foreground py-4 text-center text-xs"
                                                                     >
-                                                                        No links match your search
+                                                                        {{ t('agents.sources.web.no_links_match') }}
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -2727,11 +2720,11 @@ onUnmounted(() => {
                                                                 "
                                                                 class="h-8"
                                                             >
-                                                                <ChevronRight class="mr-1 h-4 w-4 rotate-180" />
-                                                                Previous
+                                                                <ChevronRight class="me-1 h-4 w-4 rotate-180" />
+                                                                {{ t('agents.sources.web.previous') }}
                                                             </Button>
                                                             <span class="text-muted-foreground text-xs">
-                                                                Page {{ linksPagination.get(source.id)?.currentPage || 1 }}
+                                                                {{ t('agents.sources.web.page', { page: linksPagination.get(source.id)?.currentPage || 1 }) }}
                                                             </span>
                                                             <Button
                                                                 variant="outline"
@@ -2743,8 +2736,8 @@ onUnmounted(() => {
                                                                 "
                                                                 class="h-8"
                                                             >
-                                                                Next
-                                                                <ChevronRight class="ml-1 h-4 w-4" />
+                                                                {{ t('agents.sources.web.next') }}
+                                                                <ChevronRight class="ms-1 h-4 w-4" />
                                                             </Button>
                                                         </div>
                                                     </div>
@@ -2785,7 +2778,7 @@ onUnmounted(() => {
                                                             <ExternalLink class="h-3 w-3" />
                                                         </a>
                                                         <div class="mt-1">
-                                                            <span> Added {{ formatDate(source.created_at) }} </span>
+                                                            <span> {{ t('agents.sources.web.added_at', { date: formatDate(source.created_at) }) }} </span>
                                                         </div>
                                                     </div>
                                                     <!-- Error message for failed sources -->
@@ -2813,7 +2806,7 @@ onUnmounted(() => {
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            <p>View all links</p>
+                                                            <p>{{ t('agents.sources.web.view_all_links') }}</p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
@@ -2831,7 +2824,7 @@ onUnmounted(() => {
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            <p>Retrain entire website</p>
+                                                            <p>{{ t('agents.sources.web.retrain_entire') }}</p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
@@ -2843,9 +2836,9 @@ onUnmounted(() => {
                                                     variant="ghost"
                                                     @click="toggleSourceExpansion(source.id)"
                                                 >
-                                                    <span class="sr-only"
-                                                        >{{ expandedSources.get(source.id) ? 'Collapse' : 'Expand' }} discovered links</span
-                                                    >
+                                                    <span class="sr-only">{{
+                                                        expandedSources.get(source.id) ? t('agents.sources.web.collapse_links') : t('agents.sources.web.expand_links')
+                                                    }}</span>
                                                     <ChevronDown v-if="expandedSources.get(source.id)" class="h-4 w-4" />
                                                     <ChevronRight v-else class="h-4 w-4" />
                                                 </Button>
@@ -2858,12 +2851,12 @@ onUnmounted(() => {
                                                                 variant="ghost"
                                                                 @click="confirmDeleteSource(source)"
                                                             >
-                                                                <span class="sr-only">Remove source</span>
+                                                                <span class="sr-only">{{ t('agents.sources.web.remove_source') }}</span>
                                                                 <Trash2 class="h-4 w-4" />
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
-                                                            <p>Delete web source</p>
+                                                            <p>{{ t('agents.sources.web.delete_source') }}</p>
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
@@ -2877,9 +2870,9 @@ onUnmounted(() => {
                                                     <!-- Header with search and controls -->
                                                     <div class="mb-3 flex items-center justify-between">
                                                         <div class="text-muted-foreground text-sm font-medium">
-                                                            Discovered Links
+                                                            {{ t('agents.sources.web.discovered_links') }}
                                                             <span v-if="linkSearchQueries.get(source.id)?.trim()" class="ml-1 text-xs text-blue-600"
-                                                                >(filtered)</span
+                                                                >{{ t('agents.sources.web.filtered') }}</span
                                                             >
                                                         </div>
                                                         <Button
@@ -2890,7 +2883,7 @@ onUnmounted(() => {
                                                             class="h-7 text-xs"
                                                         >
                                                             <Trash2 class="mr-1 h-3 w-3" />
-                                                            Delete selected links
+                                                            {{ t('agents.sources.web.delete_selected_links') }}
                                                         </Button>
                                                     </div>
 
@@ -2899,7 +2892,7 @@ onUnmounted(() => {
                                                         <Input
                                                             :value="linkSearchQueries.get(source.id) || ''"
                                                             @input="(e: Event) => updateSearchQuery(source.id, (e.target as HTMLInputElement).value)"
-                                                            placeholder="Search links..."
+                                                            :placeholder="t('agents.sources.web.search_links_placeholder')"
                                                             class="h-8 text-xs"
                                                         />
                                                     </div>
@@ -2919,7 +2912,7 @@ onUnmounted(() => {
                                                             :for="`select-all-${source.id}`"
                                                             class="cursor-pointer text-xs font-medium select-none"
                                                         >
-                                                            Select All on Page ({{ source.discovered_links.length }})
+                                                            {{ t('agents.sources.web.select_all_on_page', { count: source.discovered_links.length }) }}
                                                         </Label>
                                                     </div>
 
@@ -2932,7 +2925,7 @@ onUnmounted(() => {
                                                                 class="flex items-center justify-center py-8"
                                                             >
                                                                 <LoaderCircle class="text-muted-foreground h-6 w-6 animate-spin" />
-                                                                <span class="text-muted-foreground ml-2 text-sm">Loading links...</span>
+                                                                <span class="text-muted-foreground ms-2 text-sm">{{ t('agents.sources.web.loading_links') }}</span>
                                                             </div>
 
                                                             <div v-else class="space-y-2">
@@ -2976,7 +2969,7 @@ onUnmounted(() => {
                                                                     v-if="getFilteredLinks(source.id, source.discovered_links).length === 0"
                                                                     class="text-muted-foreground py-4 text-center text-xs"
                                                                 >
-                                                                    No links match your search
+                                                                    {{ t('agents.sources.web.no_links_match') }}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -2994,11 +2987,11 @@ onUnmounted(() => {
                                                             "
                                                             class="h-8"
                                                         >
-                                                            <ChevronRight class="mr-1 h-4 w-4 rotate-180" />
-                                                            Previous
+                                                            <ChevronRight class="me-1 h-4 w-4 rotate-180" />
+                                                            {{ t('agents.sources.web.previous') }}
                                                         </Button>
                                                         <span class="text-muted-foreground text-xs">
-                                                            Page {{ linksPagination.get(source.id)?.currentPage || 1 }}
+                                                            {{ t('agents.sources.web.page', { page: linksPagination.get(source.id)?.currentPage || 1 }) }}
                                                         </span>
                                                         <Button
                                                             variant="outline"
@@ -3010,8 +3003,8 @@ onUnmounted(() => {
                                                             "
                                                             class="h-8"
                                                         >
-                                                            Next
-                                                            <ChevronRight class="ml-1 h-4 w-4" />
+                                                            {{ t('agents.sources.web.next') }}
+                                                            <ChevronRight class="ms-1 h-4 w-4" />
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -3032,21 +3025,20 @@ onUnmounted(() => {
                         <DialogTitle>{{ sourceToDelete.name || getDomainFromUrl(sourceToDelete.url) }}</DialogTitle>
                         <DialogDescription>
                             <span v-if="isWebsiteShared(sourceToDelete)">
-                                This website is used in <strong>{{ sourceToDelete.agents_count }} agents</strong>. You can unlink it from this agent
-                                or permanently delete it from all agents.
+                                {{ t('agents.sources.web.delete_shared_prefix') }}
+                                <strong>{{ t('agents.sources.common.agents_count', { count: sourceToDelete.agents_count }) }}</strong>
+                                {{ t('agents.sources.web.delete_shared_suffix') }}
                             </span>
                             <span v-else-if="sourceToDelete.status === 'ingesting' || sourceToDelete.status === 'crawling'">
-                                This website is currently being trained. The training process will be canceled and all data will be permanently
-                                removed from your agent's knowledge base. This action cannot be undone.
+                                {{ t('agents.sources.web.delete_training_description') }}
                             </span>
                             <span v-else>
-                                This will permanently remove this web source from your agent's knowledge base. All crawled pages will be deleted. This
-                                action cannot be undone.
+                                {{ t('agents.sources.web.delete_description') }}
                             </span>
                         </DialogDescription>
                     </DialogHeader>
                     <div class="mt-4 flex items-center justify-end gap-2">
-                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeletingSource"> Cancel </Button>
+                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeletingSource"> {{ t('agents.sources.common.cancel') }} </Button>
                         <Button
                             v-if="isWebsiteShared(sourceToDelete)"
                             variant="secondary"
@@ -3054,15 +3046,15 @@ onUnmounted(() => {
                             :disabled="isUnlinking || isDeletingSource"
                             class="bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50"
                         >
-                            <LoaderCircle v-if="isUnlinking" class="mr-2 h-4 w-4 animate-spin" />
-                            <Unlink v-else class="mr-2 h-4 w-4" />
-                            {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
+                            <LoaderCircle v-if="isUnlinking" class="me-2 h-4 w-4 animate-spin" />
+                            <Unlink v-else class="me-2 h-4 w-4" />
+                            {{ isUnlinking ? t('agents.sources.common.unlinking') : t('agents.sources.common.unlink') }}
                         </Button>
                         <Button variant="destructive" @click="deleteWebSource" :disabled="isUnlinking || isDeletingSource">
-                            <LoaderCircle v-if="isDeletingSource" class="mr-2 h-4 w-4 animate-spin" />
-                            <Trash2 v-else class="mr-2 h-4 w-4" />
-                            <span v-if="isDeletingSource">Deleting...</span>
-                            <span v-else>{{ isWebsiteShared(sourceToDelete) ? 'Delete permanently' : 'Delete' }}</span>
+                            <LoaderCircle v-if="isDeletingSource" class="me-2 h-4 w-4 animate-spin" />
+                            <Trash2 v-else class="me-2 h-4 w-4" />
+                            <span v-if="isDeletingSource">{{ t('agents.sources.common.deleting') }}</span>
+                            <span v-else>{{ isWebsiteShared(sourceToDelete) ? t('agents.sources.common.delete_permanently') : t('agents.sources.common.delete') }}</span>
                         </Button>
                     </div>
                 </DialogContent>
@@ -3072,10 +3064,9 @@ onUnmounted(() => {
             <Dialog v-model:open="retrainDialogOpen">
                 <DialogContent class="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Retrain Website</DialogTitle>
+                        <DialogTitle>{{ t('agents.sources.web.retrain_dialog_title') }}</DialogTitle>
                         <DialogDescription>
-                            Retrain {{ websiteToRetrain?.name || getDomainFromUrl(websiteToRetrain?.url || '') }} to update your agent's knowledge
-                            with the latest content.
+                            {{ t('agents.sources.web.retrain_dialog_description', { name: websiteToRetrain?.name || getDomainFromUrl(websiteToRetrain?.url || '') }) }}
                         </DialogDescription>
                     </DialogHeader>
                     <div class="space-y-4 py-4">
@@ -3090,18 +3081,17 @@ onUnmounted(() => {
                                     :for="'recrawl-checkbox'"
                                     class="cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                    Re-crawl and train new links
+                                    {{ t('agents.sources.web.recrawl_label') }}
                                 </Label>
                                 <p class="text-muted-foreground text-sm">
-                                    If checked, the website will be crawled again to discover and train any new pages that have been added since the
-                                    last crawl.
+                                    {{ t('agents.sources.web.recrawl_hint') }}
                                 </p>
                             </div>
                         </div>
                     </div>
                     <div class="flex justify-end gap-2">
-                        <Button variant="outline" @click="retrainDialogOpen = false"> Cancel </Button>
-                        <Button @click="retrainEntireWebsite"> Start Retraining </Button>
+                        <Button variant="outline" @click="retrainDialogOpen = false"> {{ t('agents.sources.common.cancel') }} </Button>
+                        <Button @click="retrainEntireWebsite"> {{ t('agents.sources.web.start_retraining') }} </Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -3110,14 +3100,14 @@ onUnmounted(() => {
             <Dialog v-model:open="linksDialogOpen" @update:open="(open) => !open && closeLinksDialog()">
                 <DialogContent class="flex h-[80vh] max-w-4xl flex-col">
                     <DialogHeader>
-                        <DialogTitle>Website Links</DialogTitle>
+                        <DialogTitle>{{ t('agents.sources.web.dialog_title') }}</DialogTitle>
                         <DialogDescription>
                             <div class="flex flex-wrap items-center gap-2">
-                                <span v-if="currentWebsite"
-                                    >View and manage links from {{ currentWebsite.name || getDomainFromUrl(currentWebsite.url) }}</span
-                                >
+                                <span v-if="currentWebsite">{{
+                                    t('agents.sources.web.dialog_manage_links', { name: currentWebsite.name || getDomainFromUrl(currentWebsite.url) })
+                                }}</span>
                                 <span v-if="dialogLinksPagination.total > 0" class="text-foreground font-medium">
-                                    • {{ dialogLinksPagination.total }} link{{ dialogLinksPagination.total !== 1 ? 's' : '' }} total
+                                    • {{ t('agents.sources.web.dialog_links_total', dialogLinksPagination.total) }}
                                 </span>
                             </div>
                         </DialogDescription>
@@ -3128,10 +3118,10 @@ onUnmounted(() => {
                         <Input
                             :value="dialogSearchQuery"
                             @input="(e: Event) => updateDialogSearchQuery((e.target as HTMLInputElement).value)"
-                            placeholder="Search links..."
+                            :placeholder="t('agents.sources.web.search_links_placeholder')"
                             class="h-9"
                         />
-                        <p v-if="dialogSearchQuery.trim()" class="text-xs text-blue-600">Showing filtered results</p>
+                        <p v-if="dialogSearchQuery.trim()" class="text-xs text-blue-600">{{ t('agents.sources.web.showing_filtered') }}</p>
 
                         <!-- Select All and Bulk Delete -->
                         <div v-if="dialogLinks.length > 0" class="bg-muted/30 flex items-center justify-between rounded border p-2">
@@ -3144,7 +3134,7 @@ onUnmounted(() => {
                                     class="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                 />
                                 <Label for="select-all-dialog-links" class="cursor-pointer text-xs font-medium select-none">
-                                    Select All on Page ({{ dialogLinks.length }})
+                                    {{ t('agents.sources.web.select_all_on_page', { count: dialogLinks.length }) }}
                                 </Label>
                             </div>
                             <Button
@@ -3154,8 +3144,8 @@ onUnmounted(() => {
                                 :disabled="dialogSelectedLinks.size === 0"
                                 class="h-7 text-xs"
                             >
-                                <Trash2 class="mr-1 h-3 w-3" />
-                                Delete selected ({{ dialogSelectedLinks.size }})
+                                <Trash2 class="me-1 h-3 w-3" />
+                                {{ t('agents.sources.web.delete_selected_count', { count: dialogSelectedLinks.size }) }}
                             </Button>
                         </div>
                     </div>
@@ -3165,7 +3155,7 @@ onUnmounted(() => {
                         <!-- Loading State -->
                         <div v-if="dialogLinksLoading && dialogLinks.length === 0" class="flex items-center justify-center py-12">
                             <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />
-                            <span class="text-muted-foreground ml-2 text-sm">Loading links...</span>
+                            <span class="text-muted-foreground ms-2 text-sm">{{ t('agents.sources.web.loading_links') }}</span>
                         </div>
 
                         <!-- Links List -->
@@ -3193,7 +3183,7 @@ onUnmounted(() => {
                                             {{ link.link }}
                                         </a>
                                         <p v-if="link.crawled_at" class="text-muted-foreground mt-1 text-xs">
-                                            Crawled {{ formatDate(link.crawled_at) }}
+                                            {{ t('agents.sources.web.crawled_at', { date: formatDate(link.crawled_at) }) }}
                                         </p>
                                     </div>
                                     <div class="flex flex-shrink-0 items-center gap-1">
@@ -3206,7 +3196,7 @@ onUnmounted(() => {
                                                     </div>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Training completed!</p>
+                                                    <p>{{ t('agents.sources.web.training_completed_tooltip') }}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -3219,7 +3209,7 @@ onUnmounted(() => {
                                                     </div>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>{{ link.status === 'pending' ? 'Training pending...' : 'Training in progress...' }}</p>
+                                                    <p>{{ link.status === 'pending' ? t('agents.sources.web.training_pending') : t('agents.sources.web.training_in_progress') }}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -3237,7 +3227,7 @@ onUnmounted(() => {
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Training failed. Click to retry</p>
+                                                    <p>{{ t('agents.sources.web.training_failed_retry') }}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -3255,7 +3245,7 @@ onUnmounted(() => {
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Retrain this link</p>
+                                                    <p>{{ t('agents.sources.web.retrain_this_link') }}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -3272,7 +3262,7 @@ onUnmounted(() => {
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Delete this link</p>
+                                                    <p>{{ t('agents.sources.web.delete_this_link') }}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -3285,7 +3275,7 @@ onUnmounted(() => {
                         <div v-else class="flex flex-col items-center justify-center py-12">
                             <Globe class="text-muted-foreground mb-3 h-12 w-12" />
                             <p class="text-muted-foreground text-sm">
-                                {{ dialogSearchQuery.trim() ? 'No links match your search' : 'No links found' }}
+                                {{ dialogSearchQuery.trim() ? t('agents.sources.web.no_links_match') : t('agents.sources.web.no_links_found') }}
                             </p>
                         </div>
                     </div>
@@ -3302,11 +3292,11 @@ onUnmounted(() => {
                             :disabled="!dialogLinksPagination.hasPrevPage || dialogLinksLoading"
                             class="h-9"
                         >
-                            <ChevronRight class="mr-1 h-4 w-4 rotate-180" />
-                            Previous
+                            <ChevronRight class="me-1 h-4 w-4 rotate-180" />
+                            {{ t('agents.sources.web.previous') }}
                         </Button>
                         <span class="text-muted-foreground text-sm">
-                            Page {{ dialogLinksPagination.currentPage }} of {{ dialogLinksPagination.lastPage }}
+                            {{ t('agents.sources.web.page_of', { page: dialogLinksPagination.currentPage, total: dialogLinksPagination.lastPage }) }}
                         </span>
                         <Button
                             variant="outline"
@@ -3315,8 +3305,8 @@ onUnmounted(() => {
                             :disabled="!dialogLinksPagination.hasNextPage || dialogLinksLoading"
                             class="h-9"
                         >
-                            Next
-                            <ChevronRight class="ml-1 h-4 w-4" />
+                            {{ t('agents.sources.web.next') }}
+                            <ChevronRight class="ms-1 h-4 w-4" />
                         </Button>
                     </div>
                 </DialogContent>

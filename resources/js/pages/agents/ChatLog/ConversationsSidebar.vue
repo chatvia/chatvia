@@ -25,24 +25,27 @@ import {
     X,
 } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useChatLog } from './useChatLog';
+
+const { t } = useI18n();
 
 const { hasCapability } = useCapabilityGuard();
 const hasTopicsAccess = computed(() => hasCapability('topics'));
 
 type ConversationSource = 'hosted_chat' | 'widget' | 'bar' | 'telegram' | 'slack' | 'messenger' | 'whatsapp' | 'msteams' | 'instagram';
 
-const sourceMeta: Record<ConversationSource, { label: string; icon: typeof Globe }> = {
-    hosted_chat: { label: 'Chat', icon: MessageSquare },
-    widget: { label: 'Widget', icon: Globe },
-    bar: { label: 'Bar', icon: Search },
-    telegram: { label: 'Telegram', icon: Send },
-    slack: { label: 'Slack', icon: Slack },
-    messenger: { label: 'Messenger', icon: Facebook },
-    whatsapp: { label: 'WhatsApp', icon: Phone },
-    msteams: { label: 'Teams', icon: Users },
-    instagram: { label: 'Instagram', icon: Instagram },
-};
+const sourceMeta = computed<Record<ConversationSource, { label: string; icon: typeof Globe }>>(() => ({
+    hosted_chat: { label: t('agents.chatlog.source.hosted_chat'), icon: MessageSquare },
+    widget: { label: t('agents.chatlog.source.widget'), icon: Globe },
+    bar: { label: t('agents.chatlog.source.bar'), icon: Search },
+    telegram: { label: t('agents.chatlog.source.telegram'), icon: Send },
+    slack: { label: t('agents.chatlog.source.slack'), icon: Slack },
+    messenger: { label: t('agents.chatlog.source.messenger'), icon: Facebook },
+    whatsapp: { label: t('agents.chatlog.source.whatsapp'), icon: Phone },
+    msteams: { label: t('agents.chatlog.source.teams'), icon: Users },
+    instagram: { label: t('agents.chatlog.source.instagram'), icon: Instagram },
+}));
 
 const {
     agent: _agent,
@@ -94,10 +97,10 @@ function formatExpiresIn(iso: string | null | undefined): string | null {
     const ms = new Date(iso).getTime() - Date.now();
     if (ms <= 0) return null;
     const days = Math.ceil(ms / 86_400_000);
-    if (days <= 1) return 'Expires today';
-    if (days < 30) return `Expires in ${days} days`;
+    if (days <= 1) return t('agents.chatlog.sidebar.expires_today');
+    if (days < 30) return t('agents.chatlog.sidebar.expires_in_days', { count: days });
     const months = Math.round(days / 30);
-    return months === 1 ? 'Expires in 1 month' : `Expires in ${months} months`;
+    return months === 1 ? t('agents.chatlog.sidebar.expires_in_one_month') : t('agents.chatlog.sidebar.expires_in_months', { count: months });
 }
 
 const isRefreshingConversations = ref(false);
@@ -179,11 +182,11 @@ import { ref } from 'vue';
                                     "
                                 >
                                     <Circle class="h-2.5 w-2.5 fill-current" :class="onlineOnly ? 'text-green-500' : 'text-muted-foreground'" />
-                                    <span class="text-xs font-medium">Online</span>
+                                    <span class="text-xs font-medium">{{ t('agents.chatlog.sidebar.online') }}</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent side="bottom">
-                                <p>Show only online users</p>
+                                <p>{{ t('agents.chatlog.sidebar.show_online_only') }}</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
@@ -200,7 +203,7 @@ import { ref } from 'vue';
                         <Filter class="h-4 w-4" />
                         <span
                             v-if="hasActiveFilters"
-                            class="bg-primary text-primary-foreground absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-medium"
+                            class="bg-primary text-primary-foreground absolute -top-0.5 -end-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-medium"
                         >
                             {{ activeFilterCount }}
                         </span>
@@ -219,9 +222,9 @@ import { ref } from 'vue';
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem @click="exportAsJSON">Export JSON</DropdownMenuItem>
-                            <DropdownMenuItem @click="exportAsCSV">Export CSV</DropdownMenuItem>
-                            <DropdownMenuItem @click="exportAsPDF">Export PDF</DropdownMenuItem>
+                            <DropdownMenuItem @click="exportAsJSON">{{ t('agents.chatlog.sidebar.export_json') }}</DropdownMenuItem>
+                            <DropdownMenuItem @click="exportAsCSV">{{ t('agents.chatlog.sidebar.export_csv') }}</DropdownMenuItem>
+                            <DropdownMenuItem @click="exportAsPDF">{{ t('agents.chatlog.sidebar.export_pdf') }}</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -232,13 +235,13 @@ import { ref } from 'vue';
                 <Badge v-if="dateRange" variant="secondary" class="flex items-center gap-1 px-2 py-1 text-xs">
                     <Calendar class="h-3 w-3" />
                     {{ formatDateRangeDisplay() }}
-                    <button @click="clearFilter('dateRange')" class="hover:text-foreground ml-1 cursor-pointer"><X class="h-3 w-3" /></button>
+                    <button @click="clearFilter('dateRange')" class="hover:text-foreground ms-1 cursor-pointer"><X class="h-3 w-3" /></button>
                 </Badge>
 
                 <Badge v-if="selectedCountry !== 'all'" variant="secondary" class="flex items-center gap-1 px-2 py-1 text-xs">
                     <Globe class="h-3 w-3" />
                     {{ getCountryName(selectedCountry) }}
-                    <button @click="clearFilter('country')" class="hover:text-foreground ml-1 cursor-pointer"><X class="h-3 w-3" /></button>
+                    <button @click="clearFilter('country')" class="hover:text-foreground ms-1 cursor-pointer"><X class="h-3 w-3" /></button>
                 </Badge>
 
                 <Badge
@@ -252,7 +255,7 @@ import { ref } from 'vue';
                     }"
                 >
                     {{ getConfidenceScoreDisplayName(selectedConfidenceScore) }}
-                    <button @click="clearFilter('confidence')" class="ml-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
+                    <button @click="clearFilter('confidence')" class="ms-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
                 </Badge>
 
                 <Badge
@@ -267,17 +270,17 @@ import { ref } from 'vue';
                     <ThumbsUp v-if="selectedFeedback === 'positive'" class="h-3 w-3" />
                     <ThumbsDown v-else class="h-3 w-3" />
                     {{ getFeedbackDisplayName(selectedFeedback) }}
-                    <button @click="clearFilter('feedback')" class="ml-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
+                    <button @click="clearFilter('feedback')" class="ms-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
                 </Badge>
 
                 <Badge v-if="selectedSource !== 'all'" variant="secondary" class="flex items-center gap-1 px-2 py-1 text-xs">
                     {{ getSourceDisplayName(selectedSource) }}
-                    <button @click="clearFilter('source')" class="hover:text-foreground ml-1 cursor-pointer"><X class="h-3 w-3" /></button>
+                    <button @click="clearFilter('source')" class="hover:text-foreground ms-1 cursor-pointer"><X class="h-3 w-3" /></button>
                 </Badge>
 
                 <Badge v-if="selectedTopic !== 'all'" variant="secondary" class="flex items-center gap-1 px-2 py-1 text-xs">
                     {{ getTopicName(Number(selectedTopic)) }}
-                    <button @click="clearFilter('topic')" class="hover:text-foreground ml-1 cursor-pointer"><X class="h-3 w-3" /></button>
+                    <button @click="clearFilter('topic')" class="hover:text-foreground ms-1 cursor-pointer"><X class="h-3 w-3" /></button>
                 </Badge>
 
                 <Badge
@@ -286,17 +289,17 @@ import { ref } from 'vue';
                     class="flex items-center gap-1 px-2 py-1 text-xs"
                 >
                     {{ getSentimentDisplayName(selectedSentiment) }}
-                    <button @click="clearFilter('sentiment')" class="ml-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
+                    <button @click="clearFilter('sentiment')" class="ms-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
                 </Badge>
 
                 <Badge v-if="selectedTone !== 'all'" :class="getToneBadgeColor(selectedTone)" class="flex items-center gap-1 px-2 py-1 text-xs">
                     {{ getToneEmoji(selectedTone) }} {{ getToneDisplayName(selectedTone) }}
-                    <button @click="clearFilter('tone')" class="ml-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
+                    <button @click="clearFilter('tone')" class="ms-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
                 </Badge>
             </div>
 
             <div class="text-muted-foreground flex items-center justify-between text-xs">
-                <span>{{ totalConversations }} conversations</span>
+                <span>{{ t('agents.chatlog.sidebar.conversations_count', { count: totalConversations }) }}</span>
             </div>
         </div>
 
@@ -312,7 +315,7 @@ import { ref } from 'vue';
                 <li v-for="c in conversations?.data" :key="c.conversation_id">
                     <button
                         @click="selectConversation(c.conversation_id, c)"
-                        class="group flex w-full cursor-pointer flex-col gap-1.5 rounded-lg px-3 py-2.5 text-left text-sm transition-all duration-200"
+                        class="group flex w-full cursor-pointer flex-col gap-1.5 rounded-lg px-3 py-2.5 text-start text-sm transition-all duration-200"
                         :class="
                             currentConversationId === c.conversation_id ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-background/80'
                         "
@@ -340,7 +343,7 @@ import { ref } from 'vue';
                                     <component :is="sourceMeta[c.source as ConversationSource].icon" class="h-3 w-3 flex-shrink-0" />
                                 </TooltipTrigger>
                                 <TooltipContent side="top">
-                                    {{ sourceMeta[c.source as ConversationSource].label }}
+                                    {{ sourceMeta[c.source as ConversationSource]?.label }}
                                 </TooltipContent>
                             </Tooltip>
                             <img
@@ -381,8 +384,8 @@ import { ref } from 'vue';
                     :disabled="!conversations?.prev_page_url || isLoadingConversations"
                     @click="fetchConversations(conversations.current_page - 1)"
                 >
-                    <LoaderCircle v-if="isLoadingConversations" class="mr-1 h-3 w-3 animate-spin" />
-                    Prev
+                    <LoaderCircle v-if="isLoadingConversations" class="me-1 h-3 w-3 animate-spin" />
+                    {{ t('agents.chatlog.pagination.prev') }}
                 </Button>
                 <span class="text-muted-foreground text-[10px] tabular-nums">
                     {{ conversations?.current_page }} / {{ conversations?.last_page }}
@@ -394,8 +397,8 @@ import { ref } from 'vue';
                     :disabled="!conversations?.next_page_url || isLoadingConversations"
                     @click="fetchConversations(conversations.current_page + 1)"
                 >
-                    <LoaderCircle v-if="isLoadingConversations" class="mr-1 h-3 w-3 animate-spin" />
-                    Next
+                    <LoaderCircle v-if="isLoadingConversations" class="me-1 h-3 w-3 animate-spin" />
+                    {{ t('agents.chatlog.pagination.next') }}
                 </Button>
             </div>
         </div>

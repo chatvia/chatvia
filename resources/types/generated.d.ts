@@ -53,7 +53,6 @@ chat_embed_url: string;
 created_at: string;
 updated_at: string;
 total_messages: number | null;
-unique_users: number | null;
 total_members: number | null;
 leads_mcp_enabled: boolean;
 };
@@ -274,13 +273,6 @@ export type ModelFeedbackData = {
 positive: number;
 negative: number;
 };
-export type ModelUsageData = {
-name: string;
-icon: string | null;
-count: number;
-percentage: number;
-feedback: Domain.Agent.Data.Resources.Stats.ModelFeedbackData;
-};
 export type StatsResourceData = {
 total_messages: number;
 total_conversations: number;
@@ -297,7 +289,6 @@ peak_activity_hour: number | null;
 conversations_with_feedback: number;
 feedback: Domain.Agent.Data.Resources.Stats.FeedbackData;
 messages_last_week: Array<Domain.Agent.Data.Resources.Stats.MessageByDayData>;
-model_usage: Array<Domain.Agent.Data.Resources.Stats.ModelUsageData>;
 country_usage: Array<Domain.Agent.Data.Resources.Stats.CountryUsageData>;
 daily_messages: Array<Domain.Agent.Data.Resources.Stats.DailyMessagesData>;
 conversations_trend: Array<Domain.Agent.Data.Resources.Stats.ConversationTrendData>;
@@ -345,6 +336,7 @@ handoff: boolean;
 api: boolean;
 pulse: boolean;
 removeBranding: boolean;
+security: boolean;
 retentionDays: number;
 };
 export type BillingPackageFeaturesData = {
@@ -802,6 +794,23 @@ name: string;
 prompt: string;
 agents_count: number;
 created_at: string | null;
+};
+}
+declare namespace Domain.Security.Data {
+export type WorkspaceSecurityPolicyData = {
+retention_conversations_days: number | null;
+retention_leads_days: number | null;
+retention_audit_days: number | null;
+retention_analytics_days: number | null;
+anonymize_after_days: number | null;
+ip_allowlist_mode: string;
+geo_mode: string;
+geo_countries: { [key: number]: string };
+webhook_url: string | null;
+webhook_secret: string | null;
+webhook_enabled: boolean;
+webhook_events: { [key: number]: string } | null;
+scim_enabled: boolean;
 };
 }
 declare namespace Domain.Widget.Data.Auth {

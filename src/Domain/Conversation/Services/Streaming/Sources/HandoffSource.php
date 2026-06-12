@@ -28,9 +28,12 @@ class HandoffSource
             'replayed' => false,
         ]);
 
+        // The widget reads `conversation_id` and stores it as its active
+        // conversation handle (sent back as the X-CONVERSATION-ID header), so it
+        // MUST be the external UUID — never the internal PK.
         yield StreamEvent::meta($id, 'handoff', [
             'status' => 'human',
-            'conversation_id' => $conversation->id,
+            'conversation_id' => $conversation->external_id,
             'external_conversation_id' => $conversation->external_id,
         ]);
 

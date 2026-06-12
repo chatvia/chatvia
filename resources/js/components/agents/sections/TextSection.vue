@@ -2,6 +2,9 @@
 import AppearanceTextFields from '@/components/agents/AppearanceTextFields.vue';
 import { Label } from '@/components/ui/label';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 withDefaults(
     defineProps<{
@@ -38,8 +41,8 @@ defineEmits<{
         />
 
         <div v-if="showBubbles" class="space-y-2">
-            <Label>Chat bubbles</Label>
-            <p class="text-muted-foreground text-xs">Quick message prompts to help visitors start a conversation.</p>
+            <Label>{{ t('agents.setup.sections.text_bubbles') }}</Label>
+            <p class="text-muted-foreground text-xs">{{ t('agents.setup.sections.text_bubbles_hint') }}</p>
             <TagsInput
                 :model-value="bubbles"
                 :disabled="disabled"
@@ -50,7 +53,7 @@ defineEmits<{
                     <TagsInputItemText />
                     <TagsInputItemDelete />
                 </TagsInputItem>
-                <TagsInputInput placeholder="e.g., How can I help you?" />
+                <TagsInputInput :placeholder="t('agents.setup.sections.text_bubbles_placeholder')" />
             </TagsInput>
             <p v-if="errors?.bubbles" class="text-destructive text-sm">{{ errors.bubbles }}</p>
         </div>

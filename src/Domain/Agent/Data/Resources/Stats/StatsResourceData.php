@@ -4,7 +4,6 @@ namespace Domain\Agent\Data\Resources\Stats;
 
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\DateRangeData;
-use Domain\Llm\Models\Llm;
 use Illuminate\Support\Carbon;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -15,7 +14,6 @@ class StatsResourceData extends Data
 {
     /**
      * @param  MessageByDayData[]  $messages_last_week
-     * @param  ModelUsageData[]  $model_usage
      * @param  CountryUsageData[]  $country_usage
      * @param  DailyMessagesData[]  $daily_messages
      * @param  ConversationTrendData[]  $conversations_trend
@@ -40,8 +38,6 @@ class StatsResourceData extends Data
         public FeedbackData $feedback,
         /** @var MessageByDayData[] */
         public array $messages_last_week,
-        /** @var ModelUsageData[] */
-        public array $model_usage,
         /** @var CountryUsageData[] */
         public array $country_usage,
         /** @var DailyMessagesData[] */
@@ -99,7 +95,6 @@ class StatsResourceData extends Data
                 'total' => $positive + $negative,
             ],
             'messages_last_week' => self::getMessagesInRange($agent, $startDate, $endDate),
-            'model_usage' => self::mostUsedModels($agent),
             'country_usage' => self::getCountryStats($agent),
             'daily_messages' => self::getDailyMessages($agent, $days),
             'conversations_trend' => self::getConversationsTrend($agent, $startDate, $endDate),
@@ -145,33 +140,6 @@ class StatsResourceData extends Data
         }
 
         return $data;
-    }
-
-    public static function mostUsedModels(Agent $agent): array
-    {
-        $mostUsedModels = $agent->mostUsedModels()->get();
-
-        $llms = Llm::query()
-            ->whereIn('external_name', $mostUsedModels->pluck('model_external_name')->toArray())
-            ->get();
-
-        // Null-safe: a model may have been renamed or removed from `llms` since
-        // its rollups were written. Fall back to the raw external name rather
-        // than crashing the analytics page on a stale dimension.
-        return $mostUsedModels->map(function ($item) use ($llms) {
-            $model = $llms->firstWhere('external_name', $item->model_external_name);
-
-            return [
-                'name' => $model?->descriptive_name ?? $item->model_external_name,
-                'icon' => $model?->icon,
-                'count' => $item->usage_count,
-                'percentage' => $item->percentage,
-                'feedback' => [
-                    'positive' => $item->positive_feedback,
-                    'negative' => $item->negative_feedback,
-                ],
-            ];
-        })->toArray();
     }
 
     public static function getDailyMessages(Agent $agent, int $days = 30): array

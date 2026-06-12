@@ -77,10 +77,7 @@ class IngestMediaAction
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent File ID: '.$sourceFileId)
-            // A single failed chunk job must not cancel the rest of the
-            // transcript; finally() keeps the terminal status + broadcast
-            // unconditional (see IngestDocumentAction for the rationale).
-            ->allowFailures()
+            ->allowFailures() // one failed chunk must not cancel the batch
             ->finally(function (Batch $batch) use ($sourceFileId, $agentExternalId): void {
                 $file = SourceFile::find($sourceFileId);
 

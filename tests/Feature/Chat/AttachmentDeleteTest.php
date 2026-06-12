@@ -81,6 +81,7 @@ function makeConversation(Agent $agent, ?User $user = null): Conversation
 
     return Conversation::create([
         'chat_session_id' => $session->id,
+        'agent_id' => $session->agent_id,
         'source' => 'hosted_chat',
         'is_visible' => true,
         'title' => 'Test chat',

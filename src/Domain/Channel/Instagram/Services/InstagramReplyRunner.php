@@ -29,8 +29,8 @@ class InstagramReplyRunner
 
         return $this->runner->reply(
             agent: $thread->account->agent,
-            sessionExternalId: $thread->session_external_id,
-            conversationExternalId: $thread->conversation_external_id,
+            sessionExternalId: $thread->session->external_id,
+            conversationExternalId: $thread->conversation->external_id,
             message: $message,
             source: 'instagram',
             requestIdPrefix: 'ig_',

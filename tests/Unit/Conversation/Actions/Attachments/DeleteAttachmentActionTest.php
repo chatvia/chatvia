@@ -38,6 +38,7 @@ function buildAttachment(?int $messageId = null): Attachment
     $session = Session::create(['agent_id' => $agent->id]);
     $conversation = Conversation::create([
         'chat_session_id' => $session->id,
+        'agent_id' => $session->agent_id,
         'source' => 'hosted_chat',
         'is_visible' => true,
         'title' => 'Test',

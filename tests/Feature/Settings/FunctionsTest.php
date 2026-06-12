@@ -41,7 +41,7 @@ it('updates basic fields', function (): void {
     $fn = makeFunction($this->user);
 
     $this->actingAs($this->user)
-        ->patch(route('settings.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
             'description' => 'Brand new description',
             'webhook_method' => 'GET',
         ]))
@@ -59,7 +59,7 @@ it('keeps the existing secret when auth_value is left blank', function (): void 
     ]);
 
     $this->actingAs($this->user)
-        ->patch(route('settings.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
             'description' => 'Edited without touching the token',
             'auth_type' => 'bearer',
             'auth_value' => '',
@@ -78,7 +78,7 @@ it('replaces the secret when a new auth_value is provided', function (): void {
     ]);
 
     $this->actingAs($this->user)
-        ->patch(route('settings.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
             'auth_type' => 'bearer',
             'auth_value' => 'new-token',
         ]))
@@ -91,7 +91,7 @@ it('requires a credential when switching to an auth type with no stored secret',
     $fn = makeFunction($this->user);
 
     $this->actingAs($this->user)
-        ->patch(route('settings.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
             'auth_type' => 'bearer',
             'auth_value' => '',
         ]))
@@ -103,7 +103,7 @@ it('rejects a duplicate name from another function', function (): void {
     $fn = makeFunction($this->user, ['internal_name' => 'editable_fn']);
 
     $this->actingAs($this->user)
-        ->patch(route('settings.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
             'internal_name' => 'existing_fn',
         ]))
         ->assertSessionHasErrors('internal_name');
@@ -114,7 +114,7 @@ it('cannot update a function owned by another user', function (): void {
     $fn = makeFunction($other);
 
     $this->actingAs($this->user)
-        ->patch(route('settings.functions.update', ['external_id' => $fn->external_id]), updatePayload())
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload())
         ->assertForbidden();
 });
 
@@ -122,7 +122,7 @@ it('toggles the enabled flag', function (): void {
     $fn = makeFunction($this->user, ['is_enabled' => true]);
 
     $this->actingAs($this->user)
-        ->post(route('settings.functions.toggle', ['external_id' => $fn->external_id]))
+        ->post(route('integrations.functions.toggle', ['external_id' => $fn->external_id]))
         ->assertRedirect();
 
     expect($fn->fresh()->is_enabled)->toBeFalse();

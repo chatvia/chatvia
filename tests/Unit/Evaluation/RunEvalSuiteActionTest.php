@@ -8,12 +8,19 @@ use Domain\Evaluation\Models\EvalRun;
 use Domain\Llm\Models\Llm;
 use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Validation\ValidationException;
 
 /**
  * RunEvalSuite snapshots a run and fans the ACTIVE cases out as a batch. The
  * contract we pin: inactive cases never run, the run is snapshotted as
- * "running", and an empty suite is finalized inline (never left stuck).
+ * "running", an empty suite is finalized inline (never left stuck), and a
+ * workspace with no message credits can't start a suite at all (each scored
+ * case bills one message). The credit gate is stubbed open by default.
  */
+beforeEach(function (): void {
+    fakeMessageCreditGate();
+});
+
 function agentWithLlm(): Agent
 {
     return Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
@@ -61,6 +68,22 @@ it('finalizes immediately when there are no active cases', function (): void {
 
     expect($run->status)->toBe(EvalRun::STATUS_COMPLETED)
         ->and($run->total_cases)->toBe(0);
+
+    Bus::assertNothingBatched();
+});
+
+it('refuses to start a suite when the workspace is out of messages', function (): void {
+    Bus::fake();
+    $agent = agentWithLlm();
+
+    evalCaseFor($agent, active: true);
+
+    fakeMessageCreditGate(false);
+
+    expect(fn () => app(RunEvalSuiteAction::class)->execute($agent))
+        ->toThrow(ValidationException::class);
+
+    expect(EvalRun::query()->forAgent($agent->id)->count())->toBe(0);
 
     Bus::assertNothingBatched();
 });

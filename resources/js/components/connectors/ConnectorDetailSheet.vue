@@ -25,7 +25,7 @@ hljs.registerLanguage('json', json);
  * action is always labelled "Disconnect" so customers don't have to think
  * about the difference between deleting a row and removing a pivot.
  *
- * Settings mode hits /settings/connectors/* and operates on generic
+ * Settings mode hits /my/workspace/integrations/connectors/* and operates on generic
  * connectors only — the destructive action deletes the definition.
  *
  * Agent mode hits /my/agents/{agent}/sources/connectors/* and operates on
@@ -188,7 +188,7 @@ async function onToggleAttachment(agentId: string): Promise<void> {
 function toolsRoute(slug: string): string {
     return isAgentMode.value
         ? route('agents.sources.connectors.tools', { agent: props.agentId!, slug })
-        : route('settings.connectors.tools', { slug });
+        : route('integrations.connectors.tools', { slug });
 }
 
 function refreshRoute(slug: string): string {
@@ -197,18 +197,18 @@ function refreshRoute(slug: string): string {
     // agent-specific rows AND pivot-attached generics for this agent.
     return isAgentMode.value
         ? route('agents.sources.connectors.refresh', { agent: props.agentId!, slug })
-        : route('settings.connectors.refresh', { slug });
+        : route('integrations.connectors.refresh', { slug });
 }
 
 function enableRoute(slug: string): string {
     return isAgentMode.value
         ? route('agents.sources.connectors.enable', { agent: props.agentId!, slug })
-        : route('settings.connectors.enable', { slug });
+        : route('integrations.connectors.enable', { slug });
 }
 
 function destructiveRoute(slug: string): string {
     if (!isAgentMode.value) {
-        return route('settings.connectors.destroy', { slug });
+        return route('integrations.connectors.destroy', { slug });
     }
     // Agent mode: deletion semantics differ by scope.
     return isAgentScope.value
@@ -292,7 +292,9 @@ async function setToolPermission(tool: McpTool, permission: McpToolPermission): 
     const previous = tool.permission;
     tool.permission = permission;
     try {
-        const response = await axios.put(route('settings.connectors.tools.permission', { slug: server.value.slug, tool: tool.id }), { permission });
+        const response = await axios.put(route('integrations.connectors.tools.permission', { slug: server.value.slug, tool: tool.id }), {
+            permission,
+        });
         tool.permission = response.data.permission;
     } catch (e: unknown) {
         tool.permission = previous;

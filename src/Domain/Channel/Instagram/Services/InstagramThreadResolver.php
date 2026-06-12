@@ -4,7 +4,6 @@ namespace Domain\Channel\Instagram\Services;
 
 use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Domain\Channel\Instagram\Models\InstagramThread;
-use Domain\Channel\Services\ThreadMappingGuard;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatMemory;
@@ -21,7 +20,6 @@ class InstagramThreadResolver
     public function __construct(
         private readonly ChatMemory $memory,
         private readonly InstagramClient $client,
-        private readonly ThreadMappingGuard $guard,
     ) {}
 
     public function resolve(AgentInstagramAccount $account, string $igsid): InstagramThread
@@ -32,7 +30,9 @@ class InstagramThreadResolver
             ->first();
 
         if ($existing !== null) {
-            if ($this->guard->conversationExists($existing->conversation_external_id)) {
+            // conversation() excludes soft-deleted rows, so a retention-pruned
+            // conversation reads as missing here.
+            if ($existing->conversation()->exists()) {
                 return $existing;
             }
 
@@ -52,18 +52,22 @@ class InstagramThreadResolver
             'name' => $name,
         ]);
 
-        $conversationId = $this->memory
+        $this->memory
             ->withContext($agent, $session->external_id)
             ->createConversation(
                 title: $name !== null ? "Instagram · {$name}" : 'Instagram',
                 source: ConversationSource::Instagram,
             );
 
+        // The freshly-created session has exactly one conversation — the one
+        // createConversation() just made for it.
+        $conversation = $session->conversations()->latest('id')->firstOrFail();
+
         return InstagramThread::create([
             'agent_instagram_account_id' => $account->id,
             'igsid' => $igsid,
-            'session_external_id' => $session->external_id,
-            'conversation_external_id' => $conversationId,
+            'chat_session_id' => $session->id,
+            'chat_conversation_id' => $conversation->id,
             'name' => $name,
             'last_message_at' => now(),
         ]);

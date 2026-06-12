@@ -2,6 +2,9 @@
 import AuditTable from '@/components/governance/AuditTable.vue';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     agent: { external_id: string; name: string };
@@ -16,14 +19,13 @@ const props = defineProps<Props>();
 </script>
 
 <template>
-    <AgentLayout :agent="props.agent" title="Audit">
-        <Head :title="`Audit — ${props.agent.name}`" />
+    <AgentLayout :agent="props.agent" :title="t('agents.audit.title')">
+        <Head :title="t('agents.audit.head_title', { name: props.agent.name })" />
 
         <div class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-6xl space-y-6">
                 <p class="text-muted-foreground text-sm">
-                    Every tool and connector call this agent made — allowed, approved, denied, or rate-limited — with the arguments, result, and who
-                    triggered it. Immutable and retained for review.
+                    {{ t('agents.audit.description') }}
                 </p>
 
                 <AuditTable

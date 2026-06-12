@@ -5,6 +5,7 @@ namespace Domain\Agent\QueryBuilders;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -24,44 +25,6 @@ class AgentQueryBuilder extends Builder
                 ->whereColumn('users.workspace_id', 'agents.user_id')
                 ->selectRaw('count(*)'),
         ]);
-    }
-
-    /**
-     * Add total messages count as a subquery select.
-     */
-    public function withTotalMessages(): self
-    {
-        return $this->addSelect([
-            'total_messages' => DB::table('chat_messages')
-                ->join('chat_conversations', 'chat_messages.chat_conversation_id', '=', 'chat_conversations.id')
-                ->join('chat_sessions', 'chat_conversations.chat_session_id', '=', 'chat_sessions.id')
-                ->whereColumn('chat_sessions.agent_id', 'agents.id')
-                ->selectRaw('count(*)'),
-        ]);
-    }
-
-    /**
-     * Add unique users count as a subquery select.
-     */
-    public function withUniqueUsers(): self
-    {
-        return $this->addSelect([
-            'unique_users' => DB::table('chat_sessions')
-                ->whereColumn('chat_sessions.agent_id', 'agents.id')
-                ->whereNotNull('chat_sessions.user_id')
-                ->selectRaw('count(distinct chat_sessions.user_id)'),
-        ]);
-    }
-
-    /**
-     * Add all stats (total_members, total_messages, unique_users) as subquery selects.
-     */
-    public function withStats(): self
-    {
-        return $this
-            ->withTotalMembers()
-            ->withTotalMessages()
-            ->withUniqueUsers();
     }
 
     /**
@@ -105,10 +68,13 @@ hour_bucket AS (
     ORDER BY c DESC NULLS LAST
     LIMIT 1
 ),
+-- avg_first_response_seconds reads the incrementally-maintained first_*_at pair.
 conv_metrics AS (
     SELECT
         AVG(message_count)                                    AS avg_messages_per_conversation,
-        AVG(NULLIF(duration_seconds, 0))                      AS avg_conversation_duration_seconds
+        AVG(NULLIF(duration_seconds, 0))                      AS avg_conversation_duration_seconds,
+        AVG(EXTRACT(EPOCH FROM (first_assistant_at - first_user_at)))
+            FILTER (WHERE first_assistant_at > first_user_at) AS avg_first_response_seconds
     FROM analytics_conversation_metrics
     WHERE agent_id = ?
 ),
@@ -116,24 +82,6 @@ session_count AS (
     SELECT COUNT(*) AS unique_sessions
     FROM analytics_session_firsts
     WHERE agent_id = ?
-),
--- First-response time uses the granular event log to get first user / first
--- assistant message per conversation; rollup buckets are too coarse for this.
-first_response AS (
-    SELECT AVG(EXTRACT(EPOCH FROM (a.occurred_at - u.occurred_at))) AS avg_first_response_seconds
-    FROM (
-        SELECT conversation_external_id, MIN(occurred_at) AS occurred_at
-        FROM analytics_events
-        WHERE agent_id = ? AND event_type = 'message_sent' AND role = 'user'
-        GROUP BY conversation_external_id
-    ) u
-    JOIN (
-        SELECT conversation_external_id, MIN(occurred_at) AS occurred_at
-        FROM analytics_events
-        WHERE agent_id = ? AND event_type = 'message_sent' AND role = 'assistant'
-        GROUP BY conversation_external_id
-    ) a ON a.conversation_external_id = u.conversation_external_id
-    WHERE a.occurred_at > u.occurred_at
 ),
 -- Feedback is current-state (one upserted row per message), so totals are a
 -- plain COUNT over the live rows rather than a lifetime rollup counter.
@@ -160,16 +108,15 @@ SELECT
     cm.avg_conversation_duration_seconds,
     fb.conversations_with_feedback,
     sc.unique_sessions,
-    fr.avg_first_response_seconds
+    cm.avg_first_response_seconds
 FROM agent_rollup ar
 CROSS JOIN conv_metrics cm
 CROSS JOIN session_count sc
-CROSS JOIN first_response fr
 CROSS JOIN feedback fb
 SQL;
 
         return DB::connection($connection)->selectOne($sql, [
-            $agentId, $agentId, $agentId, $agentId, $agentId, $agentId, $agentId,
+            $agentId, $agentId, $agentId, $agentId, $agentId,
         ]) ?? (object) [
             'total_assistant' => 0, 'total_user' => 0, 'total_conversations' => 0,
             'avg_response_ms' => null, 'total_tokens' => 0, 'avg_tokens' => null,
@@ -184,10 +131,12 @@ SQL;
     {
         $agentId = $this->getModel()->id;
 
+        // Half-open range on the raw column — a ::date predicate can't use the index.
         return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_hourly_rollups')
             ->where('agent_id', $agentId)
-            ->whereRaw('bucket_hour::date BETWEEN ? AND ?', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->where('bucket_hour', '>=', $startDate->copy()->startOfDay())
+            ->where('bucket_hour', '<', $endDate->copy()->startOfDay()->addDay())
             ->selectRaw('bucket_hour::date as date, SUM(assistant_messages) as count')
             ->groupBy('date')
             ->orderBy('date');
@@ -314,10 +263,9 @@ SQL;
     }
 
     /**
-     * Individual MCP tools this agent has actually called, ranked by
-     * per-(agent, tool) invocation count on the `agent_mcp_tool` pivot.
-     * Joined to `mcp_servers` so the UI can show "tool name + which
-     * server it belongs to" in one row.
+     * Individual MCP tools this agent has actually called, ranked by invocation
+     * count from the durable analytics rollup, so the UI can show "tool name +
+     * which server it belongs to" in one row.
      *
      * Returns: { tool_name, tool_description, server_name, server_slug,
      *            connector_slug, count, last_used_at }
@@ -326,7 +274,7 @@ SQL;
     {
         $agentId = $this->getModel()->id;
 
-        // Durable analytics rollup (not the live agent_mcp_tool pivot) so a
+        // Durable analytics rollup (keyed by slug+name, no FK) so a
         // deleted/re-synced tool still shows, with labels captured at call time.
         return DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_mcp_tool_daily')
@@ -414,50 +362,87 @@ SQL;
 
     /**
      * Get topics grouped by date within a date range.
+     *
+     * The rollup lives on the analytics connection while `topics` lives on the
+     * default connection — they may be separate databases (DB_ANALYTICS_DATABASE).
+     * So we aggregate by topic_id on the analytics side, then resolve names from
+     * the default connection rather than cross-DB joining.
      */
     public function topicsByDateRange(Carbon $startDate, Carbon $endDate)
     {
         $agentId = $this->getModel()->id;
 
-        return DB::connection(config('chatvia.analytics.connection'))
+        $rows = DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_topic_daily')
-            ->join('topics', 'topics.id', '=', 'analytics_agent_topic_daily.topic_id')
-            ->where('analytics_agent_topic_daily.agent_id', $agentId)
-            ->whereRaw('analytics_agent_topic_daily.bucket_day >= ?', [$startDate->format('Y-m-d')])
-            ->whereRaw('analytics_agent_topic_daily.bucket_day <= ?', [$endDate->format('Y-m-d')])
-            ->groupBy('analytics_agent_topic_daily.bucket_day', 'topics.id', 'topics.topic')
+            ->where('agent_id', $agentId)
+            ->whereRaw('bucket_day >= ?', [$startDate->format('Y-m-d')])
+            ->whereRaw('bucket_day <= ?', [$endDate->format('Y-m-d')])
+            ->groupBy('bucket_day', 'topic_id')
             ->select([
-                DB::raw('analytics_agent_topic_daily.bucket_day::text as date'),
-                'topics.id as topic_id',
-                'topics.topic as topic_name',
-                DB::raw('SUM(analytics_agent_topic_daily.conversation_count) as count'),
+                DB::raw('bucket_day::text as date'),
+                'topic_id',
+                DB::raw('SUM(conversation_count) as count'),
             ])
             ->orderBy('date')
-            ->orderBy('topic_name')
             ->get();
+
+        $names = $this->resolveTopicNames($rows->pluck('topic_id'));
+
+        return $rows
+            ->map(function (object $row) use ($names): object {
+                $row->topic_name = $names[$row->topic_id] ?? null;
+
+                return $row;
+            })
+            ->sortBy([['date', 'asc'], ['topic_name', 'asc']])
+            ->values();
     }
 
     /**
-     * Get top topics with total counts within a date range.
+     * Get top topics with total counts within a date range. Names resolved from
+     * the default connection — see {@see topicsByDateRange()} for the cross-DB note.
      */
     public function topTopics(Carbon $startDate, Carbon $endDate, int $limit = 10)
     {
         $agentId = $this->getModel()->id;
 
-        return DB::connection(config('chatvia.analytics.connection'))
+        $rows = DB::connection(config('chatvia.analytics.connection'))
             ->table('analytics_agent_topic_daily')
-            ->join('topics', 'topics.id', '=', 'analytics_agent_topic_daily.topic_id')
-            ->where('analytics_agent_topic_daily.agent_id', $agentId)
-            ->whereRaw('analytics_agent_topic_daily.bucket_day >= ?', [$startDate->format('Y-m-d')])
-            ->whereRaw('analytics_agent_topic_daily.bucket_day <= ?', [$endDate->format('Y-m-d')])
-            ->groupBy('topics.id', 'topics.topic')
+            ->where('agent_id', $agentId)
+            ->whereRaw('bucket_day >= ?', [$startDate->format('Y-m-d')])
+            ->whereRaw('bucket_day <= ?', [$endDate->format('Y-m-d')])
+            ->groupBy('topic_id')
             ->select([
-                'topics.id as topic_id',
-                'topics.topic as topic_name',
-                DB::raw('SUM(analytics_agent_topic_daily.conversation_count) as total_count'),
+                'topic_id',
+                DB::raw('SUM(conversation_count) as total_count'),
             ])
             ->orderByDesc('total_count')
             ->limit($limit)
             ->get();
+
+        $names = $this->resolveTopicNames($rows->pluck('topic_id'));
+
+        return $rows->map(function (object $row) use ($names): object {
+            $row->topic_name = $names[$row->topic_id] ?? null;
+
+            return $row;
+        });
+    }
+
+    /**
+     * Map topic ids to their names from the default connection.
+     *
+     * @param  Collection<int, int|string>  $topicIds
+     * @return Collection<int, string>
+     */
+    private function resolveTopicNames($topicIds): Collection
+    {
+        if ($topicIds->isEmpty()) {
+            return collect();
+        }
+
+        return DB::table('topics')
+            ->whereIn('id', $topicIds->unique()->all())
+            ->pluck('topic', 'id');
     }
 }

@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -34,9 +35,21 @@ class AgentController
             $agents = $team->agents()
                 ->whereIn('id', $accessibleAgentIds)
                 ->with(['agentPrompt:id,external_id'])
-                ->withStats()
+                ->withTotalMembers()
                 ->latest()
                 ->get();
+
+            // Message totals from the rollups in one grouped query (survives retention pruning).
+            $messageTotals = DB::connection(config('chatvia.analytics.connection'))
+                ->table('analytics_agent_hourly_rollups')
+                ->whereIn('agent_id', $agents->pluck('id'))
+                ->groupBy('agent_id')
+                ->selectRaw('agent_id, SUM(user_messages + assistant_messages) AS total_messages')
+                ->pluck('total_messages', 'agent_id');
+
+            $agents->each(function (Agent $agent) use ($messageTotals): void {
+                $agent->setAttribute('total_messages', (int) ($messageTotals[$agent->id] ?? 0));
+            });
 
             return AgentResourceData::collection($agents);
         }

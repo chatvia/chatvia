@@ -44,11 +44,11 @@ it('creates a Session + Conversation + mapping on first contact', function (): v
     expect($thread->agent_instagram_account_id)->toBe($account->id)
         ->and($thread->igsid)->toBe('5550001234')
         ->and($thread->name)->toBe('Sam')
-        ->and($thread->session_external_id)->not->toBeNull()
-        ->and($thread->conversation_external_id)->not->toBeNull();
+        ->and($thread->chat_session_id)->not->toBeNull()
+        ->and($thread->chat_conversation_id)->not->toBeNull();
 
     // The Session is real and belongs to the agent, with no chatter user.
-    $session = Session::query()->where('external_id', $thread->session_external_id)->firstOrFail();
+    $session = $thread->session;
     expect($session->agent_id)->toBe($account->agent_id)
         ->and($session->user_id)->toBeNull()
         ->and($session->name)->toBe('Sam');
@@ -73,7 +73,7 @@ it('keeps separate conversations for different users', function (): void {
     $b = $resolver->resolve($account, '200');
 
     expect($a->id)->not->toBe($b->id)
-        ->and($a->conversation_external_id)->not->toBe($b->conversation_external_id);
+        ->and($a->chat_conversation_id)->not->toBe($b->chat_conversation_id);
     expect(InstagramThread::query()->count())->toBe(2);
 });
 
@@ -83,7 +83,7 @@ it('tags the conversation as an Instagram conversation', function (): void {
     $thread = instagramResolver(new FakeInstagramClient)->resolve($account, '5550001234');
 
     $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $thread->conversation_external_id,
+        'external_id' => $thread->conversation->external_id,
         'source' => ConversationSource::Instagram->value,
     ]);
 });

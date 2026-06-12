@@ -14,6 +14,7 @@ use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
+use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -41,6 +42,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Support\Enums\CreatedVia;
@@ -137,10 +139,7 @@ use Support\Traits\HasSettings;
  * @method static AgentQueryBuilder<static>|Agent whereTeamId($value)
  * @method static AgentQueryBuilder<static>|Agent whereUpdatedAt($value)
  * @method static AgentQueryBuilder<static>|Agent whereUserId($value)
- * @method static AgentQueryBuilder<static>|Agent withStats()
  * @method static AgentQueryBuilder<static>|Agent withTotalMembers()
- * @method static AgentQueryBuilder<static>|Agent withTotalMessages()
- * @method static AgentQueryBuilder<static>|Agent withUniqueUsers()
  *
  * @mixin \Eloquent
  */
@@ -375,16 +374,22 @@ class Agent extends Model
     /**
      * Attach an account-level function to this agent (idempotent — a repeat
      * attach is a no-op). Single source of truth for the dashboard and the
-     * public API; don't re-implement the pivot write inline.
+     * public API; don't re-implement the pivot write inline. Pivot writes fire
+     * no Eloquent events, so the cached tool pool is busted here, not in an
+     * observer.
      */
     public function attachFunction(AgentFunction $function): void
     {
         $this->functions()->syncWithoutDetaching([$function->id]);
+
+        app(ToolRegistry::class)->forget($this->id);
     }
 
     public function detachFunction(AgentFunction $function): void
     {
         $this->functions()->detach($function->id);
+
+        app(ToolRegistry::class)->forget($this->id);
     }
 
     /**
@@ -400,16 +405,22 @@ class Agent extends Model
 
     /**
      * Attach a connector (MCP server) to this agent (idempotent). Single source
-     * of truth for the dashboard and the public API.
+     * of truth for the dashboard and the public API. Pivot writes fire no
+     * Eloquent events, so the cached tool pool is busted here, not in an
+     * observer.
      */
     public function attachConnector(AgentMcpServer $server): void
     {
         $this->mcpServers()->syncWithoutDetaching([$server->id]);
+
+        app(ToolRegistry::class)->forget($this->id);
     }
 
     public function detachConnector(AgentMcpServer $server): void
     {
         $this->mcpServers()->detach($server->id);
+
+        app(ToolRegistry::class)->forget($this->id);
     }
 
     /**
@@ -541,11 +552,18 @@ class Agent extends Model
      * through the agent's team owner (billing is workspace-owner-scoped);
      * falls back to the Starter floor when ownership can't be resolved so
      * we never write a TTL shorter than what the user paid for.
+     *
+     * Cached per workspace for an hour — the team→owner→capabilities chain
+     * runs on every stored user message.
      */
     public function messageRetentionInDays(): int
     {
-        return $this->team?->owner?->capabilities?->retentionDays
-            ?? BillingPackageCapabilitiesData::DEFAULT_RETENTION_DAYS;
+        return (int) Cache::remember(
+            "workspace:{$this->user_id}:retention-days",
+            3600,
+            fn (): int => $this->team?->owner?->capabilities?->retentionDays
+                ?? BillingPackageCapabilitiesData::DEFAULT_RETENTION_DAYS,
+        );
     }
 
     public function url(): Attribute

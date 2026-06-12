@@ -33,6 +33,7 @@ it('rebuilds the conversation list from DB when the cache is cold', function ():
 
     Conversation::create([
         'chat_session_id' => $session->id,
+        'agent_id' => $session->agent_id,
         'external_id' => (string) Str::uuid(),
         'source' => ConversationSource::HostedChat,
         'title' => 'Welcome',
@@ -40,6 +41,7 @@ it('rebuilds the conversation list from DB when the cache is cold', function ():
     ]);
     Conversation::create([
         'chat_session_id' => $session->id,
+        'agent_id' => $session->agent_id,
         'external_id' => (string) Str::uuid(),
         'source' => ConversationSource::HostedChat,
         'title' => 'Pricing question',
@@ -59,6 +61,7 @@ it('reprimes the cache after rebuilding from DB', function (): void {
     $session = ChatSession::create(['agent_id' => $agent->id]);
     Conversation::create([
         'chat_session_id' => $session->id,
+        'agent_id' => $session->agent_id,
         'external_id' => (string) Str::uuid(),
         'source' => ConversationSource::HostedChat,
         'title' => 'Welcome',
@@ -87,6 +90,7 @@ it('preserves history when a new conversation is created with a cold cache', fun
 
     Conversation::create([
         'chat_session_id' => $session->id,
+        'agent_id' => $session->agent_id,
         'external_id' => (string) Str::uuid(),
         'source' => ConversationSource::HostedChat,
         'title' => 'Historical chat',
@@ -119,6 +123,7 @@ it('falls back to DB when the cache is stamped with a different user_id', functi
 
     Conversation::create([
         'chat_session_id' => $session->id,
+        'agent_id' => $session->agent_id,
         'external_id' => (string) Str::uuid(),
         'source' => ConversationSource::HostedChat,
         'title' => 'B-only chat',

@@ -1,0 +1,42 @@
+{
+    "agents": {
+        "usage": {
+            "title": "Usage Insights",
+            "description": "See which sources, functions, and MCP servers this agent actually uses",
+            "load_error": "Failed to load usage",
+            "try_again": "Try again",
+            "tabs": {
+                "knowledge": "Knowledge",
+                "functions": "Functions",
+                "mcp": "MCP"
+            },
+            "knowledge_empty": "No knowledge sources retrieved yet",
+            "knowledge_empty_hint": "Files, websites, text snippets, and YouTube videos appear here once the agent uses them.",
+            "functions_empty": "No function calls yet",
+            "functions_empty_hint": "Webhook functions appear here once the agent invokes them.",
+            "mcp_empty": "No MCP tool calls yet",
+            "mcp_empty_hint": "Individual tools from connected MCP servers appear here once the agent invokes them.",
+            "retrievals": "{count} retrieval | {count} retrievals",
+            "calls": "{count} call | {count} calls",
+            "last_used": "Last used {time}",
+            "last_called": "Last called {time}",
+            "via_server": "via {name}",
+            "sub_kind": {
+                "source_file": "File",
+                "source_website": "Website",
+                "source_text": "Text",
+                "source_youtube_video": "YouTube",
+                "agent_website_url": "Web page"
+            },
+            "relative": {
+                "just_now": "just now",
+                "minutes_ago": "{count} minute ago | {count} minutes ago",
+                "hours_ago": "{count} hour ago | {count} hours ago",
+                "days_ago": "{count} day ago | {count} days ago",
+                "weeks_ago": "{count} week ago | {count} weeks ago",
+                "months_ago": "{count} month ago | {count} months ago",
+                "years_ago": "{count} year ago | {count} years ago"
+            }
+        }
+    }
+}

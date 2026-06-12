@@ -1,0 +1,56 @@
+{
+    "account": {
+        "passkeys": {
+            "name_required": "أعطِ مفتاح المرور اسماً أولاً.",
+            "register_error": "تعذّر تسجيل مفتاح المرور.",
+            "never": "أبداً",
+            "delete_aria": "حذف مفتاح المرور",
+            "name_placeholder": "MacBook Pro، iPhone، YubiKey…",
+            "heading": "مفاتيح المرور",
+            "description": "سجّل الدخول ببصمة الإصبع أو الوجه أو مفتاح الأمان — دون كلمة مرور.",
+            "add_passkey": "إضافة مفتاح مرور",
+            "no_passkeys": "لا مفاتيح مرور بعد",
+            "no_passkeys_hint": "أضف مفتاح مرور لتسجيل دخول أسرع على هذا الجهاز.",
+            "last_used": "آخر استخدام",
+            "created": "تاريخ الإنشاء",
+            "dialog_title": "سمِّ مفتاح المرور",
+            "dialog_description": "اختر اسماً لتمييز مفاتيح المرور لاحقاً.",
+            "register": "تسجيل مفتاح المرور"
+        },
+        "two_factor": {
+            "heading": "المصادقة الثنائية",
+            "description": "اطلب رمزاً من 6 أرقام من تطبيق المصادقة عند تسجيل الدخول، بالإضافة إلى كلمة المرور.",
+            "disable_title": "تعطيل المصادقة الثنائية؟",
+            "disable_description": "سيُحمى حسابك بكلمة المرور فقط. يمكنك إعادة تفعيل المصادقة الثنائية في أي وقت.",
+            "status": "الحالة",
+            "enabled": "مفعّلة",
+            "disabled": "معطّلة",
+            "off_title": "المصادقة الثنائية معطّلة",
+            "off_description": "فعّلها لطلب رمز من 6 أرقام عند تسجيل الدخول.",
+            "enable": "تفعيل المصادقة الثنائية",
+            "finish_setup_title": "إكمال الإعداد",
+            "finish_setup_description": "امسح رمز QR بتطبيق المصادقة، ثم أدخل الرمز المكوّن من 6 أرقام للتأكيد.",
+            "loading_qr": "جارٍ تحميل رمز QR…",
+            "secret_manual": "أو أدخل هذا السر يدوياً",
+            "confirmation_code": "رمز التأكيد",
+            "confirm": "تأكيد",
+            "cancel_setup": "إلغاء الإعداد",
+            "recovery_title": "رموز الاسترداد",
+            "recovery_description": "احفظ هذه الرموز لمرة واحدة في مكان آمن. كل رمز يفتح حسابك إذا فقدت تطبيق المصادقة.",
+            "loading_codes": "جارٍ تحميل رموز الاسترداد…",
+            "show_codes": "عرض رموز الاسترداد",
+            "regenerate_codes": "إعادة إنشاء الرموز",
+            "disable": "تعطيل المصادقة الثنائية"
+        },
+        "social": {
+            "heading": "حسابات التواصل الاجتماعي",
+            "description": "اربط Google أو Microsoft أو Slack لتسجيل الدخول بنقرة واحدة ومزامنة حساباتك.",
+            "connected_since": "متصل منذ {date}",
+            "not_connected": "غير متصل",
+            "disconnect": "قطع الاتصال",
+            "connect": "ربط",
+            "disconnect_title": "قطع اتصال {provider}؟",
+            "disconnect_description": "لن تتمكن من تسجيل الدخول عبر {provider} حتى تعيد ربطه."
+        }
+    }
+}

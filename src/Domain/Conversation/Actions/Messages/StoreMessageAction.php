@@ -127,11 +127,7 @@ class StoreMessageAction
 
         $sessionUpdates = [];
 
-        // Throttle the activity stamp: last_activity_at is indexed, so every
-        // write is a non-HOT update fanning into all of the table's indexes.
-        // Minute resolution is plenty for the chat-log "last seen" display,
-        // and it spares the assistant turn (which lands seconds after the
-        // user turn) the second write entirely.
+        // Minute-resolution throttle: last_activity_at is indexed, every write is non-HOT.
         if ($session->last_activity_at === null || $session->last_activity_at->lt(now()->subMinute())) {
             $sessionUpdates['last_activity_at'] = now();
         }
@@ -167,16 +163,14 @@ class StoreMessageAction
             // everything else (playground previews, api-driven) default to Hosted
             // Chat which is the standalone surface most callers exercise.
             [
+                'agent_id' => $session->agent_id,
                 'source' => $payload->source === 'widget'
                     ? ConversationSource::Widget
                     : ConversationSource::HostedChat,
             ],
         );
 
-        // Same minute-resolution throttle as the session stamp above —
-        // last_activity_at and the timestamp-bumped updated_at are indexed,
-        // so unconditional writes churn every index on the two hottest
-        // tables for no display benefit.
+        // Same minute-resolution throttle as the session stamp.
         $conversationUpdates = [];
 
         if ($conversation->last_activity_at === null || $conversation->last_activity_at->lt(now()->subMinute())) {
@@ -273,8 +267,6 @@ class StoreMessageAction
         ?int $completionTokens,
         ?int $costInMicroCents,
     ): array {
-        // Resolve through the cached catalog — this runs once per stored
-        // message, and the LLM list is a static lookup table.
         $llmId = $payload->model
             ? Llm::catalog()->firstWhere('external_name', $payload->model)?->id
             : null;

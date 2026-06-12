@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Agent\Member;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Agent\Member\InviteAgentMemberRequest;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
 use Domain\Membership\Agent\Actions\InviteAgentMemberAction;
+use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
 use Domain\Membership\Agent\Data\Resources\AgentMemberRowData;
 use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
 use Domain\Membership\Agent\Models\AgentMemberInvitation;
@@ -116,6 +118,7 @@ class AgentMemberController extends Controller
         Request $request,
         Agent $agent,
         string $chatter,
+        GrantAgentMembershipAction $grant,
     ): RedirectResponse {
 
         abort_if($agent->is_public, 422, 'Public agents do not use per-member grants.');
@@ -125,7 +128,7 @@ class AgentMemberController extends Controller
             ->where('external_id', $chatter)
             ->firstOrFail();
 
-        $agent->chatters()->syncWithoutDetaching([$member->id]);
+        $grant->execute($agent, $member);
 
         return back();
     }
@@ -134,11 +137,12 @@ class AgentMemberController extends Controller
         Request $request,
         Agent $agent,
         string $chatter,
+        RevokeAgentMembershipAction $revoke,
     ): RedirectResponse {
 
         $member = $agent->chatters()->where('users.external_id', $chatter)->firstOrFail();
 
-        $agent->chatters()->detach($member->id);
+        $revoke->execute($agent, $member);
 
         return back();
     }

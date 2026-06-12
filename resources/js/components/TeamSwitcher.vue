@@ -19,6 +19,9 @@ import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Check, ChevronsUpDown, Loader2, Plus, Settings, Users } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Team {
     id: number;
@@ -107,13 +110,13 @@ const createTeam = () => {
                         </AvatarFallback>
                     </Avatar>
                     <span class="max-w-[120px] truncate text-sm font-medium">
-                        {{ currentTeam?.name || 'Select Team' }}
+                        {{ currentTeam?.name || t('team_switcher.select_team') }}
                     </span>
                     <ChevronsUpDown class="size-4 opacity-50" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" class="w-56">
-                <DropdownMenuLabel class="text-muted-foreground text-xs"> Teams </DropdownMenuLabel>
+                <DropdownMenuLabel class="text-muted-foreground text-xs">{{ t('teams.index.title') }}</DropdownMenuLabel>
                 <div class="max-h-[300px] overflow-y-auto">
                     <div v-if="isLoading" class="flex justify-center px-2 py-4">
                         <Loader2 class="text-muted-foreground size-4 animate-spin" />
@@ -128,7 +131,9 @@ const createTeam = () => {
                             <span class="flex-1 truncate">{{ team.name }}</span>
                             <Check v-if="team.id === currentTeam?.id" class="text-primary size-4" />
                         </DropdownMenuItem>
-                        <div v-if="teams.length === 0" class="text-muted-foreground px-2 py-4 text-center text-sm">No teams available</div>
+                        <div v-if="teams.length === 0" class="text-muted-foreground px-2 py-4 text-center text-sm">
+                            {{ t('team_switcher.no_teams') }}
+                        </div>
                     </template>
                 </div>
                 <template v-if="!isStaff">
@@ -136,12 +141,12 @@ const createTeam = () => {
                     <DropdownMenuItem as-child>
                         <Link :href="route('teams.index')" class="cursor-pointer gap-2">
                             <Settings class="size-4" />
-                            Manage Teams
+                            {{ t('team_switcher.manage_teams') }}
                         </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem class="cursor-pointer gap-2" @click="openCreateDialog">
                         <Plus class="size-4" />
-                        Create Team
+                        {{ t('teams.index.create_team') }}
                     </DropdownMenuItem>
                 </template>
             </DropdownMenuContent>
@@ -151,26 +156,32 @@ const createTeam = () => {
         <Dialog v-model:open="isCreateDialogOpen">
             <DialogContent class="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Create New Team</DialogTitle>
-                    <DialogDescription> Create a team to collaborate with others. </DialogDescription>
+                    <DialogTitle>{{ t('teams.index.create_dialog.title') }}</DialogTitle>
+                    <DialogDescription>{{ t('teams.index.create_dialog.description') }}</DialogDescription>
                 </DialogHeader>
                 <form @submit.prevent="createTeam">
                     <div class="grid gap-4 py-4">
                         <div class="grid gap-2">
-                            <Label for="team-name">Team Name</Label>
+                            <Label for="team-name">{{ t('teams.index.create_dialog.name_label') }}</Label>
                             <div class="relative">
                                 <Users class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                                <Input id="team-name" v-model="createForm.name" placeholder="Enter team name" class="pl-9" required />
+                                <Input
+                                    id="team-name"
+                                    v-model="createForm.name"
+                                    :placeholder="t('teams.index.create_dialog.name_placeholder')"
+                                    class="ps-9"
+                                    required
+                                />
                             </div>
                             <InputError :message="createForm.errors.name" />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" @click="isCreateDialogOpen = false"> Cancel </Button>
+                        <Button type="button" variant="outline" @click="isCreateDialogOpen = false">{{ t('teams.common.cancel') }}</Button>
                         <Button type="submit" :disabled="createForm.processing">
-                            <Loader2 v-if="createForm.processing" class="mr-2 size-4 animate-spin" />
-                            <Plus v-else class="mr-2 size-4" />
-                            Create Team
+                            <Loader2 v-if="createForm.processing" class="me-2 size-4 animate-spin" />
+                            <Plus v-else class="me-2 size-4" />
+                            {{ t('teams.index.create_team') }}
                         </Button>
                     </DialogFooter>
                 </form>

@@ -60,8 +60,8 @@ class AgentMessageDimensionByDateAction
         // and, by subtraction, 'unspecified'.
         $totalByDay = $db->table('analytics_agent_hourly_rollups')
             ->where('agent_id', $agent->id)
-            ->whereRaw('bucket_hour::date >= ?', [$start])
-            ->whereRaw('bucket_hour::date <= ?', [$end])
+            ->where('bucket_hour', '>=', $startDate->copy()->startOfDay())
+            ->where('bucket_hour', '<', $endDate->copy()->startOfDay()->addDay())
             ->groupByRaw('bucket_hour::date')
             ->selectRaw('bucket_hour::date::text as date, SUM(user_messages) as total')
             ->pluck('total', 'date');

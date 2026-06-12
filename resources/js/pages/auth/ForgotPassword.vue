@@ -8,6 +8,9 @@ import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Mail } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps<{
     status?: string;
@@ -23,10 +26,10 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthLayout title="Forgot password" description="Enter your email to receive a password reset link">
-        <Head title="Forgot password" />
+    <AuthLayout :title="t('auth.forgot_password.title')" :description="t('auth.forgot_password.description')">
+        <Head :title="t('auth.forgot_password.head')" />
 
-        <div class="absolute top-4 right-4">
+        <div class="absolute top-4 end-4">
             <ThemeSwitcher />
         </div>
 
@@ -43,9 +46,9 @@ const submit = () => {
             <form @submit.prevent="submit" class="space-y-6">
                 <!-- Email Field -->
                 <div class="space-y-2">
-                    <Label for="email" class="text-base font-medium">Email address</Label>
+                    <Label for="email" class="text-base font-medium">{{ t('auth.forgot_password.email_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <Mail class="h-5 w-5" />
                         </div>
                         <Input
@@ -55,8 +58,8 @@ const submit = () => {
                             autocomplete="email"
                             v-model="form.email"
                             autofocus
-                            placeholder="email@example.com"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="t('auth.forgot_password.email_placeholder')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.email" />
@@ -64,17 +67,17 @@ const submit = () => {
 
                 <!-- Send Reset Link Button -->
                 <Button type="submit" class="h-12 w-full text-base font-semibold" :disabled="form.processing">
-                    <LoaderCircle v-if="form.processing" class="mr-2 h-5 w-5 animate-spin" />
-                    <span v-if="!form.processing">Send password reset link</span>
-                    <span v-else>Sending reset link...</span>
+                    <LoaderCircle v-if="form.processing" class="me-2 h-5 w-5 animate-spin" />
+                    <span v-if="!form.processing">{{ t('auth.forgot_password.send_reset_link') }}</span>
+                    <span v-else>{{ t('auth.forgot_password.sending_reset_link') }}</span>
                 </Button>
             </form>
 
             <!-- Sign In Link -->
             <div class="pt-4 text-center">
                 <p class="text-muted-foreground text-base">
-                    Or, return to
-                    <TextLink :href="route('login')" class="text-primary hover:text-primary/80 ml-1 font-semibold"> log in </TextLink>
+                    {{ t('auth.forgot_password.return_to') }}
+                    <TextLink :href="route('login')" class="text-primary hover:text-primary/80 ms-1 font-semibold"> {{ t('auth.forgot_password.log_in') }} </TextLink>
                 </p>
             </div>
         </div>

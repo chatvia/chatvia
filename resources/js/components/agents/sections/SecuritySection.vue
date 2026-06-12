@@ -4,6 +4,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
 import { Shield } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 withDefaults(
     defineProps<{
@@ -27,16 +30,15 @@ defineEmits<{
     <div class="space-y-6">
         <template v-if="showIsPublic">
             <div>
-                <h3 class="text-sm font-medium">Access Control</h3>
-                <p class="text-muted-foreground mt-1 text-xs">A protected agent only loads for visitors you authenticate with a signed token.</p>
+                <h3 class="text-sm font-medium">{{ t('agents.setup.sections.security_title') }}</h3>
+                <p class="text-muted-foreground mt-1 text-xs">{{ t('agents.setup.sections.security_description') }}</p>
             </div>
 
             <div class="flex items-center justify-between rounded-lg border p-4">
-                <div class="space-y-0.5 pr-4">
-                    <Label for="security-public">Make public</Label>
+                <div class="space-y-0.5 pe-4">
+                    <Label for="security-public">{{ t('agents.setup.sections.security_public') }}</Label>
                     <p class="text-muted-foreground text-xs">
-                        When public, anyone can load the widget. When off, the widget requires a signed
-                        <code class="bg-muted rounded px-1 py-0.5 text-xs">data-auth</code> token to load.
+                        {{ t('agents.setup.sections.security_public_hint') }}
                     </p>
                 </div>
                 <Switch
@@ -50,16 +52,16 @@ defineEmits<{
 
             <Alert v-if="!isPublic">
                 <Shield class="h-4 w-4" />
-                <AlertTitle>Protected</AlertTitle>
+                <AlertTitle>{{ t('agents.setup.sections.security_protected_title') }}</AlertTitle>
                 <AlertDescription>
-                    Requires a signed <code class="bg-muted rounded px-1 py-0.5 text-xs">data-auth</code> JWT to load.
+                    {{ t('agents.setup.sections.security_protected_description') }}
                 </AlertDescription>
             </Alert>
         </template>
 
         <div v-if="showSites" class="space-y-2">
-            <Label>Allowed websites</Label>
-            <p class="text-muted-foreground text-xs">Domains where this widget is allowed to load (without https://). Press Enter to add.</p>
+            <Label>{{ t('agents.setup.sections.security_sites') }}</Label>
+            <p class="text-muted-foreground text-xs">{{ t('agents.setup.sections.security_sites_hint') }}</p>
             <TagsInput
                 :model-value="sites"
                 :disabled="disabled"
@@ -70,7 +72,7 @@ defineEmits<{
                     <TagsInputItemText />
                     <TagsInputItemDelete />
                 </TagsInputItem>
-                <TagsInputInput placeholder="e.g., example.com" />
+                <TagsInputInput :placeholder="t('agents.setup.sections.security_sites_placeholder')" />
             </TagsInput>
             <p v-if="errors?.widget_sites" class="text-destructive text-sm">{{ errors.widget_sites }}</p>
             <p v-else-if="errors?.sites" class="text-destructive text-sm">{{ errors.sites }}</p>

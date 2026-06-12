@@ -1,6 +1,7 @@
 import { useDateFormat } from '@/composables/useDateFormat';
 import { useHandoff } from '@/composables/useHandoff';
 import { useTimeAgo } from '@/composables/useTimeAgo';
+import { i18n } from '@/i18n';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, ref, watch } from 'vue';
@@ -285,7 +286,7 @@ export function useChatLog() {
             );
             pulseData.value = response.data;
         } catch (err: any) {
-            pulseError.value = err.response?.data?.message || 'Failed to load pulse data';
+            pulseError.value = err.response?.data?.message || i18n.global.t('agents.chatlog.errors.pulse_load_failed');
         } finally {
             isLoadingPulse.value = false;
         }
@@ -391,7 +392,11 @@ export function useChatLog() {
     }
 
     function getSentimentDisplayName(sentiment: string): string {
-        const names: Record<string, string> = { positive: 'Positive', neutral: 'Neutral', negative: 'Negative' };
+        const names: Record<string, string> = {
+            positive: i18n.global.t('agents.chatlog.sentiment.positive'),
+            neutral: i18n.global.t('agents.chatlog.sentiment.neutral'),
+            negative: i18n.global.t('agents.chatlog.sentiment.negative'),
+        };
         return names[sentiment] || sentiment;
     }
 
@@ -406,11 +411,11 @@ export function useChatLog() {
 
     function getToneDisplayName(tone: string): string {
         const names: Record<string, string> = {
-            neutral: 'Neutral',
-            frustrated: 'Frustrated',
-            urgent: 'Urgent',
-            confused: 'Confused',
-            satisfied: 'Satisfied',
+            neutral: i18n.global.t('agents.chatlog.tone.neutral'),
+            frustrated: i18n.global.t('agents.chatlog.tone.frustrated'),
+            urgent: i18n.global.t('agents.chatlog.tone.urgent'),
+            confused: i18n.global.t('agents.chatlog.tone.confused'),
+            satisfied: i18n.global.t('agents.chatlog.tone.satisfied'),
         };
         return names[tone] || tone;
     }
@@ -444,27 +449,35 @@ export function useChatLog() {
     }
 
     function getConfidenceScoreDisplayName(score: string): string {
-        const names: Record<string, string> = { high: 'High (≥80%)', medium: 'Medium (65-80%)', low: 'Low (<65%)' };
+        const names: Record<string, string> = {
+            high: i18n.global.t('agents.chatlog.confidence.high'),
+            medium: i18n.global.t('agents.chatlog.confidence.medium'),
+            low: i18n.global.t('agents.chatlog.confidence.low'),
+        };
         return names[score] || score;
     }
 
     function getFeedbackDisplayName(feedback: string): string {
-        return feedback === 'positive' ? 'Thumbs Up' : feedback === 'negative' ? 'Thumbs Down' : feedback;
+        return feedback === 'positive'
+            ? i18n.global.t('agents.chatlog.feedback.thumbs_up')
+            : feedback === 'negative'
+              ? i18n.global.t('agents.chatlog.feedback.thumbs_down')
+              : feedback;
     }
 
     function getSourceDisplayName(source: string): string {
         const names: Record<string, string> = {
-            hosted_chat: 'Chat',
-            widget: 'Widget',
-            bar: 'Bar',
-            telegram: 'Telegram',
-            slack: 'Slack',
-            messenger: 'Messenger',
-            whatsapp: 'WhatsApp',
-            msteams: 'Microsoft Teams',
-            instagram: 'Instagram',
-            playground: 'Playground',
-            api: 'API',
+            hosted_chat: i18n.global.t('agents.chatlog.source.hosted_chat'),
+            widget: i18n.global.t('agents.chatlog.source.widget'),
+            bar: i18n.global.t('agents.chatlog.source.bar'),
+            telegram: i18n.global.t('agents.chatlog.source.telegram'),
+            slack: i18n.global.t('agents.chatlog.source.slack'),
+            messenger: i18n.global.t('agents.chatlog.source.messenger'),
+            whatsapp: i18n.global.t('agents.chatlog.source.whatsapp'),
+            msteams: i18n.global.t('agents.chatlog.source.msteams'),
+            instagram: i18n.global.t('agents.chatlog.source.instagram'),
+            playground: i18n.global.t('agents.chatlog.source.playground'),
+            api: i18n.global.t('agents.chatlog.source.api'),
         };
         return names[source] || source;
     }

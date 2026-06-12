@@ -35,8 +35,11 @@ import {
 } from 'chart.js';
 import { ChevronLeft, ChevronRight, Info, LoaderCircle, Maximize2, MessageSquare, Plus, Search, Sparkles, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Line, Pie } from 'vue-chartjs';
 import { toast } from 'vue-sonner';
+
+const { t } = useI18n();
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, ChartTooltip, Legend, Filler);
@@ -118,7 +121,7 @@ const fetchTopicsData = async () => {
         const response = await axios.get(route('agents.topics.data', props.agent.external_id));
         topicsData.value = response.data;
     } catch (err: any) {
-        error.value = err.response?.data?.message || 'Failed to load topics data';
+        error.value = err.response?.data?.message || t('agents.topics_index.load_error');
         console.error('Error fetching topics data:', err);
     } finally {
         loading.value = false;
@@ -151,9 +154,9 @@ const promoteSuggestion = async (label: string) => {
     try {
         await axios.post(route('agents.topics.suggestions.promote', props.agent.external_id), { label });
         await Promise.all([fetchSuggestions(), fetchTopicsData()]);
-        toast.success(`"${label}" added to your topics`);
+        toast.success(t('agents.topics_index.promoted', { label }));
     } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Failed to add topic');
+        toast.error(err.response?.data?.message || t('agents.topics_index.promote_error'));
     } finally {
         promotingLabel.value = null;
     }
@@ -168,9 +171,9 @@ const confirmDismiss = async () => {
             data: { label: dismissTarget.value },
         });
         suggestions.value = suggestions.value.filter((s) => s.label !== dismissTarget.value);
-        toast.success('Suggestion dismissed');
+        toast.success(t('agents.topics_index.dismissed'));
     } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Failed to dismiss suggestion');
+        toast.error(err.response?.data?.message || t('agents.topics_index.dismiss_error'));
     } finally {
         dismissing.value = false;
         dismissTarget.value = null;
@@ -357,7 +360,7 @@ const fetchAllTopics = async () => {
         allTopics.value = allTopicsResponse.data;
     } catch (err: any) {
         console.error('Error fetching topics:', err);
-        toast.error('Failed to load topics');
+        toast.error(t('agents.topics_index.load_topics_error'));
     } finally {
         loadingTopics.value = false;
     }
@@ -404,10 +407,10 @@ const addTopicToAgent = async (topicId: number) => {
         await fetchAllTopics();
         await fetchTopicsData();
 
-        toast.success('Topic added successfully');
+        toast.success(t('agents.topics_index.added'));
     } catch (err: any) {
         console.error('Error adding topic:', err);
-        toast.error(err.response?.data?.message || 'Failed to add topic');
+        toast.error(err.response?.data?.message || t('agents.topics_index.add_error'));
     }
 };
 
@@ -420,17 +423,17 @@ const removeTopicFromAgent = async (topicId: number) => {
         await fetchAllTopics();
         await fetchTopicsData();
 
-        toast.success('Topic removed successfully');
+        toast.success(t('agents.topics_index.removed'));
     } catch (err: any) {
         console.error('Error removing topic:', err);
-        toast.error(err.response?.data?.message || 'Failed to remove topic');
+        toast.error(err.response?.data?.message || t('agents.topics_index.remove_error'));
     }
 };
 
 // Create new topic
 const createNewTopic = async () => {
     if (!newTopicName.value.trim() || !newTopicDescription.value.trim()) {
-        toast.error('Please fill in all fields');
+        toast.error(t('agents.topics_index.fill_fields'));
         return;
     }
 
@@ -450,10 +453,10 @@ const createNewTopic = async () => {
         await fetchAllTopics();
         await fetchTopicsData();
 
-        toast.success('Topic created and added successfully');
+        toast.success(t('agents.topics_index.created'));
     } catch (err: any) {
         console.error('Error creating topic:', err);
-        toast.error(err.response?.data?.message || 'Failed to create topic');
+        toast.error(err.response?.data?.message || t('agents.topics_index.create_error'));
     } finally {
         isAddingTopic.value = false;
     }
@@ -485,23 +488,23 @@ onMounted(() => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Topics" description="Analyze conversation topics and trends">
+    <AgentLayout :agent="agent" :title="t('agents.topics_index.title')" :description="t('agents.topics_index.description')">
         <template #header-icon>
             <MessageSquare class="h-5 w-5" />
         </template>
 
         <LockedFeature
             v-if="!hasAccess"
-            description="Upgrade your plan to access topic analysis and automatically detect and categorize conversation topics."
+            :description="t('agents.topics_index.locked_description')"
         />
 
         <!-- Plan allows it, but the owner switched it off for this agent -->
         <AnalyticsDisabled
             v-else-if="!chatlogEnabled || !isEnabled"
-            title="Topic analysis"
-            description="Turn it on to automatically detect and group what your visitors ask about across conversations."
+            :title="t('agents.topics_index.disabled_title')"
+            :description="t('agents.topics_index.disabled_description')"
             :can-enable="chatlogEnabled"
-            blocked-reason="Chat log is off, so there's nothing to analyze. Turn it on in Setup → Settings to start collecting topics."
+            :blocked-reason="t('agents.topics_index.blocked_reason')"
             :enabling="enabling"
             @enable="enableTopics"
         />
@@ -518,7 +521,7 @@ onMounted(() => {
                     <CardContent class="pt-6">
                         <div class="space-y-2 text-center">
                             <p class="text-destructive font-medium">{{ error }}</p>
-                            <button @click="fetchTopicsData" class="text-muted-foreground hover:text-foreground text-sm underline">Try again</button>
+                            <button @click="fetchTopicsData" class="text-muted-foreground hover:text-foreground text-sm underline">{{ t('agents.topics_index.try_again') }}</button>
                         </div>
                     </CardContent>
                 </Card>
@@ -531,10 +534,10 @@ onMounted(() => {
                     <CardHeader>
                         <div class="flex items-center gap-2">
                             <Sparkles class="text-primary h-4 w-4" />
-                            <CardTitle>Suggested topics</CardTitle>
+                            <CardTitle>{{ t('agents.topics_index.suggested_title') }}</CardTitle>
                         </div>
                         <p class="text-muted-foreground text-sm">
-                            Emerging themes from recent conversations that aren't in your topics yet. Add one to start tracking it.
+                            {{ t('agents.topics_index.suggested_description') }}
                         </p>
                     </CardHeader>
                     <CardContent>
@@ -544,7 +547,7 @@ onMounted(() => {
                                     <div class="flex items-center gap-2">
                                         <span class="text-sm font-medium">{{ s.label }}</span>
                                         <Badge variant="secondary" class="text-xs">
-                                            {{ s.count }} {{ s.count === 1 ? 'conversation' : 'conversations' }}
+                                            {{ s.count }} {{ t('agents.topics_index.conversation', s.count) }}
                                         </Badge>
                                     </div>
                                     <p v-if="s.examples.length" class="text-muted-foreground mt-1 truncate text-xs">
@@ -552,20 +555,20 @@ onMounted(() => {
                                         {{
                                             s.examples
                                                 .slice(0, 3)
-                                                .map((e) => e.title || 'Untitled')
+                                                .map((e) => e.title || t('agents.topics_index.untitled'))
                                                 .join(' · ')
                                         }}
                                     </p>
                                 </div>
                                 <div class="flex flex-shrink-0 gap-2">
                                     <Button @click="promoteSuggestion(s.label)" :disabled="promotingLabel === s.label" size="sm">
-                                        <LoaderCircle v-if="promotingLabel === s.label" class="mr-1 h-4 w-4 animate-spin" />
-                                        <Plus v-else class="mr-1 h-4 w-4" />
-                                        Add
+                                        <LoaderCircle v-if="promotingLabel === s.label" class="me-1 h-4 w-4 animate-spin" />
+                                        <Plus v-else class="me-1 h-4 w-4" />
+                                        {{ t('agents.topics_index.add') }}
                                     </Button>
                                     <Button @click="dismissTarget = s.label" variant="outline" size="sm">
-                                        <X class="mr-1 h-4 w-4" />
-                                        Dismiss
+                                        <X class="me-1 h-4 w-4" />
+                                        {{ t('agents.topics_index.dismiss') }}
                                     </Button>
                                 </div>
                             </div>
@@ -578,15 +581,15 @@ onMounted(() => {
                     <CardHeader>
                         <div class="flex items-start justify-between">
                             <div class="flex items-center gap-2">
-                                <CardTitle>Topics</CardTitle>
+                                <CardTitle>{{ t('agents.topics_index.chart_title') }}</CardTitle>
                                 <button @click="showInfoDialog = true" class="text-muted-foreground hover:text-foreground transition-colors">
                                     <Info class="h-4 w-4 cursor-pointer" />
                                 </button>
                             </div>
                             <Tabs v-model="activeView" class="w-auto">
                                 <TabsList>
-                                    <TabsTrigger value="graph" @click="activeView = 'graph'"> Graph </TabsTrigger>
-                                    <TabsTrigger value="pie" @click="activeView = 'pie'"> Pie Chart </TabsTrigger>
+                                    <TabsTrigger value="graph" @click="activeView = 'graph'">{{ t('agents.topics_index.graph') }}</TabsTrigger>
+                                    <TabsTrigger value="pie" @click="activeView = 'pie'">{{ t('agents.topics_index.pie_chart') }}</TabsTrigger>
                                 </TabsList>
                             </Tabs>
                         </div>
@@ -609,12 +612,12 @@ onMounted(() => {
                             </div>
 
                             <!-- Topics Sidebar -->
-                            <div class="w-full border-t pt-6 lg:w-80 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
+                            <div class="w-full border-t pt-6 lg:w-80 lg:border-t-0 lg:border-s lg:pt-0 lg:ps-6">
                                 <div class="flex h-96 flex-col space-y-4">
                                     <!-- Total Topics -->
                                     <div>
                                         <div class="text-3xl font-bold">{{ topicsData.total_count }}</div>
-                                        <div class="text-muted-foreground text-sm">Total topics</div>
+                                        <div class="text-muted-foreground text-sm">{{ t('agents.topics_index.total_topics') }}</div>
                                     </div>
 
                                     <!-- Topics List -->
@@ -622,7 +625,7 @@ onMounted(() => {
                                         v-if="topicsData.total_topics.length === 0"
                                         class="text-muted-foreground flex flex-1 items-center justify-center"
                                     >
-                                        <p>No topics data available</p>
+                                        <p>{{ t('agents.topics_index.no_data') }}</p>
                                     </div>
                                     <div v-else class="flex-1 space-y-3 overflow-y-auto">
                                         <div
@@ -637,7 +640,7 @@ onMounted(() => {
                                                 ></div>
                                                 <span class="truncate text-sm font-medium">{{ topic.name }}</span>
                                             </div>
-                                            <span class="ml-2 text-sm font-semibold">{{ topic.count }}</span>
+                                            <span class="ms-2 text-sm font-semibold">{{ topic.count }}</span>
                                         </div>
                                     </div>
 
@@ -645,7 +648,7 @@ onMounted(() => {
                                     <div class="border-t pt-2">
                                         <Button variant="outline" size="sm" class="w-full" @click="openTopicsDialog">
                                             <span class="flex items-center justify-center gap-2">
-                                                View All
+                                                {{ t('agents.topics_index.view_all') }}
                                                 <Maximize2 class="h-4 w-4" />
                                             </span>
                                         </Button>
@@ -661,33 +664,30 @@ onMounted(() => {
             <Dialog v-model:open="showTopicsDialog">
                 <DialogContent class="flex max-h-[80vh] max-w-2xl flex-col">
                     <DialogHeader>
-                        <DialogTitle>Manage Topics</DialogTitle>
-                        <DialogDescription> Add or remove topics for this agent. Topics help categorize conversations. </DialogDescription>
+                        <DialogTitle>{{ t('agents.topics_index.manage_title') }}</DialogTitle>
+                        <DialogDescription>{{ t('agents.topics_index.manage_description') }}</DialogDescription>
                     </DialogHeader>
 
                     <div class="flex flex-1 flex-col space-y-4 overflow-hidden">
-                        <!-- Search Bar -->
                         <div class="relative">
-                            <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-                            <Input v-model="searchQuery" placeholder="Search topics..." class="pl-10" />
+                            <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2 transform" />
+                            <Input v-model="searchQuery" :placeholder="t('agents.topics_index.search_placeholder')" class="ps-10" />
                         </div>
 
-                        <!-- Add New Topic Button/Form -->
                         <div class="space-y-3">
                             <Button v-if="!showAddForm" @click="showAddForm = true" variant="outline" size="sm" class="w-full">
-                                <Plus class="mr-2 h-4 w-4" />
-                                Add New Topic
+                                <Plus class="me-2 h-4 w-4" />
+                                {{ t('agents.topics_index.add_new') }}
                             </Button>
 
-                            <!-- Add Topic Form -->
                             <div v-else class="space-y-3 rounded-lg border p-4">
                                 <div class="space-y-2">
-                                    <label class="text-sm font-medium">Topic Name</label>
-                                    <Input v-model="newTopicName" placeholder="e.g., Technical Support" />
+                                    <label class="text-sm font-medium">{{ t('agents.topics_index.topic_name') }}</label>
+                                    <Input v-model="newTopicName" :placeholder="t('agents.topics_index.topic_name_placeholder')" />
                                 </div>
                                 <div class="space-y-2">
-                                    <label class="text-sm font-medium">Description</label>
-                                    <Input v-model="newTopicDescription" placeholder="e.g., Technical issues and troubleshooting" />
+                                    <label class="text-sm font-medium">{{ t('agents.topics_index.description_label') }}</label>
+                                    <Input v-model="newTopicDescription" :placeholder="t('agents.topics_index.description_placeholder')" />
                                 </div>
                                 <div class="flex gap-2">
                                     <Button
@@ -696,22 +696,21 @@ onMounted(() => {
                                         size="sm"
                                         class="flex-1"
                                     >
-                                        <LoaderCircle v-if="isAddingTopic" class="mr-2 h-4 w-4 animate-spin" />
-                                        Create & Add
+                                        <LoaderCircle v-if="isAddingTopic" class="me-2 h-4 w-4 animate-spin" />
+                                        {{ t('agents.topics_index.create_add') }}
                                     </Button>
-                                    <Button @click="showAddForm = false" variant="outline" size="sm"> Cancel </Button>
+                                    <Button @click="showAddForm = false" variant="outline" size="sm">{{ t('common.cancel') }}</Button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Topics List -->
                         <div class="flex-1 overflow-y-auto rounded-lg border">
                             <div v-if="loadingTopics" class="flex items-center justify-center py-12">
                                 <LoaderCircle class="text-muted-foreground h-6 w-6 animate-spin" />
                             </div>
 
                             <div v-else-if="filteredTopics.length === 0" class="text-muted-foreground py-12 text-center">
-                                <p>No topics found</p>
+                                <p>{{ t('agents.topics_index.no_topics_found') }}</p>
                             </div>
 
                             <div v-else class="divide-y">
@@ -720,35 +719,33 @@ onMounted(() => {
                                         <div class="min-w-0 flex-1">
                                             <div class="flex items-center gap-2">
                                                 <h4 class="text-sm font-medium">{{ topic.topic }}</h4>
-                                                <Badge v-if="isTopicAssociated(topic.id)" variant="secondary" class="text-xs"> Active </Badge>
+                                                <Badge v-if="isTopicAssociated(topic.id)" variant="secondary" class="text-xs">{{ t('agents.topics_index.active') }}</Badge>
                                             </div>
                                             <p class="text-muted-foreground mt-1 text-sm">{{ topic.description }}</p>
                                         </div>
 
-                                        <!-- Add/Remove Button -->
                                         <Button
                                             v-if="isTopicAssociated(topic.id)"
                                             @click="removeTopicFromAgent(topic.id)"
                                             variant="outline"
                                             size="sm"
-                                            class="flex-shrink-0"
+                                            class="shrink-0"
                                         >
-                                            <X class="mr-1 h-4 w-4" />
-                                            Remove
+                                            <X class="me-1 h-4 w-4" />
+                                            {{ t('agents.topics_index.remove') }}
                                         </Button>
-                                        <Button v-else @click="addTopicToAgent(topic.id)" variant="default" size="sm" class="flex-shrink-0">
-                                            <Plus class="mr-1 h-4 w-4" />
-                                            Add
+                                        <Button v-else @click="addTopicToAgent(topic.id)" variant="default" size="sm" class="shrink-0">
+                                            <Plus class="me-1 h-4 w-4" />
+                                            {{ t('agents.topics_index.add') }}
                                         </Button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Pagination -->
                         <div v-if="totalPages > 1" class="flex items-center justify-between border-t px-4 py-3">
                             <div class="text-muted-foreground text-sm">
-                                Page {{ currentPage }} of {{ totalPages }} ({{ filteredTopics.length }} topics)
+                                {{ t('agents.topics_index.page_of', { current: currentPage, last: totalPages, total: filteredTopics.length }) }}
                             </div>
                             <div class="flex gap-2">
                                 <Button @click="currentPage--" :disabled="currentPage === 1" variant="outline" size="sm">
@@ -762,7 +759,7 @@ onMounted(() => {
                     </div>
 
                     <DialogFooter>
-                        <Button @click="showTopicsDialog = false" variant="outline"> Close </Button>
+                        <Button @click="showTopicsDialog = false" variant="outline">{{ t('agents.topics_index.close') }}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -771,60 +768,59 @@ onMounted(() => {
             <Dialog v-model:open="showInfoDialog">
                 <DialogContent class="max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>What are Topics?</DialogTitle>
-                        <DialogDescription> Learn how topics help organize and analyze your conversations </DialogDescription>
+                        <DialogTitle>{{ t('agents.topics_index.info_title') }}</DialogTitle>
+                        <DialogDescription>{{ t('agents.topics_index.info_description') }}</DialogDescription>
                     </DialogHeader>
 
                     <div class="space-y-4 text-sm">
                         <div>
-                            <h3 class="mb-2 font-semibold">📊 Overview</h3>
+                            <h3 class="mb-2 font-semibold">{{ t('agents.topics_index.info_overview_title') }}</h3>
                             <p class="text-muted-foreground">
-                                Topics are categories that help you understand what your users are talking about. Each conversation is automatically
-                                assigned one or more topics based on its content.
+                                {{ t('agents.topics_index.info_overview') }}
                             </p>
                         </div>
 
                         <div>
-                            <h3 class="mb-2 font-semibold">🎯 How it works</h3>
+                            <h3 class="mb-2 font-semibold">{{ t('agents.topics_index.info_how_title') }}</h3>
                             <ul class="text-muted-foreground list-inside list-disc space-y-2">
-                                <li>Conversations are analyzed and categorized into topics</li>
-                                <li>You can customize which topics are available for your agent</li>
-                                <li>Topics help you identify trends and common issues</li>
-                                <li>A conversation can belong to several topics</li>
+                                <li>{{ t('agents.topics_index.info_how_1') }}</li>
+                                <li>{{ t('agents.topics_index.info_how_2') }}</li>
+                                <li>{{ t('agents.topics_index.info_how_3') }}</li>
+                                <li>{{ t('agents.topics_index.info_how_4') }}</li>
                             </ul>
                         </div>
 
                         <div>
-                            <h3 class="mb-2 font-semibold">💡 Examples</h3>
+                            <h3 class="mb-2 font-semibold">{{ t('agents.topics_index.info_examples_title') }}</h3>
                             <div class="text-muted-foreground space-y-2">
                                 <div class="flex items-start gap-2">
                                     <span class="text-primary">•</span>
-                                    <span><strong>Technical Support:</strong> Users asking for help with bugs or errors</span>
+                                    <span>{{ t('agents.topics_index.info_example_1') }}</span>
                                 </div>
                                 <div class="flex items-start gap-2">
                                     <span class="text-primary">•</span>
-                                    <span><strong>Billing & Payments:</strong> Questions about invoices, refunds, subscriptions</span>
+                                    <span>{{ t('agents.topics_index.info_example_2') }}</span>
                                 </div>
                                 <div class="flex items-start gap-2">
                                     <span class="text-primary">•</span>
-                                    <span><strong>Product Information:</strong> Inquiries about features and specifications</span>
+                                    <span>{{ t('agents.topics_index.info_example_3') }}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div>
-                            <h3 class="mb-2 font-semibold">✨ Benefits</h3>
+                            <h3 class="mb-2 font-semibold">{{ t('agents.topics_index.info_benefits_title') }}</h3>
                             <ul class="text-muted-foreground list-inside list-disc space-y-2">
-                                <li>Track which topics are most popular</li>
-                                <li>Identify areas that need more attention</li>
-                                <li>Measure conversation volume by category</li>
-                                <li>Improve your agent's knowledge base</li>
+                                <li>{{ t('agents.topics_index.info_benefits_1') }}</li>
+                                <li>{{ t('agents.topics_index.info_benefits_2') }}</li>
+                                <li>{{ t('agents.topics_index.info_benefits_3') }}</li>
+                                <li>{{ t('agents.topics_index.info_benefits_4') }}</li>
                             </ul>
                         </div>
                     </div>
 
                     <DialogFooter>
-                        <Button @click="showInfoDialog = false"> Got it </Button>
+                        <Button @click="showInfoDialog = false">{{ t('agents.topics_index.got_it') }}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -840,14 +836,14 @@ onMounted(() => {
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Dismiss this suggestion?</AlertDialogTitle>
+                        <AlertDialogTitle>{{ t('agents.topics_index.dismiss_dialog_title') }}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            "{{ dismissTarget }}" won't be suggested again. You can still create it manually later.
+                            {{ t('agents.topics_index.dismiss_dialog_description', { label: dismissTarget }) }}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel :disabled="dismissing">Cancel</AlertDialogCancel>
-                        <AlertDialogAction :disabled="dismissing" @click="confirmDismiss">Dismiss</AlertDialogAction>
+                        <AlertDialogCancel :disabled="dismissing">{{ t('common.cancel') }}</AlertDialogCancel>
+                        <AlertDialogAction :disabled="dismissing" @click="confirmDismiss">{{ t('agents.topics_index.dismiss') }}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

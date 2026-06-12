@@ -35,6 +35,7 @@ use App\Http\Controllers\Agent\ChatLog\TopicController as ChatLogTopicsControlle
 use App\Http\Controllers\Agent\Eval\AgentEvalCaseController;
 use App\Http\Controllers\Agent\Eval\AgentEvalController;
 use App\Http\Controllers\Agent\Eval\AgentEvalRunController;
+use App\Http\Controllers\Agent\Eval\CreateEvalCasesFromKnowledgeController;
 use App\Http\Controllers\Agent\Eval\RunAgentEvalController;
 use App\Http\Controllers\Agent\Guardrail\AgentGuardrailController;
 use App\Http\Controllers\Agent\Handoff\AgentHandoffController;
@@ -52,11 +53,14 @@ use App\Http\Controllers\Agent\Member\AgentMemberController;
 use App\Http\Controllers\Agent\Persona\AgentShowPersonaController;
 use App\Http\Controllers\Agent\Playground\AgentPlaygroundController;
 use App\Http\Controllers\Agent\RenameAgentController;
+use App\Http\Controllers\Agent\Security\AgentRateLimitController;
 use App\Http\Controllers\Agent\Security\AgentSecurityUpdateController;
+use App\Http\Controllers\Agent\Security\UpdateAgentSecuritySettingsController;
 use App\Http\Controllers\Agent\Settings\AgentSettingsController;
 use App\Http\Controllers\Agent\Setup\SetupController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentDomainController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentLlmController;
+use App\Http\Controllers\Agent\Setup\UpdateAgentTemperatureController;
 use App\Http\Controllers\Agent\Source\Audio\AgentSourceAudioController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorAttachController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorController;
@@ -266,6 +270,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::delete('evals/runs/{run}', [AgentEvalRunController::class, 'destroy'])->middleware('agent.permission:agent.evals.manage')->name('evals.runs.destroy');
         Route::delete('evals/runs', [AgentEvalRunController::class, 'clear'])->middleware('agent.permission:agent.evals.manage')->name('evals.runs.clear');
         Route::post('evals/cases', [AgentEvalCaseController::class, 'store'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.store');
+        Route::post('evals/cases/from-knowledge', CreateEvalCasesFromKnowledgeController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.cases.from-knowledge');
         Route::patch('evals/cases/{case}', [AgentEvalCaseController::class, 'update'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.update');
         Route::delete('evals/cases/{case}', [AgentEvalCaseController::class, 'destroy'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.destroy');
 
@@ -315,6 +320,11 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::patch('llm', UpdateAgentLlmController::class)
             ->middleware('agent.permission:agent.setup')->name('llm.update');
 
+        // Answer temperature — the only LLM knob exposed to owners; the model
+        // itself is platform-managed and never editable from Setup.
+        Route::patch('temperature', UpdateAgentTemperatureController::class)
+            ->middleware('agent.permission:agent.setup')->name('temperature.update');
+
         // Custom domain (Hosted Chat) — pass an empty value to clear.
         // Quota gating happens in the controller.
         Route::patch('domain', UpdateAgentDomainController::class)
@@ -333,6 +343,12 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('identity', AgentIdentityController::class)->name('identity');
         Route::post('identity/regenerate', RegenerateAgentAuthSecretController::class)
             ->middleware('agent.permission:agent.identity.manage')->name('identity.regenerate');
+
+        // Per-agent chat rate-limit — its own page under Security, saved via the
+        // settings endpoint below.
+        Route::get('security/rate-limiting', AgentRateLimitController::class)->name('security.rate-limit');
+        Route::post('security/settings', UpdateAgentSecuritySettingsController::class)
+            ->middleware('agent.permission:agent.identity.manage')->name('security.settings.update');
 
         // Settings (persona / branding / widget / bar / embed / lead-capture …)
         Route::post('settings/{group}', [AgentSettingsController::class, 'update'])

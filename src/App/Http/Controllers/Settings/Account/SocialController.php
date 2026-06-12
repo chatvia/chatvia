@@ -32,7 +32,7 @@ class SocialController extends Controller
             ->get(['provider', 'created_at'])
             ->keyBy(fn (UserSocial $s) => $s->provider->value);
 
-        return Inertia::render('settings/Social', [
+        return Inertia::render('account/Social', [
             'accounts' => collect(self::SUPPORTED)->map(fn (SocialProvider $p): array => [
                 'provider' => $p->value,
                 'label' => ucfirst($p->value),
@@ -64,7 +64,7 @@ class SocialController extends Controller
 
         $unlink->execute($request->user(), $providerEnum);
 
-        return to_route('settings.social.edit')
+        return to_route('account.social.edit')
             ->with('success', ucfirst($providerEnum->value).' disconnected.');
     }
 

@@ -22,44 +22,48 @@ class SuggestedTopicsDataController
             ->map(fn ($name) => mb_strtolower((string) $name))
             ->all();
 
-        $suggestions = ConversationTopic::query()
+        // Label cardinality is unbounded — cap the list.
+        $suggestionRows = ConversationTopic::query()
             ->selectRaw('suggested_label, count(distinct chat_conversation_id) as conversations')
             ->whereNotNull('suggested_label')
             ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id))
             ->groupBy('suggested_label')
             ->havingRaw('count(distinct chat_conversation_id) >= ?', [$minOccurrences])
             ->orderByDesc('conversations')
+            ->limit(50)
             ->get()
-            ->reject(fn ($row): bool => in_array(mb_strtolower((string) $row->suggested_label), $existingNames, true))
+            ->reject(fn ($row): bool => in_array(mb_strtolower((string) $row->suggested_label), $existingNames, true));
+
+        // One examples query for all labels, capped per label by row_number().
+        $examplesByLabel = ConversationTopic::query()
+            ->fromSub(
+                ConversationTopic::query()
+                    ->select('suggested_label', 'chat_conversation_id')
+                    ->selectRaw('row_number() over (partition by suggested_label order by id) as rn')
+                    ->whereIn('suggested_label', $suggestionRows->pluck('suggested_label'))
+                    ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id)),
+                'ranked',
+            )
+            ->where('ranked.rn', '<=', $maxExamples)
+            ->join('chat_conversations', 'chat_conversations.id', '=', 'ranked.chat_conversation_id')
+            ->get(['ranked.suggested_label', 'chat_conversations.external_id', 'chat_conversations.title'])
+            ->groupBy('suggested_label');
+
+        $suggestions = $suggestionRows
             ->map(fn ($row): array => [
                 'label' => $row->suggested_label,
                 // `conversations` is a selectRaw count alias, not a model column.
                 'count' => (int) $row->getAttribute('conversations'),
-                'examples' => $this->examplesFor($agent, $row->suggested_label, $maxExamples),
+                'examples' => ($examplesByLabel[$row->suggested_label] ?? collect())
+                    ->map(fn ($example): array => [
+                        'conversation_id' => $example->external_id,
+                        'title' => $example->title,
+                    ])
+                    ->values()
+                    ->all(),
             ])
             ->values();
 
         return response()->json(['suggestions' => $suggestions]);
-    }
-
-    /**
-     * @return list<array{conversation_id: string, title: string|null}>
-     */
-    private function examplesFor(Agent $agent, string $label, int $limit): array
-    {
-        return ConversationTopic::query()
-            ->where('suggested_label', $label)
-            ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id))
-            ->with('conversation:id,external_id,title')
-            ->limit($limit)
-            ->get()
-            ->pluck('conversation')
-            ->filter()
-            ->map(fn ($conversation): array => [
-                'conversation_id' => $conversation->external_id,
-                'title' => $conversation->title,
-            ])
-            ->values()
-            ->all();
     }
 }

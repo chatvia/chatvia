@@ -13,7 +13,7 @@ class TwoFactorController extends Controller
     {
         $user = $request->user();
 
-        return Inertia::render('settings/TwoFactor', [
+        return Inertia::render('account/TwoFactor', [
             'enabled' => $user->two_factor_secret !== null,
             'confirmed' => $user->two_factor_confirmed_at !== null,
         ]);

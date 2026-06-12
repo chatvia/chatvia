@@ -1,0 +1,295 @@
+{
+    "workspace": {
+        "common": {
+            "cancel": "Cancel",
+            "save": "Save",
+            "delete": "Delete",
+            "keep": "Keep",
+            "connect": "Connect",
+            "copy": "Copy"
+        },
+        "prompts": {
+            "breadcrumb": "Prompts",
+            "title": "Prompts",
+            "description": "Reusable system prompts. Write one here, then attach it to any agent from its Persona page — edit it once and every agent using it picks up the change.",
+            "add": "Add prompt",
+            "search_placeholder": "Search prompts",
+            "empty": "No prompts yet. Click \"Add prompt\" to create your first one.",
+            "no_results": "No prompts match your search.",
+            "fallback_name": "prompt",
+            "delete_confirm_title": "Delete {name}?",
+            "delete_confirm_description": "Agents using this prompt will fall back to their own custom instructions. This action cannot be undone.",
+            "table": {
+                "prompt": "Prompt",
+                "agents": "Agents",
+                "created": "Created"
+            },
+            "sheet": {
+                "edit_title": "Edit prompt",
+                "create_title": "Add a prompt",
+                "description": "Write a reusable system prompt once, then attach it to any agent from its Persona page. Editing it here updates every agent that uses it.",
+                "id_label": "ID",
+                "copy_id_title": "Copy prompt ID — pass as prompt_id when creating/updating an agent via the API"
+            },
+            "form": {
+                "name": "Name",
+                "name_placeholder": "Support agent persona",
+                "prompt": "Prompt",
+                "prompt_placeholder": "You are a helpful assistant that specializes in...",
+                "prompt_hint": "Supports Markdown. This becomes the agent's system prompt when attached."
+            }
+        },
+        "functions": {
+            "breadcrumb": "Functions",
+            "title": "Functions",
+            "description": "Webhook-backed tools the LLM can call. Define once, attach to any of your agents. When invoked, Chatvia POSTs the parameters to your webhook and forwards the response back to the model.",
+            "add": "Add function",
+            "search_placeholder": "Search functions",
+            "empty": "No functions yet. Click \"Add function\" to create your first one.",
+            "no_results": "No functions match your search.",
+            "fallback_name": "function",
+            "delete_confirm_title": "Delete {name}?",
+            "delete_confirm_description": "It will be detached from any agents using it. This action cannot be undone.",
+            "table": {
+                "name": "Function name",
+                "method": "Method",
+                "agents": "Agents",
+                "enabled": "Enabled"
+            },
+            "tabs": {
+                "edit": "Edit",
+                "agents": "Agents"
+            },
+            "sheet": {
+                "edit_title": "Edit function",
+                "create_title": "Add a function",
+                "description": "Functions let your agents call your own APIs as LLM tools. The {name} and {description} are what the model sees when deciding whether to call it — be specific. {learn_more}",
+                "learn_more": "Learn more",
+                "id_label": "ID",
+                "copy_id_title": "Copy function ID — pass as function_id when attaching via the API"
+            },
+            "form": {
+                "name": "Name",
+                "name_hint": "Letters, numbers, underscore. Must start with a letter.",
+                "display_name": "Display name",
+                "optional": "(optional)",
+                "display_name_placeholder": "Get order status",
+                "display_name_hint": "Friendly name shown to users in chat. Falls back to the name above.",
+                "description": "Description",
+                "description_placeholder": "Look up the current status of a customer's order by id.",
+                "parameters": "Parameters (JSON schema)",
+                "parameters_aria": "Function parameters schema",
+                "webhook_url": "Webhook URL",
+                "method": "Method",
+                "require_approval": "Require approval",
+                "require_approval_hint": "Ask the user before this function runs — recommended for actions that write or change data.",
+                "auth": "Auth",
+                "auth_none": "None — no auth header sent",
+                "auth_bearer": "Bearer token — sent as `Authorization: Bearer …`",
+                "auth_header": "Custom header — your own header name + value",
+                "auth_hmac": "HMAC — body signed with a shared secret",
+                "bearer_token": "Bearer token",
+                "keep_token": "Leave blank to keep current token",
+                "bearer_hint": "Sent as {header}.",
+                "header_name": "Header name",
+                "header_value": "Header value",
+                "keep_value": "Leave blank to keep current",
+                "signing_secret": "Signing secret",
+                "keep_secret": "Leave blank to keep current secret",
+                "hmac_hint": "Used to HMAC-SHA256 the request body; verify on your end."
+            },
+            "agents": {
+                "intro": "Toggle which of your agents can use this function.",
+                "loading": "Loading agents",
+                "empty": "You have no agents yet."
+            }
+        },
+        "api_keys": {
+            "breadcrumb": "API keys",
+            "title": "API keys",
+            "description": "Account keys for the {api_link} — create and manage agents, knowledge, MCP servers, and functions.",
+            "api_link": "Chatvia API",
+            "generate": "Generate key",
+            "locked": "Upgrade your plan to issue API keys and integrate Chatvia with your applications.",
+            "empty_title": "No API keys yet",
+            "empty_description": "Generate one to start using the Chatvia API.",
+            "never": "Never",
+            "revoke_aria": "Revoke key",
+            "table": {
+                "name": "Name",
+                "created": "Created",
+                "last_used": "Last used",
+                "revoke": "Revoke"
+            },
+            "generate_dialog": {
+                "title": "Generate a new key",
+                "description": "Pick a name you'll recognize later — e.g. {example}. The token itself is shown only once.",
+                "name": "Name",
+                "submit": "Generate"
+            },
+            "reveal_dialog": {
+                "title": "Copy your new API key",
+                "description": "This is the only time you'll see {name}. Store it somewhere safe — if you lose it, generate a new one.",
+                "warning": "Treat this like a password. Anyone with it can provision agents on your behalf.",
+                "confirm": "I've stored it safely"
+            },
+            "revoke_dialog": {
+                "title": "Revoke API key",
+                "description": "Revoke {name}? Any service using this token will stop working immediately. This action cannot be undone.",
+                "confirm": "Revoke"
+            }
+        },
+        "connectors": {
+            "breadcrumb": "Connectors",
+            "title": "Connectors",
+            "description": "Plug third-party services into your account once, then attach them to any agent. Pick from the catalog or add any MCP server by URL.",
+            "add": "Add connector",
+            "search_placeholder": "Search connectors",
+            "loading": "Loading connectors",
+            "empty": "No connectors yet.",
+            "enabled_section": "Enabled connectors",
+            "custom_section": "Custom connectors",
+            "available_section": "Available connectors",
+            "no_results": "No connectors match.",
+            "coming_soon": "Soon",
+            "connect_title": "Connect {name}",
+            "table": {
+                "name": "Connector name",
+                "tools": "Tools",
+                "agents": "Agents",
+                "enabled": "Enabled"
+            },
+            "toast": {
+                "load_failed": "Failed to load connectors",
+                "connected": "Connected {name}",
+                "connect_failed": "Failed to connect {name}",
+                "toggle_failed": "Failed to toggle"
+            },
+            "add_modal": {
+                "title": "Add custom connector",
+                "description": "Point the chat at any MCP server. Modern servers (Notion, Linear, Atlassian, …) advertise OAuth — pick that and we'll handle sign-in. Older servers usually take a bearer token.",
+                "display_name": "Display name",
+                "display_name_placeholder": "e.g. Notion (work)",
+                "server_url": "MCP server URL",
+                "authentication": "Authentication",
+                "strategy_oauth": "OAuth (auto)",
+                "strategy_token": "Bearer token",
+                "strategy_none": "None",
+                "hint_oauth": "We'll discover the auth server and run sign-in for you.",
+                "hint_token": "We'll send your token as a Bearer header on every call.",
+                "hint_none": "The server is reachable without auth.",
+                "bearer_token": "Bearer token",
+                "continue_signin": "Continue to sign-in",
+                "submit": "Add connector",
+                "added": "Added {name}",
+                "error": "Could not add this connector — check the URL and try again."
+            },
+            "salesforce": {
+                "description": "Salesforce uses a per-org OAuth app. Create an External Client App in your org, then enter its Consumer Key below — you'll approve access on Salesforce next.",
+                "environment": "Environment",
+                "production": "Production",
+                "sandbox": "Sandbox",
+                "consumer_key": "Consumer Key",
+                "help_link": "How to create an External Client App",
+                "consumer_secret": "Consumer Secret",
+                "optional": "(optional)",
+                "consumer_secret_placeholder": "Leave blank for a PKCE public app",
+                "mcp_server": "MCP server",
+                "my_domain": "My Domain",
+                "my_domain_hint": "Leave blank to sign in via login.salesforce.com. Required if your org enforces My Domain.",
+                "continue": "Continue to Salesforce",
+                "error": "Could not start the connection — please check the details and try again.",
+                "servers": {
+                    "sobject_all": "Objects — read & write (recommended)",
+                    "sobject_reads": "Objects — read only",
+                    "flows": "Flows",
+                    "invocable_actions": "Invocable actions",
+                    "data_360": "Data 360",
+                    "prompt_builder": "Prompt templates",
+                    "tableau_next": "Tableau Next"
+                }
+            },
+            "token_modal": {
+                "server_url": "MCP server URL",
+                "server_url_hint": "{name} has no hosted MCP server — paste the URL of your own (self-hosted or partner-managed) {name} MCP server.",
+                "token": "Token",
+                "help_link": "Where do I find this?",
+                "format_warning": "The format doesn't look right. Double-check the value before connecting.",
+                "error": "Could not connect — please try again."
+            }
+        },
+        "members": {
+            "breadcrumb": "Members",
+            "title": "Members",
+            "description": "Everyone you've granted access to chat with your agents. Send a password reset link or remove a member entirely.",
+            "search_placeholder": "Search members...",
+            "count": "{shown} of {total} member | {shown} of {total} members",
+            "invite": "Invite member",
+            "invite_disabled_hint": "Create a protected agent first — members can only be invited to protected agents.",
+            "no_email": "No email",
+            "reset_title": "Send password reset link to {name}",
+            "remove_title": "Remove {name}",
+            "table": {
+                "name": "Name",
+                "email": "Email",
+                "status": "Status",
+                "agents": "Agents",
+                "messages": "Messages",
+                "created": "Created",
+                "actions": "Actions"
+            },
+            "status": {
+                "deactivated": "Deactivated",
+                "pending": "Pending",
+                "active": "Active"
+            },
+            "empty": {
+                "title": "No members yet.",
+                "description": "Invite someone below, or from any agent's Members tab — they'll show up here.",
+                "invite_first": "Invite your first member"
+            },
+            "no_results": {
+                "title": "No members found matching your search.",
+                "description": "Try adjusting your search terms."
+            },
+            "invite_dialog": {
+                "title": "Invite a member",
+                "description": "We'll email a sign-up link to this address. Pick the agents they can chat with — at least one is required.",
+                "email": "Email address",
+                "agents": "Agents",
+                "agents_hint": "The member can chat only with the agents you select.",
+                "send": "Send invite",
+                "emailed_to": "Invitation emailed to {email}. You can also copy the link below.",
+                "signup_link": "Sign-up link",
+                "expires": "Expires {date}.",
+                "invite_another": "Invite another",
+                "done": "Done"
+            },
+            "reset_dialog": {
+                "title": "Send a password reset link?",
+                "description": "We'll email a reset link to {email}. They can set a new password from the link — you won't see the new value.",
+                "confirm": "Send link"
+            },
+            "delete_dialog": {
+                "title": "Remove member",
+                "description": "{name} will be permanently deleted along with their access to every agent in your workspace. This cannot be undone.",
+                "confirm": "Remove"
+            },
+            "toast": {
+                "load_failed": "Failed to load members",
+                "invite_sent_to": "Invitation sent to {email}",
+                "invite_sent": "Invitation sent",
+                "invite_failed": "Could not send the invitation",
+                "reset_sent": "Password reset link sent to {email}",
+                "reset_failed": "Could not send the reset link",
+                "removed": "{name} removed",
+                "remove_failed": "Could not remove this member"
+            }
+        },
+        "governance": {
+            "breadcrumb": "Governance",
+            "title": "Audit log",
+            "description": "Every action your agents take through tools and connectors — allowed, approved, denied, or rate-limited — with the arguments, result, and who triggered it."
+        }
+    }
+}

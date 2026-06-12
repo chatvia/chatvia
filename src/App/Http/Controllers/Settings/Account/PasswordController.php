@@ -13,7 +13,7 @@ class PasswordController extends Controller
 {
     public function edit(): Response
     {
-        return Inertia::render('settings/Password');
+        return Inertia::render('account/Password');
     }
 
     public function update(UpdatePasswordRequest $request, UpdatePasswordAction $updatePassword): RedirectResponse

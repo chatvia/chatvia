@@ -50,6 +50,9 @@ import {
     Users,
     X,
 } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Use generated TypeScript types from DTOs
 type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
@@ -80,7 +83,7 @@ const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Teams',
+        title: t('teams.breadcrumb'),
         href: '/my/teams',
     },
     {
@@ -231,8 +234,8 @@ const removeMember = () => {
 };
 
 // Create and Edit role now use dedicated pages
-// See: /settings/teams/{team}/roles/create
-// See: /settings/teams/{team}/roles/{roleId}/edit
+// See: /my/teams/{team}/roles/create
+// See: /my/teams/{team}/roles/{roleId}/edit
 
 // Delete role
 const roleToDelete = ref<TeamRoleData | null>(null);
@@ -303,15 +306,15 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head :title="`Team: ${team.name}`" />
+        <Head :title="t('teams.show.title', { name: team.name })" />
 
         <div class="container mx-auto max-w-5xl py-8">
             <!-- Header with back button -->
             <div class="mb-8">
-                <Button variant="ghost" size="sm" as-child class="mb-4 -ml-2 gap-2">
+                <Button variant="ghost" size="sm" as-child class="mb-4 -ms-2 gap-2">
                     <Link :href="route('teams.index')">
                         <ChevronLeft class="size-4" />
-                        Back to Teams
+                        {{ t('teams.show.back') }}
                     </Link>
                 </Button>
 
@@ -370,7 +373,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                                 </button>
                                             </TooltipTrigger>
                                             <TooltipContent side="bottom">
-                                                {{ copiedExternalId ? 'Copied!' : 'Copy team ID' }}
+                                                {{ copiedExternalId ? t('teams.show.copied') : t('teams.show.copy_team_id') }}
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -390,21 +393,21 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                             <div>
                                 <CardTitle class="flex items-center gap-2">
                                     <Shield class="size-5" />
-                                    Roles & Permissions
+                                    {{ t('teams.show.roles.title') }}
                                 </CardTitle>
-                                <CardDescription> Define roles and their permissions for team members. </CardDescription>
+                                <CardDescription>{{ t('teams.show.roles.description') }}</CardDescription>
                             </div>
                             <Link v-if="isOwner" :href="route('teams.roles.create', team.external_id)">
                                 <Button class="gap-2">
                                     <Plus class="size-4" />
-                                    Create Role
+                                    {{ t('teams.common.create_role') }}
                                 </Button>
                             </Link>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div v-if="displayableRoles.length === 0" class="text-muted-foreground py-8 text-center">
-                            <p>No custom roles yet. Create a role to assign specific permissions to team members.</p>
+                            <p>{{ t('teams.show.roles.empty') }}</p>
                         </div>
                         <div v-else class="space-y-4">
                             <div v-for="role in displayableRoles" :key="role.id" class="rounded-lg border p-4">
@@ -432,7 +435,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                                         </button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
-                                                        <p>{{ copiedRoleIds.has(role.id) ? 'Copied!' : 'Copy role ID' }}</p>
+                                                        <p>{{ copiedRoleIds.has(role.id) ? t('teams.show.copied') : t('teams.show.roles.copy_role_id') }}</p>
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
@@ -447,7 +450,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Add Member</p>
+                                                    <p>{{ t('teams.show.add_member') }}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -458,14 +461,14 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                                         <UserCog class="size-4" />
                                                         <span
                                                             v-if="getRoleMemberCount(role.code) > 0"
-                                                            class="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[10px]"
+                                                            class="bg-primary text-primary-foreground absolute -top-1 -end-1 flex size-4 items-center justify-center rounded-full text-[10px]"
                                                         >
                                                             {{ getRoleMemberCount(role.code) }}
                                                         </span>
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>View Members ({{ getRoleMemberCount(role.code) }})</p>
+                                                    <p>{{ t('teams.show.view_members', { count: getRoleMemberCount(role.code) }) }}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -479,7 +482,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Edit Role</p>
+                                                    <p>{{ t('teams.show.roles.edit_role') }}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -496,7 +499,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Delete Role</p>
+                                                    <p>{{ t('teams.show.roles.delete_role') }}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -507,11 +510,11 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                     <!-- Agent Access -->
                                     <div class="mb-3 flex items-center gap-2 border-b pb-3 text-sm">
                                         <Bot class="text-muted-foreground size-4" />
-                                        <span class="font-medium">Agent Access:</span>
-                                        <span v-if="role.all_agents" class="text-green-600">All agents</span>
-                                        <span v-else-if="role.agent_ids?.length === 0" class="text-muted-foreground">No agents assigned</span>
+                                        <span class="font-medium">{{ t('teams.show.roles.agent_access_label') }}</span>
+                                        <span v-if="role.all_agents" class="text-green-600">{{ t('teams.show.roles.all_agents') }}</span>
+                                        <span v-else-if="role.agent_ids?.length === 0" class="text-muted-foreground">{{ t('teams.show.roles.no_agents_assigned') }}</span>
                                         <span v-else class="text-foreground">
-                                            {{ role.agent_ids?.length }} agent{{ role.agent_ids?.length === 1 ? '' : 's' }}
+                                            {{ t('teams.show.roles.agent_count', { count: role.agent_ids?.length }, role.agent_ids?.length ?? 0) }}
                                             <span class="text-muted-foreground">
                                                 ({{
                                                     agents
@@ -560,17 +563,17 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
                             <Users class="size-5" />
-                            Team Members
+                            {{ t('teams.show.members.title') }}
                         </CardTitle>
-                        <CardDescription> Members who have access to this team. </CardDescription>
+                        <CardDescription>{{ t('teams.show.members.description') }}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Member</TableHead>
-                                    <TableHead>Role</TableHead>
-                                    <TableHead class="text-right">Actions</TableHead>
+                                    <TableHead>{{ t('teams.show.members.table.member') }}</TableHead>
+                                    <TableHead>{{ t('teams.show.role') }}</TableHead>
+                                    <TableHead class="text-end">{{ t('teams.show.actions') }}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -585,7 +588,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                             <div>
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-medium">{{ member.name }}</span>
-                                                    <Badge v-if="member.id === currentUser.id" variant="outline" class="text-xs"> You </Badge>
+                                                    <Badge v-if="member.id === currentUser.id" variant="outline" class="text-xs">{{ t('teams.show.members.you') }}</Badge>
                                                 </div>
                                                 <span class="text-muted-foreground text-sm">{{ member.email }}</span>
                                             </div>
@@ -596,7 +599,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                             {{ member.role_name }}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell class="text-right">
+                                    <TableCell class="text-end">
                                         <DropdownMenu v-if="canManageMembers && !member.is_owner && member.id !== currentUser.id">
                                             <DropdownMenuTrigger as-child>
                                                 <Button variant="ghost" size="icon" class="size-8">
@@ -605,13 +608,13 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem @click="openEditMemberDialog(member)">
-                                                    <Edit class="mr-2 size-4" />
-                                                    Change Role
+                                                    <Edit class="me-2 size-4" />
+                                                    {{ t('teams.show.members.change_role') }}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem class="text-destructive focus:text-destructive" @click="memberToRemove = member">
-                                                    <Trash2 class="mr-2 size-4" />
-                                                    Remove
+                                                    <Trash2 class="me-2 size-4" />
+                                                    {{ t('teams.show.members.remove') }}
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -627,18 +630,18 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
                             <Mail class="size-5" />
-                            Pending Invitations
+                            {{ t('teams.show.invitations.title') }}
                         </CardTitle>
-                        <CardDescription> These invitations are waiting to be accepted. </CardDescription>
+                        <CardDescription>{{ t('teams.show.invitations.description') }}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Role</TableHead>
-                                    <TableHead>Sent</TableHead>
-                                    <TableHead class="text-right">Actions</TableHead>
+                                    <TableHead>{{ t('teams.show.invitations.table.email') }}</TableHead>
+                                    <TableHead>{{ t('teams.show.role') }}</TableHead>
+                                    <TableHead>{{ t('teams.show.invitations.table.sent') }}</TableHead>
+                                    <TableHead class="text-end">{{ t('teams.show.actions') }}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -657,7 +660,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                     <TableCell class="text-muted-foreground text-sm">
                                         {{ new Date(invitation.created_at).toLocaleDateString() }}
                                     </TableCell>
-                                    <TableCell class="text-right">
+                                    <TableCell class="text-end">
                                         <Button
                                             v-if="canManageMembers"
                                             variant="ghost"
@@ -666,8 +669,8 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                             @click="cancelInvitation(invitation.id)"
                                             :disabled="cancelInvitationForm.processing"
                                         >
-                                            <X class="mr-1 size-4" />
-                                            Cancel
+                                            <X class="me-1 size-4" />
+                                            {{ t('teams.common.cancel') }}
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -681,8 +684,8 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
             <Dialog v-model:open="isInviteDialogOpen">
                 <DialogContent class="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Add Team Member</DialogTitle>
-                        <DialogDescription> Add an existing user or invite someone new to join this team. </DialogDescription>
+                        <DialogTitle>{{ t('teams.show.invite.title') }}</DialogTitle>
+                        <DialogDescription>{{ t('teams.show.invite.description') }}</DialogDescription>
                     </DialogHeader>
                     <form @submit.prevent="inviteMember">
                         <div class="grid gap-4 py-4">
@@ -695,8 +698,8 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                     @click="inviteType = 'existing'"
                                     class="flex-1"
                                 >
-                                    <Users class="mr-2 size-4" />
-                                    Select Existing
+                                    <Users class="me-2 size-4" />
+                                    {{ t('teams.show.invite.select_existing') }}
                                 </Button>
                                 <Button
                                     type="button"
@@ -705,17 +708,17 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                     @click="inviteType = 'email'"
                                     class="flex-1"
                                 >
-                                    <Mail class="mr-2 size-4" />
-                                    Invite by Email
+                                    <Mail class="me-2 size-4" />
+                                    {{ t('teams.show.invite.invite_by_email') }}
                                 </Button>
                             </div>
 
                             <!-- Existing users dropdown -->
                             <div v-if="inviteType === 'existing' && managedUsers.length > 0" class="grid gap-2">
-                                <Label>Select User</Label>
+                                <Label>{{ t('teams.show.invite.select_user_label') }}</Label>
                                 <Select v-model="inviteForm.user_id">
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Choose a user..." />
+                                        <SelectValue :placeholder="t('teams.show.invite.select_user_placeholder')" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem v-for="user in managedUsers" :key="user.id" :value="user.id">
@@ -731,18 +734,18 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
 
                             <!-- Email input -->
                             <div v-if="inviteType === 'email'" class="grid gap-2">
-                                <Label for="invite-email">Email Address</Label>
+                                <Label for="invite-email">{{ t('teams.show.invite.email_label') }}</Label>
                                 <div class="relative">
-                                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                                         <Mail class="size-4" />
                                     </div>
                                     <Input
                                         id="invite-email"
                                         v-model="inviteForm.email"
                                         type="email"
-                                        placeholder="colleague@example.com"
+                                        :placeholder="t('teams.show.invite.email_placeholder')"
                                         :required="inviteType === 'email'"
-                                        class="pl-9"
+                                        class="ps-9"
                                     />
                                 </div>
                                 <InputError :message="inviteForm.errors.email" />
@@ -750,7 +753,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
 
                             <!-- Role display -->
                             <div class="grid gap-2">
-                                <Label>Role</Label>
+                                <Label>{{ t('teams.show.role') }}</Label>
                                 <Badge :variant="getRoleBadgeVariant(inviteForm.role)" class="w-fit">
                                     {{ roles.find((r) => r.code === inviteForm.role)?.name || inviteForm.role }}
                                 </Badge>
@@ -758,13 +761,13 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                         </div>
                         <DialogFooter>
                             <Button type="button" variant="outline" @click="isInviteDialogOpen = false">
-                                <X class="mr-2 size-4" />
-                                Cancel
+                                <X class="me-2 size-4" />
+                                {{ t('teams.common.cancel') }}
                             </Button>
                             <Button type="submit" :disabled="inviteForm.processing || (inviteType === 'existing' && !inviteForm.user_id)">
-                                <Loader2 v-if="inviteForm.processing" class="mr-2 size-4 animate-spin" />
-                                <component :is="inviteType === 'existing' ? UserPlus : Send" v-else class="mr-2 size-4" />
-                                {{ inviteType === 'existing' ? 'Add Member' : 'Send Invitation' }}
+                                <Loader2 v-if="inviteForm.processing" class="me-2 size-4 animate-spin" />
+                                <component :is="inviteType === 'existing' ? UserPlus : Send" v-else class="me-2 size-4" />
+                                {{ inviteType === 'existing' ? t('teams.show.add_member') : t('teams.show.invite.send_invitation') }}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -775,12 +778,12 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
             <Dialog v-model:open="isRoleMembersDialogOpen">
                 <DialogContent class="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle v-if="viewingRoleMembers"> {{ viewingRoleMembers.name }} Members </DialogTitle>
-                        <DialogDescription> Members with this role. You can remove their access to this team. </DialogDescription>
+                        <DialogTitle v-if="viewingRoleMembers">{{ t('teams.show.role_members.title', { name: viewingRoleMembers.name }) }}</DialogTitle>
+                        <DialogDescription>{{ t('teams.show.role_members.description') }}</DialogDescription>
                     </DialogHeader>
                     <div v-if="viewingRoleMembers" class="py-4">
                         <div v-if="getRoleMembers(viewingRoleMembers.code).length === 0" class="text-muted-foreground py-8 text-center">
-                            <p>No members with this role yet.</p>
+                            <p>{{ t('teams.show.role_members.empty') }}</p>
                         </div>
                         <div v-else class="space-y-2">
                             <div
@@ -813,7 +816,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" @click="isRoleMembersDialogOpen = false"> Close </Button>
+                        <Button type="button" variant="outline" @click="isRoleMembersDialogOpen = false">{{ t('teams.show.role_members.close') }}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -822,16 +825,16 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
             <Dialog :open="!!memberToEdit" @update:open="(open) => !open && (memberToEdit = null)">
                 <DialogContent class="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Change Member Role</DialogTitle>
-                        <DialogDescription> Update the role for {{ memberToEdit?.name }}. </DialogDescription>
+                        <DialogTitle>{{ t('teams.show.members.change_role_title') }}</DialogTitle>
+                        <DialogDescription>{{ t('teams.show.members.update_role_description', { name: memberToEdit?.name }) }}</DialogDescription>
                     </DialogHeader>
                     <form @submit.prevent="updateMemberRole">
                         <div class="grid gap-4 py-4">
                             <div class="grid gap-2">
-                                <Label for="update-role">Role</Label>
+                                <Label for="update-role">{{ t('teams.show.role') }}</Label>
                                 <Select v-model="updateMemberForm.role">
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select a role" />
+                                        <SelectValue :placeholder="t('teams.show.members.select_role_placeholder')" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem v-for="role in selectableRoles" :key="role.code" :value="role.code">
@@ -843,32 +846,32 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="outline" @click="memberToEdit = null"> Cancel </Button>
+                            <Button type="button" variant="outline" @click="memberToEdit = null">{{ t('teams.common.cancel') }}</Button>
                             <Button type="submit" :disabled="updateMemberForm.processing">
-                                <Loader2 v-if="updateMemberForm.processing" class="mr-2 size-4 animate-spin" />
-                                Update Role
+                                <Loader2 v-if="updateMemberForm.processing" class="me-2 size-4 animate-spin" />
+                                {{ t('teams.show.members.update_role') }}
                             </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
             </Dialog>
 
-            <!-- Edit Role now uses dedicated page at /settings/teams/{team}/roles/{roleId}/edit -->
+            <!-- Edit Role now uses dedicated page at /my/teams/{team}/roles/{roleId}/edit -->
 
             <!-- Remove Member Confirmation -->
             <AlertDialog :open="!!memberToRemove" @update:open="(open) => !open && (memberToRemove = null)">
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+                        <AlertDialogTitle>{{ t('teams.show.members.remove_title') }}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to remove {{ memberToRemove?.name }} from this team? They will lose access to all team resources.
+                            {{ t('teams.show.members.remove_description', { name: memberToRemove?.name }) }}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{{ t('teams.common.cancel') }}</AlertDialogCancel>
                         <Button variant="destructive" @click="removeMember" :disabled="removeMemberForm.processing">
-                            <Loader2 v-if="removeMemberForm.processing" class="mr-2 size-4 animate-spin" />
-                            Remove Member
+                            <Loader2 v-if="removeMemberForm.processing" class="me-2 size-4 animate-spin" />
+                            {{ t('teams.show.members.remove_confirm') }}
                         </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -878,16 +881,16 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
             <AlertDialog :open="!!roleToDelete" @update:open="(open) => !open && (roleToDelete = null)">
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Role</AlertDialogTitle>
+                        <AlertDialogTitle>{{ t('teams.show.roles.delete_role') }}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to delete the "{{ roleToDelete?.name }}" role? This action cannot be undone.
+                            {{ t('teams.show.roles.delete_description', { name: roleToDelete?.name }) }}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{{ t('teams.common.cancel') }}</AlertDialogCancel>
                         <Button variant="destructive" @click="deleteRole" :disabled="deleteRoleForm.processing">
-                            <Loader2 v-if="deleteRoleForm.processing" class="mr-2 size-4 animate-spin" />
-                            Delete Role
+                            <Loader2 v-if="deleteRoleForm.processing" class="me-2 size-4 animate-spin" />
+                            {{ t('teams.show.roles.delete_role') }}
                         </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>

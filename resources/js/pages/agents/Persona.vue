@@ -11,6 +11,9 @@ import { Link, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Bot, LoaderCircle, Save } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface PromptOption {
     id: string;
@@ -84,16 +87,16 @@ const hasFormErrors = computed(() => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Persona">
+    <AgentLayout :agent="agent" :title="t('agents.persona.title')">
         <template #header-actions>
             <HeaderActions
                 :is-submitting="isSubmitting"
                 :has-unsaved-changes="hasUnsavedChanges"
                 :show-success-message="form.recentlySuccessful"
-                success-message="Persona saved successfully"
+                :success-message="t('agents.persona.saved')"
                 :show-error-message="hasFormErrors"
-                error-message="Please fix errors below"
-                save-label="Save"
+                :error-message="t('agents.persona.fix_errors')"
+                :save-label="t('agents.persona.save')"
                 :save-icon="Save"
                 form-id="persona-form"
             />
@@ -104,23 +107,23 @@ const hasFormErrors = computed(() => {
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
                             <Bot class="h-5 w-5" />
-                            Agent Persona
+                            {{ t('agents.persona.card_title') }}
                         </CardTitle>
-                        <CardDescription> Define your agent's identity, personality, and purpose </CardDescription>
+                        <CardDescription>{{ t('agents.persona.card_description') }}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div class="grid gap-6">
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div class="grid gap-2">
-                                    <Label for="name" required>Agent Name</Label>
-                                    <Input id="name" v-model="form.name" :error="form.errors.name" placeholder="E.g., Customer Support Assistant" />
+                                    <Label for="name" required>{{ t('agents.persona.name_label') }}</Label>
+                                    <Input id="name" v-model="form.name" :error="form.errors.name" :placeholder="t('agents.persona.name_placeholder')" />
                                     <p v-if="form.errors.name" class="text-destructive text-sm">
                                         {{ form.errors.name }}
                                     </p>
                                 </div>
 
                                 <div class="grid gap-2">
-                                    <Label for="domain" required>Domain</Label>
+                                    <Label for="domain" required>{{ t('agents.persona.domain_label') }}</Label>
                                     <div class="flex items-center">
                                         <Input
                                             id="domain"
@@ -138,7 +141,7 @@ const hasFormErrors = computed(() => {
                                         <Button
                                             type="button"
                                             variant="ghost"
-                                            class="ml-1 h-6 w-6 p-0"
+                                            class="ms-1 h-6 w-6 p-0"
                                             size="icon"
                                             @click="generateNewSubdomain"
                                             :disabled="isGeneratingSubdomain"
@@ -157,7 +160,7 @@ const hasFormErrors = computed(() => {
                                             >
                                                 <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
                                             </svg>
-                                            <span class="sr-only">Generate new subdomain</span>
+                                            <span class="sr-only">{{ t('agents.persona.generate_subdomain') }}</span>
                                         </Button>
                                     </div>
                                     <p v-if="form.errors.sub_domain" class="text-destructive text-sm">
@@ -167,28 +170,30 @@ const hasFormErrors = computed(() => {
                             </div>
 
                             <div class="grid gap-2">
-                                <Label required>Instructions</Label>
+                                <Label required>{{ t('agents.persona.instructions_label') }}</Label>
                                 <p class="text-muted-foreground text-sm">
-                                    Reuse a saved prompt from your library, or write custom instructions for this agent.
+                                    {{ t('agents.persona.instructions_hint') }}
                                 </p>
                                 <Tabs v-model="mode" class="mt-1">
                                     <TabsList class="grid w-full max-w-sm grid-cols-2">
-                                        <TabsTrigger value="saved">Saved prompt</TabsTrigger>
-                                        <TabsTrigger value="custom">Custom</TabsTrigger>
+                                        <TabsTrigger value="saved">{{ t('agents.persona.saved_prompt') }}</TabsTrigger>
+                                        <TabsTrigger value="custom">{{ t('agents.persona.custom') }}</TabsTrigger>
                                     </TabsList>
 
                                     <TabsContent value="saved" class="mt-4 space-y-3">
                                         <div v-if="prompts.length === 0" class="text-muted-foreground rounded-lg border py-8 text-center text-sm">
-                                            You have no saved prompts yet.
-                                            <Link href="/settings/prompts" class="text-foreground underline underline-offset-2">Create one</Link>
-                                            in Settings → Prompts.
+                                            {{ t('agents.persona.no_prompts_prefix') }}
+                                            <Link href="/my/workspace/library/prompts" class="text-foreground underline underline-offset-2">{{
+                                                t('agents.persona.create_one')
+                                            }}</Link>
+                                            {{ t('agents.persona.no_prompts_suffix') }}
                                         </div>
                                         <template v-else>
                                             <select
                                                 v-model="form.prompt_id"
                                                 class="border-input bg-background h-9 w-full max-w-sm rounded-md border px-3 text-sm"
                                             >
-                                                <option :value="null" disabled>Select a prompt…</option>
+                                                <option :value="null" disabled>{{ t('agents.persona.select_prompt') }}</option>
                                                 <option v-for="p in prompts" :key="p.id" :value="p.id">{{ p.name }}</option>
                                             </select>
                                             <div v-if="selectedPrompt" class="bg-muted/40 max-h-72 overflow-y-auto rounded-md border p-4">
@@ -208,14 +213,14 @@ const hasFormErrors = computed(() => {
                                             id="instructions"
                                             v-model="form.system_instructions"
                                             :error="form.errors.system_instructions"
-                                            placeholder="You are a helpful assistant that specializes in..."
+                                            :placeholder="t('agents.persona.instructions_placeholder')"
                                             rows="15"
                                         />
                                         <p v-if="form.errors.system_instructions" class="text-destructive text-sm">
                                             {{ form.errors.system_instructions }}
                                         </p>
                                         <p class="text-muted-foreground text-sm">
-                                            These instructions tell the AI how to behave, what tone to use, and what its purpose is
+                                            {{ t('agents.persona.instructions_help') }}
                                         </p>
                                     </TabsContent>
                                 </Tabs>

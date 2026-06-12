@@ -13,6 +13,6 @@ class HandoffSummaryData extends Data
         public ?string $last_message,
         public ?string $last_message_at,
         public string $requested_at,
-        public int $session_id,
+        public string $session_id,
     ) {}
 }

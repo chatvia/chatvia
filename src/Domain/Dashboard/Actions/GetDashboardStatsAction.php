@@ -3,6 +3,7 @@
 namespace Domain\Dashboard\Actions;
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\MessageCredits;
 use Carbon\Carbon;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Models\UserQuota;
@@ -37,11 +38,14 @@ class GetDashboardStatsAction
             ->where('workspace_id', $userId)
             ->sum('conversations_started');
 
+        // One memoized MessageCredits instance for both panels.
+        $credits = $owner->messageCredits();
+
         return [
             'agents' => [
                 'total' => $agentIds->count(),
             ],
-            'messages' => $this->getMessagesPanel($owner, $team),
+            'messages' => $this->getMessagesPanel($owner, $team, $credits),
             'conversations' => (int) $totalConversations,
             'active_sessions' => $this->getActiveSessions($userId),
             'knowledge_sources' => $this->getKnowledgeSourcesBreakdown($agentIds),
@@ -50,7 +54,7 @@ class GetDashboardStatsAction
             ],
             'weekly_usage' => $this->getDailyMessagesVolume($userId, 7, 'D'),
             'monthly_usage' => $this->getDailyMessagesVolume($userId, 30, 'j'),
-            'usage' => $this->getUsageStats($owner),
+            'usage' => $this->getUsageStats($owner, $credits),
         ];
     }
 
@@ -72,19 +76,19 @@ class GetDashboardStatsAction
     /**
      * Build the headline "Messages This Cycle" panel.
      *
-     * `used` is sourced from the analytics rollup (by user_id) so it survives
-     * chat deletions — but the cycle bounds and base quota still come from the
-     * user's active UserCredit row (billing source of truth). Addons are a
-     * SEPARATE pool that survives base-quota overrun: matches the long-standing
+     * `used` is the billing counter (user_usages.messages via MessageCredits) —
+     * the same number the Usage page shows, covering every billed reply
+     * including eval cases, which never persist chat messages or analytics.
+     * The trend/volume charts keep reading the analytics rollup: they chart
+     * conversation activity, not billing. Addons are a SEPARATE pool that
+     * survives base-quota overrun: matches the long-standing
      * UserCreditSystem::calculateAvailableMessages semantics where addons stay
      * intact even when base usage > base quota.
      *
      * @return array<string, mixed>
      */
-    private function getMessagesPanel(User $user, ?Team $team): array
+    private function getMessagesPanel(User $user, ?Team $team, MessageCredits $credits): array
     {
-        $credits = $user->messageCredits();
-
         return [
             'total' => $credits->used(),
             'available' => $credits->available(),
@@ -97,12 +101,11 @@ class GetDashboardStatsAction
     /**
      * @return array<string, mixed>
      */
-    private function getUsageStats(User $user): array
+    private function getUsageStats(User $user, MessageCredits $credits): array
     {
         /** @var UserQuota $quota */
         $quota = $user->quota;
 
-        $credits = $user->messageCredits();
         $consumption = $user->consumption();
         $pagesConsumed = $consumption->pages();
         $minutesConsumed = $consumption->minutes();
@@ -218,11 +221,13 @@ class GetDashboardStatsAction
     private function getDailyMessagesVolume(int $userId, int $days, string $labelFormat): array
     {
         $startDate = now()->subDays($days - 1)->startOfDay();
-        $endDate = now()->endOfDay();
+        $endExclusive = now()->startOfDay()->addDay();
 
+        // Half-open range on the raw column — a ::date predicate can't use the index.
         $dailyMessages = $this->rollup()
             ->where('workspace_id', $userId)
-            ->whereRaw('bucket_hour::date BETWEEN ? AND ?', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->where('bucket_hour', '>=', $startDate)
+            ->where('bucket_hour', '<', $endExclusive)
             ->selectRaw('bucket_hour::date as date, SUM(assistant_messages) as count')
             ->groupBy('date')
             ->orderBy('date')

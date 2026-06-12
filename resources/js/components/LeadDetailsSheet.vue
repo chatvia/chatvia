@@ -3,7 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Briefcase, Building2, Check, Copy, ExternalLink, Mail, MapPin, MessageSquare, Phone } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
+
+const { t } = useI18n();
 
 interface Lead {
     id: number;
@@ -50,14 +53,14 @@ const copyEmail = async () => {
     try {
         await navigator.clipboard.writeText(props.lead.email);
         copiedEmail.value = true;
-        toast.success('Email copied to clipboard');
+        toast.success(t('agents.leads.details_sheet.email_copied'));
 
         // Reset the copied state after 2 seconds
         setTimeout(() => {
             copiedEmail.value = false;
         }, 2000);
     } catch (_error) {
-        toast.error('Failed to copy email');
+        toast.error(t('agents.leads.details_sheet.copy_email_error'));
     }
 };
 
@@ -159,10 +162,12 @@ function formatDate(dt: string | null | undefined) {
             >
                 <SheetHeader class="items-start text-left">
                     <SheetTitle class="flex items-center gap-2 text-base font-semibold">
-                        <span>Lead Details</span>
+                        <span>{{ t('agents.leads.details_sheet.title') }}</span>
                     </SheetTitle>
-                    <SheetDescription v-if="lead" class="mt-1 text-xs"> Created {{ formatDate(lead.created_at) }} </SheetDescription>
-                    <SheetDescription v-else class="text-xs">No lead data.</SheetDescription>
+                    <SheetDescription v-if="lead" class="mt-1 text-xs">
+                        {{ t('agents.leads.details_sheet.created', { date: formatDate(lead.created_at) }) }}
+                    </SheetDescription>
+                    <SheetDescription v-else class="text-xs">{{ t('agents.leads.details_sheet.no_data') }}</SheetDescription>
                 </SheetHeader>
             </div>
 
@@ -174,7 +179,7 @@ function formatDate(dt: string | null | undefined) {
                         {{ leadInitials }}
                     </div>
                     <div class="flex-1 space-y-1">
-                        <h2 class="text-base leading-tight font-semibold">{{ lead.name || 'Unnamed Lead' }}</h2>
+                        <h2 class="text-base leading-tight font-semibold">{{ lead.name || t('agents.leads.details_sheet.unnamed') }}</h2>
                         <div class="text-muted-foreground space-y-1 text-xs">
                             <div v-if="lead.email" class="flex items-center gap-1">
                                 <Mail class="h-3.5 w-3.5" />
@@ -183,8 +188,8 @@ function formatDate(dt: string | null | undefined) {
                                     variant="ghost"
                                     size="sm"
                                     @click="copyEmail"
-                                    class="hover:bg-muted ml-1 h-6 w-6 p-0"
-                                    :title="copiedEmail ? 'Copied!' : 'Copy email'"
+                                    class="hover:bg-muted ms-1 h-6 w-6 p-0"
+                                    :title="copiedEmail ? t('agents.leads.details_sheet.copied') : t('agents.leads.details_sheet.copy_email')"
                                 >
                                     <Check v-if="copiedEmail" class="h-3 w-3 text-green-600" />
                                     <Copy v-else class="h-3 w-3" />
@@ -214,7 +219,7 @@ function formatDate(dt: string | null | undefined) {
                     </div>
                 </div>
                 <div v-if="lead.custom_fields && Object.keys(lead.custom_fields).length" class="space-y-3">
-                    <h3 class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Custom Fields</h3>
+                    <h3 class="text-muted-foreground text-xs font-medium tracking-wide uppercase">{{ t('agents.leads.details_sheet.custom_fields') }}</h3>
                     <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <div
                             v-for="(val, key) in lead.custom_fields"
@@ -227,22 +232,22 @@ function formatDate(dt: string | null | undefined) {
                     </div>
                 </div>
                 <div class="space-y-3">
-                    <h3 class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Technical</h3>
+                    <h3 class="text-muted-foreground text-xs font-medium tracking-wide uppercase">{{ t('agents.leads.details_sheet.technical') }}</h3>
                     <div class="grid grid-cols-1 gap-3 text-[11px] sm:grid-cols-2">
                         <div class="flex flex-col gap-0.5">
-                            <span class="text-muted-foreground font-medium">IP Address</span>
+                            <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.ip_address') }}</span>
                             <span class="font-mono text-xs">{{ lead.ip_address || '—' }}</span>
                         </div>
                         <div class="flex flex-col gap-0.5">
-                            <span class="text-muted-foreground font-medium">Locale</span>
+                            <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.locale') }}</span>
                             <span class="font-mono text-xs">{{ lead.locale || '—' }}</span>
                         </div>
                         <div class="flex flex-col gap-0.5">
-                            <span class="text-muted-foreground font-medium">Referrer URL</span>
+                            <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.referrer_url') }}</span>
                             <span class="truncate font-mono text-xs">{{ lead.referrer_url || '—' }}</span>
                         </div>
                         <div class="flex flex-col gap-0.5">
-                            <span class="text-muted-foreground font-medium">Page URL</span>
+                            <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.page_url') }}</span>
                             <div v-if="lead.page_url" class="inline-flex items-center gap-1">
                                 <a
                                     :href="lead.page_url"
@@ -258,19 +263,19 @@ function formatDate(dt: string | null | undefined) {
                             <span v-else class="font-mono text-xs">—</span>
                         </div>
                         <div class="flex flex-col gap-0.5">
-                            <span class="text-muted-foreground font-medium">Browser</span>
+                            <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.browser') }}</span>
                             <span class="font-mono text-xs">{{ parsedLeadUA?.browser || '—' }}</span>
                         </div>
                         <div class="flex flex-col gap-0.5">
-                            <span class="text-muted-foreground font-medium">OS</span>
+                            <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.os') }}</span>
                             <span class="font-mono text-xs">{{ parsedLeadUA?.os || '—' }}</span>
                         </div>
                         <div class="flex flex-col gap-0.5">
-                            <span class="text-muted-foreground font-medium">Device</span>
+                            <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.device') }}</span>
                             <span class="font-mono text-xs">{{ parsedLeadUA?.device || '—' }}</span>
                         </div>
                         <div class="flex flex-col gap-0.5 sm:col-span-2">
-                            <span class="text-muted-foreground font-medium">User Agent (Raw)</span>
+                            <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.user_agent') }}</span>
                             <span class="max-h-20 overflow-y-auto pr-1 font-mono text-[10px] leading-relaxed break-all">{{
                                 parsedLeadUA?.raw || '—'
                             }}</span>
@@ -278,10 +283,10 @@ function formatDate(dt: string | null | undefined) {
                     </div>
                 </div>
             </div>
-            <div v-else class="text-muted-foreground flex flex-1 items-center justify-center p-10 text-sm">No lead data.</div>
+            <div v-else class="text-muted-foreground flex flex-1 items-center justify-center p-10 text-sm">{{ t('agents.leads.details_sheet.no_data') }}</div>
             <div class="bg-background/80 flex items-center justify-end gap-2 border-t px-6 py-4 backdrop-blur">
                 <SheetClose as-child>
-                    <Button variant="outline" size="sm">Close</Button>
+                    <Button variant="outline" size="sm">{{ t('agents.leads.details_sheet.close') }}</Button>
                 </SheetClose>
             </div>
         </SheetContent>

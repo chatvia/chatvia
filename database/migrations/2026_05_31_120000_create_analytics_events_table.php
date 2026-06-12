@@ -53,12 +53,7 @@ return new class extends Migration
             "CREATE UNIQUE INDEX analytics_events_feedback_message_unique ON analytics_events (message_external_id) WHERE event_type = 'feedback_given'"
         );
 
-        // Idempotency anchor for the queued analytics recorder: the queue is
-        // at-least-once, so a redelivered job re-runs the whole rollup
-        // transaction. RecordMessageSentAction insertOrIgnores against this
-        // index and skips the counter upserts when the event already landed.
-        // User and assistant turns are distinct messages, so one row per
-        // message id is the correct cardinality.
+        // Idempotency anchor: RecordMessageSentAction insertOrIgnores against this on queue redelivery.
         DB::connection($this->getConnection())->statement(
             "CREATE UNIQUE INDEX analytics_events_message_sent_unique ON analytics_events (message_external_id) WHERE event_type = 'message_sent'"
         );

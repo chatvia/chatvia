@@ -14,7 +14,10 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { loadStripe, type Stripe, type StripeCardElement, type StripeElements } from '@stripe/stripe-js';
 import { AlertCircle, ArrowLeft, Check, CheckCircle, CreditCard, Loader2, Plus, Star, Trash2 } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
+
+const { t } = useI18n();
 
 interface PaymentMethod {
     id: string;
@@ -74,11 +77,11 @@ const props = defineProps<{
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Billing',
+        title: t('billing.common.billing'),
         href: route('billing.index'),
     },
     {
-        title: 'Payment Methods',
+        title: t('billing.payment_methods.breadcrumb'),
         href: route('billing.payment-methods'),
     },
 ];
@@ -191,13 +194,13 @@ const initializeStripe = async () => {
         }
     } catch (err) {
         console.error('Error initializing Stripe:', err);
-        error.value = 'Failed to initialize payment system';
+        error.value = t('billing.payment_methods.errors.init_failed');
     }
 };
 
 const handleAddPaymentMethod = async () => {
     if (!stripe.value || !cardElement.value) {
-        error.value = 'Payment system not ready';
+        error.value = t('billing.payment_methods.errors.not_ready');
         return;
     }
 
@@ -226,7 +229,7 @@ const handleAddPaymentMethod = async () => {
 
         // Success
         success.value = true;
-        toast.success('Payment method added successfully!');
+        toast.success(t('billing.payment_methods.toast.added'));
 
         setTimeout(() => {
             showAddPaymentDialog.value = false;
@@ -235,7 +238,7 @@ const handleAddPaymentMethod = async () => {
             window.location.reload();
         }, 1500);
     } catch (err: any) {
-        error.value = err.message || 'An error occurred while adding your payment method';
+        error.value = err.message || t('billing.payment_methods.errors.add_failed');
         toast.error(error.value);
     } finally {
         isProcessing.value = false;
@@ -276,10 +279,10 @@ const updateBillingInformation = () => {
     billingForm.patch(route('billing.information.update'), {
         onSuccess: () => {
             showBillingDialog.value = false;
-            toast.success('Billing information updated successfully!');
+            toast.success(t('billing.payment_methods.toast.info_updated'));
         },
         onError: () => {
-            toast.error('Failed to update billing information');
+            toast.error(t('billing.payment_methods.toast.info_failed'));
         },
     });
 };
@@ -301,8 +304,8 @@ const formatExpiry = (month: number, year: number) => {
 </script>
 
 <template>
-    <AppLayout title="Payment Methods" :breadcrumbs="breadcrumbs">
-        <Head title="Payment Methods" />
+    <AppLayout :title="t('billing.payment_methods.page_title')" :breadcrumbs="breadcrumbs">
+        <Head :title="t('billing.payment_methods.page_title')" />
 
         <div class="container mx-auto max-w-5xl py-8">
             <div class="space-y-8">
@@ -311,20 +314,20 @@ const formatExpiry = (month: number, year: number) => {
                     <div>
                         <h1 class="flex items-center gap-3 text-3xl font-bold tracking-tight">
                             <CreditCard class="text-primary h-8 w-8" />
-                            Payment Methods
+                            {{ t('billing.payment_methods.heading') }}
                         </h1>
-                        <p class="text-muted-foreground mt-2">Manage your payment methods and billing information</p>
+                        <p class="text-muted-foreground mt-2">{{ t('billing.payment_methods.subheading') }}</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <Button variant="outline" as-child>
                             <Link :href="route('billing.index')">
-                                <ArrowLeft class="mr-2 h-4 w-4" />
-                                Back to Billing
+                                <ArrowLeft class="me-2 h-4 w-4" />
+                                {{ t('billing.common.back_to_billing') }}
                             </Link>
                         </Button>
                         <Button @click="showAddPaymentDialog = true" class="gap-2">
                             <Plus class="h-4 w-4" />
-                            Add Payment Method
+                            {{ t('billing.payment_methods.add_method') }}
                         </Button>
                     </div>
                 </div>
@@ -333,9 +336,9 @@ const formatExpiry = (month: number, year: number) => {
                 <div class="grid gap-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Saved Payment Methods</CardTitle>
+                            <CardTitle>{{ t('billing.payment_methods.saved_title') }}</CardTitle>
                             <CardDescription>
-                                Manage your saved payment methods. You can set a default method for automatic billing.
+                                {{ t('billing.payment_methods.saved_description') }}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -355,16 +358,16 @@ const formatExpiry = (month: number, year: number) => {
                                                     {{ method.card.brand }}
                                                 </p>
                                                 <Badge v-if="method.is_default" variant="default" class="text-xs">
-                                                    <Star class="mr-1 h-3 w-3" />
-                                                    Default
+                                                    <Star class="me-1 h-3 w-3" />
+                                                    {{ t('billing.payment_methods.default') }}
                                                 </Badge>
                                             </div>
                                             <p class="text-muted-foreground text-sm">
                                                 •••• •••• •••• {{ method.card.last4 }}
                                                 <span v-if="method.card">
-                                                    • Expires {{ formatExpiry(method.card.exp_month, method.card.exp_year) }}
+                                                    • {{ t('billing.payment_methods.expires', { date: formatExpiry(method.card.exp_month, method.card.exp_year) }) }}
                                                 </span>
-                                                <span v-if="method.billing_details.name" class="ml-2"> • {{ method.billing_details.name }} </span>
+                                                <span v-if="method.billing_details.name" class="ms-2"> • {{ method.billing_details.name }} </span>
                                             </p>
                                         </div>
                                     </div>
@@ -377,15 +380,15 @@ const formatExpiry = (month: number, year: number) => {
                                             variant="outline"
                                             size="sm"
                                         >
-                                            <Check class="mr-2 h-4 w-4" />
-                                            Set Default
+                                            <Check class="me-2 h-4 w-4" />
+                                            {{ t('billing.payment_methods.set_default') }}
                                         </Button>
 
                                         <ConfirmationDialog
-                                            title="Remove Payment Method"
-                                            description="Are you sure you want to remove this payment method? This action cannot be undone."
-                                            confirm-text="Yes, Remove"
-                                            cancel-text="Cancel"
+                                            :title="t('billing.payment_methods.remove_dialog.title')"
+                                            :description="t('billing.payment_methods.remove_dialog.description')"
+                                            :confirm-text="t('billing.payment_methods.remove_dialog.confirm')"
+                                            :cancel-text="t('billing.common.cancel')"
                                             @confirm="removePaymentMethod(method.id)"
                                         >
                                             <template #trigger>
@@ -405,11 +408,11 @@ const formatExpiry = (month: number, year: number) => {
 
                             <div v-else class="py-12 text-center">
                                 <CreditCard class="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-                                <h3 class="mb-2 text-lg font-semibold">No payment methods</h3>
-                                <p class="text-muted-foreground mb-6">Add a payment method to manage your subscriptions and make payments.</p>
+                                <h3 class="mb-2 text-lg font-semibold">{{ t('billing.payment_methods.empty_title') }}</h3>
+                                <p class="text-muted-foreground mb-6">{{ t('billing.payment_methods.empty_description') }}</p>
                                 <Button @click="showAddPaymentDialog = true" class="gap-2">
                                     <Plus class="h-4 w-4" />
-                                    Add Your First Payment Method
+                                    {{ t('billing.payment_methods.add_first') }}
                                 </Button>
                             </div>
                         </CardContent>
@@ -418,40 +421,40 @@ const formatExpiry = (month: number, year: number) => {
                     <!-- Billing Information -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>Billing Information</CardTitle>
-                            <CardDescription> Update your billing address and contact information </CardDescription>
+                            <CardTitle>{{ t('billing.payment_methods.info_title') }}</CardTitle>
+                            <CardDescription>{{ t('billing.payment_methods.info_description') }}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-4">
                                 <div class="grid gap-4 md:grid-cols-2">
                                     <div>
-                                        <label class="text-sm font-medium">Name</label>
-                                        <p class="text-muted-foreground mt-1 text-sm">{{ user.name || 'Not set' }}</p>
+                                        <label class="text-sm font-medium">{{ t('billing.payment_methods.fields.name') }}</label>
+                                        <p class="text-muted-foreground mt-1 text-sm">{{ user.name || t('billing.payment_methods.not_set') }}</p>
                                     </div>
                                     <div>
-                                        <label class="text-sm font-medium">Email Address</label>
-                                        <p class="text-muted-foreground mt-1 text-sm">{{ user.email || 'Not set' }}</p>
+                                        <label class="text-sm font-medium">{{ t('billing.payment_methods.fields.email') }}</label>
+                                        <p class="text-muted-foreground mt-1 text-sm">{{ user.email || t('billing.payment_methods.not_set') }}</p>
                                     </div>
                                     <div>
-                                        <label class="text-sm font-medium">Address</label>
+                                        <label class="text-sm font-medium">{{ t('billing.payment_methods.fields.address') }}</label>
                                         <p class="text-muted-foreground mt-1 text-sm">
-                                            {{ user.billing_address?.line1 || 'Not set' }}
+                                            {{ user.billing_address?.line1 || t('billing.payment_methods.not_set') }}
                                             <span v-if="user.billing_address?.line2"> <br />{{ user.billing_address.line2 }} </span>
                                         </p>
                                     </div>
                                     <div>
-                                        <label class="text-sm font-medium">City, State & Country</label>
+                                        <label class="text-sm font-medium">{{ t('billing.payment_methods.fields.city_state_country') }}</label>
                                         <p class="text-muted-foreground mt-1 text-sm">
                                             {{
                                                 [user.billing_address?.city, user.billing_address?.state, user.billing_address?.country]
                                                     .filter(Boolean)
-                                                    .join(', ') || 'Not set'
+                                                    .join(', ') || t('billing.payment_methods.not_set')
                                             }}
                                         </p>
                                     </div>
                                 </div>
                                 <Separator />
-                                <Button @click="showBillingDialog = true" variant="outline"> Update Billing Information </Button>
+                                <Button @click="showBillingDialog = true" variant="outline">{{ t('billing.payment_methods.update_info') }}</Button>
                             </div>
                         </CardContent>
                     </Card>
@@ -464,10 +467,9 @@ const formatExpiry = (month: number, year: number) => {
                                     <CreditCard class="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div>
-                                    <h4 class="mb-1 font-medium">Secure Payment Processing</h4>
+                                    <h4 class="mb-1 font-medium">{{ t('billing.payment_methods.secure_title') }}</h4>
                                     <p class="text-muted-foreground text-sm">
-                                        Your payment information is encrypted and securely processed by Stripe. We never store your complete card
-                                        details on our servers.
+                                        {{ t('billing.payment_methods.secure_description') }}
                                     </p>
                                 </div>
                             </div>
@@ -483,9 +485,9 @@ const formatExpiry = (month: number, year: number) => {
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <CreditCard class="h-5 w-5" />
-                        Update Billing Information
+                        {{ t('billing.payment_methods.info_dialog.title') }}
                     </DialogTitle>
-                    <DialogDescription> Update your billing address and contact information for invoicing and payment processing. </DialogDescription>
+                    <DialogDescription>{{ t('billing.payment_methods.info_dialog.description') }}</DialogDescription>
                 </DialogHeader>
 
                 <form @submit.prevent="updateBillingInformation" class="space-y-6">
@@ -493,12 +495,12 @@ const formatExpiry = (month: number, year: number) => {
                     <div class="space-y-4">
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
-                                <Label for="billing-name" class="mb-2">Name</Label>
-                                <Input id="billing-name" v-model="billingForm.name" placeholder="John Doe" required />
+                                <Label for="billing-name" class="mb-2">{{ t('billing.payment_methods.fields.name') }}</Label>
+                                <Input id="billing-name" v-model="billingForm.name" :placeholder="t('billing.payment_methods.placeholders.name')" required />
                             </div>
                             <div>
-                                <Label for="billing-email" class="mb-2">Email Address</Label>
-                                <Input id="billing-email" type="email" v-model="billingForm.email" placeholder="john@example.com" required />
+                                <Label for="billing-email" class="mb-2">{{ t('billing.payment_methods.fields.email') }}</Label>
+                                <Input id="billing-email" type="email" v-model="billingForm.email" :placeholder="t('billing.payment_methods.placeholders.email')" required />
                             </div>
                         </div>
                     </div>
@@ -507,42 +509,42 @@ const formatExpiry = (month: number, year: number) => {
 
                     <!-- Address Information -->
                     <div class="space-y-4">
-                        <h4 class="text-sm font-medium">Billing Address</h4>
+                        <h4 class="text-sm font-medium">{{ t('billing.payment_methods.fields.billing_address') }}</h4>
 
                         <div class="space-y-4">
                             <div>
-                                <Label for="billing-line1" class="mb-2">Address Line 1</Label>
-                                <Input id="billing-line1" v-model="billingForm.address.line1" placeholder="123 Main Street" required />
+                                <Label for="billing-line1" class="mb-2">{{ t('billing.payment_methods.fields.line1') }}</Label>
+                                <Input id="billing-line1" v-model="billingForm.address.line1" :placeholder="t('billing.payment_methods.placeholders.line1')" required />
                             </div>
 
                             <div>
-                                <Label for="billing-line2" class="mb-2">Address Line 2 (Optional)</Label>
-                                <Input id="billing-line2" v-model="billingForm.address.line2" placeholder="Apt, suite, etc." />
+                                <Label for="billing-line2" class="mb-2">{{ t('billing.payment_methods.fields.line2') }}</Label>
+                                <Input id="billing-line2" v-model="billingForm.address.line2" :placeholder="t('billing.payment_methods.placeholders.line2')" />
                             </div>
 
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
-                                    <Label for="billing-city" class="mb-2">City</Label>
-                                    <Input id="billing-city" v-model="billingForm.address.city" placeholder="New York" required />
+                                    <Label for="billing-city" class="mb-2">{{ t('billing.payment_methods.fields.city') }}</Label>
+                                    <Input id="billing-city" v-model="billingForm.address.city" :placeholder="t('billing.payment_methods.placeholders.city')" required />
                                 </div>
 
                                 <div>
-                                    <Label for="billing-state" class="mb-2">State</Label>
-                                    <Input id="billing-state" v-model="billingForm.address.state" placeholder="NY" required />
+                                    <Label for="billing-state" class="mb-2">{{ t('billing.payment_methods.fields.state') }}</Label>
+                                    <Input id="billing-state" v-model="billingForm.address.state" :placeholder="t('billing.payment_methods.placeholders.state')" required />
                                 </div>
                             </div>
 
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
-                                    <Label for="billing-postal" class="mb-2">Postal Code</Label>
-                                    <Input id="billing-postal" v-model="billingForm.address.postal_code" placeholder="10001" required />
+                                    <Label for="billing-postal" class="mb-2">{{ t('billing.payment_methods.fields.postal_code') }}</Label>
+                                    <Input id="billing-postal" v-model="billingForm.address.postal_code" :placeholder="t('billing.payment_methods.placeholders.postal_code')" required />
                                 </div>
 
                                 <div>
-                                    <Label for="billing-country" class="mb-2">Country</Label>
+                                    <Label for="billing-country" class="mb-2">{{ t('billing.payment_methods.fields.country') }}</Label>
                                     <CountriesSelect
                                         v-model="billingForm.address.country"
-                                        placeholder="Select country..."
+                                        :placeholder="t('billing.payment_methods.placeholders.country')"
                                         :disabled="billingForm.processing"
                                         :required="true"
                                     />
@@ -564,16 +566,16 @@ const formatExpiry = (month: number, year: number) => {
                     <!-- Action Buttons -->
                     <div class="flex justify-end gap-3">
                         <Button type="button" variant="outline" @click="showBillingDialog = false" :disabled="billingForm.processing">
-                            Cancel
+                            {{ t('billing.common.cancel') }}
                         </Button>
                         <Button type="submit" :disabled="billingForm.processing" class="gap-2">
                             <template v-if="billingForm.processing">
                                 <Loader2 class="h-4 w-4 animate-spin" />
-                                Updating...
+                                {{ t('billing.payment_methods.updating') }}
                             </template>
                             <template v-else>
                                 <Check class="h-4 w-4" />
-                                Update Information
+                                {{ t('billing.payment_methods.update_information') }}
                             </template>
                         </Button>
                     </div>
@@ -587,21 +589,21 @@ const formatExpiry = (month: number, year: number) => {
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <CreditCard class="h-5 w-5" />
-                        Add Payment Method
+                        {{ t('billing.payment_methods.add_method') }}
                     </DialogTitle>
-                    <DialogDescription> Add a new payment method to your account. Your card information is secure and encrypted. </DialogDescription>
+                    <DialogDescription>{{ t('billing.payment_methods.add_dialog.description') }}</DialogDescription>
                 </DialogHeader>
 
                 <div v-if="success" class="flex flex-col items-center justify-center py-8 text-center">
                     <CheckCircle class="mb-4 h-12 w-12 text-green-500" />
-                    <h3 class="mb-2 text-lg font-semibold">Payment Method Added!</h3>
-                    <p class="text-muted-foreground text-sm">Your payment method has been successfully added to your account.</p>
+                    <h3 class="mb-2 text-lg font-semibold">{{ t('billing.payment_methods.add_dialog.success_title') }}</h3>
+                    <p class="text-muted-foreground text-sm">{{ t('billing.payment_methods.add_dialog.success_description') }}</p>
                 </div>
 
                 <form v-else @submit.prevent="handleAddPaymentMethod" class="space-y-6">
                     <!-- Card Information -->
                     <div class="space-y-4">
-                        <label class="text-sm font-medium">Card Information</label>
+                        <label class="text-sm font-medium">{{ t('billing.payment_methods.card_information') }}</label>
                         <div ref="cardElementContainer" class="border-input bg-background min-h-[40px] rounded-md border p-3"></div>
                     </div>
 
@@ -613,15 +615,15 @@ const formatExpiry = (month: number, year: number) => {
 
                     <!-- Action Buttons -->
                     <div class="flex justify-end gap-3">
-                        <Button type="button" variant="outline" @click="showAddPaymentDialog = false" :disabled="isProcessing"> Cancel </Button>
+                        <Button type="button" variant="outline" @click="showAddPaymentDialog = false" :disabled="isProcessing">{{ t('billing.common.cancel') }}</Button>
                         <Button type="submit" :disabled="isProcessing" class="gap-2">
                             <template v-if="isProcessing">
                                 <Loader2 class="h-4 w-4 animate-spin" />
-                                Processing...
+                                {{ t('billing.common.processing') }}
                             </template>
                             <template v-else>
                                 <CreditCard class="h-4 w-4" />
-                                Add Payment Method
+                                {{ t('billing.payment_methods.add_method') }}
                             </template>
                         </Button>
                     </div>
@@ -632,7 +634,7 @@ const formatExpiry = (month: number, year: number) => {
                     <CreditCard class="mt-0.5 h-4 w-4 text-blue-600 dark:text-blue-400" />
                     <div>
                         <p class="text-xs text-blue-700 dark:text-blue-300">
-                            Your payment information is encrypted and securely processed by Stripe. We never store your complete card details.
+                            {{ t('billing.payment_methods.add_dialog.secure_note') }}
                         </p>
                     </div>
                 </div>

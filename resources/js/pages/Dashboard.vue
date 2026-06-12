@@ -10,6 +10,9 @@ import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
 import { Activity, Bot, MessageSquare, MessagesSquare, Plus } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Types for the dashboard data
 interface ActivityData {
@@ -24,6 +27,7 @@ interface DashboardData {
     messages: {
         total: number;
         available: number;
+        limit: number;
         trend: {
             this_month: number;
             last_month: number;
@@ -47,7 +51,7 @@ interface DashboardData {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: t('dashboard.title'),
         href: '/dashboard',
     },
 ];
@@ -60,6 +64,7 @@ const dashboardData = ref<DashboardData>({
     messages: {
         total: 0,
         available: 0,
+        limit: 0,
         trend: {
             this_month: 0,
             last_month: 0,
@@ -125,9 +130,10 @@ const maxUsage = computed(() => {
     return Math.max(...currentActivityData.value.map((item) => item.value), 1);
 });
 
+// Share of the cycle's paid quota consumed: used / limit (base + addons).
 const messageUsagePercent = computed(() => {
-    if (dashboardData.value.messages.available === 0) return 0;
-    return Math.round((dashboardData.value.messages.total / dashboardData.value.messages.available) * 100);
+    if (dashboardData.value.messages.limit === 0) return 0;
+    return Math.min(100, Math.round((dashboardData.value.messages.total / dashboardData.value.messages.limit) * 100));
 });
 
 onMounted(() => {
@@ -142,7 +148,7 @@ const formatNumber = (num: number): string => {
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head :title="t('dashboard.title')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="h-full overflow-auto">
@@ -150,12 +156,12 @@ const formatNumber = (num: number): string => {
                 <!-- Header Section -->
                 <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <div>
-                        <h1 class="text-2xl font-bold tracking-tight">Dashboard</h1>
-                        <p class="text-muted-foreground">Overview of your AI agents and activity</p>
+                        <h1 class="text-2xl font-bold tracking-tight">{{ t('dashboard.title') }}</h1>
+                        <p class="text-muted-foreground">{{ t('dashboard.subtitle') }}</p>
                     </div>
                     <Button v-if="canCreateAgent" @click="showCreateAgentModal = true" class="gap-2 self-start">
                         <Plus class="h-4 w-4" />
-                        Create Agent
+                        {{ t('dashboard.create_agent') }}
                     </Button>
                 </div>
 
@@ -164,7 +170,7 @@ const formatNumber = (num: number): string => {
                     <!-- Agents Card -->
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium">Total Agents</CardTitle>
+                            <CardTitle class="text-sm font-medium">{{ t('dashboard.total_agents') }}</CardTitle>
                             <Bot class="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
@@ -178,7 +184,7 @@ const formatNumber = (num: number): string => {
                     <!-- Messages Card -->
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium">Messages This Cycle</CardTitle>
+                            <CardTitle class="text-sm font-medium">{{ t('dashboard.messages_this_cycle') }}</CardTitle>
                             <MessageSquare class="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
@@ -189,9 +195,9 @@ const formatNumber = (num: number): string => {
                                     <div class="text-muted-foreground mb-1 flex items-center justify-between text-xs">
                                         <span
                                             >{{ dashboardData.messages.total.toLocaleString() }} /
-                                            {{ dashboardData.messages.available.toLocaleString() }}</span
+                                            {{ dashboardData.messages.limit.toLocaleString() }}</span
                                         >
-                                        <span>{{ messageUsagePercent }}% used</span>
+                                        <span>{{ t('dashboard.percent_used', { percent: messageUsagePercent }) }}</span>
                                     </div>
                                     <Progress :model-value="messageUsagePercent" class="h-1" />
                                 </div>
@@ -202,14 +208,14 @@ const formatNumber = (num: number): string => {
                     <!-- Conversations Card -->
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium">Total Conversations</CardTitle>
+                            <CardTitle class="text-sm font-medium">{{ t('dashboard.total_conversations') }}</CardTitle>
                             <MessagesSquare class="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
                             <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
                             <div v-else>
                                 <div class="text-2xl font-bold">{{ formatNumber(dashboardData.conversations) }}</div>
-                                <p class="text-muted-foreground text-xs">All-time across agents</p>
+                                <p class="text-muted-foreground text-xs">{{ t('dashboard.all_time_across_agents') }}</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -217,14 +223,14 @@ const formatNumber = (num: number): string => {
                     <!-- Active Sessions Card -->
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium">Active Sessions</CardTitle>
+                            <CardTitle class="text-sm font-medium">{{ t('dashboard.active_sessions') }}</CardTitle>
                             <Activity class="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
                             <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
                             <div v-else>
                                 <div class="text-2xl font-bold">{{ formatNumber(dashboardData.active_sessions) }}</div>
-                                <p class="text-muted-foreground text-xs">Visitors in the last 24h</p>
+                                <p class="text-muted-foreground text-xs">{{ t('dashboard.visitors_last_24h') }}</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -234,15 +240,15 @@ const formatNumber = (num: number): string => {
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-4">
                         <div>
-                            <CardTitle class="text-sm font-medium">Message Activity</CardTitle>
+                            <CardTitle class="text-sm font-medium">{{ t('dashboard.message_activity') }}</CardTitle>
                             <CardDescription>
-                                {{ activityPeriod === 'week' ? 'Message volume over the past 7 days' : 'Message volume over the past 30 days' }}
+                                {{ activityPeriod === 'week' ? t('dashboard.volume_week') : t('dashboard.volume_month') }}
                             </CardDescription>
                         </div>
                         <Tabs v-model="activityPeriod" class="w-auto">
                             <TabsList class="h-8">
-                                <TabsTrigger value="week" class="px-3 text-xs">Last Week</TabsTrigger>
-                                <TabsTrigger value="month" class="px-3 text-xs">Last Month</TabsTrigger>
+                                <TabsTrigger value="week" class="px-3 text-xs">{{ t('dashboard.last_week') }}</TabsTrigger>
+                                <TabsTrigger value="month" class="px-3 text-xs">{{ t('dashboard.last_month') }}</TabsTrigger>
                             </TabsList>
                         </Tabs>
                     </CardHeader>
@@ -264,7 +270,7 @@ const formatNumber = (num: number): string => {
                                             ></div>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p class="font-medium">{{ item.value }} messages</p>
+                                            <p class="font-medium">{{ t('dashboard.messages_tooltip', item.value) }}</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>

@@ -3,6 +3,7 @@
 namespace Domain\Billing\Listeners;
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\PasswordSetup;
 use Domain\Billing\Actions\Subscriptions\GrantSubscriptionAction;
 use Domain\Billing\Enums\Addon;
 use Domain\Billing\Models\UserBilling;
@@ -23,6 +24,10 @@ use Throwable;
 
 class HandleStripeWebhook
 {
+    public function __construct(
+        private readonly PasswordSetup $passwordSetup,
+    ) {}
+
     public function handle(WebhookReceived $event): void
     {
         $eventId = $event->payload['id'] ?? null;
@@ -270,11 +275,16 @@ class HandleStripeWebhook
                 return $user;
             });
 
-            // Welcome email with login instructions and the temporary password.
+            // The random password above is never shown to anyone. The flag
+            // makes RequirePasswordSetup walk the owner through choosing a
+            // real one as soon as they land back in the app.
+            $this->passwordSetup->flag($user);
+
+            // Welcome email with login instructions — no password in it.
             // Sent after commit so a rollback can't email an account that
             // doesn't exist.
             $package = $metadata['package'] ?? 'starter';
-            $user->notify(new TrialWelcomeNotification($password, $package));
+            $user->notify(new TrialWelcomeNotification($package));
 
             return $user;
         } catch (Exception $e) {

@@ -14,6 +14,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Bot, Check, ChevronDown, Info, Loader2, Tag } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Use generated TypeScript types from DTOs
 type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
@@ -45,7 +48,7 @@ const scopes = computed(() =>
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Teams',
+        title: t('teams.breadcrumb'),
         href: '/my/teams',
     },
     {
@@ -53,7 +56,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: `/my/teams/${props.team.external_id}`,
     },
     {
-        title: 'Create Role',
+        title: t('teams.common.create_role'),
         href: `/my/teams/${props.team.external_id}/roles/create`,
     },
 ];
@@ -162,11 +165,11 @@ const _hasUnmetRequirements = (permission: string): boolean => {
 
 // Agent selection helpers
 const selectedAgentNames = computed(() => {
-    if (form.all_agents) return 'All Agents';
-    if (form.agent_ids.length === 0) return 'Select agents...';
+    if (form.all_agents) return t('teams.roles.all_agents');
+    if (form.agent_ids.length === 0) return t('teams.roles.select_agents');
     const names = props.agents.filter((a) => form.agent_ids.includes(a.external_id)).map((a) => a.name);
     if (names.length <= 2) return names.join(', ');
-    return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
+    return t('teams.roles.agents_more', { names: names.slice(0, 2).join(', '), count: names.length - 2 });
 });
 
 const toggleAgentSelection = (agentId: string) => {
@@ -179,15 +182,15 @@ const toggleAgentSelection = (agentId: string) => {
 </script>
 
 <template>
-    <Head title="Create Role" />
+    <Head :title="t('teams.common.create_role')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="h-full overflow-auto">
             <div class="container mx-auto max-w-3xl px-4 py-8">
                 <div class="mb-6">
-                    <h1 class="text-2xl font-bold tracking-tight">Create Role</h1>
+                    <h1 class="text-2xl font-bold tracking-tight">{{ t('teams.common.create_role') }}</h1>
                     <p class="text-muted-foreground">
-                        Define a new role for <span class="font-medium">{{ team.name }}</span>
+                        {{ t('teams.roles.create.subtitle') }} <span class="font-medium">{{ team.name }}</span>
                     </p>
                 </div>
 
@@ -198,11 +201,11 @@ const toggleAgentSelection = (agentId: string) => {
                             <section class="space-y-3">
                                 <div class="flex items-center gap-2">
                                     <Tag class="text-muted-foreground size-4" />
-                                    <h3 class="text-sm font-semibold tracking-tight">Role Details</h3>
+                                    <h3 class="text-sm font-semibold tracking-tight">{{ t('teams.roles.details') }}</h3>
                                 </div>
-                                <div class="space-y-2 pl-6">
-                                    <Label for="role-name">Role Name</Label>
-                                    <Input id="role-name" v-model="form.name" placeholder="e.g., Support Agent, Content Editor" required autofocus />
+                                <div class="space-y-2 ps-6">
+                                    <Label for="role-name">{{ t('teams.roles.role_name_label') }}</Label>
+                                    <Input id="role-name" v-model="form.name" :placeholder="t('teams.roles.role_name_placeholder')" required autofocus />
                                     <InputError :message="form.errors.name" />
                                 </div>
                             </section>
@@ -210,10 +213,10 @@ const toggleAgentSelection = (agentId: string) => {
                             <section class="space-y-3">
                                 <div class="flex items-center gap-2">
                                     <Bot class="text-muted-foreground size-4" />
-                                    <h3 class="text-sm font-semibold tracking-tight">Agent Access</h3>
+                                    <h3 class="text-sm font-semibold tracking-tight">{{ t('teams.roles.agent_access') }}</h3>
                                 </div>
-                                <p class="text-muted-foreground pl-6 text-sm">Choose which agents this role can view and interact with.</p>
-                                <div class="space-y-4 pl-6">
+                                <p class="text-muted-foreground ps-6 text-sm">{{ t('teams.roles.agent_access_description') }}</p>
+                                <div class="space-y-4 ps-6">
                                     <div class="flex items-center gap-3">
                                         <Checkbox
                                             id="all-agents"
@@ -226,13 +229,13 @@ const toggleAgentSelection = (agentId: string) => {
                                             "
                                         />
                                         <Label for="all-agents" class="cursor-pointer">
-                                            <span class="font-medium">All Agents</span>
-                                            <span class="text-muted-foreground ml-2 text-sm"> Access to all current and future agents </span>
+                                            <span class="font-medium">{{ t('teams.roles.all_agents') }}</span>
+                                            <span class="text-muted-foreground ms-2 text-sm">{{ t('teams.roles.all_agents_description') }}</span>
                                         </Label>
                                     </div>
 
                                     <div v-if="!form.all_agents">
-                                        <Label class="text-muted-foreground mb-2 block text-sm">Select specific agents:</Label>
+                                        <Label class="text-muted-foreground mb-2 block text-sm">{{ t('teams.roles.select_specific') }}</Label>
                                         <Popover>
                                             <PopoverTrigger as-child>
                                                 <Button variant="outline" class="w-full justify-between">
@@ -268,7 +271,7 @@ const toggleAgentSelection = (agentId: string) => {
                                                             <span class="text-sm">{{ agent.name }}</span>
                                                         </div>
                                                         <div v-if="agents.length === 0" class="text-muted-foreground px-2 py-4 text-center text-sm">
-                                                            No agents available
+                                                            {{ t('teams.roles.no_agents_available') }}
                                                         </div>
                                                     </div>
                                                 </ScrollArea>
@@ -283,14 +286,14 @@ const toggleAgentSelection = (agentId: string) => {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Permissions</CardTitle>
-                            <CardDescription>Choose what actions users with this role can perform.</CardDescription>
+                            <CardTitle>{{ t('teams.roles.permissions.title') }}</CardTitle>
+                            <CardDescription>{{ t('teams.roles.permissions.description') }}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <TooltipProvider>
                                 <div class="space-y-10">
                                     <section v-for="scope in scopes" :key="scope.key" v-show="scope.groups.length > 0" class="space-y-4">
-                                        <div class="border-primary/40 border-l-2 pl-4">
+                                        <div class="border-primary/40 border-s-2 ps-4">
                                             <h3 class="text-base font-semibold tracking-tight">{{ scope.label }}</h3>
                                             <p class="text-muted-foreground mt-1 text-sm">{{ scope.description }}</p>
                                         </div>
@@ -310,10 +313,10 @@ const toggleAgentSelection = (agentId: string) => {
                                                         {{ group.label }}
                                                     </Label>
                                                 </div>
-                                                <p v-if="group.description" class="text-muted-foreground ml-6 text-sm">
+                                                <p v-if="group.description" class="text-muted-foreground ms-6 text-sm">
                                                     {{ group.description }}
                                                 </p>
-                                                <div class="ml-6 space-y-2">
+                                                <div class="ms-6 space-y-2">
                                                     <div v-for="permission in group.permissions" :key="permission" class="flex items-center gap-2">
                                                         <Checkbox
                                                             :id="`perm-${permission}`"
@@ -337,7 +340,7 @@ const toggleAgentSelection = (agentId: string) => {
                                                                         v-if="getPermissionRequires(permission).length > 0"
                                                                         class="text-muted-foreground mt-1 text-xs"
                                                                     >
-                                                                        Requires:
+                                                                        {{ t('teams.roles.permissions.requires') }}
                                                                         {{
                                                                             getPermissionRequires(permission)
                                                                                 .map((r) => getPermissionLabel(r))
@@ -361,11 +364,11 @@ const toggleAgentSelection = (agentId: string) => {
                     <!-- Actions -->
                     <div class="flex items-center justify-end gap-3 pt-4">
                         <Link :href="route('teams.show', team.external_id)">
-                            <Button type="button" variant="outline"> Cancel </Button>
+                            <Button type="button" variant="outline">{{ t('teams.common.cancel') }}</Button>
                         </Link>
                         <Button type="submit" :disabled="form.processing || !isAgentSelectionValid">
-                            <Loader2 v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
-                            Create Role
+                            <Loader2 v-if="form.processing" class="me-2 h-4 w-4 animate-spin" />
+                            {{ t('teams.common.create_role') }}
                         </Button>
                     </div>
                 </form>

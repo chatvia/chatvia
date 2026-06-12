@@ -1,0 +1,139 @@
+{
+    "teams": {
+        "breadcrumb": "Teams",
+        "common": {
+            "cancel": "Cancel",
+            "create_role": "Create Role"
+        },
+        "index": {
+            "title": "Teams",
+            "heading": "Teams",
+            "subtitle": "Manage your teams and collaborate with others.",
+            "create_team": "Create Team",
+            "search_placeholder": "Search teams",
+            "empty_title": "No teams yet",
+            "empty_description": "Create your first team to start collaborating with others",
+            "no_results": "No teams found matching \"{query}\".",
+            "clear_search": "Clear search",
+            "primary": "Primary",
+            "open_menu": "Open menu",
+            "manage": "Manage",
+            "leave": "Leave",
+            "delete": "Delete",
+            "table": {
+                "name": "Team name",
+                "agents": "Agents",
+                "members": "Members",
+                "created": "Created"
+            },
+            "leave_dialog": {
+                "title": "Leave Team",
+                "description": "Are you sure you want to leave \"{name}\"?"
+            },
+            "delete_dialog": {
+                "title": "Delete Team",
+                "description": "Are you sure you want to delete \"{name}\"? This cannot be undone."
+            },
+            "create_dialog": {
+                "title": "Create New Team",
+                "description": "Create a team to collaborate with others.",
+                "name_label": "Team Name",
+                "name_placeholder": "Enter team name"
+            }
+        },
+        "show": {
+            "title": "Team: {name}",
+            "back": "Back to Teams",
+            "copied": "Copied!",
+            "copy_team_id": "Copy team ID",
+            "add_member": "Add Member",
+            "view_members": "View Members ({count})",
+            "role": "Role",
+            "actions": "Actions",
+            "roles": {
+                "title": "Roles & Permissions",
+                "description": "Define roles and their permissions for team members.",
+                "empty": "No custom roles yet. Create a role to assign specific permissions to team members.",
+                "copy_role_id": "Copy role ID",
+                "edit_role": "Edit Role",
+                "delete_role": "Delete Role",
+                "agent_access_label": "Agent Access:",
+                "all_agents": "All agents",
+                "no_agents_assigned": "No agents assigned",
+                "agent_count": "{count} agent | {count} agents",
+                "delete_description": "Are you sure you want to delete the \"{name}\" role? This action cannot be undone."
+            },
+            "members": {
+                "title": "Team Members",
+                "description": "Members who have access to this team.",
+                "you": "You",
+                "change_role": "Change Role",
+                "change_role_title": "Change Member Role",
+                "update_role_description": "Update the role for {name}.",
+                "select_role_placeholder": "Select a role",
+                "update_role": "Update Role",
+                "remove": "Remove",
+                "remove_title": "Remove Team Member",
+                "remove_description": "Are you sure you want to remove {name} from this team? They will lose access to all team resources.",
+                "remove_confirm": "Remove Member",
+                "table": {
+                    "member": "Member"
+                }
+            },
+            "invitations": {
+                "title": "Pending Invitations",
+                "description": "These invitations are waiting to be accepted.",
+                "table": {
+                    "email": "Email",
+                    "sent": "Sent"
+                }
+            },
+            "invite": {
+                "title": "Add Team Member",
+                "description": "Add an existing user or invite someone new to join this team.",
+                "select_existing": "Select Existing",
+                "invite_by_email": "Invite by Email",
+                "select_user_label": "Select User",
+                "select_user_placeholder": "Choose a user...",
+                "email_label": "Email Address",
+                "email_placeholder": "colleague{'@'}example.com",
+                "send_invitation": "Send Invitation"
+            },
+            "role_members": {
+                "title": "{name} Members",
+                "description": "Members with this role. You can remove their access to this team.",
+                "empty": "No members with this role yet.",
+                "close": "Close"
+            }
+        },
+        "roles": {
+            "details": "Role Details",
+            "role_name_label": "Role Name",
+            "role_name_placeholder": "e.g., Support Agent, Content Editor",
+            "agent_access": "Agent Access",
+            "agent_access_description": "Choose which agents this role can view and interact with.",
+            "all_agents": "All Agents",
+            "all_agents_description": "Access to all current and future agents",
+            "select_specific": "Select specific agents:",
+            "select_agents": "Select agents...",
+            "agents_more": "{names} +{count} more",
+            "no_agents_available": "No agents available",
+            "permissions": {
+                "title": "Permissions",
+                "description": "Choose what actions users with this role can perform.",
+                "requires": "Requires:"
+            },
+            "create": {
+                "subtitle": "Define a new role for"
+            },
+            "edit": {
+                "title": "Edit Role: {name}",
+                "breadcrumb": "Edit: {name}",
+                "heading": "Edit Role",
+                "subtitle_prefix": "Update the",
+                "subtitle_middle": "role for",
+                "save": "Save"
+            }
+        }
+    }
+}

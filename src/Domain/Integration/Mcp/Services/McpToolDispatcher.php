@@ -7,10 +7,9 @@ use Domain\Analytics\Events\McpToolInvoked;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatchResult;
 use Domain\Conversation\Services\Tooling\Registry\ToolCallerIdentity;
+use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Mcp\Models\McpTool;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -26,6 +25,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
 {
     public function __construct(
         private readonly McpClient $client,
+        private readonly McpToolPermissionResolver $permissions,
     ) {}
 
     public function dispatch(Agent $agent, string $name, string $arguments, ?string $conversationExternalId = null): ToolDispatchResult
@@ -37,13 +37,23 @@ class McpToolDispatcher implements ToolDispatcherInterface
         }
 
         $server = AgentMcpServer::query()
-            ->where('user_id', $agent->user_id)
             ->where('slug', $slug)
             ->where('is_enabled', true)
-            ->whereExists(function ($q) use ($agent): void {
-                $q->from('agent_mcp_server')
-                    ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')
-                    ->where('agent_mcp_server.agent_id', $agent->id);
+            ->where(function ($q) use ($agent): void {
+                // Attached to this agent (workspace-owned + on the pivot) …
+                $q->where(function ($attached) use ($agent): void {
+                    $attached->where('user_id', $agent->user_id)
+                        ->whereExists(function ($sub) use ($agent): void {
+                            $sub->from('agent_mcp_server')
+                                ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')
+                                ->where('agent_mcp_server.agent_id', $agent->id);
+                        });
+                })
+                    // … or a global always-on built-in (e.g. charts).
+                    ->orWhere(function ($builtin): void {
+                        $builtin->whereNull('user_id')
+                            ->where('category', McpServerCategory::Builtin->value);
+                    });
             })
             ->first();
 
@@ -53,11 +63,9 @@ class McpToolDispatcher implements ToolDispatcherInterface
 
         // Reject a blocked tool the LLM might emit from prior turns — the
         // catalog excludes blocked rows so the model shouldn't see them, but
-        // turn history can still surface them.
-        $catalogRow = McpTool::query()
-            ->where('mcp_server_id', $server->id)
-            ->where('name', $toolName)
-            ->first();
+        // turn history can still surface them. Resolves preset (membership +
+        // shared catalog) or custom (per-server) transparently.
+        $catalogRow = $this->permissions->resolve($server, $toolName);
         if ($catalogRow !== null && $catalogRow->permission === McpToolPermission::Blocked) {
             return $this->error("Tool \"{$name}\" is blocked.");
         }
@@ -75,7 +83,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
 
             $dispatchResult = $this->extractResult($result);
 
-            $this->record($server, $agent, $toolName, error: null);
+            $this->record($server, $agent, $toolName, $catalogRow?->description, error: null);
 
             Log::info('MCP tool dispatched', [
                 'server' => $server->slug,
@@ -86,7 +94,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
 
             return $dispatchResult;
         } catch (Throwable $e) {
-            $this->record($server, $agent, $toolName, error: $e->getMessage());
+            $this->record($server, $agent, $toolName, $catalogRow?->description, error: $e->getMessage());
 
             Log::warning('MCP tool dispatch failed', [
                 'server' => $server->slug,
@@ -209,59 +217,23 @@ class McpToolDispatcher implements ToolDispatcherInterface
         return ToolDispatchResult::error('Tool error: '.$message);
     }
 
-    private function record(AgentMcpServer $server, Agent $agent, string $toolName, ?string $error): void
+    /**
+     * Runs inside the SSE stream — inline cost stays at one event dispatch;
+     * the queued listeners do the counter/rollup writes.
+     */
+    private function record(AgentMcpServer $server, Agent $agent, string $toolName, ?string $toolDescription, ?string $error): void
     {
-        $now = now();
-
-        $server->forceFill([
-            'last_invoked_at' => $now,
-            'last_error' => $error,
-            'invocation_count' => $server->invocation_count + 1,
-        ])->save();
-
-        // Per-agent counter on the server pivot — kept as a summary signal
-        // (how often did this agent touch this server in any way) alongside
-        // the per-tool breakdown below.
-        DB::table('agent_mcp_server')
-            ->where('agent_id', $agent->id)
-            ->where('mcp_server_id', $server->id)
-            ->update([
-                'invocation_count' => DB::raw('invocation_count + 1'),
-                'last_invoked_at' => $now,
-            ]);
-
-        // Per-(agent, tool) counter — drives the tool-level breakdown in
-        // the Sources analytics page. INSERT...SELECT silently no-ops when
-        // the LLM called a tool that isn't in our catalog (e.g. catalog
-        // hasn't synced since the server added a new tool), so a stale
-        // catalog can never break the dispatch path.
-        DB::statement(
-            'INSERT INTO agent_mcp_tool (agent_id, mcp_tool_id, invocation_count, last_invoked_at)
-             SELECT ?, mcp_tools.id, 1, ?
-             FROM mcp_tools
-             WHERE mcp_tools.mcp_server_id = ? AND mcp_tools.name = ?
-             ON CONFLICT (agent_id, mcp_tool_id) DO UPDATE
-               SET invocation_count = agent_mcp_tool.invocation_count + 1,
-                   last_invoked_at = EXCLUDED.last_invoked_at',
-            [$agent->id, $now, $server->id, $toolName]
-        );
-
-        // Durable per-day rollup (keyed by server slug + tool name) so usage
-        // insights survive tool/server deletion and catalog re-syncs.
-        $toolDescription = DB::table('mcp_tools')
-            ->where('mcp_server_id', $server->id)
-            ->where('name', $toolName)
-            ->value('description');
-
         McpToolInvoked::dispatch(
             $agent->id,
             (int) $agent->user_id,
+            (int) $server->id,
             (string) $server->slug,
             $toolName,
             $toolDescription,
             (string) $server->name,
             $server->connector_slug,
-            $now,
+            $error,
+            now(),
         );
     }
 

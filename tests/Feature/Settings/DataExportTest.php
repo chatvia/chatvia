@@ -13,7 +13,7 @@ beforeEach(function (): void {
 
 it('renders the data-export page for the authenticated user', function (): void {
     $this->actingAs($this->user)
-        ->get(route('settings.data-export.edit'))
+        ->get(route('account.data-export.edit'))
         ->assertOk();
 });
 
@@ -21,7 +21,7 @@ it('queues a new export when the user requests one', function (): void {
     Queue::fake();
 
     $this->actingAs($this->user)
-        ->post(route('settings.data-export.store'))
+        ->post(route('account.data-export.store'))
         ->assertRedirect();
 
     $row = DataExport::where('user_id', $this->user->id)->sole();
@@ -40,9 +40,9 @@ it('refuses a second concurrent request', function (): void {
     ]);
 
     $this->actingAs($this->user)
-        ->from(route('settings.data-export.edit'))
-        ->post(route('settings.data-export.store'))
-        ->assertRedirect(route('settings.data-export.edit'))
+        ->from(route('account.data-export.edit'))
+        ->post(route('account.data-export.store'))
+        ->assertRedirect(route('account.data-export.edit'))
         ->assertSessionHasErrors('data_export');
 });
 
@@ -60,7 +60,7 @@ it('lets the owner download a ready export', function (): void {
     ]);
 
     $this->actingAs($this->user)
-        ->get(route('settings.data-export.download', $export))
+        ->get(route('account.data-export.download', $export))
         ->assertOk();
 });
 
@@ -79,7 +79,7 @@ it('forbids another user from downloading an export', function (): void {
     ]);
 
     $this->actingAs($this->user)
-        ->get(route('settings.data-export.download', $export))
+        ->get(route('account.data-export.download', $export))
         ->assertForbidden();
 });
 
@@ -97,7 +97,7 @@ it('refuses to download an expired export', function (): void {
     ]);
 
     $this->actingAs($this->user)
-        ->get(route('settings.data-export.download', $export))
+        ->get(route('account.data-export.download', $export))
         ->assertForbidden();
 });
 
@@ -109,6 +109,6 @@ it('refuses to download an export that is not ready yet', function (): void {
     ]);
 
     $this->actingAs($this->user)
-        ->get(route('settings.data-export.download', $export))
+        ->get(route('account.data-export.download', $export))
         ->assertForbidden();
 });

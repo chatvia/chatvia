@@ -35,11 +35,11 @@ it('creates a Session + Conversation + mapping on first contact', function (): v
         ->and($chat->chat_id)->toBe('555')
         ->and($chat->first_name)->toBe('Sam')
         ->and($chat->username)->toBe('sam_t')
-        ->and($chat->session_external_id)->not->toBeNull()
-        ->and($chat->conversation_external_id)->not->toBeNull();
+        ->and($chat->chat_session_id)->not->toBeNull()
+        ->and($chat->chat_conversation_id)->not->toBeNull();
 
     // The Session is real and belongs to the agent, with no chatter user.
-    $session = Session::query()->where('external_id', $chat->session_external_id)->firstOrFail();
+    $session = $chat->session;
     expect($session->agent_id)->toBe($bot->agent_id)
         ->and($session->user_id)->toBeNull()
         ->and($session->name)->toBe('Sam');
@@ -64,7 +64,7 @@ it('keeps separate conversations for different chats', function (): void {
     $b = $resolver->resolve($bot, 200);
 
     expect($a->id)->not->toBe($b->id)
-        ->and($a->conversation_external_id)->not->toBe($b->conversation_external_id);
+        ->and($a->chat_conversation_id)->not->toBe($b->chat_conversation_id);
     expect(TelegramChat::query()->count())->toBe(2);
 });
 
@@ -74,7 +74,7 @@ it('tags the conversation as a Telegram conversation', function (): void {
     $chat = app(TelegramChatResolver::class)->resolve($bot, 777, ['first_name' => 'Lee']);
 
     $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $chat->conversation_external_id,
+        'external_id' => $chat->conversation->external_id,
         'source' => ConversationSource::Telegram->value,
     ]);
 });

@@ -53,6 +53,7 @@ class UserFactory extends Factory
             'deactivation_reason' => null,
             'deactivated_at' => null,
             'last_login_at' => null,
+            'locale' => null,
         ];
     }
 

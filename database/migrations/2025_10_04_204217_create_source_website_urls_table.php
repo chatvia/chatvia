@@ -3,6 +3,7 @@
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -25,6 +26,9 @@ return new class extends Migration
 
             $table->index(['source_website_id', 'status']);
         });
+
+        // trgm: serves the crawled-URL search's unanchored ILIKE.
+        DB::statement('CREATE INDEX source_website_urls_url_trgm_idx ON source_website_urls USING gin (url gin_trgm_ops)');
     }
 
     public function down(): void

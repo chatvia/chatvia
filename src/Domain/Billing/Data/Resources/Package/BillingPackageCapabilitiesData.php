@@ -23,6 +23,10 @@ class BillingPackageCapabilitiesData extends Data
         public bool $api = false,
         public bool $pulse = false,
         public bool $removeBranding = false,
+        // The Enterprise Security & Compliance suite (RBAC gating, security
+        // audit log, Compliance API, IP allowlisting, configurable retention,
+        // SCIM). Single umbrella flag — Enterprise tier only.
+        public bool $security = false,
         // Days a conversation (and its cached memory) lives before the
         // scheduled prune deletes it. Set per plan in the factory methods
         // below; ChatCache reads it for the Redis TTL and the conversation
@@ -77,6 +81,7 @@ class BillingPackageCapabilitiesData extends Data
             api: true,
             pulse: true,
             removeBranding: true,
+            security: true,
             retentionDays: 366,
         );
     }
@@ -108,6 +113,7 @@ class BillingPackageCapabilitiesData extends Data
             api: $capabilities['api'] ?? false,
             pulse: $capabilities['pulse'] ?? false,
             removeBranding: $capabilities['removeBranding'] ?? false,
+            security: $capabilities['security'] ?? false,
             retentionDays: $capabilities['retentionDays'] ?? self::DEFAULT_RETENTION_DAYS,
         );
     }

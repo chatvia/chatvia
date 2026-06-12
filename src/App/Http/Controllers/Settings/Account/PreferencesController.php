@@ -20,9 +20,19 @@ class PreferencesController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $user->update([
+        $attributes = [
             'date_format' => $request->enum('date_format', DateFormat::class),
-        ]);
+        ];
+
+        // Only touch the locale when the form actually carries it — the Date &
+        // time form omits it, so an unconditional write would wipe the user's
+        // language. `auto` is normalised to null (follow the request locale).
+        if ($request->has('locale')) {
+            $locale = $request->input('locale');
+            $attributes['locale'] = $locale === 'auto' ? null : $locale;
+        }
+
+        $user->update($attributes);
 
         return back();
     }

@@ -5,6 +5,7 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import axios from 'axios';
 import { Mic, Upload } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import Files from './Files.vue';
 
@@ -21,6 +22,7 @@ interface UsageData {
 }
 
 const props = defineProps<Props>();
+const { t } = useI18n();
 const filesRef = ref<InstanceType<typeof Files> | null>(null);
 const activeTab = ref('upload');
 const isUploading = ref(false);
@@ -64,8 +66,8 @@ const handleRecorded = async (data: { blob: Blob; name: string; duration: number
             },
         });
 
-        toast.success('Recording uploaded successfully!', {
-            description: `"${data.name}" has been added to your audio sources.`,
+        toast.success(t('agents.sources.audio.recording_uploaded'), {
+            description: t('agents.sources.audio.recording_uploaded_description', { name: data.name }),
         });
 
         // Refresh the files list and usage data
@@ -78,8 +80,8 @@ const handleRecorded = async (data: { blob: Blob; name: string; duration: number
         activeTab.value = 'upload';
     } catch (error: any) {
         console.error('Error uploading recording:', error);
-        const errorMessage = error.response?.data?.message || error.message || 'Failed to upload recording';
-        toast.error('Upload failed', {
+        const errorMessage = error.response?.data?.message || error.message || t('agents.sources.audio.upload_failed_fallback');
+        toast.error(t('agents.sources.audio.upload_failed'), {
             description: errorMessage,
         });
     } finally {
@@ -89,18 +91,18 @@ const handleRecorded = async (data: { blob: Blob; name: string; duration: number
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Audio">
+    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.audio')">
         <div class="flex justify-center">
             <div class="w-full max-w-6xl space-y-6">
                 <Tabs v-model="activeTab" class="w-full">
                     <TabsList class="grid w-full grid-cols-2">
                         <TabsTrigger value="upload" class="flex items-center gap-2">
                             <Upload class="h-4 w-4" />
-                            Upload Files
+                            {{ t('agents.sources.audio.upload_files') }}
                         </TabsTrigger>
                         <TabsTrigger value="record" class="flex items-center gap-2">
                             <Mic class="h-4 w-4" />
-                            Record Voice
+                            {{ t('agents.sources.audio.record_voice') }}
                         </TabsTrigger>
                     </TabsList>
 
@@ -110,8 +112,8 @@ const handleRecorded = async (data: { blob: Blob; name: string; duration: number
 
                     <TabsContent value="record" class="mt-6">
                         <VoiceRecorder
-                            title="Record Voice Note"
-                            description="Record audio directly from your microphone to add to your agent's knowledge base"
+                            :title="t('agents.sources.audio.record_voice_note')"
+                            :description="t('agents.sources.audio.record_description')"
                             :max-duration="maxRecordingDuration"
                             :disabled="isUploading || maxRecordingDuration <= 0"
                             @recorded="handleRecorded"

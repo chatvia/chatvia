@@ -17,11 +17,13 @@ class McpToolInvoked
     public function __construct(
         public readonly int $agentId,
         public readonly int $workspaceId,
+        public readonly int $serverId,
         public readonly string $serverSlug,
         public readonly string $toolName,
         public readonly ?string $toolDescription,
         public readonly string $serverName,
         public readonly ?string $connectorSlug,
+        public readonly ?string $error,
         public readonly DateTimeInterface $occurredAt,
     ) {}
 }

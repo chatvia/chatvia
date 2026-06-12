@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Actions\Account\UpdatePasswordAction;
 use App\Identity\Workspace\Data\Account\UpdatePasswordData;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\PasswordSetup;
 use Illuminate\Support\Facades\Hash;
 
 it('hashes and stores the new password', function (): void {
@@ -28,4 +29,16 @@ it('does not store the new password in plain text', function (): void {
     ));
 
     expect($user->fresh()->password)->not->toBe('plain-text-secret');
+});
+
+it('clears the first-time password-setup flag', function (): void {
+    $user = User::factory()->create();
+    app(PasswordSetup::class)->flag($user);
+
+    app(UpdatePasswordAction::class)->execute(new UpdatePasswordData(
+        user: $user,
+        password: 'new-password',
+    ));
+
+    expect(app(PasswordSetup::class)->isRequired($user))->toBeFalse();
 });

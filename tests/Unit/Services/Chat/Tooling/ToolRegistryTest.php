@@ -24,7 +24,7 @@ class ToolRegistryTest extends TestCase
 
         $entry = new ToolEntry(
             kind: 'mcp',
-            sourceId: 1,
+            sourceId: 'mcp_tool:1',
             name: 'get_weather',
             description: 'desc',
             parameters: ['type' => 'object'],

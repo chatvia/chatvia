@@ -4,7 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Copy } from 'lucide-vue-next';
 import type { Component } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
+
+const { t } = useI18n();
 
 const props = defineProps<{
     id: string;
@@ -16,7 +19,7 @@ const props = defineProps<{
 const copy = async () => {
     if (!props.value) return;
     await navigator.clipboard.writeText(props.value);
-    toast.success(`${props.label} copied`);
+    toast.success(t('agents.channels.copy_field.copied', { label: props.label }));
 };
 </script>
 
@@ -37,7 +40,7 @@ const copy = async () => {
                     data-form-type="other"
                 />
             </div>
-            <Button variant="outline" size="icon" class="shrink-0" :aria-label="`Copy ${label}`" @click="copy">
+            <Button variant="outline" size="icon" class="shrink-0" :aria-label="t('agents.channels.copy_field.copy_label', { label })" @click="copy">
                 <Copy class="size-4" />
             </Button>
         </div>

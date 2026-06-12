@@ -56,9 +56,9 @@ return new class extends Migration
 
         DB::statement('CREATE INDEX chunks_metadata_gin_idx ON chunks USING GIN (metadata)');
 
-        // Aggressive autoanalyze replaces the app-driven `ANALYZE chunks`
-        // that used to run after every ingestion batch: the threshold floor
-        // makes small-table deployments analyze promptly too.
+        // Aggressive autoanalyze so the vchordrq prefilter sees fresh
+        // reltuples after ingestion bursts; the threshold floor covers
+        // small/new deployments.
         DB::statement(<<<'SQL'
 ALTER TABLE chunks SET (
     autovacuum_analyze_scale_factor = 0.01,

@@ -3,11 +3,13 @@
 namespace Domain\Conversation\Services;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Billing\Services\ChatterMessageAllowance;
 use Domain\Billing\Services\UserCreditSystem;
 use Domain\Conversation\Actions\Handoff\SendVisitorHandoffMessageAction;
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
+use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\Data\StreamRequestData;
@@ -23,6 +25,7 @@ use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\SseStreamer;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Llm\Usage\TokenUsageContext;
+use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 readonly class ChatStreamService
@@ -162,6 +165,19 @@ readonly class ChatStreamService
             );
         }
 
+        // 2c. Per-agent chat rate limit — owner-configurable on the Security
+        // page. Caps answered messages per minute across all visitors before
+        // any LLM work; over the cap we return a retryable error and (when the
+        // owner opted in) alert them by email via AgentRateLimitExceeded.
+        if ($this->agentRateLimitExceeded($data->agent)) {
+            return $this->streamer->respond(
+                $this->errorSource->events(
+                    ErrorCode::RateLimited,
+                    'This agent is receiving too many messages right now. Please try again in a moment.',
+                )
+            );
+        }
+
         // 3. Build context + knowledge. The query rewrite, query embedding, and
         // reranking done here all consume tokens — attribute them to the workspace
         // for analytics. (The streamed reply itself reports usage out-of-band and
@@ -237,5 +253,35 @@ readonly class ChatStreamService
         // Cached yes/no gate (mirrors the owner's UserCreditSystem) — a cache hit
         // costs zero DB queries; the user is only loaded on a miss.
         return ! $this->chatterAllowance->canSendMessagesById($chatterUserId);
+    }
+
+    /**
+     * Per-agent sliding 60-second message cap (the `security` settings group).
+     * Counts every accepted message toward the agent's bucket; when the bucket
+     * is full the turn is refused and, if the owner opted in, an alert event is
+     * dispatched. A limit of 0 disables the cap.
+     */
+    private function agentRateLimitExceeded(Agent $agent): bool
+    {
+        $security = $agent->settings('security');
+        $limit = (int) $security->get('chat_rate_limit_per_minute', 20);
+
+        if ($limit <= 0) {
+            return false;
+        }
+
+        $key = 'agent-chat-rate:'.$agent->id;
+
+        if (RateLimiter::tooManyAttempts($key, $limit)) {
+            if ((bool) $security->get('notify_owner_on_rate_limit', false)) {
+                AgentRateLimitExceeded::dispatch($agent, $limit);
+            }
+
+            return true;
+        }
+
+        RateLimiter::hit($key, 60);
+
+        return false;
     }
 }

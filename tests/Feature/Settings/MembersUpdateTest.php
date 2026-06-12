@@ -12,7 +12,7 @@ beforeEach(function (): void {
 
 it('sets a chatter monthly message limit and returns the refreshed row', function (): void {
     $this->actingAs($this->owner)
-        ->patchJson(route('settings.members.update', ['chatter' => $this->chatter->external_id]), [
+        ->patchJson(route('people.members.update', ['chatter' => $this->chatter->external_id]), [
             'messages_limit' => 500,
             'deactivated' => false,
         ])
@@ -26,7 +26,7 @@ it('sets a chatter monthly message limit and returns the refreshed row', functio
 
 it('deactivates a chatter with a reason', function (): void {
     $this->actingAs($this->owner)
-        ->patchJson(route('settings.members.update', ['chatter' => $this->chatter->external_id]), [
+        ->patchJson(route('people.members.update', ['chatter' => $this->chatter->external_id]), [
             'messages_limit' => null,
             'deactivated' => true,
             'deactivation_reason' => 'Abuse',
@@ -42,12 +42,12 @@ it('clears the limit when messages_limit is null', function (): void {
     $owner = $this->owner;
     $chatter = $this->chatter;
 
-    $this->actingAs($owner)->patchJson(route('settings.members.update', ['chatter' => $chatter->external_id]), [
+    $this->actingAs($owner)->patchJson(route('people.members.update', ['chatter' => $chatter->external_id]), [
         'messages_limit' => 100,
         'deactivated' => false,
     ])->assertOk();
 
-    $this->actingAs($owner)->patchJson(route('settings.members.update', ['chatter' => $chatter->external_id]), [
+    $this->actingAs($owner)->patchJson(route('people.members.update', ['chatter' => $chatter->external_id]), [
         'messages_limit' => null,
         'deactivated' => false,
     ])->assertOk()->assertJsonPath('messages_limit', null);
@@ -61,7 +61,7 @@ it('404s for a chatter outside the workspace', function (): void {
     $foreign = User::factory()->chatter($otherOwner)->create();
 
     $this->actingAs($this->owner)
-        ->patchJson(route('settings.members.update', ['chatter' => $foreign->external_id]), [
+        ->patchJson(route('people.members.update', ['chatter' => $foreign->external_id]), [
             'messages_limit' => 10,
             'deactivated' => false,
         ])
@@ -70,7 +70,7 @@ it('404s for a chatter outside the workspace', function (): void {
 
 it('validates the message limit is a positive integer', function (): void {
     $this->actingAs($this->owner)
-        ->patchJson(route('settings.members.update', ['chatter' => $this->chatter->external_id]), [
+        ->patchJson(route('people.members.update', ['chatter' => $this->chatter->external_id]), [
             'messages_limit' => 0,
             'deactivated' => false,
         ])

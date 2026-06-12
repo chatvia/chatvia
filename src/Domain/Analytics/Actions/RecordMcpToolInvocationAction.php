@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Upserts the per-day MCP-tool-invocation rollup. Durable counterpart to the
- * live `agent_mcp_tool.invocation_count` pivot: keyed by (server slug, tool
+ * live `mcp_server_tool.invocation_count` counter: keyed by (server slug, tool
  * name) with no FK, so a tool that's since been deleted or re-synced still
  * shows in usage insights, with labels captured at invocation time.
  */

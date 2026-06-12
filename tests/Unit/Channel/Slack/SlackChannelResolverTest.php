@@ -44,11 +44,11 @@ it('creates a Session + Conversation + mapping on first contact', function (): v
     expect($channel->agent_slack_app_id)->toBe($app->id)
         ->and($channel->channel_id)->toBe('C123CHAN')
         ->and($channel->channel_name)->toBe('support')
-        ->and($channel->session_external_id)->not->toBeNull()
-        ->and($channel->conversation_external_id)->not->toBeNull();
+        ->and($channel->chat_session_id)->not->toBeNull()
+        ->and($channel->chat_conversation_id)->not->toBeNull();
 
     // The Session is real and belongs to the agent, with no chatter user.
-    $session = Session::query()->where('external_id', $channel->session_external_id)->firstOrFail();
+    $session = $channel->session;
     expect($session->agent_id)->toBe($app->agent_id)
         ->and($session->user_id)->toBeNull()
         ->and($session->name)->toBe('#support');
@@ -73,7 +73,7 @@ it('keeps separate conversations for different channels', function (): void {
     $b = $resolver->resolve($app, 'D200');
 
     expect($a->id)->not->toBe($b->id)
-        ->and($a->conversation_external_id)->not->toBe($b->conversation_external_id);
+        ->and($a->chat_conversation_id)->not->toBe($b->chat_conversation_id);
     expect(SlackChannel::query()->count())->toBe(2);
 });
 
@@ -83,7 +83,7 @@ it('tags the conversation as a Slack conversation', function (): void {
     $channel = slackResolver(new FakeSlackClient)->resolve($app, 'C123CHAN');
 
     $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $channel->conversation_external_id,
+        'external_id' => $channel->conversation->external_id,
         'source' => ConversationSource::Slack->value,
     ]);
 });

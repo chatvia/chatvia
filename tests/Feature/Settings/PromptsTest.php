@@ -23,7 +23,7 @@ function makePrompt(User $user, array $overrides = []): AgentPrompt
 
 it('creates a prompt', function (): void {
     $this->actingAs($this->user)
-        ->post(route('settings.prompts.store'), [
+        ->post(route('library.prompts.store'), [
             'name' => 'Sales persona',
             'prompt' => 'You are a persuasive sales agent.',
         ])
@@ -34,7 +34,7 @@ it('creates a prompt', function (): void {
 
 it('validates required fields on create', function (): void {
     $this->actingAs($this->user)
-        ->post(route('settings.prompts.store'), ['name' => '', 'prompt' => ''])
+        ->post(route('library.prompts.store'), ['name' => '', 'prompt' => ''])
         ->assertSessionHasErrors(['name', 'prompt']);
 });
 
@@ -42,7 +42,7 @@ it('rejects a duplicate name on create', function (): void {
     makePrompt($this->user, ['name' => 'Taken']);
 
     $this->actingAs($this->user)
-        ->post(route('settings.prompts.store'), ['name' => 'Taken', 'prompt' => 'x'])
+        ->post(route('library.prompts.store'), ['name' => 'Taken', 'prompt' => 'x'])
         ->assertSessionHasErrors('name');
 });
 
@@ -50,7 +50,7 @@ it('updates a prompt', function (): void {
     $prompt = makePrompt($this->user);
 
     $this->actingAs($this->user)
-        ->patch(route('settings.prompts.update', ['external_id' => $prompt->external_id]), [
+        ->patch(route('library.prompts.update', ['external_id' => $prompt->external_id]), [
             'name' => 'Renamed',
             'prompt' => 'New body',
         ])
@@ -66,7 +66,7 @@ it('cannot update a prompt owned by another user', function (): void {
     $prompt = makePrompt($other);
 
     $this->actingAs($this->user)
-        ->patch(route('settings.prompts.update', ['external_id' => $prompt->external_id]), [
+        ->patch(route('library.prompts.update', ['external_id' => $prompt->external_id]), [
             'name' => 'Hijack',
             'prompt' => 'x',
         ])
@@ -88,7 +88,7 @@ it('deletes a prompt and detaches it from agents', function (): void {
     ]);
 
     $this->actingAs($this->user)
-        ->delete(route('settings.prompts.destroy', ['external_id' => $prompt->external_id]))
+        ->delete(route('library.prompts.destroy', ['external_id' => $prompt->external_id]))
         ->assertRedirect();
 
     expect(AgentPrompt::whereKey($prompt->id)->exists())->toBeFalse();

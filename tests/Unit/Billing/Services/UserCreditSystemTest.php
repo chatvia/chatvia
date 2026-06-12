@@ -238,6 +238,53 @@ it('trusts the cached gate even when it disagrees with live availability, until 
         ->and($system->canSendMessages())->toBeFalse();
 });
 
+// --- sent-messages counter: cache-first with a DB fallback -------------------
+//
+// The counter is incremented in lockstep with user_usages.messages by
+// ConsumeMessageCreditsAction; the DB row is the rebuild source when the cache
+// key is lost mid-cycle (flush/expiry).
+
+it('getTotalSentMessages falls back to the DB usage row on a cache miss and re-caches it', function (): void {
+    $user = User::factory()->create();
+
+    $credit = UserCredit::factory()->create([
+        'user_id' => $user->id,
+        'messages' => 100,
+        'started_at' => now()->subDays(5),
+        'ends_at' => now()->addDays(25),
+    ]);
+    $credit->usage()->create(['messages' => 30]);
+
+    // Cache is empty (flushed in beforeEach) — without the DB fallback this
+    // showed 0 sent on the usage dashboard until the next billing cycle.
+    expect($user->creditSystem()->getTotalSentMessages())->toBe(30)
+        ->and(Cache::get('user:'.$user->id.':credit:messages:sent'))->toBe(30);
+});
+
+it('getTotalSentMessages prefers the cached counter over the DB row', function (): void {
+    $user = User::factory()->create();
+
+    $credit = UserCredit::factory()->create([
+        'user_id' => $user->id,
+        'messages' => 100,
+        'started_at' => now()->subDays(5),
+        'ends_at' => now()->addDays(25),
+    ]);
+    $credit->usage()->create(['messages' => 30]);
+
+    // Steady state: consumption jobs increment the cache directly; reads must
+    // not bypass it for a DB query.
+    Cache::put('user:'.$user->id.':credit:messages:sent', 7, now()->addDay());
+
+    expect($user->creditSystem()->getTotalSentMessages())->toBe(7);
+});
+
+it('getTotalSentMessages returns 0 when there is no active credit', function (): void {
+    $user = User::factory()->create();
+
+    expect($user->creditSystem()->getTotalSentMessages())->toBe(0);
+});
+
 // --- tokens: ANALYTICS-only accumulator (tokens never gate or bill) ----------
 
 it('recordTokenUsage accumulates consumed tokens on the usage row (analytics only)', function (): void {

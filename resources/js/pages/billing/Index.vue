@@ -28,11 +28,14 @@ import {
     Zap,
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AddonsSection from './components/AddonsSection.vue';
+
+const { t } = useI18n();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Billing',
+        title: t('billing.common.billing'),
         href: route('billing.index'),
     },
 ];
@@ -111,14 +114,14 @@ onMounted(() => {
 });
 
 const formatDate = (timestamp: number | string | null | undefined) => {
-    if (!timestamp || timestamp === 0) return 'N/A';
+    if (!timestamp || timestamp === 0) return t('billing.common.not_available');
 
     let ts: number;
 
     // Convert to number if it's a string
     if (typeof timestamp === 'string') {
         ts = parseInt(timestamp);
-        if (isNaN(ts)) return 'N/A';
+        if (isNaN(ts)) return t('billing.common.not_available');
     } else {
         ts = timestamp;
     }
@@ -127,7 +130,7 @@ const formatDate = (timestamp: number | string | null | undefined) => {
     const date = new Date(ts > 1000000000000 ? ts : ts * 1000);
 
     // Check if date is valid
-    if (isNaN(date.getTime())) return 'N/A';
+    if (isNaN(date.getTime())) return t('billing.common.not_available');
 
     return date.toDateString();
 };
@@ -149,15 +152,15 @@ const getStatusBadgeVariant = (status: string) => {
 const getStatusLabel = (status: string) => {
     switch (status) {
         case 'active':
-            return 'Active';
+            return t('billing.index.status.active');
         case 'trialing':
-            return 'Trial';
+            return t('billing.index.status.trial');
         case 'canceled':
-            return 'Cancelled';
+            return t('billing.index.status.cancelled');
         case 'incomplete':
-            return 'Incomplete';
+            return t('billing.index.status.incomplete');
         case 'past_due':
-            return 'Past Due';
+            return t('billing.index.status.past_due');
         default:
             return status;
     }
@@ -212,17 +215,17 @@ const cancelScheduledPlanChange = () => {
 </script>
 
 <template>
-    <AppLayout title="Billing" :breadcrumbs="breadcrumbs">
-        <Head title="Billing" />
+    <AppLayout :title="t('billing.index.page_title')" :breadcrumbs="breadcrumbs">
+        <Head :title="t('billing.index.page_title')" />
 
         <div class="mx-auto w-full max-w-6xl px-4 py-8">
             <div class="space-y-8">
                 <!-- Header -->
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
                     <div>
-                        <h1 class="flex items-center gap-3 text-2xl font-bold tracking-tight sm:text-3xl">Billing</h1>
+                        <h1 class="flex items-center gap-3 text-2xl font-bold tracking-tight sm:text-3xl">{{ t('billing.index.heading') }}</h1>
                         <p class="text-muted-foreground mt-2 flex items-center gap-2 text-sm sm:text-base">
-                            Manage your subscription, billing information, and usage limits
+                            {{ t('billing.index.subheading') }}
                         </p>
                     </div>
                 </div>
@@ -233,7 +236,7 @@ const cancelScheduledPlanChange = () => {
                 >
                     <div class="text-muted-foreground flex items-center gap-2 text-sm">
                         <CreditCard class="h-4 w-4" />
-                        <span>Payments securely processed by</span>
+                        <span>{{ t('billing.index.stripe_notice') }}</span>
                         <span class="font-semibold text-[#635BFF]">Stripe</span>
                     </div>
                 </div>
@@ -264,20 +267,20 @@ const cancelScheduledPlanChange = () => {
                                             <h3
                                                 class="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text font-semibold text-transparent dark:from-emerald-400 dark:to-teal-400"
                                             >
-                                                🎉 You're on a Free Trial!
+                                                {{ t('billing.index.trial.heading') }}
                                             </h3>
                                             <p class="mt-1 text-sm text-emerald-600/70 dark:text-emerald-300/70">
-                                                Your {{ billingData.current_package.name }} trial ends on
+                                                {{ t('billing.index.trial.ends_on', { plan: billingData.current_package.name }) }}
                                                 <span class="font-semibold">{{ billingData.trial_ends_at }}</span>
                                             </p>
                                             <p class="mt-1 text-sm text-emerald-600/70 dark:text-emerald-300/70">
-                                                Your paid subscription will start automatically on {{ billingData.trial_ends_at }}
+                                                {{ t('billing.index.trial.auto_start', { date: billingData.trial_ends_at }) }}
                                             </p>
                                         </div>
                                     </div>
                                     <div class="flex flex-col gap-2">
                                         <Badge variant="outline" class="w-fit border-emerald-500 text-emerald-700 dark:text-emerald-300">
-                                            Trial Active
+                                            {{ t('billing.index.trial.badge') }}
                                         </Badge>
                                     </div>
                                 </div>
@@ -308,10 +311,10 @@ const cancelScheduledPlanChange = () => {
                                             <h3
                                                 class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text font-semibold text-transparent dark:from-indigo-400 dark:to-purple-400"
                                             >
-                                                Upgrade to Premium
+                                                {{ t('billing.index.upgrade.heading') }}
                                             </h3>
                                             <p class="text-sm text-indigo-600/70 dark:text-indigo-300/70">
-                                                Access advanced AI models, higher message limits & priority support
+                                                {{ t('billing.index.upgrade.description') }}
                                             </p>
                                         </div>
                                     </div>
@@ -322,7 +325,7 @@ const cancelScheduledPlanChange = () => {
                                     >
                                         <Link :href="route('billing.packages')">
                                             <Star class="h-4 w-4" />
-                                            View Plans
+                                            {{ t('billing.common.view_plans') }}
                                         </Link>
                                     </Button>
                                 </div>
@@ -337,9 +340,9 @@ const cancelScheduledPlanChange = () => {
                                 <CardHeader>
                                     <CardTitle class="flex items-center gap-3">
                                         <Package class="text-primary h-6 w-6" />
-                                        Current Plan
+                                        {{ t('billing.index.current_plan.title') }}
                                     </CardTitle>
-                                    <CardDescription> Your active subscription plan and usage details </CardDescription>
+                                    <CardDescription>{{ t('billing.index.current_plan.description') }}</CardDescription>
                                 </CardHeader>
                                 <CardContent class="space-y-6">
                                     <!-- Pending Plan Change Notice -->
@@ -350,33 +353,32 @@ const cancelScheduledPlanChange = () => {
                                         <div class="flex items-start gap-3">
                                             <Calendar class="mt-0.5 h-5 w-5 text-blue-500" />
                                             <div>
-                                                <h4 class="font-medium text-blue-800 dark:text-blue-200">Plan Change Scheduled</h4>
+                                                <h4 class="font-medium text-blue-800 dark:text-blue-200">{{ t('billing.index.pending_change.heading') }}</h4>
                                                 <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
                                                     <template
                                                         v-if="
                                                             billingData.pending_plan_change.from_package && billingData.pending_plan_change.to_package
                                                         "
                                                     >
-                                                        Your plan will change from
-                                                        <span class="font-medium">{{ billingData.pending_plan_change.from_package }}</span> to
+                                                        {{ t('billing.index.pending_change.change_from') }}
+                                                        <span class="font-medium">{{ billingData.pending_plan_change.from_package }}</span> {{ t('billing.index.pending_change.to') }}
                                                         <span class="font-medium">{{ billingData.pending_plan_change.to_package }}</span>
-                                                        {{ billingData.pending_plan_change.is_yearly ? ' (Yearly)' : ' (Monthly)' }}
-                                                        on {{ formatDate(billingData.pending_plan_change.effective_date) }}.
+                                                        {{ billingData.pending_plan_change.is_yearly ? t('billing.index.pending_change.cycle_yearly') : t('billing.index.pending_change.cycle_monthly') }}
+                                                        {{ t('billing.index.pending_change.on_date', { date: formatDate(billingData.pending_plan_change.effective_date) }) }}
                                                     </template>
                                                     <template v-else>
-                                                        You have a plan change scheduled for
-                                                        {{ formatDate(billingData.pending_plan_change.effective_date) }}.
+                                                        {{ t('billing.index.pending_change.scheduled_for', { date: formatDate(billingData.pending_plan_change.effective_date) }) }}
                                                     </template>
                                                 </p>
                                                 <p class="mt-2 text-xs text-blue-600 dark:text-blue-400">
-                                                    You'll continue to have access to your current plan features until then.
+                                                    {{ t('billing.index.pending_change.access_note') }}
                                                 </p>
                                                 <div class="mt-3">
                                                     <ConfirmationDialog
-                                                        title="Cancel Scheduled Plan Change"
-                                                        description="Are you sure you want to cancel your scheduled plan change? You will remain on your current plan."
-                                                        confirm-text="Yes, Cancel Schedule"
-                                                        cancel-text="Keep Schedule"
+                                                        :title="t('billing.index.pending_change.cancel_dialog.title')"
+                                                        :description="t('billing.index.pending_change.cancel_dialog.description')"
+                                                        :confirm-text="t('billing.index.pending_change.cancel_dialog.confirm')"
+                                                        :cancel-text="t('billing.index.pending_change.cancel_dialog.cancel')"
                                                         @confirm="cancelScheduledPlanChange"
                                                     >
                                                         <template #trigger>
@@ -387,7 +389,7 @@ const cancelScheduledPlanChange = () => {
                                                                 class="gap-2"
                                                             >
                                                                 <Trash2 class="h-4 w-4" />
-                                                                Cancel Schedule
+                                                                {{ t('billing.index.pending_change.cancel_schedule') }}
                                                             </Button>
                                                         </template>
                                                     </ConfirmationDialog>
@@ -406,7 +408,7 @@ const cancelScheduledPlanChange = () => {
                                                 <p class="text-muted-foreground">{{ billingData.current_package.description }}</p>
                                             </div>
                                         </div>
-                                        <div class="text-right">
+                                        <div class="text-end">
                                             <div class="text-2xl font-bold">
                                                 {{
                                                     isYearly
@@ -414,7 +416,7 @@ const cancelScheduledPlanChange = () => {
                                                         : billingData.current_package.monthly_price_formatted
                                                 }}
 
-                                                <span class="text-muted-foreground text-sm font-normal"> /{{ isYearly ? 'Year' : 'Month' }}</span>
+                                                <span class="text-muted-foreground text-sm font-normal"> /{{ isYearly ? t('billing.index.per_year') : t('billing.index.per_month') }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -427,7 +429,7 @@ const cancelScheduledPlanChange = () => {
                                             <div class="flex items-center gap-3">
                                                 <CheckCircle v-if="billingData.subscribed" class="h-5 w-5 text-green-500" />
                                                 <AlertTriangle v-else class="h-5 w-5 text-orange-500" />
-                                                <span class="font-medium">Status</span>
+                                                <span class="font-medium">{{ t('billing.index.status_label') }}</span>
                                             </div>
                                             <Badge :variant="getStatusBadgeVariant(billingData.subscription?.stripe_status || 'trialing')">
                                                 {{ getStatusLabel(billingData.subscription?.stripe_status || 'trialing') }}
@@ -438,7 +440,7 @@ const cancelScheduledPlanChange = () => {
                                         <div v-if="billingData.on_trial && billingData.trial_ends_at" class="flex items-center justify-between">
                                             <div class="flex items-center gap-3">
                                                 <Clock class="h-5 w-5 text-blue-500" />
-                                                <span class="font-medium">Trial Ends</span>
+                                                <span class="font-medium">{{ t('billing.index.trial_ends') }}</span>
                                             </div>
                                             <span class="text-sm">
                                                 {{ billingData.trial_ends_at }}
@@ -450,7 +452,7 @@ const cancelScheduledPlanChange = () => {
                                             <div class="flex items-center gap-3">
                                                 <Calendar class="h-5 w-5 text-blue-500" />
                                                 <span class="font-medium">
-                                                    {{ billingData.subscription_canceled ? 'Access Ends' : 'Next Billing' }}
+                                                    {{ billingData.subscription_canceled ? t('billing.index.access_ends') : t('billing.index.next_billing') }}
                                                 </span>
                                             </div>
                                             <span class="text-sm">
@@ -466,13 +468,12 @@ const cancelScheduledPlanChange = () => {
                                             <div class="flex items-start gap-3">
                                                 <AlertTriangle class="mt-0.5 h-5 w-5 text-orange-500" />
                                                 <div>
-                                                    <p class="font-medium text-orange-800 dark:text-orange-200">Subscription Cancelled</p>
+                                                    <p class="font-medium text-orange-800 dark:text-orange-200">{{ t('billing.index.cancelled.title') }}</p>
                                                     <p class="mt-1 text-sm text-orange-700 dark:text-orange-300">
-                                                        Your subscription will end on {{ formatDate(billingData.subscription.ends_at) }}. You can
-                                                        resume your subscription at any time before this date.
+                                                        {{ t('billing.index.cancelled.description', { date: formatDate(billingData.subscription.ends_at) }) }}
                                                     </p>
                                                     <Button @click="resumeSubscription" :disabled="resumeForm.processing" size="sm" class="mt-3">
-                                                        Resume Subscription
+                                                        {{ t('billing.index.cancelled.resume') }}
                                                     </Button>
                                                 </div>
                                             </div>
@@ -482,7 +483,7 @@ const cancelScheduledPlanChange = () => {
                                     <!-- Plan Features -->
                                     <div class="space-y-4">
                                         <Separator />
-                                        <h4 class="font-semibold">Plan Features</h4>
+                                        <h4 class="font-semibold">{{ t('billing.index.plan_features') }}</h4>
                                         <div class="grid gap-2">
                                             <div v-for="feature in visibleFeatures" :key="feature" class="flex items-center gap-2">
                                                 <CheckCircle class="h-4 w-4 text-green-500" />
@@ -496,7 +497,7 @@ const cancelScheduledPlanChange = () => {
                                             @click="featuresExpanded = !featuresExpanded"
                                         >
                                             <ChevronDown class="h-3.5 w-3.5 transition-transform" :class="{ 'rotate-180': featuresExpanded }" />
-                                            {{ featuresExpanded ? 'Show less' : `Show ${hiddenFeaturesCount} more` }}
+                                            {{ featuresExpanded ? t('billing.index.show_less') : t('billing.index.show_more', { count: hiddenFeaturesCount }) }}
                                         </button>
                                     </div>
                                 </CardContent>
@@ -509,26 +510,26 @@ const cancelScheduledPlanChange = () => {
                         <div class="space-y-6">
                             <Card v-show="billingData.subscribed || billingData.on_trial">
                                 <CardHeader>
-                                    <CardTitle class="text-lg">Management</CardTitle>
+                                    <CardTitle class="text-lg">{{ t('billing.index.management.title') }}</CardTitle>
                                 </CardHeader>
                                 <CardContent class="space-y-4">
                                     <div class="space-y-3">
                                         <Button variant="outline" class="w-full justify-start gap-2" as-child>
                                             <Link :href="route('billing.payment-methods')">
                                                 <CreditCard class="h-4 w-4" />
-                                                Manage Payment Methods
+                                                {{ t('billing.index.management.manage_payment_methods') }}
                                             </Link>
                                         </Button>
                                         <Button variant="outline" class="w-full justify-start gap-2" as-child>
                                             <Link :href="route('billing.invoices')">
                                                 <Receipt class="h-4 w-4" />
-                                                View Invoices
+                                                {{ t('billing.index.management.view_invoices') }}
                                             </Link>
                                         </Button>
                                         <Button variant="outline" class="w-full justify-start gap-2" as-child>
                                             <a target="_blank" :href="route('billing.portal')">
                                                 <CreditCardIcon class="h-4 w-4" />
-                                                Go to Stripe
+                                                {{ t('billing.index.management.go_to_stripe') }}
                                             </a>
                                         </Button>
                                         <Separator class="my-2" />
@@ -538,22 +539,22 @@ const cancelScheduledPlanChange = () => {
                                         <Button class="w-full justify-start gap-2" as-child>
                                             <Link :href="route('billing.packages')">
                                                 <Package class="h-4 w-4" />
-                                                Change Plan
+                                                {{ t('billing.index.management.change_plan') }}
                                             </Link>
                                         </Button>
 
                                         <ConfirmationDialog
                                             v-if="!billingData.subscription_canceled"
-                                            title="Cancel Subscription"
-                                            description="Are you sure you want to cancel your subscription? You will continue to have access until the end of your billing period."
-                                            confirm-text="Yes, Cancel"
-                                            cancel-text="Keep Subscription"
+                                            :title="t('billing.index.cancel_dialog.title')"
+                                            :description="t('billing.index.cancel_dialog.description')"
+                                            :confirm-text="t('billing.index.cancel_dialog.confirm')"
+                                            :cancel-text="t('billing.index.cancel_dialog.cancel')"
                                             @confirm="cancelSubscription(false)"
                                         >
                                             <template #trigger>
                                                 <Button variant="destructive" :disabled="cancelForm.processing" class="w-full justify-start gap-2">
                                                     <Trash2 class="h-4 w-4" />
-                                                    Cancel Subscription
+                                                    {{ t('billing.index.management.cancel_subscription') }}
                                                 </Button>
                                             </template>
                                         </ConfirmationDialog>
@@ -564,7 +565,7 @@ const cancelScheduledPlanChange = () => {
                             <!-- Usage Stats -->
                             <Card>
                                 <CardHeader>
-                                    <CardTitle class="text-lg">Usage</CardTitle>
+                                    <CardTitle class="text-lg">{{ t('billing.index.usage.title') }}</CardTitle>
                                 </CardHeader>
                                 <CardContent class="space-y-4">
                                     <div v-if="isLoadingUsage" class="flex items-center justify-center py-8">
@@ -577,7 +578,7 @@ const cancelScheduledPlanChange = () => {
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
                                                     <MessageSquare class="h-4 w-4 text-blue-500" />
-                                                    <span class="text-sm font-medium">Messages</span>
+                                                    <span class="text-sm font-medium">{{ t('billing.index.usage.messages') }}</span>
                                                 </div>
                                                 <span class="text-muted-foreground text-sm">
                                                     {{ (usageData.messages.used ?? 0).toLocaleString() }} /
@@ -596,7 +597,7 @@ const cancelScheduledPlanChange = () => {
                                                 ></div>
                                             </div>
                                             <div class="text-muted-foreground text-xs">
-                                                {{ (usageData.messages.remaining ?? 0).toLocaleString() }} remaining
+                                                {{ t('billing.index.usage.remaining', { count: (usageData.messages.remaining ?? 0).toLocaleString() }) }}
                                             </div>
                                         </div>
 
@@ -605,7 +606,7 @@ const cancelScheduledPlanChange = () => {
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
                                                     <FileText class="h-4 w-4 text-green-500" />
-                                                    <span class="text-sm font-medium">Pages</span>
+                                                    <span class="text-sm font-medium">{{ t('billing.index.usage.pages') }}</span>
                                                 </div>
                                                 <span class="text-muted-foreground text-sm">
                                                     {{ (usageData.pages.used ?? 0).toLocaleString() }} /
@@ -622,7 +623,7 @@ const cancelScheduledPlanChange = () => {
                                                 ></div>
                                             </div>
                                             <div class="text-muted-foreground text-xs">
-                                                {{ (usageData.pages.remaining ?? 0).toLocaleString() }} remaining
+                                                {{ t('billing.index.usage.remaining', { count: (usageData.pages.remaining ?? 0).toLocaleString() }) }}
                                             </div>
                                         </div>
 
@@ -631,7 +632,7 @@ const cancelScheduledPlanChange = () => {
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
                                                     <Bot class="h-4 w-4 text-purple-500" />
-                                                    <span class="text-sm font-medium">Agents</span>
+                                                    <span class="text-sm font-medium">{{ t('billing.index.usage.agents') }}</span>
                                                 </div>
                                                 <span class="text-muted-foreground text-sm">
                                                     {{ usageData.agents.used ?? 0 }} / {{ usageData.agents.limit ?? 0 }}
@@ -648,7 +649,7 @@ const cancelScheduledPlanChange = () => {
                                                     }"
                                                 ></div>
                                             </div>
-                                            <div class="text-muted-foreground text-xs">{{ usageData.agents.remaining ?? 0 }} remaining</div>
+                                            <div class="text-muted-foreground text-xs">{{ t('billing.index.usage.remaining', { count: usageData.agents.remaining ?? 0 }) }}</div>
                                         </div>
 
                                         <!-- Links Usage -->
@@ -656,7 +657,7 @@ const cancelScheduledPlanChange = () => {
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
                                                     <Link2 class="h-4 w-4 text-orange-500" />
-                                                    <span class="text-sm font-medium">Links</span>
+                                                    <span class="text-sm font-medium">{{ t('billing.index.usage.links') }}</span>
                                                 </div>
                                                 <span class="text-muted-foreground text-sm">
                                                     {{ (usageData.links.used ?? 0).toLocaleString() }} /
@@ -673,7 +674,7 @@ const cancelScheduledPlanChange = () => {
                                                 ></div>
                                             </div>
                                             <div class="text-muted-foreground text-xs">
-                                                {{ (usageData.links.remaining ?? 0).toLocaleString() }} remaining
+                                                {{ t('billing.index.usage.remaining', { count: (usageData.links.remaining ?? 0).toLocaleString() }) }}
                                             </div>
                                         </div>
 
@@ -682,7 +683,7 @@ const cancelScheduledPlanChange = () => {
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
                                                     <Timer class="h-4 w-4 text-cyan-500" />
-                                                    <span class="text-sm font-medium">Minutes</span>
+                                                    <span class="text-sm font-medium">{{ t('billing.index.usage.minutes') }}</span>
                                                 </div>
                                                 <span class="text-muted-foreground text-sm">
                                                     {{ (usageData.minutes.used ?? 0).toLocaleString() }} /
@@ -701,13 +702,13 @@ const cancelScheduledPlanChange = () => {
                                                 ></div>
                                             </div>
                                             <div class="text-muted-foreground text-xs">
-                                                {{ (usageData.minutes.remaining ?? 0).toLocaleString() }} remaining
+                                                {{ t('billing.index.usage.remaining', { count: (usageData.minutes.remaining ?? 0).toLocaleString() }) }}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div v-else class="py-4 text-center">
-                                        <p class="text-muted-foreground text-sm">Unable to load usage data</p>
+                                        <p class="text-muted-foreground text-sm">{{ t('billing.index.usage.load_error') }}</p>
                                     </div>
                                 </CardContent>
                             </Card>

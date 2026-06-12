@@ -18,7 +18,7 @@ beforeEach(function (): void {
 
 it('lists accessible agents as available when none are attached', function (): void {
     $this->actingAs($this->user)
-        ->getJson(route('settings.connectors.agents.index', ['slug' => $this->server->slug]))
+        ->getJson(route('integrations.connectors.agents.index', ['slug' => $this->server->slug]))
         ->assertOk()
         ->assertJsonCount(0, 'attached')
         ->assertJsonCount(1, 'available')
@@ -27,7 +27,7 @@ it('lists accessible agents as available when none are attached', function (): v
 
 it('attaches a connector to an agent', function (): void {
     $this->actingAs($this->user)
-        ->postJson(route('settings.connectors.agents.attach', [
+        ->postJson(route('integrations.connectors.agents.attach', [
             'slug' => $this->server->slug,
             'agent' => $this->agent->external_id,
         ]))
@@ -42,7 +42,7 @@ it('detaches a connector from an agent', function (): void {
     $this->agent->mcpServers()->attach($this->server->id);
 
     $this->actingAs($this->user)
-        ->deleteJson(route('settings.connectors.agents.detach', [
+        ->deleteJson(route('integrations.connectors.agents.detach', [
             'slug' => $this->server->slug,
             'agent' => $this->agent->external_id,
         ]))
@@ -58,12 +58,12 @@ it('lists and attaches agents from another team in the same account', function (
     $otherTeamAgent = makeTeamAgent($this->user, 'Sales Bot', $otherTeam);
 
     $this->actingAs($this->user)
-        ->getJson(route('settings.connectors.agents.index', ['slug' => $this->server->slug]))
+        ->getJson(route('integrations.connectors.agents.index', ['slug' => $this->server->slug]))
         ->assertOk()
         ->assertJsonCount(2, 'available');
 
     $this->actingAs($this->user)
-        ->postJson(route('settings.connectors.agents.attach', [
+        ->postJson(route('integrations.connectors.agents.attach', [
             'slug' => $this->server->slug,
             'agent' => $otherTeamAgent->external_id,
         ]))
@@ -76,7 +76,7 @@ it('reports the attached agent count via the connectors data endpoint', function
     $this->agent->mcpServers()->attach($this->server->id);
 
     $this->actingAs($this->user)
-        ->getJson(route('settings.connectors.data'))
+        ->getJson(route('integrations.connectors.data'))
         ->assertOk()
         ->assertJsonPath('custom.0.server.agents_count', 1);
 });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent\Eval;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Evaluation\Actions\ListKnowledgeQuestionCandidatesAction;
 use Domain\Evaluation\Data\Resources\EvalCaseResourceData;
 use Domain\Evaluation\Data\Resources\EvalRunResourceData;
 use Domain\Evaluation\Enums\ScorerType;
@@ -21,8 +22,11 @@ use Inertia\Response;
  */
 class AgentEvalController
 {
-    public function __invoke(Request $request, Agent $agent): Response
-    {
+    public function __invoke(
+        Request $request,
+        Agent $agent,
+        ListKnowledgeQuestionCandidatesAction $knowledgeQuestions,
+    ): Response {
         abort_if($request->user()->cannot('view', $agent), 404);
 
         $cases = EvalCase::query()->forAgent($agent->id)->orderByDesc('id')->get();
@@ -33,6 +37,10 @@ class AgentEvalController
             'cases' => EvalCaseResourceData::collection($cases),
             'runs' => EvalRunResourceData::collection($runs),
             'scorerTypes' => array_column(ScorerType::cases(), 'value'),
+            // Optional: only evaluated on the partial reload fired when the
+            // "From knowledge" picker opens — mining questions decrypts up to
+            // 200 chunk rows, too costly for first load / the runs polling.
+            'knowledgeQuestions' => Inertia::optional(fn (): array => $knowledgeQuestions->execute($agent)),
         ]);
     }
 }

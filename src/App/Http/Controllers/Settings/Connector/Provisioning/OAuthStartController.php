@@ -31,7 +31,7 @@ class OAuthStartController extends Controller
             $url = $this->flow->begin($user, $connector);
         } catch (McpOAuthException $e) {
             return redirect()
-                ->route('settings.connectors.edit')
+                ->route('integrations.connectors.edit')
                 ->with('error', $e->getMessage());
         }
 

@@ -76,10 +76,7 @@ class TrainWebsiteUrlAction
         /** @var SourceWebsite $website */
         $website = $websiteUrl->agentWebsite;
 
-        // Embed only chunks the source doesn't already hold — a retrain of a
-        // changed page used to re-embed (and re-bill) every chunk, including
-        // the unchanged ones, one HTTP call each. One checksum probe + one
-        // batched embedding request covers the whole page instead.
+        // Embed only checksums the source doesn't already hold — one batched request.
         $checksums = array_map(static fn (string $chunk): string => hash('sha256', $chunk), $chunks);
 
         $existing = Chunk::query()

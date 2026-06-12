@@ -2,7 +2,6 @@
 
 namespace Domain\Channel\Teams\Services;
 
-use Domain\Channel\Services\ThreadMappingGuard;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Teams\Models\TeamsChat;
 use Domain\Conversation\Enums\ConversationSource;
@@ -21,7 +20,6 @@ class TeamsChatResolver
 {
     public function __construct(
         private readonly ChatMemory $memory,
-        private readonly ThreadMappingGuard $guard,
     ) {}
 
     public function resolve(
@@ -37,7 +35,9 @@ class TeamsChatResolver
             ->first();
 
         if ($existing !== null) {
-            if ($this->guard->conversationExists($existing->conversation_external_id)) {
+            // conversation() excludes soft-deleted rows, so a retention-pruned
+            // conversation reads as missing here.
+            if ($existing->conversation()->exists()) {
                 if ($existing->service_url !== $serviceUrl) {
                     $existing->update(['service_url' => $serviceUrl]);
                 }
@@ -66,20 +66,24 @@ class TeamsChatResolver
             'name' => $conversationType === 'personal' ? $peerName : null,
         ]);
 
-        $chatviaConversationId = $this->memory
+        $this->memory
             ->withContext($agent, $session->external_id)
             ->createConversation(
                 title: $title,
                 source: ConversationSource::MsTeams,
             );
 
+        // The freshly-created session has exactly one conversation — the one
+        // createConversation() just made for it.
+        $conversation = $session->conversations()->latest('id')->firstOrFail();
+
         return TeamsChat::create([
             'agent_teams_bot_id' => $bot->id,
             'conversation_id' => $conversationId,
             'service_url' => $serviceUrl,
             'conversation_type' => $conversationType,
-            'session_external_id' => $session->external_id,
-            'conversation_external_id' => $chatviaConversationId,
+            'chat_session_id' => $session->id,
+            'chat_conversation_id' => $conversation->id,
             'peer_name' => $peerName,
             'last_message_at' => now(),
         ]);

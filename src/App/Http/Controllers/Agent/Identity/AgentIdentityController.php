@@ -22,7 +22,7 @@ class AgentIdentityController extends Controller
     {
         abort_unless(has_permission_to_agent($agent, 'agent.identity.manage'), 404);
 
-        return Inertia::render('agents/IdentityVerification', [
+        return Inertia::render('agents/security/Identity', [
             'agent' => $agent,
             'auth_secret' => $agent->ensureAuthSecret(),
             'embed_script_url' => config('chatvia.widget.script_url_embed'),

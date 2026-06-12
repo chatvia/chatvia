@@ -8,6 +8,9 @@ import axios from 'axios';
 import { AlertTriangle, Bot, LoaderCircle, Plus } from 'lucide-vue-next';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
     open: boolean;
@@ -55,7 +58,7 @@ const fetchUsageData = async () => {
         focusNameInput();
     } catch (error) {
         console.error('Failed to fetch usage data:', error);
-        toast.error('Failed to load usage information');
+        toast.error(t('agents.create_modal.load_error'));
     } finally {
         isLoadingUsage.value = false;
     }
@@ -63,8 +66,8 @@ const fetchUsageData = async () => {
 
 const submit = () => {
     if (!canCreateAnyAgent.value) {
-        toast.error('Agent limit reached', {
-            description: "You've reached your agent limit.",
+        toast.error(t('agents.create_modal.limit_toast_title'), {
+            description: t('agents.create_modal.limit_toast_description'),
             duration: 5000,
         });
         return;
@@ -125,7 +128,7 @@ onMounted(() => {
             <DialogHeader>
                 <DialogTitle class="flex items-center gap-2">
                     <Bot class="h-5 w-5" />
-                    Create Agent
+                    {{ t('agents.create_modal.title') }}
                 </DialogTitle>
             </DialogHeader>
 
@@ -134,15 +137,15 @@ onMounted(() => {
                     <div class="flex items-start gap-3">
                         <AlertTriangle class="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
                         <div class="flex-1">
-                            <h3 class="text-sm font-medium text-red-800 dark:text-red-200">Agent Limit Reached</h3>
-                            <p class="mt-1 text-sm text-red-700 dark:text-red-300">You've reached your agent limit.</p>
+                            <h3 class="text-sm font-medium text-red-800 dark:text-red-200">{{ t('agents.create_modal.limit_title') }}</h3>
+                            <p class="mt-1 text-sm text-red-700 dark:text-red-300">{{ t('agents.create_modal.limit_description') }}</p>
                             <div class="mt-3">
                                 <Button
                                     size="sm"
                                     class="bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
                                     @click="router.visit(route('billing.index'))"
                                 >
-                                    Upgrade Plan
+                                    {{ t('agents.create_modal.upgrade_plan') }}
                                 </Button>
                             </div>
                         </div>
@@ -154,7 +157,7 @@ onMounted(() => {
                 <progress v-if="form.progress" :value="form.progress.percentage" max="100">{{ form.progress.percentage }}%</progress>
                 <div class="space-y-6" :class="{ 'pointer-events-none opacity-50': !canCreateAnyAgent }">
                     <div class="space-y-2">
-                        <Label for="name" required>Agent Name</Label>
+                        <Label for="name" required>{{ t('agents.create_modal.name_label') }}</Label>
                         <div class="relative">
                             <Bot class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                             <Input
@@ -163,7 +166,7 @@ onMounted(() => {
                                 :error="form.errors.name"
                                 :disabled="!canCreateAnyAgent"
                                 class="pl-9"
-                                placeholder="E.g., Customer Support"
+                                :placeholder="t('agents.create_modal.name_placeholder')"
                                 autocomplete="off"
                                 data-1p-ignore
                                 data-lpignore="true"
@@ -178,11 +181,11 @@ onMounted(() => {
             <div class="my-4 border-t border-gray-200 dark:border-gray-700"></div>
 
             <DialogFooter class="flex justify-between">
-                <Button variant="outline" size="lg" @click="closeModal"> Cancel </Button>
+                <Button variant="outline" size="lg" @click="closeModal">{{ t('common.cancel') }}</Button>
                 <Button :disabled="isSubmitting || !canCreateAnyAgent" size="lg" @click="submit">
-                    <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                    <Plus v-else class="mr-2 h-4 w-4" />
-                    Create Agent
+                    <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
+                    <Plus v-else class="me-2 h-4 w-4" />
+                    {{ t('agents.create_modal.title') }}
                 </Button>
             </DialogFooter>
         </DialogContent>

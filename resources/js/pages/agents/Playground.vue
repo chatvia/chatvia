@@ -4,6 +4,9 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Check, Copy, ExternalLink, Globe, MessageSquare, Monitor, Search, Smartphone, Tablet } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
@@ -15,13 +18,19 @@ const props = defineProps<Props>();
 type Surface = 'hosted_chat' | 'widget' | 'bar';
 type Device = 'desktop' | 'tablet' | 'mobile';
 
+const deviceLabels: Record<Device, string> = {
+    desktop: 'agents.playground.devices.desktop',
+    tablet: 'agents.playground.devices.tablet',
+    mobile: 'agents.playground.devices.mobile',
+};
+
 const surface = ref<Surface>('hosted_chat');
 const device = ref<Device>('desktop');
 
 const surfaceTabs: { value: Surface; label: string; icon: typeof MessageSquare }[] = [
-    { value: 'hosted_chat', label: 'Chat', icon: MessageSquare },
-    { value: 'widget', label: 'Widget', icon: Globe },
-    { value: 'bar', label: 'Bar', icon: Search },
+    { value: 'hosted_chat', label: 'agents.playground.tabs.chat', icon: MessageSquare },
+    { value: 'widget', label: 'agents.playground.tabs.widget', icon: Globe },
+    { value: 'bar', label: 'agents.playground.tabs.bar', icon: Search },
 ];
 
 const hostedChatUrl = computed(() => {
@@ -70,16 +79,16 @@ const copyExternalId = async () => {
     try {
         await navigator.clipboard.writeText(props.agent.external_id);
         isExternalIdCopied.value = true;
-        toast.success('Agent ID copied to clipboard');
+        toast.success(t('agents.playground.id_copied'));
         setTimeout(() => (isExternalIdCopied.value = false), 2000);
     } catch {
-        toast.error('Could not copy to clipboard');
+        toast.error(t('agents.playground.copy_error'));
     }
 };
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Playground" hide-header :no-padding="true" :full-height="true">
+    <AgentLayout :agent="agent" :title="t('agents.playground.title')" hide-header :no-padding="true" :full-height="true">
         <div class="bg-background flex h-full flex-col">
             <!-- Surface tabs (Setup-style underline nav) + device toggle + open-in-new-tab -->
             <div class="bg-background border-border flex flex-shrink-0 flex-wrap items-center justify-between gap-3 border-b pr-4 lg:pr-6">
@@ -93,8 +102,8 @@ const copyExternalId = async () => {
                         :class="[surface === tab.value ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground']"
                     >
                         <component :is="tab.icon" class="h-4 w-4" />
-                        <span>{{ tab.label }}</span>
-                        <span v-if="surface === tab.value" class="bg-foreground absolute right-0 -bottom-px left-0 h-0.5"></span>
+                        <span>{{ t(tab.label) }}</span>
+                        <span v-if="surface === tab.value" class="bg-foreground absolute end-0 -bottom-px start-0 h-0.5"></span>
                     </button>
                 </nav>
 
@@ -112,7 +121,7 @@ const copyExternalId = async () => {
                                 </button>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p class="capitalize">{{ d }}</p>
+                                <p class="capitalize">{{ t(deviceLabels[d]) }}</p>
                             </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -127,7 +136,7 @@ const copyExternalId = async () => {
                                 </button>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>{{ isExternalIdCopied ? 'Copied!' : 'Copy agent ID' }}</p>
+                                <p>{{ isExternalIdCopied ? t('agents.playground.copied') : t('agents.playground.copy_agent_id') }}</p>
                             </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -141,7 +150,7 @@ const copyExternalId = async () => {
                                 </button>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>Open in new tab</p>
+                                <p>{{ t('agents.playground.open_new_tab') }}</p>
                             </TooltipContent>
                         </Tooltip>
                     </div>
@@ -152,7 +161,7 @@ const copyExternalId = async () => {
                  use a fixed-width device frame so breakpoints are visible. -->
             <div class="bg-muted flex flex-1 items-center justify-center overflow-hidden">
                 <div :class="frameClass" class="transition-all duration-300">
-                    <iframe :key="`${surface}-${device}`" :src="currentUrl" class="h-full w-full border-0" title="Surface preview" loading="lazy" />
+                    <iframe :key="`${surface}-${device}`" :src="currentUrl" class="h-full w-full border-0" :title="t('agents.playground.preview_title')" loading="lazy" />
                 </div>
             </div>
         </div>

@@ -19,7 +19,7 @@ class ListAgentConversationsAction
     public function execute(Agent $agent, int $perPage): LengthAwarePaginator
     {
         return Conversation::query()
-            ->whereHas('session', fn ($q) => $q->where('agent_id', $agent->id))
+            ->forAgent($agent->id)
             ->onlyVisible()
             ->orderByLatestActivity()
             ->paginate($perPage)

@@ -33,8 +33,8 @@ class TeamsReplyRunner
 
         return $this->runner->reply(
             agent: $chat->bot->agent,
-            sessionExternalId: $chat->session_external_id,
-            conversationExternalId: $chat->conversation_external_id,
+            sessionExternalId: $chat->session->external_id,
+            conversationExternalId: $chat->conversation->external_id,
             message: $message,
             source: 'msteams',
             requestIdPrefix: 'mst_',

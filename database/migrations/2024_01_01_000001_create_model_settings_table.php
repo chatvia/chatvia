@@ -10,9 +10,7 @@ return new class extends Migration
     {
         Schema::create('model_settings', function (Blueprint $table) {
             $table->id();
-            // Bare columns instead of morphs(): the (model_type, model_id)
-            // index morphs() creates is a strict prefix of the 3-column
-            // composite below — pure write amplification.
+            // no morphs(): its (model_type, model_id) index is a prefix of the composite below
             $table->string('model_type');
             $table->unsignedBigInteger('model_id');
             $table->string('group')->index();

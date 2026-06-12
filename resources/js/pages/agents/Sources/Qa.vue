@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { useI18n } from 'vue-i18n';
 import QaComponent from './QaComponent.vue';
 
 interface Props {
@@ -7,10 +8,12 @@ interface Props {
 }
 
 defineProps<Props>();
+
+const { t } = useI18n();
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Q&A">
+    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.qa')">
         <QaComponent :agent="agent" />
     </AgentLayout>
 </template>

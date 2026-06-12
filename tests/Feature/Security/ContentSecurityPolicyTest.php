@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\Web\ContentSecurityPolicy;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Support\Facades\Route;
 
 // These tests pin the ContentSecurityPolicy middleware's exact header
@@ -10,13 +11,13 @@ use Illuminate\Support\Facades\Route;
 // ship NO CSP headers until it is re-enabled there.
 beforeEach(function (): void {
     Route::middleware(ContentSecurityPolicy::class)
-        ->get('/_csp-probe', fn (): \Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Http\Response => response('ok'))
+        ->get('/_csp-probe', fn (): ResponseFactory|\Illuminate\Http\Response => response('ok'))
         ->name('csp.probe');
 
     // Named `chat.*` so the middleware treats it as the embeddable
     // hosted-chat surface (no subdomain wiring needed for header checks).
     Route::middleware(ContentSecurityPolicy::class)
-        ->get('/_csp-chat-probe', fn (): \Illuminate\Contracts\Routing\ResponseFactory|\Illuminate\Http\Response => response('ok'))
+        ->get('/_csp-chat-probe', fn (): ResponseFactory|\Illuminate\Http\Response => response('ok'))
         ->name('chat.csp-probe');
 });
 

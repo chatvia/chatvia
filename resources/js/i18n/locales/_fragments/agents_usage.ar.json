@@ -1,0 +1,42 @@
+{
+    "agents": {
+        "usage": {
+            "title": "رؤى الاستخدام",
+            "description": "اطلع على المصادر والدوال وخوادم MCP التي يستخدمها هذا الوكيل فعلياً",
+            "load_error": "تعذّر تحميل الاستخدام",
+            "try_again": "حاول مرة أخرى",
+            "tabs": {
+                "knowledge": "المعرفة",
+                "functions": "الدوال",
+                "mcp": "MCP"
+            },
+            "knowledge_empty": "لم يُسترجَع أي مصدر معرفة بعد",
+            "knowledge_empty_hint": "تظهر الملفات والمواقع ومقتطفات النص وفيديوهات YouTube هنا بمجرد استخدام الوكيل لها.",
+            "functions_empty": "لا استدعاءات دوال بعد",
+            "functions_empty_hint": "تظهر دوال webhook هنا بمجرد استدعاء الوكيل لها.",
+            "mcp_empty": "لا استدعاءات أدوات MCP بعد",
+            "mcp_empty_hint": "تظهر الأدوات الفردية من خوادم MCP المتصلة هنا بمجرد استدعاء الوكيل لها.",
+            "retrievals": "استرجاع واحد | {count} استرجاعات",
+            "calls": "استدعاء واحد | {count} استدعاءات",
+            "last_used": "آخر استخدام {time}",
+            "last_called": "آخر استدعاء {time}",
+            "via_server": "عبر {name}",
+            "sub_kind": {
+                "source_file": "ملف",
+                "source_website": "موقع",
+                "source_text": "نص",
+                "source_youtube_video": "YouTube",
+                "agent_website_url": "صفحة ويب"
+            },
+            "relative": {
+                "just_now": "الآن",
+                "minutes_ago": "منذ دقيقة | منذ {count} دقائق",
+                "hours_ago": "منذ ساعة | منذ {count} ساعات",
+                "days_ago": "منذ يوم | منذ {count} أيام",
+                "weeks_ago": "منذ أسبوع | منذ {count} أسابيع",
+                "months_ago": "منذ شهر | منذ {count} أشهر",
+                "years_ago": "منذ سنة | منذ {count} سنوات"
+            }
+        }
+    }
+}

@@ -6,6 +6,9 @@ import { Label } from '@/components/ui/label';
 import axios, { AxiosError } from 'axios';
 import { Loader2, Lock, ShieldCheck, X } from 'lucide-vue-next';
 import { nextTick, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const isOpen = ref(false);
 const password = ref('');
@@ -35,7 +38,7 @@ const open = async (): Promise<boolean> => {
 
 const submit = async () => {
     if (!password.value) {
-        error.value = 'Password is required.';
+        error.value = t('confirm_password.password_required');
         return;
     }
     submitting.value = true;
@@ -48,9 +51,9 @@ const submit = async () => {
     } catch (e: unknown) {
         const err = e as AxiosError<{ message?: string; errors?: { password?: string[] } }>;
         if (err.response?.status === 422) {
-            error.value = err.response.data.errors?.password?.[0] ?? err.response.data.message ?? 'Incorrect password.';
+            error.value = err.response.data.errors?.password?.[0] ?? err.response.data.message ?? t('confirm_password.incorrect');
         } else {
-            error.value = 'Could not confirm password. Please try again.';
+            error.value = t('confirm_password.error');
         }
     } finally {
         submitting.value = false;
@@ -70,13 +73,13 @@ defineExpose({ open });
     <Dialog v-model:open="isOpen" @update:open="(v) => !v && cancel()">
         <DialogContent class="sm:max-w-md">
             <DialogHeader>
-                <DialogTitle>Confirm your password</DialogTitle>
-                <DialogDescription> For your security, please confirm your password before changing security settings. </DialogDescription>
+                <DialogTitle>{{ t('confirm_password.title') }}</DialogTitle>
+                <DialogDescription>{{ t('confirm_password.description') }}</DialogDescription>
             </DialogHeader>
 
             <form @submit.prevent="submit" class="space-y-4">
                 <div class="space-y-2">
-                    <Label for="confirm-password">Password</Label>
+                    <Label for="confirm-password">{{ t('confirm_password.password_label') }}</Label>
                     <div class="relative">
                         <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                         <Input
@@ -94,13 +97,13 @@ defineExpose({ open });
 
                 <DialogFooter>
                     <Button type="button" variant="ghost" :disabled="submitting" @click="cancel">
-                        <X class="mr-2 size-4" />
-                        Cancel
+                        <X class="me-2 size-4" />
+                        {{ t('confirm_password.cancel') }}
                     </Button>
                     <Button type="submit" :disabled="submitting">
-                        <Loader2 v-if="submitting" class="mr-2 size-4 animate-spin" />
-                        <ShieldCheck v-else class="mr-2 size-4" />
-                        Confirm
+                        <Loader2 v-if="submitting" class="me-2 size-4 animate-spin" />
+                        <ShieldCheck v-else class="me-2 size-4" />
+                        {{ t('confirm_password.confirm') }}
                     </Button>
                 </DialogFooter>
             </form>

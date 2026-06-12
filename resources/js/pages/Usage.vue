@@ -5,6 +5,9 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { Bot, Clock, Coins, FileText, Layers, Link2, Loader2, MessageSquare, Sparkles, Users, type LucideIcon } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 type UsageData = App.Identity.Workspace.Data.Resources.My.Usage.UsageResourceData;
 
@@ -50,7 +53,7 @@ const metrics = computed<Metric[]>(() => {
     return [
         {
             key: 'messages',
-            label: 'Messages',
+            label: t('usage.label_messages'),
             icon: MessageSquare,
             used: d.messages.used,
             limit: d.messages.limit,
@@ -59,20 +62,20 @@ const metrics = computed<Metric[]>(() => {
         },
         {
             key: 'tokens',
-            label: 'Tokens',
+            label: t('usage.label_tokens'),
             icon: Coins,
             used: d.tokens.used,
             limit: 0,
             remaining: 0,
             capped: false,
-            note: 'Consumed this cycle — for insight only; your plan is billed in messages.',
+            note: t('usage.tokens_note'),
         },
-        { key: 'pages', label: 'Pages', icon: FileText, used: d.pages.used, limit: d.pages.limit, remaining: d.pages.remaining, capped: true },
-        { key: 'minutes', label: 'Minutes', icon: Clock, used: d.minutes.used, limit: d.minutes.limit, remaining: d.minutes.remaining, capped: true },
-        { key: 'links', label: 'Links', icon: Link2, used: d.links.used, limit: d.links.limit, remaining: d.links.remaining, capped: true },
-        { key: 'agents', label: 'Agents', icon: Bot, used: d.agents.used, limit: d.agents.limit, remaining: d.agents.remaining, capped: true },
-        { key: 'teams', label: 'Teams', icon: Layers, used: d.teams.used, limit: d.teams.limit, remaining: d.teams.remaining, capped: true },
-        { key: 'members', label: 'Members', icon: Users, used: d.members.used, limit: d.members.limit, remaining: d.members.remaining, capped: true },
+        { key: 'pages', label: t('usage.label_pages'), icon: FileText, used: d.pages.used, limit: d.pages.limit, remaining: d.pages.remaining, capped: true },
+        { key: 'minutes', label: t('usage.label_minutes'), icon: Clock, used: d.minutes.used, limit: d.minutes.limit, remaining: d.minutes.remaining, capped: true },
+        { key: 'links', label: t('usage.label_links'), icon: Link2, used: d.links.used, limit: d.links.limit, remaining: d.links.remaining, capped: true },
+        { key: 'agents', label: t('usage.label_agents'), icon: Bot, used: d.agents.used, limit: d.agents.limit, remaining: d.agents.remaining, capped: true },
+        { key: 'teams', label: t('usage.label_teams'), icon: Layers, used: d.teams.used, limit: d.teams.limit, remaining: d.teams.remaining, capped: true },
+        { key: 'members', label: t('usage.label_members'), icon: Users, used: d.members.used, limit: d.members.limit, remaining: d.members.remaining, capped: true },
     ];
 });
 
@@ -86,18 +89,18 @@ onMounted(fetchUsageData);
 
 <template>
     <AppLayout>
-        <Head title="Usage" />
+        <Head :title="t('usage.title')" />
 
         <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
             <!-- Header -->
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div class="space-y-1">
-                    <h1 class="text-2xl font-bold tracking-tight">Usage</h1>
-                    <p class="text-muted-foreground text-sm">Monitor your current usage across all services and features.</p>
+                    <h1 class="text-2xl font-bold tracking-tight">{{ t('usage.title') }}</h1>
+                    <p class="text-muted-foreground text-sm">{{ t('usage.subtitle') }}</p>
                 </div>
                 <Badge v-if="usageData" variant="secondary" class="h-fit w-fit gap-1.5 capitalize">
                     <Sparkles class="h-3.5 w-3.5" />
-                    {{ usageData.subscription.plan }} plan
+                    {{ t('usage.plan_badge', { plan: usageData.subscription.plan }) }}
                 </Badge>
             </div>
 
@@ -116,7 +119,7 @@ onMounted(fetchUsageData);
                     <CardContent class="space-y-2.5">
                         <div class="flex items-baseline justify-between gap-2">
                             <span class="text-2xl font-bold tracking-tight tabular-nums">{{ m.used.toLocaleString() }}</span>
-                            <span v-if="m.capped" class="text-muted-foreground text-xs whitespace-nowrap">of {{ m.limit.toLocaleString() }}</span>
+                            <span v-if="m.capped" class="text-muted-foreground text-xs whitespace-nowrap">{{ t('usage.of', { limit: m.limit.toLocaleString() }) }}</span>
                         </div>
 
                         <template v-if="m.capped">
@@ -127,7 +130,7 @@ onMounted(fetchUsageData);
                                     :style="{ width: `${percent(m)}%` }"
                                 />
                             </div>
-                            <p class="text-muted-foreground text-xs">{{ m.remaining.toLocaleString() }} remaining</p>
+                            <p class="text-muted-foreground text-xs">{{ t('usage.remaining', { count: m.remaining.toLocaleString() }) }}</p>
                         </template>
                         <p v-else class="text-muted-foreground text-xs leading-relaxed">{{ m.note }}</p>
                     </CardContent>
@@ -135,7 +138,7 @@ onMounted(fetchUsageData);
             </div>
 
             <!-- Empty / error -->
-            <div v-else class="text-muted-foreground py-16 text-center text-sm">Unable to load usage data.</div>
+            <div v-else class="text-muted-foreground py-16 text-center text-sm">{{ t('usage.load_error') }}</div>
         </div>
     </AppLayout>
 </template>

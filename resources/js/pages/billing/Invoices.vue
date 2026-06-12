@@ -6,6 +6,9 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, Calendar, DollarSign, Download, FileText, Receipt } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Invoice {
     id: string;
@@ -27,11 +30,11 @@ defineProps<{
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Billing',
+        title: t('billing.common.billing'),
         href: route('billing.index'),
     },
     {
-        title: 'Invoices',
+        title: t('billing.invoices.breadcrumb'),
         href: route('billing.invoices'),
     },
 ];
@@ -54,11 +57,11 @@ const formatAmount = (amount: number, currency: string) => {
 const _getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
         case 'paid':
-            return { variant: 'default', text: 'Paid' };
+            return { variant: 'default', text: t('billing.invoices.status.paid') };
         case 'pending':
-            return { variant: 'secondary', text: 'Pending' };
+            return { variant: 'secondary', text: t('billing.invoices.status.pending') };
         case 'failed':
-            return { variant: 'destructive', text: 'Failed' };
+            return { variant: 'destructive', text: t('billing.invoices.status.failed') };
         default:
             return { variant: 'outline', text: status };
     }
@@ -66,8 +69,8 @@ const _getStatusBadge = (status: string) => {
 </script>
 
 <template>
-    <AppLayout title="Invoices" :breadcrumbs="breadcrumbs">
-        <Head title="Invoices" />
+    <AppLayout :title="t('billing.invoices.page_title')" :breadcrumbs="breadcrumbs">
+        <Head :title="t('billing.invoices.page_title')" />
 
         <div class="container mx-auto max-w-5xl py-8">
             <div class="space-y-8">
@@ -76,14 +79,14 @@ const _getStatusBadge = (status: string) => {
                     <div>
                         <h1 class="flex items-center gap-3 text-3xl font-bold tracking-tight">
                             <Receipt class="text-primary h-8 w-8" />
-                            Invoices
+                            {{ t('billing.invoices.heading') }}
                         </h1>
-                        <p class="text-muted-foreground mt-2">View and download your billing history and invoices</p>
+                        <p class="text-muted-foreground mt-2">{{ t('billing.invoices.subheading') }}</p>
                     </div>
                     <Button variant="outline" as-child>
                         <Link :href="route('billing.index')">
-                            <ArrowLeft class="mr-2 h-4 w-4" />
-                            Back to Billing
+                            <ArrowLeft class="me-2 h-4 w-4" />
+                            {{ t('billing.common.back_to_billing') }}
                         </Link>
                     </Button>
                 </div>
@@ -91,8 +94,8 @@ const _getStatusBadge = (status: string) => {
                 <!-- Invoices List -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Billing History</CardTitle>
-                        <CardDescription> Download receipts and invoices for your subscription payments </CardDescription>
+                        <CardTitle>{{ t('billing.invoices.history_title') }}</CardTitle>
+                        <CardDescription>{{ t('billing.invoices.history_description') }}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div v-if="invoices.length > 0" class="space-y-4">
@@ -107,9 +110,9 @@ const _getStatusBadge = (status: string) => {
                                     </div>
                                     <div>
                                         <div class="flex items-center gap-2">
-                                            <p class="font-medium">Invoice #{{ invoice.number }}</p>
+                                            <p class="font-medium">{{ t('billing.invoices.invoice_number', { number: invoice.number }) }}</p>
                                             <Badge :variant="invoice.paid ? 'default' : 'secondary'" class="text-xs">
-                                                {{ invoice.paid ? 'Paid' : 'Pending' }}
+                                                {{ invoice.paid ? t('billing.invoices.status.paid') : t('billing.invoices.status.pending') }}
                                             </Badge>
                                         </div>
                                         <div class="text-muted-foreground mt-1 flex items-center gap-4 text-sm">
@@ -139,7 +142,7 @@ const _getStatusBadge = (status: string) => {
                                         as="a"
                                     >
                                         <Download class="h-4 w-4" />
-                                        Download PDF
+                                        {{ t('billing.invoices.download_pdf') }}
                                     </Button>
                                     <Button
                                         :href="invoice.hosted_invoice_url"
@@ -151,7 +154,7 @@ const _getStatusBadge = (status: string) => {
                                         as="a"
                                     >
                                         <FileText class="h-4 w-4" />
-                                        View Online
+                                        {{ t('billing.invoices.view_online') }}
                                     </Button>
                                 </div>
                             </div>
@@ -159,14 +162,14 @@ const _getStatusBadge = (status: string) => {
 
                         <div v-else class="py-12 text-center">
                             <Receipt class="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-                            <h3 class="mb-2 text-lg font-semibold">No invoices yet</h3>
+                            <h3 class="mb-2 text-lg font-semibold">{{ t('billing.invoices.empty_title') }}</h3>
                             <p class="text-muted-foreground mb-6">
-                                Your billing history and invoices will appear here once you start a subscription.
+                                {{ t('billing.invoices.empty_description') }}
                             </p>
                             <Button as-child class="gap-2">
                                 <Link :href="route('billing.packages')">
                                     <Receipt class="h-4 w-4" />
-                                    View Plans
+                                    {{ t('billing.common.view_plans') }}
                                 </Link>
                             </Button>
                         </div>
@@ -182,7 +185,7 @@ const _getStatusBadge = (status: string) => {
                                     <Receipt class="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div>
-                                    <p class="text-muted-foreground text-sm">Total Invoices</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('billing.invoices.total_invoices') }}</p>
                                     <p class="text-2xl font-bold">{{ invoices.length }}</p>
                                 </div>
                             </div>
@@ -196,7 +199,7 @@ const _getStatusBadge = (status: string) => {
                                     <DollarSign class="h-5 w-5 text-green-600 dark:text-green-400" />
                                 </div>
                                 <div>
-                                    <p class="text-muted-foreground text-sm">Total Spent</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('billing.invoices.total_spent') }}</p>
                                     <p class="text-2xl font-bold">
                                         {{
                                             formatAmount(
@@ -220,7 +223,7 @@ const _getStatusBadge = (status: string) => {
                                     <Calendar class="h-5 w-5 text-purple-600 dark:text-purple-400" />
                                 </div>
                                 <div>
-                                    <p class="text-muted-foreground text-sm">Since</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('billing.invoices.since') }}</p>
                                     <p class="text-2xl font-bold">
                                         {{ invoices.length > 0 ? new Date(invoices[0].created * 1000).getFullYear() : new Date().getFullYear() }}
                                     </p>
@@ -238,11 +241,11 @@ const _getStatusBadge = (status: string) => {
                                 <Receipt class="h-4 w-4 text-orange-600 dark:text-orange-400" />
                             </div>
                             <div>
-                                <h4 class="mb-1 font-medium">Need help with billing?</h4>
+                                <h4 class="mb-1 font-medium">{{ t('billing.invoices.help_title') }}</h4>
                                 <p class="text-muted-foreground mb-3 text-sm">
-                                    If you have questions about your invoices or need assistance with billing, our support team is here to help.
+                                    {{ t('billing.invoices.help_description') }}
                                 </p>
-                                <Button variant="outline" size="sm"> Contact Support </Button>
+                                <Button variant="outline" size="sm">{{ t('billing.invoices.contact_support') }}</Button>
                             </div>
                         </div>
                     </CardContent>

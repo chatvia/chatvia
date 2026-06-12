@@ -6,11 +6,11 @@ use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Data\OAuth\BringYourOwnOAuthData;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
+use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpCatalog;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
@@ -196,60 +196,60 @@ class McpOAuthFlow
 
         $tokens = $this->exchangeCode($pending, $code);
 
-        return DB::transaction(function () use ($pending, $tokens) {
-            $isCustom = $pending->connectorSlug === null;
+        // Tokens must commit before the (remote HTTP, non-fatal) catalog refresh.
+        $isCustom = $pending->connectorSlug === null;
 
-            $query = AgentMcpServer::query()->where('user_id', $pending->userId);
+        $query = AgentMcpServer::query()->where('user_id', $pending->userId);
 
-            $server = $isCustom
-                ? $query->where('slug', $pending->customSlug)->whereNull('connector_slug')->first()
-                : $query->where('connector_slug', $pending->connectorSlug)->first();
+        $server = $isCustom
+            ? $query->where('slug', $pending->customSlug)->whereNull('connector_slug')->first()
+            : $query->where('connector_slug', $pending->connectorSlug)->first();
 
-            $attrs = [
-                'user_id' => $pending->userId,
-                'connector_slug' => $pending->connectorSlug,
-                'name' => $isCustom
-                    ? (string) $pending->customName
-                    : $this->displayName((string) $pending->connectorSlug),
-                'slug' => $isCustom
-                    ? (string) $pending->customSlug
-                    : AgentMcpServer::makeSlug((string) $pending->connectorSlug),
-                'url' => $pending->mcpUrl,
-                'transport' => 'streamable_http',
-                'auth_type' => 'bearer',
-                'auth_value' => $tokens['access_token'],
-                'headers' => null,
-                'timeout_ms' => 300000,
-                'is_enabled' => true,
-                'last_error' => null,
-                'oauth_authorization_server' => $pending->authServerUrl,
-                'oauth_token_endpoint' => $pending->tokenEndpoint,
-                // Keep the client used for this connection on the row so the
-                // background refresh can recover it without the shared,
-                // auth-server-keyed registry (which can't hold per-org clients).
-                'oauth_client_id' => $pending->clientId,
-                'oauth_client_secret' => $pending->clientSecret,
-                'oauth_refresh_token' => $tokens['refresh_token'] ?? null,
-                'oauth_expires_at' => isset($tokens['expires_in'])
-                    ? now()->addSeconds((int) $tokens['expires_in'])
-                    : null,
-                'oauth_scopes' => $tokens['scope'] ?? null,
-            ];
+        $attrs = [
+            'user_id' => $pending->userId,
+            'category' => $isCustom ? McpServerCategory::Custom : McpServerCategory::Integration,
+            'connector_slug' => $pending->connectorSlug,
+            'name' => $isCustom
+                ? (string) $pending->customName
+                : $this->displayName((string) $pending->connectorSlug),
+            'slug' => $isCustom
+                ? (string) $pending->customSlug
+                : AgentMcpServer::makeSlug((string) $pending->connectorSlug),
+            'url' => $pending->mcpUrl,
+            'transport' => 'streamable_http',
+            'auth_type' => 'bearer',
+            'auth_value' => $tokens['access_token'],
+            'headers' => null,
+            'timeout_ms' => 300000,
+            'is_enabled' => true,
+            'last_error' => null,
+            'oauth_authorization_server' => $pending->authServerUrl,
+            'oauth_token_endpoint' => $pending->tokenEndpoint,
+            // Keep the client used for this connection on the row so the
+            // background refresh can recover it without the shared,
+            // auth-server-keyed registry (which can't hold per-org clients).
+            'oauth_client_id' => $pending->clientId,
+            'oauth_client_secret' => $pending->clientSecret,
+            'oauth_refresh_token' => $tokens['refresh_token'] ?? null,
+            'oauth_expires_at' => isset($tokens['expires_in'])
+                ? now()->addSeconds((int) $tokens['expires_in'])
+                : null,
+            'oauth_scopes' => $tokens['scope'] ?? null,
+        ];
 
-            if ($server) {
-                $server->fill($attrs)->save();
-            } else {
-                $server = AgentMcpServer::create($attrs);
-            }
+        if ($server) {
+            $server->fill($attrs)->save();
+        } else {
+            $server = AgentMcpServer::create($attrs);
+        }
 
-            try {
-                $this->catalog->refresh($server);
-            } catch (Throwable $e) {
-                $server->forceFill(['last_error' => $e->getMessage()])->save();
-            }
+        try {
+            $this->catalog->refresh($server);
+        } catch (Throwable $e) {
+            $server->forceFill(['last_error' => $e->getMessage()])->save();
+        }
 
-            return $server->fresh();
-        });
+        return $server->fresh();
     }
 
     /**

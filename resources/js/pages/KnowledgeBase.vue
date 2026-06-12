@@ -10,6 +10,9 @@ import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { Bot, Database, Download, File, FileText, Loader2, Play, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Types
 interface Agent {
@@ -38,11 +41,11 @@ interface KnowledgeFile {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: t('knowledge_base.dashboard'),
         href: '/dashboard',
     },
     {
-        title: 'Knowledge Base',
+        title: t('knowledge_base.title'),
         href: '/knowledge-base',
     },
 ];
@@ -113,13 +116,13 @@ const truncateFilename = (filename: string, maxLength: number = 20) => {
 const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
         case 'uploaded':
-            return { variant: 'secondary' as const, text: 'Uploaded', color: 'text-blue-600' };
+            return { variant: 'secondary' as const, text: t('knowledge_base.status_uploaded'), color: 'text-blue-600' };
         case 'ingested':
-            return { variant: 'default' as const, text: 'Completed', color: 'text-green-600' };
+            return { variant: 'default' as const, text: t('knowledge_base.status_completed'), color: 'text-green-600' };
         case 'ingesting':
-            return { variant: 'outline' as const, text: 'Processing', color: 'text-yellow-600' };
+            return { variant: 'outline' as const, text: t('knowledge_base.status_processing'), color: 'text-yellow-600' };
         case 'failed':
-            return { variant: 'destructive' as const, text: 'Failed', color: 'text-red-600' };
+            return { variant: 'destructive' as const, text: t('knowledge_base.status_failed'), color: 'text-red-600' };
         default:
             return { variant: 'outline' as const, text: status, color: 'text-gray-600' };
     }
@@ -143,40 +146,40 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head title="Knowledge Base" />
+    <Head :title="t('knowledge_base.title')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto max-w-5xl py-8">
             <div class="mb-8 flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold tracking-tight">Knowledge Base</h1>
-                    <p class="text-muted-foreground mt-1">View and manage all knowledge files across your agents</p>
+                    <h1 class="text-3xl font-bold tracking-tight">{{ t('knowledge_base.title') }}</h1>
+                    <p class="text-muted-foreground mt-1">{{ t('knowledge_base.subtitle') }}</p>
                 </div>
             </div>
 
             <!-- Search and filters -->
             <div class="mb-6 flex items-center">
                 <div class="relative flex-1">
-                    <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                    <Input v-model="searchQuery" class="pl-10" placeholder="Search files or agents..." />
+                    <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                    <Input v-model="searchQuery" class="ps-10" :placeholder="t('knowledge_base.search_placeholder')" />
                 </div>
             </div>
 
             <!-- Loading state -->
             <div v-if="isLoading" class="flex h-64 items-center justify-center">
                 <Loader2 class="text-primary h-8 w-8 animate-spin" />
-                <span class="ml-2 text-lg">Loading knowledge files...</span>
+                <span class="ms-2 text-lg">{{ t('knowledge_base.loading') }}</span>
             </div>
 
             <!-- Empty state -->
             <Card v-else-if="knowledgeFiles.length === 0" class="flex h-64 flex-col items-center justify-center">
                 <Database class="text-muted-foreground h-12 w-12 opacity-50" />
-                <h3 class="mt-4 text-xl font-medium">No knowledge files yet</h3>
-                <p class="text-muted-foreground mt-2 text-center">Start by uploading files to your agents</p>
+                <h3 class="mt-4 text-xl font-medium">{{ t('knowledge_base.empty_title') }}</h3>
+                <p class="text-muted-foreground mt-2 text-center">{{ t('knowledge_base.empty_subtitle') }}</p>
                 <Button as-child size="lg" class="mt-6">
                     <Link :href="route('agents.index')" class="flex items-center gap-2">
                         <Bot class="h-4 w-4" />
-                        View Agents
+                        {{ t('knowledge_base.view_agents') }}
                     </Link>
                 </Button>
             </Card>
@@ -184,9 +187,9 @@ onMounted(() => {
             <!-- No search results -->
             <Card v-else-if="filteredFiles.length === 0" class="flex h-64 flex-col items-center justify-center">
                 <Search class="text-muted-foreground h-12 w-12 opacity-50" />
-                <h3 class="mt-4 text-xl font-medium">No matching files</h3>
-                <p class="text-muted-foreground mt-2 text-center">No files found matching "{{ searchQuery }}"</p>
-                <Button variant="outline" class="mt-6" @click="searchQuery = ''"> Clear Search </Button>
+                <h3 class="mt-4 text-xl font-medium">{{ t('knowledge_base.no_results_title') }}</h3>
+                <p class="text-muted-foreground mt-2 text-center">{{ t('knowledge_base.no_results_subtitle', { query: searchQuery }) }}</p>
+                <Button variant="outline" class="mt-6" @click="searchQuery = ''"> {{ t('knowledge_base.clear_search') }} </Button>
             </Card>
 
             <!-- Files Grid -->
@@ -223,24 +226,24 @@ onMounted(() => {
                     <CardContent>
                         <div class="grid grid-cols-2 gap-4 text-sm">
                             <div class="flex flex-col">
-                                <span class="text-muted-foreground">Size</span>
+                                <span class="text-muted-foreground">{{ t('knowledge_base.size') }}</span>
                                 <span class="text-lg font-medium">{{ formatFileSize(file.size_in_kb) }}</span>
                             </div>
                             <div class="flex flex-col">
                                 <span class="text-muted-foreground">
-                                    {{ file.is_audio ? 'Duration' : 'Pages' }}
+                                    {{ file.is_audio ? t('knowledge_base.duration') : t('knowledge_base.pages') }}
                                 </span>
                                 <span class="text-lg font-medium">
-                                    <span v-if="file.is_audio">{{ file.length }}m</span>
+                                    <span v-if="file.is_audio">{{ t('knowledge_base.minutes_suffix', { value: file.length }) }}</span>
                                     <span v-else>{{ file.length }}</span>
                                 </span>
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-muted-foreground">Retrievals</span>
+                                <span class="text-muted-foreground">{{ t('knowledge_base.retrievals') }}</span>
                                 <span class="text-lg font-medium">{{ file.retrieval_count }}</span>
                             </div>
                             <div class="flex flex-col">
-                                <span class="text-muted-foreground">Created</span>
+                                <span class="text-muted-foreground">{{ t('knowledge_base.created') }}</span>
                                 <span>{{ formatDate(file.created_at) }}</span>
                             </div>
                         </div>
@@ -249,12 +252,12 @@ onMounted(() => {
                     <CardFooter class="flex justify-center gap-3 border-t p-4">
                         <Button variant="outline" size="sm" @click="handleDownload(file)" class="flex-1 gap-1">
                             <Download class="h-3.5 w-3.5" />
-                            Download
+                            {{ t('knowledge_base.download') }}
                         </Button>
                         <Button v-if="file.status === 'uploaded'" size="sm" as-child class="flex-1 gap-1">
                             <Link :href="route('agents.sources', { agent: file.agent.external_id })">
                                 <Play class="h-3.5 w-3.5" />
-                                Train
+                                {{ t('knowledge_base.train') }}
                             </Link>
                         </Button>
                     </CardFooter>

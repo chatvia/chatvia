@@ -3,9 +3,7 @@
 namespace App\Identity\Workspace\Services;
 
 use App\Identity\Workspace\Models\User;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Workspace-scoped message-credit metering: cycle usage, base quota, addons,
@@ -13,9 +11,13 @@ use Illuminate\Support\Facades\DB;
  * where the same calculation was inlined twice (the dashboard "Messages This
  * Cycle" panel AND the usage stats list).
  *
- * Semantics preserved verbatim from the in-place implementation:
- *  - `used`: assistant messages logged to the analytics rollup since the active
- *     UserCredit's cycle start. 0 when no credit row exists.
+ * Semantics:
+ *  - `used`: the billing counter for the active cycle (user_usages.messages,
+ *     via UserCreditSystem's sent-messages cache) — the same source the Usage
+ *     page reads. Unlike the analytics rollup it covers EVERY billed reply:
+ *     chat, channel replies, eval cases, PDF-page extras and model credit
+ *     multipliers. (Evals persist no chat message and emit no analytics, so a
+ *     rollup-based count silently missed them.) 0 when no credit row exists.
  *  - `addons`: a SEPARATE pool that survives base-quota overrun — matches the
  *     long-standing UserCreditSystem::calculateAvailableMessages behaviour where
  *     extra-message-credit addons stay intact even when base usage > base quota.
@@ -26,34 +28,33 @@ use Illuminate\Support\Facades\DB;
  * dashboard sees the workspace owner's billing — mirrors the existing
  * `$owner = $user->workspace()` line that callers already write.
  */
-readonly class MessageCredits
+class MessageCredits
 {
-    private User $workspace;
+    private readonly User $workspace;
+
+    /** Memoized: available()/limit() recombine the same two lookups. */
+    private ?int $usedMemo = null;
+
+    private ?int $addonsMemo = null;
 
     public function __construct(User $user)
     {
         $this->workspace = $user->workspace();
     }
 
-    /** Assistant messages billed against this cycle. 0 when no UserCredit row. */
+    /** Message credits billed against this cycle. 0 when no UserCredit row. */
     public function used(): int
     {
-        $credit = $this->workspace->credit;
+        return $this->usedMemo ??= $this->computeUsed();
+    }
 
-        if (! $credit) {
+    private function computeUsed(): int
+    {
+        if (! $this->workspace->credit) {
             return 0;
         }
 
-        // The rollup buckets messages by the hour FLOOR (e.g. 22:00), but a cycle
-        // can start partway through an hour (e.g. registering at 22:16). Comparing
-        // the bucket floor against the exact start drops messages sent later in the
-        // start hour — their bucket (22:00) sorts before the start (22:16) — which
-        // is why a fresh account that just sent messages shows "0 this cycle".
-        // Compare against the start of the cycle-start hour so that hour counts.
-        return (int) $this->rollup()
-            ->where('workspace_id', $this->workspace->id)
-            ->where('bucket_hour', '>=', $credit->started_at->copy()->startOfHour())
-            ->sum('assistant_messages');
+        return $this->workspace->creditSystem()->getTotalSentMessages();
     }
 
     /** Base messages quota from the active UserCredit row; 0 when none. */
@@ -65,7 +66,7 @@ readonly class MessageCredits
     /** Sum of unexpired `extra_message_credits` addons. */
     public function addons(): int
     {
-        return (int) $this->workspace->addons()
+        return $this->addonsMemo ??= (int) $this->workspace->addons()
             ->where('type', 'extra_message_credits')
             ->where('ends_at', '>=', now())
             ->sum('amount');
@@ -100,16 +101,5 @@ readonly class MessageCredits
             'started_at' => $credit->started_at,
             'ends_at' => $credit->ends_at,
         ];
-    }
-
-    /**
-     * Single entry point for the analytics rollup query builder. Pinned to
-     * the configured analytics connection so this reads from the isolated DB
-     * when one's set up.
-     */
-    private function rollup(): Builder
-    {
-        return DB::connection(config('chatvia.analytics.connection'))
-            ->table('analytics_agent_hourly_rollups');
     }
 }

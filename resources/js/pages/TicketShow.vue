@@ -13,6 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Loader2, MessageSquare } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 type SupportType = 'feature' | 'bug' | 'file_type' | 'other' | string;
 
@@ -41,8 +44,8 @@ type Ticket = {
 const props = defineProps<{ ticket: Ticket }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Support', href: route('tickets.index') },
-    { title: `Ticket #${props.ticket.id}`, href: route('tickets.show', { ticket: props.ticket.id }) },
+    { title: t('ticket.support'), href: route('tickets.index') },
+    { title: t('ticket.title', { id: props.ticket.id }), href: route('tickets.show', { ticket: props.ticket.id }) },
 ];
 
 const formatDateTime = (dateString: string) => {
@@ -57,19 +60,19 @@ const formatDateTime = (dateString: string) => {
 
 const statusBadge = (status: string) => {
     const s = (status || '').toLowerCase();
-    if (s === 'open') return { variant: 'secondary' as const, label: 'Open' };
-    if (s === 'in_progress') return { variant: 'outline' as const, label: 'In Progress' };
-    if (s === 'resolved') return { variant: 'default' as const, label: 'Resolved' };
-    if (s === 'closed') return { variant: 'destructive' as const, label: 'Closed' };
+    if (s === 'open') return { variant: 'secondary' as const, label: t('ticket.status_open') };
+    if (s === 'in_progress') return { variant: 'outline' as const, label: t('ticket.status_in_progress') };
+    if (s === 'resolved') return { variant: 'default' as const, label: t('ticket.status_resolved') };
+    if (s === 'closed') return { variant: 'destructive' as const, label: t('ticket.status_closed') };
     return { variant: 'outline' as const, label: status };
 };
 
 const priorityBadge = (priority: string) => {
     const p = (priority || '').toLowerCase();
-    if (p === 'urgent') return { variant: 'destructive' as const, label: 'Urgent' };
-    if (p === 'high') return { variant: 'default' as const, label: 'High' };
-    if (p === 'medium') return { variant: 'secondary' as const, label: 'Medium' };
-    if (p === 'low') return { variant: 'outline' as const, label: 'Low' };
+    if (p === 'urgent') return { variant: 'destructive' as const, label: t('ticket.priority_urgent') };
+    if (p === 'high') return { variant: 'default' as const, label: t('ticket.priority_high') };
+    if (p === 'medium') return { variant: 'secondary' as const, label: t('ticket.priority_medium') };
+    if (p === 'low') return { variant: 'outline' as const, label: t('ticket.priority_low') };
     return { variant: 'outline' as const, label: priority };
 };
 
@@ -106,16 +109,16 @@ const submitPriority = () => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head :title="`Ticket #${ticket.id}`" />
+        <Head :title="t('ticket.title', { id: ticket.id })" />
 
         <div class="container mx-auto max-w-4xl py-8">
             <div class="mb-6 flex items-center justify-between">
                 <div class="space-y-1">
-                    <h1 class="text-2xl font-bold tracking-tight">Ticket #{{ ticket.id }}</h1>
-                    <p class="text-muted-foreground text-sm">Created {{ formatDateTime(ticket.created_at) }}</p>
+                    <h1 class="text-2xl font-bold tracking-tight">{{ t('ticket.title', { id: ticket.id }) }}</h1>
+                    <p class="text-muted-foreground text-sm">{{ t('ticket.created_at', { date: formatDateTime(ticket.created_at) }) }}</p>
                 </div>
                 <Button as-child variant="outline">
-                    <Link :href="route('support')" class="gap-2"> <ArrowLeft class="h-4 w-4" /> Back to Support </Link>
+                    <Link :href="route('support')" class="gap-2"> <ArrowLeft class="h-4 w-4" /> {{ t('ticket.back_to_support') }} </Link>
                 </Button>
             </div>
 
@@ -125,8 +128,8 @@ const submitPriority = () => {
                     <CardDescription class="flex flex-wrap items-center gap-2">
                         <Badge :variant="statusBadge(ticket.status).variant">{{ statusBadge(ticket.status).label }}</Badge>
                         <Badge :variant="priorityBadge(ticket.priority).variant">{{ priorityBadge(ticket.priority).label }}</Badge>
-                        <Button v-if="ticket.status !== 'resolved'" size="sm" variant="outline" class="ml-2" @click="showPriorityDialog = true">
-                            Change Priority
+                        <Button v-if="ticket.status !== 'resolved'" size="sm" variant="outline" class="ms-2" @click="showPriorityDialog = true">
+                            {{ t('ticket.change_priority') }}
                         </Button>
                     </CardDescription>
                 </CardHeader>
@@ -139,33 +142,32 @@ const submitPriority = () => {
             <Dialog v-if="ticket.status !== 'resolved'" v-model:open="showPriorityDialog">
                 <DialogContent class="sm:max-w-[500px]">
                     <DialogHeader>
-                        <DialogTitle>Change Ticket Priority</DialogTitle>
+                        <DialogTitle>{{ t('ticket.change_priority_title') }}</DialogTitle>
                         <DialogDescription>
-                            Please change the priority only if this is truly urgent. Misusing the urgent priority can slow down responses for
-                            everyone.
+                            {{ t('ticket.change_priority_description') }}
                         </DialogDescription>
                     </DialogHeader>
                     <form class="space-y-4" @submit.prevent="submitPriority">
                         <div class="grid gap-2">
-                            <Label for="priority-select">Priority</Label>
+                            <Label for="priority-select">{{ t('ticket.label_priority') }}</Label>
                             <Select v-model="priorityForm.priority" required>
                                 <SelectTrigger id="priority-select" class="w-full">
-                                    <SelectValue placeholder="Select a priority" />
+                                    <SelectValue :placeholder="t('ticket.priority_placeholder')" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="low">Low</SelectItem>
-                                    <SelectItem value="medium">Medium</SelectItem>
-                                    <SelectItem value="high">High</SelectItem>
-                                    <SelectItem value="urgent">Urgent</SelectItem>
+                                    <SelectItem value="low">{{ t('ticket.priority_low') }}</SelectItem>
+                                    <SelectItem value="medium">{{ t('ticket.priority_medium') }}</SelectItem>
+                                    <SelectItem value="high">{{ t('ticket.priority_high') }}</SelectItem>
+                                    <SelectItem value="urgent">{{ t('ticket.priority_urgent') }}</SelectItem>
                                 </SelectContent>
                             </Select>
                             <InputError :message="priorityForm.errors.priority as any" />
                         </div>
                         <DialogFooter class="gap-2">
-                            <Button type="button" variant="outline" @click="showPriorityDialog = false">Cancel</Button>
+                            <Button type="button" variant="outline" @click="showPriorityDialog = false">{{ t('ticket.cancel') }}</Button>
                             <Button type="submit" :disabled="priorityForm.processing">
-                                <Loader2 v-if="priorityForm.processing" class="mr-2 h-4 w-4 animate-spin" />
-                                {{ priorityForm.processing ? 'Saving...' : 'Save' }}
+                                <Loader2 v-if="priorityForm.processing" class="me-2 h-4 w-4 animate-spin" />
+                                {{ priorityForm.processing ? t('ticket.saving') : t('ticket.save') }}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -175,11 +177,11 @@ const submitPriority = () => {
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <MessageSquare class="h-5 w-5" /> Replies ({{ ticket.replies?.length || 0 }})
+                        <MessageSquare class="h-5 w-5" /> {{ t('ticket.replies', { count: ticket.replies?.length || 0 }) }}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div v-if="!ticket.replies || ticket.replies.length === 0" class="text-muted-foreground py-8 text-center">No replies yet.</div>
+                    <div v-if="!ticket.replies || ticket.replies.length === 0" class="text-muted-foreground py-8 text-center">{{ t('ticket.no_replies') }}</div>
                     <div v-else class="space-y-4">
                         <div
                             v-for="reply in ticket.replies"
@@ -192,7 +194,7 @@ const submitPriority = () => {
                             <div class="mb-2 flex items-center justify-between text-xs">
                                 <div class="flex items-center gap-2">
                                     <Badge :variant="reply.type === 'staff' ? 'default' : 'secondary'">
-                                        {{ reply.type === 'staff' ? 'Staff' : 'User' }}
+                                        {{ reply.type === 'staff' ? t('ticket.role_staff') : t('ticket.role_user') }}
                                     </Badge>
                                 </div>
                                 <div class="text-muted-foreground">{{ formatDateTime(reply.created_at) }}</div>
@@ -203,18 +205,18 @@ const submitPriority = () => {
 
                     <!-- Reply form / Resolved notice -->
                     <div v-if="ticket.status === 'resolved'" class="bg-muted/50 text-muted-foreground mt-6 rounded-md border p-4 text-sm">
-                        This ticket has been resolved. If the issue persists, please open a new ticket from the Support page.
+                        {{ t('ticket.resolved_notice') }}
                     </div>
                     <form v-else class="mt-6 space-y-3" @submit.prevent="submitReply">
                         <div class="grid gap-2">
-                            <Label for="reply-message">Add a reply</Label>
-                            <Textarea id="reply-message" v-model="replyForm.message" rows="5" placeholder="Write your reply..." required />
+                            <Label for="reply-message">{{ t('ticket.add_reply') }}</Label>
+                            <Textarea id="reply-message" v-model="replyForm.message" rows="5" :placeholder="t('ticket.reply_placeholder')" required />
                             <InputError :message="replyForm.errors.message" />
                         </div>
                         <div class="flex justify-end">
                             <Button type="submit" :disabled="replyForm.processing || !replyForm.message">
-                                <Loader2 v-if="replyForm.processing" class="mr-2 h-4 w-4 animate-spin" />
-                                {{ replyForm.processing ? 'Sending...' : 'Send reply' }}
+                                <Loader2 v-if="replyForm.processing" class="me-2 h-4 w-4 animate-spin" />
+                                {{ replyForm.processing ? t('ticket.sending') : t('ticket.send_reply') }}
                             </Button>
                         </div>
                     </form>

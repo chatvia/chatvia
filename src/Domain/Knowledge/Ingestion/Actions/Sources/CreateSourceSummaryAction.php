@@ -19,7 +19,6 @@ class CreateSourceSummaryAction
         private readonly ContentAnalyzer $contentAnalyzer,
         private readonly Summarizer $summarizer,
         private readonly CostCalculator $costCalculator,
-        private readonly EmbeddingsProviderInterface $embeddings,
     ) {}
 
     public function execute(SourceFile|SourceText|SourceWebsite $source): ?Chunk

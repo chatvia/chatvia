@@ -4,6 +4,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -15,9 +16,23 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
 
-            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
+            // Nullable: global (user_id IS NULL) rows are Chatvia's own built-in
+            // servers — the embedded registry the analytics chat routes over.
+            $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
 
-            $table->string('connector_slug', 40)->nullable();
+            // Origin/purpose of the row — see Domain\Integration\Mcp\Enums\McpServerCategory.
+            $table->enum('category', ['custom', 'integration', 'builtin', 'analytics'])->nullable()->index();
+
+            $table->string('connector_slug', 40)->nullable()->index();
+
+            // Storage shape for this server's tools: true → the shared
+            // connector_tools catalog + mcp_server_tool membership (only when
+            // the server's URL is the connector's CANONICAL one); false →
+            // per-server mcp_tools rows. Presets with a workspace-supplied URL
+            // (requires_url / BYO-OAuth) stay false — their definitions are
+            // tenant-specific and must never enter the shared catalog.
+            // Re-derived and persisted by McpCatalog::refresh() every sync.
+            $table->boolean('uses_central_catalog')->default(false);
 
             $table->string('name', 64);
             $table->text('description')->nullable();
@@ -55,6 +70,11 @@ return new class extends Migration
 
             $table->unique(['user_id', 'slug']);
         });
+
+        // Postgres treats NULLs as distinct in a composite unique index, so the
+        // (user_id, slug) unique above doesn't dedupe global (user_id IS NULL)
+        // rows. This partial unique keeps one built-in row per slug.
+        DB::statement('CREATE UNIQUE INDEX mcp_servers_global_slug_unique ON mcp_servers (slug) WHERE user_id IS NULL');
 
         Schema::create('agent_mcp_server', function (Blueprint $table) {
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();

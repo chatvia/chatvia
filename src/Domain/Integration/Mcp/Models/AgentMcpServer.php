@@ -4,6 +4,8 @@ namespace Domain\Integration\Mcp\Models;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
+use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -20,8 +22,10 @@ use Support\Concerns\HasExternalId;
 /**
  * @property int $id
  * @property string $external_id
- * @property int $user_id
+ * @property int|null $user_id
+ * @property McpServerCategory|null $category
  * @property string|null $connector_slug
+ * @property bool $uses_central_catalog
  * @property string $name
  * @property string|null $description
  * @property string $slug
@@ -90,11 +94,13 @@ class AgentMcpServer extends Model
     protected function casts(): array
     {
         return [
+            'category' => McpServerCategory::class,
             'headers' => 'encrypted:array',
             'auth_value' => 'encrypted',
             'oauth_refresh_token' => 'encrypted',
             'oauth_client_secret' => 'encrypted',
             'is_enabled' => 'boolean',
+            'uses_central_catalog' => 'boolean',
             'timeout_ms' => 'int',
             'catalog_tools_count' => 'int',
             'invocation_count' => 'int',
@@ -146,12 +152,87 @@ class AgentMcpServer extends Model
 
     /**
      * Tools discovered on this server (via the most recent catalog sync).
+     * Populated only when `uses_central_catalog` is false (custom servers and
+     * presets with a workspace-supplied URL); canonical-URL preset/builtin
+     * servers route their tools through the shared connector_tools catalog +
+     * the connectorTools() pivot instead.
      *
      * @return HasMany<McpTool, $this>
      */
     public function tools(): HasMany
     {
         return $this->hasMany(McpTool::class, 'mcp_server_id');
+    }
+
+    /**
+     * Catalog tools this server advertises, drawn from the shared
+     * connector_tools table through the mcp_server_tool pivot — only for
+     * servers with `uses_central_catalog` true. The pivot carries this
+     * workspace's per-tool `permission` and invocation counters.
+     *
+     * @return BelongsToMany<ConnectorTool, $this, McpServerTool>
+     */
+    public function connectorTools(): BelongsToMany
+    {
+        return $this->belongsToMany(ConnectorTool::class, 'mcp_server_tool', 'mcp_server_id', 'connector_tool_id')
+            ->using(McpServerTool::class)
+            ->withPivot('permission', 'invocation_count', 'last_invoked_at');
+    }
+
+    /**
+     * True when this server's tools live in the shared connector_tools catalog
+     * rather than its own per-server mcp_tools rows. Reads the persisted column
+     * (kept in sync by McpCatalog::refresh()) so the PHP branch points and the
+     * raw-SQL read paths (ToolRegistry, ToolHybridSearch) can never disagree
+     * about a server's storage shape.
+     */
+    public function usesCentralCatalog(): bool
+    {
+        // (bool) — a freshly create()d instance hasn't loaded the column's DB
+        // default, so the attribute can be null in memory.
+        return (bool) $this->uses_central_catalog;
+    }
+
+    /**
+     * Whether a server with this slug + URL may share the central catalog:
+     * only when the URL is the connector's CANONICAL one. A preset whose URL
+     * is workspace-supplied (requires_url / BYO-OAuth, e.g. Zendesk or
+     * Salesforce) is tenant-specific — its tool definitions must stay
+     * per-server so one workspace can never write tool text another
+     * workspace's agents read.
+     */
+    public static function shouldUseCentralCatalog(?string $connectorSlug, ?string $url): bool
+    {
+        if ($connectorSlug === null) {
+            return false;
+        }
+
+        $canonical = self::canonicalConnectorUrl($connectorSlug);
+
+        return $canonical !== null
+            && rtrim((string) $url, '/') === rtrim($canonical, '/');
+    }
+
+    /**
+     * The connector's canonical MCP URL: the preset's configured `mcp_url`
+     * (config/connectors.php), or `{app.url}/mcp/{slug}` for builtins
+     * (config/mcp.php). Null when the catalog defines no fixed endpoint —
+     * i.e. the workspace supplies the URL at connect time.
+     */
+    public static function canonicalConnectorUrl(string $connectorSlug): ?string
+    {
+        $preset = app(ConnectorCatalog::class)->find($connectorSlug);
+        if ($preset !== null) {
+            return $preset->mcpUrl !== '' ? $preset->mcpUrl : null;
+        }
+
+        foreach ((array) config('mcp.builtin', []) as $entry) {
+            if (($entry['slug'] ?? null) === $connectorSlug) {
+                return rtrim((string) config('app.url'), '/').'/mcp/'.$connectorSlug;
+            }
+        }
+
+        return null;
     }
 
     public function getRouteKeyName(): string
@@ -198,6 +279,23 @@ class AgentMcpServer extends Model
     protected function ownedBySameAccountAs(Builder $query, Agent $agent): void
     {
         $query->where('user_id', $agent->user_id);
+    }
+
+    /**
+     * Restrict to one or more {@see McpServerCategory} values.
+     *
+     * @param  Builder<self>  $query
+     * @param  McpServerCategory|array<int, McpServerCategory>  $category
+     */
+    #[Scope]
+    protected function inCategory(Builder $query, McpServerCategory|array $category): void
+    {
+        $values = array_map(
+            static fn (McpServerCategory $c): string => $c->value,
+            is_array($category) ? $category : [$category],
+        );
+
+        $query->whereIn('category', $values);
     }
 
     public static function makeSlug(string $input): string

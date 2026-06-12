@@ -42,10 +42,7 @@ class StartWebsiteIngestionAction
                     ->whereKey($websiteId)
                     ->update(['internal_chunking_batch_id' => $batch->id]);
             })
-            // A single failed URL job must not cancel the rest of the crawl;
-            // finally() keeps the terminal status + broadcast unconditional
-            // (see IngestDocumentAction for the rationale).
-            ->allowFailures()
+            ->allowFailures() // one failed URL must not cancel the batch
             ->finally(function (Batch $batch) use ($websiteId, $agentId): void {
                 $agent = Agent::find($agentId);
                 $website = SourceWebsite::find($websiteId);

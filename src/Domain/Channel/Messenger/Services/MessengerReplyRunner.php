@@ -29,8 +29,8 @@ class MessengerReplyRunner
 
         return $this->runner->reply(
             agent: $thread->page->agent,
-            sessionExternalId: $thread->session_external_id,
-            conversationExternalId: $thread->conversation_external_id,
+            sessionExternalId: $thread->session->external_id,
+            conversationExternalId: $thread->conversation->external_id,
             message: $message,
             source: 'messenger',
             requestIdPrefix: 'msgr_',

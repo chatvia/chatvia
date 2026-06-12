@@ -3,6 +3,7 @@
 namespace Domain\Evaluation\Actions;
 
 use Domain\Billing\Jobs\UpdateUserCreditsJob;
+use Domain\Billing\Services\UserCreditSystem;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
@@ -25,6 +26,7 @@ class ScoreEvalCaseAction
     public function __construct(
         private readonly EvalAgentRunner $runner,
         private readonly ScorerRegistry $scorers,
+        private readonly UserCreditSystem $creditSystem,
     ) {}
 
     public function execute(EvalRun $run, EvalCase $case): EvalResult
@@ -37,6 +39,17 @@ class ScoreEvalCaseAction
                 $case,
                 ScoreResultData::fail(0.0, 'Agent no longer exists.'),
                 new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), 'Agent no longer exists.'),
+            );
+        }
+
+        // Credits can run dry mid-suite (each case consumes one message), so
+        // re-check the same gate live chat uses before spending an LLM call.
+        if (! $this->creditSystem->setUserId($agent->user_id)->canSendMessages()) {
+            return $this->record(
+                $run,
+                $case,
+                ScoreResultData::fail(0.0, 'Message limit reached — the case was skipped without running the agent.'),
+                new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), 'Message limit reached.'),
             );
         }
 

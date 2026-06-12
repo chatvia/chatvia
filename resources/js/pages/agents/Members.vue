@@ -40,6 +40,9 @@ import {
 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
@@ -66,7 +69,7 @@ const fetchMembers = async () => {
         members.value = response.data.data ?? [];
     } catch (error) {
         console.error('Failed to fetch members:', error);
-        toast.error('Failed to load members');
+        toast.error(t('agents.members.load_error'));
     } finally {
         isLoading.value = false;
     }
@@ -104,9 +107,9 @@ const submitInvite = () => {
             const invitation = (page.props as any)?.flash?.invitation ?? null;
             if (invitation) {
                 lastInvitation.value = invitation;
-                toast.success(`Invitation sent to ${invitation.email}`);
+                toast.success(t('agents.members.invitation_sent_to', { email: invitation.email }));
             } else {
-                toast.success('Invitation sent');
+                toast.success(t('agents.members.invitation_sent'));
                 inviteOpen.value = false;
             }
             inviteForm.reset();
@@ -150,11 +153,11 @@ const confirmDetach = () => {
                 // moves into the lower group and the Grant action shows up.
                 members.value = members.value.map((m) => (m.external_id === target.external_id ? { ...m, has_access: false } : m));
                 resort();
-                toast.success(`${target.name} no longer has access to this agent`);
+                toast.success(t('agents.members.access_revoked', { name: target.name }));
                 detachOpen.value = false;
                 memberToDetach.value = null;
             },
-            onError: () => toast.error('Could not revoke access'),
+            onError: () => toast.error(t('agents.members.revoke_error')),
             onFinish: () => {
                 isDetaching.value = false;
             },
@@ -178,9 +181,9 @@ const grantAccess = (member: ChatterRow) => {
             onSuccess: () => {
                 members.value = members.value.map((m) => (m.external_id === member.external_id ? { ...m, has_access: true } : m));
                 resort();
-                toast.success(`${member.name} now has access to this agent`);
+                toast.success(t('agents.members.access_granted', { name: member.name }));
             },
-            onError: () => toast.error('Could not grant access'),
+            onError: () => toast.error(t('agents.members.grant_error')),
             onFinish: () => {
                 grantingId.value = null;
             },
@@ -245,10 +248,10 @@ const resendInvitation = () => {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {
-                toast.success(`Fresh invitation link generated for ${member.name}`);
+                toast.success(t('agents.members.fresh_link', { name: member.name }));
                 fetchMembers();
             },
-            onError: () => toast.error('Could not generate an invitation link'),
+            onError: () => toast.error(t('agents.members.link_error')),
             onFinish: () => {
                 isResending.value = false;
             },
@@ -283,16 +286,16 @@ const formatDate = (iso: string) => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Members">
+    <AgentLayout :agent="agent" :title="t('agents.members.title')">
         <div class="flex justify-center">
             <Card class="w-full max-w-6xl">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Users class="h-5 w-5" />
-                        Members
+                        {{ t('agents.members.title') }}
                     </CardTitle>
                     <CardDescription>
-                        Everyone in your workspace. Members with access to this agent are listed first; grant any other member access in one click.
+                        {{ t('agents.members.description') }}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -306,10 +309,9 @@ const formatDate = (iso: string) => {
                     >
                         <Globe class="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
                         <div class="space-y-1">
-                            <p class="font-medium text-blue-900 dark:text-blue-100">This agent is public</p>
+                            <p class="font-medium text-blue-900 dark:text-blue-100">{{ t('agents.members.public_title') }}</p>
                             <p class="text-blue-800/80 dark:text-blue-200/80">
-                                Anyone with the link can chat with this agent, so member grants don't apply. To use members, make the agent protected
-                                from its Setup tab.
+                                {{ t('agents.members.public_description') }}
                             </p>
                         </div>
                     </div>
@@ -319,16 +321,16 @@ const formatDate = (iso: string) => {
                         <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                             <div class="relative w-full sm:w-64">
                                 <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-                                <Input v-model="searchQuery" placeholder="Search members..." class="pl-10" />
+                                <Input v-model="searchQuery" :placeholder="t('agents.members.search_placeholder')" class="ps-10" />
                             </div>
 
                             <div class="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
                                 <div v-if="members.length > 0" class="text-muted-foreground text-sm">
-                                    {{ filteredMembers.length }} of {{ members.length }} member{{ members.length === 1 ? '' : 's' }}
+                                    {{ t('agents.members.count', { filtered: filteredMembers.length, total: members.length }) }}
                                 </div>
                                 <Button size="sm" @click="openInvite">
-                                    <UserPlus class="mr-2 h-4 w-4" />
-                                    Invite member
+                                    <UserPlus class="me-2 h-4 w-4" />
+                                    {{ t('agents.members.invite_member') }}
                                 </Button>
                             </div>
                         </div>
@@ -338,11 +340,11 @@ const formatDate = (iso: string) => {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Access</TableHead>
-                                        <TableHead class="w-32 text-right">Actions</TableHead>
+                                        <TableHead>{{ t('agents.members.table.name') }}</TableHead>
+                                        <TableHead>{{ t('agents.members.table.email') }}</TableHead>
+                                        <TableHead>{{ t('agents.members.table.status') }}</TableHead>
+                                        <TableHead>{{ t('agents.members.table.access') }}</TableHead>
+                                        <TableHead class="w-32 text-end">{{ t('agents.members.table.actions') }}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -355,12 +357,12 @@ const formatDate = (iso: string) => {
                                         <TableCell colspan="5" class="text-muted-foreground py-8 text-center">
                                             <div v-if="members.length === 0">
                                                 <Users class="text-muted-foreground/50 mx-auto mb-4 h-12 w-12" />
-                                                <p>No members in your workspace yet.</p>
-                                                <p class="text-sm">Invite someone to get started — they'll show up here.</p>
+                                                <p>{{ t('agents.members.empty_title') }}</p>
+                                                <p class="text-sm">{{ t('agents.members.empty_description') }}</p>
                                             </div>
                                             <div v-else>
-                                                <p>No members found matching your search.</p>
-                                                <p class="text-sm">Try adjusting your search terms.</p>
+                                                <p>{{ t('agents.members.no_results_title') }}</p>
+                                                <p class="text-sm">{{ t('agents.members.no_results_description') }}</p>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -381,20 +383,20 @@ const formatDate = (iso: string) => {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            {{ member.email || 'No email' }}
+                                            {{ member.email || t('agents.members.no_email') }}
                                         </TableCell>
                                         <TableCell>
                                             <span
                                                 v-if="member.status === 'pending'"
                                                 class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100"
                                             >
-                                                Pending
+                                                {{ t('agents.members.status.pending') }}
                                             </span>
                                             <span
                                                 v-else
                                                 class="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-900 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-100"
                                             >
-                                                Active
+                                                {{ t('agents.members.status.active') }}
                                             </span>
                                         </TableCell>
                                         <TableCell>
@@ -402,30 +404,30 @@ const formatDate = (iso: string) => {
                                                 v-if="member.has_access"
                                                 class="inline-flex items-center rounded-full bg-neutral-900 px-2 py-0.5 text-xs font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
                                             >
-                                                Granted
+                                                {{ t('agents.members.access.granted') }}
                                             </span>
-                                            <span v-else class="text-muted-foreground text-xs">No access</span>
+                                            <span v-else class="text-muted-foreground text-xs">{{ t('agents.members.access.no_access') }}</span>
                                         </TableCell>
-                                        <TableCell class="text-right">
+                                        <TableCell class="text-end">
                                             <Button
                                                 v-if="!member.has_access"
                                                 variant="outline"
                                                 size="sm"
                                                 class="h-8"
                                                 :disabled="grantingId === member.external_id"
-                                                :title="`Grant ${member.name} access to this agent`"
+                                                :title="t('agents.members.grant_title', { name: member.name })"
                                                 @click.stop="grantAccess(member)"
                                             >
-                                                <LoaderCircle v-if="grantingId === member.external_id" class="mr-1 h-3.5 w-3.5 animate-spin" />
-                                                <PlusCircle v-else class="mr-1 h-3.5 w-3.5" />
-                                                Grant
+                                                <LoaderCircle v-if="grantingId === member.external_id" class="me-1 h-3.5 w-3.5 animate-spin" />
+                                                <PlusCircle v-else class="me-1 h-3.5 w-3.5" />
+                                                {{ t('agents.members.grant') }}
                                             </Button>
                                             <Button
                                                 v-else
                                                 variant="ghost"
                                                 size="sm"
                                                 class="text-destructive hover:text-destructive h-8 w-8 p-0"
-                                                :title="`Revoke access for ${member.name}`"
+                                                :title="t('agents.members.revoke_title', { name: member.name })"
                                                 @click.stop="askDetach(member)"
                                             >
                                                 <Trash2 class="h-4 w-4" />
@@ -446,16 +448,16 @@ const formatDate = (iso: string) => {
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <UserPlus class="h-5 w-5" />
-                        Invite a member
+                        {{ t('agents.members.invite_dialog_title') }}
                     </DialogTitle>
                     <DialogDescription>
-                        We'll email a sign-up link to this address. They can set a password or sign in with Google or Slack.
+                        {{ t('agents.members.invite_dialog_description') }}
                     </DialogDescription>
                 </DialogHeader>
 
                 <form v-if="!lastInvitation" @submit.prevent="submitInvite" class="space-y-4">
                     <div class="space-y-2">
-                        <Label for="invite-email">Email address</Label>
+                        <Label for="invite-email">{{ t('agents.members.email_label') }}</Label>
                         <div class="relative">
                             <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                 <Mail class="h-4 w-4" />
@@ -466,7 +468,7 @@ const formatDate = (iso: string) => {
                                 type="email"
                                 required
                                 autofocus
-                                placeholder="person@example.com"
+                                :placeholder="t('agents.members.email_placeholder')"
                                 class="pl-9"
                                 :class="{ 'border-red-500': inviteForm.errors.email }"
                             />
@@ -476,13 +478,13 @@ const formatDate = (iso: string) => {
 
                     <DialogFooter>
                         <Button type="button" variant="outline" @click="inviteOpen = false" :disabled="inviteForm.processing">
-                            <X class="mr-2 h-4 w-4" />
-                            Cancel
+                            <X class="me-2 h-4 w-4" />
+                            {{ t('common.cancel') }}
                         </Button>
                         <Button type="submit" :disabled="inviteForm.processing || !inviteForm.email">
-                            <LoaderCircle v-if="inviteForm.processing" class="mr-2 h-4 w-4 animate-spin" />
-                            <Send v-else class="mr-2 h-4 w-4" />
-                            Send invite
+                            <LoaderCircle v-if="inviteForm.processing" class="me-2 h-4 w-4 animate-spin" />
+                            <Send v-else class="me-2 h-4 w-4" />
+                            {{ t('agents.members.send_invite') }}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -492,12 +494,11 @@ const formatDate = (iso: string) => {
                     <div
                         class="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-100"
                     >
-                        Invitation emailed to <span class="font-medium">{{ lastInvitation.email }}</span
-                        >. You can also copy the link below.
+                        {{ t('agents.members.invitation_emailed', { email: lastInvitation.email }) }}
                     </div>
 
                     <div class="space-y-2">
-                        <Label>Sign-up link</Label>
+                        <Label>{{ t('agents.members.signup_link') }}</Label>
                         <div class="flex items-center gap-2">
                             <Input :model-value="lastInvitation.accept_url" readonly class="font-mono text-xs" />
                             <Button type="button" variant="outline" size="icon" title="Copy" @click="copyLink">
@@ -505,17 +506,17 @@ const formatDate = (iso: string) => {
                                 <Copy v-else class="h-4 w-4" />
                             </Button>
                         </div>
-                        <p class="text-muted-foreground text-xs">Expires {{ formatDate(lastInvitation.expires_at) }}.</p>
+                        <p class="text-muted-foreground text-xs">{{ t('agents.members.expires', { date: formatDate(lastInvitation.expires_at) }) }}</p>
                     </div>
 
                     <DialogFooter>
                         <Button type="button" variant="outline" @click="lastInvitation = null">
                             <UserPlus class="mr-2 h-4 w-4" />
-                            Invite another
+                            {{ t('agents.members.invite_another') }}
                         </Button>
                         <Button type="button" @click="inviteOpen = false">
-                            <Check class="mr-2 h-4 w-4" />
-                            Done
+                            <Check class="me-2 h-4 w-4" />
+                            {{ t('agents.members.done') }}
                         </Button>
                     </DialogFooter>
                 </div>
@@ -538,46 +539,46 @@ const formatDate = (iso: string) => {
                                     v-if="selectedMember.status === 'pending'"
                                     class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100"
                                 >
-                                    Pending
+                                    {{ t('agents.members.status.pending') }}
                                 </span>
                                 <span
                                     v-else
                                     class="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-900 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-100"
                                 >
-                                    Active
+                                    {{ t('agents.members.status.active') }}
                                 </span>
-                                <span class="text-muted-foreground truncate">{{ selectedMember.email || 'No email' }}</span>
+                                <span class="text-muted-foreground truncate">{{ selectedMember.email || t('agents.members.no_email') }}</span>
                             </div>
                         </div>
                     </div>
-                    <SheetDescription class="sr-only">Member details and access for this agent.</SheetDescription>
+                    <SheetDescription class="sr-only">{{ t('agents.members.sheet_description') }}</SheetDescription>
                     <div class="space-y-1.5">
                         <div class="flex items-center gap-1.5 text-xs">
-                            <span class="text-muted-foreground">ID</span>
+                            <span class="text-muted-foreground">{{ t('agents.members.member_id') }}</span>
                             <code class="min-w-0 flex-1 truncate font-mono" :title="selectedMember.external_id">{{
                                 selectedMember.external_id
                             }}</code>
-                            <Button variant="ghost" size="sm" class="h-6 shrink-0 px-1.5" title="Copy member ID" @click="copyId">
+                            <Button variant="ghost" size="sm" class="h-6 shrink-0 px-1.5" :title="t('agents.members.copy_member_id')" @click="copyId">
                                 <Check v-if="idCopied" class="size-3.5 text-green-600" />
                                 <Copy v-else class="size-3.5" />
                             </Button>
                         </div>
-                        <p class="text-muted-foreground text-xs">Joined {{ formatDate(selectedMember.created_at) }}</p>
+                        <p class="text-muted-foreground text-xs">{{ t('agents.members.joined', { date: formatDate(selectedMember.created_at) }) }}</p>
                     </div>
                 </SheetHeader>
 
                 <div class="space-y-6 px-6 py-6">
                     <!-- Access -->
                     <div class="space-y-1.5">
-                        <p class="text-muted-foreground text-xs font-medium uppercase">Access</p>
+                        <p class="text-muted-foreground text-xs font-medium uppercase">{{ t('agents.members.table.access') }}</p>
                         <div>
                             <span
                                 v-if="selectedMember.has_access"
                                 class="inline-flex items-center rounded-full bg-neutral-900 px-2 py-0.5 text-xs font-medium text-white dark:bg-neutral-100 dark:text-neutral-900"
                             >
-                                Granted
+                                {{ t('agents.members.access.granted') }}
                             </span>
-                            <span v-else class="text-muted-foreground text-xs">No access</span>
+                            <span v-else class="text-muted-foreground text-xs">{{ t('agents.members.access.no_access') }}</span>
                         </div>
                     </div>
 
@@ -586,13 +587,13 @@ const formatDate = (iso: string) => {
                         <div class="flex items-start gap-2">
                             <Clock class="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
                             <div class="space-y-0.5">
-                                <p class="text-sm font-medium">Invitation pending</p>
-                                <p class="text-muted-foreground text-xs">This member hasn't accepted yet. Share their personal sign-up link below.</p>
+                                <p class="text-sm font-medium">{{ t('agents.members.invitation_pending') }}</p>
+                                <p class="text-muted-foreground text-xs">{{ t('agents.members.invitation_pending_hint') }}</p>
                             </div>
                         </div>
 
                         <div v-if="selectedMember.invitation_url" class="space-y-2">
-                            <Label>Sign-up link</Label>
+                            <Label>{{ t('agents.members.signup_link') }}</Label>
                             <div class="flex items-center gap-2">
                                 <Input :model-value="selectedMember.invitation_url" readonly class="font-mono text-xs" />
                                 <Button type="button" variant="outline" size="icon" title="Copy" @click="copyInvitationLink">
@@ -601,32 +602,33 @@ const formatDate = (iso: string) => {
                                 </Button>
                             </div>
                             <p v-if="selectedMember.invitation_expires_at" class="text-muted-foreground text-xs">
-                                Expires {{ formatDate(selectedMember.invitation_expires_at) }}.
+                                {{ t('agents.members.expires', { date: formatDate(selectedMember.invitation_expires_at) }) }}
                             </p>
                         </div>
 
                         <div v-else class="text-muted-foreground flex items-start gap-2 text-xs">
                             <CircleAlert class="mt-0.5 h-4 w-4 shrink-0" />
-                            <p>The invitation link has expired or is no longer available. Generate a fresh one below.</p>
+                            <p>{{ t('agents.members.link_expired') }}</p>
                         </div>
 
                         <Button type="button" variant="outline" size="sm" class="w-full" :disabled="isResending" @click="resendInvitation">
                             <LoaderCircle v-if="isResending" class="mr-2 h-4 w-4 animate-spin" />
                             <RefreshCw v-else class="mr-2 h-4 w-4" />
-                            {{ selectedMember.invitation_url ? 'Resend invitation' : 'Generate new link' }}
+                            {{ selectedMember.invitation_url ? t('agents.members.resend_invitation') : t('agents.members.generate_link') }}
                         </Button>
                     </div>
 
                     <!-- Manage hint -->
-                    <p class="text-muted-foreground text-sm">
-                        To manage this member, go to the
-                        <Link
-                            :href="route('settings.members.index')"
-                            class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                        >
-                            members page </Link
-                        >.
-                    </p>
+                    <i18n-t keypath="agents.members.manage_hint" tag="p" class="text-muted-foreground text-sm" scope="global">
+                        <template #link>
+                            <Link
+                                :href="route('people.members.index')"
+                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                            >
+                                {{ t('agents.members.members_page') }}
+                            </Link>
+                        </template>
+                    </i18n-t>
                 </div>
 
                 <SheetFooter class="border-t px-6 py-4">
@@ -636,8 +638,8 @@ const formatDate = (iso: string) => {
                         class="text-destructive hover:text-destructive"
                         @click="revokeFromSheet"
                     >
-                        <Trash2 class="mr-2 h-4 w-4" />
-                        Revoke access
+                        <Trash2 class="me-2 h-4 w-4" />
+                        {{ t('agents.members.revoke_access') }}
                     </Button>
                     <Button
                         v-else-if="selectedMember"
@@ -645,9 +647,9 @@ const formatDate = (iso: string) => {
                         :disabled="grantingId === selectedMember.external_id"
                         @click="grantAccess(selectedMember)"
                     >
-                        <LoaderCircle v-if="grantingId === selectedMember.external_id" class="mr-2 h-4 w-4 animate-spin" />
-                        <PlusCircle v-else class="mr-2 h-4 w-4" />
-                        Grant access
+                        <LoaderCircle v-if="grantingId === selectedMember.external_id" class="me-2 h-4 w-4 animate-spin" />
+                        <PlusCircle v-else class="me-2 h-4 w-4" />
+                        {{ t('agents.members.grant_access') }}
                     </Button>
                 </SheetFooter>
             </SheetContent>
@@ -657,21 +659,20 @@ const formatDate = (iso: string) => {
         <AlertDialog v-model:open="detachOpen">
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Revoke access</AlertDialogTitle>
+                    <AlertDialogTitle>{{ t('agents.members.revoke_dialog_title') }}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        <span class="font-medium">{{ memberToDetach?.name }}</span> will lose access to this agent immediately. They stay in your
-                        workspace and you can grant access again at any time.
+                        {{ t('agents.members.revoke_dialog_description', { name: memberToDetach?.name }) }}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel :disabled="isDetaching">Cancel</AlertDialogCancel>
+                    <AlertDialogCancel :disabled="isDetaching">{{ t('common.cancel') }}</AlertDialogCancel>
                     <AlertDialogAction
                         class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         :disabled="isDetaching"
                         @click="confirmDetach"
                     >
-                        <LoaderCircle v-if="isDetaching" class="mr-2 h-4 w-4 animate-spin" />
-                        Revoke
+                        <LoaderCircle v-if="isDetaching" class="me-2 h-4 w-4 animate-spin" />
+                        {{ t('agents.members.revoke') }}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

@@ -87,10 +87,7 @@ class IngestDocumentAction
 
         $batch = Bus::batch($jobs)
             ->name('Ingestion Agent File ID: '.$agentFileId)
-            // A single failed page job must not cancel the rest of the
-            // document — without this, one failure short-circuits every
-            // remaining job and the terminal broadcast never fires.
-            ->allowFailures()
+            ->allowFailures() // one failed page must not cancel the batch
             ->finally(function (Batch $batch) use ($agentFileId, $agentExternalId): void {
                 $file = SourceFile::find($agentFileId);
 

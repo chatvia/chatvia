@@ -22,8 +22,8 @@ class AgentMcpServerObserver
 
     public function created(AgentMcpServer $server): void
     {
-        // No attachments yet on the row itself; the pivot observer handles
-        // per-agent cache busting when this server is later attached.
+        // No attachments yet on the row itself; Agent::attachConnector busts
+        // the per-agent cache when this server is later attached.
     }
 
     public function updated(AgentMcpServer $server): void

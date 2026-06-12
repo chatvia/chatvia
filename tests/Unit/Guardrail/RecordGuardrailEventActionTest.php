@@ -4,6 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Guardrail\Actions\RecordGuardrailEventAction;
 use Domain\Guardrail\Events\GuardrailTriggered;
 use Domain\Guardrail\Models\GuardrailEvent;
+use Illuminate\Support\Str;
 
 /**
  * The recorder is the safety log's single writer. Its contract: persist the
@@ -18,8 +19,8 @@ function guardEvent(Agent $agent, string $sample, array $overrides = []): Guardr
         workspaceId: (int) $agent->user_id,
         userId: $overrides['userId'] ?? null,
         userName: $overrides['userName'] ?? null,
-        conversationExternalId: (string) \Illuminate\Support\Str::uuid7(),
-        messageId: (string) \Illuminate\Support\Str::uuid7(),
+        conversationExternalId: (string) Str::uuid7(),
+        messageId: (string) Str::uuid7(),
         traceId: 'trace-1',
         stage: $overrides['stage'] ?? 'input',
         guardType: $overrides['guardType'] ?? 'pii',

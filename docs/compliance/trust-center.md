@@ -66,7 +66,7 @@ Your data stays in Europe by default.
 
 ## Sub-processors
 
-Chatvia uses a short, vetted list of sub-processors to deliver the service (hosting, AI inference, and storage are all provided within the EU). Our current sub-processor register is **available on request**, and the DPA includes notice terms for any changes.
+Chatvia uses a short, vetted list of sub-processors to deliver the service (hosting, AI inference, and storage are all provided within the EU). The one service we use outside the EU is **Firecrawl** (US), used **only** to crawl public websites you choose to add to your knowledge base — it receives just the public URL and the public page content, never your conversations, leads, or personal data. Our current sub-processor register is **available on request**, and the DPA includes notice terms for any changes.
 
 ## AI transparency
 

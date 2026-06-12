@@ -23,9 +23,7 @@ return new class extends Migration
             // The agent acted through. FK nulls on delete; agent_name survives it.
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
             $table->string('agent_name');
-            // Tenant scope (agent owner). The audit trail is tenant data —
-            // it dies with the workspace (GDPR: no orphaned tool args/names).
-            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete(); // tenant scope (agent owner)
 
             // The actor (a chatter). FK nulls on delete; user_name survives it.
             // user_name === null ⇒ anonymous visitor.
@@ -63,9 +61,7 @@ return new class extends Migration
             $table->timestampTz('created_at')->useCurrent(); // immutable; no updated_at
 
             // Postgres does not auto-index FK columns — index them explicitly.
-            // The (…, id) composites serve the audit pages' ORDER BY id DESC
-            // top-N walks (cursor pagination); a bare agent_id prefix would be
-            // redundant with them.
+            // The (…, id) composites serve the audit pages' ORDER BY id DESC walks.
             $table->index(['agent_id', 'id']);
             $table->index(['workspace_id', 'id']);
             $table->index('user_id');
@@ -74,8 +70,7 @@ return new class extends Migration
             $table->index('outcome');
         });
 
-        // Cheap insert-order index for the retention prune's
-        // `WHERE created_at < ?` sweep — BRIN, since rows arrive in time order.
+        // BRIN for the retention prune's created_at sweep.
         DB::statement('CREATE INDEX agent_activity_created_at_brin ON agent_activity USING brin (created_at)');
     }
 

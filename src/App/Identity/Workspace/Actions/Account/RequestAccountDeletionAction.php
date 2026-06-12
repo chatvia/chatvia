@@ -19,7 +19,7 @@ class RequestAccountDeletionAction
     public function execute(User $user): void
     {
         $url = URL::temporarySignedRoute(
-            'settings.account.delete.confirm',
+            'account.delete.confirm',
             now()->addMinutes(self::LIFETIME_MINUTES),
             ['userId' => $user->id],
         );

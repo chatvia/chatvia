@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Info, Plus, Search, Sparkles, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Starter {
     text: string;
@@ -19,8 +20,6 @@ interface Starter {
 const props = withDefaults(
     defineProps<{
         starters: Starter[];
-        // Questions mined from the agent's knowledge-base chunks. Empty when the
-        // agent has no ingested sources — the picker button stays hidden.
         knowledgeQuestions?: string[];
         errors?: Record<string, string | undefined>;
         disabled?: boolean;
@@ -32,8 +31,8 @@ const emit = defineEmits<{
     'update:starters': [value: Starter[]];
 }>();
 
-// One editable row per starter. When the list is empty (and editable) we still
-// show a single blank row so there is always somewhere to type.
+const { t } = useI18n();
+
 const rows = computed<Starter[]>(() => {
     if (props.disabled) return props.starters;
     return props.starters.length ? props.starters : [{ text: '', icon: null }];
@@ -47,7 +46,6 @@ const updateText = (index: number, value: string) => {
 
 const updateIcon = (index: number, icon: string | null) => {
     const next = [...props.starters];
-    // Editing the icon of the (not-yet-persisted) placeholder row creates it.
     next[index] = { text: next[index]?.text ?? '', icon };
     emit('update:starters', next);
 };
@@ -61,12 +59,10 @@ const removeAt = (index: number) => {
 
 const addRow = () => emit('update:starters', [...props.starters, { text: '', icon: null }]);
 
-// ── Knowledge Base picker ────────────────────────────────────────────────
 const dialogOpen = ref(false);
 const search = ref('');
 const selected = ref<string[]>([]);
 
-// A question already used as a starter can't be picked again.
 const isAdded = (q: string) => props.starters.some((s) => s.text === q);
 const isSelected = (q: string) => selected.value.includes(q);
 
@@ -77,8 +73,8 @@ const filteredQuestions = computed(() => {
 });
 
 const addLabel = computed(() => {
-    if (!selected.value.length) return 'Add starters';
-    return `Add ${selected.value.length} ${selected.value.length === 1 ? 'starter' : 'starters'}`;
+    if (!selected.value.length) return t('agents.setup.sections.starters_add_label');
+    return t('agents.setup.sections.starters_add_count', { count: selected.value.length }, { plural: selected.value.length });
 });
 
 const toggle = (q: string) => {
@@ -96,7 +92,6 @@ const addSelected = () => {
     dialogOpen.value = false;
 };
 
-// Reset the transient picker state each time the dialog opens.
 watch(dialogOpen, (open) => {
     if (open) {
         selected.value = [];
@@ -109,9 +104,9 @@ watch(dialogOpen, (open) => {
     <div class="space-y-4">
         <div class="flex items-start justify-between gap-4">
             <div>
-                <h3 class="text-sm font-medium">Conversation Starters</h3>
+                <h3 class="text-sm font-medium">{{ t('agents.setup.sections.starters_title') }}</h3>
                 <p class="text-muted-foreground mt-1 text-xs">
-                    Suggest questions to help users start conversations. Each can carry an optional icon.
+                    {{ t('agents.setup.sections.starters_description') }}
                 </p>
             </div>
 
@@ -123,14 +118,13 @@ watch(dialogOpen, (open) => {
                 class="shrink-0"
                 @click="dialogOpen = true"
             >
-                <Sparkles class="mr-2 h-4 w-4" />
-                Add from Knowledge Base
+                <Sparkles class="me-2 h-4 w-4" />
+                {{ t('agents.setup.sections.starters_from_kb') }}
             </Button>
         </div>
 
         <div class="space-y-2">
             <div v-for="(starter, index) in rows" :key="index" class="flex items-center gap-2">
-                <!-- Icon: editable picker, or a static glyph in read-only mode. -->
                 <IconPicker v-if="!disabled" :model-value="starter.icon" @update:model-value="updateIcon(index, $event)" />
                 <span v-else-if="starter.icon" class="text-muted-foreground flex h-9 w-9 shrink-0 items-center justify-center">
                     <HeroIcon :name="starter.icon" class="h-4 w-4" />
@@ -139,7 +133,7 @@ watch(dialogOpen, (open) => {
                 <Input
                     :model-value="starter.text"
                     :disabled="disabled"
-                    :placeholder="index === 0 ? 'E.g., How can I track my order?' : 'Add another conversation starter'"
+                    :placeholder="index === 0 ? t('agents.setup.sections.starters_placeholder_first') : t('agents.setup.sections.starters_placeholder_more')"
                     class="flex-1"
                     @update:model-value="updateText(index, String($event ?? ''))"
                     @keydown.enter.prevent="addRow"
@@ -150,41 +144,40 @@ watch(dialogOpen, (open) => {
                     variant="ghost"
                     size="icon"
                     class="text-muted-foreground hover:text-destructive shrink-0"
-                    aria-label="Remove starter"
+                    :aria-label="t('agents.setup.sections.starters_remove')"
                     @click="removeAt(index)"
                 >
                     <Trash2 class="h-4 w-4" />
                 </Button>
             </div>
 
-            <p v-if="disabled && !starters.length" class="text-muted-foreground text-sm">No conversation starters yet.</p>
+            <p v-if="disabled && !starters.length" class="text-muted-foreground text-sm">{{ t('agents.setup.sections.starters_empty') }}</p>
         </div>
 
         <Button v-if="!disabled" type="button" variant="outline" size="sm" @click="addRow">
-            <Plus class="mr-2 h-4 w-4" />
-            Add starter
+            <Plus class="me-2 h-4 w-4" />
+            {{ t('agents.setup.sections.starters_add') }}
         </Button>
 
         <p v-if="errors?.starters" class="text-destructive text-sm">{{ errors.starters }}</p>
 
         <Alert>
             <Info class="h-4 w-4" />
-            <AlertDescription>Good starter messages are specific questions that showcase your agent's capabilities</AlertDescription>
+            <AlertDescription>{{ t('agents.setup.sections.starters_tip') }}</AlertDescription>
         </Alert>
 
-        <!-- Knowledge Base picker — suggested questions generated during ingestion. -->
         <Dialog v-model:open="dialogOpen">
             <DialogContent class="sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Add from Knowledge Base</DialogTitle>
+                    <DialogTitle>{{ t('agents.setup.sections.starters_dialog_title') }}</DialogTitle>
                     <DialogDescription>
-                        Pick questions generated from this agent's knowledge. Selected questions become conversation starters.
+                        {{ t('agents.setup.sections.starters_dialog_description') }}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div class="relative">
-                    <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                    <Input v-model="search" placeholder="Search questions..." class="pl-9" />
+                    <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                    <Input v-model="search" :placeholder="t('agents.setup.sections.starters_search')" class="ps-9" />
                 </div>
 
                 <ScrollArea class="-mx-1 h-72 px-1">
@@ -203,15 +196,17 @@ watch(dialogOpen, (open) => {
                         >
                             <Checkbox :model-value="isAdded(q) || isSelected(q)" :disabled="isAdded(q)" class="pointer-events-none mt-0.5" />
                             <span class="flex-1">{{ q }}</span>
-                            <Badge v-if="isAdded(q)" variant="secondary" class="shrink-0">Added</Badge>
+                            <Badge v-if="isAdded(q)" variant="secondary" class="shrink-0">{{ t('agents.setup.sections.starters_added') }}</Badge>
                         </div>
 
-                        <p v-if="!filteredQuestions.length" class="text-muted-foreground py-8 text-center text-sm">No questions match your search.</p>
+                        <p v-if="!filteredQuestions.length" class="text-muted-foreground py-8 text-center text-sm">
+                            {{ t('agents.setup.sections.starters_no_match') }}
+                        </p>
                     </div>
                 </ScrollArea>
 
                 <DialogFooter>
-                    <Button type="button" variant="outline" @click="dialogOpen = false">Cancel</Button>
+                    <Button type="button" variant="outline" @click="dialogOpen = false">{{ t('common.cancel') }}</Button>
                     <Button type="button" :disabled="!selected.length" @click="addSelected">{{ addLabel }}</Button>
                 </DialogFooter>
             </DialogContent>

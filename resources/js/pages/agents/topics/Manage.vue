@@ -14,6 +14,9 @@ import axios from 'axios';
 import { LoaderCircle, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
@@ -60,7 +63,7 @@ const fetchTopics = async () => {
             isFrozen.value = topics.value[0].is_frozen;
         }
     } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Failed to load topics');
+        toast.error(error.response?.data?.message || t('agents.topics.manage.load_error'));
     } finally {
         loading.value = false;
     }
@@ -68,8 +71,8 @@ const fetchTopics = async () => {
 
 const openAddDialog = () => {
     if (!canManageTopics.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to manage topics.',
+        toast.error(t('agents.topics.manage.permission_denied'), {
+            description: t('agents.topics.manage.permission_denied_description'),
         });
         return;
     }
@@ -83,8 +86,8 @@ const openAddDialog = () => {
 
 const openEditDialog = (topic: any) => {
     if (!canManageTopics.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to manage topics.',
+        toast.error(t('agents.topics.manage.permission_denied'), {
+            description: t('agents.topics.manage.permission_denied_description'),
         });
         return;
     }
@@ -99,8 +102,8 @@ const openEditDialog = (topic: any) => {
 
 const openDeleteDialog = (topic: any) => {
     if (!canManageTopics.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to manage topics.',
+        toast.error(t('agents.topics.manage.permission_denied'), {
+            description: t('agents.topics.manage.permission_denied_description'),
         });
         return;
     }
@@ -111,18 +114,18 @@ const openDeleteDialog = (topic: any) => {
 
 const handleAdd = async () => {
     if (!form.value.topic || !form.value.description) {
-        toast.error('Please fill in all fields');
+        toast.error(t('agents.topics.manage.fill_all_fields'));
         return;
     }
 
     isSubmitting.value = true;
     try {
         await axios.post(route('agents.topics.store', props.agent.external_id), form.value);
-        toast.success('Topic created successfully');
+        toast.success(t('agents.topics.manage.created'));
         isAddDialogOpen.value = false;
         fetchTopics();
     } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Failed to create topic');
+        toast.error(error.response?.data?.message || t('agents.topics.manage.create_error'));
     } finally {
         isSubmitting.value = false;
     }
@@ -130,18 +133,18 @@ const handleAdd = async () => {
 
 const handleEdit = async () => {
     if (!form.value.topic || !form.value.description) {
-        toast.error('Please fill in all fields');
+        toast.error(t('agents.topics.manage.fill_all_fields'));
         return;
     }
 
     isSubmitting.value = true;
     try {
         await axios.patch(route('agents.topics.update', [props.agent.external_id, currentTopic.value.id]), form.value);
-        toast.success('Topic updated successfully');
+        toast.success(t('agents.topics.manage.updated'));
         isEditDialogOpen.value = false;
         fetchTopics();
     } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Failed to update topic');
+        toast.error(error.response?.data?.message || t('agents.topics.manage.update_error'));
     } finally {
         isSubmitting.value = false;
     }
@@ -151,11 +154,11 @@ const handleDelete = async () => {
     isSubmitting.value = true;
     try {
         await axios.delete(route('agents.topics.destroy', [props.agent.external_id, currentTopic.value.id]));
-        toast.success('Topic deleted successfully');
+        toast.success(t('agents.topics.manage.deleted'));
         isDeleteDialogOpen.value = false;
         fetchTopics();
     } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Failed to delete topic');
+        toast.error(error.response?.data?.message || t('agents.topics.manage.delete_error'));
     } finally {
         isSubmitting.value = false;
     }
@@ -166,11 +169,11 @@ const handleToggleFreeze = async (value: boolean) => {
         await axios.post(route('agents.topics.toggle-freeze', props.agent.external_id), {
             is_frozen: value,
         });
-        toast.success(value ? 'Topics frozen successfully' : 'Topics unfrozen successfully');
+        toast.success(value ? t('agents.topics.manage.frozen') : t('agents.topics.manage.unfrozen'));
         isFrozen.value = value;
         fetchTopics();
     } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Failed to update freeze status');
+        toast.error(error.response?.data?.message || t('agents.topics.manage.freeze_error'));
         // Revert the switch
         isFrozen.value = !value;
     }
@@ -182,23 +185,23 @@ onMounted(() => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Manage topics" description="Create and manage conversation topics for your agent">
+    <AgentLayout :agent="agent" :title="t('agents.topics.manage.title')" :description="t('agents.topics.manage.description')">
         <template #header-icon>
             <Plus class="h-5 w-5" />
         </template>
 
-        <LockedFeature v-if="!hasAccess" description="Upgrade your plan to manage conversation topics for this agent." />
+        <LockedFeature v-if="!hasAccess" :description="t('agents.topics.manage.locked_description')" />
 
         <div v-else class="space-y-6">
             <!-- Search and Add -->
             <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div class="relative w-full sm:w-96">
-                    <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-                    <Input v-model="searchQuery" placeholder="Search" class="pl-9" />
+                    <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2 transform" />
+                    <Input v-model="searchQuery" :placeholder="t('agents.topics.manage.search_placeholder')" class="ps-9" />
                 </div>
                 <Button @click="openAddDialog">
-                    <Plus class="mr-2 h-4 w-4" />
-                    Add topic
+                    <Plus class="me-2 h-4 w-4" />
+                    {{ t('agents.topics.manage.add_topic') }}
                 </Button>
             </div>
 
@@ -211,8 +214,8 @@ onMounted(() => {
             <Card v-else>
                 <CardContent class="!p-0">
                     <div v-if="filteredTopics.length === 0" class="text-muted-foreground p-8 text-center">
-                        <p v-if="searchQuery">No topics found matching "{{ searchQuery }}"</p>
-                        <p v-else>No topics yet. Click "Add topic" to create one.</p>
+                        <p v-if="searchQuery">{{ t('agents.topics.manage.no_results', { query: searchQuery }) }}</p>
+                        <p v-else>{{ t('agents.topics.manage.empty') }}</p>
                     </div>
                     <div v-else class="divide-y">
                         <div
@@ -223,7 +226,7 @@ onMounted(() => {
                             <div class="min-w-0 flex-1">
                                 <p class="font-medium">{{ topic.topic }}</p>
                             </div>
-                            <div class="ml-4 flex items-center gap-2">
+                            <div class="ms-4 flex items-center gap-2">
                                 <Button variant="ghost" size="icon" @click="openEditDialog(topic)">
                                     <Pencil class="h-4 w-4" />
                                 </Button>
@@ -243,12 +246,12 @@ onMounted(() => {
                         <div class="flex items-center gap-3">
                             <Switch :checked="isFrozen" @update:checked="handleToggleFreeze" />
                             <div>
-                                <Label class="cursor-pointer">Freeze Topics</Label>
-                                <p class="text-muted-foreground text-sm">Prevent topics from being automatically updated</p>
+                                <Label class="cursor-pointer">{{ t('agents.topics.manage.freeze_topics') }}</Label>
+                                <p class="text-muted-foreground text-sm">{{ t('agents.topics.manage.freeze_hint') }}</p>
                             </div>
                         </div>
                         <Button variant="outline" size="sm" as-child>
-                            <a :href="route('agents.analytics.topics', props.agent.external_id)"> Done </a>
+                            <a :href="route('agents.analytics.topics', props.agent.external_id)"> {{ t('agents.topics.manage.done') }} </a>
                         </Button>
                     </div>
                 </CardContent>
@@ -259,29 +262,29 @@ onMounted(() => {
         <Dialog v-model:open="isAddDialogOpen">
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Add Topic</DialogTitle>
-                    <DialogDescription> Create a new conversation topic for this agent </DialogDescription>
+                    <DialogTitle>{{ t('agents.topics.manage.add_dialog_title') }}</DialogTitle>
+                    <DialogDescription>{{ t('agents.topics.manage.add_dialog_description') }}</DialogDescription>
                 </DialogHeader>
                 <div class="space-y-4">
                     <div>
-                        <Label for="add-topic">Topic Name</Label>
-                        <Input id="add-topic" v-model="form.topic" placeholder="e.g., Account Subscription" @keydown.enter="handleAdd" />
+                        <Label for="add-topic">{{ t('agents.topics.manage.topic_name') }}</Label>
+                        <Input id="add-topic" v-model="form.topic" :placeholder="t('agents.topics.manage.topic_name_placeholder')" @keydown.enter="handleAdd" />
                     </div>
                     <div>
-                        <Label for="add-description">Description</Label>
+                        <Label for="add-description">{{ t('agents.topics.manage.description_label') }}</Label>
                         <Textarea
                             id="add-description"
                             v-model="form.description"
-                            placeholder="Brief description of what this topic covers"
+                            :placeholder="t('agents.topics.manage.description_placeholder')"
                             rows="3"
                         />
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" @click="isAddDialogOpen = false" :disabled="isSubmitting"> Cancel </Button>
+                    <Button variant="outline" @click="isAddDialogOpen = false" :disabled="isSubmitting"> {{ t('agents.topics.manage.cancel') }} </Button>
                     <Button @click="handleAdd" :disabled="isSubmitting">
-                        <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                        Add Topic
+                        <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
+                        {{ t('agents.topics.manage.add_topic_button') }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -291,29 +294,29 @@ onMounted(() => {
         <Dialog v-model:open="isEditDialogOpen">
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Edit Topic</DialogTitle>
-                    <DialogDescription> Update the conversation topic </DialogDescription>
+                    <DialogTitle>{{ t('agents.topics.manage.edit_dialog_title') }}</DialogTitle>
+                    <DialogDescription>{{ t('agents.topics.manage.edit_dialog_description') }}</DialogDescription>
                 </DialogHeader>
                 <div class="space-y-4">
                     <div>
-                        <Label for="edit-topic">Topic Name</Label>
-                        <Input id="edit-topic" v-model="form.topic" placeholder="e.g., Account Subscription" @keydown.enter="handleEdit" />
+                        <Label for="edit-topic">{{ t('agents.topics.manage.topic_name') }}</Label>
+                        <Input id="edit-topic" v-model="form.topic" :placeholder="t('agents.topics.manage.topic_name_placeholder')" @keydown.enter="handleEdit" />
                     </div>
                     <div>
-                        <Label for="edit-description">Description</Label>
+                        <Label for="edit-description">{{ t('agents.topics.manage.description_label') }}</Label>
                         <Textarea
                             id="edit-description"
                             v-model="form.description"
-                            placeholder="Brief description of what this topic covers"
+                            :placeholder="t('agents.topics.manage.description_placeholder')"
                             rows="3"
                         />
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" @click="isEditDialogOpen = false" :disabled="isSubmitting"> Cancel </Button>
+                    <Button variant="outline" @click="isEditDialogOpen = false" :disabled="isSubmitting"> {{ t('agents.topics.manage.cancel') }} </Button>
                     <Button @click="handleEdit" :disabled="isSubmitting">
-                        <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                        Save
+                        <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
+                        {{ t('agents.topics.manage.save') }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -323,16 +326,16 @@ onMounted(() => {
         <Dialog v-model:open="isDeleteDialogOpen">
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Delete Topic</DialogTitle>
+                    <DialogTitle>{{ t('agents.topics.manage.delete_dialog_title') }}</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete "{{ currentTopic?.topic }}"? This action cannot be undone.
+                        {{ t('agents.topics.manage.delete_dialog_description', { topic: currentTopic?.topic }) }}
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" @click="isDeleteDialogOpen = false" :disabled="isSubmitting"> Cancel </Button>
+                    <Button variant="outline" @click="isDeleteDialogOpen = false" :disabled="isSubmitting"> {{ t('agents.topics.manage.cancel') }} </Button>
                     <Button variant="destructive" @click="handleDelete" :disabled="isSubmitting">
-                        <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                        Delete
+                        <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
+                        {{ t('agents.topics.manage.delete') }}
                     </Button>
                 </DialogFooter>
             </DialogContent>

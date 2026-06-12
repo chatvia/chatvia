@@ -176,15 +176,41 @@ class UserCreditSystem
 
     public function getTotalSentMessages(): int
     {
-        return Cache::get(
-            key: template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]),
-            default: 0
-        );
+        $cached = Cache::get(template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]));
+
+        if ($cached !== null) {
+            return (int) $cached;
+        }
+
+        return $this->refreshSentMessages();
     }
 
-    public function resetSentMessages(): void
+    /**
+     * Rebuild the sent-messages counter from the database (the active cycle's
+     * usage row — incremented in lockstep with this cache key by
+     * ConsumeMessageCreditsAction). Covers cache flush/expiry mid-cycle, which
+     * would otherwise show 0 sent on the usage dashboard until the next cycle.
+     */
+    public function refreshSentMessages(): int
     {
-        Cache::put(template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]), 0);
+        /** @var User|null $user */
+        $user = User::find($this->userId);
+
+        /** @var UserCredit|null $credit */
+        $credit = $user?->credits()
+            ->where('ends_at', '>=', now())
+            ->with('usage')
+            ->first();
+
+        $sent = (int) ($credit?->usage?->messages ?? 0);
+
+        Cache::put(
+            key: template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->userId]),
+            value: $sent,
+            ttl: $credit?->ends_at ?? now()->addHour(),
+        );
+
+        return $sent;
     }
 
     public function consumableMessages(bool $refresh = false): int

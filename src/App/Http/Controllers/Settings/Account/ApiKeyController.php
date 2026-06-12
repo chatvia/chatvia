@@ -30,7 +30,7 @@ class ApiKeyController extends Controller
             ])
             ->all();
 
-        return Inertia::render('settings/ApiKeys', [
+        return Inertia::render('workspace/integrations/ApiKeys', [
             'tokens' => $tokens,
             'created_token' => $request->session()->get('created_token'),
         ]);

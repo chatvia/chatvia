@@ -3,6 +3,9 @@ import ColorThemePicker from '@/components/agents/ColorThemePicker.vue';
 import ImageUploadField from '@/components/agents/ImageUploadField.vue';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 withDefaults(
     defineProps<{
@@ -30,8 +33,8 @@ defineEmits<{
 <template>
     <div class="space-y-6">
         <div class="space-y-2">
-            <Label>Color Theme</Label>
-            <p class="text-muted-foreground mb-3 text-xs">Click the color swatch to choose your primary color</p>
+            <Label>{{ t('agents.setup.sections.branding_color') }}</Label>
+            <p class="text-muted-foreground mb-3 text-xs">{{ t('agents.setup.sections.branding_color_hint') }}</p>
             <ColorThemePicker
                 :theme="colorTheme"
                 :shade="colorShade"
@@ -46,9 +49,9 @@ defineEmits<{
         <Separator />
 
         <ImageUploadField
-            label="Agent Avatar"
-            description="Upload an avatar for your agent (256x256px recommended)"
-            upload-label="Upload Avatar"
+            :label="t('agents.setup.sections.branding_avatar')"
+            :description="t('agents.setup.sections.branding_avatar_hint')"
+            :upload-label="t('agents.setup.sections.branding_avatar_upload')"
             icon="user"
             :preview="avatarPreview"
             :error="errors?.avatar"
@@ -58,9 +61,9 @@ defineEmits<{
         />
 
         <ImageUploadField
-            label="Logo Image"
-            description="Upload a logo for your agent (256x256px recommended)"
-            upload-label="Upload Logo"
+            :label="t('agents.setup.sections.branding_logo')"
+            :description="t('agents.setup.sections.branding_logo_hint')"
+            :upload-label="t('agents.setup.sections.branding_logo_upload')"
             icon="image"
             :preview="logoPreview"
             :error="errors?.logo"

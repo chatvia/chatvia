@@ -13,7 +13,7 @@ beforeEach(function (): void {
 function deletionConfirmUrl(User $user, ?Closure $tamper = null): string
 {
     $url = URL::temporarySignedRoute(
-        'settings.account.delete.confirm',
+        'account.delete.confirm',
         now()->addMinutes(30),
         ['userId' => $user->id],
     );
@@ -25,11 +25,11 @@ it('shows the delete page to a workspace owner with their agents and subscriptio
     createAgent($this->workspace, ['name' => 'Support Bot']);
 
     $this->actingAs($this->workspace)
-        ->get(route('settings.account.delete'))
+        ->get(route('account.delete'))
         ->assertOk()
         ->assertInertia(
             fn (AssertableInertia $page): AssertableInertia => $page
-                ->component('settings/DeleteAccount')
+                ->component('account/DeleteAccount')
                 ->has('agents', 1)
                 ->where('agents.0.name', 'Support Bot')
                 ->has('hasSubscription')
@@ -41,7 +41,7 @@ it('forbids an employee from opening the delete page', function (): void {
     $employee = User::factory()->employee($this->workspace)->create();
 
     $this->actingAs($employee)
-        ->get(route('settings.account.delete'))
+        ->get(route('account.delete'))
         ->assertForbidden();
 });
 
@@ -49,8 +49,8 @@ it('emails a signed confirmation link when the password is correct', function ()
     Notification::fake();
 
     $this->actingAs($this->workspace)
-        ->from(route('settings.account.delete'))
-        ->post(route('settings.account.delete.request'), ['password' => 'password'])
+        ->from(route('account.delete'))
+        ->post(route('account.delete.request'), ['password' => 'password'])
         ->assertRedirect()
         ->assertSessionHas('success');
 
@@ -61,9 +61,9 @@ it('rejects a wrong password without emailing anything', function (): void {
     Notification::fake();
 
     $this->actingAs($this->workspace)
-        ->from(route('settings.account.delete'))
-        ->post(route('settings.account.delete.request'), ['password' => 'wrong-password'])
-        ->assertRedirect(route('settings.account.delete'))
+        ->from(route('account.delete'))
+        ->post(route('account.delete.request'), ['password' => 'wrong-password'])
+        ->assertRedirect(route('account.delete'))
         ->assertSessionHasErrors('password');
 
     Notification::assertNothingSent();
@@ -73,14 +73,14 @@ it('forbids an employee from requesting account deletion', function (): void {
     $employee = User::factory()->employee($this->workspace)->create();
 
     $this->actingAs($employee)
-        ->post(route('settings.account.delete.request'), ['password' => 'password'])
+        ->post(route('account.delete.request'), ['password' => 'password'])
         ->assertForbidden();
 });
 
 it('arms the session and redirects when a valid signed link is opened', function (): void {
     $this->actingAs($this->workspace)
         ->get(deletionConfirmUrl($this->workspace))
-        ->assertRedirect(route('settings.account.delete'))
+        ->assertRedirect(route('account.delete'))
         ->assertSessionHas('account_deletion_confirmed_at');
 });
 
@@ -88,13 +88,13 @@ it('flips the page into the confirmed state after opening the link', function ()
     $this->actingAs($this->workspace)->get(deletionConfirmUrl($this->workspace));
 
     $this->actingAs($this->workspace)
-        ->get(route('settings.account.delete'))
+        ->get(route('account.delete'))
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('deletionConfirmed', true));
 });
 
 it('rejects an unsigned confirmation link', function (): void {
     $this->actingAs($this->workspace)
-        ->get(route('settings.account.delete.confirm', ['userId' => $this->workspace->id]))
+        ->get(route('account.delete.confirm', ['userId' => $this->workspace->id]))
         ->assertForbidden();
 });
 
@@ -118,9 +118,9 @@ it('rejects a confirmation link minted for a different user', function (): void 
 
 it('blocks deletion when the email confirmation has not happened', function (): void {
     $this->actingAs($this->workspace)
-        ->from(route('settings.account.delete'))
-        ->delete(route('settings.account.destroy'))
-        ->assertRedirect(route('settings.account.delete'))
+        ->from(route('account.delete'))
+        ->delete(route('account.destroy'))
+        ->assertRedirect(route('account.delete'))
         ->assertSessionHasErrors('confirmation');
 
     expect(User::whereKey($this->workspace->id)->exists())->toBeTrue();
@@ -131,7 +131,7 @@ it('deletes the account and logs out once confirmed', function (): void {
     // redirect to the non-Inertia home page — see DeleteUser.vue.
     $this->actingAs($this->workspace)
         ->withSession(['account_deletion_confirmed_at' => now()->timestamp])
-        ->delete(route('settings.account.destroy'))
+        ->delete(route('account.destroy'))
         ->assertNoContent();
 
     expect(User::whereKey($this->workspace->id)->exists())->toBeFalse();
@@ -143,6 +143,6 @@ it('forbids an employee from deleting the account', function (): void {
 
     $this->actingAs($employee)
         ->withSession(['account_deletion_confirmed_at' => now()->timestamp])
-        ->delete(route('settings.account.destroy'))
+        ->delete(route('account.destroy'))
         ->assertForbidden();
 });

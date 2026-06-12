@@ -23,6 +23,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Loader2, LogOut, MoreHorizontal, Plus, Search, Settings, Trash2, Users } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 type Team = Domain.Membership.Team.Data.Resources.Team.TeamListItemData;
 
@@ -35,7 +38,7 @@ const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Teams',
+        title: t('teams.breadcrumb'),
         href: '/my/teams',
     },
 ];
@@ -113,40 +116,40 @@ const formatDate = (dateString: string) => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Teams" />
+        <Head :title="t('teams.index.title')" />
 
         <div class="mx-auto w-full max-w-6xl space-y-6 py-8">
             <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h1 class="text-xl font-semibold">Teams</h1>
-                    <p class="text-muted-foreground text-sm">Manage your teams and collaborate with others.</p>
+                    <h1 class="text-xl font-semibold">{{ t('teams.index.heading') }}</h1>
+                    <p class="text-muted-foreground text-sm">{{ t('teams.index.subtitle') }}</p>
                 </div>
                 <Button @click="isCreateDialogOpen = true">
-                    <Plus class="mr-1 h-4 w-4" />
-                    Create Team
+                    <Plus class="me-1 h-4 w-4" />
+                    {{ t('teams.index.create_team') }}
                 </Button>
             </div>
 
             <div class="relative max-w-sm">
-                <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                <Input v-model="searchQuery" placeholder="Search teams" class="pl-9" />
+                <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                <Input v-model="searchQuery" :placeholder="t('teams.index.search_placeholder')" class="ps-9" />
             </div>
 
             <!-- Empty state -->
             <Card v-if="!teams || teams.length === 0" class="flex h-64 flex-col items-center justify-center">
                 <Users class="text-muted-foreground h-12 w-12 opacity-50" />
-                <h3 class="mt-4 text-xl font-medium">No teams yet</h3>
-                <p class="text-muted-foreground mt-2 text-center">Create your first team to start collaborating with others</p>
+                <h3 class="mt-4 text-xl font-medium">{{ t('teams.index.empty_title') }}</h3>
+                <p class="text-muted-foreground mt-2 text-center">{{ t('teams.index.empty_description') }}</p>
                 <Button size="lg" class="mt-6 flex items-center gap-2" @click="isCreateDialogOpen = true">
                     <Plus class="h-4 w-4" />
-                    Create Team
+                    {{ t('teams.index.create_team') }}
                 </Button>
             </Card>
 
             <!-- No search results -->
             <div v-else-if="filteredTeams.length === 0" class="text-muted-foreground py-12 text-center text-sm">
-                No teams found matching "{{ searchQuery }}".
-                <Button variant="link" class="ml-1 h-auto p-0" @click="searchQuery = ''">Clear search</Button>
+                {{ t('teams.index.no_results', { query: searchQuery }) }}
+                <Button variant="link" class="ms-1 h-auto p-0" @click="searchQuery = ''">{{ t('teams.index.clear_search') }}</Button>
             </div>
 
             <!-- Teams table -->
@@ -154,11 +157,11 @@ const formatDate = (dateString: string) => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead class="h-11 pl-5">Team name</TableHead>
-                            <TableHead class="h-11 w-28">Agents</TableHead>
-                            <TableHead class="h-11 w-28">Members</TableHead>
-                            <TableHead class="h-11 w-40">Created</TableHead>
-                            <TableHead class="h-11 w-16 pr-5"></TableHead>
+                            <TableHead class="h-11 ps-5">{{ t('teams.index.table.name') }}</TableHead>
+                            <TableHead class="h-11 w-28">{{ t('teams.index.table.agents') }}</TableHead>
+                            <TableHead class="h-11 w-28">{{ t('teams.index.table.members') }}</TableHead>
+                            <TableHead class="h-11 w-40">{{ t('teams.index.table.created') }}</TableHead>
+                            <TableHead class="h-11 w-16 pe-5"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -168,7 +171,7 @@ const formatDate = (dateString: string) => {
                             class="hover:bg-muted/40 cursor-pointer"
                             @click="router.visit(route('teams.show', team.external_id))"
                         >
-                            <TableCell class="py-4 pl-5">
+                            <TableCell class="py-4 ps-5">
                                 <div class="flex items-center gap-4">
                                     <div class="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
                                         <Users class="h-5 w-5" />
@@ -176,7 +179,7 @@ const formatDate = (dateString: string) => {
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-2">
                                             <p class="leading-tight font-medium">{{ team.name }}</p>
-                                            <Badge v-if="team.is_primary" variant="secondary">Primary</Badge>
+                                            <Badge v-if="team.is_primary" variant="secondary">{{ t('teams.index.primary') }}</Badge>
                                         </div>
                                         <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">{{ formatRole(team.role) }}</p>
                                     </div>
@@ -185,19 +188,19 @@ const formatDate = (dateString: string) => {
                             <TableCell class="py-4 text-sm">{{ team.agents_count }}</TableCell>
                             <TableCell class="py-4 text-sm">{{ team.members_count }}</TableCell>
                             <TableCell class="text-muted-foreground py-4 text-sm">{{ formatDate(team.created_at) }}</TableCell>
-                            <TableCell class="py-4 pr-5 text-right" @click.stop>
+                            <TableCell class="py-4 pe-5 text-end" @click.stop>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger as-child>
                                         <Button variant="ghost" size="icon" class="h-8 w-8">
                                             <MoreHorizontal class="h-4 w-4" />
-                                            <span class="sr-only">Open menu</span>
+                                            <span class="sr-only">{{ t('teams.index.open_menu') }}</span>
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem as-child>
                                             <Link :href="route('teams.show', team.external_id)" class="cursor-pointer">
-                                                <Settings class="mr-2 h-4 w-4" />
-                                                Manage
+                                                <Settings class="me-2 h-4 w-4" />
+                                                {{ t('teams.index.manage') }}
                                             </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
@@ -205,16 +208,16 @@ const formatDate = (dateString: string) => {
                                             class="text-destructive focus:text-destructive cursor-pointer"
                                             @select="teamToLeave = team"
                                         >
-                                            <LogOut class="mr-2 h-4 w-4" />
-                                            Leave
+                                            <LogOut class="me-2 h-4 w-4" />
+                                            {{ t('teams.index.leave') }}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             v-if="canDeleteTeam(team)"
                                             class="text-destructive focus:text-destructive cursor-pointer"
                                             @select="openDelete(team)"
                                         >
-                                            <Trash2 class="mr-2 h-4 w-4" />
-                                            Delete
+                                            <Trash2 class="me-2 h-4 w-4" />
+                                            {{ t('teams.index.delete') }}
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -229,14 +232,14 @@ const formatDate = (dateString: string) => {
         <AlertDialog :open="!!teamToLeave" @update:open="(open) => !open && (teamToLeave = null)">
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Leave Team</AlertDialogTitle>
-                    <AlertDialogDescription> Are you sure you want to leave "{{ teamToLeave?.name }}"? </AlertDialogDescription>
+                    <AlertDialogTitle>{{ t('teams.index.leave_dialog.title') }}</AlertDialogTitle>
+                    <AlertDialogDescription>{{ t('teams.index.leave_dialog.description', { name: teamToLeave?.name }) }}</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{{ t('teams.common.cancel') }}</AlertDialogCancel>
                     <Button variant="destructive" @click="leaveTeam" :disabled="leaveForm.processing">
-                        <Loader2 v-if="leaveForm.processing" class="mr-2 size-4 animate-spin" />
-                        Leave
+                        <Loader2 v-if="leaveForm.processing" class="me-2 size-4 animate-spin" />
+                        {{ t('teams.index.leave') }}
                     </Button>
                 </AlertDialogFooter>
             </AlertDialogContent>
@@ -246,19 +249,19 @@ const formatDate = (dateString: string) => {
         <AlertDialog :open="!!teamToDelete" @update:open="(open) => !open && (teamToDelete = null)">
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Team</AlertDialogTitle>
+                    <AlertDialogTitle>{{ t('teams.index.delete_dialog.title') }}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Are you sure you want to delete "{{ teamToDelete?.name }}"? This cannot be undone.
+                        {{ t('teams.index.delete_dialog.description', { name: teamToDelete?.name }) }}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div v-if="deleteForm.errors.team" class="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
                     {{ deleteForm.errors.team }}
                 </div>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{{ t('teams.common.cancel') }}</AlertDialogCancel>
                     <Button variant="destructive" @click="deleteTeam" :disabled="deleteForm.processing">
-                        <Loader2 v-if="deleteForm.processing" class="mr-2 size-4 animate-spin" />
-                        Delete
+                        <Loader2 v-if="deleteForm.processing" class="me-2 size-4 animate-spin" />
+                        {{ t('teams.index.delete') }}
                     </Button>
                 </AlertDialogFooter>
             </AlertDialogContent>
@@ -268,26 +271,26 @@ const formatDate = (dateString: string) => {
         <Dialog v-model:open="isCreateDialogOpen">
             <DialogContent class="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Create New Team</DialogTitle>
-                    <DialogDescription> Create a team to collaborate with others. </DialogDescription>
+                    <DialogTitle>{{ t('teams.index.create_dialog.title') }}</DialogTitle>
+                    <DialogDescription>{{ t('teams.index.create_dialog.description') }}</DialogDescription>
                 </DialogHeader>
                 <form @submit.prevent="createTeam">
                     <div class="grid gap-4 py-4">
                         <div class="grid gap-2">
-                            <Label for="team-name">Team Name</Label>
+                            <Label for="team-name">{{ t('teams.index.create_dialog.name_label') }}</Label>
                             <div class="relative">
-                                <Users class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                                <Input id="team-name" v-model="createForm.name" placeholder="Enter team name" class="pl-9" required />
+                                <Users class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                                <Input id="team-name" v-model="createForm.name" :placeholder="t('teams.index.create_dialog.name_placeholder')" class="ps-9" required />
                             </div>
                             <InputError :message="createForm.errors.name" />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" @click="isCreateDialogOpen = false"> Cancel </Button>
+                        <Button type="button" variant="outline" @click="isCreateDialogOpen = false">{{ t('teams.common.cancel') }}</Button>
                         <Button type="submit" :disabled="createForm.processing">
-                            <Loader2 v-if="createForm.processing" class="mr-2 size-4 animate-spin" />
-                            <Plus v-else class="mr-2 size-4" />
-                            Create Team
+                            <Loader2 v-if="createForm.processing" class="me-2 size-4 animate-spin" />
+                            <Plus v-else class="me-2 size-4" />
+                            {{ t('teams.index.create_team') }}
                         </Button>
                     </DialogFooter>
                 </form>

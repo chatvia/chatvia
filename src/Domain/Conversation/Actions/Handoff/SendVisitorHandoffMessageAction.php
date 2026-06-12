@@ -50,13 +50,16 @@ class SendVisitorHandoffMessageAction
             ->withContext($agent, $session->external_id, $conversation->external_id)
             ->addMessageViaPayload($payload);
 
+        // The widget compares sender_id against its own session UUID
+        // (widget.sessionId) to detect its own echoed messages, so broadcast the
+        // external session id — never the internal PK.
         MessagePosted::dispatch(
             $conversation->external_id,
             $messageId,
             $data->content,
             'user',
             $conversation->displayName() ?? 'Visitor',
-            (string) $session->id,
+            $session->external_id,
         );
 
         return $messageId;

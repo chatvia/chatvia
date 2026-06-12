@@ -1,0 +1,317 @@
+{
+    "billing": {
+        "common": {
+            "billing": "Billing",
+            "back_to_billing": "Back to Billing",
+            "view_plans": "View Plans",
+            "cancel": "Cancel",
+            "processing": "Processing...",
+            "not_available": "N/A"
+        },
+        "payment_success": {
+            "page_title": "Payment Successful",
+            "heading": "Payment Received",
+            "description": "Thank you! Your payment has been processed successfully. We're setting up your subscription now.",
+            "redirecting_prefix": "Redirecting in",
+            "redirecting_suffix": "seconds...",
+            "go_to_billing": "Go to billing now"
+        },
+        "invoices": {
+            "breadcrumb": "Invoices",
+            "page_title": "Invoices",
+            "heading": "Invoices",
+            "subheading": "View and download your billing history and invoices",
+            "history_title": "Billing History",
+            "history_description": "Download receipts and invoices for your subscription payments",
+            "invoice_number": "Invoice #{number}",
+            "status": {
+                "paid": "Paid",
+                "pending": "Pending",
+                "failed": "Failed"
+            },
+            "download_pdf": "Download PDF",
+            "view_online": "View Online",
+            "empty_title": "No invoices yet",
+            "empty_description": "Your billing history and invoices will appear here once you start a subscription.",
+            "total_invoices": "Total Invoices",
+            "total_spent": "Total Spent",
+            "since": "Since",
+            "help_title": "Need help with billing?",
+            "help_description": "If you have questions about your invoices or need assistance with billing, our support team is here to help.",
+            "contact_support": "Contact Support"
+        },
+        "payment_methods": {
+            "breadcrumb": "Payment Methods",
+            "page_title": "Payment Methods",
+            "heading": "Payment Methods",
+            "subheading": "Manage your payment methods and billing information",
+            "add_method": "Add Payment Method",
+            "saved_title": "Saved Payment Methods",
+            "saved_description": "Manage your saved payment methods. You can set a default method for automatic billing.",
+            "default": "Default",
+            "expires": "Expires {date}",
+            "set_default": "Set Default",
+            "empty_title": "No payment methods",
+            "empty_description": "Add a payment method to manage your subscriptions and make payments.",
+            "add_first": "Add Your First Payment Method",
+            "info_title": "Billing Information",
+            "info_description": "Update your billing address and contact information",
+            "not_set": "Not set",
+            "update_info": "Update Billing Information",
+            "secure_title": "Secure Payment Processing",
+            "secure_description": "Your payment information is encrypted and securely processed by Stripe. We never store your complete card details on our servers.",
+            "updating": "Updating...",
+            "update_information": "Update Information",
+            "card_information": "Card Information",
+            "remove_dialog": {
+                "title": "Remove Payment Method",
+                "description": "Are you sure you want to remove this payment method? This action cannot be undone.",
+                "confirm": "Yes, Remove"
+            },
+            "fields": {
+                "name": "Name",
+                "email": "Email Address",
+                "address": "Address",
+                "city_state_country": "City, State & Country",
+                "billing_address": "Billing Address",
+                "line1": "Address Line 1",
+                "line2": "Address Line 2 (Optional)",
+                "city": "City",
+                "state": "State",
+                "postal_code": "Postal Code",
+                "country": "Country"
+            },
+            "placeholders": {
+                "name": "John Doe",
+                "email": "john{'@'}example.com",
+                "line1": "123 Main Street",
+                "line2": "Apt, suite, etc.",
+                "city": "New York",
+                "state": "NY",
+                "postal_code": "10001",
+                "country": "Select country..."
+            },
+            "info_dialog": {
+                "title": "Update Billing Information",
+                "description": "Update your billing address and contact information for invoicing and payment processing."
+            },
+            "add_dialog": {
+                "description": "Add a new payment method to your account. Your card information is secure and encrypted.",
+                "success_title": "Payment Method Added!",
+                "success_description": "Your payment method has been successfully added to your account.",
+                "secure_note": "Your payment information is encrypted and securely processed by Stripe. We never store your complete card details."
+            },
+            "errors": {
+                "init_failed": "Failed to initialize payment system",
+                "not_ready": "Payment system not ready",
+                "add_failed": "An error occurred while adding your payment method"
+            },
+            "toast": {
+                "added": "Payment method added successfully!",
+                "info_updated": "Billing information updated successfully!",
+                "info_failed": "Failed to update billing information"
+            }
+        },
+        "plans": {
+            "breadcrumb": "Choose Plan",
+            "page_title": "Choose Your Plan",
+            "heading": "Choose Your Plan",
+            "subheading": "Select the perfect plan for your needs. You can change or cancel anytime.",
+            "monthly": "Monthly",
+            "yearly": "Yearly",
+            "custom": "Custom",
+            "per_month": "/month",
+            "save_percent": "Save {percent}%",
+            "billed_yearly": "Billed yearly at {amount}",
+            "features_included": "Features included:",
+            "everything_in": "Everything in {plan} +",
+            "actions": {
+                "contact_sales": "Contact sales",
+                "upgrade": "Upgrade",
+                "upgrade_plan": "Upgrade Plan",
+                "downgrade_to_free": "Downgrade to Free",
+                "downgrade_plan": "Downgrade Plan",
+                "switch_plan": "Switch Plan",
+                "select_plan": "Select Plan"
+            },
+            "discount": {
+                "banner": "{percent}% OFF Limited Time Offer!",
+                "ends": "Offer ends {date} - Don't miss out!",
+                "limited": "Limited time discount on all paid plans!",
+                "off": "{percent}% OFF"
+            },
+            "llms": {
+                "title": "Available AI Models",
+                "description": "Choose from our comprehensive selection of state-of-the-art language models",
+                "empty": "No models available"
+            }
+        },
+        "addons": {
+            "title": "Add-ons",
+            "description": "Extra credits, agents, and domains on top of your plan",
+            "per_agent": " / agent",
+            "per_domain": " / domain",
+            "per_member": " / member",
+            "per_month": " / month",
+            "requires_subscription": "Extra Agents, Custom Domain, Remove Branding, and Members require an active main subscription.",
+            "common": {
+                "none": "None",
+                "subscribe": "Subscribe",
+                "change": "Change",
+                "update_quantity": "Update Quantity",
+                "monthly_cost": "Monthly cost:",
+                "keep_subscription": "Keep subscription",
+                "yes_cancel": "Yes, cancel",
+                "ends": "Ends {date}"
+            },
+            "auto_recharge": {
+                "title": "Auto Recharge",
+                "on": "On",
+                "off": "Off",
+                "summary": "Auto-buy {amount} credits when balance drops below {threshold}.",
+                "manage": "Manage",
+                "enable": "Enable",
+                "dialog_title": "Auto Recharge Settings",
+                "dialog_description": "When your remaining credits drop to or below the threshold, we'll automatically charge your default payment method and top up your balance.",
+                "enable_label": "Enable Auto Recharge",
+                "enable_hint": "Charge automatically when credits run low",
+                "threshold_label": "Threshold (credits)",
+                "threshold_hint": "Recharge fires when your balance drops to or below this amount.",
+                "amount_label": "Top-up amount (credits)",
+                "each_recharge": "Each recharge:",
+                "charged_note": "Charged immediately to your default payment method when triggered.",
+                "save": "Save Settings"
+            },
+            "extra_credits": {
+                "title": "Extra Credits",
+                "summary": "One-time top-up. Each bundle adds 1,000 messages that expire after 30 days.",
+                "buy": "Buy Credits",
+                "dialog_title": "Purchase Message Credits",
+                "dialog_description": "Each bundle includes 1,000 messages that must be consumed within one month of purchase.",
+                "quantity_label": "Quantity (1,000 messages per bundle)",
+                "total_messages": "Total Messages:",
+                "total_price": "Total Price:",
+                "purchase_for": "Purchase for ${amount}"
+            },
+            "extra_agents": {
+                "title": "Extra Agents",
+                "summary": "Add more AI agents beyond your plan limit.",
+                "cancel_title": "Cancel Extra Agents subscription?",
+                "cancel_description": "Your extra agents quota will be removed immediately and you won't be charged again.",
+                "change_title": "Change Extra Agents",
+                "subscribe_title": "Subscribe to Extra Agents",
+                "dialog_description": "Add additional AI agents on top of your plan. Billed monthly at $5 per agent.",
+                "quantity_label": "Number of extra agents"
+            },
+            "custom_domains": {
+                "title": "Custom Domain",
+                "summary": "Use your own custom domain for AI agents.",
+                "cancel_title": "Cancel Custom Domain subscription?",
+                "cancel_description": "Your custom domain quota will be removed immediately and you won't be charged again.",
+                "change_title": "Change Custom Domains",
+                "subscribe_title": "Subscribe to Custom Domain",
+                "dialog_description": "Use your own domain for AI agents. Billed monthly at $29 per domain.",
+                "quantity_label": "Number of domains"
+            },
+            "remove_branding": {
+                "title": "Remove Branding",
+                "active": "Active",
+                "summary": "Hide the \"Powered by Chatvia\" badge across your widget and hosted chat.",
+                "cancel_title": "Cancel Remove Branding subscription?",
+                "cancel_description": "The \"Powered by Chatvia\" badge will reappear on your widget and hosted chat immediately, and you won't be charged again."
+            },
+            "members": {
+                "title": "Members",
+                "summary": "Add more team members to your workspace.",
+                "cancel_title": "Cancel Members subscription?",
+                "cancel_description": "Your additional member seats will be removed immediately and you won't be charged again.",
+                "change_title": "Change Members",
+                "subscribe_title": "Subscribe to Members",
+                "dialog_description": "Add additional team members to your workspace. Billed monthly at $9 per member.",
+                "quantity_label": "Number of members"
+            }
+        },
+        "index": {
+            "page_title": "Billing",
+            "heading": "Billing",
+            "subheading": "Manage your subscription, billing information, and usage limits",
+            "stripe_notice": "Payments securely processed by",
+            "status_label": "Status",
+            "trial_ends": "Trial Ends",
+            "next_billing": "Next Billing",
+            "access_ends": "Access Ends",
+            "plan_features": "Plan Features",
+            "show_less": "Show less",
+            "show_more": "Show {count} more",
+            "per_year": "Year",
+            "per_month": "Month",
+            "status": {
+                "active": "Active",
+                "trial": "Trial",
+                "cancelled": "Cancelled",
+                "incomplete": "Incomplete",
+                "past_due": "Past Due"
+            },
+            "trial": {
+                "heading": "🎉 You're on a Free Trial!",
+                "ends_on": "Your {plan} trial ends on",
+                "auto_start": "Your paid subscription will start automatically on {date}",
+                "badge": "Trial Active"
+            },
+            "upgrade": {
+                "heading": "Upgrade to Premium",
+                "description": "Access advanced AI models, higher message limits & priority support"
+            },
+            "current_plan": {
+                "title": "Current Plan",
+                "description": "Your active subscription plan and usage details"
+            },
+            "pending_change": {
+                "heading": "Plan Change Scheduled",
+                "change_from": "Your plan will change from",
+                "to": "to",
+                "cycle_yearly": "(Yearly)",
+                "cycle_monthly": "(Monthly)",
+                "on_date": "on {date}.",
+                "scheduled_for": "You have a plan change scheduled for {date}.",
+                "access_note": "You'll continue to have access to your current plan features until then.",
+                "cancel_schedule": "Cancel Schedule",
+                "cancel_dialog": {
+                    "title": "Cancel Scheduled Plan Change",
+                    "description": "Are you sure you want to cancel your scheduled plan change? You will remain on your current plan.",
+                    "confirm": "Yes, Cancel Schedule",
+                    "cancel": "Keep Schedule"
+                }
+            },
+            "cancelled": {
+                "title": "Subscription Cancelled",
+                "description": "Your subscription will end on {date}. You can resume your subscription at any time before this date.",
+                "resume": "Resume Subscription"
+            },
+            "management": {
+                "title": "Management",
+                "manage_payment_methods": "Manage Payment Methods",
+                "view_invoices": "View Invoices",
+                "go_to_stripe": "Go to Stripe",
+                "change_plan": "Change Plan",
+                "cancel_subscription": "Cancel Subscription"
+            },
+            "cancel_dialog": {
+                "title": "Cancel Subscription",
+                "description": "Are you sure you want to cancel your subscription? You will continue to have access until the end of your billing period.",
+                "confirm": "Yes, Cancel",
+                "cancel": "Keep Subscription"
+            },
+            "usage": {
+                "title": "Usage",
+                "messages": "Messages",
+                "pages": "Pages",
+                "agents": "Agents",
+                "links": "Links",
+                "minutes": "Minutes",
+                "remaining": "{count} remaining",
+                "load_error": "Unable to load usage data"
+            }
+        }
+    }
+}

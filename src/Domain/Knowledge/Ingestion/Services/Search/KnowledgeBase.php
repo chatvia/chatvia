@@ -23,9 +23,7 @@ class KnowledgeBase
 
     public function search(int|Agent $agent, string $query): array
     {
-        // The tenant qual in every hybrid-search channel needs the workspace
-        // id; resolve it without an extra query when the caller already holds
-        // the model (the chat path always does).
+        // The hybrid-search tenant qual needs the workspace id.
         $workspaceId = $agent instanceof Agent
             ? (int) $agent->user_id
             : (int) DB::table('agents')->where('id', $agent)->value('user_id');

@@ -13,6 +13,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Billing\Services\UserCreditSystem;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Http;
@@ -95,6 +96,20 @@ function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
         'is_public' => false,
         'source' => 'api',
     ]);
+}
+
+/**
+ * Stub the message-credit send gate (UserCreditSystem::canSendMessages) so
+ * billing-gated paths (evals, channel replies) can be tested without seeding
+ * subscriptions and credit rows. Charging stays observable via Bus::fake().
+ */
+function fakeMessageCreditGate(bool $canSend = true): void
+{
+    $mock = Mockery::mock(UserCreditSystem::class);
+    $mock->shouldReceive('setUserId')->andReturnSelf();
+    $mock->shouldReceive('canSendMessages')->andReturn($canSend);
+
+    app()->instance(UserCreditSystem::class, $mock);
 }
 
 /**

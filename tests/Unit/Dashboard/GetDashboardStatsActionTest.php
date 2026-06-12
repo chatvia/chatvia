@@ -55,13 +55,17 @@ it('aggregates agents, conversations, messages and sessions for the workspace ow
         config('billing.packages.starter.quota_limits.fixed', []),
     );
 
-    // Active billing cycle: 1000 base messages, started 5 days ago.
-    UserCredit::create([
+    // Active billing cycle: 1000 base messages, started 5 days ago. The billed
+    // counter (11) deliberately differs from the rollup sum (9) — as when 2 of
+    // the replies were eval cases, which bill but never reach the analytics
+    // rollup — to pin which source each panel reads.
+    $credit = UserCredit::create([
         'user_id' => $owner->id,
         'messages' => 1000,
         'started_at' => now()->subDays(5),
         'ends_at' => now()->addDays(25),
     ]);
+    $credit->usage()->create(['messages' => 11]);
 
     $agentA = createAgent($owner, ['name' => 'Agent A']);
     $agentB = createAgent($owner, ['name' => 'Agent B']);
@@ -95,11 +99,11 @@ it('aggregates agents, conversations, messages and sessions for the workspace ow
         ->and($stats['active_sessions'])->toBe(2)
         ->and($stats['team']['members'])->toBe(0);
 
-    // Messages panel: used from the rollup since cycle start; base quota from
-    // the UserCredit row; no addons.
-    expect($stats['messages']['total'])->toBe(9)
+    // Messages panel: used from the BILLING counter (covers eval cases the
+    // rollup never sees); base quota from the UserCredit row; no addons.
+    expect($stats['messages']['total'])->toBe(11)
         ->and($stats['messages']['limit'])->toBe(1000)
-        ->and($stats['messages']['available'])->toBe(991)
+        ->and($stats['messages']['available'])->toBe(989)
         ->and($stats['messages']['cycle'])->not->toBeNull();
 
     // Trend (team present): all 9 assistant messages landed this month.
@@ -124,7 +128,7 @@ it('aggregates agents, conversations, messages and sessions for the workspace ow
 
     // Usage panel reads the same credit math plus the quota row limits.
     expect($stats['usage']['plan'])->toBeString()
-        ->and($stats['usage']['messages'])->toBe(['used' => 9, 'limit' => 1000, 'remaining' => 991])
+        ->and($stats['usage']['messages'])->toBe(['used' => 11, 'limit' => 1000, 'remaining' => 989])
         ->and($stats['usage']['pages']['limit'])->toBe(config('billing.packages.starter.quota_limits.fixed.pages_limit'))
         ->and($stats['usage']['pages']['used'])->toBe(0)
         ->and($stats['usage']['minutes']['used'])->toBe(0)

@@ -2,11 +2,14 @@
 
 namespace App\Http\Middleware\Auth;
 
+use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
 use Illuminate\Http\Request;
+use Support\Enums\User\UserType;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -17,9 +20,13 @@ use Symfony\Component\HttpFoundation\Response;
  * Two checks:
  *   1. Proof-of-origin — a fresh HMAC signature attached by McpClient. Rejects
  *      anonymous internet callers (the prior unauthenticated-MCP hole).
- *   2. Per-agent enablement — for a `tools/call`, the agent named in the
- *      identity header must have THIS built-in connector attached + enabled.
- *      So a tool only runs for agents whose owner explicitly turned it on.
+ *   2. Authorisation — for a `tools/call`, EITHER:
+ *      a. Per-agent enablement: the agent named in the identity header has THIS
+ *         built-in connector attached + enabled (so a tool only runs for agents
+ *         whose owner explicitly turned it on); OR
+ *      b. Workspace mode: a signed `X-Chatvia-Workspace-Id` names a real
+ *         workspace. Used by the owner-facing "Ask your data" analytics chat,
+ *         which has no agent and a fixed internal toolset.
  */
 class VerifyInternalMcpRequest
 {
@@ -32,13 +39,52 @@ class VerifyInternalMcpRequest
             return response()->json(['error' => 'Unauthorized.'], 401);
         }
 
-        if ($this->rpcMethod($request) === 'tools/call' && ! $this->agentHasConnectorEnabled($request)) {
+        if ($this->rpcMethod($request) === 'tools/call'
+            && ! $this->workspaceIdentified($request)
+            && ! $this->isGlobalBuiltin($request)
+            && ! $this->agentHasConnectorEnabled($request)) {
             return response()->json([
-                'error' => 'This tool is not enabled for this agent.',
+                'error' => 'This tool is not enabled for this caller.',
             ], 403);
         }
 
         return $next($request);
+    }
+
+    /**
+     * Workspace mode: the request carries a signed workspace external_id that
+     * resolves to a real workspace owner. The HMAC (already verified above)
+     * proves the call came from Chatvia's own server, so naming a valid
+     * workspace is sufficient — there is no per-agent connector to check.
+     */
+    private function workspaceIdentified(Request $request): bool
+    {
+        $externalId = (string) $request->header('X-Chatvia-Workspace-Id', '');
+
+        if ($externalId === '') {
+            return false;
+        }
+
+        return User::query()
+            ->where('external_id', $externalId)
+            ->whereIn('type', UserType::workspaceTypes())
+            ->exists();
+    }
+
+    /**
+     * Global built-in mode: the route is backed by a Chatvia-hosted, always-on
+     * built-in (a global `user_id IS NULL`, category `builtin` row — e.g.
+     * /mcp/charts). These are ambient for every agent, so the HMAC alone
+     * (already verified) is sufficient — there is no per-agent attachment.
+     */
+    private function isGlobalBuiltin(Request $request): bool
+    {
+        return AgentMcpServer::query()
+            ->whereNull('user_id')
+            ->where('category', McpServerCategory::Builtin->value)
+            ->where('is_enabled', true)
+            ->where('url', 'like', '%/'.$request->path())
+            ->exists();
     }
 
     private function rpcMethod(Request $request): ?string

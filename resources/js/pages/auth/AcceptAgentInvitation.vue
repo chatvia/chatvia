@@ -8,6 +8,9 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { BotIcon, LoaderCircle, Lock, LockKeyhole, Mail, User } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     agent: {
@@ -39,10 +42,10 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthBase title="Accept your invitation" :description="`Set up your access to ${agent.name}`">
-        <Head title="Accept invitation" />
+    <AuthBase :title="t('auth.accept_agent_invitation.title')" :description="t('auth.accept_agent_invitation.description', { name: agent.name })">
+        <Head :title="t('auth.accept_agent_invitation.head')" />
 
-        <div class="absolute top-4 right-4">
+        <div class="absolute top-4 end-4">
             <ThemeSwitcher />
         </div>
 
@@ -53,7 +56,7 @@ const submit = () => {
                     <BotIcon class="text-primary h-7 w-7" />
                 </div>
                 <p class="text-muted-foreground text-base leading-relaxed">
-                    You've been invited to chat with <span class="text-foreground font-semibold">{{ agent.name }}</span>
+                    {{ t('auth.accept_agent_invitation.invited_to_chat') }} <span class="text-foreground font-semibold">{{ agent.name }}</span>
                 </p>
             </div>
 
@@ -61,9 +64,9 @@ const submit = () => {
             <form @submit.prevent="submit" class="space-y-5">
                 <!-- Name -->
                 <div class="space-y-2">
-                    <Label for="name" class="text-base font-medium">Your name</Label>
+                    <Label for="name" class="text-base font-medium">{{ t('auth.accept_agent_invitation.name_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <User class="h-5 w-5" />
                         </div>
                         <Input
@@ -74,8 +77,8 @@ const submit = () => {
                             :tabindex="1"
                             autocomplete="name"
                             v-model="form.name"
-                            placeholder="Your name"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="t('auth.accept_agent_invitation.name_placeholder')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.name" />
@@ -83,27 +86,27 @@ const submit = () => {
 
                 <!-- Email (locked to the invited address) -->
                 <div class="space-y-2">
-                    <Label class="text-base font-medium">Email address</Label>
+                    <Label class="text-base font-medium">{{ t('auth.accept_agent_invitation.email_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <Mail class="h-5 w-5" />
                         </div>
                         <input
                             type="email"
                             :value="email"
                             disabled
-                            class="border-input bg-muted ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-12 w-full cursor-not-allowed rounded-md border px-3 py-2 pl-10 text-base focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
+                            class="border-input bg-muted ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-12 w-full cursor-not-allowed rounded-md border px-3 py-2 ps-10 text-base focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
                         />
                     </div>
-                    <p class="text-muted-foreground text-xs">This invitation was sent to this address.</p>
+                    <p class="text-muted-foreground text-xs">{{ t('auth.accept_agent_invitation.email_hint') }}</p>
                     <InputError :message="form.errors.email" />
                 </div>
 
                 <!-- Password -->
                 <div class="space-y-2">
-                    <Label for="password" class="text-base font-medium">Create a password</Label>
+                    <Label for="password" class="text-base font-medium">{{ t('auth.accept_agent_invitation.password_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <Lock class="h-5 w-5" />
                         </div>
                         <Input
@@ -113,8 +116,8 @@ const submit = () => {
                             :tabindex="2"
                             autocomplete="new-password"
                             v-model="form.password"
-                            placeholder="Create a password"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="t('auth.accept_agent_invitation.password_placeholder')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.password" />
@@ -122,9 +125,9 @@ const submit = () => {
 
                 <!-- Confirm password -->
                 <div class="space-y-2">
-                    <Label for="password_confirmation" class="text-base font-medium">Confirm password</Label>
+                    <Label for="password_confirmation" class="text-base font-medium">{{ t('auth.accept_agent_invitation.confirm_password_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <LockKeyhole class="h-5 w-5" />
                         </div>
                         <Input
@@ -134,17 +137,17 @@ const submit = () => {
                             :tabindex="3"
                             autocomplete="new-password"
                             v-model="form.password_confirmation"
-                            placeholder="Confirm password"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="t('auth.accept_agent_invitation.confirm_password_placeholder')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.password_confirmation" />
                 </div>
 
                 <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="4" :disabled="form.processing">
-                    <LoaderCircle v-if="form.processing" class="mr-2 h-5 w-5 animate-spin" />
-                    <span v-if="!form.processing">Create account & start chatting</span>
-                    <span v-else>Creating account...</span>
+                    <LoaderCircle v-if="form.processing" class="me-2 h-5 w-5 animate-spin" />
+                    <span v-if="!form.processing">{{ t('auth.accept_agent_invitation.submit') }}</span>
+                    <span v-else>{{ t('auth.accept_agent_invitation.creating_account') }}</span>
                 </Button>
 
                 <InputError :message="$page.props.errors?.invitation" class="text-center" />
@@ -156,7 +159,7 @@ const submit = () => {
                     <span class="w-full border-t"></span>
                 </div>
                 <div class="relative flex justify-center text-sm uppercase">
-                    <span class="bg-background text-muted-foreground px-4 font-medium">Or</span>
+                    <span class="bg-background text-muted-foreground px-4 font-medium">{{ t('auth.accept_agent_invitation.or') }}</span>
                 </div>
             </div>
 
@@ -165,7 +168,7 @@ const submit = () => {
             <SocialLoginButtons :google-url="social_urls.google" :slack-url="social_urls.slack" />
 
             <p class="text-muted-foreground text-center text-xs">
-                Make sure your social account uses <span class="text-foreground font-medium">{{ email }}</span> — it must match this invitation.
+                {{ t('auth.accept_agent_invitation.social_email_note_prefix') }} <span class="text-foreground font-medium">{{ email }}</span> {{ t('auth.accept_agent_invitation.social_email_note_suffix') }}
             </p>
         </div>
     </AuthBase>

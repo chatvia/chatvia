@@ -26,11 +26,7 @@ class RecordMessageSentAction
             $db, $event, $countryCode, $llmName,
             $isUser, $isAssistant, $tokens, $hasResponseTime
         ): void {
-            // insertOrIgnore against the message_sent partial unique is the
-            // idempotency anchor: the queue is at-least-once, and a redelivered
-            // job replaying the counter upserts below would double-count
-            // rollups (and the billed-usage display they feed). 0 rows
-            // inserted ⇒ this delivery already ran to commit — bail.
+            // insertOrIgnore vs the message_sent partial unique: 0 rows ⇒ redelivered job, bail.
             $inserted = $db->table('analytics_events')->insertOrIgnore([
                 'agent_id' => $event->agentId,
                 'workspace_id' => $event->workspaceId,
@@ -49,7 +45,7 @@ class RecordMessageSentAction
                 'occurred_at' => $event->occurredAt,
             ]);
 
-            if ($inserted === 0 && $event->messageExternalId !== null) {
+            if ($inserted === 0) {
                 return;
             }
 
@@ -59,17 +55,28 @@ class RecordMessageSentAction
             // conversations_started increment exactly once per conversation,
             // bucketed under the dimensions the first message carried (country
             // is known at this point, unlike at row-creation time).
+            // first_*_at: the non-applicable role binds NULL; LEAST(COALESCE()) keeps the earliest.
             $convResult = $db->select(<<<'SQL'
                 INSERT INTO analytics_conversation_metrics (
                     conversation_external_id, agent_id, workspace_id, started_at, ended_at,
+                    first_user_at, first_assistant_at,
                     message_count, duration_seconds
                 ) VALUES (
                     ?, ?, ?, ?, ?,
+                    ?, ?,
                     1, 0
                 )
                 ON CONFLICT (conversation_external_id) DO UPDATE SET
                     started_at      = LEAST(analytics_conversation_metrics.started_at, EXCLUDED.started_at),
                     ended_at        = GREATEST(COALESCE(analytics_conversation_metrics.ended_at, EXCLUDED.ended_at), EXCLUDED.ended_at),
+                    first_user_at   = LEAST(
+                        COALESCE(analytics_conversation_metrics.first_user_at, EXCLUDED.first_user_at),
+                        COALESCE(EXCLUDED.first_user_at, analytics_conversation_metrics.first_user_at)
+                    ),
+                    first_assistant_at = LEAST(
+                        COALESCE(analytics_conversation_metrics.first_assistant_at, EXCLUDED.first_assistant_at),
+                        COALESCE(EXCLUDED.first_assistant_at, analytics_conversation_metrics.first_assistant_at)
+                    ),
                     message_count   = analytics_conversation_metrics.message_count + 1,
                     duration_seconds = GREATEST(0, EXTRACT(EPOCH FROM (
                         GREATEST(COALESCE(analytics_conversation_metrics.ended_at, EXCLUDED.ended_at), EXCLUDED.ended_at)
@@ -82,6 +89,8 @@ class RecordMessageSentAction
                 $event->workspaceId,
                 $event->occurredAt,
                 $event->occurredAt,
+                $isUser ? $event->occurredAt : null,
+                $isAssistant ? $event->occurredAt : null,
             ]);
             $isFirstMessageOfConversation = ! empty($convResult) && (bool) $convResult[0]->is_new;
 

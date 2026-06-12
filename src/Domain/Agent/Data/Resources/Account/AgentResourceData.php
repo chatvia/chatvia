@@ -27,7 +27,6 @@ class AgentResourceData extends Data
         public CarbonInterface $created_at,
         public CarbonInterface $updated_at,
         public ?int $total_messages = null,
-        public ?int $unique_users = null,
         public ?int $total_members = null,
         public bool $leads_mcp_enabled = false,
     ) {}
@@ -54,8 +53,9 @@ class AgentResourceData extends Data
     }
 
     /**
-     * Create from model with stats (total_messages, unique_users, total_members).
-     * Use with Agent::query()->withListStats() to load stats efficiently.
+     * Create from model with stats (total_messages, total_members).
+     * total_messages comes from the analytics rollups (set as an attribute by
+     * AgentController::index); total_members from withTotalMembers().
      */
     public static function fromModelWithStats(Agent $agent): self
     {
@@ -75,7 +75,6 @@ class AgentResourceData extends Data
             created_at: $agent->created_at,
             updated_at: $agent->updated_at,
             total_messages: $agent->total_messages ?? 0,
-            unique_users: $agent->unique_users ?? 0,
             total_members: $agent->total_members ?? 0,
         );
     }

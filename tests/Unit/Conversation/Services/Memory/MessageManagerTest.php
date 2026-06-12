@@ -29,6 +29,7 @@ function makeFeedbackConversation(): array
     $session = ChatSession::create(['agent_id' => $agent->id]);
     $conversation = Conversation::create([
         'chat_session_id' => $session->id,
+        'agent_id' => $session->agent_id,
         'external_id' => (string) Str::uuid(),
         'source' => ConversationSource::HostedChat,
         'title' => 'Feedback chat',

@@ -310,6 +310,7 @@ class ChatSeeder extends Seeder
 
                 $conversation = Conversation::create([
                     'chat_session_id' => $session->id,
+                    'agent_id' => $agent->id,
                     'source' => ConversationSource::cases()[array_rand(ConversationSource::cases())],
                     'title' => $scenario['title'],
                     'sentiment' => $scenario['sentiment'],

@@ -30,12 +30,35 @@ Schedule::command('app:prune-tool-approvals')->dailyAt('03:45');
 // past config('chatvia.governance.retention_days') (default 90).
 Schedule::command('app:prune-agent-activity')->dailyAt('04:00');
 
+// Guardrail audit retention: same pattern for `guardrail_events`, enforcing
+// config('chatvia.guardrails.retention_days') (default 90) — the knob was
+// documented but nothing pruned the table.
+Schedule::command('app:prune-guardrail-events')->dailyAt('04:15');
+
+// Security audit retention: trims `security_audit_log` past the config default,
+// honouring per-workspace `retention_audit_days` overrides clamped to the floor.
+// Runs after the guardrail prune so the audit sweeps don't fight for workers.
+Schedule::command('app:prune-security-audit-log')->dailyAt('04:25');
+
+// Framework growth tables that have producers but had no reaper: finished
+// ingestion/eval batches, failed jobs, year-expired Sanctum tokens, and
+// consumed/expired magic links.
+Schedule::command('queue:prune-batches --hours=48 --unfinished=72 --cancelled=72')->dailyAt('05:00');
+Schedule::command('queue:prune-failed --hours=168')->dailyAt('05:05');
+Schedule::command('sanctum:prune-expired --hours=24')->dailyAt('05:10');
+Schedule::command('magiclink:clear')->dailyAt('05:15');
+
 // Consolidated end-of-life conversation analysis: one LLM call per conversation
 // sets topic(s), sentiment, tone and language and records emergent-topic
 // suggestions. Each conversation is analyzed once, ~6h after creation
 // (config: analytics.analysis.scan_age_hours); the hourly cadence just picks up
 // whatever has newly crossed that age.
 Schedule::command('app:analyze-conversations')->hourly();
+
+// Raw analytics-event retention: the rollup/metrics tables carry every
+// dashboard aggregate, so the raw firehose only needs to cover the window
+// where re-deriving (or debugging) per-event data is still useful.
+Schedule::command('app:prune-analytics-events')->dailyAt('04:45');
 
 // Drain the Redis token-usage buffer (RecordLlmTokenUsage) into
 // user_usages.tokens — one UPDATE per active workspace per minute instead of

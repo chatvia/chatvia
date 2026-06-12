@@ -1,0 +1,131 @@
+{
+    "common": {
+        "saved": "Saved",
+        "remove": "Remove",
+        "preview": "Preview",
+        "upload": "Upload",
+        "cancel": "Cancel",
+        "save": "Save",
+        "confirm": "Confirm",
+        "deleting": "Deleting..."
+    },
+    "nav": {
+        "account": "Account",
+        "workspace": "Workspace",
+        "logout": "Log out",
+        "language": "Language"
+    },
+    "account": {
+        "layout": {
+            "heading": "Account",
+            "description": "Manage your personal profile, security and data"
+        },
+        "nav": {
+            "profile": "Profile",
+            "password": "Password",
+            "two_factor": "Two-factor",
+            "passkeys": "Passkeys",
+            "social": "Social accounts",
+            "data_export": "Download my data",
+            "delete": "Delete account"
+        },
+        "profile": {
+            "title": "Profile settings",
+            "change_photo": "Change profile photo",
+            "upload_photo": "Upload profile photo",
+            "managed_by": "Managed by {name}",
+            "copy_account_id": "Copy account ID",
+            "copied": "Copied!",
+            "remove_photo": "Remove photo",
+            "remove_photo_title": "Remove profile photo",
+            "remove_photo_description": "Your avatar will revert to your initials. You can upload a new photo at any time.",
+            "info_title": "Profile Information",
+            "info_description": "Update your account's profile information and email address.",
+            "name": "Name",
+            "name_placeholder": "Full name",
+            "email": "Email address",
+            "email_placeholder": "Email address",
+            "email_unverified": "Your email address is unverified.",
+            "resend_verification": "Click here to resend the verification email.",
+            "verification_sent": "A new verification link has been sent to your email address.",
+            "updated": "Profile updated successfully",
+            "datetime_title": "Date & time",
+            "datetime_description": "Choose how dates are displayed across your dashboard.",
+            "date_format": "Date format",
+            "date_format_placeholder": "Select a date format"
+        },
+        "password": {
+            "title": "Password settings",
+            "heading": "Password Security",
+            "subtitle": "Manage your account's password.",
+            "update_title": "Update Password",
+            "update_description": "Ensure your account is using a strong, secure password to protect your account.",
+            "current": "Current password",
+            "current_placeholder": "Enter your current password",
+            "new": "New password",
+            "new_placeholder": "Enter your new password",
+            "confirm": "Confirm password",
+            "confirm_placeholder": "Confirm your new password",
+            "submit": "Update password",
+            "updated": "Password updated successfully"
+        },
+        "two_factor": {
+            "title": "Two-factor authentication"
+        },
+        "passkeys": {
+            "title": "Passkeys"
+        },
+        "social": {
+            "title": "Social accounts"
+        },
+        "data_export": {
+            "title": "Download my data",
+            "heading": "Download a copy of my data",
+            "description": "Get a ZIP archive containing every piece of personal data we hold about you — your agents, conversations, messages, knowledge sources, and uploaded files. Prepared in line with GDPR Articles 15 and 20.",
+            "idle_title": "Your data, in your hands.",
+            "idle_description": "Building the archive runs in the background — we'll email you when it's ready. The download stays available for 24 hours, then it's deleted from our servers.",
+            "request_button": "Request a copy of my data",
+            "processing_title": "Preparing your export…",
+            "processing_description": "We're packaging your data into a ZIP file. This usually takes a few minutes — we'll send you an email once it's ready, and this page will refresh automatically.",
+            "check_status": "Check status",
+            "ready_title": "Your data export is ready.",
+            "available_for": "Available for {time}",
+            "download_zip": "Download ZIP",
+            "failed_title": "We couldn't prepare your export.",
+            "try_again": "Try again"
+        },
+        "delete": {
+            "title": "Delete account",
+            "subtitle": "Permanently delete your account and everything in it.",
+            "data_export_title": "Want a copy of your data first?",
+            "data_export_description": "Once your account is gone, your data is gone with it. You can {link} of everything we hold about you before you delete.",
+            "data_export_link": "download an archive",
+            "cannot_undo": "This cannot be undone",
+            "removes_intro": "Deleting your account permanently removes everything in it, including:",
+            "removes_agents": "Your agents and their settings",
+            "removes_conversations": "All conversations and messages",
+            "removes_knowledge": "Knowledge sources, documents, and uploaded files",
+            "removes_team": "Your team, members, API keys, and connectors",
+            "agents_will_delete": "{count} agent will be permanently deleted: | {count} agents will be permanently deleted:",
+            "subscription_cancel": "Your active subscription will be canceled and you won't be billed again.",
+            "email_confirmed": "Email confirmed. This is your last step — there's no going back after this.",
+            "delete_button": "Permanently delete my account",
+            "final_dialog_title": "Permanently delete your account?",
+            "final_dialog_description": "This will permanently delete your account and all of its data, and cannot be undone.",
+            "final_dialog_subscription": "Your subscription will also be canceled.",
+            "final_confirm": "Yes, delete everything",
+            "check_email": "Check your email — we sent a confirmation link to finish deleting your account. It expires in 30 minutes. Open the link to continue.",
+            "resend_link": "Send the link again",
+            "password_dialog_title": "Confirm your password",
+            "password_dialog_description": "Enter your password to continue. We'll email you a confirmation link to finish deleting your account.",
+            "password_placeholder": "Password",
+            "send_confirmation": "Send confirmation email"
+        }
+    },
+    "workspace": {
+        "layout": {
+            "heading": "Workspace",
+            "description": "Manage integrations, people and governance"
+        }
+    }
+}

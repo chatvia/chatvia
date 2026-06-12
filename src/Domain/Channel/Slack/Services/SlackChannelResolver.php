@@ -2,7 +2,6 @@
 
 namespace Domain\Channel\Slack\Services;
 
-use Domain\Channel\Services\ThreadMappingGuard;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Models\SlackChannel;
 use Domain\Conversation\Enums\ConversationSource;
@@ -21,7 +20,6 @@ class SlackChannelResolver
     public function __construct(
         private readonly ChatMemory $memory,
         private readonly SlackClient $client,
-        private readonly ThreadMappingGuard $guard,
     ) {}
 
     public function resolve(AgentSlackApp $app, string $channelId): SlackChannel
@@ -32,7 +30,9 @@ class SlackChannelResolver
             ->first();
 
         if ($existing !== null) {
-            if ($this->guard->conversationExists($existing->conversation_external_id)) {
+            // conversation() excludes soft-deleted rows, so a retention-pruned
+            // conversation reads as missing here.
+            if ($existing->conversation()->exists()) {
                 return $existing;
             }
 
@@ -57,18 +57,22 @@ class SlackChannelResolver
             'name' => $name !== null ? "#{$name}" : null,
         ]);
 
-        $conversationId = $this->memory
+        $this->memory
             ->withContext($agent, $session->external_id)
             ->createConversation(
                 title: $title,
                 source: ConversationSource::Slack,
             );
 
+        // The freshly-created session has exactly one conversation — the one
+        // createConversation() just made for it.
+        $conversation = $session->conversations()->latest('id')->firstOrFail();
+
         return SlackChannel::create([
             'agent_slack_app_id' => $app->id,
             'channel_id' => $channelId,
-            'session_external_id' => $session->external_id,
-            'conversation_external_id' => $conversationId,
+            'chat_session_id' => $session->id,
+            'chat_conversation_id' => $conversation->id,
             'channel_name' => $name,
             'last_message_at' => now(),
         ]);

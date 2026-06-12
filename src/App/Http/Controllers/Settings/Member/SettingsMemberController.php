@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings\Member;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\Member\InviteWorkspaceMemberRequest;
 use App\Http\Requests\Settings\Member\UpdateMemberRequest;
 use App\Identity\Chatter\Actions\DeleteChatterAction;
 use App\Identity\Chatter\Actions\ResetChatterPasswordAction;
@@ -10,6 +11,10 @@ use App\Identity\Chatter\Actions\UpdateChatterAccessAction;
 use App\Identity\Chatter\Data\WorkspaceChatterRowData;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
+use Domain\Membership\Agent\Actions\InviteWorkspaceMemberAction;
+use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
+use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -45,7 +50,42 @@ class SettingsMemberController extends Controller
             return ['data' => WorkspaceChatterRowData::collect($chatters, DataCollection::class)];
         }
 
-        return Inertia::render('settings/Members');
+        // Protected agents the owner can invite a new member into — public
+        // agents have no per-member access, so they're never selectable.
+        $agents = $request->user()->workspace()
+            ->agents()
+            ->where('is_public', false)
+            ->orderBy('agents.name')
+            ->get(['agents.external_id', 'agents.name'])
+            ->map(fn (Agent $agent): array => ['external_id' => $agent->external_id, 'name' => $agent->name])
+            ->all();
+
+        return Inertia::render('workspace/people/Members', [
+            'agents' => $agents,
+        ]);
+    }
+
+    /**
+     * Invite a chatter directly from the workspace Members page, granting them
+     * access to one or more protected agents in the same step. Returns the
+     * invitation so the UI can show (and copy) the sign-up link.
+     */
+    public function invite(
+        InviteWorkspaceMemberRequest $request,
+        InviteWorkspaceMemberAction $invite,
+    ): RedirectResponse {
+
+        try {
+            $invitation = $invite->execute($request->toData());
+        } catch (AgentMemberInvitationRejectedException $e) {
+            return back()->withErrors([$e->field => $e->getMessage()])->withInput();
+        }
+
+        return back()->with('invitation', [
+            'email' => $invitation->email,
+            'accept_url' => $invitation->accept_url,
+            'expires_at' => $invitation->expires_at->toIso8601String(),
+        ]);
     }
 
     /**
@@ -91,12 +131,13 @@ class SettingsMemberController extends Controller
         Request $request,
         string $chatter,
         string $agent,
+        GrantAgentMembershipAction $grant,
     ): array {
 
         $member = $this->findChatter($request, $chatter);
         $agentModel = $this->findWorkspaceAgent($request, $agent);
 
-        $agentModel->chatters()->syncWithoutDetaching([$member->id]);
+        $grant->execute($agentModel, $member);
 
         return $this->buildAgentsPayload($request, $member);
     }
@@ -108,12 +149,13 @@ class SettingsMemberController extends Controller
         Request $request,
         string $chatter,
         string $agent,
+        RevokeAgentMembershipAction $revoke,
     ): array {
 
         $member = $this->findChatter($request, $chatter);
         $agentModel = $this->findWorkspaceAgent($request, $agent);
 
-        $agentModel->chatters()->detach($member->id);
+        $revoke->execute($agentModel, $member);
 
         return $this->buildAgentsPayload($request, $member);
     }

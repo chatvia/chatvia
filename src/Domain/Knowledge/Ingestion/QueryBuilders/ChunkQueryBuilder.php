@@ -191,6 +191,54 @@ SQL;
     }
 
     /**
+     * Like questionsForAgent, but keeps each question's owning chunk — the
+     * Evals "From knowledge" picker needs the linkage to fetch the chunk text
+     * as a reference answer at case-creation time. Splitting happens in PHP
+     * because `questions` is an encrypted cast.
+     *
+     * @return list<array{chunk_id: int, question: string, source_type: string}>
+     */
+    public function questionCandidatesForAgent(int $agentId, int $limit = 200): array
+    {
+        $rows = $this->getModel()->newQuery()
+            ->whereNotNull('questions')
+            ->where('questions', '!=', '')
+            ->whereExists(function ($query) use ($agentId): void {
+                $query->select(DB::raw(1))
+                    ->from('agent_sources as s')
+                    ->whereColumn('s.sourceable_id', 'chunks.chunkable_id')
+                    ->whereColumn('s.sourceable_type', 'chunks.chunkable_type')
+                    ->where('s.agent_id', $agentId);
+            })
+            ->limit(200)
+            ->get(['id', 'questions', 'chunkable_type']);
+
+        $seen = [];
+        $candidates = [];
+
+        foreach ($rows as $row) {
+            foreach (preg_split('/\r\n|\r|\n/', (string) $row->questions) ?: [] as $question) {
+                $question = trim($question);
+
+                // Same 255-char cap as questionsForAgent — here because the
+                // question doubles as the eval case name, a 255-char column.
+                if ($question === '' || mb_strlen($question) > 255 || isset($seen[mb_strtolower($question)])) {
+                    continue;
+                }
+
+                $seen[mb_strtolower($question)] = true;
+                $candidates[] = ['chunk_id' => $row->id, 'question' => $question, 'source_type' => $row->chunkable_type];
+
+                if (count($candidates) >= $limit) {
+                    return $candidates;
+                }
+            }
+        }
+
+        return $candidates;
+    }
+
+    /**
      * Set vchordrq runtime params for the current transaction. `SET LOCAL`
      * needs an explicit transaction — otherwise values leak on pooled
      * connections (pgbouncer / Octane).

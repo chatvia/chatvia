@@ -25,8 +25,7 @@ class CreateSourceChunkAction
      */
     public function execute(Agent $agent, Model $source, PageData $page): ?Chunk
     {
-        // Cheap fast path: duplicate pages (blank/repeated pages in scanned
-        // PDFs) are a common case — skip the embed call entirely.
+        // Duplicate pages are common (blank/repeated scans) — skip the embed.
         if (Chunk::query()
             ->where('chunkable_type', $source->getMorphClass())
             ->where('chunkable_id', $source->getKey())
@@ -35,10 +34,7 @@ class CreateSourceChunkAction
             return null;
         }
 
-        // createOrFirst, not create: per-page batch jobs run concurrently
-        // across workers, so two jobs can pass the exists() check with the
-        // same checksum — the second insert must absorb the unique violation
-        // instead of failing the job (and with it the whole batch).
+        // createOrFirst: concurrent page jobs can race past the exists() check.
         $chunk = Chunk::query()->createOrFirst(
             [
                 'chunkable_type' => $source->getMorphClass(),

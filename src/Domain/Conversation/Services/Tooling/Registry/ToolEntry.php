@@ -27,7 +27,7 @@ final class ToolEntry
      */
     public function __construct(
         public readonly string $kind,       // 'mcp' or 'function'
-        public readonly int $sourceId,      // mcp_tools.id or functions.id
+        public readonly string $sourceId,   // typed row ref: connector_tool:{id} | mcp_tool:{id} | function:{id}
         public readonly string $name,       // prefixed for MCP, raw for function
         public readonly string $description,
         public readonly array $parameters,

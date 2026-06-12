@@ -18,10 +18,16 @@ class ProfileController extends Controller
 {
     public function edit(Request $request): Response
     {
-        return Inertia::render('settings/Profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+        /** @var User $user */
+        $user = $request->user();
+
+        return Inertia::render('account/Profile', [
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
             'dateFormats' => DateFormat::options(),
+            // Teammates (employees) belong to a workspace owner — surface who
+            // manages this account so they know it isn't a standalone workspace.
+            'managedBy' => $user->isEmployee() ? $user->parentWorkspace?->name : null,
         ]);
     }
 
@@ -29,7 +35,7 @@ class ProfileController extends Controller
     {
         $updateProfile->execute($request->toData());
 
-        return to_route('profile.edit');
+        return to_route('account.profile.edit');
     }
 
     public function destroyPhoto(Request $request, RemoveProfilePhotoAction $removePhoto): RedirectResponse
@@ -39,6 +45,6 @@ class ProfileController extends Controller
 
         $removePhoto->execute($user);
 
-        return to_route('profile.edit');
+        return to_route('account.profile.edit');
     }
 }

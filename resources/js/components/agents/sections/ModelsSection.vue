@@ -7,6 +7,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Brain, Check, ChevronDown, Search, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 type AIModel = Domain.Llm.Data.LlmModelData;
 
@@ -48,9 +51,9 @@ const filtered = computed(() => {
 const selectedModels = computed(() => props.catalog.filter((m) => props.models.includes(m.id)));
 
 const triggerLabel = computed(() => {
-    if (selectedModels.value.length === 0) return props.single ? 'Select a model...' : 'Select models...';
+    if (selectedModels.value.length === 0) return props.single ? t('agents.setup.sections.models_select_one') : t('agents.setup.sections.models_select_many');
     if (selectedModels.value.length === 1) return selectedModels.value[0].name;
-    return `${selectedModels.value.length} models selected`;
+    return t('agents.setup.sections.models_selected', { count: selectedModels.value.length });
 });
 
 function isSelected(id: string): boolean {
@@ -81,8 +84,8 @@ function remove(id: string): void {
     <div class="space-y-6">
         <div class="space-y-3">
             <div class="space-y-1">
-                <Label>{{ single ? 'Model' : 'Models' }}</Label>
-                <p class="text-muted-foreground text-xs">Select the model you want to use</p>
+                <Label>{{ t('agents.setup.sections.models_label', single ? 1 : 2) }}</Label>
+                <p class="text-muted-foreground text-xs">{{ t('agents.setup.sections.models_hint') }}</p>
             </div>
 
             <Popover v-model:open="isOpen">
@@ -114,7 +117,7 @@ function remove(id: string): void {
                     <div class="border-b p-2">
                         <div class="relative">
                             <Search class="text-muted-foreground absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2" />
-                            <Input v-model="searchQuery" placeholder="Search models..." class="h-8 pl-8" />
+                            <Input v-model="searchQuery" :placeholder="t('agents.setup.sections.models_search')" class="h-8 ps-8" />
                         </div>
                     </div>
                     <!-- Each row opens a side tooltip on hover with the model's
@@ -152,23 +155,23 @@ function remove(id: string): void {
                                         </div>
 
                                         <div class="text-sm">
-                                            <span class="font-medium">Credits cost:</span>
+                                            <span class="font-medium">{{ t('agents.setup.sections.models_credits') }}</span>
                                             <span class="ml-1">{{ model.credits }}</span>
                                         </div>
 
                                         <div class="text-sm">
-                                            <span class="font-medium">Hosted in:</span>
-                                            <span class="ml-1">
-                                                <span v-if="model.location === 'us'">🇺🇸 United States</span>
-                                                <span v-else-if="model.location === 'eu'">🇪🇺 Europe</span>
-                                                <span v-else-if="model.location === 'cn'">🇨🇳 China</span>
+                                            <span class="font-medium">{{ t('agents.setup.sections.models_hosted') }}</span>
+                                            <span class="ms-1">
+                                                <span v-if="model.location === 'us'">{{ t('agents.setup.sections.models_location_us') }}</span>
+                                                <span v-else-if="model.location === 'eu'">{{ t('agents.setup.sections.models_location_eu') }}</span>
+                                                <span v-else-if="model.location === 'cn'">{{ t('agents.setup.sections.models_location_cn') }}</span>
                                                 <span v-else>{{ model.location.toUpperCase() }}</span>
                                             </span>
                                         </div>
 
                                         <div class="text-sm">
-                                            <span class="font-medium">Context window:</span>
-                                            <span class="ml-1">{{ model.context_window.toLocaleString() }} tokens</span>
+                                            <span class="font-medium">{{ t('agents.setup.sections.models_context') }}</span>
+                                            <span class="ms-1">{{ model.context_window.toLocaleString() }} tokens</span>
                                         </div>
 
                                         <p v-if="model.description" class="text-muted-foreground text-sm leading-relaxed">
@@ -187,7 +190,7 @@ function remove(id: string): void {
                                     </div>
                                 </TooltipContent>
                             </Tooltip>
-                            <div v-if="filtered.length === 0" class="text-muted-foreground px-2 py-4 text-center text-sm">No models found</div>
+                            <div v-if="filtered.length === 0" class="text-muted-foreground px-2 py-4 text-center text-sm">{{ t('agents.setup.sections.models_not_found') }}</div>
                         </div>
                     </TooltipProvider>
                 </PopoverContent>

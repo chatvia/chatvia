@@ -52,7 +52,7 @@ class ConnectorOAuthCallbackController
 
         return $autoAttachAgent
             ? redirect()->route('agents.sources.connectors.index', $autoAttachAgent)->with('success', $successMessage)
-            : redirect()->route('settings.connectors.edit')->with('success', $successMessage);
+            : redirect()->route('integrations.connectors.edit')->with('success', $successMessage);
     }
 
     private function bounceWithError(string $state, string $message, ?Agent $autoAttachAgent = null): RedirectResponse
@@ -61,7 +61,7 @@ class ConnectorOAuthCallbackController
 
         return $autoAttachAgent
             ? redirect()->route('agents.sources.connectors.index', $autoAttachAgent)->with('error', $message)
-            : redirect()->route('settings.connectors.edit')->with('error', $message);
+            : redirect()->route('integrations.connectors.edit')->with('error', $message);
     }
 
     private function peekAutoAttachAgent(string $state): ?Agent

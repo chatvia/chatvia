@@ -46,7 +46,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         const initialLocale = (props.initialPage?.props as any)?.locale;
         if (typeof initialLocale === 'string' && initialLocale.length > 0) {
-            setI18nLocale(resolveLocale(initialLocale));
+            void setI18nLocale(resolveLocale(initialLocale));
         }
 
         createApp({ render: () => h(App, props) })
@@ -75,7 +75,7 @@ router.on('navigate', (event: any) => {
     // `auto` falls back to the browser language; anything else is forced.
     const incomingLocale = (props as any)?.locale;
     if (typeof incomingLocale === 'string' && incomingLocale.length > 0) {
-        setI18nLocale(resolveLocale(incomingLocale));
+        void setI18nLocale(resolveLocale(incomingLocale));
     }
 
     // Handle Laravel validation errors

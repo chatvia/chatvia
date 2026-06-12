@@ -8,6 +8,8 @@
     "format": "prettier --write resources/",
     "format:check": "prettier --check resources/",
     "typecheck": "vue-tsc --noEmit",
+    "i18n:merge": "node scripts/merge-i18n-locales.mjs",
+    "i18n:check": "node scripts/i18n-missing-keys.mjs",
     "lint": "eslint . --fix",
     "postinstall": "puppeteer browsers install chrome-headless-shell && chmod -R 755 ${PUPPETEER_CACHE_DIR:-$HOME/.cache/puppeteer}",
     "docs:dev": "vitepress dev docs --port 4000",

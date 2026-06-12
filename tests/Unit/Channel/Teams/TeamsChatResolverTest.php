@@ -45,11 +45,11 @@ it('creates a Session + Conversation + mapping on first contact', function (): v
         ->and($chat->service_url)->toBe('https://smba.trafficmanager.net/emea/')
         ->and($chat->conversation_type)->toBe('personal')
         ->and($chat->peer_name)->toBe('Lina')
-        ->and($chat->session_external_id)->not->toBeNull()
-        ->and($chat->conversation_external_id)->not->toBeNull();
+        ->and($chat->chat_session_id)->not->toBeNull()
+        ->and($chat->chat_conversation_id)->not->toBeNull();
 
     // The Session is real and belongs to the agent, with no chatter user.
-    $session = Session::query()->where('external_id', $chat->session_external_id)->firstOrFail();
+    $session = $chat->session;
     expect($session->agent_id)->toBe($bot->agent_id)
         ->and($session->user_id)->toBeNull()
         ->and($session->name)->toBe('Lina');
@@ -85,7 +85,7 @@ it('keeps separate conversations for different Teams conversations', function ()
     $b = $resolver->resolve($bot, '19:channel@thread.tacv2;messageid=42', 'https://smba.trafficmanager.net/emea/', 'channel', null);
 
     expect($a->id)->not->toBe($b->id)
-        ->and($a->conversation_external_id)->not->toBe($b->conversation_external_id);
+        ->and($a->chat_conversation_id)->not->toBe($b->chat_conversation_id);
     expect(TeamsChat::query()->count())->toBe(2);
 });
 
@@ -95,7 +95,7 @@ it('tags the conversation as a Microsoft Teams conversation', function (): void 
     $chat = teamsResolver()->resolve($bot, 'a:1conv', 'https://smba.trafficmanager.net/emea/', 'personal', 'Lina');
 
     $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $chat->conversation_external_id,
+        'external_id' => $chat->conversation->external_id,
         'source' => ConversationSource::MsTeams->value,
     ]);
 });
@@ -108,7 +108,7 @@ it('copes with group chats, channels, and a missing sender name', function (): v
     $anonymous = $resolver->resolve($bot, 'a:2conv', 'https://smba.trafficmanager.net/emea/', 'personal', null);
 
     // Group chats never adopt a single member's name; a nameless personal chat still resolves.
-    $groupSession = Session::query()->where('external_id', $group->session_external_id)->firstOrFail();
+    $groupSession = $group->session;
     expect($groupSession->name)->toBeNull();
     expect($anonymous->peer_name)->toBeNull();
     expect(TeamsChat::query()->count())->toBe(2);

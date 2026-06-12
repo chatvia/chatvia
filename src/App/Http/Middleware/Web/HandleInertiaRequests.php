@@ -5,6 +5,7 @@ namespace App\Http\Middleware\Web;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Laravel\Pennant\Feature;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
@@ -45,6 +46,10 @@ class HandleInertiaRequests extends Middleware
                 // accept URL after an agent-member invitation is sent.
                 'invitation' => $request->session()->get('invitation'),
             ],
+            // Persisted UI language for the signed-in user. `auto` lets the
+            // client fall back to the browser locale. app.ts syncs vue-i18n +
+            // document dir/lang from this on every Inertia navigation.
+            'locale' => $user?->locale ?? 'auto',
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'subscribed' => (bool) $user?->hasActiveSubscription(),
             'schema' => $request->getScheme(),
@@ -54,6 +59,10 @@ class HandleInertiaRequests extends Middleware
             'subdomain' => $request->subdomain(),
             'permissions' => $this->getTeamPermissions($request),
             'currentTeam' => $user ? $this->getCurrentTeam($request) : null,
+            // Pennant feature flags (entitlement-derived). Frontend gates via
+            // `useFeature('security')`; resolved per request so they always
+            // reflect the workspace's current plan.
+            'features' => $user ? Feature::all() : [],
         ];
     }
 

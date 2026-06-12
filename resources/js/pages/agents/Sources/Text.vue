@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { useI18n } from 'vue-i18n';
 import TextComponent from './TextComponent.vue';
 
 interface Props {
@@ -7,10 +8,12 @@ interface Props {
 }
 
 defineProps<Props>();
+
+const { t } = useI18n();
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Text">
+    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.text')">
         <TextComponent :agent="agent" />
     </AgentLayout>
 </template>

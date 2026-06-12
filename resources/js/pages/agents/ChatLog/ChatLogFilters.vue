@@ -7,7 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { Filter, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useChatLog } from './useChatLog';
+
+const { t } = useI18n();
 
 const {
     showFiltersDialog,
@@ -39,7 +42,7 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
             <DialogHeader>
                 <DialogTitle class="flex items-center gap-2">
                     <Filter class="h-5 w-5" />
-                    Filter by
+                    {{ t('agents.chatlog.filters.title') }}
                 </DialogTitle>
             </DialogHeader>
 
@@ -48,67 +51,67 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
                 <div class="grid grid-cols-2 gap-4">
                     <!-- Date Range -->
                     <div class="space-y-2">
-                        <Label class="text-sm font-medium">Date range</Label>
+                        <Label class="text-sm font-medium">{{ t('agents.chatlog.filters.date_range') }}</Label>
                         <DateRangePicker v-model="dateRange" class="w-full" />
                     </div>
 
                     <!-- Confidence Score -->
                     <div class="space-y-2">
-                        <Label for="confidence-filter" class="text-sm font-medium">Confidence score</Label>
+                        <Label for="confidence-filter" class="text-sm font-medium">{{ t('agents.chatlog.filters.confidence_score') }}</Label>
                         <Select v-model="selectedConfidenceScore">
                             <SelectTrigger id="confidence-filter" class="w-full">
-                                <SelectValue placeholder="Select score" />
+                                <SelectValue :placeholder="t('agents.chatlog.filters.select_score')" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All scores</SelectItem>
-                                <SelectItem value="high">High (≥80%)</SelectItem>
-                                <SelectItem value="medium">Medium (65-80%)</SelectItem>
-                                <SelectItem value="low">Low (&lt;65%)</SelectItem>
+                                <SelectItem value="all">{{ t('agents.chatlog.filters.all_scores') }}</SelectItem>
+                                <SelectItem value="high">{{ t('agents.chatlog.confidence.high') }}</SelectItem>
+                                <SelectItem value="medium">{{ t('agents.chatlog.confidence.medium') }}</SelectItem>
+                                <SelectItem value="low">{{ t('agents.chatlog.confidence.low') }}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     <!-- Source -->
                     <div class="space-y-2">
-                        <Label for="source-filter" class="text-sm font-medium">Source</Label>
+                        <Label for="source-filter" class="text-sm font-medium">{{ t('agents.chatlog.filters.source') }}</Label>
                         <Select v-model="selectedSource">
                             <SelectTrigger id="source-filter" class="w-full">
-                                <SelectValue placeholder="Select source" />
+                                <SelectValue :placeholder="t('agents.chatlog.filters.select_source')" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All sources</SelectItem>
-                                <SelectItem value="hosted_chat">Chat</SelectItem>
-                                <SelectItem value="widget">Widget</SelectItem>
-                                <SelectItem value="bar">Bar</SelectItem>
-                                <SelectItem value="telegram">Telegram</SelectItem>
-                                <SelectItem value="slack">Slack</SelectItem>
-                                <SelectItem value="messenger">Messenger</SelectItem>
-                                <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                                <SelectItem value="msteams">Microsoft Teams</SelectItem>
-                                <SelectItem value="instagram">Instagram</SelectItem>
+                                <SelectItem value="all">{{ t('agents.chatlog.filters.all_sources') }}</SelectItem>
+                                <SelectItem value="hosted_chat">{{ t('agents.chatlog.source.hosted_chat') }}</SelectItem>
+                                <SelectItem value="widget">{{ t('agents.chatlog.source.widget') }}</SelectItem>
+                                <SelectItem value="bar">{{ t('agents.chatlog.source.bar') }}</SelectItem>
+                                <SelectItem value="telegram">{{ t('agents.chatlog.source.telegram') }}</SelectItem>
+                                <SelectItem value="slack">{{ t('agents.chatlog.source.slack') }}</SelectItem>
+                                <SelectItem value="messenger">{{ t('agents.chatlog.source.messenger') }}</SelectItem>
+                                <SelectItem value="whatsapp">{{ t('agents.chatlog.source.whatsapp') }}</SelectItem>
+                                <SelectItem value="msteams">{{ t('agents.chatlog.source.msteams') }}</SelectItem>
+                                <SelectItem value="instagram">{{ t('agents.chatlog.source.instagram') }}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     <!-- Feedback -->
                     <div class="space-y-2">
-                        <Label for="feedback-filter" class="text-sm font-medium">Feedback</Label>
+                        <Label for="feedback-filter" class="text-sm font-medium">{{ t('agents.chatlog.filters.feedback') }}</Label>
                         <Select v-model="selectedFeedback">
                             <SelectTrigger id="feedback-filter" class="w-full">
-                                <SelectValue placeholder="Select feedback" />
+                                <SelectValue :placeholder="t('agents.chatlog.filters.select_feedback')" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All feedback</SelectItem>
+                                <SelectItem value="all">{{ t('agents.chatlog.filters.all_feedback') }}</SelectItem>
                                 <SelectItem value="positive">
                                     <div class="flex items-center gap-2">
                                         <ThumbsUp class="h-4 w-4 text-green-600" />
-                                        Thumbs Up
+                                        {{ t('agents.chatlog.feedback.thumbs_up') }}
                                     </div>
                                 </SelectItem>
                                 <SelectItem value="negative">
                                     <div class="flex items-center gap-2">
                                         <ThumbsDown class="h-4 w-4 text-red-600" />
-                                        Thumbs Down
+                                        {{ t('agents.chatlog.feedback.thumbs_down') }}
                                     </div>
                                 </SelectItem>
                             </SelectContent>
@@ -117,13 +120,13 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
 
                     <!-- Country -->
                     <div class="space-y-2">
-                        <Label for="country-filter" class="text-sm font-medium">Country</Label>
+                        <Label for="country-filter" class="text-sm font-medium">{{ t('agents.chatlog.filters.country') }}</Label>
                         <Select v-model="selectedCountry">
                             <SelectTrigger id="country-filter" class="w-full">
-                                <SelectValue placeholder="Select country" />
+                                <SelectValue :placeholder="t('agents.chatlog.filters.select_country')" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All countries</SelectItem>
+                                <SelectItem value="all">{{ t('agents.chatlog.filters.all_countries') }}</SelectItem>
                                 <SelectItem v-for="country in countries" :key="country.id" :value="String(country.id)">
                                     <div class="flex items-center gap-2">
                                         <img
@@ -141,13 +144,13 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
 
                     <!-- Topic -->
                     <div class="space-y-2">
-                        <Label for="topic-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasTopicsAccess }">Topic</Label>
+                        <Label for="topic-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasTopicsAccess }">{{ t('agents.chatlog.filters.topic') }}</Label>
                         <Select v-model="selectedTopic" :disabled="!hasTopicsAccess">
                             <SelectTrigger id="topic-filter" class="w-full" :disabled="!hasTopicsAccess">
-                                <SelectValue :placeholder="hasTopicsAccess ? 'Select topic' : 'Upgrade to unlock'" />
+                                <SelectValue :placeholder="hasTopicsAccess ? t('agents.chatlog.filters.select_topic') : t('agents.chatlog.filters.upgrade_to_unlock')" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All topics</SelectItem>
+                                <SelectItem value="all">{{ t('agents.chatlog.filters.all_topics') }}</SelectItem>
                                 <SelectItem v-for="topic in topics" :key="topic.id" :value="String(topic.id)">
                                     {{ topic.topic }}
                                 </SelectItem>
@@ -157,34 +160,34 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
 
                     <!-- Sentiment -->
                     <div class="space-y-2">
-                        <Label for="sentiment-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasSentimentAccess }">Sentiment</Label>
+                        <Label for="sentiment-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasSentimentAccess }">{{ t('agents.chatlog.filters.sentiment') }}</Label>
                         <Select v-model="selectedSentiment" :disabled="!hasSentimentAccess">
                             <SelectTrigger id="sentiment-filter" class="w-full" :disabled="!hasSentimentAccess">
-                                <SelectValue :placeholder="hasSentimentAccess ? 'Select sentiment' : 'Upgrade to unlock'" />
+                                <SelectValue :placeholder="hasSentimentAccess ? t('agents.chatlog.filters.select_sentiment') : t('agents.chatlog.filters.upgrade_to_unlock')" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All sentiments</SelectItem>
-                                <SelectItem value="positive">Positive</SelectItem>
-                                <SelectItem value="neutral">Neutral</SelectItem>
-                                <SelectItem value="negative">Negative</SelectItem>
+                                <SelectItem value="all">{{ t('agents.chatlog.filters.all_sentiments') }}</SelectItem>
+                                <SelectItem value="positive">{{ t('agents.chatlog.sentiment.positive') }}</SelectItem>
+                                <SelectItem value="neutral">{{ t('agents.chatlog.sentiment.neutral') }}</SelectItem>
+                                <SelectItem value="negative">{{ t('agents.chatlog.sentiment.negative') }}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     <!-- Tone -->
                     <div class="space-y-2">
-                        <Label for="tone-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasToneAccess }">Tone</Label>
+                        <Label for="tone-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasToneAccess }">{{ t('agents.chatlog.filters.tone') }}</Label>
                         <Select v-model="selectedTone" :disabled="!hasToneAccess">
                             <SelectTrigger id="tone-filter" class="w-full" :disabled="!hasToneAccess">
-                                <SelectValue :placeholder="hasToneAccess ? 'Select tone' : 'Upgrade to unlock'" />
+                                <SelectValue :placeholder="hasToneAccess ? t('agents.chatlog.filters.select_tone') : t('agents.chatlog.filters.upgrade_to_unlock')" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All tones</SelectItem>
-                                <SelectItem value="neutral">😐 Neutral</SelectItem>
-                                <SelectItem value="frustrated">😤 Frustrated</SelectItem>
-                                <SelectItem value="urgent">⚡ Urgent</SelectItem>
-                                <SelectItem value="confused">😕 Confused</SelectItem>
-                                <SelectItem value="satisfied">😊 Satisfied</SelectItem>
+                                <SelectItem value="all">{{ t('agents.chatlog.filters.all_tones') }}</SelectItem>
+                                <SelectItem value="neutral">😐 {{ t('agents.chatlog.tone.neutral') }}</SelectItem>
+                                <SelectItem value="frustrated">😤 {{ t('agents.chatlog.tone.frustrated') }}</SelectItem>
+                                <SelectItem value="urgent">⚡ {{ t('agents.chatlog.tone.urgent') }}</SelectItem>
+                                <SelectItem value="confused">😕 {{ t('agents.chatlog.tone.confused') }}</SelectItem>
+                                <SelectItem value="satisfied">😊 {{ t('agents.chatlog.tone.satisfied') }}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -193,9 +196,9 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
 
             <DialogFooter class="flex gap-2 sm:gap-2">
                 <Button variant="ghost" @click="clearAllFilters" :disabled="!hasActiveFilters" class="text-destructive hover:text-destructive">
-                    Clear all
+                    {{ t('agents.chatlog.filters.clear_all') }}
                 </Button>
-                <Button @click="applyFilters"> Close </Button>
+                <Button @click="applyFilters"> {{ t('agents.chatlog.filters.close') }} </Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>

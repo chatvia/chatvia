@@ -1,0 +1,75 @@
+<?php
+
+namespace Domain\Security\Models;
+
+use App\Identity\Workspace\Models\User;
+use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+
+/**
+ * Org-wide security & compliance settings — one row per workspace owner. The
+ * shared dependency for the Enterprise Security suite: IP allowlisting, geo
+ * controls, configurable retention, SIEM webhooks, and the SCIM toggle all
+ * read from here. Resolve through {@see User::securityPolicy()} (memoized) or
+ * {@see self::forWorkspace()} (firstOrCreate) so no caller ever hits null.
+ *
+ * @property int $id
+ * @property int $workspace_id
+ * @property int|null $retention_conversations_days
+ * @property int|null $retention_leads_days
+ * @property int|null $retention_audit_days
+ * @property int|null $retention_analytics_days
+ * @property int|null $anonymize_after_days
+ * @property string $ip_allowlist_mode
+ * @property string $geo_mode
+ * @property array<int, string>|null $geo_countries
+ * @property string|null $webhook_url
+ * @property string|null $webhook_secret
+ * @property bool $webhook_enabled
+ * @property array<int, string>|null $webhook_events
+ * @property int $webhook_failures
+ * @property Carbon|null $webhook_last_delivered_at
+ * @property bool $scim_enabled
+ * @property bool|null $security_override
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $workspace
+ */
+#[Guarded(['id'])]
+class WorkspaceSecurityPolicy extends Model
+{
+    protected $casts = [
+        'retention_conversations_days' => 'integer',
+        'retention_leads_days' => 'integer',
+        'retention_audit_days' => 'integer',
+        'retention_analytics_days' => 'integer',
+        'anonymize_after_days' => 'integer',
+        'geo_countries' => 'array',
+        'webhook_secret' => 'encrypted',
+        'webhook_enabled' => 'boolean',
+        'webhook_events' => 'array',
+        'webhook_failures' => 'integer',
+        'webhook_last_delivered_at' => 'datetime',
+        'scim_enabled' => 'boolean',
+        'security_override' => 'boolean',
+    ];
+
+    /**
+     * The single resolution path — guarantees a row exists for the workspace so
+     * every middleware/command/Action reads a concrete policy, never null.
+     */
+    public static function forWorkspace(int $workspaceId): self
+    {
+        return self::firstOrCreate(['workspace_id' => $workspaceId]);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function workspace(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'workspace_id');
+    }
+}

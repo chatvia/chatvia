@@ -141,6 +141,7 @@ The authoritative, current list is maintained in Chatvia's **published sub-proce
 |---|---|---|---|
 | **Hetzner Online GmbH** | Cloud infrastructure hosting — compute and the database | All categories in Annex 1 | EU (Germany) |
 | **Scaleway SAS** | AI inference (open-weight models), object storage (attachments, exports), database backups, and transactional email | All categories in Annex 1; chat content for inference | EU (France) |
+| **Firecrawl** | Crawling public websites a workspace adds to its knowledge base | Public website URL and public page content only — **no** Customer Personal Data, transcripts, Leads, or private content | US (SCCs) |
 
 Additions or replacements are governed by clause 3.8–3.11 (general authorisation, 30-day advance notice, objection right).
 

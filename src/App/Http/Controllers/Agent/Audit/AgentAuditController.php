@@ -6,6 +6,7 @@ use App\Http\Controllers\Agent\ChatLog\AgentChatLogController;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\AgentActivity;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -33,16 +34,19 @@ class AgentAuditController
             $query->where('connector_slug', (string) $request->string('connector'));
         }
 
-        $rows = $query->paginate(25)->withQueryString()->through(fn (AgentActivity $a): array => $a->toAuditArray());
+        // Cursor pagination pairs with the (agent_id, id) index.
+        $rows = $query->cursorPaginate(25)->withQueryString()->through(fn (AgentActivity $a): array => $a->toAuditArray());
 
-        $connectors = AgentActivity::query()
-            ->forAgent($agent->id)
+        // Filter options from the workspace's configured connectors.
+        $connectors = AgentMcpServer::query()
+            ->where('user_id', $agent->user_id)
             ->whereNotNull('connector_slug')
-            ->select('connector_slug', 'connector_name')
-            ->distinct()
-            ->orderBy('connector_name')
+            ->select('connector_slug', 'name')
+            ->orderBy('name')
             ->get()
-            ->map(fn (AgentActivity $a): array => ['slug' => (string) $a->connector_slug, 'name' => $a->connector_name])
+            ->unique('connector_slug')
+            ->map(fn (AgentMcpServer $s): array => ['slug' => (string) $s->connector_slug, 'name' => $s->name])
+            ->values()
             ->all();
 
         return Inertia::render('agents/Audit/index', [

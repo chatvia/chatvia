@@ -8,6 +8,9 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Lock, LockKeyhole, Mail, User } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const form = useForm({
     name: '',
@@ -34,10 +37,10 @@ const loginWithSlack = () => {
 </script>
 
 <template>
-    <AuthBase title="Create an account" description="Enter your details below to create your account">
-        <Head title="Register" />
+    <AuthBase :title="t('auth.register.title')" :description="t('auth.register.description')">
+        <Head :title="t('auth.register.head')" />
 
-        <div class="absolute top-4 right-4">
+        <div class="absolute top-4 end-4">
             <ThemeSwitcher />
         </div>
 
@@ -47,9 +50,9 @@ const loginWithSlack = () => {
             <form @submit.prevent="submit" class="space-y-6">
                 <!-- Name Field -->
                 <div class="space-y-2">
-                    <Label for="name" class="text-base font-medium">Name</Label>
+                    <Label for="name" class="text-base font-medium">{{ t('auth.register.name_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <User class="h-5 w-5" />
                         </div>
                         <Input
@@ -60,8 +63,8 @@ const loginWithSlack = () => {
                             :tabindex="1"
                             autocomplete="name"
                             v-model="form.name"
-                            placeholder="John Doe"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="t('auth.register.name_placeholder')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.name" />
@@ -69,9 +72,9 @@ const loginWithSlack = () => {
 
                 <!-- Email Field -->
                 <div class="space-y-2">
-                    <Label for="email" class="text-base font-medium">Email address</Label>
+                    <Label for="email" class="text-base font-medium">{{ t('auth.register.email_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <Mail class="h-5 w-5" />
                         </div>
                         <Input
@@ -81,8 +84,8 @@ const loginWithSlack = () => {
                             :tabindex="2"
                             autocomplete="email"
                             v-model="form.email"
-                            placeholder="email@example.com"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="t('auth.register.email_placeholder')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.email" />
@@ -90,9 +93,9 @@ const loginWithSlack = () => {
 
                 <!-- Password Field -->
                 <div class="space-y-2">
-                    <Label for="password" class="text-base font-medium">Password</Label>
+                    <Label for="password" class="text-base font-medium">{{ t('auth.register.password_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <Lock class="h-5 w-5" />
                         </div>
                         <Input
@@ -102,8 +105,8 @@ const loginWithSlack = () => {
                             :tabindex="3"
                             autocomplete="new-password"
                             v-model="form.password"
-                            placeholder="Password"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="t('auth.register.password_placeholder')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.password" />
@@ -111,9 +114,9 @@ const loginWithSlack = () => {
 
                 <!-- Confirm Password Field -->
                 <div class="space-y-2">
-                    <Label for="password_confirmation" class="text-base font-medium">Confirm password</Label>
+                    <Label for="password_confirmation" class="text-base font-medium">{{ t('auth.register.confirm_password_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <LockKeyhole class="h-5 w-5" />
                         </div>
                         <Input
@@ -123,8 +126,8 @@ const loginWithSlack = () => {
                             :tabindex="4"
                             autocomplete="new-password"
                             v-model="form.password_confirmation"
-                            placeholder="Confirm password"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="t('auth.register.confirm_password_placeholder')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.password_confirmation" />
@@ -132,7 +135,7 @@ const loginWithSlack = () => {
 
                 <!-- Terms and Conditions -->
                 <div class="space-y-3">
-                    <div class="flex items-start space-x-3">
+                    <div class="flex items-start gap-3">
                         <div class="flex h-5 items-center">
                             <input
                                 id="policy"
@@ -144,16 +147,16 @@ const loginWithSlack = () => {
                         </div>
                         <div class="text-sm">
                             <label for="policy" class="text-muted-foreground">
-                                I agree to the
+                                {{ t('auth.register.agree_to') }}
                                 <a href="/privacy-policy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer"
-                                    >Privacy Policy</a
+                                    >{{ t('auth.register.privacy_policy') }}</a
                                 >
                             </label>
                             <InputError :message="form.errors.policy" />
                         </div>
                     </div>
 
-                    <div class="flex items-start space-x-3">
+                    <div class="flex items-start gap-3">
                         <div class="flex h-5 items-center">
                             <input
                                 id="terms"
@@ -165,9 +168,9 @@ const loginWithSlack = () => {
                         </div>
                         <div class="text-sm">
                             <label for="terms" class="text-muted-foreground">
-                                I agree to the
+                                {{ t('auth.register.agree_to') }}
                                 <a href="/terms-of-service" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer"
-                                    >Terms of Service</a
+                                    >{{ t('auth.register.terms_of_service') }}</a
                                 >
                             </label>
                             <InputError :message="form.errors.terms" />
@@ -182,9 +185,9 @@ const loginWithSlack = () => {
                     :tabindex="7"
                     :disabled="form.processing || !form.policy || !form.terms"
                 >
-                    <LoaderCircle v-if="form.processing" class="mr-2 h-5 w-5 animate-spin" />
-                    <span v-if="!form.processing">Create account</span>
-                    <span v-else>Creating account...</span>
+                    <LoaderCircle v-if="form.processing" class="me-2 h-5 w-5 animate-spin" />
+                    <span v-if="!form.processing">{{ t('auth.register.create_account') }}</span>
+                    <span v-else>{{ t('auth.register.creating_account') }}</span>
                 </Button>
             </form>
 
@@ -193,14 +196,14 @@ const loginWithSlack = () => {
                     <span class="w-full border-t"></span>
                 </div>
                 <div class="relative flex justify-center text-sm uppercase">
-                    <span class="bg-background text-muted-foreground px-4 font-medium">Or</span>
+                    <span class="bg-background text-muted-foreground px-4 font-medium">{{ t('auth.register.or') }}</span>
                 </div>
             </div>
 
             <!-- Social Login Buttons -->
             <div class="space-y-3">
                 <Button type="button" variant="outline" @click="loginWithGoogle" class="h-12 w-full text-base font-medium" :tabindex="6">
-                    <svg class="mr-2 h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="me-2 h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                             fill="#4285F4"
@@ -218,11 +221,11 @@ const loginWithSlack = () => {
                             fill="#EA4335"
                         />
                     </svg>
-                    Continue with Google
+                    {{ t('auth.register.continue_with_google') }}
                 </Button>
 
                 <Button type="button" variant="outline" @click="loginWithSlack" class="h-12 w-full text-base font-medium" :tabindex="7">
-                    <svg class="mr-2 h-5 w-5" viewBox="0 0 127 127" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="me-2 h-5 w-5" viewBox="0 0 127 127" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M27.2 80c0 7.3-5.9 13.2-13.2 13.2C6.7 93.2.8 87.3.8 80c0-7.3 5.9-13.2 13.2-13.2h13.2V80zm6.6 0c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2v33c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V80z"
                             fill="#E01E5A"
@@ -240,15 +243,15 @@ const loginWithSlack = () => {
                             fill="#ECB22E"
                         />
                     </svg>
-                    Continue with Slack
+                    {{ t('auth.register.continue_with_slack') }}
                 </Button>
             </div>
 
             <!-- Sign In Link -->
             <div class="pt-4 text-center">
                 <p class="text-muted-foreground text-base">
-                    Already have an account?
-                    <TextLink :href="route('login')" :tabindex="8" class="text-primary hover:text-primary/80 ml-1 font-semibold"> Log in </TextLink>
+                    {{ t('auth.register.have_account') }}
+                    <TextLink :href="route('login')" :tabindex="8" class="text-primary hover:text-primary/80 ms-1 font-semibold"> {{ t('auth.register.log_in') }} </TextLink>
                 </p>
             </div>
         </div>

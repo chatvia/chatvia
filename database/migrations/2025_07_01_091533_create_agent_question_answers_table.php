@@ -21,10 +21,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Expression index matching phraseSearch's predicate exactly
-        // (`to_tsvector('simple', questions) @@ phraseto_tsquery(...)`), which
-        // runs on every chat turn. A trgm index used to sit here — unusable
-        // for a tsvector `@@` probe, so each turn re-tokenized every QA row.
+        // Expression index matching phraseSearch's to_tsvector('simple', …) @@ predicate.
         DB::statement("CREATE INDEX agent_question_answers_questions_fts_idx ON agent_question_answers USING gin (to_tsvector('simple', questions))");
     }
 

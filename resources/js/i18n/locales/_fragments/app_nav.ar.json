@@ -1,0 +1,91 @@
+{
+    "app": {
+        "header": {
+            "dashboard": "لوحة التحكم",
+            "agents": "الوكلاء",
+            "usage": "الاستخدام",
+            "ask_your_data": "اسأل بياناتك",
+            "billing": "الفوترة",
+            "support": "الدعم",
+            "teams": "الفرق",
+            "documentation": "التوثيق",
+            "api": "واجهة API",
+            "nav_menu_sr": "قائمة التنقل",
+            "upgrade": "ترقية",
+            "subscribed": "أنت مشترك"
+        }
+    },
+    "agents": {
+        "nav": {
+            "default_title": "إعدادات الوكيل",
+            "playground": "ساحة التجربة",
+            "playground_tooltip": "معاينة وكيلك على كل سطح",
+            "setup": "الإعداد",
+            "setup_tooltip": "تهيئة وكيلك — ينطبق على كل الأسطح",
+            "channels": "القنوات",
+            "channels_tooltip": "نشر وكيلك — الموقع والأداة وتيليجرام",
+            "groups": {
+                "insights": "الرؤى",
+                "training": "التدريب",
+                "access": "الوصول",
+                "settings": "الإعدادات",
+                "danger_zone": "منطقة الخطر"
+            },
+            "analytics": "التحليلات",
+            "analytics_tooltip": "عرض تحليلات الاستخدام والرؤى",
+            "chats": "المحادثات",
+            "sentiment": "المشاعر",
+            "tone": "النبرة",
+            "topics": "المواضيع",
+            "sources": "المصادر",
+            "chat": "المحادثة",
+            "chat_tooltip": "فحص رسائل المحادثة الخام حسب الجلسة",
+            "audit": "التدقيق",
+            "audit_tooltip": "سجل تدقيق استدعاءات الأدوات لهذا الوكيل",
+            "evals": "التقييمات",
+            "evals_tooltip": "مجموعات اختبار تقيّم إجابات هذا الوكيل",
+            "guardrails": "الحواجز",
+            "guardrails_tooltip": "حماية الذكاء الاصطناعي: PII وحقن المطالبات والمواضيع والسمية",
+            "leads": "العملاء المحتملون",
+            "leads_tooltip": "إدارة العملاء المحتملين الذين يجمعهم وكيلك",
+            "knowledge_sources": "المصادر",
+            "knowledge_sources_tooltip": "إدارة معرفة الوكيل وبيانات التدريب",
+            "functions": "الوظائف",
+            "functions_tooltip": "إدارة الوظائف المخصصة التي يمكن للوكيل استدعاؤها",
+            "connectors": "الموصّلات",
+            "connectors_tooltip": "إرفاق موصّلات ليستخدم وكيلك أدوات خارجية",
+            "members": "الأعضاء",
+            "members_tooltip": "الأشخاص المصرّح لهم بالمحادثة مع هذا الوكيل",
+            "security": "الأمان",
+            "security_tooltip": "التحكم في الوصول والسرّ وتقييد المعدّل لهذا الوكيل",
+            "identity": "الهوية",
+            "rate_limiting": "تقييد المعدّل",
+            "rename": "إعادة التسمية",
+            "rename_tooltip": "إعادة تسمية هذا الوكيل",
+            "delete_agent": "حذف الوكيل",
+            "delete_agent_tooltip": "حذف هذا الوكيل نهائياً",
+            "expand_sidebar": "توسيع الشريط الجانبي",
+            "delete_dialog": {
+                "title": "حذف الوكيل",
+                "description": "لا يمكن التراجع عن هذا الإجراء. سيؤدي هذا إلى حذف الوكيل {name} وجميع بياناته نهائياً.",
+                "confirm_label": "يرجى كتابة {name} للتأكيد",
+                "confirm_placeholder": "أدخل اسم الوكيل للتأكيد",
+                "name_mismatch": "اسم الوكيل غير متطابق",
+                "submit": "حذف الوكيل",
+                "deleted_toast": "تم حذف الوكيل بنجاح",
+                "delete_error_toast": "فشل حذف الوكيل. يرجى المحاولة مرة أخرى."
+            },
+            "rename_dialog": {
+                "title": "إعادة تسمية الوكيل",
+                "description": "أدخل اسماً جديداً لوكيلك {name}.",
+                "name_label": "اسم الوكيل",
+                "name_placeholder": "أدخل اسم الوكيل الجديد",
+                "subdomain_label": "النطاق الفرعي",
+                "subdomain_placeholder": "نطاقك-الفرعي",
+                "subdomain_hint": "يُسمح فقط بالأحرف الصغيرة والأرقام والشرطات.",
+                "save": "حفظ",
+                "updated_toast": "تم تحديث الوكيل بنجاح"
+            }
+        }
+    }
+}

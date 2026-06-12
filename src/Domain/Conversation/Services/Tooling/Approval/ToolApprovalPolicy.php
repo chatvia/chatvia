@@ -7,7 +7,7 @@ use Domain\Conversation\Services\Tooling\Routing\ToolRouter;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Mcp\Models\McpTool;
+use Domain\Integration\Mcp\Services\McpToolPermissionResolver;
 
 /**
  * Decides whether a given tool call must pause for human approval before it
@@ -37,6 +37,7 @@ class ToolApprovalPolicy
 
     public function __construct(
         private readonly ToolRouter $router,
+        private readonly McpToolPermissionResolver $permissions,
     ) {}
 
     public function requiresApproval(Agent $agent, string $toolName): bool
@@ -71,17 +72,14 @@ class ToolApprovalPolicy
             return false;
         }
 
-        $mcpTool = McpTool::query()
-            ->where('mcp_server_id', $server->id)
-            ->where('name', $tool)
-            ->first();
+        $resolved = $this->permissions->resolve($server, $tool);
 
         // Unknown tool (catalog out of sync) → be safe and gate it.
-        if (! $mcpTool) {
+        if ($resolved === null) {
             return true;
         }
 
-        return $mcpTool->permission === McpToolPermission::Approval;
+        return $resolved->permission === McpToolPermission::Approval;
     }
 
     private function functionRequiresApproval(Agent $agent, string $name): bool

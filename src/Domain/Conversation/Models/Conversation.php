@@ -19,7 +19,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -32,6 +31,7 @@ use Support\Traits\SupportsExternalId;
  * @property int $id
  * @property string $external_id
  * @property int $chat_session_id
+ * @property int $agent_id
  * @property int|null $language_id
  * @property ConversationSource $source
  * @property bool $is_visible
@@ -102,6 +102,7 @@ use Support\Traits\SupportsExternalId;
 #[Fillable([
     'external_id',
     'chat_session_id',
+    'agent_id',
     'language_id',
     'source',
     'is_visible',
@@ -263,18 +264,13 @@ class Conversation extends Model
     }
 
     /**
-     * @return HasOneThrough<Agent, Session, $this>
+     * Denormalized from the session at create — a conversation never changes agent.
+     *
+     * @return BelongsTo<Agent, $this>
      */
-    public function agent(): HasOneThrough
+    public function agent(): BelongsTo
     {
-        return $this->hasOneThrough(
-            Agent::class,
-            Session::class,
-            'id',
-            'id',
-            'chat_session_id',
-            'agent_id'
-        );
+        return $this->belongsTo(Agent::class);
     }
 
     /**
@@ -347,7 +343,7 @@ class Conversation extends Model
     public function isOperableBy(User $admin, Agent $agent): bool
     {
         return Gate::forUser($admin)->allows('access-agent', $agent)
-            && $this->session?->agent_id === $agent->id;
+            && $this->agent_id === $agent->id;
     }
 
     /**

@@ -28,6 +28,18 @@ class ConversationFactory extends Factory
         ];
     }
 
+    /** Default agent_id from the session (denormalized, NOT NULL). */
+    public function configure(): static
+    {
+        return $this->afterMaking(function (Conversation $conversation): void {
+            if ($conversation->agent_id === null) {
+                $conversation->agent_id = Session::query()
+                    ->whereKey($conversation->chat_session_id)
+                    ->value('agent_id');
+            }
+        });
+    }
+
     /**
      * Indicate that the conversation has a specific title.
      */

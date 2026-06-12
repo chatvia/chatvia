@@ -6,6 +6,9 @@ import { router, useForm, usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
 import { AlertTriangle, CheckCircle2, Download, Loader2, RefreshCw, ShieldCheck } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface ActiveExport {
     id: number;
@@ -26,7 +29,7 @@ const props = defineProps<Props>();
 const form = useForm({});
 
 const submit = () => {
-    form.post(route('settings.data-export.store'), {
+    form.post(route('account.data-export.store'), {
         preserveScroll: true,
     });
 };
@@ -84,11 +87,10 @@ const refresh = () => {
         <div>
             <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
                 <Download class="size-6" />
-                Download a copy of my data
+                {{ t('account.data_export.heading') }}
             </h1>
             <p class="text-muted-foreground mt-1 text-sm">
-                Get a ZIP archive containing every piece of personal data we hold about you — your agents, conversations, messages, knowledge sources,
-                and uploaded files. Prepared in line with GDPR Articles 15 and 20.
+                {{ t('account.data_export.description') }}
             </p>
         </div>
 
@@ -100,17 +102,14 @@ const refresh = () => {
                 <div class="flex items-start gap-3 text-emerald-700 dark:text-emerald-100">
                     <ShieldCheck class="mt-0.5 size-5 shrink-0" />
                     <div class="space-y-1">
-                        <p class="font-medium">Your data, in your hands.</p>
-                        <p class="text-sm">
-                            Building the archive runs in the background — we'll email you when it's ready. The download stays available for 24 hours,
-                            then it's deleted from our servers.
-                        </p>
+                        <p class="font-medium">{{ t('account.data_export.idle_title') }}</p>
+                        <p class="text-sm">{{ t('account.data_export.idle_description') }}</p>
                     </div>
                 </div>
                 <form @submit.prevent="submit">
                     <Button type="submit" :disabled="form.processing">
-                        <Download class="mr-2 size-4" />
-                        Request a copy of my data
+                        <Download class="me-2 size-4" />
+                        {{ t('account.data_export.request_button') }}
                     </Button>
                     <InputError class="mt-2" :message="(form.errors as Record<string, string>).data_export" />
                 </form>
@@ -121,16 +120,13 @@ const refresh = () => {
                 <div class="flex items-start gap-3 text-emerald-700 dark:text-emerald-100">
                     <Loader2 class="mt-0.5 size-5 shrink-0 animate-spin" />
                     <div class="space-y-1">
-                        <p class="font-medium">Preparing your export…</p>
-                        <p class="text-sm">
-                            We're packaging your data into a ZIP file. This usually takes a few minutes — we'll send you an email once it's ready, and
-                            this page will refresh automatically.
-                        </p>
+                        <p class="font-medium">{{ t('account.data_export.processing_title') }}</p>
+                        <p class="text-sm">{{ t('account.data_export.processing_description') }}</p>
                     </div>
                 </div>
                 <Button type="button" variant="secondary" size="sm" @click="refresh">
-                    <RefreshCw class="mr-2 size-4" />
-                    Check status
+                    <RefreshCw class="me-2 size-4" />
+                    {{ t('account.data_export.check_status') }}
                 </Button>
             </template>
 
@@ -139,17 +135,17 @@ const refresh = () => {
                 <div class="flex items-start gap-3 text-emerald-700 dark:text-emerald-100">
                     <CheckCircle2 class="mt-0.5 size-5 shrink-0" />
                     <div class="space-y-1">
-                        <p class="font-medium">Your data export is ready.</p>
+                        <p class="font-medium">{{ t('account.data_export.ready_title') }}</p>
                         <p class="text-sm">
                             <span v-if="formattedSize">{{ formattedSize }} · </span>
-                            <span v-if="remainingHours">Available for {{ remainingHours }}</span>
+                            <span v-if="remainingHours">{{ t('account.data_export.available_for', { time: remainingHours }) }}</span>
                         </p>
                     </div>
                 </div>
                 <a :href="props.export.download_url">
                     <Button type="button">
-                        <Download class="mr-2 size-4" />
-                        Download ZIP
+                        <Download class="me-2 size-4" />
+                        {{ t('account.data_export.download_zip') }}
                     </Button>
                 </a>
             </template>
@@ -159,7 +155,7 @@ const refresh = () => {
                 <div class="flex items-start gap-3 text-red-700 dark:text-red-100">
                     <AlertTriangle class="mt-0.5 size-5 shrink-0" />
                     <div class="space-y-1">
-                        <p class="font-medium">We couldn't prepare your export.</p>
+                        <p class="font-medium">{{ t('account.data_export.failed_title') }}</p>
                         <p v-if="props.export.error_message" class="text-sm">
                             {{ props.export.error_message }}
                         </p>
@@ -167,8 +163,8 @@ const refresh = () => {
                 </div>
                 <form @submit.prevent="submit">
                     <Button type="submit" variant="secondary" :disabled="form.processing">
-                        <RefreshCw class="mr-2 size-4" />
-                        Try again
+                        <RefreshCw class="me-2 size-4" />
+                        {{ t('account.data_export.try_again') }}
                     </Button>
                 </form>
             </template>

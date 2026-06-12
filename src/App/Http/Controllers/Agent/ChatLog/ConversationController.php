@@ -45,7 +45,7 @@ class ConversationController
         abort_if($request->user()->cannot('view', $agent), 404);
 
         $conversation = Conversation::query()
-            ->whereHas('session', fn ($q) => $q->where('agent_id', $agent->id))
+            ->forAgent($agent->id)
             ->where('external_id', $conversationId)
             ->firstOrFail();
 

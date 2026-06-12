@@ -18,10 +18,7 @@ class FlushTokenUsageBuffer extends Command
         $buffered = Redis::hgetall(RecordLlmTokenUsage::BUFFER_KEY);
 
         foreach ($buffered as $workspaceId => $tokens) {
-            // Delete BEFORE writing: increments arriving between the hdel and
-            // the DB write land in a fresh hash entry for the next flush,
-            // while a crash mid-loop loses at most one minute of one
-            // workspace's analytics-only figure.
+            // hdel before writing: concurrent increments land in a fresh entry for the next flush.
             Redis::hdel(RecordLlmTokenUsage::BUFFER_KEY, (string) $workspaceId);
 
             $creditSystem->setUserId((int) $workspaceId)->recordTokenUsage((int) $tokens);

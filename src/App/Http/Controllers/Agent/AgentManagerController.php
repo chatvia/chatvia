@@ -52,10 +52,12 @@ class AgentManagerController
             return $this->redirectToDefaultPage($agent);
         }
 
-        // For employees, find the first page they have access to
+        // For employees, find the first page they have access to (one permission lookup).
         if ($team) {
+            $granted = $user->teamPermissions($team);
+
             foreach ($this->permissionRoutes as $permission => $routeName) {
-                if ($user->hasTeamPermission($team, $permission)) {
+                if (in_array($permission, $granted, true)) {
                     return redirect()->route($routeName, ['agent' => $agent]);
                 }
             }

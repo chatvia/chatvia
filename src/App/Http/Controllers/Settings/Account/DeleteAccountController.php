@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Settings\Account;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Account\DeleteAccountRequest;
-use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
 use App\Identity\Workspace\Actions\Account\RequestAccountDeletionAction;
+use App\Identity\Workspace\Jobs\DeleteWorkspaceJob;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\RedirectResponse;
@@ -33,7 +33,7 @@ class DeleteAccountController extends Controller
 
         abort_unless($user->isWorkspace(), 403);
 
-        return Inertia::render('settings/DeleteAccount', [
+        return Inertia::render('account/DeleteAccount', [
             'agents' => $user->agents()
                 ->orderBy('name')
                 ->get(['name'])
@@ -75,17 +75,15 @@ class DeleteAccountController extends Controller
 
         $request->session()->put(self::CONFIRMED_AT_KEY, now()->timestamp);
 
-        return redirect()->route('settings.account.delete');
+        return redirect()->route('account.delete');
     }
 
     /**
      * Step 2b — the final, explicit click. Requires a fresh confirmation marker
      * set by `confirm()`; without it we bounce the user back to re-request.
      */
-    public function destroy(
-        Request $request,
-        DeleteUserAccountAction $deleteAccount,
-    ): HttpResponse {
+    public function destroy(Request $request): HttpResponse
+    {
         /** @var User $user */
         $user = $request->user();
 
@@ -99,7 +97,10 @@ class DeleteAccountController extends Controller
 
         Auth::logout();
 
-        $deleteAccount->execute($user);
+        // Deactivate first (blocks re-login), then tear down off-request.
+        $user->deactivate('Account deletion in progress');
+
+        DeleteWorkspaceJob::dispatch($user->id);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

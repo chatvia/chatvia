@@ -40,7 +40,7 @@ class DataExportController extends Controller
             ->latest('id')
             ->first();
 
-        return Inertia::render('settings/DataExport', [
+        return Inertia::render('account/DataExport', [
             'activeExport' => $activeExport ? [
                 'id' => $activeExport->id,
                 'status' => $activeExport->status->value,
@@ -49,7 +49,7 @@ class DataExportController extends Controller
                 'error_message' => $activeExport->error_message,
                 'created_at' => $activeExport->created_at?->toIso8601String(),
                 'download_url' => $activeExport->isReady() && ! $activeExport->isExpired()
-                    ? route('settings.data-export.download', $activeExport)
+                    ? route('account.data-export.download', $activeExport)
                     : null,
             ] : null,
         ]);

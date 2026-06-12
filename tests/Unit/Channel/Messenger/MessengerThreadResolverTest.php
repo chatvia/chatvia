@@ -44,11 +44,11 @@ it('creates a Session + Conversation + mapping on first contact', function (): v
     expect($thread->agent_messenger_page_id)->toBe($page->id)
         ->and($thread->psid)->toBe('24680')
         ->and($thread->first_name)->toBe('Sam')
-        ->and($thread->session_external_id)->not->toBeNull()
-        ->and($thread->conversation_external_id)->not->toBeNull();
+        ->and($thread->chat_session_id)->not->toBeNull()
+        ->and($thread->chat_conversation_id)->not->toBeNull();
 
     // The Session is real and belongs to the agent, with no chatter user.
-    $session = Session::query()->where('external_id', $thread->session_external_id)->firstOrFail();
+    $session = $thread->session;
     expect($session->agent_id)->toBe($page->agent_id)
         ->and($session->user_id)->toBeNull()
         ->and($session->name)->toBe('Sam');
@@ -73,7 +73,7 @@ it('keeps separate conversations for different users', function (): void {
     $b = $resolver->resolve($page, '200');
 
     expect($a->id)->not->toBe($b->id)
-        ->and($a->conversation_external_id)->not->toBe($b->conversation_external_id);
+        ->and($a->chat_conversation_id)->not->toBe($b->chat_conversation_id);
     expect(MessengerThread::query()->count())->toBe(2);
 });
 
@@ -83,7 +83,7 @@ it('tags the conversation as a Messenger conversation', function (): void {
     $thread = messengerResolver(new FakeMessengerClient)->resolve($page, '24680');
 
     $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $thread->conversation_external_id,
+        'external_id' => $thread->conversation->external_id,
         'source' => ConversationSource::Messenger->value,
     ]);
 });

@@ -14,6 +14,9 @@ import axios from 'axios';
 import { AlertTriangle, Download, ExternalLink, Eye, LoaderCircle, Plug, Search, Settings, Trash2, Users } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
@@ -42,7 +45,7 @@ const fetchLeads = async () => {
         leads.value = response.data.data ?? [];
     } catch (error) {
         console.error('Failed to fetch leads:', error);
-        toast.error('Failed to load leads');
+        toast.error(t('agents.leads.load_error'));
     } finally {
         isLoadingLeads.value = false;
     }
@@ -103,13 +106,13 @@ const leadFieldOrder: LeadFieldKey[] = ['name', 'email', 'phone', 'job_title', '
 // Create default field configuration when no settings exist
 const createDefaultLeadField = (key: LeadFieldKey): LeadFieldConfig => {
     const defaults: Record<LeadFieldKey, LeadFieldConfig> = {
-        name: { title: 'Name', required: true },
-        email: { title: 'Email', required: true },
-        phone: { title: 'Phone', required: false },
-        job_title: { title: 'Job Title', required: false },
-        company: { title: 'Company', required: false },
-        location: { title: 'Location', required: false },
-        message: { title: 'Message', required: false },
+        name: { title: t('agents.leads.field_defaults.name'), required: true },
+        email: { title: t('agents.leads.field_defaults.email'), required: true },
+        phone: { title: t('agents.leads.field_defaults.phone'), required: false },
+        job_title: { title: t('agents.leads.field_defaults.job_title'), required: false },
+        company: { title: t('agents.leads.field_defaults.company'), required: false },
+        location: { title: t('agents.leads.field_defaults.location'), required: false },
+        message: { title: t('agents.leads.field_defaults.message'), required: false },
     };
     return defaults[key];
 };
@@ -179,7 +182,7 @@ const saveSettings = () => {
         preserveScroll: true,
         onSuccess: () => {
             showSettingsDialog.value = false;
-            toast.success('Lead settings saved');
+            toast.success(t('agents.leads.settings_saved'));
             settingsForm.clearErrors();
         },
         onError: (errors) => {
@@ -190,8 +193,8 @@ const saveSettings = () => {
 
 const openSettings = () => {
     if (!canManageLeadSettings.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to manage lead settings.',
+        toast.error(t('agents.leads.permission_denied'), {
+            description: t('agents.leads.permission_denied_settings'),
         });
         return;
     }
@@ -232,13 +235,13 @@ const deleteSelectedLeads = async () => {
 
         showDeleteDialog.value = false;
         clearSelection();
-        toast.success('Leads deleted successfully');
+        toast.success(t('agents.leads.deleted'));
 
         // Refresh leads data
         await fetchLeads();
     } catch (error) {
         console.error('Delete error:', error);
-        toast.error('Failed to delete leads. Please try again.');
+        toast.error(t('agents.leads.delete_error'));
     } finally {
         isDeleting.value = false;
     }
@@ -246,8 +249,8 @@ const deleteSelectedLeads = async () => {
 
 const exportSelectedLeads = async () => {
     if (!canExportLeads.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to export leads.',
+        toast.error(t('agents.leads.permission_denied'), {
+            description: t('agents.leads.permission_denied_export'),
         });
         return;
     }
@@ -278,10 +281,10 @@ const exportSelectedLeads = async () => {
         a.remove();
         URL.revokeObjectURL(url);
 
-        toast.success('Leads exported successfully');
+        toast.success(t('agents.leads.exported'));
     } catch (error) {
         console.error('Export error:', error);
-        toast.error('Failed to export leads. Please try again.');
+        toast.error(t('agents.leads.export_error'));
     } finally {
         isExporting.value = false;
     }
@@ -293,15 +296,15 @@ const cancelDelete = () => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Leads">
+    <AgentLayout :agent="agent" :title="t('agents.leads.title')">
         <div class="flex justify-center">
             <Card class="w-full max-w-6xl">
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Users class="h-5 w-5" />
-                        Leads
+                        {{ t('agents.leads.title') }}
                     </CardTitle>
-                    <CardDescription> Manage leads captured by your agent </CardDescription>
+                    <CardDescription>{{ t('agents.leads.description') }}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div class="space-y-4">
@@ -313,15 +316,14 @@ const cancelDelete = () => {
                             <div class="flex items-start gap-3">
                                 <Plug class="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-500" />
                                 <div>
-                                    <p class="font-medium text-amber-900 dark:text-amber-200">Leads connector isn't attached to this agent</p>
+                                    <p class="font-medium text-amber-900 dark:text-amber-200">{{ t('agents.leads.connector_not_attached_title') }}</p>
                                     <p class="mt-1 text-amber-800/80 dark:text-amber-200/80">
-                                        The agent can't capture leads from chat until you attach the Leads connector. The field settings below still
-                                        apply once it's enabled.
+                                        {{ t('agents.leads.connector_not_attached_description') }}
                                     </p>
                                 </div>
                             </div>
                             <Button as-child variant="outline" size="sm" class="shrink-0">
-                                <Link :href="connectorsUrl">Open Connectors</Link>
+                                <Link :href="connectorsUrl">{{ t('agents.leads.open_connectors') }}</Link>
                             </Button>
                         </div>
 
@@ -330,14 +332,14 @@ const cancelDelete = () => {
                             <!-- Search Input -->
                             <div class="relative w-full sm:w-64">
                                 <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-                                <Input v-model="searchQuery" placeholder="Search leads..." class="pl-10" />
+                                <Input v-model="searchQuery" :placeholder="t('agents.leads.search_placeholder')" class="ps-10" />
                             </div>
 
                             <!-- Action Buttons -->
                             <div class="flex w-full gap-2 sm:w-auto">
                                 <Button @click="openSettings" variant="outline" size="sm" class="flex-1 sm:flex-none">
-                                    <Settings class="mr-2 h-4 w-4" />
-                                    Settings
+                                    <Settings class="me-2 h-4 w-4" />
+                                    {{ t('agents.leads.settings') }}
                                 </Button>
                                 <Button
                                     @click="exportSelectedLeads"
@@ -348,7 +350,7 @@ const cancelDelete = () => {
                                 >
                                     <LoaderCircle v-if="isExporting" class="mr-2 h-4 w-4 animate-spin" />
                                     <Download v-else class="mr-2 h-4 w-4" />
-                                    {{ isExporting ? 'Exporting...' : 'Export CSV' }}
+                                    {{ isExporting ? t('agents.leads.exporting') : t('agents.leads.export_csv') }}
                                 </Button>
                                 <Button
                                     @click="openDeleteDialog"
@@ -357,8 +359,8 @@ const cancelDelete = () => {
                                     :disabled="!hasSelectedLeads"
                                     class="text-destructive hover:text-destructive flex-1 sm:flex-none"
                                 >
-                                    <Trash2 class="mr-2 h-4 w-4" />
-                                    Delete
+                                    <Trash2 class="me-2 h-4 w-4" />
+                                    {{ t('agents.leads.delete') }}
                                 </Button>
                             </div>
                         </div>
@@ -366,8 +368,8 @@ const cancelDelete = () => {
                         <!-- Results Counter -->
                         <div v-if="leads.length > 0" class="text-muted-foreground flex items-center justify-between text-sm">
                             <span>
-                                Showing {{ filteredLeads.length }} of {{ leads.length }} leads
-                                <span v-if="searchQuery.trim()"> (filtered) </span>
+                                {{ t('agents.leads.showing_count', { filtered: filteredLeads.length, total: leads.length }) }}
+                                <span v-if="searchQuery.trim()">{{ t('agents.leads.filtered') }}</span>
                             </span>
                         </div>
 
@@ -384,11 +386,11 @@ const cancelDelete = () => {
                                                 @update:model-value="toggleSelectAll"
                                             />
                                         </TableHead>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Conversation</TableHead>
-                                        <TableHead>Created At</TableHead>
-                                        <TableHead class="w-20">Actions</TableHead>
+                                        <TableHead>{{ t('agents.leads.table.name') }}</TableHead>
+                                        <TableHead>{{ t('agents.leads.table.email') }}</TableHead>
+                                        <TableHead>{{ t('agents.leads.table.conversation') }}</TableHead>
+                                        <TableHead>{{ t('agents.leads.table.created_at') }}</TableHead>
+                                        <TableHead class="w-20">{{ t('agents.leads.table.actions') }}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -401,12 +403,12 @@ const cancelDelete = () => {
                                         <TableCell colspan="6" class="text-muted-foreground py-8 text-center">
                                             <div v-if="leads.length === 0">
                                                 <Users class="text-muted-foreground/50 mx-auto mb-4 h-12 w-12" />
-                                                <p>No leads captured yet.</p>
-                                                <p class="text-sm">Leads will appear here when visitors interact with your agent.</p>
+                                                <p>{{ t('agents.leads.empty_title') }}</p>
+                                                <p class="text-sm">{{ t('agents.leads.empty_description') }}</p>
                                             </div>
                                             <div v-else>
-                                                <p>No leads found matching your search.</p>
-                                                <p class="text-sm">Try adjusting your search terms.</p>
+                                                <p>{{ t('agents.leads.no_results_title') }}</p>
+                                                <p class="text-sm">{{ t('agents.leads.no_results_description') }}</p>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -423,10 +425,10 @@ const cancelDelete = () => {
                                             />
                                         </TableCell>
                                         <TableCell class="font-medium">
-                                            {{ lead.name || 'Anonymous' }}
+                                            {{ lead.name || t('agents.leads.anonymous') }}
                                         </TableCell>
                                         <TableCell>
-                                            {{ lead.email || 'No email provided' }}
+                                            {{ lead.email || t('agents.leads.no_email') }}
                                         </TableCell>
                                         <TableCell>
                                             <Link
@@ -434,10 +436,10 @@ const cancelDelete = () => {
                                                 :href="route('agents.logs', { agent: agent.external_id, conversation_id: lead.conversation_id })"
                                                 class="text-primary inline-flex items-center gap-1 text-sm hover:underline"
                                             >
-                                                View Chat
+                                                {{ t('agents.leads.view_chat') }}
                                                 <ExternalLink class="h-3 w-3" />
                                             </Link>
-                                            <span v-else class="text-muted-foreground text-sm">No conversation</span>
+                                            <span v-else class="text-muted-foreground text-sm">{{ t('agents.leads.no_conversation') }}</span>
                                         </TableCell>
                                         <TableCell>
                                             {{ formatDate(lead.created_at) }}
@@ -462,19 +464,18 @@ const cancelDelete = () => {
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <AlertTriangle class="text-destructive h-5 w-5" />
-                        Delete Selected Leads
+                        {{ t('agents.leads.delete_selected_title') }}
                     </DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete {{ selectedLeads.length }} selected lead{{ selectedLeads.length === 1 ? '' : 's' }}? This
-                        action cannot be undone.
+                        {{ t('agents.leads.delete_selected_description', { count: selectedLeads.length }, selectedLeads.length) }}
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" @click="cancelDelete" :disabled="isDeleting"> Cancel </Button>
+                    <Button variant="outline" @click="cancelDelete" :disabled="isDeleting">{{ t('common.cancel') }}</Button>
                     <Button variant="destructive" @click="deleteSelectedLeads" :disabled="isDeleting">
-                        <LoaderCircle v-if="isDeleting" class="mr-2 h-4 w-4 animate-spin" />
-                        <Trash2 v-else class="mr-2 h-4 w-4" />
-                        {{ isDeleting ? 'Deleting...' : 'Delete Leads' }}
+                        <LoaderCircle v-if="isDeleting" class="me-2 h-4 w-4 animate-spin" />
+                        <Trash2 v-else class="me-2 h-4 w-4" />
+                        {{ isDeleting ? t('common.deleting') : t('agents.leads.delete_leads') }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -487,25 +488,22 @@ const cancelDelete = () => {
         <Dialog v-model:open="showSettingsDialog">
             <DialogContent class="sm:max-w-xl">
                 <DialogHeader>
-                    <DialogTitle>Lead Settings</DialogTitle>
-                    <DialogDescription>
-                        Pick which contact details the agent should ask for. Attach the Leads connector to this agent (Connectors tab) to enable
-                        capture.
-                    </DialogDescription>
+                    <DialogTitle>{{ t('agents.leads.settings_dialog_title_alt') }}</DialogTitle>
+                    <DialogDescription>{{ t('agents.leads.settings_dialog_description_alt') }}</DialogDescription>
                 </DialogHeader>
 
                 <!-- Display form errors at the top -->
-                <FormErrors :errors="settingsForm.errors" title="Validation Error" class="mb-4" />
+                <FormErrors :errors="settingsForm.errors" :title="t('agents.leads.validation_error')" class="mb-4" />
 
                 <div class="space-y-6">
                     <div class="space-y-4">
-                        <div class="text-sm font-medium">Fields</div>
+                        <div class="text-sm font-medium">{{ t('agents.leads.fields_label') }}</div>
                         <div class="overflow-hidden rounded-lg border">
                             <!-- Table Header -->
                             <div class="bg-muted/50 border-b px-4 py-3">
                                 <div class="grid grid-cols-2 gap-4 text-sm font-medium">
-                                    <div>Field</div>
-                                    <div class="text-center">Required</div>
+                                    <div>{{ t('agents.leads.field_label') }}</div>
+                                    <div class="text-center">{{ t('agents.leads.required_label') }}</div>
                                 </div>
                             </div>
 
@@ -534,10 +532,10 @@ const cancelDelete = () => {
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" @click="showSettingsDialog = false" :disabled="settingsForm.processing"> Cancel </Button>
+                    <Button variant="outline" @click="showSettingsDialog = false" :disabled="settingsForm.processing">{{ t('common.cancel') }}</Button>
                     <Button :disabled="settingsForm.processing" @click="saveSettings">
-                        <LoaderCircle v-if="settingsForm.processing" class="mr-2 h-4 w-4 animate-spin" />
-                        Save
+                        <LoaderCircle v-if="settingsForm.processing" class="me-2 h-4 w-4 animate-spin" />
+                        {{ t('common.save') }}
                     </Button>
                 </DialogFooter>
             </DialogContent>

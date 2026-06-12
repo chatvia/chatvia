@@ -21,9 +21,7 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
             $table->string('agent_name');
-            // Tenant scope — the log dies with the workspace (GDPR: no
-            // orphaned snippets/names after account deletion).
-            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete(); // tenant scope
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('user_name')->nullable(); // null ⇒ visitor
 
@@ -51,8 +49,7 @@ return new class extends Migration
             $table->index('outcome');
         });
 
-        // Cheap insert-order index for the retention prune's
-        // `WHERE created_at < ?` sweep — BRIN, since rows arrive in time order.
+        // BRIN for the retention prune's created_at sweep.
         DB::statement('CREATE INDEX guardrail_events_created_at_brin ON guardrail_events USING brin (created_at)');
     }
 

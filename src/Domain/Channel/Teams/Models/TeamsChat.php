@@ -2,6 +2,8 @@
 
 namespace Domain\Channel\Teams\Models;
 
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Session;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,8 +19,8 @@ use Illuminate\Support\Carbon;
  * @property string $conversation_id
  * @property string $service_url
  * @property string|null $conversation_type
- * @property string $session_external_id
- * @property string $conversation_external_id
+ * @property int $chat_session_id
+ * @property int $chat_conversation_id
  * @property string|null $peer_name
  * @property Carbon|null $last_message_at
  */
@@ -35,5 +37,21 @@ class TeamsChat extends Model
     public function bot(): BelongsTo
     {
         return $this->belongsTo(AgentTeamsBot::class, 'agent_teams_bot_id');
+    }
+
+    /**
+     * @return BelongsTo<Session, $this>
+     */
+    public function session(): BelongsTo
+    {
+        return $this->belongsTo(Session::class, 'chat_session_id');
+    }
+
+    /**
+     * @return BelongsTo<Conversation, $this>
+     */
+    public function conversation(): BelongsTo
+    {
+        return $this->belongsTo(Conversation::class, 'chat_conversation_id');
     }
 }

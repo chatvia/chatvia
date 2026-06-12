@@ -49,10 +49,10 @@ class SocialOauthCallback
         try {
             $this->link->execute(Auth::user(), $provider, (string) $socialUser->getId());
         } catch (SocialAccountAlreadyLinkedException $e) {
-            return to_route('settings.social.edit')->withErrors(['provider' => $e->getMessage()]);
+            return to_route('account.social.edit')->withErrors(['provider' => $e->getMessage()]);
         }
 
-        return to_route('settings.social.edit')
+        return to_route('account.social.edit')
             ->with('success', ucfirst($provider->value).' connected.');
     }
 

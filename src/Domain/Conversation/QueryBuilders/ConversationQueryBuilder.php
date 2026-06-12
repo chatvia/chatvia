@@ -14,7 +14,7 @@ class ConversationQueryBuilder extends Builder
 {
     public function forAgent(int $agentId): self
     {
-        return $this->whereHas('session', fn ($query) => $query->where('agent_id', $agentId));
+        return $this->where('agent_id', $agentId);
     }
 
     public function withSessionAndTopic(): self
@@ -29,16 +29,16 @@ class ConversationQueryBuilder extends Builder
 
     public function filterBySentiment(?string $sentiment): self
     {
-        return $this->when($sentiment, function ($query) use ($sentiment): void {
-            $query->whereHas('messages', fn ($q) => $q->where('sentiment', $sentiment));
-        });
+        // Conversation-level sentiment is stamped by the consolidated analysis
+        // pass onto `chat_conversations.sentiment` — the same column the chat-log
+        // UI renders (see ChatLogConversationData). Filter on the conversation
+        // row, not per-message sentiment, so the filter matches what's shown.
+        return $this->when($sentiment, fn ($query) => $query->where('sentiment', $sentiment));
     }
 
     public function filterByTone(?string $tone): self
     {
-        return $this->when($tone, function ($query) use ($tone): void {
-            $query->whereHas('messages', fn ($q) => $q->where('tone', $tone));
-        });
+        return $this->when($tone, fn ($query) => $query->where('tone', $tone));
     }
 
     public function filterByDateRange(?string $startDate, ?string $endDate): self

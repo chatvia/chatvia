@@ -105,7 +105,7 @@ watch(selectedPreset, (option) => {
 // Initialize
 onMounted(async () => {
     try {
-        const { data } = await axios.get(route('settings.prompts.list'));
+        const { data } = await axios.get(route('library.prompts.list'));
         savedPrompts.value = data.data ?? [];
     } catch (error) {
         // Non-fatal: the editor still works with the base instructions.

@@ -19,6 +19,13 @@ class Billing
             return $package;
         })->first();
 
+        // The subscription may point at a price no longer in the billing config
+        // (an archived/legacy Stripe price). Degrade to the default package
+        // rather than dereferencing null and 500-ing every request.
+        if ($package === null) {
+            return $this->getFreePackage() ?? [];
+        }
+
         if ($removeStripePriceIds) {
             unset($package['stripe_monthly_price_id'], $package['stripe_yearly_price_id']);
         }

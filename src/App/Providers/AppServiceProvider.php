@@ -15,6 +15,8 @@ use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Membership\Team\Services\TeamService;
+use Domain\Security\Enums\SecurityFeature;
+use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,7 +31,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 use Laravel\Cashier\Cashier;
+use Laravel\Pennant\Feature;
+use Laravel\Pennant\Middleware\EnsureFeaturesAreActive;
 use League\Flysystem\Filesystem;
 use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNAdapter;
 use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNClient;
@@ -53,6 +58,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->assertProductionSecurityConfig();
+        $this->configurePasswordDefaults();
         $this->configureStripe();
         $this->enforceMorphMap();
         $this->configureModelStrictness();
@@ -62,6 +68,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureFactoryResolution();
         $this->forceHttpsInProduction();
         $this->defineGates();
+        $this->defineFeatures();
         $this->extendSocialiteProviders();
         $this->configureRateLimiters();
         $this->configureScramble();
@@ -91,6 +98,21 @@ class AppServiceProvider extends ServiceProvider
                 .'the Stripe webhook would accept unsigned, forgeable events.'
             );
         }
+    }
+
+    /**
+     * Centralised password policy consumed by every Password::defaults() /
+     * Password::default() call site (registration, reset, invitations,
+     * set-password, settings). Production demands long, mixed, uncompromised
+     * passwords; everywhere else stays at min(8) so local logins and the test
+     * suite keep working. uncompromised() calls the haveibeenpwned.com range
+     * API, which is another reason to keep it production-only.
+     */
+    private function configurePasswordDefaults(): void
+    {
+        Password::defaults(fn (): Password => app()->isProduction()
+            ? Password::min(12)->letters()->mixedCase()->numbers()->symbols()->uncompromised()
+            : Password::min(8));
     }
 
     private function registerRequestMacros(): void
@@ -252,6 +274,50 @@ class AppServiceProvider extends ServiceProvider
 
             return app(TeamService::class)->canAccessAgent($user, $team, $agent);
         });
+    }
+
+    /**
+     * Laravel Pennant feature flags for entitlement-gated suites. The `security`
+     * flag resolves to: platform-admin bypass, then the per-workspace admin
+     * override (`WorkspaceSecurityPolicy.security_override` — true force-on,
+     * false force-off, so staff can grant/revoke the suite for ANY workspace
+     * à-la-carte), then the workspace's LIVE plan capability. The `array` store
+     * (see config/pennant.php) recomputes per request, so the flag always
+     * reflects the current plan AND the current override with no stale cache to
+     * purge — the override persists in our own table, not Pennant's store.
+     *
+     * The override is read without `firstOrCreate` so merely checking the flag
+     * (e.g. the Inertia share) never writes a policy row. Pennant memoizes the
+     * resolved value per scope per request, so this is one query per request.
+     *
+     * Gate routes with `features:security`; the failed-check response is a 403
+     * (Pennant defaults to 400) to match the rest of the access layer.
+     */
+    private function defineFeatures(): void
+    {
+        Feature::define(SecurityFeature::Security->value, function (?User $user): bool {
+            if (! $user instanceof User) {
+                return false;
+            }
+
+            if ($user->isAdmin()) {
+                return true;
+            }
+
+            $workspace = $user->workspace();
+
+            // Read through the model so the boolean cast applies (raw value()
+            // can yield Postgres 't'/'f' strings, and (bool) 'f' === true).
+            $override = WorkspaceSecurityPolicy::query()
+                ->where('workspace_id', $workspace->id)
+                ->first(['security_override'])?->security_override;
+
+            return $override ?? $workspace->capabilities->security;
+        });
+
+        EnsureFeaturesAreActive::whenInactive(
+            fn ($request, array $features) => abort(403, "Your plan doesn't include ".SecurityFeature::Security->label().'.'),
+        );
     }
 
     private function extendSocialiteProviders(): void

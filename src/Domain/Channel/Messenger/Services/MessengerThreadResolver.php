@@ -4,7 +4,6 @@ namespace Domain\Channel\Messenger\Services;
 
 use Domain\Channel\Messenger\Models\AgentMessengerPage;
 use Domain\Channel\Messenger\Models\MessengerThread;
-use Domain\Channel\Services\ThreadMappingGuard;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatMemory;
@@ -21,7 +20,6 @@ class MessengerThreadResolver
     public function __construct(
         private readonly ChatMemory $memory,
         private readonly MessengerClient $client,
-        private readonly ThreadMappingGuard $guard,
     ) {}
 
     public function resolve(AgentMessengerPage $page, string $psid): MessengerThread
@@ -32,7 +30,9 @@ class MessengerThreadResolver
             ->first();
 
         if ($existing !== null) {
-            if ($this->guard->conversationExists($existing->conversation_external_id)) {
+            // conversation() excludes soft-deleted rows, so a retention-pruned
+            // conversation reads as missing here.
+            if ($existing->conversation()->exists()) {
                 return $existing;
             }
 
@@ -51,18 +51,22 @@ class MessengerThreadResolver
             'name' => $firstName,
         ]);
 
-        $conversationId = $this->memory
+        $this->memory
             ->withContext($agent, $session->external_id)
             ->createConversation(
                 title: $firstName !== null ? "Messenger · {$firstName}" : 'Messenger',
                 source: ConversationSource::Messenger,
             );
 
+        // The freshly-created session has exactly one conversation — the one
+        // createConversation() just made for it.
+        $conversation = $session->conversations()->latest('id')->firstOrFail();
+
         return MessengerThread::create([
             'agent_messenger_page_id' => $page->id,
             'psid' => $psid,
-            'session_external_id' => $session->external_id,
-            'conversation_external_id' => $conversationId,
+            'chat_session_id' => $session->id,
+            'chat_conversation_id' => $conversation->id,
             'first_name' => $firstName,
             'last_message_at' => now(),
         ]);

@@ -2,7 +2,6 @@
 
 namespace Domain\Channel\Telegram\Services;
 
-use Domain\Channel\Services\ThreadMappingGuard;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
 use Domain\Conversation\Enums\ConversationSource;
@@ -18,7 +17,6 @@ class TelegramChatResolver
 {
     public function __construct(
         private readonly ChatMemory $memory,
-        private readonly ThreadMappingGuard $guard,
     ) {}
 
     /**
@@ -32,7 +30,9 @@ class TelegramChatResolver
             ->first();
 
         if ($existing !== null) {
-            if ($this->guard->conversationExists($existing->conversation_external_id)) {
+            // conversation() excludes soft-deleted rows, so a retention-pruned
+            // conversation reads as missing here.
+            if ($existing->conversation()->exists()) {
                 return $existing;
             }
 
@@ -50,18 +50,22 @@ class TelegramChatResolver
             'name' => $firstName,
         ]);
 
-        $conversationId = $this->memory
+        $this->memory
             ->withContext($agent, $session->external_id)
             ->createConversation(
                 title: $firstName !== null ? "Telegram · {$firstName}" : 'Telegram',
                 source: ConversationSource::Telegram,
             );
 
+        // The freshly-created session has exactly one conversation — the one
+        // createConversation() just made for it.
+        $conversation = $session->conversations()->latest('id')->firstOrFail();
+
         return TelegramChat::create([
             'agent_telegram_bot_id' => $bot->id,
             'chat_id' => (string) $chatId,
-            'session_external_id' => $session->external_id,
-            'conversation_external_id' => $conversationId,
+            'chat_session_id' => $session->id,
+            'chat_conversation_id' => $conversation->id,
             'first_name' => $firstName,
             'username' => $from['username'] ?? null,
             'last_message_at' => now(),

@@ -13,6 +13,7 @@ import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { AlertCircle, ExternalLink, LoaderCircle, Plus, Trash2, Youtube } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -29,6 +30,8 @@ interface YoutubeVideo {
 }
 
 const props = defineProps<Props>();
+
+const { t } = useI18n();
 
 // State
 const youtubeVideos = ref<YoutubeVideo[]>([]);
@@ -52,7 +55,7 @@ const loadYoutubeVideos = async () => {
         youtubeVideos.value = response.data;
     } catch (error) {
         console.error('Failed to load YouTube videos:', error);
-        toast.error('Failed to load YouTube videos');
+        toast.error(t('agents.sources.youtube.load_failed'));
     } finally {
         isLoadingVideos.value = false;
         isInitialLoad.value = false;
@@ -65,7 +68,7 @@ const submitYoutubeUrl = () => {
         preserveScroll: true,
         onSuccess: () => {
             youtubeForm.reset();
-            toast.success('YouTube video added successfully');
+            toast.success(t('agents.sources.youtube.added'));
             loadYoutubeVideos();
         },
         onError: (errors) => {
@@ -73,7 +76,7 @@ const submitYoutubeUrl = () => {
             if (errors.url) {
                 toast.error(errors.url[0]);
             } else {
-                toast.error('Failed to add YouTube video');
+                toast.error(t('agents.sources.youtube.add_failed'));
             }
         },
     });
@@ -96,13 +99,13 @@ const deleteVideo = async () => {
             }),
         );
 
-        toast.success('YouTube video deleted successfully');
+        toast.success(t('agents.sources.youtube.deleted'));
         await loadYoutubeVideos();
         showDeleteDialog.value = false;
         videoToDelete.value = null;
     } catch (error) {
         console.error('Failed to delete video:', error);
-        toast.error('Failed to delete video');
+        toast.error(t('agents.sources.youtube.delete_failed'));
     }
 };
 
@@ -116,11 +119,11 @@ const retrainVideo = async (video: YoutubeVideo) => {
             }),
         );
 
-        toast.success('YouTube video retraining started');
+        toast.success(t('agents.sources.youtube.retrain_started'));
         await loadYoutubeVideos();
     } catch (error) {
         console.error('Failed to retrain video:', error);
-        toast.error('Failed to retrain video');
+        toast.error(t('agents.sources.youtube.retrain_failed'));
     }
 };
 
@@ -143,13 +146,13 @@ const getStatusVariant = (status: string) => {
 const getStatusLabel = (status: string) => {
     switch (status) {
         case 'completed':
-            return 'Completed';
+            return t('agents.sources.youtube.status.completed');
         case 'processing':
-            return 'Processing';
+            return t('agents.sources.youtube.status.processing');
         case 'pending':
-            return 'Pending';
+            return t('agents.sources.youtube.status.pending');
         case 'failed':
-            return 'Failed';
+            return t('agents.sources.youtube.status.failed');
         default:
             return status;
     }
@@ -184,16 +187,16 @@ onMounted(() => {
                 <CardHeader>
                     <div class="flex items-center gap-2">
                         <Youtube class="h-5 w-5 text-red-500" />
-                        <CardTitle>Add YouTube Video</CardTitle>
+                        <CardTitle>{{ t('agents.sources.youtube.add_title') }}</CardTitle>
                     </div>
                     <CardDescription>
-                        Enter a YouTube video URL to extract its transcript and add it to your agent's knowledge base.
+                        {{ t('agents.sources.youtube.add_description') }}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submitYoutubeUrl" class="space-y-4">
                         <div class="space-y-2">
-                            <Label for="youtube-url">YouTube URL</Label>
+                            <Label for="youtube-url">{{ t('agents.sources.youtube.url_label') }}</Label>
                             <div class="flex gap-2">
                                 <Input
                                     id="youtube-url"
@@ -204,9 +207,9 @@ onMounted(() => {
                                     class="flex-1"
                                 />
                                 <Button type="submit" :disabled="youtubeForm.processing || !youtubeForm.url">
-                                    <LoaderCircle v-if="youtubeForm.processing" class="mr-2 h-4 w-4 animate-spin" />
-                                    <Plus v-else class="mr-2 h-4 w-4" />
-                                    Add Video
+                                    <LoaderCircle v-if="youtubeForm.processing" class="me-2 h-4 w-4 animate-spin" />
+                                    <Plus v-else class="me-2 h-4 w-4" />
+                                    {{ t('agents.sources.youtube.add_video') }}
                                 </Button>
                             </div>
                             <InputError :message="youtubeForm.errors.url" />
@@ -218,8 +221,8 @@ onMounted(() => {
             <!-- YouTube Videos List -->
             <Card>
                 <CardHeader>
-                    <CardTitle>YouTube Videos ({{ youtubeVideos.length }})</CardTitle>
-                    <CardDescription> Manage YouTube videos in your agent's knowledge base. </CardDescription>
+                    <CardTitle>{{ t('agents.sources.youtube.list_title', { count: youtubeVideos.length }) }}</CardTitle>
+                    <CardDescription> {{ t('agents.sources.youtube.list_description') }} </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <!-- Loading State -->
@@ -230,8 +233,8 @@ onMounted(() => {
                     <!-- Empty State -->
                     <div v-else-if="youtubeVideos.length === 0" class="py-12 text-center">
                         <Youtube class="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-                        <h3 class="mb-2 text-lg font-medium">No YouTube videos yet</h3>
-                        <p class="text-muted-foreground text-sm">Add your first YouTube video to get started.</p>
+                        <h3 class="mb-2 text-lg font-medium">{{ t('agents.sources.youtube.empty_title') }}</h3>
+                        <p class="text-muted-foreground text-sm">{{ t('agents.sources.youtube.empty_description') }}</p>
                     </div>
 
                     <!-- Videos List -->
@@ -244,7 +247,7 @@ onMounted(() => {
                                         <img
                                             v-if="getThumbnailUrl(video.url)"
                                             :src="getThumbnailUrl(video.url)!"
-                                            :alt="video.title || 'YouTube video'"
+                                            :alt="video.title || t('agents.sources.youtube.video_alt')"
                                             class="h-20 w-32 rounded object-cover"
                                         />
                                         <div v-else class="bg-muted flex h-20 w-32 items-center justify-center rounded">
@@ -257,7 +260,7 @@ onMounted(() => {
                                         <div class="mb-2 flex items-start justify-between gap-2">
                                             <div class="min-w-0 flex-1">
                                                 <h4 class="mb-1 truncate font-medium">
-                                                    {{ video.title || 'YouTube Video' }}
+                                                    {{ video.title || t('agents.sources.youtube.video_fallback_title') }}
                                                 </h4>
                                                 <a
                                                     :href="video.url"
@@ -273,7 +276,7 @@ onMounted(() => {
                                             </Badge>
                                         </div>
 
-                                        <div class="text-muted-foreground mb-3 text-xs">Added {{ formatDate(video.created_at) }}</div>
+                                        <div class="text-muted-foreground mb-3 text-xs">{{ t('agents.sources.youtube.added_at', { date: formatDate(video.created_at) }) }}</div>
 
                                         <!-- Error Message -->
                                         <Alert v-if="video.status === 'failed' && video.error_message" variant="destructive" class="mb-3">
@@ -291,12 +294,12 @@ onMounted(() => {
                                                 size="sm"
                                                 @click="retrainVideo(video)"
                                             >
-                                                <LoaderCircle class="mr-2 h-3 w-3" />
-                                                Retrain
+                                                <LoaderCircle class="me-2 h-3 w-3" />
+                                                {{ t('agents.sources.youtube.retrain') }}
                                             </Button>
                                             <Button variant="destructive" size="sm" @click="confirmDelete(video)">
-                                                <Trash2 class="mr-2 h-3 w-3" />
-                                                Delete
+                                                <Trash2 class="me-2 h-3 w-3" />
+                                                {{ t('agents.sources.common.delete') }}
                                             </Button>
                                         </div>
                                     </div>
@@ -310,8 +313,8 @@ onMounted(() => {
             <!-- Delete Confirmation Dialog -->
             <DeleteConfirmationDialog
                 v-model:open="showDeleteDialog"
-                title="Delete YouTube Video"
-                :description="`Are you sure you want to delete this YouTube video? This will remove it from your agent's knowledge base.`"
+                :title="t('agents.sources.youtube.delete_title')"
+                :description="t('agents.sources.youtube.delete_description')"
                 @confirm="deleteVideo"
             />
         </div>

@@ -1,10 +1,8 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Services\MessageCredits;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserCredit;
-use Illuminate\Support\Facades\DB;
 use Support\Enums\User\UserType;
 
 /**
@@ -12,7 +10,9 @@ use Support\Enums\User\UserType;
  * addon math previously inlined twice in GetDashboardStatsAction. These tests
  * pin the four invariants worth preserving:
  *   1. without a UserCredit row, every field collapses to a sensible zero/null,
- *   2. base quota comes from UserCredit.messages,
+ *   2. base quota comes from UserCredit.messages and `used` from the billing
+ *      counter (user_usages.messages) — the same source the Usage page reads,
+ *      so billed-but-unpersisted replies (eval cases) count too,
  *   3. addons are SCOPED by type + expiry,
  *   4. available() = max(0, base - used) + addons — the "addons survive
  *      base-quota overrun" semantic that matches UserCreditSystem's behaviour.
@@ -22,29 +22,13 @@ use Support\Enums\User\UserType;
  */
 
 /**
- * Insert a rollup row tied to this workspace id, simulating `$amount` assistant
- * messages. The PK is (agent_id, bucket_hour, country_code, llm_external_name)
- * so each call uses a distinct synthetic agent_id to avoid PK collisions.
+ * Record `$messages` billed credits on the cycle's usage row — what
+ * ConsumeMessageCreditsAction does for every billed reply (chat, channel,
+ * eval case).
  */
-function insertRollupUsage(int $workspaceId, int $assistantMessages, ?Carbon\Carbon $bucketHour = null): void
+function billCycleUsage(UserCredit $credit, int $messages): void
 {
-    static $syntheticAgentId = 1_000_000_000;
-
-    DB::connection(config('chatvia.analytics.connection'))
-        ->table('analytics_agent_hourly_rollups')
-        ->insert([
-            'agent_id' => $syntheticAgentId++,
-            'workspace_id' => $workspaceId,
-            'bucket_hour' => $bucketHour ?? now()->subHour(),
-            'country_code' => 'US',
-            'llm_external_name' => 'test-model',
-            'conversations_started' => 0,
-            'user_messages' => 0,
-            'assistant_messages' => $assistantMessages,
-            'total_tokens' => 0,
-            'response_ms_sum' => 0,
-            'response_ms_count' => 0,
-        ]);
+    $credit->usage()->firstOrCreate([])->increment('messages', $messages);
 }
 
 describe('without a UserCredit row', function (): void {
@@ -86,9 +70,9 @@ describe('with a UserCredit row but no usage', function (): void {
 });
 
 describe('used()', function (): void {
-    it('sums assistant_messages from rollup rows inside the credit cycle', function (): void {
+    it('reads the billing counter (user_usages.messages) for the active cycle', function (): void {
         $user = User::factory()->create();
-        UserCredit::create([
+        $credit = UserCredit::create([
             'user_id' => $user->id,
             'messages' => 100,
             'started_at' => now()->subDays(2),
@@ -96,49 +80,33 @@ describe('used()', function (): void {
         ]);
         $user->refresh();
 
-        insertRollupUsage($user->id, 12);
-        insertRollupUsage($user->id, 8);
+        billCycleUsage($credit, 12);
+        billCycleUsage($credit, 8);
 
         expect($user->messageCredits()->used())->toBe(20);
     });
 
-    it('ignores rollup rows from BEFORE the cycle started', function (): void {
+    it('ignores usage rows from expired credit cycles', function (): void {
         $user = User::factory()->create();
-        UserCredit::create([
+
+        $expired = UserCredit::create([
+            'user_id' => $user->id,
+            'messages' => 100,
+            'started_at' => now()->subMonths(2),
+            'ends_at' => now()->subMonth(),
+        ]);
+        billCycleUsage($expired, 99); // last cycle — must not count
+
+        $active = UserCredit::create([
             'user_id' => $user->id,
             'messages' => 100,
             'started_at' => now()->subDay(),
             'ends_at' => now()->addDays(29),
         ]);
+        billCycleUsage($active, 7);
         $user->refresh();
-
-        insertRollupUsage($user->id, 7);                                       // inside cycle
-        insertRollupUsage($user->id, 99, now()->subDays(5));                    // before cycle — must not count
 
         expect($user->messageCredits()->used())->toBe(7);
-    });
-
-    it('counts messages in the cycle-start hour even when the cycle began partway through it', function (): void {
-        // Regression: the rollup buckets by hour floor (e.g. 22:00) while the cycle
-        // can start mid-hour (e.g. registering at 22:16). Messages sent right after
-        // registering land in the 22:00 bucket; comparing the floor to the exact
-        // start wrongly dropped them, so a fresh account showed "0 this cycle"
-        // while the activity chart showed them.
-        $user = User::factory()->create();
-
-        $startedAt = now()->startOfHour()->addMinutes(16);
-        UserCredit::create([
-            'user_id' => $user->id,
-            'messages' => 100,
-            'started_at' => $startedAt,
-            'ends_at' => now()->addDays(30),
-        ]);
-        $user->refresh();
-
-        // Bucketed at the hour floor (22:00), which is before the 22:16 cycle start.
-        insertRollupUsage($user->id, 2, $startedAt->copy()->startOfHour());
-
-        expect($user->messageCredits()->used())->toBe(2);
     });
 });
 
@@ -163,7 +131,7 @@ describe('addons()', function (): void {
 describe('available() math', function (): void {
     it('available = max(0, base - used) + addons — addons survive base-quota overrun', function (): void {
         $user = User::factory()->create();
-        UserCredit::create([
+        $credit = UserCredit::create([
             'user_id' => $user->id,
             'messages' => 10,
             'started_at' => now()->subDay(),
@@ -172,7 +140,7 @@ describe('available() math', function (): void {
         UserAddon::create(['user_id' => $user->id, 'type' => 'extra_message_credits', 'amount' => 5, 'ends_at' => now()->addMonth()]);
         $user->refresh();
 
-        insertRollupUsage($user->id, 20); // 20 used vs 10 base → base overrun
+        billCycleUsage($credit, 20); // 20 used vs 10 base → base overrun
 
         $credits = $user->messageCredits();
 
@@ -187,7 +155,7 @@ describe('available() math', function (): void {
 
     it('available = remaining base + addons when usage is below base', function (): void {
         $user = User::factory()->create();
-        UserCredit::create([
+        $credit = UserCredit::create([
             'user_id' => $user->id,
             'messages' => 100,
             'started_at' => now()->subDay(),
@@ -196,7 +164,7 @@ describe('available() math', function (): void {
         UserAddon::create(['user_id' => $user->id, 'type' => 'extra_message_credits', 'amount' => 40, 'ends_at' => now()->addMonth()]);
         $user->refresh();
 
-        insertRollupUsage($user->id, 30);
+        billCycleUsage($credit, 30);
 
         // (100 - 30) + 40 = 110
         expect($user->messageCredits()->available())->toBe(110);

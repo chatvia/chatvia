@@ -212,16 +212,32 @@
                                     Information</a></li>
                         </ul>
 
+                        <h3 class="text-xl font-medium text-gray-800">4.6 Website Crawling (Knowledge Base)</h3>
+                        <p class="text-gray-700 leading-relaxed">
+                            When you add a <strong>public website</strong> to your knowledge base, we use
+                            <strong>Firecrawl</strong> to read those public pages so your agent can learn from them.
+                        </p>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
+                            <li><strong>Purpose:</strong> Fetching the public web pages you choose to crawl</li>
+                            <li><strong>Provider:</strong> Firecrawl (United States) 🇺🇸</li>
+                            <li><strong>What we send:</strong> Only the public website address (URL) you enter</li>
+                            <li><strong>What Firecrawl sees:</strong> Only public web content — never your conversations,
+                                leads, uploaded files, or any personal data</li>
+                            <li><strong>Safeguards:</strong> EU Standard Contractual Clauses. Because only public web content
+                                is sent, no personal data leaves the EU through Firecrawl.</li>
+                        </ul>
+
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <h4 class="font-semibold text-blue-800 mb-2">✓ Zero US Data Processing</h4>
+                            <h4 class="font-semibold text-blue-800 mb-2">✓ Your Personal Data Stays in the EU</h4>
                             <p class="text-blue-700 text-sm">
-                                Unlike many AI platforms, ChatVia does not process any data in the United States or share
-                                data with US-based providers. All infrastructure, data storage, and AI processing remain
-                                within the European Union, ensuring full compliance with EU data protection regulations.
+                                We do not process your personal data, conversations, or uploaded files in the United States —
+                                all infrastructure, data storage, and AI processing remain within the European Union. The one
+                                service we use outside the EU is Firecrawl, used only to crawl the public websites you choose to
+                                add to your knowledge base; it only ever sees public web content, never your personal data.
                             </p>
                         </div>
 
-                        <h3 class="text-xl font-medium text-gray-800">4.6 No Training on Your Data</h3>
+                        <h3 class="text-xl font-medium text-gray-800">4.7 No Training on Your Data</h3>
                         <p class="text-gray-700 leading-relaxed">
                             <strong>Important:</strong> We do not train AI models on your data. ChatVia uses RAG
                             (Retrieval-Augmented Generation) technology to find relevant information from your documents and
@@ -250,9 +266,10 @@
                         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                             <h4 class="font-semibold text-green-800 mb-2">🇪🇺 EU Data Sovereignty</h4>
                             <p class="text-green-700 text-sm">
-                                Your data is protected by European data protection laws and never leaves EU borders. All our
-                                infrastructure partners (Hetzner, Mistral AI, Scaleway, Plausible Analytics) are EU-based
-                                companies committed to GDPR compliance.
+                                Your personal data is protected by European data protection laws and stays within the EU. Our
+                                core infrastructure partners (Hetzner, Scaleway, Plausible Analytics) are EU-based companies
+                                committed to GDPR compliance. The only service we use outside the EU is Firecrawl, used solely
+                                to crawl public websites for your knowledge base — it never receives your personal data.
                             </p>
                         </div>
 

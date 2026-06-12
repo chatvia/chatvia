@@ -7,7 +7,6 @@ use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpCatalog;
 use Domain\Integration\Mcp\Services\McpException;
-use Illuminate\Support\Facades\DB;
 use Throwable;
 
 /**
@@ -34,47 +33,55 @@ class TokenConnectorAuthorizer
      */
     public function connect(User $user, ConnectorData $connector, ?string $token = null, ?string $url = null): array
     {
-        return DB::transaction(function () use ($user, $connector, $token, $url) {
-            $existing = AgentMcpServer::query()
-                ->where('user_id', $user->id)
-                ->where('connector_slug', $connector->slug)
-                ->first();
+        $existing = AgentMcpServer::query()
+            ->where('user_id', $user->id)
+            ->where('connector_slug', $connector->slug)
+            ->first();
 
-            $noAuth = $connector->authStrategy === 'none';
+        $noAuth = $connector->authStrategy === 'none';
 
-            $attrs = [
-                'user_id' => $user->id,
-                'connector_slug' => $connector->slug,
-                'name' => $connector->name,
-                'slug' => AgentMcpServer::makeSlug($connector->slug),
-                'url' => $url ?: $connector->mcpUrl,
-                'transport' => 'streamable_http',
-                'auth_type' => $noAuth ? 'none' : ($connector->authType ?? 'bearer'),
-                'auth_value' => $noAuth ? null : $token,
-                'headers' => null,
-                'timeout_ms' => 300000,
-                'is_enabled' => true,
-                'last_error' => null,
-            ];
+        $attrs = [
+            'user_id' => $user->id,
+            'category' => $connector->serverCategory(),
+            'connector_slug' => $connector->slug,
+            'name' => $connector->name,
+            'slug' => AgentMcpServer::makeSlug($connector->slug),
+            'url' => $url ?: $connector->mcpUrl,
+            'transport' => 'streamable_http',
+            'auth_type' => $noAuth ? 'none' : ($connector->authType ?? 'bearer'),
+            'auth_value' => $noAuth ? null : $token,
+            'headers' => null,
+            'timeout_ms' => 300000,
+            'is_enabled' => true,
+            'last_error' => null,
+        ];
 
+        // Commit before the refresh (remote HTTP) — compensate on failure, no transaction.
+        if ($existing) {
+            $original = $existing->getOriginal();
+            $existing->fill($attrs)->save();
+            $server = $existing;
+        } else {
+            $server = AgentMcpServer::create($attrs);
+        }
+
+        try {
+            $tools = $this->catalog->refresh($server);
+        } catch (Throwable $e) {
+            // A failed token swap must leave the previous credentials in place.
             if ($existing) {
-                $existing->fill($attrs)->save();
-                $server = $existing;
+                $existing->fill(array_intersect_key($original, $attrs))->save();
             } else {
-                $server = AgentMcpServer::create($attrs);
+                $server->delete();
             }
 
-            try {
-                $tools = $this->catalog->refresh($server);
-            } catch (Throwable $e) {
-                throw new McpException($this->humanize($e->getMessage()), previous: $e);
-            }
+            throw new McpException($this->humanize($e->getMessage()), previous: $e);
+        }
 
-            return [
-                'server' => $server->fresh(),
-                'tools_count' => count($tools),
-            ];
-        });
+        return [
+            'server' => $server->fresh(),
+            'tools_count' => count($tools),
+        ];
     }
 
     /**

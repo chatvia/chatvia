@@ -22,6 +22,25 @@ class DeleteUserAccountAction
     {
         $this->cancelSubscriptions($user);
 
+        // Pre-delete the unbounded children (chunks carry 2 vchordrq + 2 bm25 + GIN
+        // indexes each) in batches outside the final transaction; the FK cascade
+        // then only handles the bounded remainder.
+        $this->batchDelete(
+            'DELETE FROM chunks WHERE id IN (SELECT id FROM chunks WHERE user_id = ? LIMIT 10000)',
+            [$user->id],
+        );
+
+        $this->batchDelete(
+            'DELETE FROM chat_messages WHERE id IN (
+                SELECT m.id FROM chat_messages m
+                JOIN chat_conversations c ON c.id = m.chat_conversation_id
+                JOIN agents a ON a.id = c.agent_id
+                WHERE a.user_id = ?
+                LIMIT 10000
+            )',
+            [$user->id],
+        );
+
         DB::transaction(function () use ($user): void {
             $ownedTeamIds = $user->ownedTeams()->pluck('id')->all();
 
@@ -46,6 +65,14 @@ class DeleteUserAccountAction
             // Finally the owner; every remaining reference cascades or nulls out.
             $user->delete();
         });
+    }
+
+    /** Loop a bounded DELETE until it stops matching rows. */
+    private function batchDelete(string $sql, array $bindings): void
+    {
+        do {
+            $deleted = DB::affectingStatement($sql, $bindings);
+        } while ($deleted > 0);
     }
 
     /**

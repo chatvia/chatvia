@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import AgentPersonaEditor from '@/components/agents/AgentPersonaEditor.vue';
 import BrandingSection from '@/components/agents/sections/BrandingSection.vue';
-import ModelsSection from '@/components/agents/sections/ModelsSection.vue';
 import StartersSection from '@/components/agents/sections/StartersSection.vue';
 import TextSection from '@/components/agents/sections/TextSection.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -51,14 +50,14 @@ import {
     Shield,
     SlidersHorizontal,
     Smartphone,
-    // Sparkles — only used by the temporarily-hidden Model tab (see menuItems); restore alongside it.
-    // Sparkles,
+    Sparkles,
     Tablet,
     Terminal,
     Type,
     Zap,
 } from 'lucide-vue-next';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 hljs.registerLanguage('javascript', javascript);
@@ -112,6 +111,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const { t } = useI18n();
 
 const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
 const num = (v: unknown, fallback = 0): number => (typeof v === 'number' ? v : fallback);
@@ -138,11 +138,11 @@ const locked = computed(() => !canEdit.value);
 const previewSurface = ref<Surface>('hosted_chat');
 const device = ref<Device>('desktop');
 
-const surfaceTabs: { value: Surface; label: string; icon: typeof MessageSquare }[] = [
-    { value: 'hosted_chat', label: 'Chat', icon: MessageSquare },
-    { value: 'widget', label: 'Widget', icon: Globe },
-    { value: 'bar', label: 'Bar', icon: Search },
-];
+const surfaceTabs = computed(() => [
+    { value: 'hosted_chat' as Surface, label: t('agents.setup.surfaces.chat'), icon: MessageSquare },
+    { value: 'widget' as Surface, label: t('agents.setup.surfaces.widget'), icon: Globe },
+    { value: 'bar' as Surface, label: t('agents.setup.surfaces.bar'), icon: Search },
+]);
 
 // ── Left sidebar
 type MenuValue = 'info' | 'persona' | 'starters' | 'model' | 'branding' | 'behavior' | 'settings' | 'embed' | 'domain';
@@ -150,22 +150,18 @@ const activeTab = ref<MenuValue>('info');
 
 const menuItems = computed(() => {
     const items: { value: MenuValue; label: string; icon: typeof MessageSquare }[] = [
-        { value: 'info', label: 'Info', icon: Type },
-        { value: 'persona', label: 'Persona', icon: Bot },
-        { value: 'starters', label: 'Starters', icon: MessageSquare },
-        // Model tab temporarily hidden — the `model` content block and all its
-        // save logic stay intact below; uncomment this line to restore the tab.
-        // { value: 'model', label: 'Model', icon: Sparkles },
-        { value: 'branding', label: 'Branding', icon: ImageIcon },
-        { value: 'behavior', label: 'Behavior', icon: Settings },
-        { value: 'settings', label: 'Settings', icon: SlidersHorizontal },
-        { value: 'embed', label: 'Embed', icon: Code },
+        { value: 'info', label: t('agents.setup.menu.info'), icon: Type },
+        { value: 'persona', label: t('agents.setup.menu.persona'), icon: Bot },
+        { value: 'starters', label: t('agents.setup.menu.starters'), icon: MessageSquare },
+        { value: 'model', label: t('agents.setup.menu.model'), icon: Sparkles },
+        { value: 'branding', label: t('agents.setup.menu.branding'), icon: ImageIcon },
+        { value: 'behavior', label: t('agents.setup.menu.behavior'), icon: Settings },
+        { value: 'settings', label: t('agents.setup.menu.settings'), icon: SlidersHorizontal },
+        { value: 'embed', label: t('agents.setup.menu.embed'), icon: Code },
     ];
 
-    // Domain is a Hosted-Chat-only concern: the custom hostname points at
-    // the agent's hosted chat URL, so it doesn't apply to Widget/Bar.
     if (previewSurface.value === 'hosted_chat') {
-        items.push({ value: 'domain', label: 'Domain', icon: Globe });
+        items.push({ value: 'domain', label: t('agents.setup.menu.domain'), icon: Globe });
     }
 
     return items;
@@ -191,10 +187,10 @@ const saveText = () => {
     textForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
         preserveScroll: true,
         onSuccess: () => {
-            toast.success('Text saved');
+            toast.success(t('agents.setup.toasts.text_saved'));
             bumpPreview();
         },
-        onError: () => toast.error('Could not save text'),
+        onError: () => toast.error(t('agents.setup.toasts.text_error')),
         onFinish: () => (isSavingText.value = false),
     });
 };
@@ -212,10 +208,10 @@ const saveComposer = () => {
     composerForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
         preserveScroll: true,
         onSuccess: () => {
-            toast.success('Composer options saved');
+            toast.success(t('agents.setup.toasts.composer_saved'));
             bumpPreview();
         },
-        onError: () => toast.error('Could not save composer options'),
+        onError: () => toast.error(t('agents.setup.toasts.composer_error')),
         onFinish: () => (isSavingComposer.value = false),
     });
 };
@@ -268,8 +264,8 @@ const saveChatlog = () => {
         .transform((data) => (data.chatlog ? data : { chatlog: false, sentiment: false, tone: false, topics: false }))
         .post(route('agents.settings.update', { agent: props.agent.external_id, group: 'analytics' }), {
             preserveScroll: true,
-            onSuccess: () => toast.success('Chat log settings saved'),
-            onError: () => toast.error('Could not save chat log settings'),
+            onSuccess: () => toast.success(t('agents.setup.toasts.chatlog_saved')),
+            onError: () => toast.error(t('agents.setup.toasts.chatlog_error')),
             onFinish: () => (isSavingChatlog.value = false),
         });
 };
@@ -282,8 +278,8 @@ const saveAnalytics = () => {
     isSavingAnalytics.value = true;
     analyticsForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'analytics' }), {
         preserveScroll: true,
-        onSuccess: () => toast.success('Analytics settings saved'),
-        onError: () => toast.error('Could not save analytics settings'),
+        onSuccess: () => toast.success(t('agents.setup.toasts.analytics_saved')),
+        onError: () => toast.error(t('agents.setup.toasts.analytics_error')),
         onFinish: () => (isSavingAnalytics.value = false),
     });
 };
@@ -302,49 +298,30 @@ const saveStarters = async () => {
     try {
         await axios.put(route('agents.starters.update', { agent: props.agent.external_id }), { starters: cleaned });
         starters.value = cleaned;
-        toast.success('Starters saved');
+        toast.success(t('agents.setup.toasts.starters_saved'));
         bumpPreview();
     } catch {
-        toast.error('Could not save starters');
+        toast.error(t('agents.setup.toasts.starters_error'));
     } finally {
         isSavingStarters.value = false;
     }
 };
 
-// ── Single model + hyperparams → agents.llm.update
-const modelForm = useForm({
-    model_external_name: props.selectedModel ?? '',
+// ── Answer temperature → agents.temperature.update. The model itself is
+// platform-managed and intentionally never exposed or editable here; owners
+// only tune answer style via temperature.
+const temperatureForm = useForm({
     temperature: props.llmSettings.temperature,
-    top_k: props.llmSettings.top_k,
-    top_p: props.llmSettings.top_p,
-    presence_penalty: props.llmSettings.presence_penalty,
-    frequency_penalty: props.llmSettings.frequency_penalty,
 });
-const isSavingModel = ref(false);
+const isSavingTemperature = ref(false);
 
-// ModelsSection takes `models: string[]` (single-mode still uses an array of
-// one) — adapt to/from our flat modelForm.model_external_name string.
-const selectedModelsList = computed({
-    get: () => (modelForm.model_external_name ? [modelForm.model_external_name] : []),
-    set: (value: string[]) => {
-        modelForm.model_external_name = value[0] ?? '';
-    },
-});
-
-const saveModel = () => {
-    if (!modelForm.model_external_name) {
-        toast.error('Pick a model first');
-        return;
-    }
-    isSavingModel.value = true;
-    modelForm.patch(route('agents.llm.update', { agent: props.agent.external_id }), {
+const saveTemperature = () => {
+    isSavingTemperature.value = true;
+    temperatureForm.patch(route('agents.temperature.update', { agent: props.agent.external_id }), {
         preserveScroll: true,
-        onSuccess: () => {
-            toast.success('Model saved');
-            bumpPreview();
-        },
-        onError: () => toast.error('Could not save model'),
-        onFinish: () => (isSavingModel.value = false),
+        onSuccess: () => toast.success(t('agents.setup.toasts.saved')),
+        onError: () => toast.error(t('agents.setup.toasts.save_error')),
+        onFinish: () => (isSavingTemperature.value = false),
     });
 };
 
@@ -358,8 +335,12 @@ const saveDomain = () => {
     isSavingDomain.value = true;
     domainForm.patch(route('agents.domain.update', { agent: props.agent.external_id }), {
         preserveScroll: true,
-        onSuccess: () => toast.success(domainForm.domain ? 'Custom domain saved' : 'Custom domain removed'),
-        onError: () => toast.error(domainForm.errors.domain ?? 'Could not save domain'),
+        onSuccess: () =>
+            toast.success(domainForm.domain ? t('agents.setup.toasts.domain_saved') : t('agents.setup.toasts.domain_removed')),
+        onError: () =>
+            toast.error(
+                typeof domainForm.errors.domain === 'string' ? domainForm.errors.domain : t('agents.setup.toasts.domain_error'),
+            ),
         onFinish: () => (isSavingDomain.value = false),
     });
 };
@@ -373,7 +354,7 @@ const copyCnameTarget = async () => {
         isCnameCopied.value = true;
         setTimeout(() => (isCnameCopied.value = false), 2000);
     } catch {
-        toast.error('Could not copy to clipboard');
+        toast.error(t('agents.setup.toasts.copy_error'));
     }
 };
 
@@ -390,10 +371,10 @@ const saveBranding = () => {
     brandingForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
         preserveScroll: true,
         onSuccess: () => {
-            toast.success('Colors saved');
+            toast.success(t('agents.setup.toasts.colors_saved'));
             bumpPreview();
         },
-        onError: () => toast.error('Could not save colors'),
+        onError: () => toast.error(t('agents.setup.toasts.colors_error')),
         onFinish: () => (isSavingBranding.value = false),
     });
 };
@@ -403,11 +384,11 @@ const uploadImage = (key: 'avatar' | 'logo', file: File) => {
         preserveScroll: true,
         forceFormData: true,
         onSuccess: () => {
-            toast.success(`${key === 'avatar' ? 'Avatar' : 'Logo'} updated`);
+            toast.success(key === 'avatar' ? t('agents.setup.toasts.avatar_updated') : t('agents.setup.toasts.logo_updated'));
             router.reload({ only: ['appearanceSettings'] });
             bumpPreview();
         },
-        onError: () => toast.error(`Could not upload ${key}`),
+        onError: () => toast.error(t('agents.setup.toasts.upload_error', { key })),
     });
 };
 const removeImage = async (key: 'avatar' | 'logo') => {
@@ -417,10 +398,10 @@ const removeImage = async (key: 'avatar' | 'logo') => {
         });
         if (key === 'avatar') avatarPreview.value = null;
         else logoPreview.value = null;
-        toast.success(`${key === 'avatar' ? 'Avatar' : 'Logo'} removed`);
+        toast.success(key === 'avatar' ? t('agents.setup.toasts.avatar_removed') : t('agents.setup.toasts.logo_removed'));
         bumpPreview();
     } catch {
-        toast.error(`Could not remove ${key}`);
+        toast.error(t('agents.setup.toasts.remove_error', { key }));
     }
 };
 
@@ -441,10 +422,10 @@ const saveHostedBehavior = () => {
     hostedBehaviorForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'embed' }), {
         preserveScroll: true,
         onSuccess: () => {
-            toast.success('Hosted Chat behaviour saved');
+            toast.success(t('agents.setup.toasts.hosted_saved'));
             bumpPreview();
         },
-        onError: () => toast.error('Could not save behaviour'),
+        onError: () => toast.error(t('agents.setup.toasts.behaviour_error')),
         onFinish: () => (isSavingHostedBehavior.value = false),
     });
 };
@@ -473,10 +454,10 @@ const saveBubbles = () => {
     bubblesForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'widget' }), {
         preserveScroll: true,
         onSuccess: () => {
-            toast.success('Bubbles saved');
+            toast.success(t('agents.setup.toasts.bubbles_saved'));
             bumpPreview();
         },
-        onError: () => toast.error('Could not save bubbles'),
+        onError: () => toast.error(t('agents.setup.toasts.bubbles_error')),
         onFinish: () => (isSavingBubbles.value = false),
     });
 };
@@ -486,10 +467,10 @@ const saveWidgetBehavior = () => {
     widgetBehaviorForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'widget' }), {
         preserveScroll: true,
         onSuccess: () => {
-            toast.success('Widget behaviour saved');
+            toast.success(t('agents.setup.toasts.widget_saved'));
             bumpPreview();
         },
-        onError: () => toast.error('Could not save behaviour'),
+        onError: () => toast.error(t('agents.setup.toasts.behaviour_error')),
         onFinish: () => (isSavingWidgetBehavior.value = false),
     });
 };
@@ -514,10 +495,10 @@ const saveBarBehavior = () => {
     barBehaviorForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'bar' }), {
         preserveScroll: true,
         onSuccess: () => {
-            toast.success('Bar behaviour saved');
+            toast.success(t('agents.setup.toasts.bar_saved'));
             bumpPreview();
         },
-        onError: () => toast.error('Could not save behaviour'),
+        onError: () => toast.error(t('agents.setup.toasts.behaviour_error')),
         onFinish: () => (isSavingBarBehavior.value = false),
     });
 };
@@ -535,28 +516,28 @@ const triggerOptions = [
     { value: '/', label: '/' },
     { value: 'shift+/', label: '?' },
 ];
-const placementOptions = [
-    { value: 'top', label: 'Top center' },
-    { value: 'top-right', label: 'Top right' },
-    { value: 'bottom', label: 'Bottom center' },
-    { value: 'bottom-right', label: 'Bottom right' },
-];
-const positionOptions = [
-    { value: 'bottom-right', label: 'Bottom right' },
-    { value: 'bottom-left', label: 'Bottom left' },
-    { value: 'top-right', label: 'Top right' },
-    { value: 'top-left', label: 'Top left' },
-];
-const windowSizeOptions = [
-    { value: 'small', label: 'Small' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'large', label: 'Large' },
-];
-const themeOptions = [
-    { value: 'auto', label: 'Auto' },
-    { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' },
-];
+const placementOptions = computed(() => [
+    { value: 'top', label: t('agents.setup.options.placement_top') },
+    { value: 'top-right', label: t('agents.setup.options.placement_top_right') },
+    { value: 'bottom', label: t('agents.setup.options.placement_bottom') },
+    { value: 'bottom-right', label: t('agents.setup.options.placement_bottom_right') },
+]);
+const positionOptions = computed(() => [
+    { value: 'bottom-right', label: t('agents.setup.options.position_bottom_right') },
+    { value: 'bottom-left', label: t('agents.setup.options.position_bottom_left') },
+    { value: 'top-right', label: t('agents.setup.options.position_top_right') },
+    { value: 'top-left', label: t('agents.setup.options.position_top_left') },
+]);
+const windowSizeOptions = computed(() => [
+    { value: 'small', label: t('agents.setup.options.size_small') },
+    { value: 'medium', label: t('agents.setup.options.size_medium') },
+    { value: 'large', label: t('agents.setup.options.size_large') },
+]);
+const themeOptions = computed(() => [
+    { value: 'auto', label: t('agents.setup.options.theme_auto') },
+    { value: 'light', label: t('agents.setup.options.theme_light') },
+    { value: 'dark', label: t('agents.setup.options.theme_dark') },
+]);
 
 // ── Embed snippet — also swaps with `previewSurface`.
 // The preview iframe needs the auth token (dashboard user), but the Share
@@ -573,8 +554,17 @@ const shareUrl = computed(() => props.agent.permanent_url || props.agent.url);
 const iframeOptions = reactive({
     width: '100%',
     height: '600px',
-    title: `Chat with ${props.agent.name}`,
+    title: '',
 });
+watchEffect(() => {
+    iframeOptions.title = t('agents.setup.embed.iframe_title', { name: props.agent.name });
+});
+const protectedSurfaceLabel = computed(() => {
+    if (previewSurface.value === 'widget') return t('agents.setup.surfaces.widget');
+    if (previewSurface.value === 'bar') return t('agents.setup.surfaces.bar');
+    return previewSurface.value;
+});
+const domainUsedCount = computed(() => props.domain.quota.used + (props.domain.value ? 1 : 0));
 const setIframePreset = (preset: 'full' | 'large' | 'medium' | 'small'): void => {
     if (preset === 'full') {
         iframeOptions.width = '100%';
@@ -600,10 +590,10 @@ const copyIframe = async () => {
     try {
         await navigator.clipboard.writeText(iframeEmbedCode.value);
         iframeCopied.value = true;
-        toast.success('Embed code copied to clipboard!');
+        toast.success(t('agents.setup.toasts.embed_copied'));
         setTimeout(() => (iframeCopied.value = false), 2000);
     } catch {
-        toast.error('Copy failed');
+        toast.error(t('agents.setup.toasts.copy_failed'));
     }
 };
 
@@ -654,10 +644,10 @@ const copyActive = async () => {
     try {
         await navigator.clipboard.writeText(activeSnippet.value);
         copied.value = true;
-        toast.success('Copied to clipboard');
+        toast.success(t('agents.setup.toasts.copied_clipboard'));
         setTimeout(() => (copied.value = false), 2000);
     } catch {
-        toast.error('Copy failed');
+        toast.error(t('agents.setup.toasts.copy_failed'));
     }
 };
 
@@ -703,10 +693,10 @@ const copyExternalId = async () => {
     try {
         await navigator.clipboard.writeText(props.agent.external_id);
         isExternalIdCopied.value = true;
-        toast.success('Agent ID copied to clipboard');
+        toast.success(t('agents.setup.toasts.agent_id_copied'));
         setTimeout(() => (isExternalIdCopied.value = false), 2000);
     } catch {
-        toast.error('Could not copy to clipboard');
+        toast.error(t('agents.setup.toasts.copy_error'));
     }
 };
 
@@ -716,17 +706,17 @@ const copyExternalId = async () => {
 // trigger button.
 const showApiDocsDialog = ref(false);
 
-const apiMethods = [
-    { method: 'window.chatvia.open()', description: 'Opens the chat window' },
-    { method: 'window.chatvia.close()', description: 'Closes the chat window' },
-    { method: 'window.chatvia.toggle()', description: 'Toggles open/close state' },
-    { method: 'window.chatvia.isOpen()', description: 'Returns boolean if open' },
-    { method: 'window.chatvia.send(msg)', description: 'Sends a message programmatically' },
-    { method: 'window.chatvia.newChat()', description: 'Starts a new chat thread' },
-    { method: 'window.chatvia.destroy()', description: 'Destroys widget & cleans up' },
-    { method: 'window.chatvia.on(event, fn)', description: 'Subscribe to events (open, close, ready)' },
-    { method: 'window.chatvia.off(event, fn)', description: 'Unsubscribe from events' },
-];
+const apiMethods = computed(() => [
+    { method: 'window.chatvia.open()', description: t('agents.setup.api.methods_list.open') },
+    { method: 'window.chatvia.close()', description: t('agents.setup.api.methods_list.close') },
+    { method: 'window.chatvia.toggle()', description: t('agents.setup.api.methods_list.toggle') },
+    { method: 'window.chatvia.isOpen()', description: t('agents.setup.api.methods_list.is_open') },
+    { method: 'window.chatvia.send(msg)', description: t('agents.setup.api.methods_list.send') },
+    { method: 'window.chatvia.newChat()', description: t('agents.setup.api.methods_list.new_chat') },
+    { method: 'window.chatvia.destroy()', description: t('agents.setup.api.methods_list.destroy') },
+    { method: 'window.chatvia.on(event, fn)', description: t('agents.setup.api.methods_list.on') },
+    { method: 'window.chatvia.off(event, fn)', description: t('agents.setup.api.methods_list.off') },
+]);
 
 const eventsCodeExample = `// When chat window opens
 window.chatvia.on('open', () => {
@@ -754,18 +744,18 @@ window.chatvia.off('open'); // Remove all callbacks for this event`;
 const copyApiCode = async (code: string) => {
     try {
         await navigator.clipboard.writeText(code);
-        toast.success('Code copied to clipboard!');
+        toast.success(t('agents.setup.toasts.code_copied'));
     } catch {
-        toast.error('Failed to copy code. Please try again.');
+        toast.error(t('agents.setup.toasts.code_copy_error'));
     }
 };
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Setup" hide-header no-padding full-height>
+    <AgentLayout :agent="agent" :title="t('agents.setup.title')" hide-header no-padding full-height>
         <div class="bg-background flex h-full flex-col">
             <!-- Preview-tab bar — local UI state. Setup-style underline nav. -->
-            <div class="bg-background border-border flex flex-shrink-0 flex-wrap items-center justify-between gap-3 border-b pr-4 lg:pr-6">
+            <div class="bg-background border-border flex flex-shrink-0 flex-wrap items-center justify-between gap-3 border-b pe-4 lg:pe-6">
                 <nav class="flex items-center gap-1 px-4">
                     <button
                         v-for="tab in surfaceTabs"
@@ -810,8 +800,8 @@ const copyApiCode = async (code: string) => {
                         <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
                             <Alert v-if="!canEdit" variant="destructive" class="rounded-none border-x-0 border-t-0">
                                 <Shield class="h-4 w-4" />
-                                <AlertTitle>View Only</AlertTitle>
-                                <AlertDescription>You don't have permission to edit Setup.</AlertDescription>
+                                <AlertTitle>{{ t('agents.setup.view_only_title') }}</AlertTitle>
+                                <AlertDescription>{{ t('agents.setup.view_only_description') }}</AlertDescription>
                             </Alert>
 
                             <div class="flex-1 overflow-y-auto" :class="{ 'pointer-events-none opacity-60 select-none': !canEdit }">
@@ -828,8 +818,8 @@ const copyApiCode = async (code: string) => {
 
                                         <div v-if="!locked" class="border-t pt-4">
                                             <Button type="submit" :disabled="!canEdit || isSavingText" size="sm">
-                                                <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingText ? 'Saving...' : 'Save' }}
+                                                <Save class="me-2 h-4 w-4" />
+                                                {{ isSavingText ? t('agents.setup.saving') : t('common.save') }}
                                             </Button>
                                         </div>
                                     </form>
@@ -842,9 +832,9 @@ const copyApiCode = async (code: string) => {
                                          the chat composer. Same appearance group as the text fields. -->
                                     <form @submit.prevent="saveComposer" class="space-y-3">
                                         <div>
-                                            <h3 class="text-sm font-medium">Composer options</h3>
+                                            <h3 class="text-sm font-medium">{{ t('agents.setup.settings.composer_title') }}</h3>
                                             <p class="text-muted-foreground mt-1 text-xs">
-                                                Hide the file-upload or voice-input button if your agent shouldn't accept those inputs.
+                                                {{ t('agents.setup.settings.composer_description') }}
                                             </p>
                                         </div>
                                         <div class="divide-y rounded-md border">
@@ -852,33 +842,31 @@ const copyApiCode = async (code: string) => {
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
                                                         <Label for="allow-file-uploads" class="cursor-pointer text-sm font-medium"
-                                                            >Allow file uploads</Label
+                                                            >{{ t('agents.setup.settings.file_uploads_label') }}</Label
                                                         >
                                                         <Popover>
                                                             <PopoverTrigger as-child>
                                                                 <button
                                                                     type="button"
                                                                     class="text-muted-foreground hover:text-foreground cursor-pointer rounded-full transition-colors"
-                                                                    aria-label="How are file uploads charged?"
+                                                                    :aria-label="t('agents.setup.settings.file_uploads_aria')"
                                                                 >
                                                                     <CircleHelp class="h-3.5 w-3.5" />
                                                                 </button>
                                                             </PopoverTrigger>
                                                             <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
-                                                                <p class="text-foreground font-medium">File uploads</p>
+                                                                <p class="text-foreground font-medium">{{ t('agents.setup.settings.file_uploads_help_title') }}</p>
                                                                 <p class="text-muted-foreground mt-1.5">
-                                                                    Visitors can attach a PDF and ask questions about it.
+                                                                    {{ t('agents.setup.settings.file_uploads_help_1') }}
                                                                 </p>
                                                                 <p class="text-muted-foreground mt-1.5">
-                                                                    Each page counts as one message, on top of the normal message for the question. So
-                                                                    a 10-page PDF costs 11 messages per question (1 + 10 pages). This is charged every
-                                                                    time a question is asked while the PDF is in the chat.
+                                                                    {{ t('agents.setup.settings.file_uploads_help_2') }}
                                                                 </p>
                                                             </PopoverContent>
                                                         </Popover>
                                                     </div>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
-                                                        Show the paperclip button so visitors can attach PDFs.
+                                                        {{ t('agents.setup.settings.file_uploads_hint') }}
                                                     </p>
                                                 </div>
                                                 <Switch id="allow-file-uploads" v-model="composerForm.allow_file_uploads" :disabled="locked" />
@@ -886,10 +874,10 @@ const copyApiCode = async (code: string) => {
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
                                                     <Label for="allow-voice-input" class="cursor-pointer text-sm font-medium"
-                                                        >Allow voice input</Label
+                                                        >{{ t('agents.setup.settings.voice_input_label') }}</Label
                                                     >
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
-                                                        Show the microphone button so visitors can dictate messages.
+                                                        {{ t('agents.setup.settings.voice_input_hint') }}
                                                     </p>
                                                 </div>
                                                 <Switch id="allow-voice-input" v-model="composerForm.allow_voice_input" :disabled="locked" />
@@ -897,8 +885,8 @@ const copyApiCode = async (code: string) => {
                                         </div>
                                         <div v-if="!locked">
                                             <Button type="submit" :disabled="!canEdit || isSavingComposer" size="sm">
-                                                <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingComposer ? 'Saving...' : 'Save' }}
+                                                <Save class="me-2 h-4 w-4" />
+                                                {{ isSavingComposer ? t('agents.setup.saving') : t('common.save') }}
                                             </Button>
                                         </div>
                                     </form>
@@ -909,9 +897,9 @@ const copyApiCode = async (code: string) => {
                                          stops StoreMessageJob, so nothing is logged. -->
                                     <form @submit.prevent="saveChatlog" class="space-y-3">
                                         <div>
-                                            <h3 class="text-sm font-medium">Chat log</h3>
+                                            <h3 class="text-sm font-medium">{{ t('agents.setup.settings.chatlog_title') }}</h3>
                                             <p class="text-muted-foreground mt-1 text-xs">
-                                                Store conversations so they show up in Chat Logs and feed analytics.
+                                                {{ t('agents.setup.settings.chatlog_description') }}
                                             </p>
                                         </div>
                                         <div class="divide-y rounded-md border">
@@ -919,35 +907,31 @@ const copyApiCode = async (code: string) => {
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
                                                         <Label for="chatlog-enabled" class="cursor-pointer text-sm font-medium"
-                                                            >Store conversations</Label
+                                                            >{{ t('agents.setup.settings.store_conversations_label') }}</Label
                                                         >
                                                         <Popover>
                                                             <PopoverTrigger as-child>
                                                                 <button
                                                                     type="button"
                                                                     class="text-muted-foreground hover:text-foreground cursor-pointer rounded-full transition-colors"
-                                                                    aria-label="What does storing conversations mean?"
+                                                                    :aria-label="t('agents.setup.settings.store_conversations_aria')"
                                                                 >
                                                                     <CircleHelp class="h-3.5 w-3.5" />
                                                                 </button>
                                                             </PopoverTrigger>
                                                             <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
-                                                                <p class="text-foreground font-medium">Store conversations</p>
+                                                                <p class="text-foreground font-medium">{{ t('agents.setup.settings.store_conversations_help_title') }}</p>
                                                                 <p class="text-muted-foreground mt-1.5">
-                                                                    When on, every chat is saved to your account so it appears in Chat Logs and feeds
-                                                                    the analytics below.
+                                                                    {{ t('agents.setup.settings.store_conversations_help_1') }}
                                                                 </p>
                                                                 <p class="text-muted-foreground mt-1.5">
-                                                                    When off, nothing is saved on our side. The logged-in chatter can still see their
-                                                                    own messages in the chat window during their session, but those messages aren't
-                                                                    persisted — only that chatter can see them, and they're gone once the session
-                                                                    ends.
+                                                                    {{ t('agents.setup.settings.store_conversations_help_2') }}
                                                                 </p>
                                                             </PopoverContent>
                                                         </Popover>
                                                     </div>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
-                                                        When off, messages aren't saved — so the analytics below can't collect data either.
+                                                        {{ t('agents.setup.settings.store_conversations_hint') }}
                                                     </p>
                                                 </div>
                                                 <Switch id="chatlog-enabled" v-model="chatlogForm.chatlog" :disabled="locked" />
@@ -955,8 +939,8 @@ const copyApiCode = async (code: string) => {
                                         </div>
                                         <div v-if="!locked">
                                             <Button type="submit" :disabled="!canEdit || isSavingChatlog" size="sm">
-                                                <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingChatlog ? 'Saving...' : 'Save' }}
+                                                <Save class="me-2 h-4 w-4" />
+                                                {{ isSavingChatlog ? t('agents.setup.saving') : t('common.save') }}
                                             </Button>
                                         </div>
                                     </form>
@@ -967,43 +951,39 @@ const copyApiCode = async (code: string) => {
                                          conversation insights. Default on; off stops the analysis. -->
                                     <form @submit.prevent="saveAnalytics" class="space-y-3">
                                         <div>
-                                            <h3 class="text-sm font-medium">Analytics</h3>
+                                            <h3 class="text-sm font-medium">{{ t('agents.setup.settings.analytics_title') }}</h3>
                                             <p class="text-muted-foreground mt-1 text-xs">
-                                                Choose which conversation insights this agent collects. Turning one off stops the analysis and hides
-                                                its dashboard.
+                                                {{ t('agents.setup.settings.analytics_description') }}
                                             </p>
                                         </div>
                                         <div class="divide-y rounded-md border" :class="{ 'opacity-60': !chatlogForm.chatlog }">
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
-                                                        <Label for="analytics-sentiment" class="cursor-pointer text-sm font-medium">Sentiment</Label>
+                                                        <Label for="analytics-sentiment" class="cursor-pointer text-sm font-medium">{{ t('agents.setup.settings.sentiment_label') }}</Label>
                                                         <Popover>
                                                             <PopoverTrigger as-child>
                                                                 <button
                                                                     type="button"
                                                                     class="text-muted-foreground hover:text-foreground cursor-pointer rounded-full transition-colors"
-                                                                    aria-label="What does Sentiment track?"
+                                                                    :aria-label="t('agents.setup.settings.sentiment_aria')"
                                                                 >
                                                                     <CircleHelp class="h-3.5 w-3.5" />
                                                                 </button>
                                                             </PopoverTrigger>
                                                             <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
-                                                                <p class="text-foreground font-medium">Sentiment</p>
+                                                                <p class="text-foreground font-medium">{{ t('agents.setup.settings.sentiment_help_title') }}</p>
                                                                 <p class="text-muted-foreground mt-1.5">
-                                                                    After each chat, the model reads the conversation and labels the overall mood as
-                                                                    positive, neutral, or negative.
+                                                                    {{ t('agents.setup.settings.sentiment_help_1') }}
                                                                 </p>
                                                                 <p class="text-muted-foreground mt-1.5">
-                                                                    The results roll up on the Sentiment dashboard so you can spot unhappy visitors
-                                                                    and watch trends over time. Needs Store conversations on — there's nothing to
-                                                                    analyze otherwise.
+                                                                    {{ t('agents.setup.settings.sentiment_help_2') }}
                                                                 </p>
                                                             </PopoverContent>
                                                         </Popover>
                                                     </div>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
-                                                        Track whether visitors feel positive, neutral or negative.
+                                                        {{ t('agents.setup.settings.sentiment_hint') }}
                                                     </p>
                                                 </div>
                                                 <Switch
@@ -1015,32 +995,30 @@ const copyApiCode = async (code: string) => {
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
-                                                        <Label for="analytics-tone" class="cursor-pointer text-sm font-medium">Tone</Label>
+                                                        <Label for="analytics-tone" class="cursor-pointer text-sm font-medium">{{ t('agents.setup.settings.tone_label') }}</Label>
                                                         <Popover>
                                                             <PopoverTrigger as-child>
                                                                 <button
                                                                     type="button"
                                                                     class="text-muted-foreground hover:text-foreground cursor-pointer rounded-full transition-colors"
-                                                                    aria-label="What does Tone track?"
+                                                                    :aria-label="t('agents.setup.settings.tone_aria')"
                                                                 >
                                                                     <CircleHelp class="h-3.5 w-3.5" />
                                                                 </button>
                                                             </PopoverTrigger>
                                                             <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
-                                                                <p class="text-foreground font-medium">Tone</p>
+                                                                <p class="text-foreground font-medium">{{ t('agents.setup.settings.tone_help_title') }}</p>
                                                                 <p class="text-muted-foreground mt-1.5">
-                                                                    Tone looks at how visitors express themselves — friendly, frustrated, curious, and
-                                                                    more — rather than just positive or negative.
+                                                                    {{ t('agents.setup.settings.tone_help_1') }}
                                                                 </p>
                                                                 <p class="text-muted-foreground mt-1.5">
-                                                                    It's detected automatically after each chat and feeds the Tone dashboard, so you
-                                                                    can see how people tend to approach your agent. Needs Store conversations on.
+                                                                    {{ t('agents.setup.settings.tone_help_2') }}
                                                                 </p>
                                                             </PopoverContent>
                                                         </Popover>
                                                     </div>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
-                                                        Track the communication style — friendly, frustrated, curious and more.
+                                                        {{ t('agents.setup.settings.tone_hint') }}
                                                     </p>
                                                 </div>
                                                 <Switch id="analytics-tone" v-model="analyticsForm.tone" :disabled="locked || !chatlogForm.chatlog" />
@@ -1048,32 +1026,30 @@ const copyApiCode = async (code: string) => {
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
-                                                        <Label for="analytics-topics" class="cursor-pointer text-sm font-medium">Topics</Label>
+                                                        <Label for="analytics-topics" class="cursor-pointer text-sm font-medium">{{ t('agents.setup.settings.topics_label') }}</Label>
                                                         <Popover>
                                                             <PopoverTrigger as-child>
                                                                 <button
                                                                     type="button"
                                                                     class="text-muted-foreground hover:text-foreground cursor-pointer rounded-full transition-colors"
-                                                                    aria-label="What does Topics track?"
+                                                                    :aria-label="t('agents.setup.settings.topics_aria')"
                                                                 >
                                                                     <CircleHelp class="h-3.5 w-3.5" />
                                                                 </button>
                                                             </PopoverTrigger>
                                                             <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
-                                                                <p class="text-foreground font-medium">Topics</p>
+                                                                <p class="text-foreground font-medium">{{ t('agents.setup.settings.topics_help_title') }}</p>
                                                                 <p class="text-muted-foreground mt-1.5">
-                                                                    Topics scans conversations and groups them by what people ask about, so you don't
-                                                                    have to tag chats by hand.
+                                                                    {{ t('agents.setup.settings.topics_help_1') }}
                                                                 </p>
                                                                 <p class="text-muted-foreground mt-1.5">
-                                                                    New topics are detected automatically and rolled up on the Topics dashboard,
-                                                                    showing you the most common themes. Needs Store conversations on.
+                                                                    {{ t('agents.setup.settings.topics_help_2') }}
                                                                 </p>
                                                             </PopoverContent>
                                                         </Popover>
                                                     </div>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
-                                                        Automatically detect and group what visitors ask about.
+                                                        {{ t('agents.setup.settings.topics_hint') }}
                                                     </p>
                                                 </div>
                                                 <Switch
@@ -1085,8 +1061,8 @@ const copyApiCode = async (code: string) => {
                                         </div>
                                         <div v-if="!locked">
                                             <Button type="submit" :disabled="!canEdit || isSavingAnalytics || !chatlogForm.chatlog" size="sm">
-                                                <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingAnalytics ? 'Saving...' : 'Save' }}
+                                                <Save class="me-2 h-4 w-4" />
+                                                {{ isSavingAnalytics ? t('agents.setup.saving') : t('common.save') }}
                                             </Button>
                                         </div>
                                     </form>
@@ -1108,8 +1084,8 @@ const copyApiCode = async (code: string) => {
                                     <StartersSection v-model:starters="starters" :knowledge-questions="knowledgeQuestions" :disabled="locked" />
                                     <div v-if="!locked">
                                         <Button type="button" size="sm" :disabled="!canEdit || isSavingStarters" @click="saveStarters">
-                                            <Save class="mr-2 h-4 w-4" />
-                                            {{ isSavingStarters ? 'Saving...' : 'Save' }}
+                                            <Save class="me-2 h-4 w-4" />
+                                            {{ isSavingStarters ? t('agents.setup.saving') : t('common.save') }}
                                         </Button>
                                     </div>
 
@@ -1121,9 +1097,9 @@ const copyApiCode = async (code: string) => {
 
                                         <div class="space-y-4">
                                             <div>
-                                                <h3 class="text-sm font-medium">Chat Bubbles</h3>
+                                                <h3 class="text-sm font-medium">{{ t('agents.setup.bubbles_title') }}</h3>
                                                 <p class="text-muted-foreground mt-1 text-xs">
-                                                    Quick message prompts shown next to the widget bubble. Press Enter to add each one.
+                                                    {{ t('agents.setup.bubbles_description') }}
                                                 </p>
                                             </div>
 
@@ -1132,7 +1108,7 @@ const copyApiCode = async (code: string) => {
                                                     <TagsInputItemText />
                                                     <TagsInputItemDelete />
                                                 </TagsInputItem>
-                                                <TagsInputInput placeholder="e.g., How can I help you?" />
+                                                <TagsInputInput :placeholder="t('agents.setup.bubbles_placeholder')" />
                                             </TagsInput>
                                             <p v-if="bubblesForm.errors.bubbles" class="text-destructive text-sm">
                                                 {{ bubblesForm.errors.bubbles }}
@@ -1140,29 +1116,51 @@ const copyApiCode = async (code: string) => {
 
                                             <div v-if="!locked">
                                                 <Button type="button" size="sm" :disabled="!canEdit || isSavingBubbles" @click="saveBubbles">
-                                                    <Save class="mr-2 h-4 w-4" />
-                                                    {{ isSavingBubbles ? 'Saving...' : 'Save' }}
+                                                    <Save class="me-2 h-4 w-4" />
+                                                    {{ isSavingBubbles ? t('agents.setup.saving') : t('common.save') }}
                                                 </Button>
                                             </div>
                                         </div>
                                     </template>
                                 </div>
 
-                                <!-- Model — single picker + hyperparams -->
+                                <!-- Model — answer temperature only (the model is platform-managed) -->
                                 <div v-if="activeTab === 'model'" class="space-y-6 p-6">
-                                    <ModelsSection
-                                        v-model:models="selectedModelsList"
-                                        :catalog="catalog"
-                                        :single="true"
-                                        :show-response-settings="false"
-                                        :errors="modelForm.errors as Record<string, string>"
-                                        :disabled="locked"
-                                    />
+                                    <div class="space-y-1">
+                                        <h3 class="text-sm font-medium">{{ t('agents.setup.model_title') }}</h3>
+                                        <p class="text-muted-foreground text-sm">
+                                            {{ t('agents.setup.model_description') }}
+                                        </p>
+                                    </div>
+
+                                    <div class="max-w-md space-y-3">
+                                        <div class="flex items-center justify-between text-sm">
+                                            <span class="font-medium">{{ t('agents.setup.temperature') }}</span>
+                                            <span class="text-muted-foreground tabular-nums">{{ temperatureForm.temperature.toFixed(1) }}</span>
+                                        </div>
+                                        <input
+                                            v-model.number="temperatureForm.temperature"
+                                            type="range"
+                                            min="0"
+                                            max="2"
+                                            step="0.1"
+                                            :disabled="locked || !canEdit"
+                                            class="accent-primary h-2 w-full cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                                        />
+                                        <div class="text-muted-foreground flex justify-between text-xs">
+                                            <span>{{ t('agents.setup.temperature_precise') }}</span>
+                                            <span>{{ t('agents.setup.temperature_balanced') }}</span>
+                                            <span>{{ t('agents.setup.temperature_creative') }}</span>
+                                        </div>
+                                        <p v-if="temperatureForm.errors.temperature" class="text-destructive text-sm">
+                                            {{ temperatureForm.errors.temperature }}
+                                        </p>
+                                    </div>
 
                                     <div v-if="!locked" class="border-t pt-4">
-                                        <Button type="button" size="sm" :disabled="!canEdit || isSavingModel" @click="saveModel">
-                                            <Save class="mr-2 h-4 w-4" />
-                                            {{ isSavingModel ? 'Saving...' : 'Save' }}
+                                        <Button type="button" size="sm" :disabled="!canEdit || isSavingTemperature" @click="saveTemperature">
+                                            <Save class="me-2 h-4 w-4" />
+                                            {{ isSavingTemperature ? t('agents.setup.saving') : t('common.save') }}
                                         </Button>
                                     </div>
                                 </div>
@@ -1189,13 +1187,13 @@ const copyApiCode = async (code: string) => {
                                     <!-- Hosted Chat -->
                                     <template v-if="previewSurface === 'hosted_chat'">
                                         <div>
-                                            <h3 class="text-sm font-medium">Hosted Chat behaviour</h3>
-                                            <p class="text-muted-foreground mt-1 text-xs">Iframe options for the embedded Hosted Chat surface.</p>
+                                            <h3 class="text-sm font-medium">{{ t('agents.setup.behavior.hosted_title') }}</h3>
+                                            <p class="text-muted-foreground mt-1 text-xs">{{ t('agents.setup.behavior.hosted_description') }}</p>
                                         </div>
                                         <div class="max-w-3xl space-y-5">
                                             <div class="grid gap-x-6 gap-y-5 sm:grid-cols-2">
                                                 <div class="space-y-1.5">
-                                                    <Label for="hosted-default-theme" class="text-sm font-medium">Default theme</Label>
+                                                    <Label for="hosted-default-theme" class="text-sm font-medium">{{ t('agents.setup.behavior.default_theme') }}</Label>
                                                     <div class="relative">
                                                         <div
                                                             class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
@@ -1215,7 +1213,7 @@ const copyApiCode = async (code: string) => {
                                                     </div>
                                                 </div>
                                                 <div class="space-y-1.5">
-                                                    <Label for="hosted-language" class="text-sm font-medium">Language</Label>
+                                                    <Label for="hosted-language" class="text-sm font-medium">{{ t('agents.setup.behavior.language') }}</Label>
                                                     <div class="relative">
                                                         <div
                                                             class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
@@ -1238,7 +1236,7 @@ const copyApiCode = async (code: string) => {
                                             <div class="divide-y rounded-md border">
                                                 <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                     <Label for="hosted-remove-sidebar" class="cursor-pointer text-sm font-medium"
-                                                        >Remove sidebar</Label
+                                                        >{{ t('agents.setup.behavior.remove_sidebar') }}</Label
                                                     >
                                                     <Switch
                                                         id="hosted-remove-sidebar"
@@ -1248,7 +1246,7 @@ const copyApiCode = async (code: string) => {
                                                 </div>
                                                 <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                     <Label for="hosted-hide-sidebar" class="cursor-pointer text-sm font-medium"
-                                                        >Hide sidebar on page load</Label
+                                                        >{{ t('agents.setup.behavior.hide_sidebar') }}</Label
                                                     >
                                                     <Switch
                                                         id="hosted-hide-sidebar"
@@ -1258,7 +1256,7 @@ const copyApiCode = async (code: string) => {
                                                 </div>
                                                 <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                     <Label for="hosted-theme-switcher" class="cursor-pointer text-sm font-medium"
-                                                        >Enable theme switcher</Label
+                                                        >{{ t('agents.setup.behavior.theme_switcher') }}</Label
                                                     >
                                                     <Switch
                                                         id="hosted-theme-switcher"
@@ -1268,7 +1266,7 @@ const copyApiCode = async (code: string) => {
                                                 </div>
                                                 <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                     <Label for="hosted-chat-expand" class="cursor-pointer text-sm font-medium"
-                                                        >Enable chat expand</Label
+                                                        >{{ t('agents.setup.behavior.chat_expand') }}</Label
                                                     >
                                                     <Switch
                                                         id="hosted-chat-expand"
@@ -1285,8 +1283,8 @@ const copyApiCode = async (code: string) => {
                                                 :disabled="!canEdit || isSavingHostedBehavior"
                                                 @click="saveHostedBehavior"
                                             >
-                                                <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingHostedBehavior ? 'Saving...' : 'Save' }}
+                                                <Save class="me-2 h-4 w-4" />
+                                                {{ isSavingHostedBehavior ? t('agents.setup.saving') : t('common.save') }}
                                             </Button>
                                         </div>
                                     </template>
@@ -1294,14 +1292,14 @@ const copyApiCode = async (code: string) => {
                                     <!-- Widget -->
                                     <template v-else-if="previewSurface === 'widget'">
                                         <div>
-                                            <h3 class="text-sm font-medium">Widget behaviour</h3>
+                                            <h3 class="text-sm font-medium">{{ t('agents.setup.behavior.widget_title') }}</h3>
                                             <p class="text-muted-foreground mt-1 text-xs">
-                                                Position, size, theme, and allowlisted sites for the floating widget.
+                                                {{ t('agents.setup.behavior.widget_description') }}
                                             </p>
                                         </div>
                                         <div class="grid max-w-3xl gap-x-6 gap-y-5 sm:grid-cols-2">
                                             <div class="space-y-1.5">
-                                                <Label for="widget-position" class="text-sm font-medium">Position</Label>
+                                                <Label for="widget-position" class="text-sm font-medium">{{ t('agents.setup.behavior.position') }}</Label>
                                                 <div class="relative">
                                                     <div
                                                         class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
@@ -1319,7 +1317,7 @@ const copyApiCode = async (code: string) => {
                                                 </div>
                                             </div>
                                             <div class="space-y-1.5">
-                                                <Label for="widget-size" class="text-sm font-medium">Window size</Label>
+                                                <Label for="widget-size" class="text-sm font-medium">{{ t('agents.setup.behavior.window_size') }}</Label>
                                                 <div class="relative">
                                                     <div
                                                         class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
@@ -1337,7 +1335,7 @@ const copyApiCode = async (code: string) => {
                                                 </div>
                                             </div>
                                             <div class="space-y-1.5">
-                                                <Label for="widget-theme" class="text-sm font-medium">Theme</Label>
+                                                <Label for="widget-theme" class="text-sm font-medium">{{ t('agents.setup.behavior.theme') }}</Label>
                                                 <div class="relative">
                                                     <div
                                                         class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
@@ -1355,7 +1353,7 @@ const copyApiCode = async (code: string) => {
                                                 </div>
                                             </div>
                                             <div class="space-y-1.5">
-                                                <Label for="widget-language" class="text-sm font-medium">Language</Label>
+                                                <Label for="widget-language" class="text-sm font-medium">{{ t('agents.setup.behavior.language') }}</Label>
                                                 <div class="relative">
                                                     <div
                                                         class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
@@ -1377,9 +1375,9 @@ const copyApiCode = async (code: string) => {
                                                 class="bg-muted/40 flex items-center justify-between gap-3 rounded-md border px-4 py-3 sm:col-span-2"
                                             >
                                                 <div>
-                                                    <Label for="widget-handoff" class="cursor-pointer text-sm font-medium">Live Chat</Label>
+                                                    <Label for="widget-handoff" class="cursor-pointer text-sm font-medium">{{ t('agents.setup.behavior.live_chat') }}</Label>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
-                                                        Let visitors hand off to a human. Works on the website widget only.
+                                                        {{ t('agents.setup.behavior.live_chat_hint') }}
                                                     </p>
                                                 </div>
                                                 <Switch id="widget-handoff" v-model="widgetBehaviorForm.handoff_enabled" :disabled="locked" />
@@ -1388,12 +1386,12 @@ const copyApiCode = async (code: string) => {
                                                 class="bg-muted/40 flex items-center justify-between gap-3 rounded-md border px-4 py-3 sm:col-span-2"
                                             >
                                                 <Label for="widget-show-on-load" class="cursor-pointer text-sm font-medium"
-                                                    >Open automatically on page load</Label
+                                                    >{{ t('agents.setup.behavior.open_on_load') }}</Label
                                                 >
                                                 <Switch id="widget-show-on-load" v-model="widgetBehaviorForm.show_on_load" :disabled="locked" />
                                             </div>
                                             <div v-if="widgetBehaviorForm.show_on_load" class="space-y-1.5 sm:col-span-2">
-                                                <Label for="widget-delay" class="text-sm font-medium">Delay (ms)</Label>
+                                                <Label for="widget-delay" class="text-sm font-medium">{{ t('agents.setup.behavior.delay_ms') }}</Label>
                                                 <div class="relative">
                                                     <div
                                                         class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
@@ -1412,7 +1410,8 @@ const copyApiCode = async (code: string) => {
                                             </div>
                                             <div class="space-y-1.5 sm:col-span-2">
                                                 <Label for="widget-sites" class="text-sm font-medium"
-                                                    >Allowed sites <span class="text-muted-foreground font-normal">(one per line)</span></Label
+                                                    >{{ t('agents.setup.behavior.allowed_sites') }}
+                                                    <span class="text-muted-foreground font-normal">{{ t('agents.setup.behavior.allowed_sites_hint') }}</span></Label
                                                 >
                                                 <div class="relative">
                                                     <div
@@ -1426,10 +1425,10 @@ const copyApiCode = async (code: string) => {
                                                         rows="4"
                                                         :disabled="locked"
                                                         class="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border py-2 pr-3 pl-9 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                                        placeholder="example.com&#10;app.example.com"
+                                                        :placeholder="t('agents.setup.behavior.allowed_sites_placeholder')"
                                                     />
                                                 </div>
-                                                <p class="text-muted-foreground text-xs">Only these origins are allowed to load the widget.</p>
+                                                <p class="text-muted-foreground text-xs">{{ t('agents.setup.behavior.allowed_sites_help') }}</p>
                                             </div>
                                         </div>
                                         <div v-if="!locked" class="border-t pt-4">
@@ -1439,8 +1438,8 @@ const copyApiCode = async (code: string) => {
                                                 :disabled="!canEdit || isSavingWidgetBehavior"
                                                 @click="saveWidgetBehavior"
                                             >
-                                                <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingWidgetBehavior ? 'Saving...' : 'Save' }}
+                                                <Save class="me-2 h-4 w-4" />
+                                                {{ isSavingWidgetBehavior ? t('agents.setup.saving') : t('common.save') }}
                                             </Button>
                                         </div>
                                     </template>
@@ -1448,12 +1447,12 @@ const copyApiCode = async (code: string) => {
                                     <!-- Bar -->
                                     <template v-else>
                                         <div>
-                                            <h3 class="text-sm font-medium">Bar behaviour</h3>
-                                            <p class="text-muted-foreground mt-1 text-xs">Keyboard trigger and on-page position of the launcher.</p>
+                                            <h3 class="text-sm font-medium">{{ t('agents.setup.behavior.bar_title') }}</h3>
+                                            <p class="text-muted-foreground mt-1 text-xs">{{ t('agents.setup.behavior.bar_description') }}</p>
                                         </div>
                                         <div class="grid max-w-3xl gap-x-6 gap-y-5 sm:grid-cols-2">
                                             <div class="space-y-1.5">
-                                                <Label for="bar-trigger" class="text-sm font-medium">Keyboard trigger</Label>
+                                                <Label for="bar-trigger" class="text-sm font-medium">{{ t('agents.setup.behavior.keyboard_trigger') }}</Label>
                                                 <div class="relative">
                                                     <div
                                                         class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
@@ -1471,7 +1470,7 @@ const copyApiCode = async (code: string) => {
                                                 </div>
                                             </div>
                                             <div class="space-y-1.5">
-                                                <Label for="bar-placement" class="text-sm font-medium">Placement</Label>
+                                                <Label for="bar-placement" class="text-sm font-medium">{{ t('agents.setup.behavior.placement') }}</Label>
                                                 <div class="relative">
                                                     <div
                                                         class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
@@ -1491,8 +1490,8 @@ const copyApiCode = async (code: string) => {
                                         </div>
                                         <div v-if="!locked" class="border-t pt-4">
                                             <Button type="button" size="sm" :disabled="!canEdit || isSavingBarBehavior" @click="saveBarBehavior">
-                                                <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingBarBehavior ? 'Saving...' : 'Save' }}
+                                                <Save class="me-2 h-4 w-4" />
+                                                {{ isSavingBarBehavior ? t('agents.setup.saving') : t('common.save') }}
                                             </Button>
                                         </div>
                                     </template>
@@ -1503,8 +1502,8 @@ const copyApiCode = async (code: string) => {
                                     <!-- Hosted Chat — shareable agent URL with a side-by-side copy button. -->
                                     <template v-if="previewSurface === 'hosted_chat'">
                                         <div>
-                                            <Label class="text-base">Agent URL</Label>
-                                            <p class="text-muted-foreground mt-1 mb-3 text-sm">Share this URL to give others access to your agent</p>
+                                            <Label class="text-base">{{ t('agents.setup.embed.agent_url_title') }}</Label>
+                                            <p class="text-muted-foreground mt-1 mb-3 text-sm">{{ t('agents.setup.embed.agent_url_description') }}</p>
                                         </div>
 
                                         <div class="bg-muted rounded-lg p-4">
@@ -1512,7 +1511,7 @@ const copyApiCode = async (code: string) => {
                                                 <code class="text-foreground text-sm break-all">{{ shareUrl }}</code>
                                                 <Button type="button" variant="outline" size="sm" @click="copyActive" class="shrink-0 gap-2">
                                                     <component :is="copied ? Check : Copy" class="h-4 w-4" />
-                                                    {{ copied ? 'Copied' : 'Copy' }}
+                                                    {{ copied ? t('agents.setup.copied') : t('workspace.common.copy') }}
                                                 </Button>
                                             </div>
                                         </div>
@@ -1520,20 +1519,19 @@ const copyApiCode = async (code: string) => {
                                         <Alert>
                                             <Info class="h-4 w-4" />
                                             <AlertDescription>
-                                                Anyone with this URL can access your agent. Make sure to set the appropriate security settings.
+                                                {{ t('agents.setup.embed.agent_url_alert') }}
                                             </AlertDescription>
                                         </Alert>
 
                                         <!-- Iframe embed configurator — width/height + presets, generated <iframe>. -->
                                         <div class="space-y-3 border-t pt-4">
-                                            <Label class="text-sm font-medium">Embed configuration</Label>
+                                            <Label class="text-sm font-medium">{{ t('agents.setup.embed.config_title') }}</Label>
                                             <p class="text-muted-foreground text-xs">
-                                                Drop the agent into any page with an
-                                                <code class="bg-muted rounded px-1 py-0.5 text-xs">&lt;iframe&gt;</code>.
+                                                {{ t('agents.setup.embed.config_description') }}
                                             </p>
                                             <div class="grid grid-cols-2 gap-4">
                                                 <div class="space-y-1.5">
-                                                    <Label for="iframe-width" class="text-xs">Width</Label>
+                                                    <Label for="iframe-width" class="text-xs">{{ t('agents.setup.embed.width') }}</Label>
                                                     <div class="relative">
                                                         <div
                                                             class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5"
@@ -1544,13 +1542,13 @@ const copyApiCode = async (code: string) => {
                                                             id="iframe-width"
                                                             v-model="iframeOptions.width"
                                                             type="text"
-                                                            placeholder="100%"
+                                                            :placeholder="t('agents.setup.embed.width_placeholder')"
                                                             class="pl-8 text-sm"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div class="space-y-1.5">
-                                                    <Label for="iframe-height" class="text-xs">Height</Label>
+                                                    <Label for="iframe-height" class="text-xs">{{ t('agents.setup.embed.height') }}</Label>
                                                     <div class="relative">
                                                         <div
                                                             class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5"
@@ -1561,7 +1559,7 @@ const copyApiCode = async (code: string) => {
                                                             id="iframe-height"
                                                             v-model="iframeOptions.height"
                                                             type="text"
-                                                            placeholder="600px"
+                                                            :placeholder="t('agents.setup.embed.height_placeholder')"
                                                             class="pl-8 text-sm"
                                                         />
                                                     </div>
@@ -1569,26 +1567,26 @@ const copyApiCode = async (code: string) => {
                                             </div>
                                             <div class="grid grid-cols-4 gap-2">
                                                 <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('full')"
-                                                    >Full</Button
+                                                    >{{ t('agents.setup.embed.preset_full') }}</Button
                                                 >
                                                 <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('large')"
-                                                    >Large</Button
+                                                    >{{ t('agents.setup.embed.preset_large') }}</Button
                                                 >
                                                 <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('medium')"
-                                                    >Medium</Button
+                                                    >{{ t('agents.setup.embed.preset_medium') }}</Button
                                                 >
                                                 <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('small')"
-                                                    >Small</Button
+                                                    >{{ t('agents.setup.embed.preset_small') }}</Button
                                                 >
                                             </div>
                                         </div>
 
                                         <div class="bg-muted space-y-3 rounded-lg p-4">
                                             <div class="flex items-center justify-between">
-                                                <p class="text-muted-foreground text-sm">HTML Embed Code</p>
+                                                <p class="text-muted-foreground text-sm">{{ t('agents.setup.embed.html_code') }}</p>
                                                 <Button type="button" variant="outline" size="sm" class="gap-2" @click="copyIframe">
                                                     <component :is="iframeCopied ? Check : Copy" class="h-4 w-4" />
-                                                    {{ iframeCopied ? 'Copied' : 'Copy' }}
+                                                    {{ iframeCopied ? t('agents.setup.copied') : t('workspace.common.copy') }}
                                                 </Button>
                                             </div>
                                             <div class="bg-background rounded border p-3">
@@ -1602,21 +1600,20 @@ const copyApiCode = async (code: string) => {
                                     <!-- Widget / Bar — installation snippet + JS API docs link. -->
                                     <template v-else>
                                         <div>
-                                            <h3 class="text-sm font-medium">Installation code</h3>
+                                            <h3 class="text-sm font-medium">{{ t('agents.setup.embed.install_title') }}</h3>
                                             <p class="text-muted-foreground mt-1 text-xs">
-                                                Paste this snippet into your website's
-                                                <code class="bg-muted rounded px-1 py-0.5 text-xs">&lt;head&gt;</code> section.
+                                                {{ t('agents.setup.embed.install_description') }}
                                             </p>
                                         </div>
                                         <div class="bg-muted space-y-3 rounded-lg p-4">
                                             <div class="flex items-center justify-end gap-2">
                                                 <Button type="button" variant="outline" size="sm" class="gap-2" @click="copyActive">
                                                     <component :is="copied ? Check : Copy" class="h-4 w-4" />
-                                                    {{ copied ? 'Copied' : 'Copy' }}
+                                                    {{ copied ? t('agents.setup.copied') : t('workspace.common.copy') }}
                                                 </Button>
                                                 <Button type="button" variant="outline" size="sm" class="gap-2" @click="openFullPreview">
                                                     <Eye class="h-4 w-4" />
-                                                    Full Preview
+                                                    {{ t('agents.setup.embed.full_preview') }}
                                                 </Button>
                                             </div>
                                             <div class="bg-background rounded border p-3">
@@ -1628,23 +1625,21 @@ const copyApiCode = async (code: string) => {
 
                                         <Alert v-if="isProtected">
                                             <Shield class="h-4 w-4" />
-                                            <AlertTitle>This {{ previewSurface }} is protected</AlertTitle>
+                                            <AlertTitle>{{ t('agents.setup.embed.protected_title', { surface: protectedSurfaceLabel }) }}</AlertTitle>
                                             <AlertDescription>
-                                                Replace
-                                                <code class="bg-muted rounded px-1 py-0.5 text-xs">YOUR_SIGNED_TOKEN</code>
-                                                with a JWT you sign on your server for each visitor — without a valid token it won't load.
+                                                {{ t('agents.setup.embed.protected_description') }}
                                                 <Link
                                                     :href="route('agents.identity', { agent: agent.external_id })"
                                                     class="text-primary font-medium hover:underline"
                                                 >
-                                                    Open Security settings
+                                                    {{ t('agents.setup.embed.open_security') }}
                                                 </Link>
                                             </AlertDescription>
                                         </Alert>
 
                                         <Button type="button" variant="outline" class="w-full justify-start gap-2" @click="showApiDocsDialog = true">
                                             <Terminal class="h-4 w-4" />
-                                            JavaScript API Documentation
+                                            {{ t('agents.setup.embed.api_docs') }}
                                         </Button>
                                     </template>
                                 </div>
@@ -1652,77 +1647,82 @@ const copyApiCode = async (code: string) => {
                                 <!-- Domain — Hosted Chat only. Gated by Custom Domain subscription / Pro plan quota. -->
                                 <div v-if="activeTab === 'domain'" class="space-y-6 p-6">
                                     <div>
-                                        <h3 class="text-sm font-medium">Custom Domain</h3>
+                                        <h3 class="text-sm font-medium">{{ t('agents.setup.domain.title') }}</h3>
                                         <p class="text-muted-foreground mt-1 text-xs">
-                                            Serve this agent's Hosted Chat from your own domain instead of
-                                            <code class="bg-muted rounded px-1 py-0.5 text-xs">{{ domain.cname_target }}</code
-                                            >.
+                                            {{ t('agents.setup.domain.description', { target: domain.cname_target }) }}
                                         </p>
                                     </div>
 
                                     <!-- Subscription gate -->
                                     <Alert v-if="!domain.has_quota" class="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
                                         <Globe class="h-4 w-4" />
-                                        <AlertTitle>Custom domains aren't included in your current plan</AlertTitle>
+                                        <AlertTitle>{{ t('agents.setup.domain.no_quota_title') }}</AlertTitle>
                                         <AlertDescription>
-                                            Upgrade to Pro or subscribe to the Custom Domain add-on from
-                                            <Link :href="route('billing.index')" class="text-primary font-medium hover:underline">Billing</Link>
-                                            to add your own hostname.
+                                            <i18n-t keypath="agents.setup.domain.no_quota_description" tag="span" scope="global">
+                                                <template #link>
+                                                    <Link
+                                                        :href="route('billing.index')"
+                                                        class="text-primary font-medium hover:underline"
+                                                    >
+                                                        {{ t('agents.setup.domain.billing') }}
+                                                    </Link>
+                                                </template>
+                                            </i18n-t>
                                         </AlertDescription>
                                     </Alert>
 
                                     <!-- Quota counter -->
                                     <div v-else class="bg-muted/40 flex items-center justify-between rounded-lg border p-3 text-sm">
                                         <span class="text-muted-foreground">
-                                            Using
-                                            <span class="text-foreground font-semibold">{{ domain.quota.used + (domain.value ? 1 : 0) }}</span> of
-                                            <span class="text-foreground font-semibold">{{ domain.quota.total }}</span> custom domain<span
-                                                v-if="domain.quota.total !== 1"
-                                                >s</span
-                                            >
+                                            {{
+                                                t(
+                                                    'agents.setup.domain.quota',
+                                                    { used: domainUsedCount, total: domain.quota.total },
+                                                    { plural: domain.quota.total },
+                                                )
+                                            }}
                                         </span>
                                         <Link
                                             v-if="domain.quota.available === 0 && !domain.value"
                                             :href="route('billing.index')"
                                             class="text-primary text-xs font-medium hover:underline"
                                         >
-                                            Add more
+                                            {{ t('agents.setup.domain.add_more') }}
                                         </Link>
                                     </div>
 
                                     <!-- CNAME instructions -->
                                     <div v-if="domain.has_quota" class="space-y-3">
-                                        <Label class="text-xs">Step 1 — Add a CNAME record at your DNS provider</Label>
+                                        <Label class="text-xs">{{ t('agents.setup.domain.step1') }}</Label>
                                         <div class="bg-muted overflow-x-auto rounded-lg border p-4 font-mono text-xs">
                                             <div class="grid grid-cols-[80px_1fr] gap-x-4 gap-y-1">
-                                                <span class="text-muted-foreground">Type</span><span class="font-semibold">CNAME</span>
-                                                <span class="text-muted-foreground">Name</span><span>your-subdomain</span>
-                                                <span class="text-muted-foreground">Value</span>
+                                                <span class="text-muted-foreground">{{ t('agents.setup.domain.type') }}</span><span class="font-semibold">CNAME</span>
+                                                <span class="text-muted-foreground">{{ t('agents.setup.domain.name') }}</span><span>{{ t('agents.setup.domain.cname_name') }}</span>
+                                                <span class="text-muted-foreground">{{ t('agents.setup.domain.value') }}</span>
                                                 <span class="flex items-center gap-2">
                                                     <code class="font-semibold">{{ domain.cname_target }}</code>
                                                     <Button type="button" variant="ghost" size="sm" class="h-6 gap-1 px-2" @click="copyCnameTarget">
                                                         <component :is="isCnameCopied ? Check : Copy" class="h-3 w-3" />
-                                                        {{ isCnameCopied ? 'Copied' : 'Copy' }}
+                                                        {{ isCnameCopied ? t('agents.setup.copied') : t('workspace.common.copy') }}
                                                     </Button>
                                                 </span>
                                             </div>
                                         </div>
                                         <p class="text-muted-foreground text-xs">
-                                            DNS changes can take up to 24 hours to propagate. Once it resolves, your visitors will see this agent's
-                                            Hosted Chat on your domain.
+                                            {{ t('agents.setup.domain.dns_hint') }}
                                         </p>
                                     </div>
 
                                     <!-- Domain input -->
                                     <div v-if="domain.has_quota" class="space-y-2">
-                                        <Label for="custom-domain" class="text-xs">Step 2 — Enter the domain you pointed at us</Label>
+                                        <Label for="custom-domain" class="text-xs">{{ t('agents.setup.domain.step2') }}</Label>
                                         <div class="flex items-start gap-2">
                                             <div class="flex-1">
                                                 <Input
                                                     id="custom-domain"
                                                     v-model="domainForm.domain"
                                                     type="text"
-                                                    placeholder="chat.example.com"
+                                                    :placeholder="t('agents.setup.domain.placeholder')"
                                                     autocomplete="off"
                                                     :disabled="locked || (domain.quota.available === 0 && !domain.value)"
                                                 />
@@ -1736,8 +1736,8 @@ const copyApiCode = async (code: string) => {
                                                 :disabled="!canEdit || isSavingDomain || domainForm.domain === (domain.value ?? '')"
                                                 @click="saveDomain"
                                             >
-                                                <Save class="mr-2 h-4 w-4" />
-                                                {{ isSavingDomain ? 'Saving...' : 'Save' }}
+                                                <Save class="me-2 h-4 w-4" />
+                                                {{ isSavingDomain ? t('agents.setup.saving') : t('common.save') }}
                                             </Button>
                                             <Button
                                                 v-if="domain.value"
@@ -1748,12 +1748,11 @@ const copyApiCode = async (code: string) => {
                                                 :disabled="locked || isSavingDomain"
                                                 @click="clearDomain"
                                             >
-                                                Remove
+                                                {{ t('common.remove') }}
                                             </Button>
                                         </div>
                                         <p class="text-muted-foreground text-xs">
-                                            Enter the full hostname without scheme — e.g.
-                                            <code class="bg-muted rounded px-1 py-0.5 text-xs">chat.example.com</code>.
+                                            {{ t('agents.setup.domain.hostname_hint') }}
                                         </p>
                                     </div>
                                 </div>
@@ -1768,7 +1767,7 @@ const copyApiCode = async (code: string) => {
                 <ResizablePanel :default-size="38" :min-size="25">
                     <div class="bg-muted/40 flex h-full flex-col border-l">
                         <div class="border-border flex flex-shrink-0 items-center justify-between border-b px-4 py-2">
-                            <div class="text-foreground text-sm font-medium">Live Preview</div>
+                            <div class="text-foreground text-sm font-medium">{{ t('agents.setup.preview.title') }}</div>
                             <TooltipProvider :delay-duration="0">
                                 <div class="flex items-center gap-1">
                                     <Tooltip v-for="d in ['desktop', 'tablet', 'mobile'] as const" :key="d">
@@ -1798,7 +1797,7 @@ const copyApiCode = async (code: string) => {
                                             </button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>{{ isExternalIdCopied ? 'Copied!' : 'Copy agent ID' }}</p>
+                                            <p>{{ isExternalIdCopied ? t('agents.setup.preview.copied') : t('agents.setup.preview.copy_agent_id') }}</p>
                                         </TooltipContent>
                                     </Tooltip>
                                     <Tooltip>
@@ -1812,7 +1811,7 @@ const copyApiCode = async (code: string) => {
                                             </button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>Refresh preview</p>
+                                            <p>{{ t('agents.setup.preview.refresh') }}</p>
                                         </TooltipContent>
                                     </Tooltip>
                                     <Tooltip>
@@ -1826,7 +1825,7 @@ const copyApiCode = async (code: string) => {
                                             </button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>Open in new tab</p>
+                                            <p>{{ t('agents.setup.preview.open_new_tab') }}</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </div>
@@ -1839,7 +1838,7 @@ const copyApiCode = async (code: string) => {
                                     :src="previewUrl"
                                     class="h-full w-full border-0"
                                     :class="{ 'pointer-events-none': isPreviewResizing }"
-                                    title="Surface preview"
+                                    :title="t('agents.setup.embed.surface_preview')"
                                     loading="lazy"
                                 />
                             </div>
@@ -1856,23 +1855,23 @@ const copyApiCode = async (code: string) => {
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <Terminal class="h-5 w-5" />
-                        JavaScript API
+                        {{ t('agents.setup.api.title') }}
                     </DialogTitle>
-                    <DialogDescription>Control the chat widget programmatically using these methods and events</DialogDescription>
+                    <DialogDescription>{{ t('agents.setup.api.description') }}</DialogDescription>
                 </DialogHeader>
 
-                <div class="flex-1 space-y-6 overflow-y-auto pr-2">
+                <div class="flex-1 space-y-6 overflow-y-auto pe-2">
                     <div class="space-y-3">
                         <div class="flex items-center gap-2">
                             <Zap class="h-4 w-4 text-amber-500" />
-                            <h5 class="text-sm font-medium">Methods</h5>
+                            <h5 class="text-sm font-medium">{{ t('agents.setup.api.methods') }}</h5>
                         </div>
                         <div class="overflow-hidden rounded-lg border">
                             <table class="w-full text-sm">
                                 <thead class="bg-muted/50">
                                     <tr>
-                                        <th class="text-muted-foreground px-3 py-2 text-left font-medium">Method</th>
-                                        <th class="text-muted-foreground px-3 py-2 text-left font-medium">Description</th>
+                                        <th class="text-muted-foreground px-3 py-2 text-start font-medium">{{ t('agents.setup.api.method_col') }}</th>
+                                        <th class="text-muted-foreground px-3 py-2 text-start font-medium">{{ t('agents.setup.api.description_col') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y">
@@ -1890,10 +1889,10 @@ const copyApiCode = async (code: string) => {
                     <div class="space-y-3">
                         <div class="flex items-center gap-2">
                             <Zap class="h-4 w-4 text-emerald-500" />
-                            <h5 class="text-sm font-medium">Events</h5>
+                            <h5 class="text-sm font-medium">{{ t('agents.setup.api.events') }}</h5>
                         </div>
                         <p class="text-muted-foreground text-sm">
-                            Subscribe to widget events using
+                            {{ t('agents.setup.api.events_hint') }}
                             <code class="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">window.chatvia.on(event, callback)</code>
                         </p>
                         <div class="relative">
@@ -1907,8 +1906,8 @@ const copyApiCode = async (code: string) => {
                                         class="hover:bg-background h-7 px-2"
                                         @click="copyApiCode(eventsCodeExample)"
                                     >
-                                        <Copy class="mr-1.5 h-3.5 w-3.5" />
-                                        <span class="text-xs">Copy</span>
+                                        <Copy class="me-1.5 h-3.5 w-3.5" />
+                                        <span class="text-xs">{{ t('workspace.common.copy') }}</span>
                                     </Button>
                                 </div>
                                 <pre
@@ -1921,7 +1920,7 @@ const copyApiCode = async (code: string) => {
                     <Alert class="bg-primary/5 border-primary/20">
                         <Info class="text-primary h-4 w-4" />
                         <AlertDescription class="text-sm">
-                            <strong>Quick example:</strong> Open the chat when a button is clicked:
+                            <strong>{{ t('agents.setup.api.quick_example') }}</strong> {{ t('agents.setup.api.quick_example_text') }}
                             <code class="bg-muted mt-2 block rounded px-2 py-1 font-mono text-xs">
                                 document.getElementById('help-btn').onclick = () =&gt; window.chatvia.open();
                             </code>
@@ -1930,7 +1929,7 @@ const copyApiCode = async (code: string) => {
                 </div>
 
                 <DialogFooter class="mt-4">
-                    <Button variant="outline" @click="showApiDocsDialog = false">Close</Button>
+                    <Button variant="outline" @click="showApiDocsDialog = false">{{ t('agents.setup.api.close') }}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

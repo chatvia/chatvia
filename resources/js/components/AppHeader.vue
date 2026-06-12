@@ -21,8 +21,11 @@ import { getInitials } from '@/composables/useInitials';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import type { Auth, BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BarChart3, BookOpen, BotMessageSquare, Code2, CreditCard, HelpCircle, LayoutGrid, Menu, Users } from 'lucide-vue-next';
+import { BarChart3, BookOpen, BotMessageSquare, Code2, CreditCard, HelpCircle, LayoutGrid, Menu, Sparkles, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     breadcrumbs?: BreadcrumbItem[];
@@ -73,34 +76,44 @@ const { isOwner } = useTeamPermissions();
 const mainNavItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [
         {
-            title: 'Dashboard',
+            title: t('app.header.dashboard'),
             href: route('dashboard'),
             icon: LayoutGrid,
         },
         {
-            title: 'Agents',
+            title: t('app.header.agents'),
             href: route('agents.index'),
             icon: BotMessageSquare,
         },
         {
-            title: 'Usage',
+            title: t('app.header.usage'),
             href: route('usage'),
             icon: BarChart3,
         },
     ];
 
+    // "Ask your data" is owner-only — it exposes whole-account numbers
+    // (including identified users) and is gated server-side to the owner.
+    if (!isStaff.value && isOwner.value) {
+        items.push({
+            title: t('app.header.ask_your_data'),
+            href: route('analytics.chat'),
+            icon: Sparkles,
+        });
+    }
+
     // Billing is workspace-owner only — employees/teammates are blocked from
     // the billing routes server-side (DenyIfEmployee), and staff never see it.
     if (!isStaff.value && isOwner.value) {
         items.push({
-            title: 'Billing',
+            title: t('app.header.billing'),
             href: route('billing.index'),
             icon: CreditCard,
         });
     }
 
     items.push({
-        title: 'Support',
+        title: t('app.header.support'),
         href: route('support'),
         icon: HelpCircle,
     });
@@ -108,18 +121,18 @@ const mainNavItems = computed<NavItem[]>(() => {
     return items;
 });
 
-const rightNavItems: NavItem[] = [
+const rightNavItems = computed<NavItem[]>(() => [
     {
-        title: 'Documentation',
+        title: t('app.header.documentation'),
         href: 'https://docs.chatvia.ai',
         icon: BookOpen,
     },
     {
-        title: 'API',
+        title: t('app.header.api'),
         href: '/docs/api',
         icon: Code2,
     },
-];
+]);
 </script>
 
 <template>
@@ -131,12 +144,12 @@ const rightNavItems: NavItem[] = [
                 <div class="lg:hidden">
                     <Sheet>
                         <SheetTrigger :as-child="true">
-                            <Button variant="ghost" size="icon" class="mr-2 h-9 w-9">
+                            <Button variant="ghost" size="icon" class="me-2 h-9 w-9">
                                 <Menu class="h-5 w-5" />
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" class="w-[300px] p-6">
-                            <SheetTitle class="sr-only">Navigation Menu</SheetTitle>
+                            <SheetTitle class="sr-only">{{ t('app.header.nav_menu_sr') }}</SheetTitle>
                             <SheetHeader class="flex justify-start text-left">
                                 <AppLogoIcon class="size-6 text-black dark:text-white" />
                             </SheetHeader>
@@ -159,7 +172,7 @@ const rightNavItems: NavItem[] = [
                                         :class="activeItemStyles(route('teams.index'))"
                                     >
                                         <Users class="h-5 w-5" />
-                                        Teams
+                                        {{ t('app.header.teams') }}
                                     </Link>
                                 </nav>
                                 <div class="flex flex-col space-y-4">
@@ -192,7 +205,7 @@ const rightNavItems: NavItem[] = [
                                     <NavigationMenuLink
                                         :class="[navigationMenuTriggerStyle(), activeItemStyles(item.href), 'flex cursor-pointer items-center px-3']"
                                     >
-                                        <component v-if="item.icon" :is="item.icon" class="mr-2 h-4 w-4" />
+                                        <component v-if="item.icon" :is="item.icon" class="me-2 h-4 w-4" />
                                         {{ item.title }}
                                     </NavigationMenuLink>
                                 </Link>

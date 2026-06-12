@@ -16,6 +16,7 @@ import { useEcho } from '@laravel/echo-vue';
 import axios from 'axios';
 import { AlertCircle, CheckCircle, ChevronDown, Edit3, FileText, Link2, LoaderCircle, Plus, Save, Trash2, Type, Unlink } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -36,6 +37,7 @@ interface TextEntry {
 
 const props = defineProps<Props>();
 
+const { t } = useI18n();
 const { hasPermission } = useTeamPermissions();
 
 // Check if user can delete sources
@@ -107,8 +109,8 @@ const openEditForm = async (entry: TextEntry) => {
         showCreateForm.value = true;
     } catch (error) {
         console.error('Failed to fetch text entry:', error);
-        toast.error('Failed to load text entry', {
-            description: 'There was an error loading the text content for editing.',
+        toast.error(t('agents.sources.text.load_failed'), {
+            description: t('agents.sources.text.load_failed_description'),
         });
     } finally {
         isLoading.value = false;
@@ -164,8 +166,8 @@ const saveTextEntry = () => {
 const confirmDelete = (entry: TextEntry) => {
     // Check permission first
     if (!canDeleteSources.value) {
-        toast.error('Permission denied', {
-            description: 'You do not have permission to delete sources.',
+        toast.error(t('agents.sources.common.permission_denied'), {
+            description: t('agents.sources.common.permission_denied_description'),
         });
         return;
     }
@@ -192,7 +194,7 @@ const unlinkTextEntry = async () => {
             }),
         );
 
-        toast.success('Text unlinked from agent successfully!');
+        toast.success(t('agents.sources.text.unlinked'));
 
         deleteDialogOpen.value = false;
         entryToDelete.value = null;
@@ -202,7 +204,7 @@ const unlinkTextEntry = async () => {
     } catch (error: any) {
         console.error('Error unlinking text:', error);
         const errorMessage = error.response?.data?.message || error.message;
-        toast.error(`Failed to unlink text: ${errorMessage}`);
+        toast.error(t('agents.sources.text.unlink_failed', { error: errorMessage }));
     } finally {
         isUnlinking.value = false;
     }
@@ -222,7 +224,7 @@ const deleteTextEntry = async () => {
             }),
         );
 
-        toast.success('Text deleted successfully!');
+        toast.success(t('agents.sources.text.deleted'));
 
         deleteDialogOpen.value = false;
         entryToDelete.value = null;
@@ -232,7 +234,7 @@ const deleteTextEntry = async () => {
     } catch (error: any) {
         console.error('Failed to delete text entry:', error);
         const errorMessage = error.response?.data?.message || error.message;
-        toast.error(`Failed to delete text: ${errorMessage}`);
+        toast.error(t('agents.sources.text.delete_failed', { error: errorMessage }));
     } finally {
         isDeleting.value = false;
     }
@@ -292,18 +294,18 @@ const handleIngestionUpdate = async (event: any) => {
     // Show toast notifications based on status
     switch (status) {
         case 'ingesting':
-            toast.info('Processing started', {
-                description: 'Your text entry is being processed...',
+            toast.info(t('agents.sources.text.processing_started'), {
+                description: t('agents.sources.text.processing_started_description'),
             });
             break;
         case 'ingested':
-            toast.success('Success!', {
-                description: 'Text entry has been successfully added to your knowledge base.',
+            toast.success(t('agents.sources.text.processing_success'), {
+                description: t('agents.sources.text.processing_success_description'),
             });
             break;
         case 'failed':
-            toast.error('Processing failed', {
-                description: 'There was an error processing your text entry.',
+            toast.error(t('agents.sources.text.processing_failed'), {
+                description: t('agents.sources.text.processing_failed_description'),
             });
             break;
     }
@@ -372,15 +374,15 @@ const getStatusColor = (status: string): string => {
 const getStatusLabel = (status: string): string => {
     switch (status) {
         case 'ingested':
-            return 'Trained';
+            return t('agents.sources.text.status.trained');
         case 'pending':
-            return 'Pending';
+            return t('agents.sources.text.status.pending');
         case 'ingesting':
-            return 'Training';
+            return t('agents.sources.text.status.training');
         case 'failed':
-            return 'Failed';
+            return t('agents.sources.text.status.failed');
         default:
-            return 'Unknown';
+            return t('agents.sources.text.status.unknown');
     }
 };
 
@@ -400,18 +402,17 @@ fetchTextEntries();
                         <div>
                             <CardTitle class="flex items-center gap-2">
                                 <Type class="h-5 w-5" />
-                                Text Knowledge
+                                {{ t('agents.sources.text.title') }}
                             </CardTitle>
                             <CardDescription>
-                                Add custom text content directly to your agent's knowledge base. Perfect for FAQs, policies, and structured
-                                information.
+                                {{ t('agents.sources.text.description') }}
                             </CardDescription>
                         </div>
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
                                 <Button class="flex items-center gap-2">
                                     <Plus class="h-4 w-4" />
-                                    Add Text
+                                    {{ t('agents.sources.text.add_text') }}
                                     <ChevronDown class="ml-1 h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -419,11 +420,11 @@ fetchTextEntries();
                                 <DropdownMenuGroup>
                                     <DropdownMenuItem @click="openCreateForm" class="cursor-pointer">
                                         <Plus class="mr-2 h-4 w-4" />
-                                        Create New Text
+                                        {{ t('agents.sources.text.create_new') }}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem @click="openAttachTextDialog" class="cursor-pointer">
                                         <Link2 class="mr-2 h-4 w-4" />
-                                        Already Trained Texts
+                                        {{ t('agents.sources.text.already_trained') }}
                                     </DropdownMenuItem>
                                 </DropdownMenuGroup>
                             </DropdownMenuContent>
@@ -437,44 +438,44 @@ fetchTextEntries();
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Edit3 class="h-5 w-5" />
-                        {{ editingEntry ? 'Edit Text Entry' : 'Create New Text Entry' }}
+                        {{ editingEntry ? t('agents.sources.text.edit_entry') : t('agents.sources.text.create_entry') }}
                     </CardTitle>
                     <CardDescription>
-                        {{ editingEntry ? 'Update your text content' : 'Add structured text content to your knowledge base' }}
+                        {{ editingEntry ? t('agents.sources.text.edit_entry_description') : t('agents.sources.text.create_entry_description') }}
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-6">
                     <!-- Content Textarea -->
                     <div class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <Label for="content">Content *</Label>
+                            <Label for="content">{{ t('agents.sources.text.content_label') }}</Label>
                             <div class="text-muted-foreground space-x-4 text-sm">
-                                <span>{{ wordCount }} words</span>
-                                <span>{{ charCount }} characters</span>
+                                <span>{{ t('agents.sources.text.word_count', { count: wordCount }) }}</span>
+                                <span>{{ t('agents.sources.text.char_count', { count: charCount }) }}</span>
                             </div>
                         </div>
                         <Textarea
                             id="content"
                             v-model="form.content"
                             :disabled="isSubmitting"
-                            placeholder="Enter your text content here. This can include FAQs, policies, instructions, or any structured information you want your agent to know about..."
+                            :placeholder="t('agents.sources.text.content_placeholder')"
                             rows="12"
                             :class="{ 'border-red-500': form.errors.content }"
                             class="resize-none"
                         />
                         <InputError :message="form.errors.content" />
                         <p v-if="!form.errors.content" class="text-muted-foreground text-sm">
-                            Minimum 250 words required. Use clear, structured text for best results.
+                            {{ t('agents.sources.text.content_hint') }}
                         </p>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="flex items-center justify-between border-t pt-4">
-                        <Button variant="outline" @click="cancelForm" :disabled="isSubmitting"> Cancel </Button>
+                        <Button variant="outline" @click="cancelForm" :disabled="isSubmitting"> {{ t('agents.sources.common.cancel') }} </Button>
                         <Button @click="saveTextEntry" :disabled="isSubmitting" class="flex items-center gap-2">
                             <LoaderCircle v-if="isSubmitting" class="h-4 w-4 animate-spin" />
                             <Save v-else class="h-4 w-4" />
-                            {{ isSubmitting ? 'Saving...' : editingEntry ? 'Update Entry' : 'Save Entry' }}
+                            {{ isSubmitting ? t('agents.sources.text.saving') : editingEntry ? t('agents.sources.text.update_entry') : t('agents.sources.text.save_entry') }}
                         </Button>
                     </div>
                 </CardContent>
@@ -485,9 +486,9 @@ fetchTextEntries();
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <FileText class="h-5 w-5" />
-                        Your Text Entries ({{ textEntries.length }})
+                        {{ t('agents.sources.text.entries_title', { count: textEntries.length }) }}
                     </CardTitle>
-                    <CardDescription> Manage your custom text content </CardDescription>
+                    <CardDescription> {{ t('agents.sources.text.entries_description') }} </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div v-for="entry in textEntries" :key="entry.id" class="hover:bg-muted/50 rounded-lg border p-4 transition-colors">
@@ -528,7 +529,7 @@ fetchTextEntries();
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>Edit entry</p>
+                                            <p>{{ t('agents.sources.text.edit_tooltip') }}</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
@@ -547,10 +548,10 @@ fetchTextEntries();
                                         <TooltipContent>
                                             <div class="text-xs">
                                                 <p v-if="isTextShared(entry)">
-                                                    Remove from agent<br />
-                                                    <span class="text-muted-foreground">(Used in {{ entry.agents_count }} agents)</span>
+                                                    {{ t('agents.sources.common.remove_from_agent') }}<br />
+                                                    <span class="text-muted-foreground">{{ t('agents.sources.common.used_in_agents', { count: entry.agents_count }) }}</span>
                                                 </p>
-                                                <p v-else>Delete from knowledge base</p>
+                                                <p v-else>{{ t('agents.sources.common.delete_from_knowledge_base') }}</p>
                                             </div>
                                         </TooltipContent>
                                     </Tooltip>
@@ -565,14 +566,13 @@ fetchTextEntries();
             <Card v-else-if="!isLoading && textEntries.length === 0 && !showCreateForm">
                 <CardContent class="flex flex-col items-center justify-center py-12">
                     <Type class="text-muted-foreground mb-4 h-16 w-16" />
-                    <h3 class="mb-2 text-lg font-medium">No text entries yet</h3>
+                    <h3 class="mb-2 text-lg font-medium">{{ t('agents.sources.text.empty_title') }}</h3>
                     <p class="text-muted-foreground mb-6 max-w-md text-center">
-                        Start by adding your first text entry. You can include FAQs, policies, instructions, or any structured information for your
-                        agent.
+                        {{ t('agents.sources.text.empty_description') }}
                     </p>
                     <Button @click="openCreateForm" class="flex items-center gap-2">
                         <Plus class="h-4 w-4" />
-                        Create Your First Text Entry
+                        {{ t('agents.sources.text.create_first') }}
                     </Button>
                 </CardContent>
             </Card>
@@ -581,7 +581,7 @@ fetchTextEntries();
             <Card v-if="isLoading">
                 <CardContent class="flex items-center justify-center py-12">
                     <LoaderCircle class="text-primary h-8 w-8 animate-spin" />
-                    <span class="ml-2 text-lg">Loading text entries...</span>
+                    <span class="ms-2 text-lg">{{ t('agents.sources.text.loading') }}</span>
                 </CardContent>
             </Card>
 
@@ -592,16 +592,17 @@ fetchTextEntries();
                         <DialogTitle>{{ entryToDelete.excerpt.substring(0, 100) }}...</DialogTitle>
                         <DialogDescription>
                             <span v-if="isTextShared(entryToDelete)">
-                                This text is used in <strong>{{ entryToDelete.agents_count }} agents</strong>. You can unlink it from this agent or
-                                permanently delete it from all agents.
+                                {{ t('agents.sources.text.delete_shared_prefix') }}
+                                <strong>{{ t('agents.sources.common.agents_count', { count: entryToDelete.agents_count }) }}</strong>
+                                {{ t('agents.sources.text.delete_shared_suffix') }}
                             </span>
                             <span v-else>
-                                This will permanently remove this text entry from your agent's knowledge base. This action cannot be undone.
+                                {{ t('agents.sources.text.delete_description') }}
                             </span>
                         </DialogDescription>
                     </DialogHeader>
                     <div class="mt-4 flex items-center justify-end gap-2">
-                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeleting"> Cancel </Button>
+                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeleting"> {{ t('agents.sources.common.cancel') }} </Button>
                         <Button
                             v-if="isTextShared(entryToDelete)"
                             variant="secondary"
@@ -609,15 +610,15 @@ fetchTextEntries();
                             :disabled="isUnlinking || isDeleting"
                             class="bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50"
                         >
-                            <LoaderCircle v-if="isUnlinking" class="mr-2 h-4 w-4 animate-spin" />
-                            <Unlink v-else class="mr-2 h-4 w-4" />
-                            {{ isUnlinking ? 'Unlinking...' : 'Unlink' }}
+                            <LoaderCircle v-if="isUnlinking" class="me-2 h-4 w-4 animate-spin" />
+                            <Unlink v-else class="me-2 h-4 w-4" />
+                            {{ isUnlinking ? t('agents.sources.common.unlinking') : t('agents.sources.common.unlink') }}
                         </Button>
                         <Button variant="destructive" @click="deleteTextEntry" :disabled="isUnlinking || isDeleting">
-                            <LoaderCircle v-if="isDeleting" class="mr-2 h-4 w-4 animate-spin" />
-                            <Trash2 v-else class="mr-2 h-4 w-4" />
-                            <span v-if="isDeleting">Deleting...</span>
-                            <span v-else>{{ isTextShared(entryToDelete) ? 'Delete permanently' : 'Delete' }}</span>
+                            <LoaderCircle v-if="isDeleting" class="me-2 h-4 w-4 animate-spin" />
+                            <Trash2 v-else class="me-2 h-4 w-4" />
+                            <span v-if="isDeleting">{{ t('agents.sources.common.deleting') }}</span>
+                            <span v-else>{{ isTextShared(entryToDelete) ? t('agents.sources.common.delete_permanently') : t('agents.sources.common.delete') }}</span>
                         </Button>
                     </div>
                 </DialogContent>

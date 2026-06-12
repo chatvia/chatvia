@@ -12,6 +12,9 @@ import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Lock, Mail, Sparkles } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
     status?: string;
@@ -57,10 +60,10 @@ onMounted(() => {
 </script>
 
 <template>
-    <AuthBase :title="agentName ?? ''" description="Sign in to access this chat workspace">
-        <Head title="Member Login" />
+    <AuthBase :title="agentName ?? ''" :description="t('auth.login_member.description')">
+        <Head :title="t('auth.login_member.head')" />
 
-        <div class="absolute top-4 right-4">
+        <div class="absolute top-4 end-4">
             <ThemeSwitcher />
         </div>
 
@@ -76,20 +79,20 @@ onMounted(() => {
                 <TabsList class="grid h-11 w-full grid-cols-2">
                     <TabsTrigger value="password" class="flex items-center gap-2 text-sm font-medium">
                         <Lock class="h-4 w-4" />
-                        Password
+                        {{ t('auth.login_member.password_tab') }}
                     </TabsTrigger>
                     <TabsTrigger value="magic-link" class="flex items-center gap-2 text-sm font-medium">
                         <Sparkles class="h-4 w-4" />
-                        Magic link
+                        {{ t('auth.login_member.magic_link_tab') }}
                     </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="password" class="mt-6">
                     <form @submit.prevent="submitPassword" class="space-y-6">
                         <div class="space-y-2">
-                            <Label for="email" class="text-base font-medium">Email address</Label>
+                            <Label for="email" class="text-base font-medium">{{ t('auth.login_member.email_label') }}</Label>
                             <div class="relative">
-                                <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                                     <Mail class="h-5 w-5" />
                                 </div>
                                 <Input
@@ -100,17 +103,17 @@ onMounted(() => {
                                     :tabindex="1"
                                     autocomplete="email"
                                     v-model="passwordForm.email"
-                                    placeholder="member@company.com"
-                                    class="h-12 pl-10 text-base"
+                                    :placeholder="t('auth.login_member.email_placeholder')"
+                                    class="h-12 ps-10 text-base"
                                 />
                             </div>
                             <InputError :message="passwordForm.errors.email" />
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="password" class="text-base font-medium">Password</Label>
+                            <Label for="password" class="text-base font-medium">{{ t('auth.login_member.password_label') }}</Label>
                             <div class="relative">
-                                <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                                     <Lock class="h-5 w-5" />
                                 </div>
                                 <Input
@@ -120,22 +123,22 @@ onMounted(() => {
                                     :tabindex="2"
                                     autocomplete="current-password"
                                     v-model="passwordForm.password"
-                                    placeholder="Enter your password"
-                                    class="h-12 pl-10 text-base"
+                                    :placeholder="t('auth.login_member.password_placeholder')"
+                                    class="h-12 ps-10 text-base"
                                 />
                             </div>
                             <InputError :message="passwordForm.errors.password" />
                         </div>
 
-                        <div class="flex items-center space-x-2">
+                        <div class="flex items-center gap-2">
                             <Checkbox id="remember" v-model="passwordForm.remember" :tabindex="3" />
-                            <Label for="remember" class="cursor-pointer text-sm font-medium"> Keep me signed in </Label>
+                            <Label for="remember" class="cursor-pointer text-sm font-medium"> {{ t('auth.login_member.keep_signed_in') }} </Label>
                         </div>
 
                         <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="4" :disabled="passwordForm.processing">
-                            <LoaderCircle v-if="passwordForm.processing" class="mr-2 h-5 w-5 animate-spin" />
-                            <span v-if="!passwordForm.processing">Start Chatting</span>
-                            <span v-else>Signing in...</span>
+                            <LoaderCircle v-if="passwordForm.processing" class="me-2 h-5 w-5 animate-spin" />
+                            <span v-if="!passwordForm.processing">{{ t('auth.login_member.start_chatting') }}</span>
+                            <span v-else>{{ t('auth.login_member.signing_in') }}</span>
                         </Button>
                     </form>
                 </TabsContent>
@@ -143,13 +146,13 @@ onMounted(() => {
                 <TabsContent value="magic-link" class="mt-6">
                     <form @submit.prevent="submitMagicLink" class="space-y-6">
                         <p class="text-muted-foreground text-sm">
-                            Enter your email and we'll send you a single-use link to sign in — no password required.
+                            {{ t('auth.login_member.magic_link_description') }}
                         </p>
 
                         <div class="space-y-2">
-                            <Label for="magic-email" class="text-base font-medium">Email address</Label>
+                            <Label for="magic-email" class="text-base font-medium">{{ t('auth.login_member.email_label') }}</Label>
                             <div class="relative">
-                                <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                                     <Mail class="h-5 w-5" />
                                 </div>
                                 <Input
@@ -159,17 +162,17 @@ onMounted(() => {
                                     :tabindex="1"
                                     autocomplete="email"
                                     v-model="magicLinkForm.email"
-                                    placeholder="member@company.com"
-                                    class="h-12 pl-10 text-base"
+                                    :placeholder="t('auth.login_member.email_placeholder')"
+                                    class="h-12 ps-10 text-base"
                                 />
                             </div>
                             <InputError :message="magicLinkForm.errors.email" />
                         </div>
 
                         <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="2" :disabled="magicLinkForm.processing">
-                            <LoaderCircle v-if="magicLinkForm.processing" class="mr-2 h-5 w-5 animate-spin" />
-                            <span v-if="!magicLinkForm.processing">Send me a sign-in link</span>
-                            <span v-else>Sending link...</span>
+                            <LoaderCircle v-if="magicLinkForm.processing" class="me-2 h-5 w-5 animate-spin" />
+                            <span v-if="!magicLinkForm.processing">{{ t('auth.login_member.send_link') }}</span>
+                            <span v-else>{{ t('auth.login_member.sending_link') }}</span>
                         </Button>
                     </form>
                 </TabsContent>
@@ -181,7 +184,7 @@ onMounted(() => {
                     <span class="w-full border-t"></span>
                 </div>
                 <div class="relative flex justify-center text-sm uppercase">
-                    <span class="bg-background text-muted-foreground px-4 font-medium">Or</span>
+                    <span class="bg-background text-muted-foreground px-4 font-medium">{{ t('auth.login_member.or') }}</span>
                 </div>
             </div>
 

@@ -5,9 +5,10 @@ namespace Domain\Integration\Mcp\Actions;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Mcp\Data\ProvisionCustomMcpServerData;
 use Domain\Integration\Mcp\Data\ProvisionedMcpServerData;
+use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpCatalog;
-use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class ProvisionCustomMcpServerAction
 {
@@ -17,28 +18,34 @@ class ProvisionCustomMcpServerAction
 
     public function execute(ProvisionCustomMcpServerData $data): ProvisionedMcpServerData
     {
-        return DB::transaction(function () use ($data): ProvisionedMcpServerData {
-            $server = AgentMcpServer::create([
-                'user_id' => $data->user->id,
-                'connector_slug' => null,
-                'name' => $data->name,
-                'slug' => $this->uniqueCustomSlug($data->user, $data->name),
-                'url' => $data->url,
-                'transport' => 'streamable_http',
-                'auth_type' => $data->strategy === 'token' ? 'bearer' : 'none',
-                'auth_value' => $data->strategy === 'token' ? ($data->token ?? '') : null,
-                'headers' => null,
-                'timeout_ms' => 300000,
-                'is_enabled' => true,
-            ]);
+        // refresh() is remote HTTP — never hold a transaction across it; compensate on failure.
+        $server = AgentMcpServer::create([
+            'user_id' => $data->user->id,
+            'category' => McpServerCategory::Custom,
+            'connector_slug' => null,
+            'name' => $data->name,
+            'slug' => $this->uniqueCustomSlug($data->user, $data->name),
+            'url' => $data->url,
+            'transport' => 'streamable_http',
+            'auth_type' => $data->strategy === 'token' ? 'bearer' : 'none',
+            'auth_value' => $data->strategy === 'token' ? ($data->token ?? '') : null,
+            'headers' => null,
+            'timeout_ms' => 300000,
+            'is_enabled' => true,
+        ]);
 
+        try {
             $tools = $this->catalog->refresh($server);
+        } catch (Throwable $e) {
+            $server->delete();
 
-            return new ProvisionedMcpServerData(
-                server: $server->fresh(),
-                tools_count: count($tools),
-            );
-        });
+            throw $e;
+        }
+
+        return new ProvisionedMcpServerData(
+            server: $server->fresh(),
+            tools_count: count($tools),
+        );
     }
 
     private function uniqueCustomSlug(User $user, string $name): string

@@ -94,8 +94,7 @@ readonly class WorkspaceConsumption
     private function ownedSourceIds(string $sourceableType): Closure
     {
         $workspaceId = $this->user->workspace()->id;
-        // agent_sources stores the enforced morph alias ('source_file'),
-        // never the FQCN — comparing the class string matches zero rows.
+        // agent_sources stores the morph alias, never the FQCN.
         $alias = Relation::getMorphAlias($sourceableType);
 
         return function ($query) use ($workspaceId, $alias): void {

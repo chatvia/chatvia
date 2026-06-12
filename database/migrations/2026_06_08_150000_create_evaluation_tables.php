@@ -23,8 +23,7 @@ return new class extends Migration
             $table->uuid('external_id')->unique(); // stable, non-guessable id used in routes
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
             $table->string('agent_name');
-            // Tenant scope — eval definitions die with the workspace.
-            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete(); // tenant scope
             $table->string('name');
             $table->text('input'); // the test prompt sent to the agent
             $table->enum('scorer_type', ['contains', 'regex', 'exact', 'json_schema', 'llm_judge']);
@@ -43,8 +42,7 @@ return new class extends Migration
             $table->uuid('external_id')->unique(); // stable, non-guessable id used in routes
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
             $table->string('agent_name');
-            // Tenant scope — runs die with the workspace.
-            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete(); // tenant scope
             $table->enum('status', ['running', 'completed', 'failed'])->default('running');
             $table->unsignedInteger('total_cases')->default(0);
             $table->unsignedInteger('passed_count')->default(0);
@@ -60,7 +58,7 @@ return new class extends Migration
             $table->timestampsTz();
 
             $table->index('workspace_id');
-            $table->index(['agent_id', 'id']); // previous-run lookup (order by id desc); also serves bare agent_id
+            $table->index(['agent_id', 'id']); // previous-run lookup (order by id desc)
         });
 
         // Immutable per-case result of a run.

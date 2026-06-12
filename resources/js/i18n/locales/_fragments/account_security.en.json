@@ -1,0 +1,56 @@
+{
+    "account": {
+        "passkeys": {
+            "name_required": "Give your passkey a name first.",
+            "register_error": "Could not register passkey.",
+            "never": "Never",
+            "delete_aria": "Delete passkey",
+            "name_placeholder": "MacBook Pro, iPhone, YubiKey…",
+            "heading": "Passkeys",
+            "description": "Sign in with your fingerprint, face, or security key — no password needed.",
+            "add_passkey": "Add passkey",
+            "no_passkeys": "No passkeys yet",
+            "no_passkeys_hint": "Add a passkey to sign in faster on this device.",
+            "last_used": "Last used",
+            "created": "Created",
+            "dialog_title": "Name your passkey",
+            "dialog_description": "Choose a name so you can tell your passkeys apart later.",
+            "register": "Register passkey"
+        },
+        "two_factor": {
+            "heading": "Two-factor authentication",
+            "description": "Require a 6-digit code from an authenticator app at sign-in, in addition to your password.",
+            "disable_title": "Disable two-factor authentication?",
+            "disable_description": "Your account will only be protected by your password. You can turn 2FA back on anytime.",
+            "status": "Status",
+            "enabled": "Enabled",
+            "disabled": "Disabled",
+            "off_title": "Two-factor authentication is off",
+            "off_description": "Turn it on to require a 6-digit code at sign-in.",
+            "enable": "Enable two-factor",
+            "finish_setup_title": "Finish setup",
+            "finish_setup_description": "Scan the QR code with your authenticator app, then enter the 6-digit code to confirm.",
+            "loading_qr": "Loading QR code…",
+            "secret_manual": "Or enter this secret manually",
+            "confirmation_code": "Confirmation code",
+            "confirm": "Confirm",
+            "cancel_setup": "Cancel setup",
+            "recovery_title": "Recovery codes",
+            "recovery_description": "Save these one-time codes somewhere safe. Each can unlock your account if you lose your authenticator.",
+            "loading_codes": "Loading recovery codes…",
+            "show_codes": "Show recovery codes",
+            "regenerate_codes": "Regenerate codes",
+            "disable": "Disable two-factor"
+        },
+        "social": {
+            "heading": "Social accounts",
+            "description": "Connect Google, Microsoft, or Slack to sign in with one click and keep your accounts in sync.",
+            "connected_since": "Connected since {date}",
+            "not_connected": "Not connected",
+            "disconnect": "Disconnect",
+            "connect": "Connect",
+            "disconnect_title": "Disconnect {provider}?",
+            "disconnect_description": "You won't be able to sign in with {provider} until you connect it again."
+        }
+    }
+}

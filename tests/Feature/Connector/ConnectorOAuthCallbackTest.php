@@ -38,7 +38,7 @@ it('completes the flow and redirects to the connector settings with a success fl
 
     $this->actingAs($this->user)
         ->get(route('connectors.oauth.callback', ['state' => 'valid-state', 'code' => 'auth-code']))
-        ->assertRedirect(route('settings.connectors.edit'))
+        ->assertRedirect(route('integrations.connectors.edit'))
         ->assertSessionHas('success')
         ->assertSessionMissing('error');
 });
@@ -79,7 +79,7 @@ it('bounces gracefully with an error flash when the provider denies authorizatio
             'error' => 'access_denied',
             'error_description' => 'The user denied the request.',
         ]))
-        ->assertRedirect(route('settings.connectors.edit'))
+        ->assertRedirect(route('integrations.connectors.edit'))
         ->assertSessionHas('error')
         ->assertSessionMissing('success');
 
@@ -92,7 +92,7 @@ it('rejects a tampered or expired state without connecting anything', function (
     // not a 500.
     $this->actingAs($this->user)
         ->get(route('connectors.oauth.callback', ['state' => 'forged-state', 'code' => 'auth-code']))
-        ->assertRedirect(route('settings.connectors.edit'))
+        ->assertRedirect(route('integrations.connectors.edit'))
         ->assertSessionHas('error')
         ->assertSessionMissing('success');
 
@@ -108,7 +108,7 @@ it('surfaces flow failures during completion as an error flash', function (): vo
 
     $this->actingAs($this->user)
         ->get(route('connectors.oauth.callback', ['state' => 'valid-state', 'code' => 'bad-code']))
-        ->assertRedirect(route('settings.connectors.edit'))
+        ->assertRedirect(route('integrations.connectors.edit'))
         ->assertSessionHas('error');
 });
 

@@ -52,7 +52,7 @@ return new class extends Migration
             $table->index(['agent_id', 'created_at']);
             $table->index(['agent_id', 'last_activity_at']);
             $table->index(['user_id', 'created_at']);
-            $table->index('country_id');
+            $table->index(['agent_id', 'country_id']); // chat-log country dropdown/filter
         });
 
         Schema::create('chat_conversations', function (Blueprint $table) {
@@ -60,6 +60,8 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
 
             $table->foreignId('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
+            // Denormalized from the session (a conversation never changes agent).
+            $table->foreignId('agent_id')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Language::class)->nullable()->index()->constrained()->nullOnDelete();
 
             $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram']);
@@ -165,9 +167,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['chat_conversation_id', 'mime_type']);
-            // The chat_message_id FK cascades from chat_messages deletes;
-            // without an index every parent delete seq-scans this table.
-            $table->index('chat_message_id');
+            $table->index('chat_message_id'); // FK cascade needs this
         });
 
         $this->createPartialIndexes();
@@ -183,6 +183,8 @@ return new class extends Migration
         DB::statement("CREATE INDEX conversations_handoff_human_idx ON chat_conversations (last_activity_at) WHERE handoff_status = 'human'");
 
         DB::statement('CREATE INDEX conversations_visible_active_idx ON chat_conversations (chat_session_id, updated_at) WHERE is_visible = true AND deleted_at IS NULL');
+        // Drives the per-agent chat-log list (agent_id filter, ORDER BY updated_at).
+        DB::statement('CREATE INDEX conversations_agent_visible_idx ON chat_conversations (agent_id, updated_at) WHERE is_visible = true AND deleted_at IS NULL');
         // Drives the daily prune query (`WHERE expires_at < now() AND deleted_at IS NULL`).
         DB::statement('CREATE INDEX conversations_expires_cleanup_idx ON chat_conversations (expires_at) WHERE expires_at IS NOT NULL AND deleted_at IS NULL');
         // Drives the consolidated-analysis scan (`WHERE analyzed_at IS NULL AND created_at < ? AND deleted_at IS NULL`).
@@ -198,6 +200,7 @@ return new class extends Migration
             'conversations_handoff_pending_idx',
             'conversations_handoff_human_idx',
             'conversations_visible_active_idx',
+            'conversations_agent_visible_idx',
             'conversations_expires_cleanup_idx',
             'conversations_pending_analysis_idx',
         ];

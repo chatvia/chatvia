@@ -29,7 +29,7 @@ class ConnectorController extends Controller
     {
         abort_unless(has_team_permission('account.connectors'), 404);
 
-        return Inertia::render('settings/Connectors');
+        return Inertia::render('workspace/integrations/Connectors');
     }
 
     public function destroy(Request $request, string $slug): JsonResponse

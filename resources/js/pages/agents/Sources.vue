@@ -6,6 +6,9 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import axios from 'axios';
 import { Activity, Database, FileText, Globe, LoaderCircle, Plug, Type, Wrench, Youtube } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
@@ -61,7 +64,7 @@ const fetchData = async () => {
         functions.value = response.data.functions ?? [];
         mcpTools.value = response.data.mcp_tools ?? [];
     } catch (err: any) {
-        error.value = err.response?.data?.message || 'Failed to load usage';
+        error.value = err.response?.data?.message || t('agents.usage.load_error');
         console.error('Error fetching sources analytics:', err);
     } finally {
         loading.value = false;
@@ -78,25 +81,26 @@ const formatRelative = (value: string | null): string => {
     const min = Math.floor(sec / 60);
     const hour = Math.floor(min / 60);
     const day = Math.floor(hour / 24);
-    if (sec < 60) return 'just now';
-    if (min < 60) return `${min} minute${min !== 1 ? 's' : ''} ago`;
-    if (hour < 24) return `${hour} hour${hour !== 1 ? 's' : ''} ago`;
-    if (day < 7) return `${day} day${day !== 1 ? 's' : ''} ago`;
-    if (day < 30) return `${Math.floor(day / 7)} week${Math.floor(day / 7) !== 1 ? 's' : ''} ago`;
-    if (day < 365) return `${Math.floor(day / 30)} month${Math.floor(day / 30) !== 1 ? 's' : ''} ago`;
-    return `${Math.floor(day / 365)} year${Math.floor(day / 365) !== 1 ? 's' : ''} ago`;
+    if (sec < 60) return t('agents.usage.relative.just_now');
+    if (min < 60) return t('agents.usage.relative.minutes_ago', { count: min }, min);
+    if (hour < 24) return t('agents.usage.relative.hours_ago', { count: hour }, hour);
+    if (day < 7) return t('agents.usage.relative.days_ago', { count: day }, day);
+    if (day < 30) {
+        const weeks = Math.floor(day / 7);
+        return t('agents.usage.relative.weeks_ago', { count: weeks }, weeks);
+    }
+    if (day < 365) {
+        const months = Math.floor(day / 30);
+        return t('agents.usage.relative.months_ago', { count: months }, months);
+    }
+    const years = Math.floor(day / 365);
+    return t('agents.usage.relative.years_ago', { count: years }, years);
 };
 
 const subKindLabel = (subKind: string): string => {
-    return (
-        {
-            source_file: 'File',
-            source_website: 'Website',
-            source_text: 'Text',
-            source_youtube_video: 'YouTube',
-            agent_website_url: 'Web page',
-        }[subKind] ?? subKind
-    );
+    const key = `agents.usage.sub_kind.${subKind}`;
+    const translated = t(key);
+    return translated === key ? subKind : translated;
 };
 
 const subKindIcon = (subKind: string) => {
@@ -117,7 +121,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Usage Insights" description="See which sources, functions, and MCP servers this agent actually uses">
+    <AgentLayout :agent="agent" :title="t('agents.usage.title')" :description="t('agents.usage.description')">
         <template #header-icon>
             <Activity class="h-5 w-5" />
         </template>
@@ -133,7 +137,7 @@ onMounted(() => {
                         <CardContent class="pt-6">
                             <div class="space-y-2 text-center">
                                 <p class="text-destructive font-medium">{{ error }}</p>
-                                <button @click="fetchData" class="text-muted-foreground hover:text-foreground text-sm underline">Try again</button>
+                                <button @click="fetchData" class="text-muted-foreground hover:text-foreground text-sm underline">{{ t('agents.usage.try_again') }}</button>
                             </div>
                         </CardContent>
                     </Card>
@@ -143,19 +147,19 @@ onMounted(() => {
                     <Tabs v-model="activeTab" class="mb-4">
                         <TabsList>
                             <TabsTrigger value="knowledge">
-                                <Database class="mr-1.5 h-3.5 w-3.5" />
-                                Knowledge
-                                <Badge variant="secondary" class="ml-2">{{ totals.knowledge }}</Badge>
+                                <Database class="me-1.5 h-3.5 w-3.5" />
+                                {{ t('agents.usage.tabs.knowledge') }}
+                                <Badge variant="secondary" class="ms-2">{{ totals.knowledge }}</Badge>
                             </TabsTrigger>
                             <TabsTrigger value="functions">
-                                <Wrench class="mr-1.5 h-3.5 w-3.5" />
-                                Functions
-                                <Badge variant="secondary" class="ml-2">{{ totals.functions }}</Badge>
+                                <Wrench class="me-1.5 h-3.5 w-3.5" />
+                                {{ t('agents.usage.tabs.functions') }}
+                                <Badge variant="secondary" class="ms-2">{{ totals.functions }}</Badge>
                             </TabsTrigger>
                             <TabsTrigger value="mcp">
-                                <Plug class="mr-1.5 h-3.5 w-3.5" />
-                                MCP
-                                <Badge variant="secondary" class="ml-2">{{ totals.mcp }}</Badge>
+                                <Plug class="me-1.5 h-3.5 w-3.5" />
+                                {{ t('agents.usage.tabs.mcp') }}
+                                <Badge variant="secondary" class="ms-2">{{ totals.mcp }}</Badge>
                             </TabsTrigger>
                         </TabsList>
                     </Tabs>
@@ -166,9 +170,9 @@ onMounted(() => {
                             <div v-if="activeTab === 'knowledge'">
                                 <div v-if="!knowledge.length" class="text-muted-foreground py-12 text-center">
                                     <Database class="mx-auto mb-4 h-12 w-12 opacity-50" />
-                                    <p>No knowledge sources retrieved yet</p>
+                                    <p>{{ t('agents.usage.knowledge_empty') }}</p>
                                     <p class="mt-1 text-xs">
-                                        Files, websites, text snippets, and YouTube videos appear here once the agent uses them.
+                                        {{ t('agents.usage.knowledge_empty_hint') }}
                                     </p>
                                 </div>
                                 <div v-else class="space-y-3">
@@ -194,11 +198,11 @@ onMounted(() => {
                                                 <div class="mt-1.5 flex flex-wrap items-center gap-2">
                                                     <Badge variant="outline">{{ subKindLabel(item.sub_kind) }}</Badge>
                                                     <span class="text-foreground text-sm font-medium">
-                                                        {{ item.count }} retrieval{{ item.count !== 1 ? 's' : '' }}
+                                                        {{ t('agents.usage.retrievals', { count: item.count }, item.count) }}
                                                     </span>
                                                     <span v-if="item.mime_type" class="text-muted-foreground text-xs">• {{ item.mime_type }}</span>
                                                     <span v-if="item.last_used_at" class="text-muted-foreground text-xs"
-                                                        >• Last used {{ formatRelative(item.last_used_at) }}</span
+                                                        >• {{ t('agents.usage.last_used', { time: formatRelative(item.last_used_at) }) }}</span
                                                     >
                                                 </div>
                                             </div>
@@ -211,8 +215,8 @@ onMounted(() => {
                             <div v-else-if="activeTab === 'functions'">
                                 <div v-if="!functions.length" class="text-muted-foreground py-12 text-center">
                                     <Wrench class="mx-auto mb-4 h-12 w-12 opacity-50" />
-                                    <p>No function calls yet</p>
-                                    <p class="mt-1 text-xs">Webhook functions appear here once the agent invokes them.</p>
+                                    <p>{{ t('agents.usage.functions_empty') }}</p>
+                                    <p class="mt-1 text-xs">{{ t('agents.usage.functions_empty_hint') }}</p>
                                 </div>
                                 <div v-else class="space-y-3">
                                     <div
@@ -236,10 +240,10 @@ onMounted(() => {
                                                 </p>
                                                 <div class="mt-1.5 flex flex-wrap items-center gap-2">
                                                     <span class="text-foreground text-sm font-medium">
-                                                        {{ item.count }} call{{ item.count !== 1 ? 's' : '' }}
+                                                        {{ t('agents.usage.calls', { count: item.count }, item.count) }}
                                                     </span>
                                                     <span v-if="item.last_used_at" class="text-muted-foreground text-xs"
-                                                        >• Last called {{ formatRelative(item.last_used_at) }}</span
+                                                        >• {{ t('agents.usage.last_called', { time: formatRelative(item.last_used_at) }) }}</span
                                                     >
                                                 </div>
                                             </div>
@@ -252,8 +256,8 @@ onMounted(() => {
                             <div v-else>
                                 <div v-if="!mcpTools.length" class="text-muted-foreground py-12 text-center">
                                     <Plug class="mx-auto mb-4 h-12 w-12 opacity-50" />
-                                    <p>No MCP tool calls yet</p>
-                                    <p class="mt-1 text-xs">Individual tools from connected MCP servers appear here once the agent invokes them.</p>
+                                    <p>{{ t('agents.usage.mcp_empty') }}</p>
+                                    <p class="mt-1 text-xs">{{ t('agents.usage.mcp_empty_hint') }}</p>
                                 </div>
                                 <div v-else class="space-y-3">
                                     <div
@@ -272,14 +276,14 @@ onMounted(() => {
                                                     <Plug class="text-muted-foreground mt-0.5 h-4 w-4 flex-shrink-0" />
                                                     <p class="truncate font-mono text-base font-semibold">{{ item.tool_name }}</p>
                                                 </div>
-                                                <p class="text-muted-foreground mt-0.5 text-sm">via {{ item.server_name }}</p>
+                                                <p class="text-muted-foreground mt-0.5 text-sm">{{ t('agents.usage.via_server', { name: item.server_name }) }}</p>
                                                 <div class="mt-1.5 flex flex-wrap items-center gap-2">
                                                     <Badge v-if="item.connector_slug" variant="secondary">{{ item.connector_slug }}</Badge>
                                                     <span class="text-foreground text-sm font-medium">
-                                                        {{ item.count }} call{{ item.count !== 1 ? 's' : '' }}
+                                                        {{ t('agents.usage.calls', { count: item.count }, item.count) }}
                                                     </span>
                                                     <span v-if="item.last_used_at" class="text-muted-foreground text-xs"
-                                                        >• Last called {{ formatRelative(item.last_used_at) }}</span
+                                                        >• {{ t('agents.usage.last_called', { time: formatRelative(item.last_used_at) }) }}</span
                                                     >
                                                 </div>
                                             </div>

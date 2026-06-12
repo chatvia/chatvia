@@ -23,6 +23,9 @@ import {
 import { Info, LoaderCircle, MessageCircle } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { Line, Pie } from 'vue-chartjs';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, ChartTooltip, Legend, Filler);
@@ -75,7 +78,7 @@ const fetchToneData = async () => {
         const response = await axios.get(route('agents.tone.data', props.agent.external_id));
         toneData.value = response.data;
     } catch (err: any) {
-        error.value = err.response?.data?.message || 'Failed to load tone data';
+        error.value = err.response?.data?.message || t('agents.tone.load_error');
         console.error('Error fetching tone data:', err);
     } finally {
         loading.value = false;
@@ -96,7 +99,7 @@ const lineChartData = computed(() => {
         labels: toneData.value.toneByDate.map((d: any) => formatDate(d.date)),
         datasets: [
             {
-                label: '😐 Neutral',
+                label: t('agents.tone.neutral_label'),
                 data: toneData.value.toneByDate.map((d: any) => d.neutral),
                 borderColor: 'rgb(156, 163, 175)',
                 backgroundColor: 'rgba(156, 163, 175, 0.1)',
@@ -106,7 +109,7 @@ const lineChartData = computed(() => {
                 pointBackgroundColor: 'rgb(156, 163, 175)',
             },
             {
-                label: '😤 Frustrated',
+                label: t('agents.tone.frustrated_label'),
                 data: toneData.value.toneByDate.map((d: any) => d.frustrated),
                 borderColor: 'rgb(239, 68, 68)',
                 backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -116,7 +119,7 @@ const lineChartData = computed(() => {
                 pointBackgroundColor: 'rgb(239, 68, 68)',
             },
             {
-                label: '⚡ Urgent',
+                label: t('agents.tone.urgent_label'),
                 data: toneData.value.toneByDate.map((d: any) => d.urgent),
                 borderColor: 'rgb(251, 146, 60)',
                 backgroundColor: 'rgba(251, 146, 60, 0.1)',
@@ -126,7 +129,7 @@ const lineChartData = computed(() => {
                 pointBackgroundColor: 'rgb(251, 146, 60)',
             },
             {
-                label: '😕 Confused',
+                label: t('agents.tone.confused_label'),
                 data: toneData.value.toneByDate.map((d: any) => d.confused),
                 borderColor: 'rgb(168, 85, 247)',
                 backgroundColor: 'rgba(168, 85, 247, 0.1)',
@@ -136,7 +139,7 @@ const lineChartData = computed(() => {
                 pointBackgroundColor: 'rgb(168, 85, 247)',
             },
             {
-                label: '😊 Satisfied',
+                label: t('agents.tone.satisfied_label'),
                 data: toneData.value.toneByDate.map((d: any) => d.satisfied),
                 borderColor: 'rgb(74, 222, 128)',
                 backgroundColor: 'rgba(74, 222, 128, 0.1)',
@@ -220,7 +223,14 @@ const pieChartData = computed(() => {
     const totals = toneData.value.totalTones;
 
     return {
-        labels: ['Neutral', 'Frustrated', 'Urgent', 'Confused', 'Satisfied', 'Unspecified'],
+        labels: [
+            t('agents.tone.neutral'),
+            t('agents.tone.frustrated'),
+            t('agents.tone.urgent'),
+            t('agents.tone.confused'),
+            t('agents.tone.satisfied'),
+            t('agents.tone.unspecified'),
+        ],
         datasets: [
             {
                 data: [totals.neutral, totals.frustrated, totals.urgent, totals.confused, totals.satisfied, totals.unspecified],
@@ -312,7 +322,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Tone Analysis" description="Analyze user communication tone patterns and trends">
+    <AgentLayout :agent="agent" :title="t('agents.tone.title')" :description="t('agents.tone.description')">
         <template #header-icon>
             <MessageCircle class="h-5 w-5" />
         </template>
@@ -320,16 +330,16 @@ onMounted(() => {
         <!-- Show locked feature if user doesn't have access -->
         <LockedFeature
             v-if="!hasAccess"
-            description="Upgrade your plan to access advanced tone analysis and understand the communication style in your conversations."
+            :description="t('agents.tone.locked_description')"
         />
 
         <!-- Plan allows it, but the owner switched it off for this agent -->
         <AnalyticsDisabled
             v-else-if="!chatlogEnabled || !isEnabled"
-            title="Tone analysis"
-            description="Turn it on to track the communication style — friendly, frustrated, curious and more — across conversations."
+            :title="t('agents.tone.disabled_title')"
+            :description="t('agents.tone.disabled_description')"
             :can-enable="chatlogEnabled"
-            blocked-reason="Chat log is off, so there's nothing to analyze. Turn it on in Setup → Settings to start collecting tone."
+            :blocked-reason="t('agents.tone.blocked_reason')"
             :enabling="enabling"
             @enable="enableTone"
         />
@@ -343,7 +353,7 @@ onMounted(() => {
                         <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
                         <span class="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
                     </div>
-                    <p class="text-muted-foreground text-sm">Live analytics</p>
+                    <p class="text-muted-foreground text-sm">{{ t('agents.tone.live_analytics') }}</p>
                 </div>
             </div>
 
@@ -358,7 +368,7 @@ onMounted(() => {
                     <CardContent class="pt-6">
                         <div class="space-y-2 text-center">
                             <p class="text-destructive font-medium">{{ error }}</p>
-                            <button @click="fetchToneData" class="text-muted-foreground hover:text-foreground text-sm underline">Try again</button>
+                            <button @click="fetchToneData" class="text-muted-foreground hover:text-foreground text-sm underline">{{ t('agents.tone.try_again') }}</button>
                         </div>
                     </CardContent>
                 </Card>
@@ -372,7 +382,7 @@ onMounted(() => {
                         <CardContent class="!p-4">
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">Neutral</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('agents.tone.neutral') }}</p>
                                     <Badge variant="secondary"> {{ summaryStats?.neutral.percentage }}% </Badge>
                                 </div>
                                 <p class="text-2xl font-bold">{{ summaryStats?.neutral.count }}</p>
@@ -384,7 +394,7 @@ onMounted(() => {
                         <CardContent class="!p-4">
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">Frustrated</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('agents.tone.frustrated') }}</p>
                                     <Badge class="bg-red-100 text-red-700 hover:bg-red-100"> {{ summaryStats?.frustrated.percentage }}% </Badge>
                                 </div>
                                 <p class="text-2xl font-bold">{{ summaryStats?.frustrated.count }}</p>
@@ -396,7 +406,7 @@ onMounted(() => {
                         <CardContent class="!p-4">
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">Satisfied</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('agents.tone.satisfied') }}</p>
                                     <Badge class="bg-green-100 text-green-700 hover:bg-green-100"> {{ summaryStats?.satisfied.percentage }}% </Badge>
                                 </div>
                                 <p class="text-2xl font-bold">{{ summaryStats?.satisfied.count }}</p>
@@ -408,7 +418,7 @@ onMounted(() => {
                         <CardContent class="!p-4">
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">Unspecified</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('agents.tone.unspecified') }}</p>
                                     <Badge variant="outline"> {{ summaryStats?.unspecified.percentage }}% </Badge>
                                 </div>
                                 <p class="text-2xl font-bold">{{ summaryStats?.unspecified.count }}</p>
@@ -422,13 +432,13 @@ onMounted(() => {
                     <CardHeader>
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
-                                <CardTitle>Tone Distribution</CardTitle>
+                                <CardTitle>{{ t('agents.tone.tone_distribution') }}</CardTitle>
                                 <Info class="text-muted-foreground h-4 w-4" />
                             </div>
                             <Tabs v-model="activeView" class="w-auto">
                                 <TabsList>
-                                    <TabsTrigger value="graph" @click="activeView = 'graph'"> Graph </TabsTrigger>
-                                    <TabsTrigger value="pie" @click="activeView = 'pie'"> Pie Chart </TabsTrigger>
+                                    <TabsTrigger value="graph" @click="activeView = 'graph'"> {{ t('agents.tone.graph') }} </TabsTrigger>
+                                    <TabsTrigger value="pie" @click="activeView = 'pie'"> {{ t('agents.tone.pie_chart') }} </TabsTrigger>
                                 </TabsList>
                             </Tabs>
                         </div>

@@ -16,10 +16,12 @@ use Illuminate\Support\Facades\Bus;
  * the captured answer/sources/tools/trace land on the row, the scorer's verdict
  * drives pass/score, and a failed agent run becomes a failing result — never an
  * exception that would abort the batch. It also bills the workspace one message
- * credit per case that produced an answer, so fake the bus in every test.
+ * credit per case that produced an answer, so fake the bus in every test, and
+ * gates on the same can-send-messages flag as live chat — stubbed open here.
  */
 beforeEach(function (): void {
     Bus::fake();
+    fakeMessageCreditGate();
 });
 
 function scoringFixtures(string $value = 'paris'): array
@@ -153,6 +155,24 @@ it('does not charge a credit when the agent run errored (no answer produced)', f
     )));
 
     app(ScoreEvalCaseAction::class)->execute($run, $case);
+
+    Bus::assertNotDispatched(UpdateUserCreditsJob::class);
+});
+
+it('skips the LLM call and charges nothing when the workspace is out of messages', function (): void {
+    [$run, $case] = scoringFixtures();
+
+    fakeMessageCreditGate(false);
+
+    // The runner must never be invoked — an out-of-credit case spends no LLM call.
+    $runner = Mockery::mock(EvalAgentRunner::class);
+    $runner->shouldNotReceive('run');
+    app()->instance(EvalAgentRunner::class, $runner);
+
+    $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
+
+    expect($result->pass)->toBeFalse()
+        ->and($result->judge_rationale)->toContain('Message limit reached');
 
     Bus::assertNotDispatched(UpdateUserCreditsJob::class);
 });

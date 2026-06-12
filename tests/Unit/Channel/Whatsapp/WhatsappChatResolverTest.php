@@ -37,11 +37,11 @@ it('creates a Session + Conversation + mapping on first contact', function (): v
     expect($chat->agent_whatsapp_number_id)->toBe($number->id)
         ->and($chat->wa_id)->toBe('4915551234567')
         ->and($chat->name)->toBe('Sam')
-        ->and($chat->session_external_id)->not->toBeNull()
-        ->and($chat->conversation_external_id)->not->toBeNull();
+        ->and($chat->chat_session_id)->not->toBeNull()
+        ->and($chat->chat_conversation_id)->not->toBeNull();
 
     // The Session is real and belongs to the agent, with no chatter user.
-    $session = Session::query()->where('external_id', $chat->session_external_id)->firstOrFail();
+    $session = $chat->session;
     expect($session->agent_id)->toBe($number->agent_id)
         ->and($session->user_id)->toBeNull()
         ->and($session->name)->toBe('Sam');
@@ -66,7 +66,7 @@ it('keeps separate conversations for different users', function (): void {
     $b = $resolver->resolve($number, '222');
 
     expect($a->id)->not->toBe($b->id)
-        ->and($a->conversation_external_id)->not->toBe($b->conversation_external_id);
+        ->and($a->chat_conversation_id)->not->toBe($b->chat_conversation_id);
     expect(WhatsappChat::query()->count())->toBe(2);
 });
 
@@ -76,7 +76,7 @@ it('tags the conversation as a WhatsApp conversation', function (): void {
     $chat = app(WhatsappChatResolver::class)->resolve($number, '4915551234567', 'Lee');
 
     $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $chat->conversation_external_id,
+        'external_id' => $chat->conversation->external_id,
         'source' => ConversationSource::Whatsapp->value,
     ]);
 });

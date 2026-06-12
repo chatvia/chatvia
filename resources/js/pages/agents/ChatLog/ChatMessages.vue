@@ -5,9 +5,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useChatLog } from './useChatLog';
 
 type Message = Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData;
+
+const { t } = useI18n();
 
 const { hasCapability } = useCapabilityGuard();
 const hasToneAccess = computed(() => hasCapability('tone'));
@@ -63,9 +66,9 @@ function formatTokens(value: number): string {
 function getFeedbackInfo(feedback: string | null): { color: string; label: string } | null {
     if (!feedback) return null;
     if (feedback === 'positive') {
-        return { color: 'text-green-600 dark:text-green-400', label: 'Positive feedback' };
+        return { color: 'text-green-600 dark:text-green-400', label: t('agents.chatlog.messages.positive_feedback') };
     }
-    return { color: 'text-red-600 dark:text-red-400', label: 'Negative feedback' };
+    return { color: 'text-red-600 dark:text-red-400', label: t('agents.chatlog.messages.negative_feedback') };
 }
 
 function openReviseDialog(message: Message) {
@@ -83,16 +86,16 @@ function openReviseDialog(message: Message) {
         <!-- Empty States -->
         <div v-else-if="!currentConversationId" class="text-muted-foreground flex h-full flex-col items-center justify-center py-20">
             <MessageSquare class="mb-3 h-10 w-10 opacity-30" />
-            <p class="text-sm">Select a conversation</p>
+            <p class="text-sm">{{ t('agents.chatlog.messages.select_conversation') }}</p>
         </div>
         <div v-else-if="messages.length === 0 && !search" class="text-muted-foreground flex h-full flex-col items-center justify-center py-20">
             <MessageSquare class="mb-3 h-10 w-10 opacity-30" />
-            <p class="text-sm">No messages yet</p>
+            <p class="text-sm">{{ t('agents.chatlog.messages.no_messages') }}</p>
         </div>
         <div v-else-if="messages.length === 0 && search" class="text-muted-foreground flex h-full flex-col items-center justify-center py-20">
             <Search class="mb-3 h-10 w-10 opacity-30" />
-            <p class="text-sm">No results found</p>
-            <Button variant="link" size="sm" @click="clearSearch" class="mt-1 h-auto p-0"> Clear search </Button>
+            <p class="text-sm">{{ t('agents.chatlog.messages.no_results') }}</p>
+            <Button variant="link" size="sm" @click="clearSearch" class="mt-1 h-auto p-0"> {{ t('agents.chatlog.messages.clear_search') }} </Button>
         </div>
 
         <!-- Messages List -->
@@ -151,9 +154,9 @@ function openReviseDialog(message: Message) {
                                 <span class="group relative cursor-help tabular-nums" :class="getConfidenceColor(getConfidenceScore(m))">
                                     {{ formatConfidenceScore(getConfidenceScore(m)) }}
                                     <span
-                                        class="pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                                        class="pointer-events-none absolute bottom-full start-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
                                     >
-                                        Confidence: {{ (getConfidenceScore(m) * 100).toFixed(0) }}%
+                                        {{ t('agents.chatlog.messages.confidence', { percent: (getConfidenceScore(m) * 100).toFixed(0) }) }}
                                     </span>
                                 </span>
                                 <span class="text-muted-foreground/30">•</span>
@@ -162,11 +165,16 @@ function openReviseDialog(message: Message) {
                             <!-- Tokens (for assistant) -->
                             <template v-if="m.role === 'assistant' && getTotalTokens(m) !== null">
                                 <span class="group relative cursor-help tabular-nums">
-                                    {{ formatTokens(getTotalTokens(m)!) }} tokens
+                                    {{ t('agents.chatlog.messages.tokens', { count: formatTokens(getTotalTokens(m)!) }) }}
                                     <span
-                                        class="pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                                        class="pointer-events-none absolute bottom-full start-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
                                     >
-                                        {{ formatTokens(m.prompt_tokens ?? 0) }} prompt + {{ formatTokens(m.completion_tokens ?? 0) }} completion
+                                        {{
+                                            t('agents.chatlog.messages.tokens_breakdown', {
+                                                prompt: formatTokens(m.prompt_tokens ?? 0),
+                                                completion: formatTokens(m.completion_tokens ?? 0),
+                                            })
+                                        }}
                                     </span>
                                 </span>
                                 <span class="text-muted-foreground/30">•</span>
@@ -174,7 +182,7 @@ function openReviseDialog(message: Message) {
 
                             <!-- Playground indicator -->
                             <template v-if="m.source === 'playground'">
-                                <span class="font-medium text-amber-600 dark:text-amber-400">Playground</span>
+                                <span class="font-medium text-amber-600 dark:text-amber-400">{{ t('agents.chatlog.messages.playground') }}</span>
                                 <span class="text-muted-foreground/30">•</span>
                             </template>
 
@@ -183,7 +191,7 @@ function openReviseDialog(message: Message) {
                                 {{ formatTimeAgo(m.created_at) }}
                                 <span
                                     class="pointer-events-none absolute bottom-full z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
-                                    :class="m.role === 'user' ? 'right-0' : 'left-0'"
+                                    :class="m.role === 'user' ? 'end-0' : 'start-0'"
                                 >
                                     {{ formatFullDateTime(m.created_at) }}
                                 </span>
@@ -196,7 +204,7 @@ function openReviseDialog(message: Message) {
                                     <ThumbsUp v-if="m.feedback === 'positive'" class="h-3 w-3" />
                                     <ThumbsDown v-else class="h-3 w-3" />
                                     <span
-                                        class="pointer-events-none absolute bottom-full left-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                                        class="pointer-events-none absolute bottom-full start-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
                                     >
                                         {{ getFeedbackInfo(m.feedback)?.label }}
                                     </span>
@@ -210,13 +218,13 @@ function openReviseDialog(message: Message) {
                                     v-if="m.is_response_from_qa"
                                     class="inline-flex items-center gap-1 rounded bg-green-100 px-1.5 py-0.5 font-medium text-green-700 dark:bg-green-900/40 dark:text-green-300"
                                 >
-                                    ✓ Q&A Matched
+                                    ✓ {{ t('agents.chatlog.messages.qa_matched') }}
                                 </span>
                                 <span
                                     v-else-if="m.agent_question_answer_id"
                                     class="inline-flex items-center gap-1 rounded bg-green-100 px-1.5 py-0.5 font-medium text-green-700 dark:bg-green-900/40 dark:text-green-300"
                                 >
-                                    ✓ Revised
+                                    ✓ {{ t('agents.chatlog.messages.revised') }}
                                 </span>
                                 <button
                                     v-else
@@ -224,7 +232,7 @@ function openReviseDialog(message: Message) {
                                     @click="openReviseDialog(m)"
                                 >
                                     <RotateCcw class="h-2.5 w-2.5" />
-                                    <span>Revise</span>
+                                    <span>{{ t('agents.chatlog.messages.revise') }}</span>
                                 </button>
                             </template>
                         </div>
@@ -244,8 +252,8 @@ function openReviseDialog(message: Message) {
                 :disabled="!messagesData?.prev_page_url || isLoadingMessages"
                 @click="currentConversationId && fetchMessages(currentConversationId, messagesData.current_page - 1)"
             >
-                <LoaderCircle v-if="isLoadingMessages" class="mr-1 h-3 w-3 animate-spin" />
-                Prev
+                <LoaderCircle v-if="isLoadingMessages" class="me-1 h-3 w-3 animate-spin" />
+                {{ t('agents.chatlog.pagination.prev') }}
             </Button>
             <span class="text-muted-foreground text-[11px] tabular-nums"> {{ messagesData?.current_page }} / {{ messagesData?.last_page }} </span>
             <Button
@@ -255,8 +263,8 @@ function openReviseDialog(message: Message) {
                 :disabled="!messagesData?.next_page_url || isLoadingMessages"
                 @click="currentConversationId && fetchMessages(currentConversationId, messagesData.current_page + 1)"
             >
-                <LoaderCircle v-if="isLoadingMessages" class="mr-1 h-3 w-3 animate-spin" />
-                Next
+                <LoaderCircle v-if="isLoadingMessages" class="me-1 h-3 w-3 animate-spin" />
+                {{ t('agents.chatlog.pagination.next') }}
             </Button>
         </div>
     </div>

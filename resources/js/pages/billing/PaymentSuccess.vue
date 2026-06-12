@@ -3,6 +3,9 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { router } from '@inertiajs/vue3';
 import { CheckCircle, Loader2 } from 'lucide-vue-next';
 import { onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const countdown = ref(5);
 let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -28,7 +31,7 @@ const redirectNow = () => {
 </script>
 
 <template>
-    <AppLayout title="Payment Successful">
+    <AppLayout :title="t('billing.payment_success.page_title')">
         <div class="flex min-h-[80vh] items-center justify-center px-4">
             <div class="max-w-md text-center">
                 <!-- Success Icon with Animation -->
@@ -41,22 +44,24 @@ const redirectNow = () => {
                 </div>
 
                 <!-- Text Content -->
-                <h1 class="mb-3 text-3xl font-semibold text-slate-900">Payment Received</h1>
-                <p class="mb-8 text-slate-600">Thank you! Your payment has been processed successfully. We're setting up your subscription now.</p>
+                <h1 class="mb-3 text-3xl font-semibold text-slate-900">{{ t('billing.payment_success.heading') }}</h1>
+                <p class="mb-8 text-slate-600">{{ t('billing.payment_success.description') }}</p>
 
                 <!-- Countdown -->
                 <div class="mb-6 rounded-xl bg-slate-50 p-6">
                     <div class="flex items-center justify-center gap-3 text-slate-600">
                         <Loader2 class="h-5 w-5 animate-spin text-slate-400" />
                         <span
-                            >Redirecting in <span class="font-semibold text-slate-900 tabular-nums">{{ countdown }}</span> seconds...</span
+                            >{{ t('billing.payment_success.redirecting_prefix') }}
+                            <span class="font-semibold text-slate-900 tabular-nums">{{ countdown }}</span>
+                            {{ t('billing.payment_success.redirecting_suffix') }}</span
                         >
                     </div>
                 </div>
 
                 <!-- Manual redirect button -->
                 <button @click="redirectNow" class="text-sm text-slate-500 underline underline-offset-2 transition-colors hover:text-slate-700">
-                    Go to billing now
+                    {{ t('billing.payment_success.go_to_billing') }}
                 </button>
             </div>
         </div>

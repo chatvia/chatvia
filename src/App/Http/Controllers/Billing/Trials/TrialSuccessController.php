@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Billing\Trials;
 
+use App\Identity\Workspace\Services\PasswordSetup;
 use Domain\Billing\Models\UserBilling;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -9,7 +10,7 @@ use Laravel\Cashier\Cashier;
 
 class TrialSuccessController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, PasswordSetup $passwordSetup)
     {
         $sessionId = $request->query('session_id');
 
@@ -34,6 +35,12 @@ class TrialSuccessController
 
             // Log the user in automatically
             Auth::login($user);
+
+            // Brand-new accounts were provisioned with a random password the
+            // owner has never seen — have them choose a real one first.
+            if ($passwordSetup->isRequired($user)) {
+                return redirect()->route('password.setup');
+            }
 
             // Redirect to billing success page (same as upgrading)
             return redirect()->route('billing.success');

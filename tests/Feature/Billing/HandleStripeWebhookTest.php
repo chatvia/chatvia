@@ -1,11 +1,13 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\PasswordSetup;
 use Domain\Billing\Actions\Subscriptions\GrantSubscriptionAction;
 use Domain\Billing\Listeners\HandleStripeWebhook;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserCredit;
 use Domain\Billing\Models\UserQuota;
+use Domain\Billing\Notifications\TrialWelcomeNotification;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Cashier\Events\WebhookReceived;
@@ -310,6 +312,20 @@ it('provisions a user when Stripe POSTs a trial checkout.session.completed to th
         ->and($subscription->type)->toBe('default')
         ->and($subscription->items()->count())->toBe(1)
         ->and($billing->subscribed())->toBeTrue();
+
+    // The account is provisioned with a random password nobody knows: the
+    // owner is flagged for first-time password setup, and the welcome email
+    // must not carry any password.
+    expect(app(PasswordSetup::class)->isRequired($user))->toBeTrue();
+
+    Notification::assertSentTo($user, TrialWelcomeNotification::class, function (TrialWelcomeNotification $notification) use ($user): bool {
+        $mail = $notification->toMail($user);
+        $body = collect($mail->introLines)->merge($mail->outroLines)->implode(' ');
+
+        return str_contains($body, 'we never send passwords by email')
+            && str_contains($body, 'magic link')
+            && ! str_contains($body, 'Password:');
+    });
 });
 
 it('resets extra_agents_limit to 0 on customer.subscription.deleted', function (): void {

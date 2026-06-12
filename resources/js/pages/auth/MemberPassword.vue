@@ -9,6 +9,9 @@ import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { Eye, EyeOff, LoaderCircle, Lock, User } from 'lucide-vue-next';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps<{
     status?: string;
@@ -30,7 +33,7 @@ const submit = () => {
     form.post(route('agents.invitations.accept'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
         onError: (_error) => {
-            alert('Could not accept the invitation. Please try again.');
+            alert(t('auth.member_password.accept_error'));
         },
     });
 };
@@ -45,10 +48,10 @@ const toggleConfirmPasswordVisibility = () => {
 </script>
 
 <template>
-    <AuthBase title="Set your password" description="Create a secure password for your account">
-        <Head title="Set Password" />
+    <AuthBase :title="t('auth.member_password.title')" :description="t('auth.member_password.description')">
+        <Head :title="t('auth.member_password.head')" />
 
-        <div class="absolute top-4 right-4">
+        <div class="absolute top-4 end-4">
             <ThemeSwitcher />
         </div>
 
@@ -65,9 +68,9 @@ const toggleConfirmPasswordVisibility = () => {
             <form @submit.prevent="submit" class="space-y-6">
                 <!-- Name Field -->
                 <div class="space-y-2">
-                    <Label for="name" class="text-base font-medium">Name</Label>
+                    <Label for="name" class="text-base font-medium">{{ t('auth.member_password.name_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <User class="h-5 w-5" />
                         </div>
                         <Input
@@ -78,8 +81,8 @@ const toggleConfirmPasswordVisibility = () => {
                             :tabindex="1"
                             autocomplete="name"
                             v-model="form.name"
-                            placeholder="Enter your name"
-                            class="h-12 pl-10 text-base"
+                            :placeholder="t('auth.member_password.name_placeholder')"
+                            class="h-12 ps-10 text-base"
                         />
                     </div>
                     <InputError :message="form.errors.name" />
@@ -87,9 +90,9 @@ const toggleConfirmPasswordVisibility = () => {
 
                 <!-- Password Field -->
                 <div class="space-y-2">
-                    <Label for="password" class="text-base font-medium">Password</Label>
+                    <Label for="password" class="text-base font-medium">{{ t('auth.member_password.password_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <Lock class="h-5 w-5" />
                         </div>
                         <Input
@@ -99,13 +102,13 @@ const toggleConfirmPasswordVisibility = () => {
                             :tabindex="2"
                             autocomplete="new-password"
                             v-model="form.password"
-                            placeholder="Create a secure password"
-                            class="h-12 pr-10 pl-10 text-base"
+                            :placeholder="t('auth.member_password.password_placeholder')"
+                            class="h-12 pe-10 ps-10 text-base"
                         />
                         <button
                             type="button"
                             @click="togglePasswordVisibility"
-                            class="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center pr-3"
+                            class="text-muted-foreground hover:text-foreground absolute inset-y-0 end-0 flex items-center pe-3"
                             :tabindex="3"
                         >
                             <Eye v-if="!showPassword" class="h-5 w-5" />
@@ -117,9 +120,9 @@ const toggleConfirmPasswordVisibility = () => {
 
                 <!-- Confirm Password Field -->
                 <div class="space-y-2">
-                    <Label for="password_confirmation" class="text-base font-medium">Confirm Password</Label>
+                    <Label for="password_confirmation" class="text-base font-medium">{{ t('auth.member_password.confirm_password_label') }}</Label>
                     <div class="relative">
-                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <Lock class="h-5 w-5" />
                         </div>
                         <Input
@@ -129,13 +132,13 @@ const toggleConfirmPasswordVisibility = () => {
                             :tabindex="4"
                             autocomplete="new-password"
                             v-model="form.password_confirmation"
-                            placeholder="Confirm your password"
-                            class="h-12 pr-10 pl-10 text-base"
+                            :placeholder="t('auth.member_password.confirm_password_placeholder')"
+                            class="h-12 pe-10 ps-10 text-base"
                         />
                         <button
                             type="button"
                             @click="toggleConfirmPasswordVisibility"
-                            class="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center pr-3"
+                            class="text-muted-foreground hover:text-foreground absolute inset-y-0 end-0 flex items-center pe-3"
                             :tabindex="5"
                         >
                             <Eye v-if="!showConfirmPassword" class="h-5 w-5" />
@@ -147,17 +150,17 @@ const toggleConfirmPasswordVisibility = () => {
 
                 <!-- Submit Button -->
                 <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="6" :disabled="form.processing">
-                    <LoaderCircle v-if="form.processing" class="mr-2 h-5 w-5 animate-spin" />
-                    <span v-if="!form.processing">Accept Invitation</span>
-                    <span v-else>Accepting Invitation...</span>
+                    <LoaderCircle v-if="form.processing" class="me-2 h-5 w-5 animate-spin" />
+                    <span v-if="!form.processing">{{ t('auth.member_password.accept_invitation') }}</span>
+                    <span v-else>{{ t('auth.member_password.accepting_invitation') }}</span>
                 </Button>
             </form>
 
             <!-- Back to Login Link -->
             <div class="pt-4 text-center">
                 <p class="text-muted-foreground text-base">
-                    Already have an account?
-                    <TextLink :href="route('login')" :tabindex="7" class="text-primary hover:text-primary/80 ml-1 font-semibold"> Sign in </TextLink>
+                    {{ t('auth.member_password.have_account') }}
+                    <TextLink :href="route('login')" :tabindex="7" class="text-primary hover:text-primary/80 ms-1 font-semibold"> {{ t('auth.member_password.sign_in') }} </TextLink>
                 </p>
             </div>
         </div>

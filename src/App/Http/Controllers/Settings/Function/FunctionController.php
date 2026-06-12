@@ -47,7 +47,7 @@ class FunctionController extends Controller
             ])
             ->all();
 
-        return Inertia::render('settings/Functions', ['functions' => $functions]);
+        return Inertia::render('workspace/integrations/Functions', ['functions' => $functions]);
     }
 
     public function store(CreateAgentFunctionRequest $request, CreateAgentFunctionAction $createFunction): RedirectResponse

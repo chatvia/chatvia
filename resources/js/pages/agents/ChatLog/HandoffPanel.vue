@@ -8,7 +8,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { Bot, Circle, LoaderCircle, MessageSquare, Phone, PhoneOff, Send, User } from 'lucide-vue-next';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useChatLog } from './useChatLog';
+
+const { t } = useI18n();
 
 const { currentConversationId, messagesData: _messagesData, messages, handoff, fetchMessages, appendMessage, formatTimeAgo } = useChatLog();
 
@@ -132,10 +135,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <LockedFeature
-        v-if="!hasAccess"
-        description="Upgrade your plan to access live chat handoff and take over conversations from AI to chat directly with users."
-    />
+    <LockedFeature v-if="!hasAccess" :description="t('agents.chatlog.handoff.locked_description')" />
 
     <div v-else class="flex h-full flex-col">
         <!-- Status Bar -->
@@ -145,10 +145,10 @@ onMounted(() => {
                 <div class="flex items-center gap-2">
                     <Circle class="h-2.5 w-2.5 fill-current" :class="handoff.userIsOnline.value ? 'text-green-500' : 'text-gray-400'" />
                     <span class="text-sm font-medium">
-                        {{ handoff.onlineUser.value?.name || 'Visitor' }}
+                        {{ handoff.onlineUser.value?.name || t('agents.chatlog.handoff.visitor') }}
                     </span>
                     <Badge :variant="handoff.userIsOnline.value ? 'default' : 'secondary'" class="px-1.5 py-0 text-[10px]">
-                        {{ handoff.userIsOnline.value ? 'Online' : 'Offline' }}
+                        {{ handoff.userIsOnline.value ? t('agents.chatlog.handoff.online') : t('agents.chatlog.handoff.offline') }}
                     </Badge>
                 </div>
 
@@ -159,7 +159,7 @@ onMounted(() => {
                         <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-current" style="animation-delay: 150ms"></span>
                         <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-current" style="animation-delay: 300ms"></span>
                     </span>
-                    <span>typing...</span>
+                    <span>{{ t('agents.chatlog.handoff.typing') }}</span>
                 </div>
             </div>
 
@@ -169,7 +169,7 @@ onMounted(() => {
                     :variant="handoff.isHandedOff.value ? 'default' : 'outline'"
                     :class="handoff.isHandedOff.value ? 'bg-amber-500 hover:bg-amber-600' : ''"
                 >
-                    {{ handoff.isHandedOff.value ? 'Live Chat Active' : 'AI Mode' }}
+                    {{ handoff.isHandedOff.value ? t('agents.chatlog.handoff.live_chat_active') : t('agents.chatlog.handoff.ai_mode') }}
                 </Badge>
 
                 <Button
@@ -178,17 +178,17 @@ onMounted(() => {
                     @click="handleTakeOver"
                     :disabled="handoff.isLoading.value || !currentConversationId || !handoff.userIsOnline.value"
                     class="gap-1.5"
-                    :title="!handoff.userIsOnline.value ? 'User is offline' : ''"
+                    :title="!handoff.userIsOnline.value ? t('agents.chatlog.handoff.user_offline') : ''"
                 >
                     <LoaderCircle v-if="handoff.isLoading.value" class="h-3.5 w-3.5 animate-spin" />
                     <Phone v-else class="h-3.5 w-3.5" />
-                    Take Over
+                    {{ t('agents.chatlog.handoff.take_over') }}
                 </Button>
 
                 <Button v-else size="sm" variant="outline" @click="handleReturn" :disabled="handoff.isLoading.value" class="gap-1.5">
                     <LoaderCircle v-if="handoff.isLoading.value" class="h-3.5 w-3.5 animate-spin" />
                     <PhoneOff v-else class="h-3.5 w-3.5" />
-                    Return to AI
+                    {{ t('agents.chatlog.handoff.return_to_ai') }}
                 </Button>
             </div>
         </div>
@@ -203,13 +203,13 @@ onMounted(() => {
             <div class="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
                 <Bot class="h-8 w-8" />
             </div>
-            <h3 class="mb-2 text-lg font-medium">AI is handling this conversation</h3>
+            <h3 class="mb-2 text-lg font-medium">{{ t('agents.chatlog.handoff.ai_handling_title') }}</h3>
             <p class="mb-4 max-w-md text-center text-sm">
-                Click "Take Over" to join the conversation and chat directly with the user. The AI will stop responding while you're in control.
+                {{ t('agents.chatlog.handoff.ai_handling_description') }}
             </p>
             <div class="flex items-center gap-2 text-xs">
                 <Circle class="h-2 w-2 fill-current" :class="handoff.userIsOnline.value ? 'text-green-500' : 'text-gray-400'" />
-                <span>User is {{ handoff.userIsOnline.value ? 'currently online' : 'offline' }}</span>
+                <span>{{ handoff.userIsOnline.value ? t('agents.chatlog.handoff.user_currently_online') : t('agents.chatlog.handoff.user_currently_offline') }}</span>
             </div>
         </div>
 
@@ -219,7 +219,7 @@ onMounted(() => {
             <ScrollArea ref="messagesContainer" class="h-0 flex-1">
                 <div v-if="!currentConversationId" class="text-muted-foreground flex h-full flex-col items-center justify-center py-20">
                     <MessageSquare class="mb-3 h-10 w-10 opacity-30" />
-                    <p class="text-sm">Select a conversation</p>
+                    <p class="text-sm">{{ t('agents.chatlog.handoff.select_conversation') }}</p>
                 </div>
                 <div v-else class="space-y-5 px-6 py-5">
                     <div v-for="m in messages" :key="m.id">
@@ -231,7 +231,13 @@ onMounted(() => {
                                     <Bot v-else-if="m.role === 'assistant'" class="h-3 w-3" />
                                     <User v-else class="h-3 w-3 text-amber-500" />
                                     <span :class="m.role === 'agent' ? 'font-medium text-amber-600' : ''">
-                                        {{ m.role === 'user' ? 'Visitor' : m.role === 'agent' ? 'You' : 'AI' }}
+                                        {{
+                                            m.role === 'user'
+                                                ? t('agents.chatlog.handoff.role_visitor')
+                                                : m.role === 'agent'
+                                                  ? t('agents.chatlog.handoff.role_you')
+                                                  : t('agents.chatlog.handoff.role_ai')
+                                        }}
                                     </span>
                                 </div>
 
@@ -269,7 +275,7 @@ onMounted(() => {
                                             <path d="M18 6L7 17l-5-5" />
                                             <path d="M22 6L11 17" />
                                         </svg>
-                                        <span class="text-[9px]">{{ m.read_at ? 'Read' : 'Sent' }}</span>
+                                        <span class="text-[9px]">{{ m.read_at ? t('agents.chatlog.handoff.read') : t('agents.chatlog.handoff.sent') }}</span>
                                     </span>
                                 </div>
                             </div>
@@ -279,7 +285,7 @@ onMounted(() => {
                     <!-- User typing indicator (visitor is typing) -->
                     <div v-if="handoff.userIsTyping.value" class="flex justify-start">
                         <div class="text-muted-foreground bg-primary/10 flex items-center gap-2 rounded-full px-4 py-2 text-sm">
-                            <span class="text-xs">Visitor is typing</span>
+                            <span class="text-xs">{{ t('agents.chatlog.handoff.visitor_typing') }}</span>
                             <span class="flex gap-0.5">
                                 <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-current" style="animation-delay: 0ms"></span>
                                 <span class="h-1.5 w-1.5 animate-bounce rounded-full bg-current" style="animation-delay: 150ms"></span>
@@ -298,7 +304,7 @@ onMounted(() => {
                 <form @submit.prevent="sendMessage" class="flex gap-2">
                     <Textarea
                         v-model="messageInput"
-                        placeholder="Type your message..."
+                        :placeholder="t('agents.chatlog.handoff.message_placeholder')"
                         class="max-h-32 min-h-[44px] flex-1 resize-none"
                         rows="1"
                         @input="handleTyping"

@@ -38,7 +38,7 @@ class NewDeviceSignInNotification extends Notification implements ShouldQueue
             ->line('**IP address:** '.($this->ip ?? 'unknown'))
             ->line('**Browser / device:** '.($this->userAgent ?? 'unknown'))
             ->line('If this was you, no action is needed.')
-            ->action('Review your password', url(route('settings.password.edit', absolute: true)))
+            ->action('Review your password', url(route('account.password.edit', absolute: true)))
             ->line('If this wasn\'t you, change your password immediately and review your two-factor settings.');
     }
 }

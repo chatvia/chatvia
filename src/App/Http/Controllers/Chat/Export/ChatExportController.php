@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Chat\Export;
 
+use App\Http\Requests\Chat\ExportChatRequest;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Memory\TurnState;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelMarkdown\MarkdownRenderer;
@@ -22,13 +22,8 @@ readonly class ChatExportController
         private BrowsershotConfigurator $browsershotConfig,
     ) {}
 
-    public function __invoke(Request $request, string $conversationId)
+    public function __invoke(ExportChatRequest $request, string $conversationId)
     {
-        $request->validate([
-            'messageId' => ['sometimes'],
-            'type' => ['required', 'string', 'in:pdf,text,markdown'],
-        ]);
-
         $agent = current_agent();
 
         $this

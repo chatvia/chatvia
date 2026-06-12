@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { AlertTriangle, Home } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     message: string;
@@ -17,10 +20,10 @@ defineProps<Props>();
 </script>
 
 <template>
-    <AuthBase title="Invitation Unavailable" description="This invitation cannot be accepted">
-        <Head title="Invitation Unavailable" />
+    <AuthBase :title="t('auth.invitation_invalid.title')" :description="t('auth.invitation_invalid.description')">
+        <Head :title="t('auth.invitation_invalid.head')" />
 
-        <div class="absolute top-4 right-4">
+        <div class="absolute top-4 end-4">
             <ThemeSwitcher />
         </div>
 
@@ -30,20 +33,20 @@ defineProps<Props>();
                     <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-500/10">
                         <AlertTriangle class="h-8 w-8 text-yellow-500" />
                     </div>
-                    <CardTitle class="text-xl">Cannot Accept Invitation</CardTitle>
+                    <CardTitle class="text-xl">{{ t('auth.invitation_invalid.card_title') }}</CardTitle>
                     <CardDescription class="text-base">
                         {{ message }}
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-4 text-center">
                     <p class="text-muted-foreground">
-                        The invitation to join <strong>{{ team.name }}</strong> cannot be accepted at this time.
+                        {{ t('auth.invitation_invalid.cannot_accept_prefix') }} <strong>{{ team.name }}</strong> {{ t('auth.invitation_invalid.cannot_accept_suffix') }}
                     </p>
-                    <p class="text-muted-foreground text-sm">Please contact the team owner to resolve this issue.</p>
+                    <p class="text-muted-foreground text-sm">{{ t('auth.invitation_invalid.contact_owner') }}</p>
                     <Link :href="route('login')">
                         <Button variant="outline" class="gap-2">
                             <Home class="h-4 w-4" />
-                            Go to Login
+                            {{ t('auth.invitation_invalid.go_to_login') }}
                         </Button>
                     </Link>
                 </CardContent>

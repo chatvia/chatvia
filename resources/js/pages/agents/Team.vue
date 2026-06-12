@@ -10,7 +10,10 @@ import { Link, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { ExternalLink, Eye, LoaderCircle, PlusCircle, Shield, ShieldOff, Trash2, Users } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
+
+const { t } = useI18n();
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
@@ -54,7 +57,7 @@ const hasReachedMemberLimit = computed(() => {
 });
 
 const remainingMembers = computed(() => {
-    if (workspaceUsersLimit.value === 0) return 'Unlimited';
+    if (workspaceUsersLimit.value === 0) return t('agents.team.unlimited');
     return Math.max(0, workspaceUsersLimit.value - workspaceUsersCount.value);
 });
 
@@ -118,7 +121,7 @@ const sendInvitation = () => {
             invitationForm.reset();
 
             // Show success toast
-            toast.success(`Invitation sent successfully to ${invitedEmail}`);
+            toast.success(t('agents.team.invitation_sent', { email: invitedEmail }));
 
             // Refresh the team members list
             fetchTeamMembers();
@@ -132,9 +135,9 @@ const sendInvitation = () => {
 const openInviteDialog = () => {
     if (!canInviteMembers.value) {
         if (!props.team_collaboration) {
-            toast.error('Team collaboration is not available on your current plan');
+            toast.error(t('agents.team.collaboration_error'));
         } else if (hasReachedMemberLimit.value) {
-            toast.error(`You've reached your workspace user limit of ${workspaceUsersLimit.value} (team members + chatters combined)`);
+            toast.error(t('agents.team.limit_error', { limit: workspaceUsersLimit.value }));
         }
         return;
     }
@@ -160,10 +163,10 @@ const _removeFromAgent = async () => {
             }),
         );
 
-        toast.success(`${selectedMember.value.name} has been removed from this agent`);
+        toast.success(t('agents.team.removed_from_agent', { name: selectedMember.value.name }));
         fetchTeamMembers(); // Refresh the list
     } catch (error) {
-        toast.error('Failed to remove member from agent');
+        toast.error(t('agents.team.remove_error'));
         console.error('Error removing member from agent:', error);
     } finally {
         showDeleteDialog.value = false;
@@ -188,10 +191,10 @@ const deleteMemberEntirely = async () => {
             }),
         );
 
-        toast.success(`${selectedMember.value.name} has been deleted entirely`);
+        toast.success(t('agents.team.deleted_entirely', { name: selectedMember.value.name }));
         fetchTeamMembers(); // Refresh the list
     } catch (error) {
-        toast.error('Failed to delete member entirely');
+        toast.error(t('agents.team.delete_error'));
         console.error('Error deleting member entirely:', error);
     } finally {
         showDeleteDialog.value = false;
@@ -209,10 +212,10 @@ const revokeAccess = async (member: any) => {
             }),
         );
 
-        toast.success(`Access revoked for ${member.name}`);
+        toast.success(t('agents.team.access_revoked', { name: member.name }));
         fetchTeamMembers(); // Refresh the list
     } catch (error) {
-        toast.error('Failed to revoke access');
+        toast.error(t('agents.team.revoke_error'));
         console.error('Error revoking access:', error);
     }
 };
@@ -226,10 +229,10 @@ const grantAccess = async (member: any) => {
             }),
         );
 
-        toast.success(`Access granted to ${member.name}`);
+        toast.success(t('agents.team.access_granted', { name: member.name }));
         fetchTeamMembers(); // Refresh the list
     } catch (error) {
-        toast.error('Failed to grant access');
+        toast.error(t('agents.team.grant_error'));
         console.error('Error granting access:', error);
     }
 };
@@ -244,10 +247,10 @@ const _deleteMember = async (member: any) => {
             }),
         );
 
-        toast.success(`${member.name} has been deleted entirely`);
+        toast.success(t('agents.team.deleted_entirely', { name: member.name }));
         fetchTeamMembers(); // Refresh the list
     } catch (error) {
-        toast.error('Failed to delete member');
+        toast.error(t('agents.team.delete_error'));
         console.error('Error deleting member:', error);
     }
 };
@@ -268,20 +271,25 @@ const cancelDelete = () => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Team Management">
+    <AgentLayout :agent="agent" :title="t('agents.team.title')">
         <div class="space-y-6">
             <div class="flex justify-center">
                 <Card class="w-full max-w-6xl">
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
                             <Users class="h-5 w-5" />
-                            Members
+                            {{ t('agents.team.heading') }}
                         </CardTitle>
                         <CardDescription>
-                            Manage team members and their agent access
+                            {{ t('agents.team.description') }}
                             <span v-if="workspaceUsersLimit > 0" class="text-muted-foreground mt-2 block">
-                                {{ workspaceUsersCount }} of {{ workspaceUsersLimit }} workspace users (team members + chatters combined,
-                                {{ remainingMembers }} remaining)
+                                {{
+                                    t('agents.team.quota', {
+                                        used: workspaceUsersCount,
+                                        limit: workspaceUsersLimit,
+                                        remaining: remainingMembers,
+                                    })
+                                }}
                             </span>
                         </CardDescription>
                     </CardHeader>
@@ -297,13 +305,15 @@ const cancelDelete = () => {
                                         <ShieldOff class="h-5 w-5 text-amber-600 dark:text-amber-400" />
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-medium text-amber-800 dark:text-amber-200">Team Collaboration Disabled</h3>
+                                        <h3 class="text-sm font-medium text-amber-800 dark:text-amber-200">{{ t('agents.team.collaboration_disabled_title') }}</h3>
                                         <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
-                                            Your current plan doesn't include team collaboration features.
-                                            <Link :href="route('billing.packages')" class="font-medium underline hover:no-underline">
-                                                Upgrade your plan
-                                            </Link>
-                                            to invite team members and collaborate on agents.
+                                            <i18n-t keypath="agents.team.collaboration_disabled_description" tag="span">
+                                                <template #link>
+                                                    <Link :href="route('billing.packages')" class="font-medium underline hover:no-underline">
+                                                        {{ t('agents.team.upgrade_plan') }}
+                                                    </Link>
+                                                </template>
+                                            </i18n-t>
                                         </p>
                                     </div>
                                 </div>
@@ -319,11 +329,15 @@ const cancelDelete = () => {
                                         <Users class="h-5 w-5 text-orange-600 dark:text-orange-400" />
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-medium text-orange-800 dark:text-orange-200">Workspace User Limit Reached</h3>
+                                        <h3 class="text-sm font-medium text-orange-800 dark:text-orange-200">{{ t('agents.team.limit_reached_title') }}</h3>
                                         <p class="mt-1 text-sm text-orange-700 dark:text-orange-300">
-                                            You've reached your workspace user limit of {{ workspaceUsersLimit }} (team members + chatters combined).
-                                            <a href="/billing/plans" class="font-medium underline hover:no-underline"> Upgrade your plan </a>
-                                            to add more.
+                                            <i18n-t keypath="agents.team.limit_reached_description" tag="span" :limit="workspaceUsersLimit">
+                                                <template #link>
+                                                    <Link :href="route('billing.packages')" class="font-medium underline hover:no-underline">
+                                                        {{ t('agents.team.upgrade_plan') }}
+                                                    </Link>
+                                                </template>
+                                            </i18n-t>
                                         </p>
                                     </div>
                                 </div>
@@ -334,18 +348,18 @@ const cancelDelete = () => {
                                 <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                                     <!-- Search Input -->
                                     <div class="relative">
-                                        <Input v-model="searchQuery" placeholder="Search members..." class="w-full sm:w-64" />
+                                        <Input v-model="searchQuery" :placeholder="t('agents.team.search_placeholder')" class="w-full sm:w-64" />
                                     </div>
 
                                     <!-- Access Filter -->
                                     <Select v-model="accessFilter">
                                         <SelectTrigger class="w-full sm:w-48">
-                                            <SelectValue placeholder="Filter by access" />
+                                            <SelectValue :placeholder="t('agents.team.filter_placeholder')" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">All Members</SelectItem>
-                                            <SelectItem value="has_access">Has Access</SelectItem>
-                                            <SelectItem value="no_access">No Access</SelectItem>
+                                            <SelectItem value="all">{{ t('agents.team.filter_all') }}</SelectItem>
+                                            <SelectItem value="has_access">{{ t('agents.team.filter_has_access') }}</SelectItem>
+                                            <SelectItem value="no_access">{{ t('agents.team.filter_no_access') }}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -357,34 +371,34 @@ const cancelDelete = () => {
                                     :disabled="!canInviteMembers"
                                     :title="
                                         !team_collaboration
-                                            ? 'Team collaboration is not available on your current plan'
+                                            ? t('agents.team.collaboration_unavailable')
                                             : hasReachedMemberLimit
-                                              ? `You've reached your workspace user limit of ${workspaceUsersLimit} (team members + chatters combined)`
+                                              ? t('agents.team.limit_reached_tooltip', { limit: workspaceUsersLimit })
                                               : ''
                                     "
                                 >
                                     <PlusCircle class="h-4 w-4" />
-                                    Invite Member
+                                    {{ t('agents.team.invite_member') }}
                                 </Button>
                             </div>
 
                             <!-- Results Counter -->
                             <div v-if="teamMembers.length > 0" class="text-muted-foreground flex items-center justify-between text-sm">
                                 <span>
-                                    Showing {{ filteredMembers.length }} of {{ teamMembers.length }} members
-                                    <span v-if="searchQuery.trim() || accessFilter !== 'all'"> (filtered) </span>
+                                    {{ t('agents.team.showing_count', { filtered: filteredMembers.length, total: teamMembers.length }) }}
+                                    <span v-if="searchQuery.trim() || accessFilter !== 'all'">{{ t('agents.team.filtered') }}</span>
                                 </span>
                             </div>
 
                             <!-- Members list -->
                             <div class="rounded-md border">
                                 <div v-if="teamMembers.length === 0" class="text-muted-foreground p-6 text-center">
-                                    No team members yet. Invite someone to get started.
+                                    {{ t('agents.team.empty') }}
                                 </div>
                                 <div v-else-if="filteredMembers.length === 0" class="text-muted-foreground p-6 text-center">
                                     <div class="space-y-2">
-                                        <p>No members found matching your criteria.</p>
-                                        <p class="text-xs">Try adjusting your search or filter settings.</p>
+                                        <p>{{ t('agents.team.no_results_title') }}</p>
+                                        <p class="text-xs">{{ t('agents.team.no_results_description') }}</p>
                                     </div>
                                 </div>
                                 <div v-else class="divide-y">
@@ -406,7 +420,7 @@ const cancelDelete = () => {
                                                                 !member.email_verified_at,
                                                         }"
                                                     >
-                                                        {{ member.email_verified_at ? 'Active' : 'Pending' }}
+                                                        {{ member.email_verified_at ? t('agents.team.status_active') : t('agents.team.status_pending') }}
                                                     </span>
                                                     <!-- Access indicator -->
                                                     <span
@@ -420,7 +434,7 @@ const cancelDelete = () => {
                                                     >
                                                         <Shield v-if="memberHasAccess(member)" class="h-3 w-3" />
                                                         <ShieldOff v-else class="h-3 w-3" />
-                                                        {{ memberHasAccess(member) ? 'Has Access' : 'No Access' }}
+                                                        {{ memberHasAccess(member) ? t('agents.team.has_access') : t('agents.team.no_access') }}
                                                     </span>
                                                     <!-- Agent access link -->
                                                     <Button
@@ -428,7 +442,7 @@ const cancelDelete = () => {
                                                         variant="ghost"
                                                         size="sm"
                                                         class="p-1 text-blue-600 hover:text-blue-700"
-                                                        title="View agent access"
+                                                        :title="t('agents.team.view_agent_access')"
                                                     >
                                                         <Eye class="h-4 w-4" />
                                                     </Button>
@@ -444,8 +458,8 @@ const cancelDelete = () => {
                                                 size="sm"
                                                 class="text-orange-600 hover:text-orange-700"
                                             >
-                                                <ShieldOff class="mr-1 h-4 w-4" />
-                                                Revoke
+                                                <ShieldOff class="me-1 h-4 w-4" />
+                                                {{ t('agents.team.revoke') }}
                                             </Button>
                                             <!-- Grant access button (only if member does not have access AND has verified their account) -->
                                             <Button
@@ -455,8 +469,8 @@ const cancelDelete = () => {
                                                 size="sm"
                                                 class="text-green-600 hover:text-green-700"
                                             >
-                                                <Shield class="mr-1 h-4 w-4" />
-                                                Grant Access
+                                                <Shield class="me-1 h-4 w-4" />
+                                                {{ t('agents.team.grant_access') }}
                                             </Button>
                                             <!-- Delete member button -->
                                             <Button
@@ -465,8 +479,8 @@ const cancelDelete = () => {
                                                 size="sm"
                                                 class="text-destructive hover:text-destructive"
                                             >
-                                                <Trash2 class="mr-1 h-4 w-4" />
-                                                Delete
+                                                <Trash2 class="me-1 h-4 w-4" />
+                                                {{ t('agents.team.delete') }}
                                             </Button>
                                         </div>
                                     </div>
@@ -482,30 +496,36 @@ const cancelDelete = () => {
         <Dialog v-model:open="showInviteDialog">
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Invite a Member</DialogTitle>
+                    <DialogTitle>{{ t('agents.team.invite_dialog_title') }}</DialogTitle>
                     <DialogDescription>
-                        Send an invitation to collaborate on this agent.
+                        {{ t('agents.team.invite_dialog_description') }}
                         <span v-if="workspaceUsersLimit > 0" class="text-muted-foreground mt-1 block text-sm">
-                            {{ workspaceUsersCount }} of {{ workspaceUsersLimit }} workspace users used ({{ remainingMembers }} remaining)
+                            {{
+                                t('agents.team.quota_dialog', {
+                                    used: workspaceUsersCount,
+                                    limit: workspaceUsersLimit,
+                                    remaining: remainingMembers,
+                                })
+                            }}
                         </span>
                     </DialogDescription>
                 </DialogHeader>
                 <div class="space-y-4 py-4">
                     <div class="grid gap-2">
-                        <Label for="name" required>Name</Label>
-                        <Input id="name" v-model="invitationForm.name" type="text" placeholder="John Doe" :error="invitationForm.errors.name" />
+                        <Label for="name" required>{{ t('agents.team.name_label') }}</Label>
+                        <Input id="name" v-model="invitationForm.name" type="text" :placeholder="t('agents.team.name_placeholder')" :error="invitationForm.errors.name" />
                         <p v-if="invitationForm.errors.name" class="text-destructive text-sm">
                             {{ invitationForm.errors.name }}
                         </p>
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="email" required>Email Address</Label>
+                        <Label for="email" required>{{ t('agents.team.email_label') }}</Label>
                         <Input
                             id="email"
                             v-model="invitationForm.email"
                             type="email"
-                            placeholder="colleague@example.com"
+                            :placeholder="t('agents.team.email_placeholder')"
                             :error="invitationForm.errors.email"
                         />
                         <p v-if="invitationForm.errors.email" class="text-destructive text-sm">
@@ -521,10 +541,10 @@ const cancelDelete = () => {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" @click="showInviteDialog = false"> Cancel </Button>
+                    <Button variant="outline" @click="showInviteDialog = false">{{ t('common.cancel') }}</Button>
                     <Button :disabled="!invitationForm.name || !invitationForm.email || isSubmitting || !canInviteMembers" @click="sendInvitation">
-                        <LoaderCircle v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-                        {{ isSubmitting ? 'Sending...' : 'Send Invitation' }}
+                        <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
+                        {{ isSubmitting ? t('agents.team.sending') : t('agents.team.send_invitation') }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -534,14 +554,14 @@ const cancelDelete = () => {
         <Dialog v-model:open="showAgentAccessDialog">
             <DialogContent class="max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>Agent Access Details</DialogTitle>
+                    <DialogTitle>{{ t('agents.team.access_dialog_title') }}</DialogTitle>
                     <DialogDescription>
-                        View all agents that <strong>{{ selectedMember?.name }}</strong> has access to
+                        {{ t('agents.team.access_dialog_description', { name: selectedMember?.name }) }}
                     </DialogDescription>
                 </DialogHeader>
                 <div class="space-y-4 py-4">
                     <div v-if="selectedMember && getMemberAgentAccess(selectedMember).length === 0" class="text-muted-foreground p-6 text-center">
-                        This member doesn't have access to any agents yet.
+                        {{ t('agents.team.no_agent_access') }}
                     </div>
                     <div v-else class="space-y-3">
                         <div
@@ -551,12 +571,12 @@ const cancelDelete = () => {
                         >
                             <div class="flex-1">
                                 <div class="flex items-center gap-2">
-                                    <h4 class="text-sm font-medium">Agent ID: {{ agentAccess.id }}</h4>
+                                    <h4 class="text-sm font-medium">{{ t('agents.team.agent_id', { id: agentAccess.id }) }}</h4>
                                     <span
                                         v-if="agentAccess.id === props.agent.external_id.toString()"
                                         class="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                                     >
-                                        Current Agent
+                                        {{ t('agents.team.current_agent') }}
                                     </span>
                                 </div>
                                 <p class="text-muted-foreground mt-1 text-xs">
@@ -575,7 +595,7 @@ const cancelDelete = () => {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" @click="showAgentAccessDialog = false"> Close </Button>
+                    <Button variant="outline" @click="showAgentAccessDialog = false">{{ t('agents.team.close') }}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -584,17 +604,16 @@ const cancelDelete = () => {
         <Dialog v-model:open="showDeleteDialog">
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Delete Member Permanently</DialogTitle>
+                    <DialogTitle>{{ t('agents.team.delete_dialog_title') }}</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to permanently delete <strong>{{ selectedMember?.name }}</strong
-                        >? This action cannot be undone and will remove them from the entire system and all agents they have access to.
+                        {{ t('agents.team.delete_dialog_description', { name: selectedMember?.name }) }}
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" @click="cancelDelete">Cancel</Button>
+                    <Button variant="outline" @click="cancelDelete">{{ t('common.cancel') }}</Button>
                     <Button variant="destructive" @click="deleteMemberEntirely">
-                        <Trash2 class="mr-2 h-4 w-4" />
-                        Delete Permanently
+                        <Trash2 class="me-2 h-4 w-4" />
+                        {{ t('agents.team.delete_permanently') }}
                     </Button>
                 </DialogFooter>
             </DialogContent>

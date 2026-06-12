@@ -20,6 +20,9 @@ import { Switch } from '@/components/ui/switch';
 import { useForm } from '@inertiajs/vue3';
 import { Bot, CheckCircle, CreditCard, Globe, Loader2, MessageCircle, Sparkles, Users, Zap } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface AutoRecharge {
     enabled: boolean;
@@ -227,9 +230,9 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
                 <Sparkles class="text-primary h-5 w-5" />
-                Add-ons
+                {{ t('billing.addons.title') }}
             </CardTitle>
-            <CardDescription>Extra credits, agents, and domains on top of your plan</CardDescription>
+            <CardDescription>{{ t('billing.addons.description') }}</CardDescription>
         </CardHeader>
         <CardContent>
             <div class="grid gap-4 sm:grid-cols-2">
@@ -240,17 +243,21 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                             <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
                                 <CreditCard class="text-muted-foreground h-4 w-4" />
                             </div>
-                            <h3 class="text-sm font-semibold">Auto Recharge</h3>
+                            <h3 class="text-sm font-semibold">{{ t('billing.addons.auto_recharge.title') }}</h3>
                         </div>
                         <Badge v-if="addons.auto_recharge.enabled" variant="default" class="gap-1">
                             <CheckCircle class="h-3 w-3" />
-                            On
+                            {{ t('billing.addons.auto_recharge.on') }}
                         </Badge>
-                        <Badge v-else variant="outline">Off</Badge>
+                        <Badge v-else variant="outline">{{ t('billing.addons.auto_recharge.off') }}</Badge>
                     </div>
                     <p class="text-muted-foreground text-xs leading-relaxed">
-                        Auto-buy {{ addons.auto_recharge.amount.toLocaleString() }} credits when balance drops below
-                        {{ addons.auto_recharge.threshold.toLocaleString() }}.
+                        {{
+                            t('billing.addons.auto_recharge.summary', {
+                                amount: addons.auto_recharge.amount.toLocaleString(),
+                                threshold: addons.auto_recharge.threshold.toLocaleString(),
+                            })
+                        }}
                     </p>
                     <div class="mt-auto flex items-end justify-between pt-1">
                         <div>
@@ -259,29 +266,30 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                         </div>
                         <Dialog v-model:open="isAutoRechargeDialogOpen">
                             <DialogTrigger as-child>
-                                <Button variant="outline" size="sm">{{ addons.auto_recharge.enabled ? 'Manage' : 'Enable' }}</Button>
+                                <Button variant="outline" size="sm">{{
+                                    addons.auto_recharge.enabled ? t('billing.addons.auto_recharge.manage') : t('billing.addons.auto_recharge.enable')
+                                }}</Button>
                             </DialogTrigger>
                             <DialogContent class="sm:max-w-md">
                                 <DialogHeader>
                                     <DialogTitle class="flex items-center gap-2">
                                         <CreditCard class="text-primary h-5 w-5" />
-                                        Auto Recharge Settings
+                                        {{ t('billing.addons.auto_recharge.dialog_title') }}
                                     </DialogTitle>
                                     <DialogDescription>
-                                        When your remaining credits drop to or below the threshold, we'll automatically charge your default payment
-                                        method and top up your balance.
+                                        {{ t('billing.addons.auto_recharge.dialog_description') }}
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div class="space-y-4 py-4">
                                     <div class="flex items-center justify-between rounded-lg border p-3">
                                         <Label for="auto-recharge-enabled" class="flex-1 cursor-pointer">
-                                            <div class="font-medium">Enable Auto Recharge</div>
-                                            <div class="text-muted-foreground text-xs">Charge automatically when credits run low</div>
+                                            <div class="font-medium">{{ t('billing.addons.auto_recharge.enable_label') }}</div>
+                                            <div class="text-muted-foreground text-xs">{{ t('billing.addons.auto_recharge.enable_hint') }}</div>
                                         </Label>
                                         <Switch id="auto-recharge-enabled" v-model="autoRechargeForm.enabled" />
                                     </div>
                                     <div class="space-y-2">
-                                        <Label for="auto-recharge-threshold">Threshold (credits)</Label>
+                                        <Label for="auto-recharge-threshold">{{ t('billing.addons.auto_recharge.threshold_label') }}</Label>
                                         <Input
                                             id="auto-recharge-threshold"
                                             v-model.number="autoRechargeForm.threshold"
@@ -292,10 +300,10 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                                             :disabled="!autoRechargeForm.enabled"
                                             @keydown="handleNumericKeyPress"
                                         />
-                                        <p class="text-muted-foreground text-xs">Recharge fires when your balance drops to or below this amount.</p>
+                                        <p class="text-muted-foreground text-xs">{{ t('billing.addons.auto_recharge.threshold_hint') }}</p>
                                     </div>
                                     <div class="space-y-2">
-                                        <Label for="auto-recharge-amount">Top-up amount (credits)</Label>
+                                        <Label for="auto-recharge-amount">{{ t('billing.addons.auto_recharge.amount_label') }}</Label>
                                         <Input
                                             id="auto-recharge-amount"
                                             v-model.number="autoRechargeForm.amount"
@@ -309,19 +317,19 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                                     </div>
                                     <div class="rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
                                         <div class="flex items-center justify-between text-sm">
-                                            <span class="font-medium">Each recharge:</span>
+                                            <span class="font-medium">{{ t('billing.addons.auto_recharge.each_recharge') }}</span>
                                             <span class="font-bold">${{ autoRechargeChargeEstimate }}</span>
                                         </div>
                                         <p class="text-muted-foreground mt-1 text-xs">
-                                            Charged immediately to your default payment method when triggered.
+                                            {{ t('billing.addons.auto_recharge.charged_note') }}
                                         </p>
                                     </div>
                                 </div>
                                 <DialogFooter class="gap-2">
-                                    <Button variant="outline" @click="isAutoRechargeDialogOpen = false">Cancel</Button>
+                                    <Button variant="outline" @click="isAutoRechargeDialogOpen = false">{{ t('billing.common.cancel') }}</Button>
                                     <Button :disabled="autoRechargeForm.processing" class="gap-2" @click="saveAutoRecharge">
                                         <Loader2 v-if="autoRechargeForm.processing" class="h-4 w-4 animate-spin" />
-                                        Save Settings
+                                        {{ t('billing.addons.auto_recharge.save') }}
                                     </Button>
                                 </DialogFooter>
                             </DialogContent>
@@ -336,7 +344,7 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                             <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
                                 <MessageCircle class="text-muted-foreground h-4 w-4" />
                             </div>
-                            <h3 class="text-sm font-semibold">Extra Credits</h3>
+                            <h3 class="text-sm font-semibold">{{ t('billing.addons.extra_credits.title') }}</h3>
                         </div>
                         <Badge v-if="totalExtraCredits > 0" variant="default" class="gap-1">
                             <Zap class="h-3 w-3" />
@@ -344,7 +352,7 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                         </Badge>
                     </div>
                     <p class="text-muted-foreground text-xs leading-relaxed">
-                        One-time top-up. Each bundle adds 1,000 messages that expire after 30 days.
+                        {{ t('billing.addons.extra_credits.summary') }}
                     </p>
                     <div class="mt-auto flex items-end justify-between pt-1">
                         <div>
@@ -353,21 +361,21 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                         </div>
                         <Dialog v-model:open="isCreditsDialogOpen">
                             <DialogTrigger as-child>
-                                <Button variant="outline" size="sm">Buy Credits</Button>
+                                <Button variant="outline" size="sm">{{ t('billing.addons.extra_credits.buy') }}</Button>
                             </DialogTrigger>
                             <DialogContent class="sm:max-w-md">
                                 <DialogHeader>
                                     <DialogTitle class="flex items-center gap-2">
                                         <Zap class="text-primary h-5 w-5" />
-                                        Purchase Message Credits
+                                        {{ t('billing.addons.extra_credits.dialog_title') }}
                                     </DialogTitle>
                                     <DialogDescription>
-                                        Each bundle includes 1,000 messages that must be consumed within one month of purchase.
+                                        {{ t('billing.addons.extra_credits.dialog_description') }}
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div class="space-y-4 py-4">
                                     <div class="space-y-2">
-                                        <Label for="credits-quantity">Quantity (1,000 messages per bundle)</Label>
+                                        <Label for="credits-quantity">{{ t('billing.addons.extra_credits.quantity_label') }}</Label>
                                         <Input
                                             id="credits-quantity"
                                             v-model.number="creditsQuantity"
@@ -379,21 +387,21 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                                     </div>
                                     <div class="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
                                         <div class="flex items-center justify-between">
-                                            <span class="font-medium">Total Messages:</span>
+                                            <span class="font-medium">{{ t('billing.addons.extra_credits.total_messages') }}</span>
                                             <span class="font-bold">{{ (creditsQuantity * 1000).toLocaleString() }}</span>
                                         </div>
                                         <div class="mt-2 flex items-center justify-between">
-                                            <span class="font-medium">Total Price:</span>
+                                            <span class="font-medium">{{ t('billing.addons.extra_credits.total_price') }}</span>
                                             <span class="text-primary font-bold">${{ totalCreditsPrice }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <DialogFooter class="gap-2">
-                                    <Button variant="outline" @click="isCreditsDialogOpen = false">Cancel</Button>
+                                    <Button variant="outline" @click="isCreditsDialogOpen = false">{{ t('billing.common.cancel') }}</Button>
                                     <Button :disabled="isPurchasing || creditsQuantity < 1" class="gap-2" @click="purchaseExtraMessages">
                                         <Loader2 v-if="isPurchasing" class="h-4 w-4 animate-spin" />
                                         <CreditCard v-else class="h-4 w-4" />
-                                        {{ isPurchasing ? 'Processing...' : `Purchase for $${totalCreditsPrice}` }}
+                                        {{ isPurchasing ? t('billing.common.processing') : t('billing.addons.extra_credits.purchase_for', { amount: totalCreditsPrice }) }}
                                     </Button>
                                 </DialogFooter>
                             </DialogContent>
@@ -408,60 +416,60 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                             <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
                                 <Bot class="text-muted-foreground h-4 w-4" />
                             </div>
-                            <h3 class="text-sm font-semibold">Extra Agents</h3>
+                            <h3 class="text-sm font-semibold">{{ t('billing.addons.extra_agents.title') }}</h3>
                         </div>
                         <Badge v-if="addons.extra_agents.active" variant="default" class="gap-1">
                             <CheckCircle class="h-3 w-3" />
                             +{{ addons.extra_agents.quantity }}
                         </Badge>
-                        <Badge v-else variant="outline">None</Badge>
+                        <Badge v-else variant="outline">{{ t('billing.addons.common.none') }}</Badge>
                     </div>
-                    <p class="text-muted-foreground text-xs leading-relaxed">Add more AI agents beyond your plan limit.</p>
+                    <p class="text-muted-foreground text-xs leading-relaxed">{{ t('billing.addons.extra_agents.summary') }}</p>
                     <p v-if="addons.extra_agents.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">
-                        Ends {{ addons.extra_agents.cancels_at }}
+                        {{ t('billing.addons.common.ends', { date: addons.extra_agents.cancels_at }) }}
                     </p>
                     <div class="mt-auto flex items-end justify-between gap-2 pt-1">
                         <div>
                             <span class="text-lg font-bold">$5</span>
-                            <span class="text-muted-foreground text-xs"> / agent</span>
+                            <span class="text-muted-foreground text-xs">{{ t('billing.addons.per_agent') }}</span>
                         </div>
                         <div class="flex items-center gap-1">
                             <AlertDialog v-if="addons.extra_agents.active">
                                 <AlertDialogTrigger as-child>
-                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">Cancel</Button>
+                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">{{ t('billing.common.cancel') }}</Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle>Cancel Extra Agents subscription?</AlertDialogTitle>
+                                        <AlertDialogTitle>{{ t('billing.addons.extra_agents.cancel_title') }}</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            Your extra agents quota will be removed immediately and you won't be charged again.
+                                            {{ t('billing.addons.extra_agents.cancel_description') }}
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel>Keep subscription</AlertDialogCancel>
-                                        <AlertDialogAction @click="cancelExtraAgents">Yes, cancel</AlertDialogAction>
+                                        <AlertDialogCancel>{{ t('billing.addons.common.keep_subscription') }}</AlertDialogCancel>
+                                        <AlertDialogAction @click="cancelExtraAgents">{{ t('billing.addons.common.yes_cancel') }}</AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
                             <Dialog v-model:open="isExtraAgentsDialogOpen">
                                 <DialogTrigger as-child>
                                     <Button variant="outline" size="sm" :disabled="!subscribed">
-                                        {{ addons.extra_agents.active ? 'Change' : 'Subscribe' }}
+                                        {{ addons.extra_agents.active ? t('billing.addons.common.change') : t('billing.addons.common.subscribe') }}
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent class="sm:max-w-md">
                                     <DialogHeader>
                                         <DialogTitle class="flex items-center gap-2">
                                             <Bot class="text-primary h-5 w-5" />
-                                            {{ addons.extra_agents.active ? 'Change Extra Agents' : 'Subscribe to Extra Agents' }}
+                                            {{ addons.extra_agents.active ? t('billing.addons.extra_agents.change_title') : t('billing.addons.extra_agents.subscribe_title') }}
                                         </DialogTitle>
                                         <DialogDescription>
-                                            Add additional AI agents on top of your plan. Billed monthly at $5 per agent.
+                                            {{ t('billing.addons.extra_agents.dialog_description') }}
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div class="space-y-4 py-4">
                                         <div class="space-y-2">
-                                            <Label for="extra-agents-quantity">Number of extra agents</Label>
+                                            <Label for="extra-agents-quantity">{{ t('billing.addons.extra_agents.quantity_label') }}</Label>
                                             <Input
                                                 id="extra-agents-quantity"
                                                 v-model.number="extraAgentsQuantity"
@@ -473,20 +481,20 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                                         </div>
                                         <div class="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
                                             <div class="flex items-center justify-between">
-                                                <span class="font-medium">Monthly cost:</span>
+                                                <span class="font-medium">{{ t('billing.addons.common.monthly_cost') }}</span>
                                                 <span class="text-primary font-bold">${{ extraAgentsTotal }}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <DialogFooter class="gap-2">
-                                        <Button variant="outline" @click="isExtraAgentsDialogOpen = false">Cancel</Button>
+                                        <Button variant="outline" @click="isExtraAgentsDialogOpen = false">{{ t('billing.common.cancel') }}</Button>
                                         <Button
                                             :disabled="isSubscribingExtraAgents || extraAgentsQuantity < 1"
                                             class="gap-2"
                                             @click="subscribeExtraAgents"
                                         >
                                             <Loader2 v-if="isSubscribingExtraAgents" class="h-4 w-4 animate-spin" />
-                                            {{ addons.extra_agents.active ? 'Update Quantity' : 'Subscribe' }}
+                                            {{ addons.extra_agents.active ? t('billing.addons.common.update_quantity') : t('billing.addons.common.subscribe') }}
                                         </Button>
                                     </DialogFooter>
                                 </DialogContent>
@@ -502,58 +510,58 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                             <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
                                 <Globe class="text-muted-foreground h-4 w-4" />
                             </div>
-                            <h3 class="text-sm font-semibold">Custom Domain</h3>
+                            <h3 class="text-sm font-semibold">{{ t('billing.addons.custom_domains.title') }}</h3>
                         </div>
                         <Badge v-if="addons.custom_domains.active" variant="default" class="gap-1">
                             <CheckCircle class="h-3 w-3" />
                             {{ addons.custom_domains.quantity }}
                         </Badge>
-                        <Badge v-else variant="outline">None</Badge>
+                        <Badge v-else variant="outline">{{ t('billing.addons.common.none') }}</Badge>
                     </div>
-                    <p class="text-muted-foreground text-xs leading-relaxed">Use your own custom domain for AI agents.</p>
+                    <p class="text-muted-foreground text-xs leading-relaxed">{{ t('billing.addons.custom_domains.summary') }}</p>
                     <p v-if="addons.custom_domains.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">
-                        Ends {{ addons.custom_domains.cancels_at }}
+                        {{ t('billing.addons.common.ends', { date: addons.custom_domains.cancels_at }) }}
                     </p>
                     <div class="mt-auto flex items-end justify-between gap-2 pt-1">
                         <div>
                             <span class="text-lg font-bold">$29</span>
-                            <span class="text-muted-foreground text-xs"> / domain</span>
+                            <span class="text-muted-foreground text-xs">{{ t('billing.addons.per_domain') }}</span>
                         </div>
                         <div class="flex items-center gap-1">
                             <AlertDialog v-if="addons.custom_domains.active">
                                 <AlertDialogTrigger as-child>
-                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">Cancel</Button>
+                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">{{ t('billing.common.cancel') }}</Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle>Cancel Custom Domain subscription?</AlertDialogTitle>
+                                        <AlertDialogTitle>{{ t('billing.addons.custom_domains.cancel_title') }}</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            Your custom domain quota will be removed immediately and you won't be charged again.
+                                            {{ t('billing.addons.custom_domains.cancel_description') }}
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel>Keep subscription</AlertDialogCancel>
-                                        <AlertDialogAction @click="cancelCustomDomains">Yes, cancel</AlertDialogAction>
+                                        <AlertDialogCancel>{{ t('billing.addons.common.keep_subscription') }}</AlertDialogCancel>
+                                        <AlertDialogAction @click="cancelCustomDomains">{{ t('billing.addons.common.yes_cancel') }}</AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
                             <Dialog v-model:open="isCustomDomainsDialogOpen">
                                 <DialogTrigger as-child>
                                     <Button variant="outline" size="sm" :disabled="!subscribed">
-                                        {{ addons.custom_domains.active ? 'Change' : 'Subscribe' }}
+                                        {{ addons.custom_domains.active ? t('billing.addons.common.change') : t('billing.addons.common.subscribe') }}
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent class="sm:max-w-md">
                                     <DialogHeader>
                                         <DialogTitle class="flex items-center gap-2">
                                             <Globe class="text-primary h-5 w-5" />
-                                            {{ addons.custom_domains.active ? 'Change Custom Domains' : 'Subscribe to Custom Domain' }}
+                                            {{ addons.custom_domains.active ? t('billing.addons.custom_domains.change_title') : t('billing.addons.custom_domains.subscribe_title') }}
                                         </DialogTitle>
-                                        <DialogDescription> Use your own domain for AI agents. Billed monthly at $29 per domain. </DialogDescription>
+                                        <DialogDescription>{{ t('billing.addons.custom_domains.dialog_description') }}</DialogDescription>
                                     </DialogHeader>
                                     <div class="space-y-4 py-4">
                                         <div class="space-y-2">
-                                            <Label for="custom-domains-quantity">Number of domains</Label>
+                                            <Label for="custom-domains-quantity">{{ t('billing.addons.custom_domains.quantity_label') }}</Label>
                                             <Input
                                                 id="custom-domains-quantity"
                                                 v-model.number="customDomainsQuantity"
@@ -565,20 +573,20 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                                         </div>
                                         <div class="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
                                             <div class="flex items-center justify-between">
-                                                <span class="font-medium">Monthly cost:</span>
+                                                <span class="font-medium">{{ t('billing.addons.common.monthly_cost') }}</span>
                                                 <span class="text-primary font-bold">${{ customDomainsTotal }}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <DialogFooter class="gap-2">
-                                        <Button variant="outline" @click="isCustomDomainsDialogOpen = false">Cancel</Button>
+                                        <Button variant="outline" @click="isCustomDomainsDialogOpen = false">{{ t('billing.common.cancel') }}</Button>
                                         <Button
                                             :disabled="isSubscribingCustomDomains || customDomainsQuantity < 1"
                                             class="gap-2"
                                             @click="subscribeCustomDomains"
                                         >
                                             <Loader2 v-if="isSubscribingCustomDomains" class="h-4 w-4 animate-spin" />
-                                            {{ addons.custom_domains.active ? 'Update Quantity' : 'Subscribe' }}
+                                            {{ addons.custom_domains.active ? t('billing.addons.common.update_quantity') : t('billing.addons.common.subscribe') }}
                                         </Button>
                                     </DialogFooter>
                                 </DialogContent>
@@ -594,41 +602,40 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                             <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
                                 <Sparkles class="text-muted-foreground h-4 w-4" />
                             </div>
-                            <h3 class="text-sm font-semibold">Remove Branding</h3>
+                            <h3 class="text-sm font-semibold">{{ t('billing.addons.remove_branding.title') }}</h3>
                         </div>
                         <Badge v-if="addons.remove_branding.active" variant="default" class="gap-1">
                             <CheckCircle class="h-3 w-3" />
-                            Active
+                            {{ t('billing.addons.remove_branding.active') }}
                         </Badge>
-                        <Badge v-else variant="outline">None</Badge>
+                        <Badge v-else variant="outline">{{ t('billing.addons.common.none') }}</Badge>
                     </div>
                     <p class="text-muted-foreground text-xs leading-relaxed">
-                        Hide the "Powered by Chatvia" badge across your widget and hosted chat.
+                        {{ t('billing.addons.remove_branding.summary') }}
                     </p>
                     <p v-if="addons.remove_branding.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">
-                        Ends {{ addons.remove_branding.cancels_at }}
+                        {{ t('billing.addons.common.ends', { date: addons.remove_branding.cancels_at }) }}
                     </p>
                     <div class="mt-auto flex items-end justify-between gap-2 pt-1">
                         <div>
                             <span class="text-lg font-bold">$19</span>
-                            <span class="text-muted-foreground text-xs"> / month</span>
+                            <span class="text-muted-foreground text-xs">{{ t('billing.addons.per_month') }}</span>
                         </div>
                         <div class="flex items-center gap-1">
                             <AlertDialog v-if="addons.remove_branding.active">
                                 <AlertDialogTrigger as-child>
-                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">Cancel</Button>
+                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">{{ t('billing.common.cancel') }}</Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle>Cancel Remove Branding subscription?</AlertDialogTitle>
+                                        <AlertDialogTitle>{{ t('billing.addons.remove_branding.cancel_title') }}</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            The "Powered by Chatvia" badge will reappear on your widget and hosted chat immediately, and you won't be
-                                            charged again.
+                                            {{ t('billing.addons.remove_branding.cancel_description') }}
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel>Keep subscription</AlertDialogCancel>
-                                        <AlertDialogAction @click="cancelRemoveBranding">Yes, cancel</AlertDialogAction>
+                                        <AlertDialogCancel>{{ t('billing.addons.common.keep_subscription') }}</AlertDialogCancel>
+                                        <AlertDialogAction @click="cancelRemoveBranding">{{ t('billing.addons.common.yes_cancel') }}</AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
@@ -641,7 +648,7 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                                 @click="subscribeRemoveBranding"
                             >
                                 <Loader2 v-if="isSubscribingRemoveBranding" class="h-4 w-4 animate-spin" />
-                                Subscribe
+                                {{ t('billing.addons.common.subscribe') }}
                             </Button>
                         </div>
                     </div>
@@ -654,58 +661,58 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                             <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
                                 <Users class="text-muted-foreground h-4 w-4" />
                             </div>
-                            <h3 class="text-sm font-semibold">Members</h3>
+                            <h3 class="text-sm font-semibold">{{ t('billing.addons.members.title') }}</h3>
                         </div>
                         <Badge v-if="addons.members.active" variant="default" class="gap-1">
                             <CheckCircle class="h-3 w-3" />
                             +{{ addons.members.quantity }}
                         </Badge>
-                        <Badge v-else variant="outline">None</Badge>
+                        <Badge v-else variant="outline">{{ t('billing.addons.common.none') }}</Badge>
                     </div>
-                    <p class="text-muted-foreground text-xs leading-relaxed">Add more team members to your workspace.</p>
-                    <p v-if="addons.members.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">Ends {{ addons.members.cancels_at }}</p>
+                    <p class="text-muted-foreground text-xs leading-relaxed">{{ t('billing.addons.members.summary') }}</p>
+                    <p v-if="addons.members.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">{{ t('billing.addons.common.ends', { date: addons.members.cancels_at }) }}</p>
                     <div class="mt-auto flex items-end justify-between gap-2 pt-1">
                         <div>
                             <span class="text-lg font-bold">$9</span>
-                            <span class="text-muted-foreground text-xs"> / member</span>
+                            <span class="text-muted-foreground text-xs">{{ t('billing.addons.per_member') }}</span>
                         </div>
                         <div class="flex items-center gap-1">
                             <AlertDialog v-if="addons.members.active">
                                 <AlertDialogTrigger as-child>
-                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">Cancel</Button>
+                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">{{ t('billing.common.cancel') }}</Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle>Cancel Members subscription?</AlertDialogTitle>
+                                        <AlertDialogTitle>{{ t('billing.addons.members.cancel_title') }}</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            Your additional member seats will be removed immediately and you won't be charged again.
+                                            {{ t('billing.addons.members.cancel_description') }}
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel>Keep subscription</AlertDialogCancel>
-                                        <AlertDialogAction @click="cancelMembers">Yes, cancel</AlertDialogAction>
+                                        <AlertDialogCancel>{{ t('billing.addons.common.keep_subscription') }}</AlertDialogCancel>
+                                        <AlertDialogAction @click="cancelMembers">{{ t('billing.addons.common.yes_cancel') }}</AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
                             <Dialog v-model:open="isMembersDialogOpen">
                                 <DialogTrigger as-child>
                                     <Button variant="outline" size="sm" :disabled="!subscribed">
-                                        {{ addons.members.active ? 'Change' : 'Subscribe' }}
+                                        {{ addons.members.active ? t('billing.addons.common.change') : t('billing.addons.common.subscribe') }}
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent class="sm:max-w-md">
                                     <DialogHeader>
                                         <DialogTitle class="flex items-center gap-2">
                                             <Users class="text-primary h-5 w-5" />
-                                            {{ addons.members.active ? 'Change Members' : 'Subscribe to Members' }}
+                                            {{ addons.members.active ? t('billing.addons.members.change_title') : t('billing.addons.members.subscribe_title') }}
                                         </DialogTitle>
                                         <DialogDescription>
-                                            Add additional team members to your workspace. Billed monthly at $9 per member.
+                                            {{ t('billing.addons.members.dialog_description') }}
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div class="space-y-4 py-4">
                                         <div class="space-y-2">
-                                            <Label for="members-quantity">Number of members</Label>
+                                            <Label for="members-quantity">{{ t('billing.addons.members.quantity_label') }}</Label>
                                             <Input
                                                 id="members-quantity"
                                                 v-model.number="membersQuantity"
@@ -717,16 +724,16 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
                                         </div>
                                         <div class="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
                                             <div class="flex items-center justify-between">
-                                                <span class="font-medium">Monthly cost:</span>
+                                                <span class="font-medium">{{ t('billing.addons.common.monthly_cost') }}</span>
                                                 <span class="text-primary font-bold">${{ membersTotal }}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <DialogFooter class="gap-2">
-                                        <Button variant="outline" @click="isMembersDialogOpen = false">Cancel</Button>
+                                        <Button variant="outline" @click="isMembersDialogOpen = false">{{ t('billing.common.cancel') }}</Button>
                                         <Button :disabled="isSubscribingMembers || membersQuantity < 1" class="gap-2" @click="subscribeMembers">
                                             <Loader2 v-if="isSubscribingMembers" class="h-4 w-4 animate-spin" />
-                                            {{ addons.members.active ? 'Update Quantity' : 'Subscribe' }}
+                                            {{ addons.members.active ? t('billing.addons.common.update_quantity') : t('billing.addons.common.subscribe') }}
                                         </Button>
                                     </DialogFooter>
                                 </DialogContent>
@@ -737,7 +744,7 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
             </div>
 
             <p v-if="!subscribed" class="text-muted-foreground mt-4 text-center text-xs">
-                Extra Agents, Custom Domain, Remove Branding, and Members require an active main subscription.
+                {{ t('billing.addons.requires_subscription') }}
             </p>
         </CardContent>
     </Card>

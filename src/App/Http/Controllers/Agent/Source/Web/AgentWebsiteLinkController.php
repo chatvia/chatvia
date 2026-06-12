@@ -29,7 +29,9 @@ class AgentWebsiteLinkController
         ]);
 
         if ($request->filled('q')) {
-            $query->where('url', 'like', '%'.$request->input('q').'%');
+            // ilike: case-insensitive matches user expectation for URLs and
+            // is served by the gin_trgm_ops index on url.
+            $query->where('url', 'ilike', '%'.$request->input('q').'%');
         }
 
         return $query->latest('crawled_at')->simplePaginate(50);

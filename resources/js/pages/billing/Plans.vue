@@ -9,8 +9,11 @@ import type { BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Bot, Building, Check, Crown, Gift, Package, Sparkles, Star, Zap } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { usePage } from '@inertiajs/vue3';
+
+const { t } = useI18n();
 
 const page = usePage();
 
@@ -72,11 +75,11 @@ const props = defineProps<{
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Billing',
+        title: t('billing.common.billing'),
         href: route('billing.index'),
     },
     {
-        title: 'Choose Plan',
+        title: t('billing.plans.breadcrumb'),
         href: route('billing.packages'),
     },
 ];
@@ -123,7 +126,7 @@ const subscribingPackage = ref('');
 
 const getPackagePrice = (pkg: Package) => {
     if (pkg.contact_sales) {
-        return 'Custom';
+        return t('billing.plans.custom');
     }
 
     let priceCents: number;
@@ -164,7 +167,7 @@ const getOriginalPrice = (pkg: Package) => {
 };
 
 const getPackagePeriod = () => {
-    return '/month';
+    return t('billing.plans.per_month');
 };
 
 const getYearlyTotal = (pkg: Package) => {
@@ -183,7 +186,7 @@ const getYearlyTotal = (pkg: Package) => {
 
 const getSavingsText = (pkg: Package) => {
     if (!isYearly.value || pkg.monthly_savings.percentage === 0) return null;
-    return `Save ${props.billingConfig.ui.yearly_savings_percentage}%`;
+    return t('billing.plans.save_percent', { percent: props.billingConfig.ui.yearly_savings_percentage });
 };
 
 // Subscribe to a paid plan
@@ -248,7 +251,7 @@ const findPackage = (packageId: string): Package | undefined => {
 // Get button text based on package action
 const getButtonText = (packageId: string) => {
     if (findPackage(packageId)?.contact_sales) {
-        return 'Contact sales';
+        return t('billing.plans.actions.contact_sales');
     }
 
     const action = getPackageAction(packageId);
@@ -257,13 +260,13 @@ const getButtonText = (packageId: string) => {
         case 'current':
             return props.billingConfig.ui.current_plan_text;
         case 'upgrade':
-            return props.currentPackage === 'free' ? 'Upgrade' : 'Upgrade Plan';
+            return props.currentPackage === 'free' ? t('billing.plans.actions.upgrade') : t('billing.plans.actions.upgrade_plan');
         case 'downgrade':
-            return packageId === 'free' ? 'Downgrade to Free' : 'Downgrade Plan';
+            return packageId === 'free' ? t('billing.plans.actions.downgrade_to_free') : t('billing.plans.actions.downgrade_plan');
         case 'same':
-            return 'Switch Plan';
+            return t('billing.plans.actions.switch_plan');
         default:
-            return 'Select Plan';
+            return t('billing.plans.actions.select_plan');
     }
 };
 
@@ -325,11 +328,11 @@ const getFeatureHeader = (packageId: string, packages: Package[]) => {
     const packageIndex = packagesArray.findIndex((pkg: Package) => pkg.id === packageId);
 
     if (packageIndex === 0 || packageIndex === -1) {
-        return 'Features included:';
+        return t('billing.plans.features_included');
     }
 
     const previousPackage = packagesArray[packageIndex - 1] as Package;
-    return `Everything in ${previousPackage.name} +`;
+    return t('billing.plans.everything_in', { plan: previousPackage.name });
 };
 
 const getPackageFeatures = (pkg: Package) => {
@@ -353,8 +356,8 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
 </script>
 
 <template>
-    <AppLayout title="Choose Your Plan" :breadcrumbs="breadcrumbs">
-        <Head title="Choose Your Plan" />
+    <AppLayout :title="t('billing.plans.page_title')" :breadcrumbs="breadcrumbs">
+        <Head :title="t('billing.plans.page_title')" />
 
         <div class="container mx-auto max-w-7xl py-8">
             <div class="space-y-8">
@@ -363,14 +366,14 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                     <div class="space-y-2">
                         <h1 class="flex items-center gap-3 text-3xl font-bold tracking-tight">
                             <Sparkles class="text-primary h-8 w-8" />
-                            Choose Your Plan
+                            {{ t('billing.plans.heading') }}
                         </h1>
-                        <p class="text-muted-foreground">Select the perfect plan for your needs. You can change or cancel anytime.</p>
+                        <p class="text-muted-foreground">{{ t('billing.plans.subheading') }}</p>
                     </div>
                     <Button variant="outline" as-child>
                         <Link :href="route('billing.index')">
-                            <ArrowLeft class="mr-2 h-4 w-4" />
-                            Back to Billing
+                            <ArrowLeft class="me-2 h-4 w-4" />
+                            {{ t('billing.common.back_to_billing') }}
                         </Link>
                     </Button>
                 </div>
@@ -388,7 +391,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                 }
                             "
                         >
-                            Monthly
+                            {{ t('billing.plans.monthly') }}
                         </Label>
 
                         <Label
@@ -401,7 +404,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                 }
                             "
                         >
-                            Yearly
+                            {{ t('billing.plans.yearly') }}
                             <Badge variant="secondary" class="text-xs">{{ billingConfig.ui.yearly_savings_text }}</Badge>
                         </Label>
                     </div>
@@ -411,12 +414,12 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                 <div v-if="isDiscountActive" class="rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 p-4 text-center text-white">
                     <div class="mb-2 flex items-center justify-center gap-2">
                         <Sparkles class="h-5 w-5" />
-                        <span class="text-lg font-bold">{{ billingConfig.discount.percentage }}% OFF Limited Time Offer!</span>
+                        <span class="text-lg font-bold">{{ t('billing.plans.discount.banner', { percent: billingConfig.discount.percentage }) }}</span>
                         <Sparkles class="h-5 w-5" />
                     </div>
                     <p class="text-green-100">
-                        <template v-if="billingConfig.discount.ends_at"> Offer ends {{ formatDiscountEndDate }} - Don't miss out! </template>
-                        <template v-else> Limited time discount on all paid plans! </template>
+                        <template v-if="billingConfig.discount.ends_at">{{ t('billing.plans.discount.ends', { date: formatDiscountEndDate }) }}</template>
+                        <template v-else>{{ t('billing.plans.discount.limited') }}</template>
                     </p>
                 </div>
 
@@ -426,7 +429,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                         <!-- Popular Badge -->
                         <div v-if="pkg.is_popular" class="absolute -top-3 left-1/2 z-10 -translate-x-1/2">
                             <Badge class="bg-primary text-primary-foreground px-3 py-1 text-xs">
-                                <Star class="mr-1 h-3 w-3" />
+                                <Star class="me-1 h-3 w-3" />
                                 {{ billingConfig.ui.popular_badge_text }}
                             </Badge>
                         </div>
@@ -441,7 +444,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                             ]"
                         >
                             <!-- Current Plan Indicator -->
-                            <div v-if="isCurrentPackage(pkg.id)" class="absolute top-4 right-4">
+                            <div v-if="isCurrentPackage(pkg.id)" class="absolute top-4 end-4">
                                 <Badge variant="secondary" class="text-xs">
                                     {{ billingConfig.ui.current_plan_text }}
                                 </Badge>
@@ -475,7 +478,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                             class="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800"
                                         >
                                             <Sparkles class="h-3 w-3" />
-                                            {{ billingConfig.discount.percentage }}% OFF
+                                            {{ t('billing.plans.discount.off', { percent: billingConfig.discount.percentage }) }}
                                         </div>
                                     </div>
                                     <div v-if="!pkg.contact_sales" class="text-muted-foreground mt-2 text-sm">{{ getPackagePeriod() }}</div>
@@ -483,7 +486,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                         {{ getSavingsText(pkg) }}
                                     </div>
                                     <div v-if="getYearlyTotal(pkg)" class="text-muted-foreground mt-1 text-xs">
-                                        Billed yearly at {{ getYearlyTotal(pkg) }}
+                                        {{ t('billing.plans.billed_yearly', { amount: getYearlyTotal(pkg) }) }}
                                     </div>
                                 </div>
 
@@ -498,9 +501,9 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                     >
                                         <template v-if="isSubscribing && subscribingPackage === pkg.id">
                                             <div
-                                                class="border-muted-foreground/30 border-t-muted-foreground mr-2 h-4 w-4 animate-spin rounded-full border-2"
+                                                class="border-muted-foreground/30 border-t-muted-foreground me-2 h-4 w-4 animate-spin rounded-full border-2"
                                             />
-                                            Processing...
+                                            {{ t('billing.common.processing') }}
                                         </template>
                                         <template v-else>
                                             {{ getButtonText(pkg.id) }}
@@ -516,7 +519,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                     >
                                         <template v-if="isSubscribing && subscribingPackage === pkg.id">
                                             <div class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                                            Processing...
+                                            {{ t('billing.common.processing') }}
                                         </template>
                                         <template v-else>
                                             {{ getButtonText(pkg.id) }}
@@ -574,9 +577,9 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <Bot class="text-primary h-5 w-5" />
-                        Available AI Models
+                        {{ t('billing.plans.llms.title') }}
                     </DialogTitle>
-                    <DialogDescription> Choose from our comprehensive selection of state-of-the-art language models </DialogDescription>
+                    <DialogDescription>{{ t('billing.plans.llms.description') }}</DialogDescription>
                 </DialogHeader>
 
                 <div class="mt-4 grid max-h-96 gap-3 overflow-y-auto">
@@ -595,7 +598,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
 
                     <div v-if="currentLLMs.length === 0" class="text-muted-foreground py-8 text-center">
                         <Bot class="mx-auto mb-2 h-12 w-12 opacity-50" />
-                        <p>No models available</p>
+                        <p>{{ t('billing.plans.llms.empty') }}</p>
                     </div>
                 </div>
             </DialogContent>

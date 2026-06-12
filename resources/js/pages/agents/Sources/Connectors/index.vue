@@ -9,6 +9,7 @@ import type { AgentMcpServer, Connector } from '@/types/connector';
 import axios from 'axios';
 import { LoaderCircle, Plug, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -16,6 +17,8 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { t } = useI18n();
 
 // Featured row state from the backend:
 //   - attached   — account-level row exists AND attached to this agent
@@ -67,7 +70,7 @@ async function fetchAll(): Promise<void> {
         customConnectors.value = response.data.custom;
     } catch (err) {
         console.error(err);
-        toast.error('Failed to load connectors');
+        toast.error(t('agents.sources.connectors.load_failed'));
     } finally {
         loading.value = false;
     }
@@ -112,7 +115,7 @@ async function attach(slug: string, onSuccess: () => void): Promise<void> {
         onSuccess();
     } catch (err) {
         console.error(err);
-        toast.error('Failed to attach');
+        toast.error(t('agents.sources.connectors.attach_failed'));
     }
 }
 
@@ -122,7 +125,7 @@ async function detach(slug: string, onSuccess: () => void): Promise<void> {
         onSuccess();
     } catch (err) {
         console.error(err);
-        toast.error('Failed to detach');
+        toast.error(t('agents.sources.connectors.detach_failed'));
     }
 }
 
@@ -130,7 +133,7 @@ onMounted(fetchAll);
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Connectors">
+    <AgentLayout :agent="agent" :title="t('agents.sources.page_title.connectors')">
         <div class="flex justify-center">
             <div class="w-full max-w-6xl space-y-6">
                 <Card>
@@ -139,11 +142,11 @@ onMounted(fetchAll);
                             <div>
                                 <CardTitle class="flex items-center gap-2">
                                     <Plug class="h-5 w-5" />
-                                    Connectors
+                                    {{ t('agents.sources.connectors.title') }}
                                 </CardTitle>
                                 <CardDescription>
-                                    Attach account-level connectors to this agent. Connect or add new ones in
-                                    <a :href="route('settings.connectors.edit')" class="underline">Settings → Connectors</a>.
+                                    {{ t('agents.sources.connectors.description_prefix') }}
+                                    <a :href="route('integrations.connectors.edit')" class="underline">{{ t('agents.sources.connectors.settings_link') }}</a>.
                                 </CardDescription>
                             </div>
                         </div>
@@ -151,24 +154,24 @@ onMounted(fetchAll);
                     <CardContent class="space-y-6">
                         <div class="relative max-w-sm">
                             <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                            <Input v-model="search" placeholder="Search connectors" class="pl-9" />
+                            <Input v-model="search" :placeholder="t('agents.sources.connectors.search_placeholder')" class="ps-9" />
                         </div>
 
                         <div v-if="loading" class="text-muted-foreground flex items-center gap-2 py-12 text-sm">
                             <LoaderCircle class="h-4 w-4 animate-spin" />
-                            Loading connectors
+                            {{ t('agents.sources.connectors.loading') }}
                         </div>
 
                         <div v-else class="space-y-8">
                             <section v-if="filteredCustom.length > 0">
-                                <h2 class="mb-3 text-base font-semibold">Custom connectors</h2>
+                                <h2 class="mb-3 text-base font-semibold">{{ t('agents.sources.connectors.custom_title') }}</h2>
                                 <div class="rounded-lg border">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead class="h-11 pl-5">Connector</TableHead>
-                                                <TableHead class="h-11 w-32">Tools</TableHead>
-                                                <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
+                                                <TableHead class="h-11 ps-5">{{ t('agents.sources.connectors.column_connector') }}</TableHead>
+                                                <TableHead class="h-11 w-32">{{ t('agents.sources.connectors.column_tools') }}</TableHead>
+                                                <TableHead class="h-11 w-32 pe-5">{{ t('agents.sources.connectors.column_enabled') }}</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -178,7 +181,7 @@ onMounted(fetchAll);
                                                 class="cursor-pointer"
                                                 @click="toggleCustom(row)"
                                             >
-                                                <TableCell class="py-4 pl-5">
+                                                <TableCell class="py-4 ps-5">
                                                     <div class="flex items-center gap-4">
                                                         <div class="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-md">
                                                             <Plug class="text-muted-foreground h-5 w-5" />
@@ -190,7 +193,7 @@ onMounted(fetchAll);
                                                     </div>
                                                 </TableCell>
                                                 <TableCell class="py-4 text-sm">{{ row.catalog_tools_count }}</TableCell>
-                                                <TableCell class="py-4 pr-5" @click.stop>
+                                                <TableCell class="py-4 pe-5" @click.stop>
                                                     <Switch :model-value="row.is_attached" @update:model-value="toggleCustom(row)" />
                                                 </TableCell>
                                             </TableRow>
@@ -201,15 +204,15 @@ onMounted(fetchAll);
 
                             <section>
                                 <div v-if="filteredFeatured.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
-                                    No connectors match.
+                                    {{ t('agents.sources.connectors.no_match') }}
                                 </div>
                                 <div v-else class="rounded-lg border">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead class="h-11 pl-5">Connector</TableHead>
-                                                <TableHead class="h-11 w-32">Tools</TableHead>
-                                                <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
+                                                <TableHead class="h-11 ps-5">{{ t('agents.sources.connectors.column_connector') }}</TableHead>
+                                                <TableHead class="h-11 w-32">{{ t('agents.sources.connectors.column_tools') }}</TableHead>
+                                                <TableHead class="h-11 w-32 pe-5">{{ t('agents.sources.connectors.column_enabled') }}</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -219,7 +222,7 @@ onMounted(fetchAll);
                                                 :class="{ 'cursor-pointer': !row.connector.comingSoon && row.state !== 'available' }"
                                                 @click="toggleFeatured(row)"
                                             >
-                                                <TableCell class="py-4 pl-5">
+                                                <TableCell class="py-4 ps-5">
                                                     <div class="flex items-center gap-4">
                                                         <div
                                                             class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md"
@@ -238,13 +241,13 @@ onMounted(fetchAll);
                                                 <TableCell class="py-4 text-sm">
                                                     {{ row.server ? row.server.catalog_tools_count : '—' }}
                                                 </TableCell>
-                                                <TableCell class="py-4 pr-5" @click.stop>
-                                                    <Badge v-if="row.connector.comingSoon" variant="outline">Soon</Badge>
+                                                <TableCell class="py-4 pe-5" @click.stop>
+                                                    <Badge v-if="row.connector.comingSoon" variant="outline">{{ t('agents.sources.connectors.soon') }}</Badge>
                                                     <Switch
                                                         v-else
                                                         :model-value="row.state === 'attached'"
                                                         :disabled="row.state === 'available'"
-                                                        :title="row.state === 'available' ? 'Connect this MCP in Settings first' : undefined"
+                                                        :title="row.state === 'available' ? t('agents.sources.connectors.connect_first') : undefined"
                                                         @update:model-value="toggleFeatured(row)"
                                                     />
                                                 </TableCell>

@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chat_errors": {
+            "disabled_title": "الوكيل معطّل",
+            "disabled_description": "هذا الوكيل غير متاح حالياً",
+            "disabled_heading": "الوكيل معطّل",
+            "disabled_message": "تم تعطيل هذا الوكيل. يرجى التواصل مع المسؤول للمساعدة.",
+            "disabled_hint": "إذا كنت تعتقد أن هذا خطأ أو تحتاج مساعدة فورية، تواصل مع المسؤول.",
+            "contact_admin": "التواصل مع المسؤول",
+            "return_dashboard": "العودة إلى لوحة التحكم",
+            "no_messages_title": "لا رسائل متبقية",
+            "no_messages_description": "لقد وصلت إلى حد الرسائل",
+            "not_found_title": "الوكيل غير موجود",
+            "not_found_description": "الوكيل الذي تبحث عنه غير موجود",
+            "not_found_heading": "الوكيل غير موجود",
+            "not_found_message": "الوكيل الذي تحاول الوصول إليه غير موجود أو ربما تمت إزالته.",
+            "not_found_hint": "تحقق من الرابط أو تواصل مع المسؤول إذا كنت تعتقد أن هذا الوكيل يجب أن يكون متاحاً."
+        }
+    }
+}

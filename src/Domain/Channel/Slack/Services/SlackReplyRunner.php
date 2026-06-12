@@ -33,8 +33,8 @@ class SlackReplyRunner
 
         return $this->runner->reply(
             agent: $channel->app->agent,
-            sessionExternalId: $channel->session_external_id,
-            conversationExternalId: $channel->conversation_external_id,
+            sessionExternalId: $channel->session->external_id,
+            conversationExternalId: $channel->conversation->external_id,
             message: $message,
             source: 'slack',
             requestIdPrefix: 'slk_',

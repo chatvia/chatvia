@@ -10,6 +10,7 @@ import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { AlertCircle, Code, FunctionSquare, LoaderCircle, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -17,6 +18,8 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { t } = useI18n();
 
 interface FunctionRow extends AgentFunction {
     is_attached: boolean;
@@ -45,7 +48,7 @@ async function fetchFunctions(): Promise<void> {
         functions.value = response.data.data;
     } catch (err) {
         console.error(err);
-        toast.error('Failed to load functions');
+        toast.error(t('agents.sources.functions.load_failed'));
     } finally {
         loading.value = false;
     }
@@ -66,7 +69,7 @@ async function attach(fn: FunctionRow): Promise<void> {
         if (i !== -1) functions.value[i] = { ...functions.value[i], is_attached: true };
     } catch (err) {
         console.error(err);
-        toast.error('Failed to attach function');
+        toast.error(t('agents.sources.functions.attach_failed'));
     }
 }
 
@@ -77,7 +80,7 @@ async function detach(fn: FunctionRow): Promise<void> {
         if (i !== -1) functions.value[i] = { ...functions.value[i], is_attached: false };
     } catch (err) {
         console.error(err);
-        toast.error('Failed to detach function');
+        toast.error(t('agents.sources.functions.detach_failed'));
     }
 }
 
@@ -94,10 +97,10 @@ onMounted(fetchFunctions);
                             <div>
                                 <CardTitle class="flex items-center gap-2">
                                     <Code class="h-5 w-5" />
-                                    Functions
+                                    {{ t('agents.sources.functions.title') }}
                                 </CardTitle>
                                 <CardDescription>
-                                    Attach account-level functions to this agent. Create or edit functions in Settings → Functions.
+                                    {{ t('agents.sources.functions.description') }}
                                 </CardDescription>
                             </div>
                         </div>
@@ -105,47 +108,47 @@ onMounted(fetchFunctions);
                     <CardContent class="space-y-6">
                         <div class="relative max-w-sm">
                             <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                            <Input v-model="search" placeholder="Search functions" class="pl-9" />
+                            <Input v-model="search" :placeholder="t('agents.sources.functions.search_placeholder')" class="ps-9" />
                         </div>
 
                         <div v-if="loading" class="text-muted-foreground flex items-center gap-2 py-12 text-sm">
                             <LoaderCircle class="h-4 w-4 animate-spin" />
-                            Loading functions
+                            {{ t('agents.sources.functions.loading') }}
                         </div>
 
                         <div v-else-if="functions.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
                             <FunctionSquare class="mx-auto mb-3 h-10 w-10 opacity-40" />
-                            <p class="font-medium">No functions yet</p>
+                            <p class="font-medium">{{ t('agents.sources.functions.empty_title') }}</p>
                             <p class="mt-1">
-                                Create your first one in
-                                <Link :href="route('settings.functions.edit')" class="underline">Settings → Functions</Link>.
+                                {{ t('agents.sources.functions.empty_prefix') }}
+                                <Link :href="route('integrations.functions.edit')" class="underline">{{ t('agents.sources.functions.settings_link') }}</Link>.
                             </p>
                         </div>
 
                         <div v-else-if="filtered.length === 0" class="text-muted-foreground rounded-md border py-12 text-center text-sm">
-                            No functions match your search.
+                            {{ t('agents.sources.functions.no_match') }}
                         </div>
 
                         <div v-else class="rounded-lg border">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead class="h-11 pl-5">Function</TableHead>
-                                        <TableHead class="h-11 w-40">Webhook</TableHead>
-                                        <TableHead class="h-11 w-32 pr-5">Enabled</TableHead>
+                                        <TableHead class="h-11 ps-5">{{ t('agents.sources.functions.column_function') }}</TableHead>
+                                        <TableHead class="h-11 w-40">{{ t('agents.sources.functions.column_webhook') }}</TableHead>
+                                        <TableHead class="h-11 w-32 pe-5">{{ t('agents.sources.functions.column_enabled') }}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     <TableRow v-for="fn in filtered" :key="fn.external_id">
-                                        <TableCell class="py-4 pl-5">
+                                        <TableCell class="py-4 ps-5">
                                             <div class="min-w-0">
                                                 <div class="flex items-center gap-2">
                                                     <span v-if="fn.display_name" class="text-sm font-medium">{{ fn.display_name }}</span>
                                                     <code class="bg-muted rounded px-1.5 py-0.5 text-xs font-semibold">{{ fn.internal_name }}</code>
-                                                    <Badge v-if="!fn.is_enabled" variant="secondary">disabled</Badge>
+                                                    <Badge v-if="!fn.is_enabled" variant="secondary">{{ t('agents.sources.functions.disabled') }}</Badge>
                                                     <Badge v-if="fn.last_error" variant="destructive" class="gap-1">
                                                         <AlertCircle class="h-3 w-3" />
-                                                        last call failed
+                                                        {{ t('agents.sources.functions.last_call_failed') }}
                                                     </Badge>
                                                 </div>
                                                 <p class="text-muted-foreground mt-1 line-clamp-1 text-sm">{{ fn.description }}</p>
@@ -154,11 +157,11 @@ onMounted(fetchFunctions);
                                         <TableCell class="text-muted-foreground py-4 text-xs">
                                             {{ fn.webhook_method }} {{ fn.webhook_url }}
                                         </TableCell>
-                                        <TableCell class="py-4 pr-5">
+                                        <TableCell class="py-4 pe-5">
                                             <Switch
                                                 :model-value="fn.is_attached"
                                                 :disabled="!fn.is_enabled"
-                                                :title="!fn.is_enabled ? 'Enable this function in Settings first' : undefined"
+                                                :title="!fn.is_enabled ? t('agents.sources.functions.enable_first') : undefined"
                                                 @update:model-value="toggle(fn)"
                                             />
                                         </TableCell>

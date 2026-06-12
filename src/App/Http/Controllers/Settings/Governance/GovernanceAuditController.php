@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings\Governance;
 use App\Http\Controllers\Agent\Audit\AgentAuditController;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\AgentActivity;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -29,7 +30,8 @@ class GovernanceAuditController
 
         $this->applyFilters($query, $request);
 
-        $rows = $query->paginate(25)->withQueryString()->through(fn (AgentActivity $a): array => $a->toAuditArray());
+        // Cursor pagination pairs with the (workspace_id, id) index — no COUNT(*)/OFFSET over the unbounded log.
+        $rows = $query->cursorPaginate(25)->withQueryString()->through(fn (AgentActivity $a): array => $a->toAuditArray());
 
         $agents = Agent::query()
             ->where('user_id', $workspaceId)
@@ -38,7 +40,7 @@ class GovernanceAuditController
             ->map(fn (Agent $a): array => ['id' => $a->id, 'name' => $a->name])
             ->all();
 
-        return Inertia::render('settings/Governance', [
+        return Inertia::render('workspace/governance/Governance', [
             'rows' => $rows,
             'agents' => $agents,
             'connectors' => $this->connectorOptions($workspaceId),
@@ -65,20 +67,22 @@ class GovernanceAuditController
     }
 
     /**
-     * Distinct connectors that appear in this workspace's audit, for the filter.
+     * Filter options from the workspace's configured MCP servers. A deleted
+     * connector drops out of the dropdown; its rows stay reachable unfiltered.
      *
      * @return array<int, array{slug: string, name: ?string}>
      */
     private function connectorOptions(int $workspaceId): array
     {
-        return AgentActivity::query()
-            ->forWorkspace($workspaceId)
+        return AgentMcpServer::query()
+            ->where('user_id', $workspaceId)
             ->whereNotNull('connector_slug')
-            ->select('connector_slug', 'connector_name')
-            ->distinct()
-            ->orderBy('connector_name')
+            ->select('connector_slug', 'name')
+            ->orderBy('name')
             ->get()
-            ->map(fn (AgentActivity $a): array => ['slug' => (string) $a->connector_slug, 'name' => $a->connector_name])
+            ->unique('connector_slug')
+            ->map(fn (AgentMcpServer $s): array => ['slug' => (string) $s->connector_slug, 'name' => $s->name])
+            ->values()
             ->all();
     }
 }

@@ -26,7 +26,7 @@ class DataExportReadyNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $downloadUrl = route('settings.data-export.download', $this->export);
+        $downloadUrl = route('account.data-export.download', $this->export);
         $expiresAt = $this->export->expires_at?->toDayDateTimeString();
 
         return (new MailMessage)
@@ -44,7 +44,7 @@ class DataExportReadyNotification extends Notification
             'export_id' => $this->export->id,
             'expires_at' => $this->export->expires_at?->toIso8601String(),
             'file_size' => $this->export->file_size,
-            'download_url' => route('settings.data-export.download', $this->export),
+            'download_url' => route('account.data-export.download', $this->export),
         ]);
     }
 

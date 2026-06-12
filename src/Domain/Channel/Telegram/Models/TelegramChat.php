@@ -2,6 +2,8 @@
 
 namespace Domain\Channel\Telegram\Models;
 
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Session;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,8 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * messages. Created on first contact.
  *
  * @property string $chat_id
- * @property string $session_external_id
- * @property string $conversation_external_id
+ * @property int $chat_session_id
+ * @property int $chat_conversation_id
  */
 #[Guarded(['id'])]
 class TelegramChat extends Model
@@ -28,5 +30,21 @@ class TelegramChat extends Model
     public function bot(): BelongsTo
     {
         return $this->belongsTo(AgentTelegramBot::class, 'agent_telegram_bot_id');
+    }
+
+    /**
+     * @return BelongsTo<Session, $this>
+     */
+    public function session(): BelongsTo
+    {
+        return $this->belongsTo(Session::class, 'chat_session_id');
+    }
+
+    /**
+     * @return BelongsTo<Conversation, $this>
+     */
+    public function conversation(): BelongsTo
+    {
+        return $this->belongsTo(Conversation::class, 'chat_conversation_id');
     }
 }

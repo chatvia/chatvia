@@ -6,7 +6,10 @@ import { useDateFormat } from '@/composables/useDateFormat';
 import { Link } from '@inertiajs/vue3';
 import { CalendarClock, MessageSquare, Zap } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useChatLog } from './useChatLog';
+
+const { t } = useI18n();
 
 const {
     currentConversationId,
@@ -39,19 +42,19 @@ function formatExpiresOn(iso: string | null | undefined): string {
 function formatExpiresRelative(iso: string | null | undefined): string {
     if (!iso) return '';
     const ms = new Date(iso).getTime() - Date.now();
-    if (ms <= 0) return 'past expiration';
+    if (ms <= 0) return t('agents.chatlog.details.expires_past');
     const days = Math.ceil(ms / 86_400_000);
-    if (days <= 1) return 'today';
-    if (days < 30) return `in ${days} days`;
+    if (days <= 1) return t('agents.chatlog.details.expires_today');
+    if (days < 30) return t('agents.chatlog.details.expires_in_days', { count: days });
     const months = Math.round(days / 30);
-    return months === 1 ? 'in 1 month' : `in ${months} months`;
+    return months === 1 ? t('agents.chatlog.details.expires_in_one_month') : t('agents.chatlog.details.expires_in_months', { count: months });
 }
 </script>
 
 <template>
     <div v-if="!currentConversationId" class="text-muted-foreground flex flex-col items-center justify-center py-20">
         <MessageSquare class="mb-3 h-10 w-10 opacity-30" />
-        <p class="text-sm">Select a conversation</p>
+        <p class="text-sm">{{ t('agents.chatlog.details.select_conversation') }}</p>
     </div>
     <div v-else-if="currentConversationData" class="p-5">
         <div class="bg-card rounded-lg border">
@@ -59,13 +62,13 @@ function formatExpiresRelative(iso: string | null | undefined): string {
                 <tbody class="divide-y">
                     <!-- Messages -->
                     <tr>
-                        <td class="text-muted-foreground w-1/3 px-4 py-3 font-medium">Messages</td>
+                        <td class="text-muted-foreground w-1/3 px-4 py-3 font-medium">{{ t('agents.chatlog.details.messages') }}</td>
                         <td class="px-4 py-3">{{ totalMessages }}</td>
                     </tr>
 
                     <!-- Last Activity -->
                     <tr>
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Last Activity</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.last_activity') }}</td>
                         <td class="px-4 py-3">{{ formatTimeAgo(currentConversationData.last_at) }}</td>
                     </tr>
 
@@ -74,7 +77,7 @@ function formatExpiresRelative(iso: string | null | undefined): string {
                          prune command wipes the conversation, its messages,
                          and any attachments on this date. -->
                     <tr v-if="currentConversationData.expires_at">
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Expires</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.expires') }}</td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
                                 <CalendarClock class="text-muted-foreground h-4 w-4" />
@@ -86,32 +89,32 @@ function formatExpiresRelative(iso: string | null | undefined): string {
 
                     <!-- Topic -->
                     <tr>
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Topic</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.topic') }}</td>
                         <td class="px-4 py-3">
                             <template v-if="!hasTopicsAccess">
                                 <Button as-child size="sm" class="h-7 gap-1 text-xs">
                                     <Link :href="route('billing.packages')">
                                         <Zap class="h-3 w-3" />
-                                        Upgrade to unlock
+                                        {{ t('agents.chatlog.details.upgrade_to_unlock') }}
                                     </Link>
                                 </Button>
                             </template>
                             <template v-else-if="currentConversationData.topics?.length">
                                 {{ currentConversationData.topics.join(', ') }}
                             </template>
-                            <span v-else class="text-muted-foreground text-sm italic">Waiting...</span>
+                            <span v-else class="text-muted-foreground text-sm italic">{{ t('agents.chatlog.details.waiting') }}</span>
                         </td>
                     </tr>
 
                     <!-- Sentiment -->
                     <tr>
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Sentiment</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.sentiment') }}</td>
                         <td class="px-4 py-3">
                             <template v-if="!hasSentimentAccess">
                                 <Button as-child size="sm" class="h-7 gap-1 text-xs">
                                     <Link :href="route('billing.packages')">
                                         <Zap class="h-3 w-3" />
-                                        Upgrade to unlock
+                                        {{ t('agents.chatlog.details.upgrade_to_unlock') }}
                                     </Link>
                                 </Button>
                             </template>
@@ -120,19 +123,19 @@ function formatExpiresRelative(iso: string | null | undefined): string {
                                     {{ getSentimentDisplayName(currentConversationData.sentiment) }}
                                 </Badge>
                             </template>
-                            <span v-else class="text-muted-foreground text-sm italic">Waiting...</span>
+                            <span v-else class="text-muted-foreground text-sm italic">{{ t('agents.chatlog.details.waiting') }}</span>
                         </td>
                     </tr>
 
                     <!-- Tone -->
                     <tr>
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Tone</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.tone') }}</td>
                         <td class="px-4 py-3">
                             <template v-if="!hasToneAccess">
                                 <Button as-child size="sm" class="h-7 gap-1 text-xs">
                                     <Link :href="route('billing.packages')">
                                         <Zap class="h-3 w-3" />
-                                        Upgrade to unlock
+                                        {{ t('agents.chatlog.details.upgrade_to_unlock') }}
                                     </Link>
                                 </Button>
                             </template>
@@ -142,13 +145,13 @@ function formatExpiresRelative(iso: string | null | undefined): string {
                                     {{ getToneDisplayName(currentConversationData.tone) }}
                                 </Badge>
                             </template>
-                            <span v-else class="text-muted-foreground text-sm italic">Waiting...</span>
+                            <span v-else class="text-muted-foreground text-sm italic">{{ t('agents.chatlog.details.waiting') }}</span>
                         </td>
                     </tr>
 
                     <!-- Country -->
                     <tr v-if="currentConversationData.country">
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Country</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.country') }}</td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
                                 <img
@@ -164,31 +167,31 @@ function formatExpiresRelative(iso: string | null | undefined): string {
 
                     <!-- City -->
                     <tr v-if="currentConversationData.city">
-                        <td class="text-muted-foreground px-4 py-3 font-medium">City</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.city') }}</td>
                         <td class="px-4 py-3">{{ currentConversationData.city }}</td>
                     </tr>
 
                     <!-- Device -->
                     <tr v-if="currentConversationData.device_type">
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Device</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.device') }}</td>
                         <td class="px-4 py-3 capitalize">{{ currentConversationData.device_type }}</td>
                     </tr>
 
                     <!-- Browser -->
                     <tr v-if="currentConversationData.browser">
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Browser</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.browser') }}</td>
                         <td class="px-4 py-3">{{ currentConversationData.browser }}</td>
                     </tr>
 
                     <!-- OS -->
                     <tr v-if="currentConversationData.os">
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Operating System</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.os') }}</td>
                         <td class="px-4 py-3">{{ currentConversationData.os }}</td>
                     </tr>
 
                     <!-- Page URL -->
                     <tr v-if="currentConversationData.page_url">
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Page URL</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.page_url') }}</td>
                         <td class="px-4 py-3">
                             <a
                                 :href="currentConversationData.page_url"
@@ -202,7 +205,7 @@ function formatExpiresRelative(iso: string | null | undefined): string {
 
                     <!-- Referrer -->
                     <tr v-if="currentConversationData.referrer_url">
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Referrer</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.referrer') }}</td>
                         <td class="px-4 py-3">
                             <a
                                 :href="currentConversationData.referrer_url"
@@ -216,7 +219,7 @@ function formatExpiresRelative(iso: string | null | undefined): string {
 
                     <!-- Locale -->
                     <tr v-if="currentConversationData.locale">
-                        <td class="text-muted-foreground px-4 py-3 font-medium">Locale</td>
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.locale') }}</td>
                         <td class="px-4 py-3">{{ currentConversationData.locale }}</td>
                     </tr>
                 </tbody>

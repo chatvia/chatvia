@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Clock, Home } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     message: string;
@@ -14,10 +17,10 @@ defineProps<Props>();
 </script>
 
 <template>
-    <AuthBase title="Invitation Expired" description="This invitation is no longer valid">
-        <Head title="Invitation Expired" />
+    <AuthBase :title="t('auth.invitation_expired.title')" :description="t('auth.invitation_expired.description')">
+        <Head :title="t('auth.invitation_expired.head')" />
 
-        <div class="absolute top-4 right-4">
+        <div class="absolute top-4 end-4">
             <ThemeSwitcher />
         </div>
 
@@ -27,17 +30,17 @@ defineProps<Props>();
                     <div class="bg-destructive/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
                         <Clock class="text-destructive h-8 w-8" />
                     </div>
-                    <CardTitle class="text-xl">Invitation Expired</CardTitle>
+                    <CardTitle class="text-xl">{{ t('auth.invitation_expired.card_title') }}</CardTitle>
                     <CardDescription class="text-base">
                         {{ message }}
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-4 text-center">
-                    <p class="text-muted-foreground">Please contact the team owner to request a new invitation.</p>
+                    <p class="text-muted-foreground">{{ t('auth.invitation_expired.contact_owner') }}</p>
                     <Link :href="route('login')">
                         <Button variant="outline" class="gap-2">
                             <Home class="h-4 w-4" />
-                            Go to Login
+                            {{ t('auth.invitation_expired.go_to_login') }}
                         </Button>
                     </Link>
                 </CardContent>

@@ -23,6 +23,9 @@ import {
 import { Info, LoaderCircle, SmilePlus } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { Line, Pie } from 'vue-chartjs';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, ChartTooltip, Legend, Filler);
@@ -75,7 +78,7 @@ const fetchSentimentData = async () => {
         const response = await axios.get(route('agents.sentiment.data', props.agent.external_id));
         sentimentData.value = response.data;
     } catch (err: any) {
-        error.value = err.response?.data?.message || 'Failed to load sentiment data';
+        error.value = err.response?.data?.message || t('agents.sentiment.load_error');
         console.error('Error fetching sentiment data:', err);
     } finally {
         loading.value = false;
@@ -96,7 +99,7 @@ const lineChartData = computed(() => {
         labels: sentimentData.value.sentimentByDate.map((d: any) => formatDate(d.date)),
         datasets: [
             {
-                label: 'Positive',
+                label: t('agents.sentiment.positive'),
                 data: sentimentData.value.sentimentByDate.map((d: any) => d.positive),
                 borderColor: 'rgb(96, 165, 250)',
                 backgroundColor: 'rgba(96, 165, 250, 0.1)',
@@ -108,7 +111,7 @@ const lineChartData = computed(() => {
                 pointBorderWidth: 2,
             },
             {
-                label: 'Neutral',
+                label: t('agents.sentiment.neutral'),
                 data: sentimentData.value.sentimentByDate.map((d: any) => d.neutral),
                 borderColor: 'rgb(71, 85, 105)',
                 backgroundColor: 'rgba(71, 85, 105, 0.1)',
@@ -120,7 +123,7 @@ const lineChartData = computed(() => {
                 pointBorderWidth: 2,
             },
             {
-                label: 'Negative',
+                label: t('agents.sentiment.negative'),
                 data: sentimentData.value.sentimentByDate.map((d: any) => d.negative),
                 borderColor: 'rgb(248, 113, 113)',
                 backgroundColor: 'rgba(248, 113, 113, 0.1)',
@@ -132,7 +135,7 @@ const lineChartData = computed(() => {
                 pointBorderWidth: 2,
             },
             {
-                label: 'Unspecified',
+                label: t('agents.sentiment.unspecified'),
                 data: sentimentData.value.sentimentByDate.map((d: any) => d.unspecified),
                 borderColor: 'rgb(203, 213, 225)',
                 backgroundColor: 'rgba(203, 213, 225, 0.1)',
@@ -218,7 +221,7 @@ const pieChartData = computed(() => {
     const totals = sentimentData.value.totalSentiments;
 
     return {
-        labels: ['Neutral', 'Positive', 'Negative', 'Unspecified'],
+        labels: [t('agents.sentiment.neutral'), t('agents.sentiment.positive'), t('agents.sentiment.negative'), t('agents.sentiment.unspecified')],
         datasets: [
             {
                 data: [totals.neutral, totals.positive, totals.negative, totals.unspecified],
@@ -303,22 +306,22 @@ onMounted(() => {
 </script>
 
 <template>
-    <AgentLayout :agent="agent" title="Sentiment Analysis" description="Analyze user sentiment patterns and trends">
+    <AgentLayout :agent="agent" :title="t('agents.sentiment.title')" :description="t('agents.sentiment.description')">
         <template #header-icon>
             <SmilePlus class="h-5 w-5" />
         </template>
 
         <LockedFeature
             v-if="!hasAccess"
-            description="Upgrade your plan to access sentiment analysis and understand the emotional tone in your conversations."
+            :description="t('agents.sentiment.locked_description')"
         />
 
         <AnalyticsDisabled
             v-else-if="!chatlogEnabled || !isEnabled"
-            title="Sentiment analysis"
-            description="Turn it on to track how positive, neutral or negative your visitors feel across conversations."
+            :title="t('agents.sentiment.disabled_title')"
+            :description="t('agents.sentiment.disabled_description')"
             :can-enable="chatlogEnabled"
-            blocked-reason="Chat log is off, so there's nothing to analyze. Turn it on in Setup → Settings to start collecting sentiment."
+            :blocked-reason="t('agents.sentiment.blocked_reason')"
             :enabling="enabling"
             @enable="enableSentiment"
         />
@@ -331,7 +334,7 @@ onMounted(() => {
                         <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
                         <span class="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
                     </div>
-                    <p class="text-muted-foreground text-sm">Live analytics</p>
+                    <p class="text-muted-foreground text-sm">{{ t('agents.sentiment.live_analytics') }}</p>
                 </div>
             </div>
 
@@ -347,7 +350,7 @@ onMounted(() => {
                         <div class="space-y-2 text-center">
                             <p class="text-destructive font-medium">{{ error }}</p>
                             <button @click="fetchSentimentData" class="text-muted-foreground hover:text-foreground text-sm underline">
-                                Try again
+                                {{ t('agents.sentiment.try_again') }}
                             </button>
                         </div>
                     </CardContent>
@@ -362,7 +365,7 @@ onMounted(() => {
                         <CardContent class="!p-4">
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">Positive</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('agents.sentiment.positive') }}</p>
                                     <Badge class="bg-blue-100 text-blue-700 hover:bg-blue-100"> {{ summaryStats?.positive.percentage }}% </Badge>
                                 </div>
                                 <p class="text-2xl font-bold">{{ summaryStats?.positive.count }}</p>
@@ -374,7 +377,7 @@ onMounted(() => {
                         <CardContent class="!p-4">
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">Neutral</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('agents.sentiment.neutral') }}</p>
                                     <Badge variant="secondary"> {{ summaryStats?.neutral.percentage }}% </Badge>
                                 </div>
                                 <p class="text-2xl font-bold">{{ summaryStats?.neutral.count }}</p>
@@ -386,7 +389,7 @@ onMounted(() => {
                         <CardContent class="!p-4">
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">Negative</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('agents.sentiment.negative') }}</p>
                                     <Badge class="bg-red-100 text-red-700 hover:bg-red-100"> {{ summaryStats?.negative.percentage }}% </Badge>
                                 </div>
                                 <p class="text-2xl font-bold">{{ summaryStats?.negative.count }}</p>
@@ -398,7 +401,7 @@ onMounted(() => {
                         <CardContent class="!p-4">
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">Unspecified</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('agents.sentiment.unspecified') }}</p>
                                     <Badge variant="outline"> {{ summaryStats?.unspecified.percentage }}% </Badge>
                                 </div>
                                 <p class="text-2xl font-bold">{{ summaryStats?.unspecified.count }}</p>
@@ -412,13 +415,13 @@ onMounted(() => {
                     <CardHeader>
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
-                                <CardTitle>Sentiment</CardTitle>
+                                <CardTitle>{{ t('agents.sentiment.sentiment') }}</CardTitle>
                                 <Info class="text-muted-foreground h-4 w-4" />
                             </div>
                             <Tabs v-model="activeView" class="w-auto">
                                 <TabsList>
-                                    <TabsTrigger value="graph" @click="activeView = 'graph'"> Graph </TabsTrigger>
-                                    <TabsTrigger value="pie" @click="activeView = 'pie'"> Pie Chart </TabsTrigger>
+                                    <TabsTrigger value="graph" @click="activeView = 'graph'"> {{ t('agents.sentiment.graph') }} </TabsTrigger>
+                                    <TabsTrigger value="pie" @click="activeView = 'pie'"> {{ t('agents.sentiment.pie_chart') }} </TabsTrigger>
                                 </TabsList>
                             </Tabs>
                         </div>

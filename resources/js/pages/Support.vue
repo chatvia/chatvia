@@ -165,7 +165,7 @@ const onSubmit = () => {
                                                     <TableHead>{{ t('support.th_priority') }}</TableHead>
                                                     <TableHead>{{ t('support.th_created') }}</TableHead>
                                                     <TableHead class="hidden lg:table-cell">{{ t('support.th_message') }}</TableHead>
-                                                    <TableHead class="hidden text-right md:table-cell">{{ t('support.th_replies') }}</TableHead>
+                                                    <TableHead class="hidden text-end md:table-cell">{{ t('support.th_replies') }}</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -191,7 +191,7 @@ const onSubmit = () => {
                                                     <TableCell class="text-muted-foreground hidden max-w-[320px] truncate lg:table-cell">{{
                                                         excerpt(ticket.message)
                                                     }}</TableCell>
-                                                    <TableCell class="hidden text-right md:table-cell">{{ ticket.replies?.length || 0 }}</TableCell>
+                                                    <TableCell class="hidden text-end md:table-cell">{{ ticket.replies?.length || 0 }}</TableCell>
                                                 </TableRow>
                                             </TableBody>
                                         </Table>

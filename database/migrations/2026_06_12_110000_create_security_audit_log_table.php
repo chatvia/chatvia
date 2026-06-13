@@ -52,7 +52,7 @@ return new class extends Migration
 
             $table->enum('outcome', ['success', 'failure', 'denied'])->default('success');
 
-            $table->timestampTz('created_at')->useCurrent(); // immutable; no updated_at
+            $table->timestamp('created_at')->useCurrent(); // immutable; no updated_at
 
             // Postgres does not auto-index FK columns. The (…, id) composites
             // serve the viewer's ORDER BY id DESC walks.

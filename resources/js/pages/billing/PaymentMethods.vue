@@ -365,7 +365,12 @@ const formatExpiry = (month: number, year: number) => {
                                             <p class="text-muted-foreground text-sm">
                                                 •••• •••• •••• {{ method.card.last4 }}
                                                 <span v-if="method.card">
-                                                    • {{ t('billing.payment_methods.expires', { date: formatExpiry(method.card.exp_month, method.card.exp_year) }) }}
+                                                    •
+                                                    {{
+                                                        t('billing.payment_methods.expires', {
+                                                            date: formatExpiry(method.card.exp_month, method.card.exp_year),
+                                                        })
+                                                    }}
                                                 </span>
                                                 <span v-if="method.billing_details.name" class="ms-2"> • {{ method.billing_details.name }} </span>
                                             </p>
@@ -496,11 +501,22 @@ const formatExpiry = (month: number, year: number) => {
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <Label for="billing-name" class="mb-2">{{ t('billing.payment_methods.fields.name') }}</Label>
-                                <Input id="billing-name" v-model="billingForm.name" :placeholder="t('billing.payment_methods.placeholders.name')" required />
+                                <Input
+                                    id="billing-name"
+                                    v-model="billingForm.name"
+                                    :placeholder="t('billing.payment_methods.placeholders.name')"
+                                    required
+                                />
                             </div>
                             <div>
                                 <Label for="billing-email" class="mb-2">{{ t('billing.payment_methods.fields.email') }}</Label>
-                                <Input id="billing-email" type="email" v-model="billingForm.email" :placeholder="t('billing.payment_methods.placeholders.email')" required />
+                                <Input
+                                    id="billing-email"
+                                    type="email"
+                                    v-model="billingForm.email"
+                                    :placeholder="t('billing.payment_methods.placeholders.email')"
+                                    required
+                                />
                             </div>
                         </div>
                     </div>
@@ -514,30 +530,54 @@ const formatExpiry = (month: number, year: number) => {
                         <div class="space-y-4">
                             <div>
                                 <Label for="billing-line1" class="mb-2">{{ t('billing.payment_methods.fields.line1') }}</Label>
-                                <Input id="billing-line1" v-model="billingForm.address.line1" :placeholder="t('billing.payment_methods.placeholders.line1')" required />
+                                <Input
+                                    id="billing-line1"
+                                    v-model="billingForm.address.line1"
+                                    :placeholder="t('billing.payment_methods.placeholders.line1')"
+                                    required
+                                />
                             </div>
 
                             <div>
                                 <Label for="billing-line2" class="mb-2">{{ t('billing.payment_methods.fields.line2') }}</Label>
-                                <Input id="billing-line2" v-model="billingForm.address.line2" :placeholder="t('billing.payment_methods.placeholders.line2')" />
+                                <Input
+                                    id="billing-line2"
+                                    v-model="billingForm.address.line2"
+                                    :placeholder="t('billing.payment_methods.placeholders.line2')"
+                                />
                             </div>
 
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <Label for="billing-city" class="mb-2">{{ t('billing.payment_methods.fields.city') }}</Label>
-                                    <Input id="billing-city" v-model="billingForm.address.city" :placeholder="t('billing.payment_methods.placeholders.city')" required />
+                                    <Input
+                                        id="billing-city"
+                                        v-model="billingForm.address.city"
+                                        :placeholder="t('billing.payment_methods.placeholders.city')"
+                                        required
+                                    />
                                 </div>
 
                                 <div>
                                     <Label for="billing-state" class="mb-2">{{ t('billing.payment_methods.fields.state') }}</Label>
-                                    <Input id="billing-state" v-model="billingForm.address.state" :placeholder="t('billing.payment_methods.placeholders.state')" required />
+                                    <Input
+                                        id="billing-state"
+                                        v-model="billingForm.address.state"
+                                        :placeholder="t('billing.payment_methods.placeholders.state')"
+                                        required
+                                    />
                                 </div>
                             </div>
 
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <Label for="billing-postal" class="mb-2">{{ t('billing.payment_methods.fields.postal_code') }}</Label>
-                                    <Input id="billing-postal" v-model="billingForm.address.postal_code" :placeholder="t('billing.payment_methods.placeholders.postal_code')" required />
+                                    <Input
+                                        id="billing-postal"
+                                        v-model="billingForm.address.postal_code"
+                                        :placeholder="t('billing.payment_methods.placeholders.postal_code')"
+                                        required
+                                    />
                                 </div>
 
                                 <div>
@@ -615,7 +655,9 @@ const formatExpiry = (month: number, year: number) => {
 
                     <!-- Action Buttons -->
                     <div class="flex justify-end gap-3">
-                        <Button type="button" variant="outline" @click="showAddPaymentDialog = false" :disabled="isProcessing">{{ t('billing.common.cancel') }}</Button>
+                        <Button type="button" variant="outline" @click="showAddPaymentDialog = false" :disabled="isProcessing">{{
+                            t('billing.common.cancel')
+                        }}</Button>
                         <Button type="submit" :disabled="isProcessing" class="gap-2">
                             <template v-if="isProcessing">
                                 <Loader2 class="h-4 w-4 animate-spin" />

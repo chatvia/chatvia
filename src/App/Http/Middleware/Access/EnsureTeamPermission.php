@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Gates a route by a team-level (non-agent) permission. Apply as
- * `team.permission:account.members.manage`. Delegates to
+ * `team.permission:account.chatters.manage`. Delegates to
  * {@see has_team_permission()} — admins and team owners pass; everyone else
  * needs the named permission on their current team.
  *

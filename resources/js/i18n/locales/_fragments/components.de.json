@@ -1,0 +1,39 @@
+{
+    "nav": {
+        "platform": "Plattform"
+    },
+    "theme": {
+        "toggle": "Design wechseln",
+        "light": "Hell",
+        "dark": "Dunkel",
+        "system": "System"
+    },
+    "team_switcher": {
+        "select_team": "Team auswählen",
+        "no_teams": "Keine Teams verfügbar",
+        "manage_teams": "Teams verwalten"
+    },
+    "agents": {
+        "create_modal": {
+            "title": "Agent erstellen",
+            "limit_title": "Agentenlimit erreicht",
+            "limit_description": "Sie haben Ihr Agentenlimit erreicht.",
+            "upgrade_plan": "Plan upgraden",
+            "name_label": "Agentenname",
+            "name_placeholder": "Z. B. Kundensupport",
+            "load_error": "Nutzungsinformationen konnten nicht geladen werden",
+            "limit_toast_title": "Agentenlimit erreicht",
+            "limit_toast_description": "Sie haben Ihr Agentenlimit erreicht."
+        }
+    },
+    "confirm_password": {
+        "title": "Passwort bestätigen",
+        "description": "Zu Ihrer Sicherheit bestätigen Sie bitte Ihr Passwort, bevor Sie Sicherheitseinstellungen ändern.",
+        "password_label": "Passwort",
+        "password_required": "Passwort ist erforderlich.",
+        "incorrect": "Falsches Passwort.",
+        "error": "Passwort konnte nicht bestätigt werden. Bitte versuchen Sie es erneut.",
+        "cancel": "Abbrechen",
+        "confirm": "Bestätigen"
+    }
+}

@@ -40,7 +40,7 @@ const allSections: NavSection[] = [
     },
     {
         title: 'workspace.sections.people',
-        items: [{ title: 'workspace.nav.members', name: 'people.members.index', icon: Users, permission: 'account.members.manage' }],
+        items: [{ title: 'workspace.nav.members', name: 'people.chatters.index', icon: Users, permission: 'account.chatters.manage' }],
     },
     {
         title: 'workspace.sections.governance',
@@ -74,7 +74,7 @@ function isActive(name: string): boolean {
     <div class="px-4 py-6">
         <Heading :title="t('workspace.layout.heading')" :description="t('workspace.layout.description')" />
 
-        <div class="flex flex-col items-start space-y-8 md:space-y-0 lg:flex-row lg:space-y-0 lg:gap-12">
+        <div class="flex flex-col items-start space-y-8 md:space-y-0 lg:flex-row lg:gap-12 lg:space-y-0">
             <aside class="w-full lg:sticky lg:top-32 lg:w-56">
                 <nav class="flex flex-col gap-6">
                     <div v-for="section in sections" :key="section.title" class="flex flex-col gap-1">

@@ -19,7 +19,7 @@ const Component = computed(() => isRangeCalendar || props.isRange ? RangeCalenda
       cn(
         'relative h-9 w-9 p-0 text-center text-sm focus-within:relative focus-within:z-20',
         '[&:has([data-selected])]:bg-accent [&:has([data-selected][data-outside-month])]:bg-accent/50',
-        '[&:has([data-selection-start])]:rounded-l-md [&:has([data-selection-end])]:rounded-r-md',
+        '[&:has([data-selection-start])]:rounded-s-md [&:has([data-selection-end])]:rounded-e-md',
         props.class,
       )
     "

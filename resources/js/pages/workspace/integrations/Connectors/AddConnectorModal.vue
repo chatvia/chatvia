@@ -75,9 +75,7 @@ async function submit(): Promise<void> {
     } catch (e: unknown) {
         const err = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
         error.value =
-            err.response?.data?.message ??
-            Object.values(err.response?.data?.errors ?? {}).flat()[0] ??
-            t('workspace.connectors.add_modal.error');
+            err.response?.data?.message ?? Object.values(err.response?.data?.errors ?? {}).flat()[0] ?? t('workspace.connectors.add_modal.error');
     } finally {
         saving.value = false;
     }
@@ -97,7 +95,13 @@ async function submit(): Promise<void> {
             <form class="space-y-4 py-2" @submit.prevent="submit">
                 <div class="space-y-1.5">
                     <Label for="conn-name">{{ t('workspace.connectors.add_modal.display_name') }}</Label>
-                    <Input id="conn-name" v-model="name" :placeholder="t('workspace.connectors.add_modal.display_name_placeholder')" :disabled="saving" required />
+                    <Input
+                        id="conn-name"
+                        v-model="name"
+                        :placeholder="t('workspace.connectors.add_modal.display_name_placeholder')"
+                        :disabled="saving"
+                        required
+                    />
                 </div>
 
                 <div class="space-y-1.5">
@@ -117,7 +121,13 @@ async function submit(): Promise<void> {
                             "
                         >
                             <input v-model="strategy" type="radio" :value="opt" class="sr-only" />
-                            {{ opt === 'oauth' ? t('workspace.connectors.add_modal.strategy_oauth') : opt === 'token' ? t('workspace.connectors.add_modal.strategy_token') : t('workspace.connectors.add_modal.strategy_none') }}
+                            {{
+                                opt === 'oauth'
+                                    ? t('workspace.connectors.add_modal.strategy_oauth')
+                                    : opt === 'token'
+                                      ? t('workspace.connectors.add_modal.strategy_token')
+                                      : t('workspace.connectors.add_modal.strategy_none')
+                            }}
                         </label>
                     </div>
                     <p class="text-muted-foreground text-xs">
@@ -137,7 +147,9 @@ async function submit(): Promise<void> {
                 </p>
 
                 <DialogFooter>
-                    <Button type="button" variant="ghost" :disabled="saving" @click="emit('update:open', false)">{{ t('workspace.common.cancel') }}</Button>
+                    <Button type="button" variant="ghost" :disabled="saving" @click="emit('update:open', false)">{{
+                        t('workspace.common.cancel')
+                    }}</Button>
                     <Button type="submit" :disabled="saving || !canSubmit">
                         <LoaderCircle v-if="saving" class="me-1 h-4 w-4 animate-spin" />
                         {{ strategy === 'oauth' ? t('workspace.connectors.add_modal.continue_signin') : t('workspace.connectors.add_modal.submit') }}

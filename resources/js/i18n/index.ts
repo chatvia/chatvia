@@ -1,7 +1,11 @@
 import { createI18n } from 'vue-i18n';
 import en from './locales/en.json';
 
-export const SUPPORTED_LOCALES = ['en', 'ar', 'da', 'de', 'es', 'fa', 'fr', 'hi', 'id', 'ja', 'ko', 'pt', 'ru', 'tr', 'vi', 'zh'] as const;
+// Dashboard UI is intentionally limited to en/de/fr for now (mirrors the public
+// site, see config/laravellocalization.php). The other locale JSONs stay under
+// ./locales/ and agent response languages (config('chatvia.languages')) are
+// unaffected — re-add a code here to bring a UI language back.
+export const SUPPORTED_LOCALES = ['en', 'de', 'fr'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 // `ar` (Arabic), `fa` (Farsi/Persian), `he` (Hebrew), `ur` (Urdu) all use the
@@ -21,21 +25,8 @@ export interface LocaleMeta {
 // representative country flag SVG (no per-language flags exist).
 export const LOCALES: readonly LocaleMeta[] = [
     { code: 'en', nativeName: 'English', flag: 'gb' },
-    { code: 'ar', nativeName: 'العربية', flag: 'iq' },
-    { code: 'da', nativeName: 'Dansk', flag: 'dk' },
     { code: 'de', nativeName: 'Deutsch', flag: 'de' },
-    { code: 'es', nativeName: 'Español', flag: 'es' },
-    { code: 'fa', nativeName: 'فارسی', flag: 'ir' },
     { code: 'fr', nativeName: 'Français', flag: 'fr' },
-    { code: 'hi', nativeName: 'हिन्दी', flag: 'in' },
-    { code: 'id', nativeName: 'Bahasa Indonesia', flag: 'id' },
-    { code: 'ja', nativeName: '日本語', flag: 'jp' },
-    { code: 'ko', nativeName: '한국어', flag: 'kr' },
-    { code: 'pt', nativeName: 'Português', flag: 'pt' },
-    { code: 'ru', nativeName: 'Русский', flag: 'ru' },
-    { code: 'tr', nativeName: 'Türkçe', flag: 'tr' },
-    { code: 'vi', nativeName: 'Tiếng Việt', flag: 'vn' },
-    { code: 'zh', nativeName: '中文', flag: 'cn' },
 ];
 
 // The English bundle is the canonical schema every other locale conforms to.
@@ -53,8 +44,36 @@ export function normalizeLocale(input?: string | null): SupportedLocale {
     return (SUPPORTED_LOCALES as readonly string[]).includes(code) ? (code as SupportedLocale) : 'en';
 }
 
+// Guests have no `users.locale`, so their language choice (e.g. on the login
+// page) is remembered client-side here and consulted before the browser default.
+const LOCALE_STORAGE_KEY = 'chatvia.locale';
+
+function getStoredLocale(): SupportedLocale | null {
+    if (typeof localStorage === 'undefined') return null;
+    try {
+        const v = localStorage.getItem(LOCALE_STORAGE_KEY);
+        return v && (SUPPORTED_LOCALES as readonly string[]).includes(v) ? (v as SupportedLocale) : null;
+    } catch {
+        return null;
+    }
+}
+
+/** Remember an explicit language choice so it survives navigation + login. */
+export function persistLocale(code: string): void {
+    if (typeof localStorage === 'undefined') return;
+    try {
+        localStorage.setItem(LOCALE_STORAGE_KEY, normalizeLocale(code));
+    } catch {
+        // Storage unavailable (private mode / quota) — choice stays in-memory only.
+    }
+}
+
 export function resolveLocale(preference?: string | null): SupportedLocale {
+    // A signed-in user's saved locale (anything but 'auto') wins. Otherwise fall
+    // back to the remembered guest choice, then the browser language.
     if (preference && preference !== 'auto') return normalizeLocale(preference);
+    const stored = getStoredLocale();
+    if (stored) return stored;
     if (typeof navigator !== 'undefined') {
         return normalizeLocale(navigator.language || (navigator as any).userLanguage);
     }

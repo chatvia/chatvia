@@ -1,0 +1,81 @@
+{
+    "shared": {
+        "response_settings": {
+            "title": "Antworteinstellungen",
+            "description_widget": "Steuern Sie, wie Ihr KI-Agent antwortet. Diese Einstellungen werden auf das ausgewählte Modell angewendet und beeinflussen den Stil und die Kreativität aller Antworten.",
+            "description_default": "Steuern Sie, wie Ihr KI-Agent antwortet. Diese Einstellungen werden auf alle ausgewählten Modelle angewendet und beeinflussen den Stil und die Kreativität aller Antworten.",
+            "parameters_heading": "Antwortparameter",
+            "temperature": {
+                "label": "Kreativitätsstufe",
+                "param": "Temperatur",
+                "help": "Niedrig = vorhersehbare, konsistente Antworten. Hoch = kreativere, abwechslungsreichere Antworten.",
+                "scale_focused": "Fokussiert",
+                "scale_balanced": "Ausgewogen",
+                "scale_creative": "Kreativ",
+                "badge_conservative": "Konservativ",
+                "badge_balanced": "Ausgewogen",
+                "badge_creative": "Kreativ"
+            },
+            "top_k": {
+                "label": "Wortauswahl-Vielfalt",
+                "param": "Top-K",
+                "help": "0 = deaktiviert. Niedriger = verwendet häufigere Wörter. Höher = berücksichtigt mehr Wortoptionen.",
+                "scale_disabled": "Deaktiviert",
+                "scale_focused": "Fokussiert",
+                "scale_balanced": "Ausgewogen",
+                "scale_diverse": "Vielfältig",
+                "badge_disabled": "Deaktiviert",
+                "badge_focused": "Fokussiert",
+                "badge_balanced": "Ausgewogen",
+                "badge_diverse": "Vielfältig"
+            },
+            "top_p": {
+                "label": "Antwortfokus",
+                "param": "Top-P",
+                "help": "Niedriger = fokussiertere Antworten. Höher = breitere, vielfältigere Antworten.",
+                "scale_focused": "Fokussiert",
+                "scale_balanced": "Ausgewogen",
+                "scale_broad": "Breit",
+                "badge_focused": "Fokussiert",
+                "badge_balanced": "Ausgewogen",
+                "badge_broad": "Breit"
+            },
+            "presence_penalty": {
+                "label": "Themenwiederholungen vermeiden",
+                "param": "Presence Penalty",
+                "help": "Höhere Werte verringern die Wiederholung derselben Themen oder Ideen.",
+                "scale_repetitive": "Repetitiv",
+                "scale_neutral": "Neutral",
+                "scale_diverse": "Vielfältig",
+                "badge_repetitive": "Repetitiv",
+                "badge_neutral": "Neutral",
+                "badge_diverse": "Vielfältig"
+            },
+            "frequency_penalty": {
+                "label": "Wortwiederholungen vermeiden",
+                "param": "Frequency Penalty",
+                "help": "Höhere Werte verringern die mehrfache Verwendung derselben Wörter.",
+                "scale_repetitive": "Repetitiv",
+                "scale_neutral": "Neutral",
+                "scale_varied": "Abwechslungsreich",
+                "badge_repetitive": "Repetitiv",
+                "badge_neutral": "Neutral",
+                "badge_varied": "Abwechslungsreich"
+            }
+        },
+        "persona_editor": {
+            "label": "Anweisungen (System-Prompt)",
+            "description": "Legen Sie fest, wie sich Ihr KI-Agent verhalten und auf Benutzer reagieren soll",
+            "select_placeholder": "Vorlage auswählen...",
+            "saved_prompts": "Gespeicherte Prompts",
+            "default_group": "Standard",
+            "base_instructions": "Basisanweisungen",
+            "reset_title": "Auf gespeicherten Stand zurücksetzen",
+            "library_hint": "Der gespeicherte Prompt {name} wird verwendet (schreibgeschützt). Verwalten Sie ihn unter Einstellungen → Prompts, oder wechseln Sie zu {base}, um eine Kopie nur für diesen Agenten zu bearbeiten.",
+            "textarea_placeholder": "Geben Sie Ihre Anweisungen ein...",
+            "save": "Speichern",
+            "save_success": "Anweisungen erfolgreich gespeichert",
+            "save_error": "Anweisungen konnten nicht gespeichert werden"
+        }
+    }
+}

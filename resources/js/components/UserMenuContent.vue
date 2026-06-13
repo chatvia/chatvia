@@ -10,7 +10,7 @@ import {
     DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
-import { LOCALES, normalizeLocale, setI18nLocale } from '@/i18n';
+import { LOCALES, normalizeLocale, persistLocale, setI18nLocale } from '@/i18n';
 import type { SharedData, User } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -36,7 +36,7 @@ const workspaceRoute = computed<string | null>(() => {
         ['account.functions', 'integrations.functions.edit'],
         ['account.api_keys', 'integrations.api-keys.edit'],
         ['account.prompts', 'library.prompts.edit'],
-        ['account.members.manage', 'people.members.index'],
+        ['account.chatters.manage', 'people.chatters.index'],
         ['account.governance', 'governance.audit'],
     ];
 
@@ -52,8 +52,10 @@ const changeLocale = (code: string): void => {
         return;
     }
 
-    // Instant UI feedback — flips vue-i18n + document dir/lang right away.
+    // Instant UI feedback — flips vue-i18n + document dir/lang right away, and
+    // mirror it to localStorage so it stays in sync with the guest fallback.
     void setI18nLocale(code);
+    persistLocale(code);
 
     // Persist the choice for the signed-in user. The Date & time preference is
     // required by the endpoint, so echo the current value back unchanged.
@@ -74,7 +76,7 @@ const handleLogout = () => {
 
 <template>
     <DropdownMenuLabel class="p-0 font-normal">
-        <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+        <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
             <UserInfo :user="user" :show-email="true" />
         </div>
     </DropdownMenuLabel>
@@ -100,12 +102,7 @@ const handleLogout = () => {
             {{ t('nav.language') }}
         </DropdownMenuSubTrigger>
         <DropdownMenuSubContent class="max-h-80 overflow-y-auto">
-            <DropdownMenuItem
-                v-for="item in LOCALES"
-                :key="item.code"
-                class="cursor-pointer"
-                @select="changeLocale(item.code)"
-            >
+            <DropdownMenuItem v-for="item in LOCALES" :key="item.code" class="cursor-pointer" @select="changeLocale(item.code)">
                 <img :src="`/images/flags/${item.flag}.svg`" :alt="item.nativeName" class="me-2 h-4 w-5 shrink-0 rounded-[2px] object-cover" />
                 <span class="flex-1">{{ item.nativeName }}</span>
                 <Check v-if="item.code === activeLocale" class="ms-2 h-4 w-4" />

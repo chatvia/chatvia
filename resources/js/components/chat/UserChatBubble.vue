@@ -196,7 +196,7 @@ async function deleteMessage() {
                  from public/images/icons/files/ keyed off the extension. -->
             <div v-else class="flex max-w-[75%] flex-col items-end gap-2">
                 <!-- Text bubble -->
-                <div v-if="message.content?.trim()" class="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-4 py-3 shadow-sm">
+                <div v-if="message.content?.trim()" class="bg-primary text-primary-foreground rounded-2xl rounded-ee-md px-4 py-3 shadow-sm">
                     <p class="text-[15px] leading-relaxed break-words whitespace-pre-wrap" :data-rtl="isRTL">{{ message.content }}</p>
                 </div>
 
@@ -221,7 +221,7 @@ async function deleteMessage() {
                             <AlertDialogTrigger asChild>
                                 <button
                                     type="button"
-                                    class="bg-card text-muted-foreground absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover/chip:opacity-100 hover:bg-red-500/10 hover:text-red-600 focus:opacity-100"
+                                    class="bg-card text-muted-foreground absolute -end-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover/chip:opacity-100 hover:bg-red-500/10 hover:text-red-600 focus:opacity-100"
                                     :aria-label="t('messages.delete_attachment_aria', 'Remove attachment')"
                                 >
                                     <X class="h-3 w-3" />
@@ -251,7 +251,7 @@ async function deleteMessage() {
                 </div>
             </div>
 
-            <div v-if="!isEditing" class="mt-1 flex items-center gap-0.5 pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+            <div v-if="!isEditing" class="mt-1 flex items-center gap-0.5 pe-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
                 <Button
                     size="icon"
                     variant="ghost"

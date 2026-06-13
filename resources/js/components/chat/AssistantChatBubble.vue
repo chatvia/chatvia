@@ -193,7 +193,7 @@ watch(
                             <Webhook v-else-if="call.kind === 'function'" class="text-muted-foreground h-full w-full p-1" />
                             <Plug v-else class="text-muted-foreground h-full w-full p-1" />
                         </div>
-                        <span v-if="overflowCount > 0" class="text-muted-foreground ml-1 text-xs">+{{ overflowCount }}</span>
+                        <span v-if="overflowCount > 0" class="text-muted-foreground ms-1 text-xs">+{{ overflowCount }}</span>
                     </div>
                     <span class="external-call-shimmer text-sm italic">{{ currentCallLabel }}</span>
                 </template>
@@ -215,7 +215,7 @@ watch(
                         <Webhook v-else-if="call.kind === 'function'" class="text-muted-foreground h-full w-full p-1" />
                         <Plug v-else class="text-muted-foreground h-full w-full p-1" />
                     </div>
-                    <span v-if="overflowCount > 0" class="text-muted-foreground ml-1 text-xs">+{{ overflowCount }}</span>
+                    <span v-if="overflowCount > 0" class="text-muted-foreground ms-1 text-xs">+{{ overflowCount }}</span>
                 </div>
                 <span class="external-call-shimmer italic">{{ currentCallLabel }}</span>
             </div>

@@ -17,8 +17,8 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Ban, Check, History, LoaderCircle, MessageSquareOff, Plus, Save, ShieldAlert, Target, Trash2, User, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 
@@ -192,11 +192,7 @@ const prettyDetail = (detail: unknown): string => {
 </script>
 
 <template>
-    <AgentLayout
-        :agent="props.agent"
-        :title="t('agents.guardrails.title')"
-        :description="t('agents.guardrails.description')"
-    >
+    <AgentLayout :agent="props.agent" :title="t('agents.guardrails.title')" :description="t('agents.guardrails.description')">
         <Head :title="t('agents.guardrails.head_title', { name: props.agent.name })" />
 
         <div class="flex justify-center">
@@ -283,9 +279,9 @@ const prettyDetail = (detail: unknown): string => {
                                             <Badge v-for="topic in form.blocked_topics" :key="topic" variant="secondary" class="font-normal">{{
                                                 topic
                                             }}</Badge>
-                                            <span v-if="!form.blocked_topics.length" class="text-muted-foreground text-sm"
-                                                >{{ t('agents.guardrails.no_blocked_topics') }}</span
-                                            >
+                                            <span v-if="!form.blocked_topics.length" class="text-muted-foreground text-sm">{{
+                                                t('agents.guardrails.no_blocked_topics')
+                                            }}</span>
                                             <Button v-if="canManage" type="button" variant="link" class="h-auto p-0 text-sm" @click="openTopics">
                                                 <Ban class="me-1.5 h-4 w-4" />
                                                 {{ t('agents.guardrails.manage_blocked_topics') }}
@@ -300,7 +296,7 @@ const prettyDetail = (detail: unknown): string => {
                                     <div class="space-y-1.5">
                                         <Label for="scope">{{ t('agents.guardrails.allowed_scope') }}</Label>
                                         <div class="relative">
-                                            <Target class="text-muted-foreground absolute top-3 start-3 h-4 w-4" />
+                                            <Target class="text-muted-foreground absolute start-3 top-3 h-4 w-4" />
                                             <Textarea
                                                 id="scope"
                                                 v-model="form.allowed_scope"
@@ -317,7 +313,7 @@ const prettyDetail = (detail: unknown): string => {
                                     <div class="space-y-1.5">
                                         <Label for="refusal">{{ t('agents.guardrails.refusal_message') }}</Label>
                                         <div class="relative">
-                                            <MessageSquareOff class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                                            <MessageSquareOff class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                                             <Input
                                                 id="refusal"
                                                 v-model="form.refusal_message"
@@ -405,9 +401,9 @@ const prettyDetail = (detail: unknown): string => {
                             </div>
 
                             <div v-if="props.triggers.last_page > 1" class="flex items-center justify-between">
-                                <span class="text-muted-foreground text-sm"
-                                    >{{ t('agents.guardrails.page_of', { current: props.triggers.current_page, last: props.triggers.last_page }) }}</span
-                                >
+                                <span class="text-muted-foreground text-sm">{{
+                                    t('agents.guardrails.page_of', { current: props.triggers.current_page, last: props.triggers.last_page })
+                                }}</span>
                                 <div class="flex gap-2">
                                     <Button
                                         variant="outline"
@@ -472,18 +468,18 @@ const prettyDetail = (detail: unknown): string => {
             <DialogContent class="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>{{ t('agents.guardrails.blocked_topics') }}</DialogTitle>
-                    <DialogDescription
-                        >{{ t('agents.guardrails.blocked_topics_dialog_description') }}</DialogDescription
-                    >
+                    <DialogDescription>{{ t('agents.guardrails.blocked_topics_dialog_description') }}</DialogDescription>
                 </DialogHeader>
 
                 <div class="space-y-2">
                     <div v-for="(topic, index) in topicsDraft" :key="index" class="flex items-center gap-2">
                         <div class="relative flex-1">
-                            <Ban class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                            <Ban class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                             <Input
                                 v-model="topicsDraft[index]"
-                                :placeholder="index === 0 ? t('agents.guardrails.topic_placeholder_first') : t('agents.guardrails.topic_placeholder_more')"
+                                :placeholder="
+                                    index === 0 ? t('agents.guardrails.topic_placeholder_first') : t('agents.guardrails.topic_placeholder_more')
+                                "
                                 class="ps-9"
                                 @keydown.enter.prevent="addTopic"
                             />
@@ -530,7 +526,8 @@ const prettyDetail = (detail: unknown): string => {
                         <Badge v-if="selected" :variant="outcomeVariant(selected.outcome)" class="capitalize">{{ selected?.outcome }}</Badge>
                     </DialogTitle>
                     <DialogDescription>
-                        {{ selected?.stage }} · {{ selected ? formatDateTime(selected.created_at) : '' }} · {{ t('agents.guardrails.by_user', { name: selected?.user_name ?? t('agents.guardrails.visitor') }) }}
+                        {{ selected?.stage }} · {{ selected ? formatDateTime(selected.created_at) : '' }} ·
+                        {{ t('agents.guardrails.by_user', { name: selected?.user_name ?? t('agents.guardrails.visitor') }) }}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -548,7 +545,12 @@ const prettyDetail = (detail: unknown): string => {
                         }}</pre>
                     </div>
                     <div class="text-muted-foreground text-xs">
-                        {{ t('agents.guardrails.conversation_trace', { conversation: selected.conversation_external_id ?? '—', trace: selected.trace_id ?? '—' }) }}
+                        {{
+                            t('agents.guardrails.conversation_trace', {
+                                conversation: selected.conversation_external_id ?? '—',
+                                trace: selected.trace_id ?? '—',
+                            })
+                        }}
                     </div>
                 </div>
             </DialogContent>

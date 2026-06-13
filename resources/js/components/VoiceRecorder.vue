@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useSourceVoiceRecorder, type RecordingData } from '@/composables/useSourceVoiceRecorder';
 import { AlertCircle, CheckCircle, Mic, Pause, Play, Square, Trash2, Upload } from 'lucide-vue-next';
 import { computed, onUnmounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     title?: string;
@@ -16,11 +17,14 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    title: 'Record Voice Note',
-    description: 'Record audio directly from your microphone',
     maxDuration: 600, // 10 minutes default
     disabled: false,
 });
+
+const { t } = useI18n();
+
+const displayTitle = computed(() => props.title ?? t('shared.voice_recorder.title_default'));
+const displayDescription = computed(() => props.description ?? t('shared.voice_recorder.description_default'));
 
 const emit = defineEmits<{
     (e: 'recorded', data: { blob: Blob; name: string; duration: number }): void;
@@ -68,6 +72,8 @@ const remainingTime = computed(() => {
 const recordingProgress = computed(() => {
     return Math.min(100, (recordingDuration.value / (props.maxDuration * 1000)) * 100);
 });
+
+const maxDurationMinutes = computed(() => Math.floor(props.maxDuration / 60));
 
 // Waveform bars (12 bars for visualization)
 const waveformBars = computed(() => {
@@ -234,10 +240,10 @@ onUnmounted(() => {
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
                 <Mic class="h-5 w-5" />
-                {{ title }}
+                {{ displayTitle }}
             </CardTitle>
             <CardDescription>
-                {{ description }}
+                {{ displayDescription }}
             </CardDescription>
         </CardHeader>
 
@@ -246,7 +252,7 @@ onUnmounted(() => {
             <Alert v-if="!isSupported" variant="destructive">
                 <AlertCircle class="h-4 w-4" />
                 <AlertDescription>
-                    Your browser doesn't support audio recording. Please use a modern browser like Chrome, Firefox, or Safari.
+                    {{ t('shared.voice_recorder.not_supported') }}
                 </AlertDescription>
             </Alert>
 
@@ -284,8 +290,8 @@ onUnmounted(() => {
                 <!-- Progress Bar -->
                 <div v-if="isRecording" class="space-y-1">
                     <div class="text-muted-foreground flex justify-between text-xs">
-                        <span>Recording</span>
-                        <span>{{ remainingTime }} remaining</span>
+                        <span>{{ t('shared.voice_recorder.recording') }}</span>
+                        <span>{{ t('shared.voice_recorder.remaining_time', { time: remainingTime }) }}</span>
                     </div>
                     <div class="bg-muted h-1 overflow-hidden rounded-full">
                         <div class="bg-primary h-full transition-all duration-300" :style="{ width: `${recordingProgress}%` }" />
@@ -296,8 +302,8 @@ onUnmounted(() => {
                 <div class="flex items-center justify-center gap-3">
                     <template v-if="!isRecording">
                         <Button @click="handleStartRecording" :disabled="disabled">
-                            <Mic class="mr-2 h-4 w-4" />
-                            Start Recording
+                            <Mic class="me-2 h-4 w-4" />
+                            {{ t('shared.voice_recorder.start_recording') }}
                         </Button>
                     </template>
 
@@ -308,8 +314,8 @@ onUnmounted(() => {
                         </Button>
 
                         <Button @click="handleStopRecording">
-                            <Square class="mr-2 h-4 w-4" />
-                            Stop
+                            <Square class="me-2 h-4 w-4" />
+                            {{ t('shared.voice_recorder.stop') }}
                         </Button>
 
                         <Button @click="handleCancel" variant="outline" size="icon">
@@ -354,7 +360,7 @@ onUnmounted(() => {
 
                         <div class="text-muted-foreground flex items-center gap-1.5 text-sm">
                             <CheckCircle class="h-4 w-4 text-green-600" />
-                            <span>Recorded</span>
+                            <span>{{ t('shared.voice_recorder.recorded') }}</span>
                         </div>
                     </div>
 
@@ -372,30 +378,32 @@ onUnmounted(() => {
 
                 <!-- Name Input -->
                 <div class="space-y-2">
-                    <Label for="recording-name">Recording Name</Label>
-                    <Input id="recording-name" v-model="recordingName" placeholder="Enter a name for your recording" />
+                    <Label for="recording-name">{{ t('shared.voice_recorder.recording_name_label') }}</Label>
+                    <Input id="recording-name" v-model="recordingName" :placeholder="t('shared.voice_recorder.recording_name_placeholder')" />
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="flex items-center gap-3">
                     <Button @click="handleDiscard" variant="outline" class="flex-1">
-                        <Trash2 class="mr-2 h-4 w-4" />
-                        Discard
+                        <Trash2 class="me-2 h-4 w-4" />
+                        {{ t('shared.voice_recorder.discard') }}
                     </Button>
                     <Button @click="handleSave" class="flex-1">
-                        <Upload class="mr-2 h-4 w-4" />
-                        Save Recording
+                        <Upload class="me-2 h-4 w-4" />
+                        {{ t('shared.voice_recorder.save_recording') }}
                     </Button>
                 </div>
             </div>
 
             <!-- Tips -->
             <div v-if="!isRecording && !recordingData" class="text-muted-foreground text-sm">
-                <p class="mb-1 font-medium">Tips:</p>
+                <p class="mb-1 font-medium">{{ t('shared.voice_recorder.tips_heading') }}</p>
                 <ul class="list-inside list-disc space-y-0.5">
-                    <li>Speak clearly and at a steady pace</li>
-                    <li>Use a quiet environment for best results</li>
-                    <li>Maximum recording length: {{ Math.floor(maxDuration / 60) }} minutes</li>
+                    <li>{{ t('shared.voice_recorder.tip_speak_clearly') }}</li>
+                    <li>{{ t('shared.voice_recorder.tip_quiet_environment') }}</li>
+                    <li>
+                        {{ t('shared.voice_recorder.tip_max_duration', { minutes: maxDurationMinutes }, { plural: maxDurationMinutes }) }}
+                    </li>
                 </ul>
             </div>
         </CardContent>

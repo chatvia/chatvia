@@ -19,7 +19,7 @@ return new class extends Migration
             // attributable — and queryable for account-wide stats — even after
             // the agent is deleted.
             $table->unsignedBigInteger('workspace_id');
-            $table->timestampTz('bucket_hour');
+            $table->timestamp('bucket_hour');
 
             $table->string('country_code', 2);
             $table->string('llm_external_name', 64);

@@ -1,7 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent as AgentModel;
-use Domain\Agent\Services\Agent;
+use Domain\Agent\Services\AgentLocator;
 use Domain\Knowledge\Document\LibreOffice;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Membership\Team\Models\Team;
@@ -117,7 +117,7 @@ if (! function_exists('current_agent')) {
             return null;
         }
 
-        return $cache[$slug] ??= Agent::resolveAgentFromSubdomain($slug);
+        return $cache[$slug] ??= AgentLocator::resolveAgentFromSubdomain($slug);
     }
 }
 

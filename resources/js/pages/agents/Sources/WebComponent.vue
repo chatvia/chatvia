@@ -1745,8 +1745,8 @@ onUnmounted(() => {
                         <Button variant="outline" size="sm" @click="settingsExpanded = !settingsExpanded">
                             <Settings class="me-2 h-4 w-4" />
                             {{ t('agents.sources.web.settings') }}
-                            <ChevronDown v-if="!settingsExpanded" class="ml-1 h-4 w-4" />
-                            <ChevronUp v-else class="ml-1 h-4 w-4" />
+                            <ChevronDown v-if="!settingsExpanded" class="ms-1 h-4 w-4" />
+                            <ChevronUp v-else class="ms-1 h-4 w-4" />
                         </Button>
                     </div>
                 </CardHeader>
@@ -1754,13 +1754,17 @@ onUnmounted(() => {
                     <!-- Link Usage Info -->
                     <div v-if="usageData" class="bg-muted/20 mb-4 rounded-lg p-3">
                         <div class="flex items-center justify-between">
-                            <span class="text-muted-foreground text-sm"> {{ t('agents.sources.web.links_used', { used: usageData.links.used, limit: usageData.links.limit }) }} </span>
+                            <span class="text-muted-foreground text-sm">
+                                {{ t('agents.sources.web.links_used', { used: usageData.links.used, limit: usageData.links.limit }) }}
+                            </span>
                             <span class="text-sm font-medium" :class="usageData.links.remaining <= 0 ? 'text-red-600' : 'text-green-600'">
                                 {{ t('agents.sources.web.links_remaining', { remaining: usageData.links.remaining }) }}
                             </span>
                         </div>
                         <div class="mt-1 flex items-center justify-between text-xs">
-                            <span v-if="usageData.links.remaining <= 0" class="font-medium text-red-600"> {{ t('agents.sources.web.upgrade_required') }} </span>
+                            <span v-if="usageData.links.remaining <= 0" class="font-medium text-red-600">
+                                {{ t('agents.sources.web.upgrade_required') }}
+                            </span>
                             <span v-else-if="usageData.links.used / usageData.links.limit >= 0.9" class="font-medium text-yellow-600">
                                 {{ t('agents.sources.web.consider_upgrading') }}
                             </span>
@@ -1776,10 +1780,10 @@ onUnmounted(() => {
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <button
-                                                class="bg-muted border-input hover:bg-muted/80 focus:ring-ring flex h-9 items-center rounded-l-md border border-r-0 px-3 py-1 font-mono text-sm focus:ring-1 focus:ring-offset-0 focus:outline-none"
+                                                class="bg-muted border-input hover:bg-muted/80 focus:ring-ring flex h-9 items-center rounded-s-md border border-e-0 px-3 py-1 font-mono text-sm focus:ring-1 focus:ring-offset-0 focus:outline-none"
                                             >
                                                 {{ selectedProtocol }}
-                                                <ChevronDown class="text-muted-foreground ml-1 h-3 w-3" />
+                                                <ChevronDown class="text-muted-foreground ms-1 h-3 w-3" />
                                             </button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="start">
@@ -1805,7 +1809,7 @@ onUnmounted(() => {
                                         @keyup.enter="addWebsite"
                                         :disabled="websiteForm.processing"
                                         :class="[
-                                            'rounded-l-none border-l-0 focus:border-l-0 focus:ring-offset-0',
+                                            'rounded-s-none border-s-0 focus:border-s-0 focus:ring-offset-0',
                                             { 'border-red-500': websiteForm.errors.url },
                                         ]"
                                         class="flex-1"
@@ -2018,7 +2022,12 @@ onUnmounted(() => {
                         <div class="flex items-center gap-3">
                             <span class="text-muted-foreground text-sm">
                                 <template v-if="selectedWebsiteCount > 0">
-                                    {{ t('agents.sources.web.selected_with_links', { count: selectedWebsiteCount, links: selectedWebsitesTotalLinks }) }}
+                                    {{
+                                        t('agents.sources.web.selected_with_links', {
+                                            count: selectedWebsiteCount,
+                                            links: selectedWebsitesTotalLinks,
+                                        })
+                                    }}
                                 </template>
                                 <template v-else> {{ t('agents.sources.web.no_websites_selected') }} </template>
                             </span>
@@ -2033,7 +2042,12 @@ onUnmounted(() => {
                                     </TooltipTrigger>
                                     <TooltipContent v-if="!canTrain && selectedWebsiteCount > 0 && usageData">
                                         <p>
-                                            {{ t('agents.sources.web.train_exceeds_quota', { selected: selectedWebsitesTotalLinks, remaining: usageData.links.remaining }) }}
+                                            {{
+                                                t('agents.sources.web.train_exceeds_quota', {
+                                                    selected: selectedWebsitesTotalLinks,
+                                                    remaining: usageData.links.remaining,
+                                                })
+                                            }}
                                         </p>
                                     </TooltipContent>
                                 </Tooltip>
@@ -2065,7 +2079,9 @@ onUnmounted(() => {
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <Badge variant="secondary" class="text-xs"> {{ t('agents.sources.web.links_badge', { count: source.urls_count }) }} </Badge>
+                                                            <Badge variant="secondary" class="text-xs">
+                                                                {{ t('agents.sources.web.links_badge', { count: source.urls_count }) }}
+                                                            </Badge>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
                                                             <p>{{ getStatusLabel(source.status) }}</p>
@@ -2082,7 +2098,11 @@ onUnmounted(() => {
                                                                 class="border-yellow-500 text-xs text-yellow-700 dark:text-yellow-400"
                                                             >
                                                                 <AlertCircle class="me-1 h-3 w-3" />
-                                                                {{ usageData.links.remaining <= 0 ? t('agents.sources.web.badge_upgrade_required') : t('agents.sources.web.badge_exceeds_quota') }}
+                                                                {{
+                                                                    usageData.links.remaining <= 0
+                                                                        ? t('agents.sources.web.badge_upgrade_required')
+                                                                        : t('agents.sources.web.badge_exceeds_quota')
+                                                                }}
                                                             </Badge>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
@@ -2090,7 +2110,12 @@ onUnmounted(() => {
                                                                 {{ t('agents.sources.web.no_links_remaining_plan') }}
                                                             </p>
                                                             <p v-else>
-                                                                {{ t('agents.sources.web.website_exceeds_remaining', { links: source.urls_count, remaining: usageData.links.remaining }) }}
+                                                                {{
+                                                                    t('agents.sources.web.website_exceeds_remaining', {
+                                                                        links: source.urls_count,
+                                                                        remaining: usageData.links.remaining,
+                                                                    })
+                                                                }}
                                                             </p>
                                                         </TooltipContent>
                                                     </Tooltip>
@@ -2119,7 +2144,9 @@ onUnmounted(() => {
                                                 size="sm"
                                                 variant="ghost"
                                             >
-                                                <span class="sr-only">{{ open ? t('agents.sources.web.collapse_links') : t('agents.sources.web.expand_links') }}</span>
+                                                <span class="sr-only">{{
+                                                    open ? t('agents.sources.web.collapse_links') : t('agents.sources.web.expand_links')
+                                                }}</span>
                                                 <ChevronUp v-if="open" class="h-4 w-4" />
                                                 <ChevronDown v-else class="h-4 w-4" />
                                             </Button>
@@ -2152,9 +2179,9 @@ onUnmounted(() => {
                                         <div class="mb-3 flex items-center justify-between">
                                             <div class="text-muted-foreground text-sm font-medium">
                                                 {{ t('agents.sources.web.discovered_links') }}
-                                                <span v-if="linkSearchQueries.get(source.id)?.trim()" class="ml-1 text-xs text-blue-600"
-                                                    >{{ t('agents.sources.web.filtered') }}</span
-                                                >
+                                                <span v-if="linkSearchQueries.get(source.id)?.trim()" class="ms-1 text-xs text-blue-600">{{
+                                                    t('agents.sources.web.filtered')
+                                                }}</span>
                                             </div>
                                             <Button
                                                 variant="destructive"
@@ -2163,7 +2190,7 @@ onUnmounted(() => {
                                                 :disabled="(selectedLinks.get(source.id)?.size || 0) === 0"
                                                 class="h-7 text-xs"
                                             >
-                                                <Trash2 class="mr-1 h-3 w-3" />
+                                                <Trash2 class="me-1 h-3 w-3" />
                                                 {{ t('agents.sources.web.delete_selected_links') }}
                                             </Button>
                                         </div>
@@ -2203,7 +2230,9 @@ onUnmounted(() => {
                                                     class="flex items-center justify-center py-8"
                                                 >
                                                     <LoaderCircle class="text-muted-foreground h-6 w-6 animate-spin" />
-                                                    <span class="text-muted-foreground ms-2 text-sm">{{ t('agents.sources.web.loading_links') }}</span>
+                                                    <span class="text-muted-foreground ms-2 text-sm">{{
+                                                        t('agents.sources.web.loading_links')
+                                                    }}</span>
                                                 </div>
 
                                                 <!-- Links loaded -->
@@ -2466,7 +2495,7 @@ onUnmounted(() => {
                             {{ t('agents.sources.web.no_websites') }}
                         </div>
                         <template v-else>
-                            <ScrollArea v-if="completedSources.length > 5" class="h-[400px] pr-4">
+                            <ScrollArea v-if="completedSources.length > 5" class="h-[400px] pe-4">
                                 <div class="space-y-2">
                                     <template v-for="source in completedSources" :key="source.id">
                                         <div class="rounded-lg border">
@@ -2500,7 +2529,9 @@ onUnmounted(() => {
                                                                 <ExternalLink class="h-3 w-3" />
                                                             </a>
                                                             <div class="mt-1">
-                                                                <span> {{ t('agents.sources.web.added_at', { date: formatDate(source.created_at) }) }} </span>
+                                                                <span>
+                                                                    {{ t('agents.sources.web.added_at', { date: formatDate(source.created_at) }) }}
+                                                                </span>
                                                             </div>
                                                         </div>
                                                         <!-- Error message for failed sources -->
@@ -2559,7 +2590,9 @@ onUnmounted(() => {
                                                         @click="toggleSourceExpansion(source.id)"
                                                     >
                                                         <span class="sr-only">{{
-                                                            expandedSources.get(source.id) ? t('agents.sources.web.collapse_links') : t('agents.sources.web.expand_links')
+                                                            expandedSources.get(source.id)
+                                                                ? t('agents.sources.web.collapse_links')
+                                                                : t('agents.sources.web.expand_links')
                                                         }}</span>
                                                         <ChevronDown v-if="expandedSources.get(source.id)" class="h-4 w-4" />
                                                         <ChevronRight v-else class="h-4 w-4" />
@@ -2598,7 +2631,7 @@ onUnmounted(() => {
                                                                 {{ t('agents.sources.web.discovered_links') }}
                                                                 <span
                                                                     v-if="linkSearchQueries.get(source.id)?.trim()"
-                                                                    class="ml-1 text-xs text-blue-600"
+                                                                    class="ms-1 text-xs text-blue-600"
                                                                     >{{ t('agents.sources.web.filtered') }}</span
                                                                 >
                                                             </div>
@@ -2609,7 +2642,7 @@ onUnmounted(() => {
                                                                 :disabled="(selectedLinks.get(source.id)?.size || 0) === 0"
                                                                 class="h-7 text-xs"
                                                             >
-                                                                <Trash2 class="mr-1 h-3 w-3" />
+                                                                <Trash2 class="me-1 h-3 w-3" />
                                                                 {{ t('agents.sources.web.delete_selected_links') }}
                                                             </Button>
                                                         </div>
@@ -2642,7 +2675,11 @@ onUnmounted(() => {
                                                                 :for="`select-all-${source.id}`"
                                                                 class="cursor-pointer text-xs font-medium select-none"
                                                             >
-                                                                {{ t('agents.sources.web.select_all_on_page', { count: source.discovered_links.length }) }}
+                                                                {{
+                                                                    t('agents.sources.web.select_all_on_page', {
+                                                                        count: source.discovered_links.length,
+                                                                    })
+                                                                }}
                                                             </Label>
                                                         </div>
 
@@ -2655,7 +2692,9 @@ onUnmounted(() => {
                                                                     class="flex items-center justify-center py-8"
                                                                 >
                                                                     <LoaderCircle class="text-muted-foreground h-6 w-6 animate-spin" />
-                                                                    <span class="text-muted-foreground ms-2 text-sm">{{ t('agents.sources.web.loading_links') }}</span>
+                                                                    <span class="text-muted-foreground ms-2 text-sm">{{
+                                                                        t('agents.sources.web.loading_links')
+                                                                    }}</span>
                                                                 </div>
 
                                                                 <div v-else class="space-y-2">
@@ -2724,7 +2763,11 @@ onUnmounted(() => {
                                                                 {{ t('agents.sources.web.previous') }}
                                                             </Button>
                                                             <span class="text-muted-foreground text-xs">
-                                                                {{ t('agents.sources.web.page', { page: linksPagination.get(source.id)?.currentPage || 1 }) }}
+                                                                {{
+                                                                    t('agents.sources.web.page', {
+                                                                        page: linksPagination.get(source.id)?.currentPage || 1,
+                                                                    })
+                                                                }}
                                                             </span>
                                                             <Button
                                                                 variant="outline"
@@ -2778,7 +2821,9 @@ onUnmounted(() => {
                                                             <ExternalLink class="h-3 w-3" />
                                                         </a>
                                                         <div class="mt-1">
-                                                            <span> {{ t('agents.sources.web.added_at', { date: formatDate(source.created_at) }) }} </span>
+                                                            <span>
+                                                                {{ t('agents.sources.web.added_at', { date: formatDate(source.created_at) }) }}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                     <!-- Error message for failed sources -->
@@ -2837,7 +2882,9 @@ onUnmounted(() => {
                                                     @click="toggleSourceExpansion(source.id)"
                                                 >
                                                     <span class="sr-only">{{
-                                                        expandedSources.get(source.id) ? t('agents.sources.web.collapse_links') : t('agents.sources.web.expand_links')
+                                                        expandedSources.get(source.id)
+                                                            ? t('agents.sources.web.collapse_links')
+                                                            : t('agents.sources.web.expand_links')
                                                     }}</span>
                                                     <ChevronDown v-if="expandedSources.get(source.id)" class="h-4 w-4" />
                                                     <ChevronRight v-else class="h-4 w-4" />
@@ -2871,7 +2918,9 @@ onUnmounted(() => {
                                                     <div class="mb-3 flex items-center justify-between">
                                                         <div class="text-muted-foreground text-sm font-medium">
                                                             {{ t('agents.sources.web.discovered_links') }}
-                                                            <span v-if="linkSearchQueries.get(source.id)?.trim()" class="ml-1 text-xs text-blue-600"
+                                                            <span
+                                                                v-if="linkSearchQueries.get(source.id)?.trim()"
+                                                                class="ms-1 text-xs text-blue-600"
                                                                 >{{ t('agents.sources.web.filtered') }}</span
                                                             >
                                                         </div>
@@ -2882,7 +2931,7 @@ onUnmounted(() => {
                                                             :disabled="(selectedLinks.get(source.id)?.size || 0) === 0"
                                                             class="h-7 text-xs"
                                                         >
-                                                            <Trash2 class="mr-1 h-3 w-3" />
+                                                            <Trash2 class="me-1 h-3 w-3" />
                                                             {{ t('agents.sources.web.delete_selected_links') }}
                                                         </Button>
                                                     </div>
@@ -2912,7 +2961,9 @@ onUnmounted(() => {
                                                             :for="`select-all-${source.id}`"
                                                             class="cursor-pointer text-xs font-medium select-none"
                                                         >
-                                                            {{ t('agents.sources.web.select_all_on_page', { count: source.discovered_links.length }) }}
+                                                            {{
+                                                                t('agents.sources.web.select_all_on_page', { count: source.discovered_links.length })
+                                                            }}
                                                         </Label>
                                                     </div>
 
@@ -2925,7 +2976,9 @@ onUnmounted(() => {
                                                                 class="flex items-center justify-center py-8"
                                                             >
                                                                 <LoaderCircle class="text-muted-foreground h-6 w-6 animate-spin" />
-                                                                <span class="text-muted-foreground ms-2 text-sm">{{ t('agents.sources.web.loading_links') }}</span>
+                                                                <span class="text-muted-foreground ms-2 text-sm">{{
+                                                                    t('agents.sources.web.loading_links')
+                                                                }}</span>
                                                             </div>
 
                                                             <div v-else class="space-y-2">
@@ -2991,7 +3044,11 @@ onUnmounted(() => {
                                                             {{ t('agents.sources.web.previous') }}
                                                         </Button>
                                                         <span class="text-muted-foreground text-xs">
-                                                            {{ t('agents.sources.web.page', { page: linksPagination.get(source.id)?.currentPage || 1 }) }}
+                                                            {{
+                                                                t('agents.sources.web.page', {
+                                                                    page: linksPagination.get(source.id)?.currentPage || 1,
+                                                                })
+                                                            }}
                                                         </span>
                                                         <Button
                                                             variant="outline"
@@ -3038,7 +3095,9 @@ onUnmounted(() => {
                         </DialogDescription>
                     </DialogHeader>
                     <div class="mt-4 flex items-center justify-end gap-2">
-                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeletingSource"> {{ t('agents.sources.common.cancel') }} </Button>
+                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeletingSource">
+                            {{ t('agents.sources.common.cancel') }}
+                        </Button>
                         <Button
                             v-if="isWebsiteShared(sourceToDelete)"
                             variant="secondary"
@@ -3054,7 +3113,9 @@ onUnmounted(() => {
                             <LoaderCircle v-if="isDeletingSource" class="me-2 h-4 w-4 animate-spin" />
                             <Trash2 v-else class="me-2 h-4 w-4" />
                             <span v-if="isDeletingSource">{{ t('agents.sources.common.deleting') }}</span>
-                            <span v-else>{{ isWebsiteShared(sourceToDelete) ? t('agents.sources.common.delete_permanently') : t('agents.sources.common.delete') }}</span>
+                            <span v-else>{{
+                                isWebsiteShared(sourceToDelete) ? t('agents.sources.common.delete_permanently') : t('agents.sources.common.delete')
+                            }}</span>
                         </Button>
                     </div>
                 </DialogContent>
@@ -3066,7 +3127,11 @@ onUnmounted(() => {
                     <DialogHeader>
                         <DialogTitle>{{ t('agents.sources.web.retrain_dialog_title') }}</DialogTitle>
                         <DialogDescription>
-                            {{ t('agents.sources.web.retrain_dialog_description', { name: websiteToRetrain?.name || getDomainFromUrl(websiteToRetrain?.url || '') }) }}
+                            {{
+                                t('agents.sources.web.retrain_dialog_description', {
+                                    name: websiteToRetrain?.name || getDomainFromUrl(websiteToRetrain?.url || ''),
+                                })
+                            }}
                         </DialogDescription>
                     </DialogHeader>
                     <div class="space-y-4 py-4">
@@ -3159,7 +3224,7 @@ onUnmounted(() => {
                         </div>
 
                         <!-- Links List -->
-                        <ScrollArea v-else-if="dialogLinks.length > 0" class="h-full pr-4">
+                        <ScrollArea v-else-if="dialogLinks.length > 0" class="h-full pe-4">
                             <div class="space-y-2">
                                 <div
                                     v-for="link in dialogLinks"
@@ -3209,7 +3274,13 @@ onUnmounted(() => {
                                                     </div>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>{{ link.status === 'pending' ? t('agents.sources.web.training_pending') : t('agents.sources.web.training_in_progress') }}</p>
+                                                    <p>
+                                                        {{
+                                                            link.status === 'pending'
+                                                                ? t('agents.sources.web.training_pending')
+                                                                : t('agents.sources.web.training_in_progress')
+                                                        }}
+                                                    </p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>

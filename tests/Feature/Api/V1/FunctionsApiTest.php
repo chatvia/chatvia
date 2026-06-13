@@ -5,8 +5,11 @@ use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
-    // UserObserver::created auto-provisions the default team + billing + quota.
+    // A real workspace owner always has a team (provisioned at trial checkout).
+    // The account-level routes are gated by team permissions, so the owner needs
+    // their default team to be recognised as an owner (ownsTeam → bypass).
     $this->user = User::factory()->create();
+    app(TeamService::class)->createDefaultTeam($this->user);
     $this->token = $this->user->createToken('account')->plainTextToken;
 });
 
@@ -41,17 +44,17 @@ describe('GET /api/v1/functions', function (): void {
             ->assertJsonPath('data.0.id', $fn->external_id);
     });
 
-    it('lists the workspace owner’s functions for a member token', function (): void {
-        $fn = makeApiFunction($this->user);
+    it('forbids a member without account.functions from listing the workspace functions', function (): void {
+        makeApiFunction($this->user);
 
+        // A bare teammate (no role granting account.functions) must be blocked —
+        // the account key resolving to the owner's workspace is NOT enough.
         $member = User::factory()->employee($this->user)->create();
         $memberToken = $member->createToken('account')->plainTextToken;
 
         $this->withHeaders(functionHeaders($memberToken))
             ->getJson('/api/v1/functions')
-            ->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.id', $fn->external_id);
+            ->assertForbidden();
     });
 
     it('never lists another account’s functions', function (): void {

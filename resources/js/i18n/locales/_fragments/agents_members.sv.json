@@ -1,0 +1,71 @@
+{
+    "agents": {
+        "members": {
+            "title": "Chatters",
+            "description": "Dina chatters. De med tillgång till den här agenten visas först – ge valfri annan chatter tillgång med ett klick.",
+            "public_title": "Den här agenten är offentlig",
+            "public_description": "Vem som helst med länken kan chatta med den här agenten, så chatter-tilldelningar gäller inte. Aktivera skydd på agenten via fliken Inställningar om du vill använda chatters.",
+            "search_placeholder": "Sök chatters...",
+            "count": "{filtered} av {total} chatter | {filtered} av {total} chatters",
+            "invite_member": "Bjud in chatter",
+            "table": {
+                "name": "Namn",
+                "email": "E-post",
+                "status": "Status",
+                "access": "Åtkomst",
+                "actions": "Åtgärder"
+            },
+            "status": {
+                "pending": "Väntande",
+                "active": "Aktiv"
+            },
+            "access": {
+                "granted": "Beviljad",
+                "no_access": "Ingen åtkomst"
+            },
+            "no_email": "Ingen e-post",
+            "empty_title": "Inga chatters än.",
+            "empty_description": "Bjud in någon för att komma igång – de visas här.",
+            "no_results_title": "Inga chatters hittades som matchar din sökning.",
+            "no_results_description": "Försök med andra söktermer.",
+            "grant": "Bevilja",
+            "grant_title": "Ge {name} tillgång till den här agenten",
+            "revoke_title": "Återkalla åtkomst för {name}",
+            "invite_dialog_title": "Bjud in en chatter",
+            "invite_dialog_description": "Vi skickar en registreringslänk till den här adressen. De kan ange ett lösenord eller logga in med Google eller Slack.",
+            "email_label": "E-postadress",
+            "email_placeholder": "person{'@'}example.com",
+            "send_invite": "Skicka inbjudan",
+            "invitation_emailed": "Inbjudan skickad till {email}. Du kan även kopiera länken nedan.",
+            "signup_link": "Registreringslänk",
+            "expires": "Går ut {date}.",
+            "invite_another": "Bjud in en till",
+            "done": "Klar",
+            "sheet_description": "Chatter-uppgifter och åtkomst för den här agenten.",
+            "member_id": "ID",
+            "copy_member_id": "Kopiera chatter-ID",
+            "joined": "Gick med {date}",
+            "invitation_pending": "Inbjudan väntar",
+            "invitation_pending_hint": "Den här chattern har inte accepterat ännu. Dela deras personliga registreringslänk nedan.",
+            "link_expired": "Inbjudningslänken har gått ut eller är inte längre tillgänglig. Generera en ny nedan.",
+            "resend_invitation": "Skicka om inbjudan",
+            "generate_link": "Generera ny länk",
+            "manage_hint": "För att hantera den här chattern, gå till {link}.",
+            "members_page": "chatters-sidan",
+            "revoke_access": "Återkalla åtkomst",
+            "grant_access": "Bevilja åtkomst",
+            "revoke_dialog_title": "Återkalla åtkomst",
+            "revoke_dialog_description": "{name} förlorar omedelbart åtkomst till den här agenten. De finns kvar i din arbetsyta och du kan bevilja åtkomst igen när som helst.",
+            "revoke": "Återkalla",
+            "load_error": "Det gick inte att läsa in chatters",
+            "invitation_sent": "Inbjudan skickad",
+            "invitation_sent_to": "Inbjudan skickad till {email}",
+            "access_revoked": "{name} har inte längre åtkomst till den här agenten",
+            "revoke_error": "Det gick inte att återkalla åtkomsten",
+            "access_granted": "{name} har nu åtkomst till den här agenten",
+            "grant_error": "Det gick inte att bevilja åtkomst",
+            "fresh_link": "Ny inbjudningslänk genererad för {name}",
+            "link_error": "Det gick inte att generera en inbjudningslänk"
+        }
+    }
+}

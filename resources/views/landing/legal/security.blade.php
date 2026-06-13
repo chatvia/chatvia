@@ -55,8 +55,18 @@
             <div class="max-w-4xl mx-auto px-5 sm:px-6">
                 <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-2">{{ $title }}</h1>
                 @if (! empty($effectiveDate))
-                    <p class="text-slate-500 text-sm mb-10">Last updated: {{ $effectiveDate }}</p>
+                    <p class="text-slate-500 text-sm mb-6">Last updated: {{ $effectiveDate }}</p>
                 @endif
+
+                <div class="mb-10">
+                    <a href="{{ route('dpa') }}"
+                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition">
+                        Read the Data Processing Agreement (DPA)
+                        <svg class="w-4 h-4 rtl:-scale-x-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </a>
+                </div>
 
                 <div class="legal-prose">
                     {{-- Trusted, version-controlled trust-center doc, rendered from markdown. --}}

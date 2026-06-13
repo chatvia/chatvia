@@ -1,0 +1,91 @@
+{
+    "app": {
+        "header": {
+            "dashboard": "Oversigt",
+            "agents": "Agenter",
+            "usage": "Forbrug",
+            "ask_your_data": "Spørg dine data",
+            "billing": "Fakturering",
+            "support": "Support",
+            "teams": "Teams",
+            "documentation": "Dokumentation",
+            "api": "API",
+            "nav_menu_sr": "Navigationsmenu",
+            "upgrade": "Opgrader",
+            "subscribed": "Du er abonnent"
+        }
+    },
+    "agents": {
+        "nav": {
+            "default_title": "Agentindstillinger",
+            "playground": "Playground",
+            "playground_tooltip": "Forhåndsvis din agent på alle overflader",
+            "setup": "Opsætning",
+            "setup_tooltip": "Konfigurer din agent — gælder på tværs af alle overflader",
+            "channels": "Kanaler",
+            "channels_tooltip": "Deploy din agent — website, widget og Telegram",
+            "groups": {
+                "insights": "Indsigt",
+                "training": "Træning",
+                "access": "Adgang",
+                "settings": "Indstillinger",
+                "danger_zone": "Farezone"
+            },
+            "analytics": "Analyse",
+            "analytics_tooltip": "Se forbrugsanalyse og indsigt",
+            "chats": "Chats",
+            "sentiment": "Sentiment",
+            "tone": "Tone",
+            "topics": "Emner",
+            "sources": "Kilder",
+            "chat": "Chat",
+            "chat_tooltip": "Gennemse rå chatbeskeder pr. session",
+            "audit": "Revision",
+            "audit_tooltip": "Værktøjskald-revisionslog for denne agent",
+            "evals": "Evalueringer",
+            "evals_tooltip": "Testsuiter der bedømmer denne agents svar",
+            "guardrails": "Guardrails",
+            "guardrails_tooltip": "AI-sikkerhedsfiltre: PII, prompt-injection, emner, toksicitet",
+            "leads": "Leads",
+            "leads_tooltip": "Administrer leads indsamlet af din agent",
+            "knowledge_sources": "Kilder",
+            "knowledge_sources_tooltip": "Administrer agentens viden og træningsdata",
+            "functions": "Funktioner",
+            "functions_tooltip": "Administrer brugerdefinerede funktioner din agent kan kalde",
+            "connectors": "Connectorer",
+            "connectors_tooltip": "Tilknyt connectorer så din agent kan bruge eksterne værktøjer",
+            "members": "Chattere",
+            "members_tooltip": "Chattere med adgang til at chatte med denne agent",
+            "security": "Sikkerhed",
+            "security_tooltip": "Adgangskontrol, signeringsnøgle og ratebegrænsninger for denne agent",
+            "identity": "Identitet",
+            "rate_limiting": "Ratebegrænsning",
+            "rename": "Omdøb",
+            "rename_tooltip": "Omdøb denne agent",
+            "delete_agent": "Slet agent",
+            "delete_agent_tooltip": "Slet denne agent permanent",
+            "expand_sidebar": "Udvid sidebjælke",
+            "delete_dialog": {
+                "title": "Slet agent",
+                "description": "Denne handling kan ikke fortrydes. Dette vil permanent slette agenten {name} og alle dens data.",
+                "confirm_label": "Skriv venligst {name} for at bekræfte",
+                "confirm_placeholder": "Indtast agentens navn for at bekræfte",
+                "name_mismatch": "Agentnavnet stemmer ikke overens",
+                "submit": "Slet agent",
+                "deleted_toast": "Agenten blev slettet",
+                "delete_error_toast": "Det lykkedes ikke at slette agenten. Prøv igen."
+            },
+            "rename_dialog": {
+                "title": "Omdøb agent",
+                "description": "Indtast et nyt navn til din agent {name}.",
+                "name_label": "Agentnavn",
+                "name_placeholder": "Indtast nyt agentnavn",
+                "subdomain_label": "Underdomæne",
+                "subdomain_placeholder": "dit-underdomæne",
+                "subdomain_hint": "Kun små bogstaver, tal og bindestreger er tilladt.",
+                "save": "Gem",
+                "updated_toast": "Agenten blev opdateret"
+            }
+        }
+    }
+}

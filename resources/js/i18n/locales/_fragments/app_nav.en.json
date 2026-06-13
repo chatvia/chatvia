@@ -54,8 +54,8 @@
             "functions_tooltip": "Manage custom functions your agent can call",
             "connectors": "Connectors",
             "connectors_tooltip": "Attach connectors so your agent can use external tools",
-            "members": "Members",
-            "members_tooltip": "People granted access to chat with this agent",
+            "members": "Chatters",
+            "members_tooltip": "Chatters granted access to chat with this agent",
             "security": "Security",
             "security_tooltip": "Access control, signing secret and rate limits for this agent",
             "identity": "Identity",
@@ -85,7 +85,9 @@
                 "subdomain_hint": "Only lowercase letters, numbers, and hyphens allowed.",
                 "save": "Save",
                 "updated_toast": "Agent updated successfully"
-            }
+            },
+            "deploy": "Deploy",
+            "deploy_tooltip": "Embed your agent — chat widget, hosted chat, or command bar"
         }
     }
 }

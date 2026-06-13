@@ -1,0 +1,118 @@
+{
+    "teams": {
+        "breadcrumb": "Zespoły",
+        "common": { "cancel": "Anuluj", "create_role": "Utwórz rolę" },
+        "index": {
+            "title": "Zespoły",
+            "heading": "Zespoły",
+            "subtitle": "Zarządzaj swoimi zespołami i współpracuj z innymi.",
+            "create_team": "Utwórz zespół",
+            "search_placeholder": "Szukaj zespołów",
+            "empty_title": "Brak zespołów",
+            "empty_description": "Utwórz swój pierwszy zespół, aby rozpocząć współpracę z innymi",
+            "no_results": "Nie znaleziono zespołów pasujących do \"{query}\".",
+            "clear_search": "Wyczyść wyszukiwanie",
+            "primary": "Podstawowy",
+            "open_menu": "Otwórz menu",
+            "manage": "Zarządzaj",
+            "leave": "Opuść",
+            "delete": "Usuń",
+            "table": { "name": "Nazwa zespołu", "agents": "Agenci", "members": "Członkowie", "created": "Utworzono" },
+            "leave_dialog": { "title": "Opuść zespół", "description": "Czy na pewno chcesz opuścić \"{name}\"?" },
+            "delete_dialog": { "title": "Usuń zespół", "description": "Czy na pewno chcesz usunąć \"{name}\"? Tej operacji nie można cofnąć." },
+            "create_dialog": {
+                "title": "Utwórz nowy zespół",
+                "description": "Utwórz zespół, aby współpracować z innymi.",
+                "name_label": "Nazwa zespołu",
+                "name_placeholder": "Wprowadź nazwę zespołu"
+            }
+        },
+        "show": {
+            "title": "Zespół: {name}",
+            "back": "Powrót do zespołów",
+            "copied": "Skopiowano!",
+            "copy_team_id": "Kopiuj ID zespołu",
+            "add_member": "Dodaj członka",
+            "view_members": "Wyświetl członków ({count})",
+            "role": "Rola",
+            "actions": "Akcje",
+            "roles": {
+                "title": "Role i uprawnienia",
+                "description": "Definiuj role i ich uprawnienia dla członków zespołu.",
+                "empty": "Brak niestandardowych ról. Utwórz rolę, aby przypisać określone uprawnienia członkom zespołu.",
+                "copy_role_id": "Kopiuj ID roli",
+                "edit_role": "Edytuj rolę",
+                "delete_role": "Usuń rolę",
+                "agent_access_label": "Dostęp do agentów:",
+                "all_agents": "Wszyscy agenci",
+                "no_agents_assigned": "Brak przypisanych agentów",
+                "agent_count": "{count} agent | {count} agentów",
+                "delete_description": "Czy na pewno chcesz usunąć rolę \"{name}\"? Tej akcji nie można cofnąć."
+            },
+            "members": {
+                "title": "Członkowie zespołu",
+                "description": "Członkowie mający dostęp do tego zespołu.",
+                "you": "Ty",
+                "change_role": "Zmień rolę",
+                "change_role_title": "Zmień rolę członka",
+                "update_role_description": "Zaktualizuj rolę dla {name}.",
+                "select_role_placeholder": "Wybierz rolę",
+                "update_role": "Zaktualizuj rolę",
+                "remove": "Usuń",
+                "remove_title": "Usuń członka zespołu",
+                "remove_description": "Czy na pewno chcesz usunąć {name} z tego zespołu? Utraci dostęp do wszystkich zasobów zespołu.",
+                "remove_confirm": "Usuń członka",
+                "table": { "member": "Członek" }
+            },
+            "invitations": {
+                "title": "Oczekujące zaproszenia",
+                "description": "Te zaproszenia czekają na akceptację.",
+                "table": { "email": "E-mail", "sent": "Wysłano" }
+            },
+            "invite": {
+                "title": "Dodaj członka zespołu",
+                "description": "Dodaj istniejącego użytkownika lub zaproś nową osobę do dołączenia do tego zespołu.",
+                "select_existing": "Wybierz istniejącego",
+                "invite_by_email": "Zaproś przez e-mail",
+                "select_user_label": "Wybierz użytkownika",
+                "select_user_placeholder": "Wybierz użytkownika...",
+                "email_label": "Adres e-mail",
+                "email_placeholder": "kolega{'@'}przyklad.pl",
+                "send_invitation": "Wyślij zaproszenie"
+            },
+            "role_members": {
+                "title": "Członkowie roli {name}",
+                "description": "Członkowie z tą rolą. Możesz usunąć ich dostęp do tego zespołu.",
+                "empty": "Brak członków z tą rolą.",
+                "close": "Zamknij"
+            }
+        },
+        "roles": {
+            "details": "Szczegóły roli",
+            "role_name_label": "Nazwa roli",
+            "role_name_placeholder": "np. Agent wsparcia, Redaktor treści",
+            "agent_access": "Dostęp do agentów",
+            "agent_access_description": "Wybierz, którzy agenci będą widoczni i dostępni dla tej roli.",
+            "all_agents": "Wszyscy agenci",
+            "all_agents_description": "Dostęp do wszystkich obecnych i przyszłych agentów",
+            "select_specific": "Wybierz konkretnych agentów:",
+            "select_agents": "Wybierz agentów...",
+            "agents_more": "{names} +{count} więcej",
+            "no_agents_available": "Brak dostępnych agentów",
+            "permissions": {
+                "title": "Uprawnienia",
+                "description": "Wybierz, jakie akcje mogą wykonywać użytkownicy z tą rolą.",
+                "requires": "Wymaga:"
+            },
+            "create": { "subtitle": "Zdefiniuj nową rolę dla" },
+            "edit": {
+                "title": "Edytuj rolę: {name}",
+                "breadcrumb": "Edytuj: {name}",
+                "heading": "Edytuj rolę",
+                "subtitle_prefix": "Zaktualizuj",
+                "subtitle_middle": "rolę dla",
+                "save": "Zapisz"
+            }
+        }
+    }
+}

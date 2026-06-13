@@ -30,12 +30,12 @@ class DataExportReadyNotification extends Notification
         $expiresAt = $this->export->expires_at?->toDayDateTimeString();
 
         return (new MailMessage)
-            ->subject('Your ChatVia data export is ready')
-            ->greeting('Hi '.$notifiable->name.',')
-            ->line('Your personal data export is ready to download.')
-            ->action('Download my data', $downloadUrl)
-            ->line('This link will work until '.$expiresAt.' (24 hours from now), after which the file will be deleted from our servers.')
-            ->line('If you did not request this export, please contact us right away.');
+            ->subject(__('Your ChatVia data export is ready'))
+            ->greeting(__('Hi :name,', ['name' => $notifiable->name]))
+            ->line(__('Your personal data export is ready to download.'))
+            ->action(__('Download my data'), $downloadUrl)
+            ->line(__('This link will work until :expiresAt (24 hours from now), after which the file will be deleted from our servers.', ['expiresAt' => $expiresAt]))
+            ->line(__('If you did not request this export, please contact us right away.'));
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage

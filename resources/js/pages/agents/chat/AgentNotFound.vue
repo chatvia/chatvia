@@ -10,7 +10,7 @@ const { t } = useI18n();
 
 <template>
     <AuthBase :title="t('agents.chat_errors.not_found_title')" :description="t('agents.chat_errors.not_found_description')">
-        <div class="absolute top-4 end-4">
+        <div class="absolute end-4 top-4">
             <ThemeSwitcher />
         </div>
 

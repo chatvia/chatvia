@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Palette } from 'lucide-vue-next';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = withDefaults(
     defineProps<{
@@ -51,9 +54,9 @@ function applyAndClose(): void {
             <DialogHeader>
                 <DialogTitle class="flex items-center gap-2">
                     <Palette class="h-5 w-5" />
-                    Choose Color Theme
+                    {{ t('shared.color_theme_picker.title') }}
                 </DialogTitle>
-                <DialogDescription>Select a color and shade for your agent's primary theme</DialogDescription>
+                <DialogDescription>{{ t('shared.color_theme_picker.description') }}</DialogDescription>
             </DialogHeader>
 
             <ColorPicker
@@ -64,7 +67,7 @@ function applyAndClose(): void {
             />
 
             <DialogFooter>
-                <Button @click="applyAndClose">Apply</Button>
+                <Button @click="applyAndClose">{{ t('shared.color_theme_picker.apply') }}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>

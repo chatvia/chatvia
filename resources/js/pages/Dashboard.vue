@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useLocaleDate } from '@/composables/useLocaleDate';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
@@ -13,9 +14,11 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const { formatWeekdayShort, formatDayOfMonth, intlLocale } = useLocaleDate();
 
 // Types for the dashboard data
 interface ActivityData {
+    date?: string;
     label: string;
     value: number;
 }
@@ -122,7 +125,14 @@ const refreshDashboardData = () => {
 };
 
 const currentActivityData = computed(() => {
-    return activityPeriod.value === 'week' ? dashboardData.value.weekly_usage : dashboardData.value.monthly_usage;
+    void intlLocale.value;
+
+    const data = activityPeriod.value === 'week' ? dashboardData.value.weekly_usage : dashboardData.value.monthly_usage;
+
+    return data.map((item) => ({
+        ...item,
+        displayLabel: item.date ? (activityPeriod.value === 'week' ? formatWeekdayShort(item.date) : formatDayOfMonth(item.date)) : item.label,
+    }));
 });
 
 const maxUsage = computed(() => {
@@ -260,7 +270,11 @@ const formatNumber = (num: number): string => {
                             </div>
                         </div>
                         <div v-else class="flex h-40 items-end justify-center gap-3 px-2">
-                            <div v-for="item in currentActivityData" :key="item.label" class="flex w-full max-w-16 flex-col items-center gap-2">
+                            <div
+                                v-for="item in currentActivityData"
+                                :key="item.date ?? item.label"
+                                class="flex w-full max-w-16 flex-col items-center gap-2"
+                            >
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -274,7 +288,7 @@ const formatNumber = (num: number): string => {
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                                <span class="text-muted-foreground text-[10px] font-medium">{{ item.label }}</span>
+                                <span class="text-muted-foreground text-[10px] font-medium">{{ item.displayLabel }}</span>
                             </div>
                         </div>
                     </CardContent>

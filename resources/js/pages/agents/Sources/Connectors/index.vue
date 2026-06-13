@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useConnectorText } from '@/composables/useConnectorText';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import type { AgentMcpServer, Connector } from '@/types/connector';
 import axios from 'axios';
@@ -19,6 +20,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const { t } = useI18n();
+const { connectorName, connectorDescription } = useConnectorText();
 
 // Featured row state from the backend:
 //   - attached   — account-level row exists AND attached to this agent
@@ -56,7 +58,7 @@ function matches(row: { name: string; description?: string | null; url?: string 
 // priority order within each group — `sort` is stable in modern JS engines.
 const filteredFeatured = computed(() =>
     featured.value
-        .filter((f) => matches({ name: f.connector.name, description: f.connector.description }))
+        .filter((f) => matches({ name: connectorName(f.connector), description: connectorDescription(f.connector) }))
         .slice()
         .sort((a, b) => Number(b.state === 'attached') - Number(a.state === 'attached')),
 );
@@ -146,14 +148,17 @@ onMounted(fetchAll);
                                 </CardTitle>
                                 <CardDescription>
                                     {{ t('agents.sources.connectors.description_prefix') }}
-                                    <a :href="route('integrations.connectors.edit')" class="underline">{{ t('agents.sources.connectors.settings_link') }}</a>.
+                                    <a :href="route('integrations.connectors.edit')" class="underline">{{
+                                        t('agents.sources.connectors.settings_link')
+                                    }}</a
+                                    >.
                                 </CardDescription>
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent class="space-y-6">
                         <div class="relative max-w-sm">
-                            <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                             <Input v-model="search" :placeholder="t('agents.sources.connectors.search_placeholder')" class="ps-9" />
                         </div>
 
@@ -231,9 +236,9 @@ onMounted(fetchAll);
                                                             <img :src="logoUrl(row.connector)" :alt="row.connector.name" class="h-5 w-5" />
                                                         </div>
                                                         <div class="min-w-0">
-                                                            <p class="leading-tight font-medium">{{ row.connector.name }}</p>
+                                                            <p class="leading-tight font-medium">{{ connectorName(row.connector) }}</p>
                                                             <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
-                                                                {{ row.connector.description }}
+                                                                {{ connectorDescription(row.connector) }}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -242,7 +247,9 @@ onMounted(fetchAll);
                                                     {{ row.server ? row.server.catalog_tools_count : '—' }}
                                                 </TableCell>
                                                 <TableCell class="py-4 pe-5" @click.stop>
-                                                    <Badge v-if="row.connector.comingSoon" variant="outline">{{ t('agents.sources.connectors.soon') }}</Badge>
+                                                    <Badge v-if="row.connector.comingSoon" variant="outline">{{
+                                                        t('agents.sources.connectors.soon')
+                                                    }}</Badge>
                                                     <Switch
                                                         v-else
                                                         :model-value="row.state === 'attached'"

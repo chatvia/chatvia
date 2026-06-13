@@ -1,0 +1,309 @@
+{
+    "workspace": {
+        "common": {
+            "cancel": "Avbryt",
+            "save": "Lagre",
+            "delete": "Slett",
+            "keep": "Behold",
+            "connect": "Koble til",
+            "copy": "Kopier"
+        },
+        "prompts": {
+            "breadcrumb": "Instruksjoner",
+            "title": "Instruksjoner",
+            "description": "Gjenbrukbare systeminstruksjoner. Skriv én her, og legg den til på hvilken som helst agent fra agentens Persona-side — rediger den én gang, og alle agenter som bruker den oppdateres automatisk.",
+            "add": "Legg til instruksjon",
+            "search_placeholder": "Søk i instruksjoner",
+            "empty": "Ingen instruksjoner ennå. Klikk «Legg til instruksjon» for å opprette din første.",
+            "no_results": "Ingen instruksjoner samsvarer med søket ditt.",
+            "fallback_name": "instruksjon",
+            "delete_confirm_title": "Slett {name}?",
+            "delete_confirm_description": "Agenter som bruker denne instruksjonen vil falle tilbake til sine egne tilpassede instruksjoner. Denne handlingen kan ikke angres.",
+            "table": {
+                "prompt": "Instruksjon",
+                "agents": "Agenter",
+                "created": "Opprettet"
+            },
+            "sheet": {
+                "edit_title": "Rediger instruksjon",
+                "create_title": "Legg til en instruksjon",
+                "description": "Skriv en gjenbrukbar systeminstruksjon én gang, og legg den til på hvilken som helst agent fra agentens Persona-side. Redigering her oppdaterer alle agenter som bruker den.",
+                "id_label": "ID",
+                "copy_id_title": "Kopier instruksjons-ID — send som prompt_id når du oppretter/oppdaterer en agent via API"
+            },
+            "form": {
+                "name": "Navn",
+                "name_placeholder": "Support-agent persona",
+                "prompt": "Instruksjon",
+                "prompt_placeholder": "Du er en hjelpsom assistent som spesialiserer seg på...",
+                "prompt_hint": "Støtter Markdown. Dette blir agentens systeminstruksjon når den legges til."
+            }
+        },
+        "functions": {
+            "breadcrumb": "Funksjoner",
+            "title": "Funksjoner",
+            "description": "Webhook-baserte verktøy som LLM-en kan kalle. Definer én gang, og legg til på hvilke som helst av agentene dine. Når den kalles, sender Chatvia parametrene til webhook-en din og videresender svaret tilbake til modellen.",
+            "add": "Legg til funksjon",
+            "search_placeholder": "Søk i funksjoner",
+            "empty": "Ingen funksjoner ennå. Klikk «Legg til funksjon» for å opprette din første.",
+            "no_results": "Ingen funksjoner samsvarer med søket ditt.",
+            "fallback_name": "funksjon",
+            "delete_confirm_title": "Slett {name}?",
+            "delete_confirm_description": "Den vil bli fjernet fra alle agenter som bruker den. Denne handlingen kan ikke angres.",
+            "table": {
+                "name": "Funksjonsnavn",
+                "method": "Metode",
+                "agents": "Agenter",
+                "enabled": "Aktivert"
+            },
+            "tabs": {
+                "edit": "Rediger",
+                "agents": "Agenter"
+            },
+            "sheet": {
+                "edit_title": "Rediger funksjon",
+                "create_title": "Legg til en funksjon",
+                "description": "Funksjoner lar agentene dine kalle dine egne API-er som LLM-verktøy. {name} og {description} er det modellen ser når den avgjør om den skal kalle funksjonen — vær spesifikk. {learn_more}",
+                "learn_more": "Les mer",
+                "id_label": "ID",
+                "copy_id_title": "Kopier funksjons-ID — send som function_id ved tilknytning via API"
+            },
+            "form": {
+                "name": "Navn",
+                "name_hint": "Bokstaver, tall, understrek. Må starte med en bokstav.",
+                "display_name": "Visningsnavn",
+                "optional": "(valgfritt)",
+                "display_name_placeholder": "Hent ordrestatus",
+                "display_name_hint": "Brukervennlig navn som vises til brukere i chat. Faller tilbake til navnet ovenfor.",
+                "description": "Beskrivelse",
+                "description_placeholder": "Slå opp gjeldende status for en kundes ordre etter id.",
+                "parameters": "Parametere (JSON-skjema)",
+                "parameters_aria": "Funksjonsparameterskjema",
+                "webhook_url": "Webhook-URL",
+                "method": "Metode",
+                "require_approval": "Krev godkjenning",
+                "require_approval_hint": "Spør brukeren før denne funksjonen kjøres — anbefalt for handlinger som skriver eller endrer data.",
+                "auth": "Autentisering",
+                "auth_none": "Ingen — ingen auth-header sendes",
+                "auth_bearer": "Bearer-token — sendes som `Authorization: Bearer …`",
+                "auth_header": "Egendefinert header — ditt eget headernavn og -verdi",
+                "auth_hmac": "HMAC — forespørselstekst signert med en delt hemmelighet",
+                "bearer_token": "Bearer-token",
+                "keep_token": "La stå tomt for å beholde gjeldende token",
+                "bearer_hint": "Sendes som {header}.",
+                "header_name": "Headernavn",
+                "header_value": "Headerverdi",
+                "keep_value": "La stå tomt for å beholde gjeldende",
+                "signing_secret": "Signeringshemmelighet",
+                "keep_secret": "La stå tomt for å beholde gjeldende hemmelighet",
+                "hmac_hint": "Brukes til å HMAC-SHA256-signere forespørselsteksten; verifiser på din ende."
+            },
+            "agents": {
+                "intro": "Velg hvilke av agentene dine som kan bruke denne funksjonen.",
+                "loading": "Laster agenter",
+                "empty": "Du har ingen agenter ennå."
+            }
+        },
+        "api_keys": {
+            "breadcrumb": "API-nøkler",
+            "title": "API-nøkler",
+            "description": "Kontonøkler for {api_link} — opprett og administrer agenter, kunnskap, MCP-servere og funksjoner.",
+            "api_link": "Chatvia API",
+            "generate": "Generer nøkkel",
+            "locked": "Oppgrader planen din for å utstede API-nøkler og integrere Chatvia med applikasjonene dine.",
+            "empty_title": "Ingen API-nøkler ennå",
+            "empty_description": "Generer én for å begynne å bruke Chatvia API.",
+            "never": "Aldri",
+            "revoke_aria": "Tilbakekall nøkkel",
+            "table": {
+                "name": "Navn",
+                "created": "Opprettet",
+                "last_used": "Sist brukt",
+                "revoke": "Tilbakekall"
+            },
+            "generate_dialog": {
+                "title": "Generer en ny nøkkel",
+                "description": "Velg et navn du vil kjenne igjen senere — f.eks. {example}. Selve tokenet vises kun én gang.",
+                "name": "Navn",
+                "submit": "Generer"
+            },
+            "reveal_dialog": {
+                "title": "Kopier din nye API-nøkkel",
+                "description": "Dette er eneste gang du ser {name}. Lagre den et trygt sted — hvis du mister den, må du generere en ny.",
+                "warning": "Behandle denne som et passord. Alle som har den kan opprette agenter på dine vegne.",
+                "confirm": "Jeg har lagret den trygt"
+            },
+            "revoke_dialog": {
+                "title": "Tilbakekall API-nøkkel",
+                "description": "Tilbakekalle {name}? Alle tjenester som bruker dette tokenet vil slutte å fungere umiddelbart. Denne handlingen kan ikke angres.",
+                "confirm": "Tilbakekall"
+            }
+        },
+        "connectors": {
+            "breadcrumb": "Koblinger",
+            "title": "Koblinger",
+            "description": "Koble tredjepartstjenester til kontoen din én gang, og legg dem til på hvilke som helst agenter. Velg fra katalogen eller legg til en hvilken som helst MCP-server via URL.",
+            "add": "Legg til kobling",
+            "search_placeholder": "Søk i koblinger",
+            "loading": "Laster koblinger",
+            "empty": "Ingen koblinger ennå.",
+            "enabled_section": "Aktiverte koblinger",
+            "custom_section": "Egendefinerte koblinger",
+            "available_section": "Tilgjengelige koblinger",
+            "no_results": "Ingen koblinger samsvarer.",
+            "coming_soon": "Snart",
+            "connect_title": "Koble til {name}",
+            "table": {
+                "name": "Koblingsnavn",
+                "tools": "Verktøy",
+                "agents": "Agenter",
+                "enabled": "Aktivert"
+            },
+            "toast": {
+                "load_failed": "Kunne ikke laste koblinger",
+                "connected": "Koblet til {name}",
+                "connect_failed": "Kunne ikke koble til {name}",
+                "toggle_failed": "Kunne ikke bytte tilstand"
+            },
+            "add_modal": {
+                "title": "Legg til egendefinert kobling",
+                "description": "Pek chatten mot en hvilken som helst MCP-server. Moderne servere (Notion, Linear, Atlassian, …) annonserer OAuth — velg det, og vi håndterer innloggingen. Eldre servere bruker vanligvis et bearer-token.",
+                "display_name": "Visningsnavn",
+                "display_name_placeholder": "f.eks. Notion (jobb)",
+                "server_url": "MCP-server-URL",
+                "authentication": "Autentisering",
+                "strategy_oauth": "OAuth (automatisk)",
+                "strategy_token": "Bearer-token",
+                "strategy_none": "Ingen",
+                "hint_oauth": "Vi oppdager autentiseringsserveren og håndterer innloggingen for deg.",
+                "hint_token": "Vi sender tokenet ditt som en Bearer-header på hvert kall.",
+                "hint_none": "Serveren er tilgjengelig uten autentisering.",
+                "bearer_token": "Bearer-token",
+                "continue_signin": "Fortsett til innlogging",
+                "submit": "Legg til kobling",
+                "added": "La til {name}",
+                "error": "Kunne ikke legge til denne koblingen — sjekk URL-en og prøv igjen."
+            },
+            "salesforce": {
+                "description": "Salesforce bruker en per-org OAuth-app. Opprett en External Client App i organisasjonen din, og skriv inn Consumer Key nedenfor — du godkjenner tilgangen i Salesforce etterpå.",
+                "environment": "Miljø",
+                "production": "Produksjon",
+                "sandbox": "Sandkasse",
+                "consumer_key": "Consumer Key",
+                "help_link": "Slik oppretter du en External Client App",
+                "consumer_secret": "Consumer Secret",
+                "optional": "(valgfritt)",
+                "consumer_secret_placeholder": "La stå tomt for en PKCE offentlig app",
+                "mcp_server": "MCP-server",
+                "my_domain": "My Domain",
+                "my_domain_hint": "La stå tomt for å logge inn via login.salesforce.com. Påkrevd hvis organisasjonen din krever My Domain.",
+                "continue": "Fortsett til Salesforce",
+                "error": "Kunne ikke starte tilkoblingen — sjekk detaljene og prøv igjen.",
+                "servers": {
+                    "sobject_all": "Objekter — les og skriv (anbefalt)",
+                    "sobject_reads": "Objekter — kun les",
+                    "flows": "Flyter",
+                    "invocable_actions": "Kallbare handlinger",
+                    "data_360": "Data 360",
+                    "prompt_builder": "Instruksjonsmaler",
+                    "tableau_next": "Tableau Next"
+                }
+            },
+            "token_modal": {
+                "server_url": "MCP-server-URL",
+                "server_url_hint": "{name} har ingen hostet MCP-server — lim inn URL-en til din egen (selvhostet eller partnerforvaltet) {name} MCP-server.",
+                "token": "Token",
+                "help_link": "Hvor finner jeg dette?",
+                "format_warning": "Formatet ser ikke riktig ut. Dobbeltsjekk verdien før du kobler til.",
+                "error": "Kunne ikke koble til — prøv igjen."
+            }
+        },
+        "members": {
+            "breadcrumb": "Chattere",
+            "title": "Chattere",
+            "description": "Alle du har gitt tilgang til å chatte med agentene dine. Send en lenke for tilbakestilling av passord, eller fjern en chatter helt.",
+            "search_placeholder": "Søk i chattere...",
+            "count": "{shown} av {total} chatter | {shown} av {total} chattere",
+            "invite": "Inviter chatter",
+            "invite_disabled_hint": "Opprett en beskyttet agent først — chattere kan bare inviteres til beskyttede agenter.",
+            "no_email": "Ingen e-post",
+            "reset_title": "Send lenke for tilbakestilling av passord til {name}",
+            "remove_title": "Fjern {name}",
+            "table": {
+                "name": "Navn",
+                "email": "E-post",
+                "status": "Status",
+                "agents": "Agenter",
+                "messages": "Meldinger",
+                "created": "Opprettet",
+                "actions": "Handlinger"
+            },
+            "status": {
+                "deactivated": "Deaktivert",
+                "pending": "Venter",
+                "active": "Aktiv"
+            },
+            "empty": {
+                "title": "Ingen chattere ennå.",
+                "description": "Inviter noen nedenfor, eller fra en agents Chattere-fane — de vil dukke opp her.",
+                "invite_first": "Inviter din første chatter"
+            },
+            "no_results": {
+                "title": "Ingen chattere funnet som samsvarer med søket ditt.",
+                "description": "Prøv å justere søkeordene."
+            },
+            "invite_dialog": {
+                "title": "Inviter en chatter",
+                "description": "Vi sender en registreringslenke til denne adressen via e-post. Velg agentene de kan chatte med — minst én er påkrevd.",
+                "email": "E-postadresse",
+                "agents": "Agenter",
+                "agents_hint": "Chatteren kan kun chatte med agentene du velger.",
+                "send": "Send invitasjon",
+                "emailed_to": "Invitasjon sendt på e-post til {email}. Du kan også kopiere lenken nedenfor.",
+                "signup_link": "Registreringslenke",
+                "expires": "Utløper {date}.",
+                "invite_another": "Inviter en til",
+                "done": "Ferdig"
+            },
+            "reset_dialog": {
+                "title": "Send en lenke for tilbakestilling av passord?",
+                "description": "Vi sender en tilbakestillingslenke til {email}. De kan sette et nytt passord fra lenken — du vil ikke se den nye verdien.",
+                "confirm": "Send lenke"
+            },
+            "delete_dialog": {
+                "title": "Fjern chatter",
+                "description": "{name} vil bli permanent slettet sammen med tilgangen til alle agenter i arbeidsområdet ditt. Dette kan ikke angres.",
+                "confirm": "Fjern"
+            },
+            "toast": {
+                "load_failed": "Kunne ikke laste chattere",
+                "invite_sent_to": "Invitasjon sendt til {email}",
+                "invite_sent": "Invitasjon sendt",
+                "invite_failed": "Kunne ikke sende invitasjonen",
+                "reset_sent": "Lenke for tilbakestilling av passord sendt til {email}",
+                "reset_failed": "Kunne ikke sende tilbakestillingslenken",
+                "removed": "{name} fjernet",
+                "remove_failed": "Kunne ikke fjerne denne chatteren"
+            }
+        },
+        "governance": {
+            "breadcrumb": "Styring",
+            "title": "Revisjonslogg",
+            "description": "Alle handlinger agentene dine utfører gjennom verktøy og koblinger — tillatt, godkjent, avvist eller hastighetsbegrenset — med argumenter, resultat og hvem som utløste det."
+        },
+        "sections": {
+            "integrations": "Integrasjoner",
+            "library": "Bibliotek",
+            "people": "Personer",
+            "governance": "Styring"
+        },
+        "nav": {
+            "connectors": "Koblinger",
+            "functions": "Funksjoner",
+            "api_keys": "API-nøkler",
+            "prompts": "Instruksjoner",
+            "members": "Chattere",
+            "audit_log": "Revisjonslogg"
+        }
+    }
+}

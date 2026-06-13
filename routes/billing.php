@@ -30,75 +30,77 @@ use App\Http\Controllers\Billing\Subscriptions\CancelRemoveBrandingController;
 use App\Http\Middleware\Auth\DenyIfEmployee;
 use Illuminate\Support\Facades\Route;
 
-Route::get('subscribe', BillingSubscribeController::class)
-    ->middleware(['auth', 'verified', DenyIfEmployee::class])
-    ->name('subscribe');
+Route::prefix('my')->group(function (): void {
+    Route::get('subscribe', BillingSubscribeController::class)
+        ->middleware(['auth', 'verified', DenyIfEmployee::class])
+        ->name('subscribe');
 
-Route::get('subscribe/failure', BillingSubscribeFailureController::class)
-    ->name('subscribe.failure');
+    Route::get('subscribe/failure', BillingSubscribeFailureController::class)
+        ->name('subscribe.failure');
 
-Route::middleware(['auth', 'verified', DenyIfEmployee::class, 'can.access.dashboard'])->prefix('billing')->name('billing.')->group(function (): void {
+    Route::middleware(['auth', 'verified', DenyIfEmployee::class, 'can.access.dashboard'])->prefix('billing')->name('billing.')->group(function (): void {
 
-    Route::get('addons/extra-message-credits', CheckoutExtraMessagesController::class)
-        ->name('addons.extra-message-credits');
+        Route::get('addons/extra-message-credits', CheckoutExtraMessagesController::class)
+            ->name('addons.extra-message-credits');
 
-    Route::get('addons/extra-agents', CheckoutExtraAgentsController::class)
-        ->name('addons.extra-agents');
+        Route::get('addons/extra-agents', CheckoutExtraAgentsController::class)
+            ->name('addons.extra-agents');
 
-    Route::get('addons/custom-domains', CheckoutCustomDomainController::class)
-        ->name('addons.custom-domains');
+        Route::get('addons/custom-domains', CheckoutCustomDomainController::class)
+            ->name('addons.custom-domains');
 
-    Route::get('addons/remove-branding', CheckoutRemoveBrandingController::class)
-        ->name('addons.remove-branding');
+        Route::get('addons/remove-branding', CheckoutRemoveBrandingController::class)
+            ->name('addons.remove-branding');
 
-    Route::get('addons/members', CheckoutMembersController::class)
-        ->name('addons.members');
+        Route::get('addons/members', CheckoutMembersController::class)
+            ->name('addons.members');
 
-    Route::post('addons/auto-recharge', UpdateAutoRechargeController::class)
-        ->name('addons.auto-recharge.update');
+        Route::post('addons/auto-recharge', UpdateAutoRechargeController::class)
+            ->name('addons.auto-recharge.update');
 
-    Route::post('addons/extra-agents/cancel', CancelExtraAgentsController::class)
-        ->name('addons.extra-agents.cancel');
+        Route::post('addons/extra-agents/cancel', CancelExtraAgentsController::class)
+            ->name('addons.extra-agents.cancel');
 
-    Route::post('addons/custom-domains/cancel', CancelCustomDomainController::class)
-        ->name('addons.custom-domains.cancel');
+        Route::post('addons/custom-domains/cancel', CancelCustomDomainController::class)
+            ->name('addons.custom-domains.cancel');
 
-    Route::post('addons/remove-branding/cancel', CancelRemoveBrandingController::class)
-        ->name('addons.remove-branding.cancel');
+        Route::post('addons/remove-branding/cancel', CancelRemoveBrandingController::class)
+            ->name('addons.remove-branding.cancel');
 
-    Route::post('addons/members/cancel', CancelMembersController::class)
-        ->name('addons.members.cancel');
+        Route::post('addons/members/cancel', CancelMembersController::class)
+            ->name('addons.members.cancel');
 
-    // Main billing dashboard
-    Route::get('/', BillingController::class)->name('index');
+        // Main billing dashboard
+        Route::get('/', BillingController::class)->name('index');
 
-    // Payment success page (shown after Stripe checkout)
-    Route::get('/success', BillingPaymentSuccessController::class)->name('success');
+        // Payment success page (shown after Stripe checkout)
+        Route::get('/success', BillingPaymentSuccessController::class)->name('success');
 
-    // Billing data API endpoint
-    Route::get('/data', BillingDataController::class)->name('data');
+        // Billing data API endpoint
+        Route::get('/data', BillingDataController::class)->name('data');
 
-    // Package selection
-    Route::get('/plans', PlanController::class)->name('packages');
+        // Package selection
+        Route::get('/plans', PlanController::class)->name('packages');
 
-    // Subscription management
-    Route::post('/subscriptions/change', BillingSubscriptionChangeController::class)->name('subscription.change');
-    Route::post('/subscription/schedule/cancel', BillingSubscriptionScheduleCancelController::class)->name('schedule.cancel');
-    Route::post('/subscription/cancel', BillingSubscriptionCancelController::class)->name('cancel');
-    Route::post('/subscription/resume', BillingSubscriptionResumeController::class)->name('resume');
+        // Subscription management
+        Route::post('/subscriptions/change', BillingSubscriptionChangeController::class)->name('subscription.change');
+        Route::post('/subscription/schedule/cancel', BillingSubscriptionScheduleCancelController::class)->name('schedule.cancel');
+        Route::post('/subscription/cancel', BillingSubscriptionCancelController::class)->name('cancel');
+        Route::post('/subscription/resume', BillingSubscriptionResumeController::class)->name('resume');
 
-    Route::get('/portal', BillingStripePortalController::class)->name('portal');
+        Route::get('/portal', BillingStripePortalController::class)->name('portal');
 
-    Route::get('/invoices', InvoiceController::class)->name('invoices');
+        Route::get('/invoices', InvoiceController::class)->name('invoices');
 
-    // Payment method management
-    Route::get('/payments', BillingPaymentMethodController::class)->name('payment-methods');
-    Route::get('/payments/create', BillingPaymentMethodAddController::class)->name('payment-methods.create');
+        // Payment method management
+        Route::get('/payments', BillingPaymentMethodController::class)->name('payment-methods');
+        Route::get('/payments/create', BillingPaymentMethodAddController::class)->name('payment-methods.create');
 
-    // Payment method management
-    Route::delete('/payments', BillingPaymentMethodDeleteController::class)->name('payment-method.remove');
-    Route::post('/payments/default', BillingPaymentMethodDefaultController::class)->name('payment-method.default');
+        // Payment method management
+        Route::delete('/payments', BillingPaymentMethodDeleteController::class)->name('payment-method.remove');
+        Route::post('/payments/default', BillingPaymentMethodDefaultController::class)->name('payment-method.default');
 
-    // Billing information management
-    Route::patch('/info', BillingUpdateInformationController::class)->name('information.update');
+        // Billing information management
+        Route::patch('/info', BillingUpdateInformationController::class)->name('information.update');
+    });
 });

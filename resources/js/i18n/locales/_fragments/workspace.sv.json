@@ -1,0 +1,309 @@
+{
+    "workspace": {
+        "common": {
+            "cancel": "Avbryt",
+            "save": "Spara",
+            "delete": "Ta bort",
+            "keep": "Behåll",
+            "connect": "Anslut",
+            "copy": "Kopiera"
+        },
+        "prompts": {
+            "breadcrumb": "Prompter",
+            "title": "Prompter",
+            "description": "Återanvändbara systemprompter. Skriv en här och bifoga den sedan till valfri agent från dess Persona-sida — redigera den en gång så plockar varje agent som använder den upp ändringen.",
+            "add": "Lägg till prompt",
+            "search_placeholder": "Sök prompter",
+            "empty": "Inga prompter än. Klicka på \"Lägg till prompt\" för att skapa din första.",
+            "no_results": "Inga prompter matchar din sökning.",
+            "fallback_name": "prompt",
+            "delete_confirm_title": "Ta bort {name}?",
+            "delete_confirm_description": "Agenter som använder den här prompten återgår till sina egna anpassade instruktioner. Det går inte att ångra den här åtgärden.",
+            "table": {
+                "prompt": "Prompt",
+                "agents": "Agenter",
+                "created": "Skapad"
+            },
+            "sheet": {
+                "edit_title": "Redigera prompt",
+                "create_title": "Lägg till en prompt",
+                "description": "Skriv en återanvändbar systemprompt en gång och bifoga den sedan till valfri agent från dess Persona-sida. Redigerar du den här uppdateras varje agent som använder den.",
+                "id_label": "ID",
+                "copy_id_title": "Kopiera prompt-ID — skicka som prompt_id när du skapar/uppdaterar en agent via API:et"
+            },
+            "form": {
+                "name": "Namn",
+                "name_placeholder": "Supportagentens persona",
+                "prompt": "Prompt",
+                "prompt_placeholder": "Du är en hjälpsam assistent som är specialiserad på...",
+                "prompt_hint": "Stöder Markdown. Det här blir agentens systemprompt när det bifogas."
+            }
+        },
+        "functions": {
+            "breadcrumb": "Funktioner",
+            "title": "Funktioner",
+            "description": "Webhook-baserade verktyg som LLM:en kan anropa. Definiera en gång och bifoga till valfri agent. Vid anrop skickar Chatvia parametrarna till din webhook och vidarebefordrar svaret tillbaka till modellen.",
+            "add": "Lägg till funktion",
+            "search_placeholder": "Sök funktioner",
+            "empty": "Inga funktioner än. Klicka på \"Lägg till funktion\" för att skapa din första.",
+            "no_results": "Inga funktioner matchar din sökning.",
+            "fallback_name": "funktion",
+            "delete_confirm_title": "Ta bort {name}?",
+            "delete_confirm_description": "Den kopplas bort från alla agenter som använder den. Det går inte att ångra den här åtgärden.",
+            "table": {
+                "name": "Funktionsnamn",
+                "method": "Metod",
+                "agents": "Agenter",
+                "enabled": "Aktiverad"
+            },
+            "tabs": {
+                "edit": "Redigera",
+                "agents": "Agenter"
+            },
+            "sheet": {
+                "edit_title": "Redigera funktion",
+                "create_title": "Lägg till en funktion",
+                "description": "Funktioner låter dina agenter anropa dina egna API:er som LLM-verktyg. {name} och {description} är vad modellen ser när den avgör om den ska anropa den — var specifik. {learn_more}",
+                "learn_more": "Läs mer",
+                "id_label": "ID",
+                "copy_id_title": "Kopiera funktions-ID — skicka som function_id när du bifogar via API:et"
+            },
+            "form": {
+                "name": "Namn",
+                "name_hint": "Bokstäver, siffror, understreck. Måste börja med en bokstav.",
+                "display_name": "Visningsnamn",
+                "optional": "(valfritt)",
+                "display_name_placeholder": "Hämta orderstatus",
+                "display_name_hint": "Användarvänligt namn som visas i chatten. Återgår till namnet ovan om tomt.",
+                "description": "Beskrivning",
+                "description_placeholder": "Hämtar aktuell status för en kunds order via id.",
+                "parameters": "Parametrar (JSON-schema)",
+                "parameters_aria": "Funktionsparametrarnas schema",
+                "webhook_url": "Webhook-URL",
+                "method": "Metod",
+                "require_approval": "Kräv godkännande",
+                "require_approval_hint": "Be användaren om bekräftelse innan den här funktionen körs — rekommenderas för åtgärder som skriver eller ändrar data.",
+                "auth": "Autentisering",
+                "auth_none": "Ingen — ingen auth-header skickas",
+                "auth_bearer": "Bearer-token — skickas som `Authorization: Bearer …`",
+                "auth_header": "Anpassad header — eget headernamn och värde",
+                "auth_hmac": "HMAC — kroppen signeras med en delad hemlighet",
+                "bearer_token": "Bearer-token",
+                "keep_token": "Lämna tomt för att behålla befintlig token",
+                "bearer_hint": "Skickas som {header}.",
+                "header_name": "Headernamn",
+                "header_value": "Headervärde",
+                "keep_value": "Lämna tomt för att behålla befintligt värde",
+                "signing_secret": "Signeringshemlighet",
+                "keep_secret": "Lämna tomt för att behålla befintlig hemlighet",
+                "hmac_hint": "Används för att HMAC-SHA256-signera begäranskroppen; verifiera på din sida."
+            },
+            "agents": {
+                "intro": "Välj vilka av dina agenter som får använda den här funktionen.",
+                "loading": "Laddar agenter",
+                "empty": "Du har inga agenter än."
+            }
+        },
+        "api_keys": {
+            "breadcrumb": "API-nycklar",
+            "title": "API-nycklar",
+            "description": "Kontonycklar för {api_link} — skapa och hantera agenter, kunskapsbaser, MCP-servrar och funktioner.",
+            "api_link": "Chatvia API",
+            "generate": "Generera nyckel",
+            "locked": "Uppgradera din plan för att utfärda API-nycklar och integrera Chatvia med dina applikationer.",
+            "empty_title": "Inga API-nycklar än",
+            "empty_description": "Generera en för att börja använda Chatvia API.",
+            "never": "Aldrig",
+            "revoke_aria": "Återkalla nyckel",
+            "table": {
+                "name": "Namn",
+                "created": "Skapad",
+                "last_used": "Senast använd",
+                "revoke": "Återkalla"
+            },
+            "generate_dialog": {
+                "title": "Generera en ny nyckel",
+                "description": "Välj ett namn du känner igen senare — t.ex. {example}. Själva token visas bara en gång.",
+                "name": "Namn",
+                "submit": "Generera"
+            },
+            "reveal_dialog": {
+                "title": "Kopiera din nya API-nyckel",
+                "description": "Det här är enda gången du ser {name}. Förvara den på ett säkert ställe — om du tappar bort den måste du generera en ny.",
+                "warning": "Behandla den här som ett lösenord. Vem som helst med den kan skapa agenter åt dig.",
+                "confirm": "Jag har sparat den på ett säkert ställe"
+            },
+            "revoke_dialog": {
+                "title": "Återkalla API-nyckel",
+                "description": "Återkalla {name}? Alla tjänster som använder den här token slutar fungera omedelbart. Det går inte att ångra den här åtgärden.",
+                "confirm": "Återkalla"
+            }
+        },
+        "connectors": {
+            "breadcrumb": "Anslutningar",
+            "title": "Anslutningar",
+            "description": "Koppla in tjänster från tredje part i ditt konto en gång och bifoga dem sedan till valfri agent. Välj från katalogen eller lägg till en MCP-server via URL.",
+            "add": "Lägg till anslutning",
+            "search_placeholder": "Sök anslutningar",
+            "loading": "Laddar anslutningar",
+            "empty": "Inga anslutningar än.",
+            "enabled_section": "Aktiverade anslutningar",
+            "custom_section": "Anpassade anslutningar",
+            "available_section": "Tillgängliga anslutningar",
+            "no_results": "Inga anslutningar matchar.",
+            "coming_soon": "Snart",
+            "connect_title": "Anslut {name}",
+            "table": {
+                "name": "Anslutningsnamn",
+                "tools": "Verktyg",
+                "agents": "Agenter",
+                "enabled": "Aktiverad"
+            },
+            "toast": {
+                "load_failed": "Kunde inte ladda anslutningar",
+                "connected": "Anslöt {name}",
+                "connect_failed": "Kunde inte ansluta {name}",
+                "toggle_failed": "Kunde inte byta status"
+            },
+            "add_modal": {
+                "title": "Lägg till anpassad anslutning",
+                "description": "Peka chatten mot valfri MCP-server. Moderna servrar (Notion, Linear, Atlassian, …) erbjuder OAuth — välj det så hanterar vi inloggningen. Äldre servrar använder vanligtvis en bearer-token.",
+                "display_name": "Visningsnamn",
+                "display_name_placeholder": "t.ex. Notion (jobbet)",
+                "server_url": "MCP-server-URL",
+                "authentication": "Autentisering",
+                "strategy_oauth": "OAuth (automatisk)",
+                "strategy_token": "Bearer-token",
+                "strategy_none": "Ingen",
+                "hint_oauth": "Vi identifierar auth-servern och sköter inloggningen åt dig.",
+                "hint_token": "Vi skickar din token som en Bearer-header vid varje anrop.",
+                "hint_none": "Servern är åtkomlig utan autentisering.",
+                "bearer_token": "Bearer-token",
+                "continue_signin": "Fortsätt till inloggning",
+                "submit": "Lägg till anslutning",
+                "added": "Lade till {name}",
+                "error": "Kunde inte lägga till den här anslutningen — kontrollera URL:en och försök igen."
+            },
+            "salesforce": {
+                "description": "Salesforce använder en OAuth-app per organisation. Skapa en External Client App i din org och ange dess Consumer Key nedan — du godkänner åtkomst i Salesforce i nästa steg.",
+                "environment": "Miljö",
+                "production": "Produktion",
+                "sandbox": "Sandbox",
+                "consumer_key": "Consumer Key",
+                "help_link": "Så här skapar du en External Client App",
+                "consumer_secret": "Consumer Secret",
+                "optional": "(valfritt)",
+                "consumer_secret_placeholder": "Lämna tomt för en offentlig PKCE-app",
+                "mcp_server": "MCP-server",
+                "my_domain": "Min domän",
+                "my_domain_hint": "Lämna tomt för att logga in via login.salesforce.com. Krävs om din org tillämpar My Domain.",
+                "continue": "Fortsätt till Salesforce",
+                "error": "Kunde inte starta anslutningen — kontrollera uppgifterna och försök igen.",
+                "servers": {
+                    "sobject_all": "Objekt — läs och skriv (rekommenderas)",
+                    "sobject_reads": "Objekt — skrivskyddad",
+                    "flows": "Flöden",
+                    "invocable_actions": "Anropsbara åtgärder",
+                    "data_360": "Data 360",
+                    "prompt_builder": "Promptmallar",
+                    "tableau_next": "Tableau Next"
+                }
+            },
+            "token_modal": {
+                "server_url": "MCP-server-URL",
+                "server_url_hint": "{name} har ingen hanterad MCP-server — klistra in URL:en till din egen (självhostad eller partnerhanterad) {name} MCP-server.",
+                "token": "Token",
+                "help_link": "Var hittar jag det här?",
+                "format_warning": "Formatet verkar inte stämma. Dubbelkolla värdet innan du ansluter.",
+                "error": "Kunde inte ansluta — försök igen."
+            }
+        },
+        "members": {
+            "breadcrumb": "Chatters",
+            "title": "Chatters",
+            "description": "Alla du har gett åtkomst att chatta med dina agenter. Skicka en länk för lösenordsåterställning eller ta bort en chatter helt.",
+            "search_placeholder": "Sök chatters...",
+            "count": "{shown} av {total} chatter | {shown} av {total} chatters",
+            "invite": "Bjud in chatter",
+            "invite_disabled_hint": "Skapa en skyddad agent först — chatters kan bara bjudas in till skyddade agenter.",
+            "no_email": "Ingen e-post",
+            "reset_title": "Skicka länk för lösenordsåterställning till {name}",
+            "remove_title": "Ta bort {name}",
+            "table": {
+                "name": "Namn",
+                "email": "E-post",
+                "status": "Status",
+                "agents": "Agenter",
+                "messages": "Meddelanden",
+                "created": "Skapad",
+                "actions": "Åtgärder"
+            },
+            "status": {
+                "deactivated": "Inaktiverad",
+                "pending": "Väntar",
+                "active": "Aktiv"
+            },
+            "empty": {
+                "title": "Inga chatters än.",
+                "description": "Bjud in någon nedan eller från valfri agents Chatters-flik — de visas här.",
+                "invite_first": "Bjud in din första chatter"
+            },
+            "no_results": {
+                "title": "Inga chatters matchar din sökning.",
+                "description": "Prova att justera dina söktermer."
+            },
+            "invite_dialog": {
+                "title": "Bjud in en chatter",
+                "description": "Vi skickar en registreringslänk till den här adressen via e-post. Välj vilka agenter de får chatta med — minst en krävs.",
+                "email": "E-postadress",
+                "agents": "Agenter",
+                "agents_hint": "Chattern kan bara chatta med de agenter du väljer.",
+                "send": "Skicka inbjudan",
+                "emailed_to": "Inbjudan skickad till {email}. Du kan också kopiera länken nedan.",
+                "signup_link": "Registreringslänk",
+                "expires": "Upphör {date}.",
+                "invite_another": "Bjud in en till",
+                "done": "Klar"
+            },
+            "reset_dialog": {
+                "title": "Skicka länk för lösenordsåterställning?",
+                "description": "Vi skickar en återställningslänk till {email}. De kan ange ett nytt lösenord via länken — du ser inte det nya värdet.",
+                "confirm": "Skicka länk"
+            },
+            "delete_dialog": {
+                "title": "Ta bort chatter",
+                "description": "{name} raderas permanent tillsammans med deras åtkomst till alla agenter i din arbetsyta. Det går inte att ångra.",
+                "confirm": "Ta bort"
+            },
+            "toast": {
+                "load_failed": "Kunde inte ladda chatters",
+                "invite_sent_to": "Inbjudan skickad till {email}",
+                "invite_sent": "Inbjudan skickad",
+                "invite_failed": "Kunde inte skicka inbjudan",
+                "reset_sent": "Länk för lösenordsåterställning skickad till {email}",
+                "reset_failed": "Kunde inte skicka återställningslänken",
+                "removed": "{name} borttagen",
+                "remove_failed": "Kunde inte ta bort den här chattern"
+            }
+        },
+        "governance": {
+            "breadcrumb": "Styrning",
+            "title": "Granskningslogg",
+            "description": "Varje åtgärd dina agenter utför via verktyg och anslutningar — tillåten, godkänd, nekad eller hastighetsbegränsad — med argumenten, resultatet och vem som utlöste det."
+        },
+        "sections": {
+            "integrations": "Integrationer",
+            "library": "Bibliotek",
+            "people": "Personer",
+            "governance": "Styrning"
+        },
+        "nav": {
+            "connectors": "Anslutningar",
+            "functions": "Funktioner",
+            "api_keys": "API-nycklar",
+            "prompts": "Prompter",
+            "members": "Chatters",
+            "audit_log": "Granskningslogg"
+        }
+    }
+}

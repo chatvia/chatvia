@@ -119,7 +119,7 @@
         <div class="relative hidden md:block md:w-1/2 bg-slate-900" aria-hidden="true">
 
             <!-- Bg image -->
-            <div class="absolute inset-0" data-aos="fade">
+            <div class="absolute inset-0">
                 <img class="opacity-10 w-full h-full object-cover" src="{{ asset('images/request-demo-bg.jpg') }}"
                      width="760" height="900" alt="" />
             </div>

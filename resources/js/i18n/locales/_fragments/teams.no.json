@@ -1,0 +1,139 @@
+{
+    "teams": {
+        "breadcrumb": "Team",
+        "common": {
+            "cancel": "Avbryt",
+            "create_role": "Opprett rolle"
+        },
+        "index": {
+            "title": "Team",
+            "heading": "Team",
+            "subtitle": "Administrer teamene dine og samarbeid med andre.",
+            "create_team": "Opprett team",
+            "search_placeholder": "Søk i team",
+            "empty_title": "Ingen team ennå",
+            "empty_description": "Opprett ditt første team for å begynne å samarbeide med andre",
+            "no_results": "Ingen team funnet som samsvarer med \"{query}\".",
+            "clear_search": "Tøm søk",
+            "primary": "Primær",
+            "open_menu": "Åpne meny",
+            "manage": "Administrer",
+            "leave": "Forlat",
+            "delete": "Slett",
+            "table": {
+                "name": "Teamnavn",
+                "agents": "Agenter",
+                "members": "Medlemmer",
+                "created": "Opprettet"
+            },
+            "leave_dialog": {
+                "title": "Forlat team",
+                "description": "Er du sikker på at du vil forlate \"{name}\"?"
+            },
+            "delete_dialog": {
+                "title": "Slett team",
+                "description": "Er du sikker på at du vil slette \"{name}\"? Dette kan ikke angres."
+            },
+            "create_dialog": {
+                "title": "Opprett nytt team",
+                "description": "Opprett et team for å samarbeide med andre.",
+                "name_label": "Teamnavn",
+                "name_placeholder": "Skriv inn teamnavn"
+            }
+        },
+        "show": {
+            "title": "Team: {name}",
+            "back": "Tilbake til team",
+            "copied": "Kopiert!",
+            "copy_team_id": "Kopier team-ID",
+            "add_member": "Legg til medlem",
+            "view_members": "Vis medlemmer ({count})",
+            "role": "Rolle",
+            "actions": "Handlinger",
+            "roles": {
+                "title": "Roller og tillatelser",
+                "description": "Definer roller og tillatelsene deres for teammedlemmer.",
+                "empty": "Ingen egendefinerte roller ennå. Opprett en rolle for å tildele spesifikke tillatelser til teammedlemmer.",
+                "copy_role_id": "Kopier rolle-ID",
+                "edit_role": "Rediger rolle",
+                "delete_role": "Slett rolle",
+                "agent_access_label": "Agenttilgang:",
+                "all_agents": "Alle agenter",
+                "no_agents_assigned": "Ingen agenter tildelt",
+                "agent_count": "{count} agent | {count} agenter",
+                "delete_description": "Er du sikker på at du vil slette rollen \"{name}\"? Denne handlingen kan ikke angres."
+            },
+            "members": {
+                "title": "Teammedlemmer",
+                "description": "Medlemmer som har tilgang til dette teamet.",
+                "you": "Deg",
+                "change_role": "Endre rolle",
+                "change_role_title": "Endre medlemsrolle",
+                "update_role_description": "Oppdater rollen for {name}.",
+                "select_role_placeholder": "Velg en rolle",
+                "update_role": "Oppdater rolle",
+                "remove": "Fjern",
+                "remove_title": "Fjern teammedlem",
+                "remove_description": "Er du sikker på at du vil fjerne {name} fra dette teamet? De mister tilgangen til alle teamressurser.",
+                "remove_confirm": "Fjern medlem",
+                "table": {
+                    "member": "Medlem"
+                }
+            },
+            "invitations": {
+                "title": "Ventende invitasjoner",
+                "description": "Disse invitasjonene venter på å bli akseptert.",
+                "table": {
+                    "email": "E-post",
+                    "sent": "Sendt"
+                }
+            },
+            "invite": {
+                "title": "Legg til teammedlem",
+                "description": "Legg til en eksisterende bruker eller inviter noen nye til å bli med i dette teamet.",
+                "select_existing": "Velg eksisterende",
+                "invite_by_email": "Inviter via e-post",
+                "select_user_label": "Velg bruker",
+                "select_user_placeholder": "Velg en bruker...",
+                "email_label": "E-postadresse",
+                "email_placeholder": "kollega{'@'}example.com",
+                "send_invitation": "Send invitasjon"
+            },
+            "role_members": {
+                "title": "{name}-medlemmer",
+                "description": "Medlemmer med denne rollen. Du kan fjerne tilgangen deres til dette teamet.",
+                "empty": "Ingen medlemmer med denne rollen ennå.",
+                "close": "Lukk"
+            }
+        },
+        "roles": {
+            "details": "Rolledetaljer",
+            "role_name_label": "Rollenavn",
+            "role_name_placeholder": "f.eks. Støtteagent, Innholdsredaktør",
+            "agent_access": "Agenttilgang",
+            "agent_access_description": "Velg hvilke agenter denne rollen kan vise og samhandle med.",
+            "all_agents": "Alle agenter",
+            "all_agents_description": "Tilgang til alle nåværende og fremtidige agenter",
+            "select_specific": "Velg spesifikke agenter:",
+            "select_agents": "Velg agenter...",
+            "agents_more": "{names} +{count} til",
+            "no_agents_available": "Ingen agenter tilgjengelig",
+            "permissions": {
+                "title": "Tillatelser",
+                "description": "Velg hvilke handlinger brukere med denne rollen kan utføre.",
+                "requires": "Krever:"
+            },
+            "create": {
+                "subtitle": "Definer en ny rolle for"
+            },
+            "edit": {
+                "title": "Rediger rolle: {name}",
+                "breadcrumb": "Rediger: {name}",
+                "heading": "Rediger rolle",
+                "subtitle_prefix": "Oppdater",
+                "subtitle_middle": "rollen for",
+                "save": "Lagre"
+            }
+        }
+    }
+}

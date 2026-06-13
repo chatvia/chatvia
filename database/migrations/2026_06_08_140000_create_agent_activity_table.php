@@ -56,9 +56,9 @@ return new class extends Migration
             $table->boolean('result_truncated')->default(false);
 
             // When a gated call was resolved (decider == the actor user).
-            $table->timestampTz('decided_at')->nullable();
+            $table->timestamp('decided_at')->nullable();
 
-            $table->timestampTz('created_at')->useCurrent(); // immutable; no updated_at
+            $table->timestamp('created_at')->useCurrent(); // immutable; no updated_at
 
             // Postgres does not auto-index FK columns — index them explicitly.
             // The (…, id) composites serve the audit pages' ORDER BY id DESC walks.

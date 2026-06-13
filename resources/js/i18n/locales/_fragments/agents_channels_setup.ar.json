@@ -1,0 +1,137 @@
+{
+    "agents": {
+        "channels": {
+            "setup": {
+                "names": {
+                    "telegram": "Telegram",
+                    "slack": "Slack",
+                    "messenger": "Messenger",
+                    "whatsapp": "WhatsApp",
+                    "msteams": "Microsoft Teams",
+                    "instagram": "Instagram"
+                },
+                "public_only": "{channel} متاح للوكلاء العامين فقط. اجعل هذا الوكيل عاماً من صفحة {security}، ثم اربطه هنا.",
+                "labels": {
+                    "bot_token": "رمز البوت",
+                    "signing_secret": "سر التوقيع",
+                    "request_url": "رابط الطلب",
+                    "callback_url": "رابط الاستدعاء",
+                    "verify_token": "رمز التحقق",
+                    "page_access_token": "رمز وصول الصفحة",
+                    "app_secret": "سر التطبيق",
+                    "access_token": "رمز الوصول",
+                    "phone_number_id": "معرّف رقم الهاتف",
+                    "waba_id": "معرّف حساب WhatsApp Business",
+                    "microsoft_app_id": "معرّف تطبيق Microsoft",
+                    "client_secret": "سر العميل",
+                    "tenant_id": "معرّف المستأجر",
+                    "messaging_endpoint": "نقطة نهاية المراسلة"
+                },
+                "hints": {
+                    "tenant_single_only": "(لبوتات المستأجر الواحد فقط)"
+                },
+                "placeholders": {
+                    "telegram_bot_token": "123456789:ABCdef…",
+                    "slack_bot_token": "xoxb-…",
+                    "meta_token": "EAAG…",
+                    "phone_number_id": "123456789012345",
+                    "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
+                    "tenant_id": "اتركه فارغاً للمستأجر المتعدد",
+                    "instagram_token": "IGAA…"
+                },
+                "guide": {
+                    "need_detail_before": "تحتاج مزيداً من التفاصيل؟ اتبع",
+                    "step_by_step_guide": "الدليل خطوة بخطوة",
+                    "need_detail_after": "مع لقطات الشاشة."
+                },
+                "shared": {
+                    "subscribe_webhook": "اشترك بـ webhook في حقل {field}",
+                    "messages_field": "messages",
+                    "create_meta_app_at": "أنشئ تطبيقاً على {link}",
+                    "copy_app_secret_both": "انسخ سر التطبيق من {section} والصقهما أدناه",
+                    "copy_app_secret_all": "انسخ سر التطبيق من {section} والصق كل شيء أدناه",
+                    "copy_app_secret_same_page": "انسخ سر التطبيق من نفس الصفحة والصقهما أدناه",
+                    "reply_streams_live": "— يتدفق الرد مباشرة"
+                },
+                "telegram": {
+                    "connected_description": "يمكن للأشخاص مراسلة بوتك على Telegram وسيرد وكيلك تلقائياً — تُطبَّق الفوترة والسجل وضوابط الأمان.",
+                    "steps": {
+                        "connect_1": "افتح {botfather} في Telegram",
+                        "connect_2": "أرسل {command} واتبع التعليمات",
+                        "connect_3": "الصق الرمز أدناه — نربطه تلقائياً"
+                    },
+                    "botfather": "{'@'}BotFather"
+                },
+                "slack": {
+                    "steps": {
+                        "connected_1": "في {link}، افتح {event_subscriptions}، فعّله، والصق رابط الطلب أعلاه",
+                        "connected_2": "اشترك في أحداث البوت {mention} و {im}، ثم احفظ",
+                        "connected_3": "ادعُ البوت إلى قناة باستخدام {invite} واذكره بـ @@ {live}",
+                        "connect_1": "أنشئ تطبيقاً على {link} في مساحة عملك",
+                        "connect_2": "تحت {oauth}، أضف نطاقات البوت {scope1} و {scope2} و {scope3}، ثم ثبّت التطبيق وانسخ رمز البوت",
+                        "connect_3": "انسخ سر التوقيع من {basic_info} والصقهما أدناه"
+                    },
+                    "your_slack_app": "تطبيق Slack الخاص بك",
+                    "event_subscriptions": "Event Subscriptions",
+                    "oauth_permissions": "OAuth & Permissions",
+                    "basic_information": "Basic Information"
+                },
+                "messenger": {
+                    "steps": {
+                        "connected_1": "في {link}، افتح {webhooks} والصق رابط الاستدعاء + رمز التحقق أعلاه",
+                        "connected_3": "راسل صفحتك على Messenger — سيرد وكيلك تلقائياً",
+                        "connect_1": "أنشئ تطبيقاً على {link} وأضف منتج {product}",
+                        "connect_2": "تحت {api_settings}، اربط صفحة Facebook الخاصة بك وأنشئ رمز وصول للصفحة"
+                    },
+                    "your_meta_app": "تطبيق Meta الخاص بك",
+                    "webhooks_path": "Messenger → Settings → Webhooks",
+                    "api_settings_path": "Messenger → API settings",
+                    "app_settings_basic": "App settings → Basic",
+                    "product": "Messenger"
+                },
+                "whatsapp": {
+                    "steps": {
+                        "connected_1": "في {link}، افتح {configuration} والصق رابط الاستدعاء + رمز التحقق أعلاه",
+                        "connected_3": "راسل رقمك على WhatsApp — سيرد وكيلك تلقائياً",
+                        "connect_1": "أنشئ تطبيقاً على {link} بحالة استخدام {use_case}",
+                        "connect_2": "أكمل {basic_setup}، ثم انسخ معرّف رقم الهاتف ومعرّف حساب WhatsApp Business ورمز وصول"
+                    },
+                    "configuration_path": "WhatsApp → Configuration",
+                    "use_case": "Connect with customers through WhatsApp",
+                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                },
+                "msteams": {
+                    "app_id_label": "التطبيق {id}",
+                    "steps": {
+                        "connected_1": "في {link}، افتح صفحة {configuration} لبوتك والصق نقطة نهاية المراسلة أعلاه",
+                        "connected_2": "تحت {channels}، أضف {teams}",
+                        "connected_3": "{open_chat} {live}",
+                        "connect_1": "أنشئ مورداً {azure_bot} على {link} (Multi Tenant أو Single Tenant)",
+                        "connect_2": "انسخ {app_id} من Configuration، ثم أنشئ سر عميل تحت {secrets}",
+                        "connect_3": "الصقهما أدناه — لبوت Single Tenant أضف أيضاً {tenant_id}"
+                    },
+                    "azure_portal": "بوابة Azure",
+                    "configuration": "Configuration",
+                    "channels": "Channels",
+                    "azure_bot": "Azure Bot",
+                    "microsoft_app_id": "Microsoft App ID",
+                    "manage_password": "Manage password → Certificates & secrets",
+                    "directory_tenant_id": "Directory (tenant) ID",
+                    "open_chat_in_teams": "افتح محادثة مع بوتك في Teams"
+                },
+                "instagram": {
+                    "steps": {
+                        "connected_1": "في {link}، افتح {webhooks} والصق رابط الاستدعاء + رمز التحقق أعلاه",
+                        "connected_3": "في تطبيق Instagram، اسمح بالوصول إلى الرسائل تحت {message_controls}، ثم أرسل رسالة خاصة لحسابك",
+                        "connect_1": "أنشئ تطبيقاً على {link} وأضف منتج {product} — يجب أن يكون حساب Instagram الخاص بك حساباً مهنياً (تجاري أو منشئ محتوى)",
+                        "connect_2": "تحت {api_setup}، أنشئ رمز وصول لحسابك"
+                    },
+                    "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
+                    "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
+                    "api_setup_path": "Instagram → API setup with Instagram login",
+                    "product": "Instagram"
+                }
+            }
+        }
+    }
+}

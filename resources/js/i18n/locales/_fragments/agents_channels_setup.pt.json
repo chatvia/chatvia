@@ -1,0 +1,135 @@
+{
+    "agents": {
+        "channels": {
+            "setup": {
+                "names": {
+                    "telegram": "Telegram",
+                    "slack": "Slack",
+                    "messenger": "Messenger",
+                    "whatsapp": "WhatsApp",
+                    "msteams": "Microsoft Teams",
+                    "instagram": "Instagram"
+                },
+                "public_only": "{channel} está disponível apenas para agentes públicos. Torne este agente público na sua página de {security} e, em seguida, ligue-o aqui.",
+                "labels": {
+                    "bot_token": "Token do bot",
+                    "signing_secret": "Segredo de assinatura",
+                    "request_url": "URL de pedido",
+                    "callback_url": "URL de callback",
+                    "verify_token": "Token de verificação",
+                    "page_access_token": "Token de acesso à página",
+                    "app_secret": "Segredo da aplicação",
+                    "access_token": "Token de acesso",
+                    "phone_number_id": "ID do número de telefone",
+                    "waba_id": "ID da conta WhatsApp Business",
+                    "microsoft_app_id": "ID da aplicação Microsoft",
+                    "client_secret": "Segredo do cliente",
+                    "tenant_id": "ID do inquilino",
+                    "messaging_endpoint": "Endpoint de mensagens"
+                },
+                "hints": { "tenant_single_only": "(Apenas para bots de inquilino único)" },
+                "placeholders": {
+                    "telegram_bot_token": "123456789:ABCdef…",
+                    "slack_bot_token": "xoxb-…",
+                    "meta_token": "EAAG…",
+                    "phone_number_id": "123456789012345",
+                    "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
+                    "tenant_id": "Deixe em branco para Multi Inquilino",
+                    "instagram_token": "IGAA…"
+                },
+                "guide": {
+                    "need_detail_before": "Precisa de mais detalhes? Siga o",
+                    "step_by_step_guide": "guia passo a passo",
+                    "need_detail_after": "com capturas de ecrã."
+                },
+                "shared": {
+                    "subscribe_webhook": "Subscreva o webhook no campo {field}",
+                    "messages_field": "mensagens",
+                    "create_meta_app_at": "Crie uma aplicação em {link}",
+                    "copy_app_secret_both": "Copie o segredo da aplicação em {section} e cole ambos abaixo",
+                    "copy_app_secret_all": "Copie o segredo da aplicação em {section} e cole tudo abaixo",
+                    "copy_app_secret_same_page": "Copie o segredo da aplicação da mesma página e cole ambos abaixo",
+                    "reply_streams_live": "— a resposta é transmitida em direto"
+                },
+                "telegram": {
+                    "connected_description": "As pessoas podem enviar mensagens ao seu bot no Telegram e o seu agente responde automaticamente — faturação, histórico e salvaguardas são todos aplicados.",
+                    "steps": {
+                        "connect_1": "Abra {botfather} no Telegram",
+                        "connect_2": "Envie {command} e siga as instruções",
+                        "connect_3": "Cole o token abaixo — ligamos automaticamente"
+                    },
+                    "botfather": "{'@'}BotFather"
+                },
+                "slack": {
+                    "steps": {
+                        "connected_1": "Em {link}, abra {event_subscriptions}, ative-o e cole o URL de pedido acima",
+                        "connected_2": "Subscreva os eventos do bot {mention} e {im} e, em seguida, guarde",
+                        "connected_3": "Convide o bot para um canal com {invite} e mencione-o com {'@'}{'@'} {live}",
+                        "connect_1": "Crie uma aplicação em {link} na sua área de trabalho",
+                        "connect_2": "Em {oauth}, adicione os âmbitos do bot {scope1}, {scope2}, {scope3}, instale a aplicação e copie o token do bot",
+                        "connect_3": "Copie o segredo de assinatura em {basic_info} e cole ambos abaixo"
+                    },
+                    "your_slack_app": "a sua aplicação Slack",
+                    "event_subscriptions": "Subscrições de eventos",
+                    "oauth_permissions": "OAuth & Permissões",
+                    "basic_information": "Informações básicas"
+                },
+                "messenger": {
+                    "steps": {
+                        "connected_1": "Em {link}, abra {webhooks} e cole o URL de callback + token de verificação acima",
+                        "connected_3": "Envie uma mensagem à sua página no Messenger — o seu agente responde automaticamente",
+                        "connect_1": "Crie uma aplicação em {link} e adicione o produto {product}",
+                        "connect_2": "Em {api_settings}, ligue a sua página do Facebook e gere um token de acesso à página"
+                    },
+                    "your_meta_app": "a sua aplicação Meta",
+                    "webhooks_path": "Messenger → Definições → Webhooks",
+                    "api_settings_path": "Messenger → Definições da API",
+                    "app_settings_basic": "Definições da aplicação → Básico",
+                    "product": "Messenger"
+                },
+                "whatsapp": {
+                    "steps": {
+                        "connected_1": "Em {link}, abra {configuration} e cole o URL de callback + token de verificação acima",
+                        "connected_3": "Envie uma mensagem para o seu número no WhatsApp — o seu agente responde automaticamente",
+                        "connect_1": "Crie uma aplicação em {link} com o caso de utilização {use_case}",
+                        "connect_2": "Conclua {basic_setup}, depois copie o ID do número de telefone, o ID da conta WhatsApp Business e um token de acesso"
+                    },
+                    "configuration_path": "WhatsApp → Configuração",
+                    "use_case": "Ligue-se a clientes através do WhatsApp",
+                    "basic_setup_path": "Casos de utilização → Personalizar → Configuração básica"
+                },
+                "msteams": {
+                    "app_id_label": "App {id}",
+                    "steps": {
+                        "connected_1": "Em {link}, abra a página de {configuration} do seu bot e cole o endpoint de mensagens acima",
+                        "connected_2": "Em {channels}, adicione {teams}",
+                        "connected_3": "{open_chat} {live}",
+                        "connect_1": "Crie um recurso {azure_bot} em {link} (Multi Inquilino ou Inquilino Único)",
+                        "connect_2": "Copie o {app_id} em Configuração e, em seguida, crie um segredo do cliente em {secrets}",
+                        "connect_3": "Cole ambos abaixo — para um bot de inquilino único, adicione também o seu {tenant_id}"
+                    },
+                    "azure_portal": "o portal Azure",
+                    "configuration": "Configuração",
+                    "channels": "Canais",
+                    "azure_bot": "Azure Bot",
+                    "microsoft_app_id": "ID da aplicação Microsoft",
+                    "manage_password": "Gerir palavra-passe → Certificados e segredos",
+                    "directory_tenant_id": "ID do diretório (inquilino)",
+                    "open_chat_in_teams": "Abra uma conversa com o seu bot no Teams"
+                },
+                "instagram": {
+                    "steps": {
+                        "connected_1": "Em {link}, abra {webhooks} e cole o URL de callback + token de verificação acima",
+                        "connected_3": "Na aplicação Instagram, permita o acesso a mensagens em {message_controls} e, em seguida, envie uma mensagem direta à sua conta",
+                        "connect_1": "Crie uma aplicação em {link} e adicione o produto {product} — a sua conta do Instagram deve ser uma conta profissional (empresarial ou criador)",
+                        "connect_2": "Em {api_setup}, gere um token de acesso para a sua conta"
+                    },
+                    "webhooks_path": "Instagram → Configuração da API com login do Instagram → Configurar webhooks",
+                    "message_controls_path": "Definições → Mensagens e respostas a histórias → Controlos de mensagens → Ferramentas ligadas",
+                    "api_setup_path": "Instagram → Configuração da API com login do Instagram",
+                    "product": "Instagram"
+                }
+            }
+        }
+    }
+}

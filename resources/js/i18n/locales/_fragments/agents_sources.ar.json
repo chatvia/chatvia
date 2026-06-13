@@ -11,9 +11,9 @@
                 "permission_denied": "تم رفض الإذن",
                 "permission_denied_description": "ليس لديك إذن لحذف المصادر.",
                 "remove_from_agent": "إزالة من الوكيل",
-                "used_in_agents": "(مُستخدَم في {count} وكلاء)",
+                "used_in_agents": "(مُستخدَم في {count} وكيل)",
                 "delete_from_knowledge_base": "حذف من قاعدة المعرفة",
-                "agents_count": "{count} وكلاء"
+                "agents_count": "{count} وكيل"
             },
             "page_title": {
                 "sources": "المصادر",
@@ -94,7 +94,7 @@
                 "upload_title_default": "رفع مستندات جديدة",
                 "quota_minutes": "دقائق",
                 "quota_pages": "صفحات",
-                "uploads_disabled": "رفع الملفات معطّل أثناء جريان التدريب",
+                "uploads_disabled": "رفع الملفات معطّل أثناء سير التدريب",
                 "ready_to_train": "جاهز للتدريب",
                 "uploaded_ready": "تم رفع {count} ملف وهو جاهز للتدريب | تم رفع {count} ملفات وهي جاهزة للتدريب",
                 "exceeds_quota": "يتجاوز الحصة",
@@ -107,7 +107,7 @@
                 "trained_description": "ملفات مُدرَّبة ومتاحة لوكيلك. {count} ملف إجمالاً. | ملفات مُدرَّبة ومتاحة لوكيلك. {count} ملفات إجمالاً.",
                 "choose_trained": "اختر من الملفات المُدرَّبة مسبقاً",
                 "loading": "جارٍ تحميل الملفات...",
-                "empty": "لا توjد ملفات في قاعدة المعرفة بعد",
+                "empty": "لا توجد ملفات في قاعدة المعرفة بعد",
                 "status_processing": "جارٍ المعالجة... سيكون هذا الملف جاهزاً قريباً",
                 "status_ready": "جاهز للمحادثة",
                 "status_failed": "فشلت المعالجة. يُرجى التواصل مع الدعم.",
@@ -149,7 +149,7 @@
                 "processing_started": "بدأت المعالجة",
                 "processing_started_description": "تتم معالجة مُدخَلك النصي...",
                 "processing_success": "تم بنجاح!",
-                "processing_success_description": "تمت إضافة المُدخَل النصي بنجاح إلى قاعdة معرفتك.",
+                "processing_success_description": "تمت إضافة المُدخَل النصي بنجاح إلى قاعدة معرفتك.",
                 "processing_failed": "فشلت المعالجة",
                 "processing_failed_description": "حدث خطأ أثناء معالجة مُدخَلك النصي.",
                 "status": {
@@ -223,7 +223,7 @@
                 "question_prefix": "س{number}:",
                 "edit_action": "تعديل",
                 "created_at": "أُنشئ في {date}",
-                "used_by_agents": "مُستخدَم من قِبل {count} وكلاء",
+                "used_by_agents": "مُستخدَم لدى {count} وكيل",
                 "delete_title": "حذف مُدخَل سؤال وجواب",
                 "delete_description": "هل أنت متأكد من رغبتك في حذف مُدخَل سؤال وجواب هذا؟ لا يمكن التراجع عن هذا الإجراء."
             },
@@ -261,7 +261,7 @@
                 "attach_failed": "فشل الربط",
                 "detach_failed": "فشل إلغاء الربط",
                 "title": "الموصِّلات",
-                "description_prefix": "اربط الموصِّلات على مستوى الحساب بهذا الوكيل. اتصل بموصِّلات جديدة أو أضفها في",
+                "description_prefix": "اربط الموصِّلات على مستوى الحساب بهذا الوكيل. وصِّل موصِّلات جديدة أو أضفها من",
                 "settings_link": "الإعدادات ← الموصِّلات",
                 "search_placeholder": "ابحث في الموصِّلات",
                 "loading": "جارٍ تحميل الموصِّلات",
@@ -271,7 +271,7 @@
                 "column_enabled": "مُفعَّل",
                 "no_match": "لا توجد موصِّلات مطابقة.",
                 "soon": "قريباً",
-                "connect_first": "اتصل بهذا الـ MCP في الإعدادات أولاً"
+                "connect_first": "وصِّل هذا الـ MCP في الإعدادات أولاً"
             },
             "functions": {
                 "load_failed": "فشل تحميل الدوال",
@@ -387,7 +387,7 @@
                 "no_websites_selected": "لم يتم تحديد مواقع إلكترونية",
                 "train": "تدريب",
                 "train_exceeds_quota": "تتجاوز الروابط المحددة ({selected}) حصتك المتبقية ({remaining})",
-                "links_badge": "{count} روابط",
+                "links_badge": "{count} رابط",
                 "badge_upgrade_required": "الترقية مطلوبة",
                 "badge_exceeds_quota": "يتجاوز الحصة",
                 "no_links_remaining_plan": "لا توجد لديك روابط متبقية في باقتك. يُرجى الترقية لتدريب هذا الموقع الإلكتروني.",

@@ -1,0 +1,134 @@
+{
+    "connectors": {
+        "categories": {
+            "utilities": "Dienstprogramme",
+            "sales": "Vertrieb",
+            "payments": "Zahlungen",
+            "developer_tools": "Entwicklertools",
+            "productivity": "Produktivität",
+            "communication": "Kommunikation",
+            "automation": "Automatisierung",
+            "analytics": "Analysen"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "Durchsuchen Sie das Live-Web mit Perplexity Sonar – Nachrichten, Preise, aktuelle Ereignisse – mit zitierten Quellen.",
+                "token_label": "Perplexity API-Schlüssel",
+                "token_placeholder": "Ihr Perplexity API-Schlüssel"
+            },
+            "weather": {
+                "name": "Wetter",
+                "description": "Aktuelles Wetter (Temperatur, Bedingungen, Luftfeuchtigkeit, Wind) für jede Stadt, bereitgestellt von OpenWeatherMap.",
+                "token_label": "OpenWeatherMap API-Schlüssel",
+                "token_placeholder": "Ihr OpenWeatherMap API-Schlüssel"
+            },
+            "currency": {
+                "name": "Währungsrechner",
+                "description": "Beträge zwischen beliebigen Währungen umrechnen mit aktuellen Wechselkursen (exchangerate-api).",
+                "token_label": "ExchangeRate-API-Schlüssel",
+                "token_placeholder": "Ihr ExchangeRate-API-Schlüssel"
+            },
+            "charts": {
+                "name": "Interaktive Diagramme",
+                "description": "Interaktive Diagramme direkt im Chat anzeigen – Balken-, Linien-, Kreis-, Streu-, Radar-, Messanzeige-, Heatmap-Diagramme und mehr."
+            },
+            "leads": {
+                "name": "Leads",
+                "description": "Kontaktdaten von Besuchern erfassen (Name, E-Mail, Telefon und mehr)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "Transaktionen, Kunden, Produkte und Zahlungen in Ihrem Stripe-Konto durchsuchen."
+            },
+            "github": {
+                "name": "GitHub",
+                "description": "Repositories, Issues, Pull Requests und Code aus jedem Konto lesen, auf das Sie Zugriff haben."
+            },
+            "notion": {
+                "name": "Notion",
+                "description": "Seiten, Datenbanken und Kommentare aus Ihrem Notion-Workspace lesen."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "Issues, Projekte und Zyklen in Ihrem Linear-Workspace durchsuchen."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "Jira-Issues, Confluence-Seiten und Workflows von Ihren Atlassian-Sites."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "Nachrichten durchsuchen, Threads lesen und Antworten aus Ihrem Gmail-Posteingang entwerfen."
+            },
+            "google-calendar": {
+                "name": "Google Kalender",
+                "description": "Ereignisse in Ihren Google-Kalendern lesen und erstellen."
+            },
+            "google-drive": {
+                "name": "Google Drive",
+                "description": "Dateien und Ordner aus Ihrem Google Drive lesen."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "Nachrichten durchsuchen, Antworten posten und den Kanalverlauf in Ihrem Slack-Workspace lesen."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "Besuchern ermöglichen, Meetings über Ihr Calendly zu buchen, und Agenten Ihre geplanten Ereignisse lesen lassen."
+            },
+            "todoist": {
+                "name": "Todoist",
+                "description": "Aufgaben, Projekte und Labels in Ihrem Todoist-Konto verwalten."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "Zapier-Aktionen in über 9.000 verbundenen Apps auslösen."
+            },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "Tickets, Benutzer und Help-Center-Artikel aus Ihrem Zendesk-Support-Konto lesen.",
+                "token_label": "Zendesk API-Token",
+                "token_placeholder": "Ihr Zendesk API-Token"
+            },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "Kontakte, Unternehmen, Deals und Tickets in Ihrem HubSpot CRM lesen und aktualisieren."
+            },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "Konten, Kontakte, Opportunities und Cases aus Ihrer Salesforce-Organisation lesen und aktualisieren."
+            },
+            "box": {
+                "name": "Box",
+                "description": "Dateien, Ordner und Metadaten in Ihrem Box-Konto durchsuchen und lesen."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "Aufgaben, Projekte und Portfolios in Ihrem Asana-Workspace lesen und aktualisieren."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "Issues, Fehler und Releases aus Ihren Sentry-Projekten lesen."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "Meeting-Transkripte, Zusammenfassungen und Aktionspunkte von Fireflies.ai durchsuchen."
+            },
+            "amplitude": {
+                "name": "Amplitude",
+                "description": "Produktanalysen abfragen – Ereignisse, Diagramme und Kohorten – aus Ihrem Amplitude-Projekt."
+            }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "Kontoanalysen",
+                "description": "Fragen des Workspace-Inhabers zu seinem eigenen Konto in Zahlen beantworten – Nachrichten, Konversationen, Benutzer, Kanäle, Leads, Zufriedenheit, Antwortzeit, Themen und Übergaben."
+            },
+            "charts": {
+                "name": "Interaktive Diagramme",
+                "description": "Interaktive Diagramme (Balken, Linien, Kreis, Messanzeige, Streu, Radar, Heatmap, …) direkt im Chat anzeigen."
+            }
+        }
+    }
+}

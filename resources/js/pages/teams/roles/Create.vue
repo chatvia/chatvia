@@ -11,12 +11,14 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useTeamPermissionsI18n } from '@/composables/useTeamPermissionsI18n';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Bot, Check, ChevronDown, Info, Loader2, Tag } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const { scopeLabel, scopeDescription, groupLabel, groupDescription, permissionLabel, permissionDescription } = useTeamPermissionsI18n();
 
 // Use generated TypeScript types from DTOs
 type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
@@ -38,11 +40,16 @@ const props = defineProps<Props>();
 const scopes = computed(() =>
     Object.entries(props.permissionScopes).map(([scopeKey, scope]) => ({
         key: scopeKey,
-        label: scope.label,
-        description: scope.description,
+        label: scopeLabel(scopeKey, scope.label),
+        description: scopeDescription(scopeKey, scope.description),
         groups: Object.entries(props.permissionGroups)
             .filter(([, group]) => group.scope === scopeKey)
-            .map(([groupKey, group]) => ({ key: groupKey, ...group })),
+            .map(([groupKey, group]) => ({
+                key: groupKey,
+                ...group,
+                label: groupLabel(groupKey, group.label),
+                description: groupDescription(groupKey, group.description ?? ''),
+            })),
     })),
 );
 
@@ -144,12 +151,12 @@ const toggleGroupPermissions = (groupKey: string, checked: boolean | 'indetermin
 
 const getPermissionLabel = (permission: string): string => {
     const permData = props.permissionsConfig[permission];
-    return permData?.label || permission;
+    return permissionLabel(permission, permData?.label || permission);
 };
 
 const getPermissionDescription = (permission: string): string => {
     const permData = props.permissionsConfig[permission];
-    return permData?.description || '';
+    return permissionDescription(permission, permData?.description || '');
 };
 
 const getPermissionRequires = (permission: string): string[] => {
@@ -205,7 +212,13 @@ const toggleAgentSelection = (agentId: string) => {
                                 </div>
                                 <div class="space-y-2 ps-6">
                                     <Label for="role-name">{{ t('teams.roles.role_name_label') }}</Label>
-                                    <Input id="role-name" v-model="form.name" :placeholder="t('teams.roles.role_name_placeholder')" required autofocus />
+                                    <Input
+                                        id="role-name"
+                                        v-model="form.name"
+                                        :placeholder="t('teams.roles.role_name_placeholder')"
+                                        required
+                                        autofocus
+                                    />
                                     <InputError :message="form.errors.name" />
                                 </div>
                             </section>

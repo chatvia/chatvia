@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chat_errors": {
+            "disabled_title": "Agent deaktiviert",
+            "disabled_description": "Dieser Agent ist derzeit nicht verfügbar",
+            "disabled_heading": "Agent deaktiviert",
+            "disabled_message": "Dieser Agent wurde deaktiviert. Bitte wenden Sie sich für Unterstützung an den Administrator.",
+            "disabled_hint": "Falls Sie der Meinung sind, dass dies ein Fehler ist, oder Sie sofortige Hilfe benötigen, kontaktieren Sie bitte Ihren Administrator.",
+            "contact_admin": "Administrator kontaktieren",
+            "return_dashboard": "Zum Dashboard zurückkehren",
+            "no_messages_title": "Keine Nachrichten mehr",
+            "no_messages_description": "Sie haben Ihr Nachrichtenlimit erreicht",
+            "not_found_title": "Agent nicht gefunden",
+            "not_found_description": "Der gesuchte Agent existiert nicht",
+            "not_found_heading": "Agent nicht gefunden",
+            "not_found_message": "Der Agent, auf den Sie zugreifen möchten, existiert nicht oder wurde möglicherweise entfernt.",
+            "not_found_hint": "Bitte überprüfen Sie die URL oder wenden Sie sich an Ihren Administrator, falls Sie der Meinung sind, dass dieser Agent verfügbar sein sollte."
+        }
+    }
+}

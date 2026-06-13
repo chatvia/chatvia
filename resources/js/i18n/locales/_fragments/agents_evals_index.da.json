@@ -1,0 +1,115 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "title": "Evalueringer",
+                "head_title": "Evalueringer — {name}",
+                "description": "Testsuiter der bedømmer denne agents rigtige svar – samme viden, værktøjer og model som i produktion. Kør suiten og følg med i, om ændringer gør agenten bedre eller dårligere.",
+                "run_suite": "Kør suite",
+                "cases_heading": "Cases",
+                "cases_summary": "{total} i alt · {active} aktive",
+                "from_knowledge": "Fra vidensbase",
+                "add_case": "Tilføj case",
+                "table": {
+                    "case": "Case",
+                    "scorer": "Bedømmer",
+                    "status": "Status",
+                    "actions": "Handlinger",
+                    "by": "Af",
+                    "pass_rate": "Beståelsesrate",
+                    "passed_failed": "Bestået / Fejlet",
+                    "avg_score": "Gns. score",
+                    "when": "Tidspunkt"
+                },
+                "status_active": "Aktiv",
+                "status_inactive": "Inaktiv",
+                "empty_cases": "Ingen evalueringscases endnu. Tilføj én for at begynde at måle svarkvaliteten.",
+                "recent_runs": "Seneste kørsler",
+                "recent_runs_description": "Hver kørsel bedømmes ud fra de cases, der var aktive på det tidspunkt.",
+                "clear": "Ryd",
+                "empty_runs": "Ingen kørsler endnu. Klik på \"Kør suite\" for at bedømme de aktive cases.",
+                "case_dialog": {
+                    "edit_title": "Rediger case",
+                    "add_title": "Tilføj case",
+                    "description": "Input sendes til agenten præcis, som en besøgende ville stille spørgsmålet.",
+                    "name_label": "Navn",
+                    "name_placeholder": "f.eks. Returpolitik er korrekt",
+                    "input_label": "Inputprompt",
+                    "input_placeholder": "Hvad er jeres returpolitik?",
+                    "scorer_label": "Bedømmer",
+                    "scorer_placeholder": "Vælg en bedømmer",
+                    "expected_substring": "Forventet delstreng",
+                    "expected_substring_placeholder": "f.eks. 30 dage",
+                    "case_sensitive": "Forskel på store og små bogstaver",
+                    "pattern_label": "Mønster",
+                    "pattern_placeholder": "/\\b30 days\\b/i",
+                    "required_keys": "Påkrævede nøgler",
+                    "required_keys_placeholder": "komma,separerede,nøgler",
+                    "required_keys_hint": "Svaret skal være gyldigt JSON med alle nøgler.",
+                    "grading_criteria": "Bedømmelseskriterier",
+                    "grading_criteria_placeholder": "Svaret skal angive, at returnering er mulig inden for 30 dage fra købet.",
+                    "expected_answer": "Forventet svar",
+                    "reference_answer": "Referencesvar (valgfrit)",
+                    "active_label": "Aktiv (medtages i kørsler)",
+                    "save": "Gem"
+                },
+                "knowledge_dialog": {
+                    "title": "Tilføj cases fra vidensbase",
+                    "description": "Vælg spørgsmål fra denne agents vidensbase. Hvert spørgsmål bliver en case, der bedømmes af AI-dommeren ud fra kildeteksten.",
+                    "search_placeholder": "Søg i spørgsmål...",
+                    "added_badge": "Tilføjet",
+                    "no_search_results": "Ingen spørgsmål matcher din søgning.",
+                    "no_questions": "Der er endnu ingen spørgsmål i denne agents vidensbase.",
+                    "add_cases": "Tilføj cases",
+                    "add_count": "Tilføj {count} case | Tilføj {count} cases"
+                },
+                "delete_case_title": "Slet case",
+                "delete_case_description": "Slet \"{name}\"? Tidligere kørselsresultater beholder deres kopi af denne case – kun fremtidige kørsler påvirkes.",
+                "delete_run_title": "Slet kørsel",
+                "delete_run_description": "Slet denne kørsel og dens resultater pr. case? Dette kan ikke fortrydes. Cases påvirkes ikke.",
+                "clear_runs_title": "Ryd kørselshistorik",
+                "clear_runs_description": "Slet alle {count} kørsel for denne agent og dens resultater? Dette kan ikke fortrydes. Cases påvirkes ikke. | Slet alle {count} kørsler for denne agent og deres resultater? Dette kan ikke fortrydes. Cases påvirkes ikke.",
+                "clear_all": "Ryd alt",
+                "scorers": {
+                    "contains": {
+                        "label": "Indeholder tekst",
+                        "help": "Består, hvis svaret indeholder en delstreng."
+                    },
+                    "regex": {
+                        "label": "Regex-match",
+                        "help": "Består, hvis svaret matcher et regulært udtryk."
+                    },
+                    "exact": {
+                        "label": "Præcist match",
+                        "help": "Består kun, hvis svaret er identisk med referencesvaret."
+                    },
+                    "json_schema": {
+                        "label": "JSON-struktur",
+                        "help": "Består, hvis svaret er gyldigt JSON med de påkrævede nøgler."
+                    },
+                    "llm_judge": {
+                        "label": "AI-dommer",
+                        "help": "En open-weight model bedømmer svaret ud fra dine kriterier."
+                    }
+                },
+                "toasts": {
+                    "case_updated": "Case opdateret",
+                    "case_added": "Case tilføjet",
+                    "cases_added": "{count} case tilføjet | {count} cases tilføjet",
+                    "case_deleted": "Case slettet",
+                    "run_started": "Evalueringskørsel startet",
+                    "run_start_error": "Kunne ikke starte kørslen",
+                    "run_deleted": "Kørsel slettet",
+                    "history_cleared": "Kørselshistorik ryddet"
+                }
+            },
+            "scorers": {
+                "contains": "Indeholder",
+                "regex": "Regex",
+                "exact": "Præcist match",
+                "json_schema": "JSON-skema",
+                "llm_judge": "LLM-dommer"
+            }
+        }
+    }
+}

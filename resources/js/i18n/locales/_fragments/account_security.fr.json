@@ -1,0 +1,59 @@
+{
+    "account": {
+        "passkeys": {
+            "name_required": "Donnez d'abord un nom à votre clé d'accès.",
+            "register_error": "Impossible d'enregistrer la clé d'accès.",
+            "never": "Jamais",
+            "delete_aria": "Supprimer la clé d'accès",
+            "name_placeholder": "MacBook Pro, iPhone, YubiKey…",
+            "heading": "Clés d'accès",
+            "description": "Connectez-vous avec votre empreinte digitale, votre visage ou une clé de sécurité — aucun mot de passe requis.",
+            "add_passkey": "Ajouter une clé d'accès",
+            "no_passkeys": "Aucune clé d'accès pour l'instant",
+            "no_passkeys_hint": "Ajoutez une clé d'accès pour vous connecter plus rapidement sur cet appareil.",
+            "last_used": "Dernière utilisation",
+            "created": "Créée",
+            "dialog_title": "Nommez votre clé d'accès",
+            "dialog_description": "Choisissez un nom pour pouvoir distinguer vos clés d'accès ultérieurement.",
+            "register": "Enregistrer la clé d'accès",
+            "delete_title": "Supprimer cette clé d'accès ?",
+            "delete_description": "{name} ne pourra plus être utilisée pour se connecter. Cette action est irréversible."
+        },
+        "two_factor": {
+            "heading": "Authentification à deux facteurs",
+            "description": "Exigez un code à 6 chiffres depuis une application d'authentification lors de la connexion, en plus de votre mot de passe.",
+            "disable_title": "Désactiver l'authentification à deux facteurs ?",
+            "disable_description": "Votre compte ne sera protégé que par votre mot de passe. Vous pouvez réactiver la 2FA à tout moment.",
+            "status": "Statut",
+            "enabled": "Activée",
+            "disabled": "Désactivée",
+            "off_title": "L'authentification à deux facteurs est désactivée",
+            "off_description": "Activez-la pour exiger un code à 6 chiffres lors de la connexion.",
+            "enable": "Activer la double authentification",
+            "finish_setup_title": "Finaliser la configuration",
+            "finish_setup_description": "Scannez le code QR avec votre application d'authentification, puis saisissez le code à 6 chiffres pour confirmer.",
+            "loading_qr": "Chargement du code QR…",
+            "secret_manual": "Ou saisissez ce secret manuellement",
+            "confirmation_code": "Code de confirmation",
+            "confirm": "Confirmer",
+            "cancel_setup": "Annuler la configuration",
+            "recovery_title": "Codes de récupération",
+            "recovery_description": "Conservez ces codes à usage unique en lieu sûr. Chacun d'eux peut déverrouiller votre compte si vous perdez accès à votre application d'authentification.",
+            "loading_codes": "Chargement des codes de récupération…",
+            "show_codes": "Afficher les codes de récupération",
+            "regenerate_codes": "Régénérer les codes",
+            "disable": "Désactiver la double authentification"
+        },
+        "social": {
+            "heading": "Comptes sociaux",
+            "description": "Connectez Google, Microsoft ou Slack pour vous connecter en un clic et maintenir vos comptes synchronisés.",
+            "connected_since": "Connecté depuis le {date}",
+            "connected": "Connecté",
+            "not_connected": "Non connecté",
+            "disconnect": "Déconnecter",
+            "connect": "Connecter",
+            "disconnect_title": "Déconnecter {provider} ?",
+            "disconnect_description": "Vous ne pourrez plus vous connecter avec {provider} tant que vous ne l'aurez pas reconnecté."
+        }
+    }
+}

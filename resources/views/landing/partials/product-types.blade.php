@@ -3,7 +3,7 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
 
         <!-- Section header -->
-        <div class="text-center mb-12 md:mb-16" data-aos="fade-up">
+        <div class="text-center mb-12 md:mb-16">
             <h2 class="h2 font-display text-slate-900 mb-4">
                 Two ways to deploy your AI
             </h2>
@@ -13,7 +13,7 @@
         </div>
 
         <!-- Tab switcher -->
-        <div x-data="{ activeType: 'widget' }" data-aos="fade-up" data-aos-delay="100">
+        <div x-data="{ activeType: 'widget' }">
 
             <!-- Tab menu -->
             <div class="flex justify-center mb-10">

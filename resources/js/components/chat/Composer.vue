@@ -2,7 +2,8 @@
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Send, Square } from 'lucide-vue-next';
-import { nextTick, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     isThinking?: boolean;
@@ -11,6 +12,10 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { t } = useI18n();
+
+const displayPlaceholder = computed(() => props.placeholder ?? t('shared.composer_placeholder'));
 
 const userInput = ref(props.text || '');
 const messageInput = ref<HTMLTextAreaElement>();
@@ -102,8 +107,8 @@ const handleBlur = () => {
                     @input="adjustTextareaHeight"
                     @focus="handleFocus"
                     @blur="handleBlur"
-                    :placeholder="placeholder || 'Ask anything...'"
-                    class="text-foreground placeholder:text-muted-foreground max-h-[200px] min-h-[60px] resize-none rounded-2xl border-0 bg-transparent px-4 py-4 pr-12 focus-visible:ring-0 focus-visible:outline-none sm:px-6 sm:py-5"
+                    :placeholder="displayPlaceholder"
+                    class="text-foreground placeholder:text-muted-foreground max-h-[200px] min-h-[60px] resize-none rounded-2xl border-0 bg-transparent px-4 py-4 pe-12 focus-visible:ring-0 focus-visible:outline-none sm:px-6 sm:py-5"
                     :disabled="isThinking"
                     autofocus
                 />

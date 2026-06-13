@@ -6,7 +6,10 @@ import { Textarea } from '@/components/ui/textarea';
 import axios from 'axios';
 import { Loader2, RotateCcw, Save } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
+
+const { t } = useI18n();
 
 interface SavedPrompt {
     id: string;
@@ -142,11 +145,11 @@ const saveInstructions = async () => {
 
         originalPreset.value = selectedPreset.value;
         originalInstructions.value = instructions.value;
-        toast.success('Instructions saved successfully');
+        toast.success(t('shared.persona_editor.save_success'));
         emit('saved');
     } catch (error) {
         console.error('Failed to save instructions:', error);
-        toast.error('Failed to save instructions');
+        toast.error(t('shared.persona_editor.save_error'));
     } finally {
         isSaving.value = false;
     }
@@ -156,42 +159,53 @@ const saveInstructions = async () => {
 <template>
     <div class="space-y-4">
         <div>
-            <Label class="text-sm font-medium">Instructions (System prompt)</Label>
-            <p class="text-muted-foreground mt-1 text-xs">Define how your AI agent should behave and respond to users</p>
+            <Label class="text-sm font-medium">{{ t('shared.persona_editor.label') }}</Label>
+            <p class="text-muted-foreground mt-1 text-xs">{{ t('shared.persona_editor.description') }}</p>
         </div>
 
         <!-- Preset / saved-prompt selector -->
         <div class="flex items-center gap-2">
             <Select v-model="selectedPreset" :disabled="locked" class="flex-1">
                 <SelectTrigger>
-                    <SelectValue placeholder="Select a preset..." />
+                    <SelectValue :placeholder="t('shared.persona_editor.select_placeholder')" />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectGroup v-if="savedPrompts.length">
-                        <SelectLabel class="text-muted-foreground text-xs font-normal">Saved prompts</SelectLabel>
+                        <SelectLabel class="text-muted-foreground text-xs font-normal">{{ t('shared.persona_editor.saved_prompts') }}</SelectLabel>
                         <SelectItem v-for="p in savedPrompts" :key="p.id" :value="`prompt:${p.id}`">{{ p.name }}</SelectItem>
                     </SelectGroup>
                     <SelectGroup>
-                        <SelectLabel class="text-muted-foreground text-xs font-normal">Default</SelectLabel>
-                        <SelectItem value="base">Base Instructions</SelectItem>
+                        <SelectLabel class="text-muted-foreground text-xs font-normal">{{ t('shared.persona_editor.default_group') }}</SelectLabel>
+                        <SelectItem value="base">{{ t('shared.persona_editor.base_instructions') }}</SelectItem>
                     </SelectGroup>
                 </SelectContent>
             </Select>
-            <Button type="button" variant="outline" size="icon" @click="resetInstructions" :disabled="!hasChanges || locked" title="Reset to saved">
+            <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                @click="resetInstructions"
+                :disabled="!hasChanges || locked"
+                :title="t('shared.persona_editor.reset_title')"
+            >
                 <RotateCcw class="h-4 w-4" />
             </Button>
         </div>
 
         <p v-if="usingLibraryPrompt" class="text-muted-foreground text-xs">
-            Using the saved prompt <span class="font-medium">{{ selectedPromptName }}</span> (read-only). Manage it in Settings → Prompts, or switch
-            to <span class="font-medium">Base Instructions</span> to edit a copy for just this agent.
+            {{
+                t('shared.persona_editor.library_hint', {
+                    name: selectedPromptName,
+                    base: t('shared.persona_editor.base_instructions'),
+                })
+            }}
         </p>
 
         <!-- Instructions Textarea — editable when Base Instructions is active. -->
         <Textarea
             v-model="instructions"
             :readonly="usingLibraryPrompt || locked"
-            placeholder="Enter your instructions..."
+            :placeholder="t('shared.persona_editor.textarea_placeholder')"
             class="field-sizing-fixed h-[400px] resize-y overflow-y-auto font-mono text-sm"
             :class="usingLibraryPrompt || locked ? 'bg-muted/40 cursor-not-allowed' : ''"
             rows="10"
@@ -200,9 +214,9 @@ const saveInstructions = async () => {
         <!-- Save Button -->
         <div v-if="!locked" class="border-t pt-3">
             <Button @click="saveInstructions" :disabled="!hasChanges || isSaving" size="sm">
-                <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
-                <Save v-else class="mr-2 h-4 w-4" />
-                Save
+                <Loader2 v-if="isSaving" class="me-2 h-4 w-4 animate-spin" />
+                <Save v-else class="me-2 h-4 w-4" />
+                {{ t('shared.persona_editor.save') }}
             </Button>
         </div>
     </div>

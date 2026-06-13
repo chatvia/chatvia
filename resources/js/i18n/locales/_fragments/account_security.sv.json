@@ -1,0 +1,59 @@
+{
+    "account": {
+        "passkeys": {
+            "name_required": "Ge din nyckel ett namn först.",
+            "register_error": "Kunde inte registrera nyckeln.",
+            "never": "Aldrig",
+            "delete_aria": "Ta bort nyckel",
+            "name_placeholder": "MacBook Pro, iPhone, YubiKey…",
+            "heading": "Lösenordsnycklar",
+            "description": "Logga in med ditt fingeravtryck, ansikte eller säkerhetsnyckel — inget lösenord behövs.",
+            "add_passkey": "Lägg till nyckel",
+            "no_passkeys": "Inga nycklar ännu",
+            "no_passkeys_hint": "Lägg till en nyckel för att logga in snabbare på den här enheten.",
+            "last_used": "Senast använd",
+            "created": "Skapad",
+            "dialog_title": "Namnge din nyckel",
+            "dialog_description": "Välj ett namn så att du kan skilja dina nycklar åt senare.",
+            "register": "Registrera nyckel",
+            "delete_title": "Ta bort den här nyckeln?",
+            "delete_description": "{name} kan inte längre användas för att logga in. Det går inte att ångra."
+        },
+        "two_factor": {
+            "heading": "Tvåfaktorsautentisering",
+            "description": "Kräv en 6-siffrig kod från en autentiseringsapp vid inloggning, utöver ditt lösenord.",
+            "disable_title": "Inaktivera tvåfaktorsautentisering?",
+            "disable_description": "Ditt konto skyddas då bara av ditt lösenord. Du kan aktivera 2FA igen när som helst.",
+            "status": "Status",
+            "enabled": "Aktiverad",
+            "disabled": "Inaktiverad",
+            "off_title": "Tvåfaktorsautentisering är avstängd",
+            "off_description": "Slå på den för att kräva en 6-siffrig kod vid inloggning.",
+            "enable": "Aktivera tvåfaktor",
+            "finish_setup_title": "Slutför konfigurationen",
+            "finish_setup_description": "Skanna QR-koden med din autentiseringsapp och ange sedan den 6-siffriga koden för att bekräfta.",
+            "loading_qr": "Laddar QR-kod…",
+            "secret_manual": "Eller ange den här hemligheten manuellt",
+            "confirmation_code": "Bekräftelsekod",
+            "confirm": "Bekräfta",
+            "cancel_setup": "Avbryt konfigurationen",
+            "recovery_title": "Återställningskoder",
+            "recovery_description": "Spara dessa engångskoder på ett säkert ställe. Var och en kan låsa upp ditt konto om du förlorar din autentiseringsapp.",
+            "loading_codes": "Laddar återställningskoder…",
+            "show_codes": "Visa återställningskoder",
+            "regenerate_codes": "Generera nya koder",
+            "disable": "Inaktivera tvåfaktor"
+        },
+        "social": {
+            "heading": "Sociala konton",
+            "description": "Anslut Google, Microsoft eller Slack för att logga in med ett klick och hålla dina konton synkade.",
+            "connected_since": "Ansluten sedan {date}",
+            "connected": "Ansluten",
+            "not_connected": "Inte ansluten",
+            "disconnect": "Koppla från",
+            "connect": "Anslut",
+            "disconnect_title": "Koppla från {provider}?",
+            "disconnect_description": "Du kan inte logga in med {provider} förrän du ansluter det igen."
+        }
+    }
+}

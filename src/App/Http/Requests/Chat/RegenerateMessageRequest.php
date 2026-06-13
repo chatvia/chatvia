@@ -42,7 +42,7 @@ class RegenerateMessageRequest extends FormRequest
         // authenticated chatter on a private agent must own the
         // conversation whose turn is being regenerated.
         if ($agent->is_public === false && Auth::guard('web')->check()) {
-            return ChatCache::isOwnedBy($conversationId, Auth::id());
+            return ChatCache::isOwnedBy($conversationId, Auth::id(), $agent->workspaceExternalId());
         }
 
         return true;

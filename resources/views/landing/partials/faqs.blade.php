@@ -1,53 +1,53 @@
 @php
     $faqs = $landing['faqs'] ?? [
         [
-            'question' => 'What is Chatvia?',
-            'answer' => 'Chatvia is a B2B platform for building and training your own AI agents on your data. Your agents answer from your knowledge and act in your tools — connect MCP servers, call your APIs with custom functions, and deploy anywhere.',
+            'question' => __('landing.faqs.items.what.question'),
+            'answer' => __('landing.faqs.items.what.answer'),
         ],
         [
-            'question' => 'Is Chatvia just a support chatbot?',
-            'answer' => 'No. Chatvia is for building AI agents for any workflow — internal knowledge assistants, research tools, data lookups, booking and ordering flows, and more. Customer support is one use case you can build, not the whole product.',
+            'question' => __('landing.faqs.items.support_bot.question'),
+            'answer' => __('landing.faqs.items.support_bot.answer'),
         ],
         [
-            'question' => 'Can my agents call our APIs and tools?',
-            'answer' => 'Yes. Define custom functions (webhooks) so an agent can call any HTTP endpoint, and connect MCP servers to give it whole toolsets at once. The agent decides when to call them during a conversation to fetch data or take action.',
+            'question' => __('landing.faqs.items.apis.question'),
+            'answer' => __('landing.faqs.items.apis.answer'),
         ],
         [
-            'question' => 'What is MCP, and can I connect my own servers?',
-            'answer' => 'MCP (Model Context Protocol) is an open standard for giving agents tools. You can connect any remote MCP server in seconds and pick which tools each agent can use — including your own internal servers.',
+            'question' => __('landing.faqs.items.mcp.question'),
+            'answer' => __('landing.faqs.items.mcp.answer'),
         ],
         [
-            'question' => 'What does training mean?',
-            'answer' => 'Training feeds your data through a retrieval pipeline (RAG) so the agent understands it and answers from your real content instead of guessing. We never train third-party models on your data, so it stays private.',
+            'question' => __('landing.faqs.items.training.question'),
+            'answer' => __('landing.faqs.items.training.answer'),
         ],
         [
-            'question' => 'Can I train on my website, documents, audio and video?',
-            'answer' => 'Yes. Upload documents (PDF, Word, Text), crawl your website, or connect data sources — and audio and video are transcribed automatically. Your agent learns from your content and stays in sync as it changes.',
+            'question' => __('landing.faqs.items.sources.question'),
+            'answer' => __('landing.faqs.items.sources.answer'),
         ],
         [
             'key' => 'models',
-            'question' => 'What AI models does Chatvia use?',
-            'answer' => 'You can choose the best model for each agent and switch anytime.',
+            'question' => __('landing.faqs.items.models.question'),
+            'answer' => __('landing.faqs.items.models.answer'),
         ],
         [
-            'question' => 'How many AI agents can I create?',
-            'answer' => 'It depends on your plan. See the pricing section for the number of agents included in each plan.',
+            'question' => __('landing.faqs.items.agent_count.question'),
+            'answer' => __('landing.faqs.items.agent_count.answer'),
         ],
         [
-            'question' => 'Can I customize and white-label my agents?',
-            'answer' => "Yes. Customize each agent's name, persona, branding, and logo, and serve it on your own domain for a fully white-label experience.",
+            'question' => __('landing.faqs.items.white_label.question'),
+            'answer' => __('landing.faqs.items.white_label.answer'),
         ],
         [
-            'question' => 'Is my data secure and private?',
-            'answer' => 'Chatvia is GDPR compliant, hosted in the EU, and uses enterprise-grade security. We never train third-party models on your data, and your documents and conversations stay private and encrypted.',
+            'question' => __('landing.faqs.items.security.question'),
+            'answer' => __('landing.faqs.items.security.answer'),
         ],
         [
-            'question' => 'Do you offer team collaboration?',
-            'answer' => 'Yes. All plans include team collaboration — invite team members and share agents across your team.',
+            'question' => __('landing.faqs.items.team.question'),
+            'answer' => __('landing.faqs.items.team.answer'),
         ],
         [
-            'question' => 'What payment methods do you accept?',
-            'answer' => 'We accept all major credit cards (Visa, MasterCard, American Express) and PayPal, processed securely through Stripe. Upgrade, downgrade, or cancel anytime.',
+            'question' => __('landing.faqs.items.payment.question'),
+            'answer' => __('landing.faqs.items.payment.answer'),
         ],
     ];
 @endphp
@@ -59,12 +59,12 @@
             <div class="py-16 md:py-24">
 
                 <!-- Section header -->
-                <div class="max-w-3xl mx-auto text-center pb-12 md:pb-16" data-aos="fade-up">
+                <div class="max-w-3xl mx-auto text-center pb-12 md:pb-16">
                     <h2 class="text-3xl sm:text-4xl md:text-5xl font-display text-slate-900 mb-4">
-                        Frequently Asked Questions
+                        {{ __('landing.faqs.heading') }}
                     </h2>
                     <p class="text-lg md:text-xl text-slate-500">
-                        Everything you need to know about building AI agents with Chatvia.
+                        {{ __('landing.faqs.subtitle') }}
                     </p>
                 </div>
 
@@ -74,8 +74,7 @@
                         @foreach($faqs as $index => $faq)
                             <div class="bg-slate-50 rounded-xl border border-slate-100"
                                  x-data="{ open: {{ $index === 0 ? 'true' : 'false' }} }"
-                                 data-aos="fade-up"
-                                 @if($index > 0) data-aos-delay="{{ (int)$index * 100 }}" @endif>
+                                 @if($index > 0) @endif>
 
                                 <!-- Question -->
                                 <button
@@ -126,12 +125,12 @@
                     @if(($landing['has-widget'] ?? true) === true)
                         <div class="text-center mt-12">
                             <p class="text-lg text-slate-600 mb-4">
-                                Still have questions?
+                                {{ __('landing.faqs.still_questions') }}
                             </p>
                             <button onclick="window.chatvia.open()"
                                     class="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium transition-colors duration-200 cursor-pointer">
-                                Talk to our AI
-                                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor"
+                                {{ __('landing.faqs.talk_to_ai') }}
+                                <svg class="w-4 h-4 ms-2 rtl:-scale-x-100" fill="none" stroke="currentColor"
                                      viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M17 8l4 4m0 0l-4 4m4-4H3"/>

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
-use Support\Traits\SupportsExternalId;
+use Support\Concerns\HasExternalId;
 
 /**
  * @property int $id
@@ -109,7 +109,7 @@ use Support\Traits\SupportsExternalId;
 #[Table(name: 'chat_messages')]
 class Message extends Model
 {
-    use HasFactory, SupportsExternalId;
+    use HasExternalId, HasFactory;
 
     protected function casts(): array
     {

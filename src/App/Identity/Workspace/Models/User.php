@@ -31,7 +31,14 @@ use Domain\Membership\Team\Services\TeamRoleResolver;
 use Domain\Membership\Team\Services\TeamService;
 use Domain\Prompt\Models\AgentPrompt;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
+use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
+use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -47,7 +54,6 @@ use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
@@ -161,8 +167,17 @@ use Support\Traits\HasSettings;
     'two_factor_recovery_codes',
     'two_factor_secret',
 ])]
-class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasLocalePreference, MustVerifyEmail, PasskeyUser
 {
+    /**
+     * The locale Laravel should render this user's queued/mailed notifications in.
+     * Null (auto) falls back to the app locale, so untranslated emails stay English.
+     */
+    public function preferredLocale(): ?string
+    {
+        return $this->locale;
+    }
+
     /**
      * Per-request memo bucket — Inertia's share() lambda + User Appends fan
      * billing/team derivations out 4–6× per request. Read/write via remember().
@@ -170,7 +185,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     private array $memo = [];
 
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.
@@ -186,9 +201,6 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'type' => UserType::class,
             'source' => UserSource::class,
             'date_format' => DateFormat::class,
-            'marketing_consent' => 'boolean',
-            'analytics_consent' => 'boolean',
-            'consent_given_at' => 'datetime',
         ];
     }
 
@@ -326,6 +338,16 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function isAdmin(): bool
     {
         return $this->type === UserType::Admin;
+    }
+
+    /**
+     * Filament panel gate (FilamentUser contract). Only internal staff
+     * (UserType::Admin) may reach the admin panel; every other account type is
+     * rejected at the panel door.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->isAdmin();
     }
 
     public function isWorkspace(): bool
@@ -995,58 +1017,5 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function isDeactivated(): bool
     {
         return $this->deactivated_at !== null;
-    }
-
-    /**
-     * Switch the account off with an optional reason (shown to admins on the
-     * Members page). Idempotent — re-deactivating refreshes the reason.
-     *
-     * Deactivating a workspace is an account-wide off switch: every member it
-     * owns (employees + chatters) is switched off alongside the owner so they
-     * lose access too. Members already off keep their original timestamp.
-     */
-    public function deactivate(?string $reason = null): void
-    {
-        $now = now();
-
-        DB::transaction(function () use ($reason, $now): void {
-            $this->update([
-                'deactivated_at' => $now,
-                'deactivation_reason' => $reason,
-            ]);
-
-            if ($this->isWorkspace()) {
-                $this->users()
-                    ->whereNull('deactivated_at')
-                    ->update([
-                        'deactivated_at' => $now,
-                        'deactivation_reason' => $reason,
-                    ]);
-            }
-        });
-    }
-
-    /**
-     * Switch the account back on and clear the stored reason. Reactivating a
-     * workspace mirrors the deactivation cascade — every member switched off
-     * with it is restored, so the account becomes usable again.
-     */
-    public function reactivate(): void
-    {
-        DB::transaction(function (): void {
-            $this->update([
-                'deactivated_at' => null,
-                'deactivation_reason' => null,
-            ]);
-
-            if ($this->isWorkspace()) {
-                $this->users()
-                    ->whereNotNull('deactivated_at')
-                    ->update([
-                        'deactivated_at' => null,
-                        'deactivation_reason' => null,
-                    ]);
-            }
-        });
     }
 }

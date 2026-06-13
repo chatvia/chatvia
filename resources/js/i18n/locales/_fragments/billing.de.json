@@ -1,0 +1,317 @@
+{
+    "billing": {
+        "common": {
+            "billing": "Abrechnung",
+            "back_to_billing": "Zurück zur Abrechnung",
+            "view_plans": "Pläne ansehen",
+            "cancel": "Abbrechen",
+            "processing": "Wird verarbeitet...",
+            "not_available": "N/A"
+        },
+        "payment_success": {
+            "page_title": "Zahlung erfolgreich",
+            "heading": "Zahlung eingegangen",
+            "description": "Vielen Dank! Ihre Zahlung wurde erfolgreich verarbeitet. Ihr Abonnement wird jetzt eingerichtet.",
+            "redirecting_prefix": "Weiterleitung in",
+            "redirecting_suffix": "Sekunden...",
+            "go_to_billing": "Jetzt zur Abrechnung"
+        },
+        "invoices": {
+            "breadcrumb": "Rechnungen",
+            "page_title": "Rechnungen",
+            "heading": "Rechnungen",
+            "subheading": "Ihren Rechnungsverlauf und Ihre Rechnungen anzeigen und herunterladen",
+            "history_title": "Rechnungsverlauf",
+            "history_description": "Quittungen und Rechnungen für Ihre Abonnementzahlungen herunterladen",
+            "invoice_number": "Rechnung #{number}",
+            "status": {
+                "paid": "Bezahlt",
+                "pending": "Ausstehend",
+                "failed": "Fehlgeschlagen"
+            },
+            "download_pdf": "PDF herunterladen",
+            "view_online": "Online ansehen",
+            "empty_title": "Noch keine Rechnungen",
+            "empty_description": "Ihr Rechnungsverlauf und Ihre Rechnungen werden hier angezeigt, sobald Sie ein Abonnement starten.",
+            "total_invoices": "Rechnungen gesamt",
+            "total_spent": "Gesamtausgaben",
+            "since": "Seit",
+            "help_title": "Fragen zur Abrechnung?",
+            "help_description": "Bei Fragen zu Ihren Rechnungen oder wenn Sie Unterstützung bei der Abrechnung benötigen, steht Ihnen unser Support-Team gerne zur Verfügung.",
+            "contact_support": "Support kontaktieren"
+        },
+        "payment_methods": {
+            "breadcrumb": "Zahlungsmethoden",
+            "page_title": "Zahlungsmethoden",
+            "heading": "Zahlungsmethoden",
+            "subheading": "Ihre Zahlungsmethoden und Abrechnungsdaten verwalten",
+            "add_method": "Zahlungsmethode hinzufügen",
+            "saved_title": "Gespeicherte Zahlungsmethoden",
+            "saved_description": "Verwalten Sie Ihre gespeicherten Zahlungsmethoden. Sie können eine Standardmethode für die automatische Abrechnung festlegen.",
+            "default": "Standard",
+            "expires": "Läuft ab {date}",
+            "set_default": "Als Standard festlegen",
+            "empty_title": "Keine Zahlungsmethoden",
+            "empty_description": "Fügen Sie eine Zahlungsmethode hinzu, um Ihre Abonnements zu verwalten und Zahlungen vorzunehmen.",
+            "add_first": "Erste Zahlungsmethode hinzufügen",
+            "info_title": "Rechnungsinformationen",
+            "info_description": "Ihre Rechnungsadresse und Kontaktdaten aktualisieren",
+            "not_set": "Nicht angegeben",
+            "update_info": "Rechnungsinformationen aktualisieren",
+            "secure_title": "Sichere Zahlungsabwicklung",
+            "secure_description": "Ihre Zahlungsdaten werden von Stripe verschlüsselt und sicher verarbeitet. Wir speichern Ihre vollständigen Kartendaten niemals auf unseren Servern.",
+            "updating": "Wird aktualisiert...",
+            "update_information": "Informationen aktualisieren",
+            "card_information": "Karteninformationen",
+            "remove_dialog": {
+                "title": "Zahlungsmethode entfernen",
+                "description": "Möchten Sie diese Zahlungsmethode wirklich entfernen? Diese Aktion kann nicht rückgängig gemacht werden.",
+                "confirm": "Ja, entfernen"
+            },
+            "fields": {
+                "name": "Name",
+                "email": "E-Mail-Adresse",
+                "address": "Adresse",
+                "city_state_country": "Stadt, Bundesland & Land",
+                "billing_address": "Rechnungsadresse",
+                "line1": "Adresszeile 1",
+                "line2": "Adresszeile 2 (optional)",
+                "city": "Stadt",
+                "state": "Bundesland",
+                "postal_code": "Postleitzahl",
+                "country": "Land"
+            },
+            "placeholders": {
+                "name": "Max Mustermann",
+                "email": "max{'@'}beispiel.de",
+                "line1": "Musterstraße 123",
+                "line2": "Wohnung, Etage usw.",
+                "city": "Berlin",
+                "state": "BE",
+                "postal_code": "10115",
+                "country": "Land auswählen..."
+            },
+            "info_dialog": {
+                "title": "Rechnungsinformationen aktualisieren",
+                "description": "Aktualisieren Sie Ihre Rechnungsadresse und Kontaktdaten für die Rechnungsstellung und Zahlungsabwicklung."
+            },
+            "add_dialog": {
+                "description": "Fügen Sie Ihrem Konto eine neue Zahlungsmethode hinzu. Ihre Kartendaten sind sicher verschlüsselt.",
+                "success_title": "Zahlungsmethode hinzugefügt!",
+                "success_description": "Ihre Zahlungsmethode wurde erfolgreich zu Ihrem Konto hinzugefügt.",
+                "secure_note": "Ihre Zahlungsdaten werden von Stripe verschlüsselt und sicher verarbeitet. Wir speichern Ihre vollständigen Kartendaten niemals."
+            },
+            "errors": {
+                "init_failed": "Zahlungssystem konnte nicht initialisiert werden",
+                "not_ready": "Zahlungssystem nicht bereit",
+                "add_failed": "Beim Hinzufügen Ihrer Zahlungsmethode ist ein Fehler aufgetreten"
+            },
+            "toast": {
+                "added": "Zahlungsmethode erfolgreich hinzugefügt!",
+                "info_updated": "Rechnungsinformationen erfolgreich aktualisiert!",
+                "info_failed": "Rechnungsinformationen konnten nicht aktualisiert werden"
+            }
+        },
+        "plans": {
+            "breadcrumb": "Plan wählen",
+            "page_title": "Ihren Plan wählen",
+            "heading": "Ihren Plan wählen",
+            "subheading": "Wählen Sie den passenden Plan für Ihre Anforderungen. Sie können jederzeit wechseln oder kündigen.",
+            "monthly": "Monatlich",
+            "yearly": "Jährlich",
+            "custom": "Individuell",
+            "per_month": "/Monat",
+            "save_percent": "{percent}% sparen",
+            "billed_yearly": "Jährliche Abrechnung über {amount}",
+            "features_included": "Enthaltene Funktionen:",
+            "everything_in": "Alles aus {plan} +",
+            "actions": {
+                "contact_sales": "Vertrieb kontaktieren",
+                "upgrade": "Upgraden",
+                "upgrade_plan": "Plan upgraden",
+                "downgrade_to_free": "Zum kostenlosen Plan wechseln",
+                "downgrade_plan": "Plan herabstufen",
+                "switch_plan": "Plan wechseln",
+                "select_plan": "Plan auswählen"
+            },
+            "discount": {
+                "banner": "{percent}% RABATT – Zeitlich begrenztes Angebot!",
+                "ends": "Angebot endet am {date} – Nicht verpassen!",
+                "limited": "Zeitlich begrenzter Rabatt auf alle kostenpflichtigen Pläne!",
+                "off": "{percent}% RABATT"
+            },
+            "llms": {
+                "title": "Verfügbare KI-Modelle",
+                "description": "Wählen Sie aus unserem umfangreichen Angebot modernster Sprachmodelle",
+                "empty": "Keine Modelle verfügbar"
+            }
+        },
+        "addons": {
+            "title": "Add-ons",
+            "description": "Zusätzliche Credits, Agenten und Domains on top Ihres Plans",
+            "per_agent": " / Agent",
+            "per_domain": " / Domain",
+            "per_member": " / Mitglied",
+            "per_month": " / Monat",
+            "requires_subscription": "Zusätzliche Agenten, eigene Domain, Branding entfernen und Mitglieder erfordern ein aktives Hauptabonnement.",
+            "common": {
+                "none": "Keine",
+                "subscribe": "Abonnieren",
+                "change": "Ändern",
+                "update_quantity": "Menge aktualisieren",
+                "monthly_cost": "Monatliche Kosten:",
+                "keep_subscription": "Abonnement behalten",
+                "yes_cancel": "Ja, kündigen",
+                "ends": "Endet {date}"
+            },
+            "auto_recharge": {
+                "title": "Automatisches Aufladen",
+                "on": "An",
+                "off": "Aus",
+                "summary": "Automatisch {amount} Credits kaufen, wenn der Kontostand unter {threshold} fällt.",
+                "manage": "Verwalten",
+                "enable": "Aktivieren",
+                "dialog_title": "Einstellungen für automatisches Aufladen",
+                "dialog_description": "Wenn Ihre verbleibenden Credits den Schwellenwert erreichen oder unterschreiten, wird Ihre Standard-Zahlungsmethode automatisch belastet und Ihr Guthaben aufgefüllt.",
+                "enable_label": "Automatisches Aufladen aktivieren",
+                "enable_hint": "Automatisch aufladen, wenn Credits zur Neige gehen",
+                "threshold_label": "Schwellenwert (Credits)",
+                "threshold_hint": "Das Aufladen wird ausgelöst, wenn Ihr Guthaben diesen Betrag erreicht oder unterschreitet.",
+                "amount_label": "Aufladebetrag (Credits)",
+                "each_recharge": "Jede Aufladung:",
+                "charged_note": "Wird bei Auslösung sofort Ihrer Standard-Zahlungsmethode belastet.",
+                "save": "Einstellungen speichern"
+            },
+            "extra_credits": {
+                "title": "Zusätzliche Credits",
+                "summary": "Einmalige Aufladung. Jedes Paket enthält 1.000 Nachrichten, die nach 30 Tagen ablaufen.",
+                "buy": "Credits kaufen",
+                "dialog_title": "Nachrichten-Credits kaufen",
+                "dialog_description": "Jedes Paket enthält 1.000 Nachrichten, die innerhalb eines Monats nach dem Kauf verbraucht werden müssen.",
+                "quantity_label": "Menge (1.000 Nachrichten pro Paket)",
+                "total_messages": "Nachrichten gesamt:",
+                "total_price": "Gesamtpreis:",
+                "purchase_for": "Kaufen für ${amount}"
+            },
+            "extra_agents": {
+                "title": "Zusätzliche Agenten",
+                "summary": "Fügen Sie weitere KI-Agenten über Ihr Planlimit hinaus hinzu.",
+                "cancel_title": "Abonnement für zusätzliche Agenten kündigen?",
+                "cancel_description": "Ihr Kontingent für zusätzliche Agenten wird sofort entfernt und es fallen keine weiteren Kosten an.",
+                "change_title": "Zusätzliche Agenten ändern",
+                "subscribe_title": "Zusätzliche Agenten abonnieren",
+                "dialog_description": "Fügen Sie weitere KI-Agenten on top Ihres Plans hinzu. Monatliche Abrechnung zu $5 pro Agent.",
+                "quantity_label": "Anzahl zusätzlicher Agenten"
+            },
+            "custom_domains": {
+                "title": "Eigene Domain",
+                "summary": "Verwenden Sie Ihre eigene Domain für KI-Agenten.",
+                "cancel_title": "Abonnement für eigene Domain kündigen?",
+                "cancel_description": "Ihr Kontingent für eigene Domains wird sofort entfernt und es fallen keine weiteren Kosten an.",
+                "change_title": "Eigene Domains ändern",
+                "subscribe_title": "Eigene Domain abonnieren",
+                "dialog_description": "Verwenden Sie Ihre eigene Domain für KI-Agenten. Monatliche Abrechnung zu $29 pro Domain.",
+                "quantity_label": "Anzahl der Domains"
+            },
+            "remove_branding": {
+                "title": "Branding entfernen",
+                "active": "Aktiv",
+                "summary": "Den „Powered by Chatvia“-Hinweis in Ihrem Widget und gehosteten Chat ausblenden.",
+                "cancel_title": "Abonnement für Branding entfernen kündigen?",
+                "cancel_description": "Der „Powered by Chatvia“-Hinweis wird sofort wieder in Ihrem Widget und gehosteten Chat angezeigt, und es fallen keine weiteren Kosten an."
+            },
+            "members": {
+                "title": "Mitglieder",
+                "summary": "Fügen Sie Ihrem Workspace weitere Teammitglieder hinzu.",
+                "cancel_title": "Mitglieder-Abonnement kündigen?",
+                "cancel_description": "Ihre zusätzlichen Mitglieder-Plätze werden sofort entfernt und es fallen keine weiteren Kosten an.",
+                "change_title": "Mitglieder ändern",
+                "subscribe_title": "Mitglieder abonnieren",
+                "dialog_description": "Fügen Sie Ihrem Workspace weitere Teammitglieder hinzu. Monatliche Abrechnung zu $9 pro Mitglied.",
+                "quantity_label": "Anzahl der Mitglieder"
+            }
+        },
+        "index": {
+            "page_title": "Abrechnung",
+            "heading": "Abrechnung",
+            "subheading": "Ihr Abonnement, Ihre Abrechnungsdaten und Nutzungslimits verwalten",
+            "stripe_notice": "Zahlungen sicher verarbeitet von",
+            "status_label": "Status",
+            "trial_ends": "Testphase endet",
+            "next_billing": "Nächste Abrechnung",
+            "access_ends": "Zugang endet",
+            "plan_features": "Planfunktionen",
+            "show_less": "Weniger anzeigen",
+            "show_more": "{count} weitere anzeigen",
+            "per_year": "Jahr",
+            "per_month": "Monat",
+            "status": {
+                "active": "Aktiv",
+                "trial": "Testphase",
+                "cancelled": "Gekündigt",
+                "incomplete": "Unvollständig",
+                "past_due": "Überfällig"
+            },
+            "trial": {
+                "heading": "🎉 Sie nutzen eine kostenlose Testphase!",
+                "ends_on": "Ihre {plan}-Testphase endet am",
+                "auto_start": "Ihr kostenpflichtiges Abonnement startet automatisch am {date}",
+                "badge": "Testphase aktiv"
+            },
+            "upgrade": {
+                "heading": "Auf Premium upgraden",
+                "description": "Zugang zu erweiterten KI-Modellen, höheren Nachrichtenlimits und vorrangigem Support"
+            },
+            "current_plan": {
+                "title": "Aktueller Plan",
+                "description": "Ihr aktives Abonnement und Ihre Nutzungsdetails"
+            },
+            "pending_change": {
+                "heading": "Planwechsel geplant",
+                "change_from": "Ihr Plan wird gewechselt von",
+                "to": "zu",
+                "cycle_yearly": "(Jährlich)",
+                "cycle_monthly": "(Monatlich)",
+                "on_date": "am {date}.",
+                "scheduled_for": "Ein Planwechsel ist für den {date} geplant.",
+                "access_note": "Sie haben bis dahin weiterhin Zugang zu Ihren aktuellen Planfunktionen.",
+                "cancel_schedule": "Planung stornieren",
+                "cancel_dialog": {
+                    "title": "Geplanten Planwechsel stornieren",
+                    "description": "Möchten Sie Ihren geplanten Planwechsel wirklich stornieren? Sie bleiben auf Ihrem aktuellen Plan.",
+                    "confirm": "Ja, Planung stornieren",
+                    "cancel": "Planung behalten"
+                }
+            },
+            "cancelled": {
+                "title": "Abonnement gekündigt",
+                "description": "Ihr Abonnement endet am {date}. Sie können Ihr Abonnement jederzeit vor diesem Datum wieder aktivieren.",
+                "resume": "Abonnement fortsetzen"
+            },
+            "management": {
+                "title": "Verwaltung",
+                "manage_payment_methods": "Zahlungsmethoden verwalten",
+                "view_invoices": "Rechnungen anzeigen",
+                "go_to_stripe": "Zu Stripe",
+                "change_plan": "Plan wechseln",
+                "cancel_subscription": "Abonnement kündigen"
+            },
+            "cancel_dialog": {
+                "title": "Abonnement kündigen",
+                "description": "Möchten Sie Ihr Abonnement wirklich kündigen? Sie haben weiterhin Zugang bis zum Ende Ihres Abrechnungszeitraums.",
+                "confirm": "Ja, kündigen",
+                "cancel": "Abonnement behalten"
+            },
+            "usage": {
+                "title": "Nutzung",
+                "messages": "Nachrichten",
+                "pages": "Seiten",
+                "agents": "Agenten",
+                "links": "Links",
+                "minutes": "Minuten",
+                "remaining": "{count} verbleibend",
+                "load_error": "Nutzungsdaten konnten nicht geladen werden"
+            }
+        }
+    }
+}

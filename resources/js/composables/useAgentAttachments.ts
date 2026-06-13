@@ -11,13 +11,14 @@ interface AgentsPayload {
     available: Agent[];
 }
 
-type Kind = 'function' | 'connector' | 'member';
+type Kind = 'function' | 'connector' | 'chatter';
 
 /**
- * Drives the Agents tab in the Functions, Connectors, and Members sheets —
+ * Drives the Agents tab in the Functions, Connectors, and Chatters sheets —
  * a single list of every accessible agent with one toggle (on = attached).
- * All three resources expose identical endpoints; only the route names and
- * the id param key differ.
+ * All three resources expose identical endpoints; only the route-name prefix
+ * and the id param key differ. Functions/connectors live under the Workspace
+ * → Integrations group (`integrations.*`); chatters under People (`people.*`).
  */
 export function useAgentAttachments(kind: Kind) {
     const attached = ref<Agent[]>([]);
@@ -26,10 +27,10 @@ export function useAgentAttachments(kind: Kind) {
     const busyId = ref<string | null>(null);
 
     function url(action: 'index' | 'attach' | 'detach', resourceId: string, agentId?: string): string {
-        const segment = kind === 'function' ? 'functions' : kind === 'connector' ? 'connectors' : 'members';
+        const prefix = kind === 'function' ? 'integrations.functions' : kind === 'connector' ? 'integrations.connectors' : 'people.chatters';
         const idKey = kind === 'function' ? 'external_id' : kind === 'connector' ? 'slug' : 'chatter';
         const params: Record<string, string | undefined> = { [idKey]: resourceId, agent: agentId };
-        return route(`settings.${segment}.agents.${action}`, params);
+        return route(`${prefix}.agents.${action}`, params);
     }
 
     function apply(payload: AgentsPayload): void {

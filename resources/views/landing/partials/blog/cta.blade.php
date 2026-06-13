@@ -1,4 +1,4 @@
-<div data-aos="fade-up">
+<div>
     <div class="relative bg-slate-900 rounded-xs py-10 px-8 md:p-10 md:mt-24">
 
         <!-- Background illustration -->

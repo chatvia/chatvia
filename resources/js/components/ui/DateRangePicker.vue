@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { CalendarDate, DateFormatter, getLocalTimeZone, today, type DateValue } from '@internationalized/date'
+import { useI18n } from 'vue-i18n'
 
 // Local alias matching reka-ui's `DateRange` shape. We avoid importing it
 // directly to keep `DateValue` resolving to the @internationalized/date
@@ -28,6 +29,8 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const { t } = useI18n()
+
 // Convert first data date to CalendarDate
 const minDate = computed(() => {
     if (props.firstDataDate) {
@@ -40,18 +43,17 @@ const df = new DateFormatter('en-US', {
     dateStyle: 'medium',
 })
 
-// Define preset options
-const presets = [
-    { label: 'Today', value: 'today' },
-    { label: 'Yesterday', value: 'yesterday' },
-    { label: 'Last 7 days', value: 'last_7_days' },
-    { label: 'Last 30 days', value: 'last_30_days' },
-    { label: 'This month', value: 'this_month' },
-    { label: 'Last month', value: 'last_month' },
-    { label: 'Last 3 months', value: 'last_3_months' },
-    { label: 'Last 12 months', value: 'last_12_months' },
-    { label: 'Custom range', value: 'custom' },
-]
+const presets = computed(() => [
+    { label: t('shared.date_range.preset_today'), value: 'today' },
+    { label: t('shared.date_range.preset_yesterday'), value: 'yesterday' },
+    { label: t('shared.date_range.preset_last_7_days'), value: 'last_7_days' },
+    { label: t('shared.date_range.preset_last_30_days'), value: 'last_30_days' },
+    { label: t('shared.date_range.preset_this_month'), value: 'this_month' },
+    { label: t('shared.date_range.preset_last_month'), value: 'last_month' },
+    { label: t('shared.date_range.preset_last_3_months'), value: 'last_3_months' },
+    { label: t('shared.date_range.preset_last_12_months'), value: 'last_12_months' },
+    { label: t('shared.date_range.preset_custom'), value: 'custom' },
+])
 
 const selectedPreset = ref('last_7_days')
 const isOpen = ref(false)
@@ -147,9 +149,9 @@ const emitValue = () => {
 
 // Format display text
 const displayText = computed(() => {
-    if (!value.value.start || !value.value.end) return 'Pick a date range'
+    if (!value.value.start || !value.value.end) return t('shared.date_range.pick_range')
     
-    const presetLabel = presets.find(p => p.value === selectedPreset.value)?.label
+    const presetLabel = presets.value.find(p => p.value === selectedPreset.value)?.label
     if (presetLabel && selectedPreset.value !== 'custom') {
         return presetLabel
     }
@@ -164,9 +166,9 @@ const displayText = computed(() => {
             <Button
                 variant="outline"
                 :disabled="disabled"
-                :class="cn('justify-start text-left font-normal', !value && 'text-muted-foreground', props.class)"
+                :class="cn('justify-start text-start font-normal', !value && 'text-muted-foreground', props.class)"
             >
-                <CalendarIcon class="mr-2 h-4 w-4" />
+                <CalendarIcon class="me-2 h-4 w-4" />
                 {{ displayText }}
             </Button>
         </PopoverTrigger>
@@ -174,7 +176,7 @@ const displayText = computed(() => {
             <div class="p-3 border-b">
                 <Select v-model="selectedPreset">
                     <SelectTrigger class="w-full">
-                        <SelectValue placeholder="Select date range" />
+                        <SelectValue :placeholder="t('shared.date_range.select_placeholder')" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem v-for="preset in presets" :key="preset.value" :value="preset.value">
@@ -196,4 +198,3 @@ const displayText = computed(() => {
         </PopoverContent>
     </Popover>
 </template>
-

@@ -1,0 +1,134 @@
+{
+    "connectors": {
+        "categories": {
+            "utilities": "أدوات مساعدة",
+            "sales": "المبيعات",
+            "payments": "المدفوعات",
+            "developer_tools": "أدوات المطوّرين",
+            "productivity": "الإنتاجية",
+            "communication": "التواصل",
+            "automation": "الأتمتة",
+            "analytics": "التحليلات"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "ابحث في الويب مباشرةً عبر Perplexity Sonar — الأخبار والأسعار والأحداث الأخيرة — مع ذكر المصادر.",
+                "token_label": "مفتاح Perplexity API",
+                "token_placeholder": "مفتاح Perplexity API الخاص بك"
+            },
+            "weather": {
+                "name": "الطقس",
+                "description": "حالة الطقس المباشرة (درجة الحرارة والأحوال الجوية والرطوبة والرياح) لأي مدينة، بدعمٍ من OpenWeatherMap.",
+                "token_label": "مفتاح OpenWeatherMap API",
+                "token_placeholder": "مفتاح OpenWeatherMap API الخاص بك"
+            },
+            "currency": {
+                "name": "محوّل العملات",
+                "description": "حوّل المبالغ بين أي عملتين باستخدام أسعار الصرف الحالية (exchangerate-api).",
+                "token_label": "مفتاح ExchangeRate-API",
+                "token_placeholder": "مفتاح ExchangeRate-API الخاص بك"
+            },
+            "charts": {
+                "name": "الرسوم البيانية التفاعلية",
+                "description": "اعرض رسومًا بيانية تفاعلية داخل المحادثة — أعمدة وخطوط ودوائر ومبعثر ورادار وعدّاد وخريطة حرارية وغير ذلك."
+            },
+            "leads": {
+                "name": "العملاء المحتملون",
+                "description": "اجمع بيانات تواصل الزوّار (الاسم والبريد الإلكتروني والهاتف وغير ذلك)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "ابحث في المعاملات والعملاء والمنتجات والمدفوعات في حساب Stripe الخاص بك."
+            },
+            "github": {
+                "name": "GitHub",
+                "description": "اقرأ المستودعات والمشكلات وطلبات السحب والشيفرة من أي حساب لديك صلاحية الوصول إليه."
+            },
+            "notion": {
+                "name": "Notion",
+                "description": "اقرأ الصفحات وقواعد البيانات والتعليقات من مساحة عمل Notion الخاصة بك."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "ابحث في المشكلات والمشاريع والدورات عبر مساحة عمل Linear الخاصة بك."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "مشكلات Jira وصفحات Confluence وسير العمل من مواقع Atlassian الخاصة بك."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "ابحث في الرسائل واقرأ المحادثات وصُغ الردود من صندوق وارد Gmail الخاص بك."
+            },
+            "google-calendar": {
+                "name": "Google Calendar",
+                "description": "اقرأ وأنشئ الأحداث عبر تقاويم Google الخاصة بك."
+            },
+            "google-drive": {
+                "name": "Google Drive",
+                "description": "اقرأ الملفات والمجلدات من Google Drive الخاص بك."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "ابحث في الرسائل وانشر الردود واقرأ سجل القنوات عبر مساحة عمل Slack الخاصة بك."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "اسمح للزوّار بحجز الاجتماعات عبر Calendly الخاص بك، ودع الوكلاء يقرؤون أحداثك المجدولة."
+            },
+            "todoist": {
+                "name": "Todoist",
+                "description": "أدِر المهام والمشاريع والتصنيفات عبر حساب Todoist الخاص بك."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "شغّل إجراءات Zapier عبر أكثر من 9,000 تطبيق متصل."
+            },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "اقرأ التذاكر والمستخدمين ومقالات مركز المساعدة من حساب Zendesk Support الخاص بك.",
+                "token_label": "رمز Zendesk API",
+                "token_placeholder": "رمز Zendesk API الخاص بك"
+            },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "اقرأ وحدّث جهات الاتصال والشركات والصفقات والتذاكر في نظام HubSpot CRM الخاص بك."
+            },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "اقرأ وحدّث الحسابات وجهات الاتصال والفرص والحالات من مؤسسة Salesforce الخاصة بك."
+            },
+            "box": {
+                "name": "Box",
+                "description": "ابحث واقرأ الملفات والمجلدات والبيانات الوصفية من حساب Box الخاص بك."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "اقرأ وحدّث المهام والمشاريع والمحافظ عبر مساحة عمل Asana الخاصة بك."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "اقرأ المشكلات والأخطاء والإصدارات من مشاريع Sentry الخاصة بك."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "ابحث في محاضر الاجتماعات والملخّصات وبنود الإجراءات من Fireflies.ai."
+            },
+            "amplitude": {
+                "name": "Amplitude",
+                "description": "استعلم عن تحليلات المنتج — الأحداث والرسوم البيانية والمجموعات — من مشروع Amplitude الخاص بك."
+            }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "تحليلات الحساب",
+                "description": "أجب عن أسئلة مالك مساحة العمل حول حسابه بالأرقام — الرسائل والمحادثات والمستخدمون والقنوات والعملاء المحتملون ورضا العملاء وزمن الاستجابة والمواضيع والتحويلات."
+            },
+            "charts": {
+                "name": "الرسوم البيانية التفاعلية",
+                "description": "اعرض رسومًا بيانية تفاعلية (أعمدة وخطوط ودوائر وعدّاد ومبعثر ورادار وخريطة حرارية، …) داخل المحادثة."
+            }
+        }
+    }
+}

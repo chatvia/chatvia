@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('source_texts', function (Blueprint $table) {
             $table->id();
-            $table->uuid('external_id')->unique()->nullable();
+            $table->uuid('external_id')->unique();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
 
             $table->string('language')->nullable();

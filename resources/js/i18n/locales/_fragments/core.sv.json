@@ -1,0 +1,131 @@
+{
+    "common": {
+        "saved": "Sparat",
+        "remove": "Ta bort",
+        "preview": "Förhandsgranska",
+        "upload": "Ladda upp",
+        "cancel": "Avbryt",
+        "save": "Spara",
+        "confirm": "Bekräfta",
+        "deleting": "Tar bort..."
+    },
+    "nav": {
+        "account": "Konto",
+        "workspace": "Arbetsyta",
+        "logout": "Logga ut",
+        "language": "Språk"
+    },
+    "account": {
+        "layout": {
+            "heading": "Konto",
+            "description": "Hantera din personliga profil, säkerhet och data"
+        },
+        "nav": {
+            "profile": "Profil",
+            "password": "Lösenord",
+            "two_factor": "Tvåfaktor",
+            "passkeys": "Lösenordsnycklar",
+            "social": "Sociala konton",
+            "data_export": "Ladda ner mina uppgifter",
+            "delete": "Radera konto"
+        },
+        "profile": {
+            "title": "Profilinställningar",
+            "change_photo": "Ändra profilbild",
+            "upload_photo": "Ladda upp profilbild",
+            "managed_by": "Hanteras av {name}",
+            "copy_account_id": "Kopiera konto-ID",
+            "copied": "Kopierat!",
+            "remove_photo": "Ta bort bild",
+            "remove_photo_title": "Ta bort profilbild",
+            "remove_photo_description": "Din avatar återgår till dina initialer. Du kan ladda upp en ny bild när som helst.",
+            "info_title": "Profilinformation",
+            "info_description": "Uppdatera profilinformation och e-postadress för ditt konto.",
+            "name": "Namn",
+            "name_placeholder": "Fullständigt namn",
+            "email": "E-postadress",
+            "email_placeholder": "E-postadress",
+            "email_unverified": "Din e-postadress är inte verifierad.",
+            "resend_verification": "Klicka här för att skicka verifieringsmeddelandet igen.",
+            "verification_sent": "En ny verifieringslänk har skickats till din e-postadress.",
+            "updated": "Profilen uppdaterades",
+            "datetime_title": "Datum och tid",
+            "datetime_description": "Välj hur datum visas i din dashboard.",
+            "date_format": "Datumformat",
+            "date_format_placeholder": "Välj ett datumformat"
+        },
+        "password": {
+            "title": "Lösenordsinställningar",
+            "heading": "Lösenordssäkerhet",
+            "subtitle": "Hantera ditt kontos lösenord.",
+            "update_title": "Uppdatera lösenord",
+            "update_description": "Se till att ditt konto använder ett starkt, säkert lösenord för att skydda ditt konto.",
+            "current": "Nuvarande lösenord",
+            "current_placeholder": "Ange ditt nuvarande lösenord",
+            "new": "Nytt lösenord",
+            "new_placeholder": "Ange ditt nya lösenord",
+            "confirm": "Bekräfta lösenord",
+            "confirm_placeholder": "Bekräfta ditt nya lösenord",
+            "submit": "Uppdatera lösenord",
+            "updated": "Lösenordet uppdaterades"
+        },
+        "two_factor": {
+            "title": "Tvåfaktorsautentisering"
+        },
+        "passkeys": {
+            "title": "Lösenordsnycklar"
+        },
+        "social": {
+            "title": "Sociala konton"
+        },
+        "data_export": {
+            "title": "Ladda ner mina uppgifter",
+            "heading": "Ladda ner en kopia av mina uppgifter",
+            "description": "Hämta ett ZIP-arkiv med all personlig data vi har om dig — dina agenter, konversationer, meddelanden, kunskapskällor och uppladdade filer. Framtaget i enlighet med GDPR artiklarna 15 och 20.",
+            "idle_title": "Din data, i dina händer.",
+            "idle_description": "Bygget av arkivet sker i bakgrunden — vi skickar ett e-postmeddelande när det är klart. Nedladdningen är tillgänglig i 24 timmar och raderas sedan från våra servrar.",
+            "request_button": "Begär en kopia av mina uppgifter",
+            "processing_title": "Förbereder din export…",
+            "processing_description": "Vi paketerar dina uppgifter i en ZIP-fil. Det brukar ta några minuter — vi skickar ett e-postmeddelande när det är klart, och den här sidan uppdateras automatiskt.",
+            "check_status": "Kontrollera status",
+            "ready_title": "Din dataexport är klar.",
+            "available_for": "Tillgänglig i {time}",
+            "download_zip": "Ladda ner ZIP",
+            "failed_title": "Vi kunde inte förbereda din export.",
+            "try_again": "Försök igen"
+        },
+        "delete": {
+            "title": "Radera konto",
+            "subtitle": "Radera ditt konto och allt innehåll i det permanent.",
+            "data_export_title": "Vill du ha en kopia av dina uppgifter först?",
+            "data_export_description": "När ditt konto är borta försvinner dina uppgifter med det. Du kan {link} av allt vi har om dig innan du raderar.",
+            "data_export_link": "ladda ner ett arkiv",
+            "cannot_undo": "Det går inte att ångra",
+            "removes_intro": "När du raderar ditt konto tas allt i det bort permanent, inklusive:",
+            "removes_agents": "Dina agenter och deras inställningar",
+            "removes_conversations": "Alla konversationer och meddelanden",
+            "removes_knowledge": "Kunskapskällor, dokument och uppladdade filer",
+            "removes_team": "Ditt team, chatters, API-nycklar och kopplingar",
+            "agents_will_delete": "{count} agent raderas permanent: | {count} agenter raderas permanent:",
+            "subscription_cancel": "Din aktiva prenumeration avslutas och du debiteras inte igen.",
+            "email_confirmed": "E-post bekräftad. Det här är ditt sista steg — det går inte att ångra efter detta.",
+            "delete_button": "Radera mitt konto permanent",
+            "final_dialog_title": "Radera ditt konto permanent?",
+            "final_dialog_description": "Det här raderar ditt konto och all dess data permanent och går inte att ångra.",
+            "final_dialog_subscription": "Din prenumeration avslutas också.",
+            "final_confirm": "Ja, radera allt",
+            "check_email": "Kolla din e-post — vi skickade en bekräftelselänk för att slutföra raderingen av ditt konto. Den går ut om 30 minuter. Öppna länken för att fortsätta.",
+            "resend_link": "Skicka länken igen",
+            "password_dialog_title": "Bekräfta ditt lösenord",
+            "password_dialog_description": "Ange ditt lösenord för att fortsätta. Vi skickar en bekräftelselänk till din e-post för att slutföra raderingen av ditt konto.",
+            "password_placeholder": "Lösenord",
+            "send_confirmation": "Skicka bekräftelsemail"
+        }
+    },
+    "workspace": {
+        "layout": {
+            "heading": "Arbetsyta",
+            "description": "Hantera integrationer, personer och styrning"
+        }
+    }
+}

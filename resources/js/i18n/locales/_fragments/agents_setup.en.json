@@ -3,9 +3,9 @@
         "setup": {
             "title": "Setup",
             "surfaces": {
-                "chat": "Chat",
-                "widget": "Widget",
-                "bar": "Bar"
+                "chat": "Hosted Chat",
+                "widget": "Chat Widget",
+                "bar": "Command Bar"
             },
             "menu": {
                 "info": "Info",
@@ -48,8 +48,8 @@
                 "logo_removed": "Logo removed",
                 "remove_error": "Could not remove {key}",
                 "hosted_saved": "Hosted Chat behaviour saved",
-                "widget_saved": "Widget behaviour saved",
-                "bar_saved": "Bar behaviour saved",
+                "widget_saved": "Chat Widget behaviour saved",
+                "bar_saved": "Command Bar behaviour saved",
                 "behaviour_error": "Could not save behaviour",
                 "bubbles_saved": "Bubbles saved",
                 "bubbles_error": "Could not save bubbles",
@@ -112,9 +112,9 @@
             "behavior": {
                 "hosted_title": "Hosted Chat behaviour",
                 "hosted_description": "Iframe options for the embedded Hosted Chat surface.",
-                "widget_title": "Widget behaviour",
+                "widget_title": "Chat Widget behaviour",
                 "widget_description": "Position, size, theme, and allowlisted sites for the floating widget.",
-                "bar_title": "Bar behaviour",
+                "bar_title": "Command Bar behaviour",
                 "bar_description": "Keyboard trigger and on-page position of the launcher.",
                 "default_theme": "Default theme",
                 "language": "Language",
@@ -192,6 +192,7 @@
                 "methods": "Methods",
                 "events": "Events",
                 "events_hint": "Subscribe to widget events using window.chatvia.on(event, callback)",
+                "code_language": "JavaScript",
                 "method_col": "Method",
                 "description_col": "Description",
                 "quick_example": "Quick example:",

@@ -1,0 +1,97 @@
+{
+    "teams": {
+        "permissions_meta": {
+            "scopes": {
+                "agent": {
+                    "label": "مجوزهای عامل",
+                    "description": "کارهایی که این نقش می‌تواند در هر عاملی که به آن دسترسی دارد انجام دهد. این اقدامات به ازای هر عامل اعمال می‌شوند — از فهرست دسترسی به عامل در بالا انتخاب می‌شود."
+                },
+                "account": {
+                    "label": "مجوزهای حساب",
+                    "description": "ابزارها و تنظیمات مشترک در سطح حساب. این موارد یک‌بار برای همه عامل‌ها اعمال می‌شوند و از منوی تنظیمات مدیریت می‌شوند."
+                }
+            },
+            "groups": {
+                "setup": { "label": "راه‌اندازی", "description": "ویرایش خود عامل — شخصیت، مدل‌ها، ویجت و جاسازی." },
+                "sources": { "label": "منابع", "description": "مدیریت داده‌های آموزشی که عامل از آن‌ها یاد می‌گیرد." },
+                "chat": { "label": "چت", "description": "خواندن، تصاحب، خروجی‌گرفتن یا حذف مکالمات فعال." },
+                "audit": { "label": "حسابرسی", "description": "مشاهده گزارش حسابرسی فراخوانی ابزار (ابزارها، رابط‌ها، تأییدیه‌ها)." },
+                "evals": { "label": "ارزیابی‌ها", "description": "آزمون عامل در برابر مجموعه‌ای از تست‌ها و پیگیری نرخ موفقیت در طول زمان." },
+                "guardrails": {
+                    "label": "موانع امنیتی",
+                    "description": "حفاظ‌های ایمنی هوش مصنوعی: اطلاعات شخصی، تزریق دستور، موضوعات مسدود و سمیت."
+                },
+                "analytics": { "label": "تحلیل‌ها", "description": "بررسی استفاده، احساسات، لحن، موضوعات و عملکرد منابع." },
+                "topics": { "label": "موضوعات", "description": "مدیریت موضوعاتی که مکالمات زیر آن‌ها دسته‌بندی می‌شوند." },
+                "leads": { "label": "سرنخ‌ها", "description": "مشاهده، پیکربندی و خروجی‌گرفتن سرنخ‌های ثبت‌شده توسط عامل." },
+                "administration": { "label": "مدیریت", "description": "وظایف مدیریتی به ازای هر عامل — چت‌کنندگان و امضای محرمانه." },
+                "security": { "label": "امنیت", "description": "اعتبارنامه‌های شخصی برای فراخوانی API عمومی." },
+                "integrations": {
+                    "label": "یکپارچه‌سازی‌ها",
+                    "description": "اتصال سرویس‌های شخص ثالث و توابع webhook سفارشی، و سپس الحاق آن‌ها به هر عامل."
+                },
+                "library": { "label": "کتابخانه", "description": "دستورالعمل‌های قابل استفاده مجدد که در سراسر حساب به اشتراک گذاشته می‌شوند." },
+                "people": { "label": "افراد", "description": "مدیریت چت‌کنندگانی که به عامل‌های شما دسترسی دارند." },
+                "governance": {
+                    "label": "حاکمیت",
+                    "description": "حسابرسی و کنترل تمام اقداماتی که عامل‌های شما از طریق ابزارها و رابط‌ها انجام می‌دهند."
+                }
+            },
+            "codes": {
+                "agents_access_all": { "label": "دسترسی به همه عامل‌ها", "description": "اعطای دسترسی به تمام عامل‌های فعلی و آینده در تیم" },
+                "agent_setup": { "label": "راه‌اندازی عامل", "description": "تغییر تنظیمات، شخصیت و رفتار عامل" },
+                "agent_sources_train_files": { "label": "آموزش با فایل‌ها", "description": "آپلود و پردازش اسناد (PDF، Word و غیره)" },
+                "agent_sources_train_text": { "label": "آموزش با متن", "description": "آپلود و پردازش فایل‌های متن ساده" },
+                "agent_sources_train_qa": { "label": "آموزش با پرسش و پاسخ", "description": "افزودن جفت‌های سوال و جواب" },
+                "agent_sources_train_web": { "label": "آموزش با وب", "description": "خزش و پردازش محتوای وب‌سایت" },
+                "agent_sources_train_audio": { "label": "آموزش با صوت", "description": "آپلود و تبدیل فایل‌های صوتی به متن" },
+                "agent_sources_train_video": { "label": "آموزش با ویدیو", "description": "آپلود و تبدیل فایل‌های ویدیویی به متن" },
+                "agent_sources_train_functions": {
+                    "label": "مدیریت توابع",
+                    "description": "تعریف فراخوانی‌های ابزار LLM که به endpoint های webhook شما متصل می‌شوند"
+                },
+                "agent_sources_train_connectors": {
+                    "label": "مدیریت رابط‌ها",
+                    "description": "اتصال سرویس‌های شخص ثالث (Stripe، GitHub، Notion، …) به عنوان منابع داده زنده"
+                },
+                "agent_sources_delete": { "label": "حذف منابع", "description": "حذف منابع آموزشی از عامل" },
+                "agent_chat_view": { "label": "مشاهده مکالمات", "description": "خواندن تاریخچه چت و گزارش‌های مکالمه" },
+                "agent_chat_pulse": { "label": "نبض مکالمه", "description": "مشاهده معیارهای سلامت مکالمه در لحظه و پیگیری احساسات" },
+                "agent_chat_takeover": { "label": "تصاحب مکالمه", "description": "کنترل یک مکالمه زنده را از هوش مصنوعی به دست گرفتن" },
+                "agent_chat_delete": { "label": "حذف مکالمات", "description": "حذف دائمی تاریخچه مکالمات" },
+                "agent_chat_export": { "label": "خروجی مکالمات", "description": "خروجی‌گرفتن تاریخچه چت به CSV یا فرمت‌های دیگر" },
+                "agent_audit_view": { "label": "مشاهده گزارش حسابرسی", "description": "مشاهده گزارش حسابرسی فراخوانی ابزار برای این عامل" },
+                "agent_evals_view": { "label": "مشاهده ارزیابی‌ها", "description": "مشاهده مجموعه‌های ارزیابی عامل و تاریخچه اجرا" },
+                "agent_evals_manage": { "label": "مدیریت ارزیابی‌ها", "description": "ایجاد موارد آزمایشی و اجرای مجموعه‌های ارزیابی" },
+                "agent_guardrails_view": {
+                    "label": "مشاهده موانع امنیتی",
+                    "description": "مشاهده تنظیمات ایمنی هوش مصنوعی و گزارش رویدادها برای این عامل"
+                },
+                "agent_guardrails_manage": {
+                    "label": "مدیریت موانع امنیتی",
+                    "description": "پیکربندی حفاظ‌های اطلاعات شخصی، تزریق دستور، موضوعات و سمیت"
+                },
+                "agent_analytics_chats": { "label": "تحلیل چت‌ها", "description": "مشاهده حجم مکالمات و روندها" },
+                "agent_analytics_sentiment": { "label": "احساسات", "description": "مشاهده تحلیل احساسات مکالمات" },
+                "agent_analytics_tone": { "label": "لحن‌ها", "description": "مشاهده تحلیل لحن مکالمات" },
+                "agent_analytics_topics": { "label": "موضوعات", "description": "مشاهده و مدیریت موضوعات" },
+                "agent_analytics_sources": { "label": "منابع", "description": "مشاهده اینکه کدام منابع در پاسخ‌ها استفاده می‌شوند" },
+                "agent_topics_manage": { "label": "مدیریت موضوعات", "description": "ایجاد، ویرایش و حذف موضوعات مکالمه" },
+                "agent_leads_view": { "label": "مشاهده سرنخ‌ها", "description": "مشاهده اطلاعات سرنخ‌های ثبت‌شده" },
+                "agent_leads_settings": { "label": "تنظیمات سرنخ", "description": "پیکربندی فرم‌ها و قوانین ثبت سرنخ" },
+                "agent_leads_export": { "label": "خروجی سرنخ‌ها", "description": "دانلود سرنخ‌ها به صورت CSV یا یکپارچه‌سازی با CRM" },
+                "agent_members_manage": { "label": "چت‌کنندگان عامل", "description": "دعوت، مشاهده و حذف چت‌کنندگانی که به این عامل دسترسی دارند" },
+                "agent_identity_manage": {
+                    "label": "تأیید هویت عامل",
+                    "description": "مشاهده و استفاده از امضای محرمانه مختص هر عامل برای توکن‌های ورود"
+                },
+                "account_api_keys": { "label": "کلیدهای API", "description": "ایجاد و ابطال توکن‌های API شخصی" },
+                "account_connectors": { "label": "رابط‌ها", "description": "مدیریت رابط‌های شخص ثالث در سطح حساب (سرورهای MCP)" },
+                "account_functions": { "label": "توابع", "description": "تعریف توابع webhook که عامل‌ها می‌توانند فراخوانی کنند" },
+                "account_prompts": { "label": "دستورالعمل‌ها", "description": "مدیریت کتابخانه دستورالعمل‌های مشترک" },
+                "account_members_manage": { "label": "چت‌کنندگان", "description": "مشاهده، بازنشانی رمز عبور و حذف چت‌کنندگان در سراسر فضای کاری" },
+                "account_governance": { "label": "حاکمیت", "description": "مشاهده گزارش حسابرسی فراخوانی ابزار و کنترل دسترسی‌ها" }
+            }
+        }
+    }
+}

@@ -142,7 +142,7 @@
             "table": {
                 "name": "Name",
                 "messages": "Messages",
-                "members": "Members",
+                "members": "Chatters",
                 "created": "Created"
             }
         },
@@ -158,7 +158,137 @@
             "connect": "Connect",
             "connected": "Connected",
             "disconnect": "Disconnect",
-            "setup": "Setup",
+            "setup": {
+                "names": {
+                    "telegram": "Telegram",
+                    "slack": "Slack",
+                    "messenger": "Messenger",
+                    "whatsapp": "WhatsApp",
+                    "msteams": "Microsoft Teams",
+                    "instagram": "Instagram"
+                },
+                "public_only": "{channel} is available for public agents only. Make this agent public on its {security} page, then connect it here.",
+                "labels": {
+                    "bot_token": "Bot token",
+                    "signing_secret": "Signing secret",
+                    "request_url": "Request URL",
+                    "callback_url": "Callback URL",
+                    "verify_token": "Verify token",
+                    "page_access_token": "Page access token",
+                    "app_secret": "App secret",
+                    "access_token": "Access token",
+                    "phone_number_id": "Phone number ID",
+                    "waba_id": "WhatsApp Business Account ID",
+                    "microsoft_app_id": "Microsoft App ID",
+                    "client_secret": "Client secret",
+                    "tenant_id": "Tenant ID",
+                    "messaging_endpoint": "Messaging endpoint"
+                },
+                "hints": {
+                    "tenant_single_only": "(Single Tenant bots only)"
+                },
+                "placeholders": {
+                    "telegram_bot_token": "123456789:ABCdef…",
+                    "slack_bot_token": "xoxb-…",
+                    "meta_token": "EAAG…",
+                    "phone_number_id": "123456789012345",
+                    "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
+                    "tenant_id": "Leave empty for Multi Tenant",
+                    "instagram_token": "IGAA…"
+                },
+                "guide": {
+                    "need_detail_before": "Need more detail? Follow the",
+                    "step_by_step_guide": "step-by-step guide",
+                    "need_detail_after": "with screenshots."
+                },
+                "shared": {
+                    "subscribe_webhook": "Subscribe the webhook to the {field} field",
+                    "messages_field": "messages",
+                    "create_meta_app_at": "Create an app at {link}",
+                    "copy_app_secret_both": "Copy the app secret from {section} and paste both below",
+                    "copy_app_secret_all": "Copy the app secret from {section} and paste everything below",
+                    "copy_app_secret_same_page": "Copy the app secret from the same page and paste both below",
+                    "reply_streams_live": "— the reply streams in live"
+                },
+                "telegram": {
+                    "connected_description": "People can message your bot on Telegram and your agent replies automatically — billing, history, and guardrails all apply.",
+                    "steps": {
+                        "connect_1": "Open {botfather} in Telegram",
+                        "connect_2": "Send {command} and follow the prompts",
+                        "connect_3": "Paste the token below — we connect it automatically"
+                    },
+                    "botfather": "{'@'}BotFather"
+                },
+                "slack": {
+                    "steps": {
+                        "connected_1": "In {link}, open {event_subscriptions}, enable it, and paste the Request URL above",
+                        "connected_2": "Subscribe to the bot events {mention} and {im}, then save",
+                        "connected_3": "Invite the bot to a channel with {invite} and @@mention it {live}",
+                        "connect_1": "Create an app at {link} in your workspace",
+                        "connect_2": "Under {oauth}, add the bot scopes {scope1}, {scope2}, {scope3}, then install the app and copy the bot token",
+                        "connect_3": "Copy the signing secret from {basic_info} and paste both below"
+                    },
+                    "your_slack_app": "your Slack app",
+                    "event_subscriptions": "Event Subscriptions",
+                    "oauth_permissions": "OAuth & Permissions",
+                    "basic_information": "Basic Information"
+                },
+                "messenger": {
+                    "steps": {
+                        "connected_1": "In {link}, open {webhooks} and paste the Callback URL + verify token above",
+                        "connected_3": "Message your page on Messenger — your agent replies automatically",
+                        "connect_1": "Create an app at {link} and add the {product} product",
+                        "connect_2": "Under {api_settings}, connect your Facebook Page and generate a page access token"
+                    },
+                    "your_meta_app": "your Meta app",
+                    "webhooks_path": "Messenger → Settings → Webhooks",
+                    "api_settings_path": "Messenger → API settings",
+                    "app_settings_basic": "App settings → Basic",
+                    "product": "Messenger"
+                },
+                "whatsapp": {
+                    "steps": {
+                        "connected_1": "In {link}, open {configuration} and paste the Callback URL + verify token above",
+                        "connected_3": "Message your number on WhatsApp — your agent replies automatically",
+                        "connect_1": "Create an app at {link} with the {use_case} use case",
+                        "connect_2": "Complete {basic_setup}, then copy the phone number ID, WhatsApp Business Account ID, and an access token"
+                    },
+                    "configuration_path": "WhatsApp → Configuration",
+                    "use_case": "Connect with customers through WhatsApp",
+                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                },
+                "msteams": {
+                    "app_id_label": "App {id}",
+                    "steps": {
+                        "connected_1": "In {link}, open your bot's {configuration} page and paste the messaging endpoint above",
+                        "connected_2": "Under {channels}, add {teams}",
+                        "connected_3": "{open_chat} {live}",
+                        "connect_1": "Create an {azure_bot} resource at {link} (Multi Tenant or Single Tenant)",
+                        "connect_2": "Copy the {app_id} from Configuration, then create a client secret under {secrets}",
+                        "connect_3": "Paste both below — for a Single Tenant bot also add your {tenant_id}"
+                    },
+                    "azure_portal": "the Azure portal",
+                    "configuration": "Configuration",
+                    "channels": "Channels",
+                    "azure_bot": "Azure Bot",
+                    "microsoft_app_id": "Microsoft App ID",
+                    "manage_password": "Manage password → Certificates & secrets",
+                    "directory_tenant_id": "Directory (tenant) ID",
+                    "open_chat_in_teams": "Open a chat with your bot in Teams"
+                },
+                "instagram": {
+                    "steps": {
+                        "connected_1": "In {link}, open {webhooks} and paste the Callback URL + verify token above",
+                        "connected_3": "In the Instagram app, allow message access under {message_controls}, then DM your account",
+                        "connect_1": "Create an app at {link} and add the {product} product — your Instagram account must be a professional (business or creator) account",
+                        "connect_2": "Under {api_setup}, generate an access token for your account"
+                    },
+                    "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
+                    "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
+                    "api_setup_path": "Instagram → API setup with Instagram login",
+                    "product": "Instagram"
+                }
+            },
             "security": "Security",
             "no_permission": "You don't have permission to manage channels.",
             "private_title": "Public agents only",
@@ -202,7 +332,8 @@
                 "tagline": "Connect an Instagram account",
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "Instagram connected"
-            }
+            },
+            "setup_tab": "Setup"
         },
         "chatlog": {
             "title": "Chat log",
@@ -235,9 +366,9 @@
                 "satisfied": "Satisfied"
             },
             "source": {
-                "hosted_chat": "Hosted chat",
-                "widget": "Widget",
-                "bar": "Search bar",
+                "hosted_chat": "Hosted Chat",
+                "widget": "Chat Widget",
+                "bar": "Command Bar",
                 "telegram": "Telegram",
                 "slack": "Slack",
                 "messenger": "Messenger",
@@ -476,7 +607,17 @@
             "snippet": "Snippet",
             "detail": "Detail",
             "by_user": "By {name}",
-            "conversation_trace": "Conversation {conversation} · Trace {trace}"
+            "conversation_trace": "Conversation {conversation} · Trace {trace}",
+            "injection_label": "Prompt injection detection",
+            "injection_help": "Detect and block attempts to override the agent's instructions or extract its system prompt.",
+            "toxicity_label": "Toxicity filtering",
+            "toxicity_help": "Detect and block toxic, hateful, or abusive language in messages.",
+            "guard_labels": {
+                "prompt_injection": "Prompt injection",
+                "pii": "PII",
+                "blocked_topic": "Blocked topic",
+                "toxicity": "Toxicity"
+            }
         },
         "persona": {
             "title": "Persona",
@@ -512,6 +653,11 @@
                 "desktop": "Desktop",
                 "tablet": "Tablet",
                 "mobile": "Mobile"
+            },
+            "tabs": {
+                "chat": "Hosted Chat",
+                "widget": "Chat Widget",
+                "bar": "Command Bar"
             }
         },
         "evals": {
@@ -657,6 +803,13 @@
                     "run_deleted": "Run deleted",
                     "history_cleared": "Run history cleared"
                 }
+            },
+            "scorers": {
+                "contains": "Contains",
+                "regex": "Regex",
+                "exact": "Exact match",
+                "json_schema": "JSON schema",
+                "llm_judge": "LLM judge"
             }
         },
         "identity_verification": {
@@ -1371,8 +1524,8 @@
             "functions_tooltip": "Manage custom functions your agent can call",
             "connectors": "Connectors",
             "connectors_tooltip": "Attach connectors so your agent can use external tools",
-            "members": "Members",
-            "members_tooltip": "People granted access to chat with this agent",
+            "members": "Chatters",
+            "members_tooltip": "Chatters granted access to chat with this agent",
             "security": "Security",
             "security_tooltip": "Access control, signing secret and rate limits for this agent",
             "identity": "Identity",
@@ -1402,7 +1555,9 @@
                 "subdomain_placeholder": "your-subdomain",
                 "subdomain_hint": "Only lowercase letters, numbers, and hyphens allowed.",
                 "save": "Save"
-            }
+            },
+            "deploy": "Deploy",
+            "deploy_tooltip": "Embed your agent — chat widget, hosted chat, or command bar"
         },
         "create_modal": {
             "title": "Create Agent",
@@ -1473,13 +1628,13 @@
             "not_found_hint": "Please check the URL or contact your administrator if you believe this agent should be available."
         },
         "members": {
-            "title": "Members",
-            "description": "Everyone in your workspace. Members with access to this agent are listed first; grant any other member access in one click.",
+            "title": "Chatters",
+            "description": "Your chatters. Those with access to this agent are listed first; grant any other chatter access in one click.",
             "public_title": "This agent is public",
-            "public_description": "Anyone with the link can chat with this agent, so member grants don't apply. To use members, make the agent protected from its Setup tab.",
-            "search_placeholder": "Search members...",
-            "count": "{filtered} of {total} member | {filtered} of {total} members",
-            "invite_member": "Invite member",
+            "public_description": "Anyone with the link can chat with this agent, so chatter grants don't apply. To use chatters, make the agent protected from its Setup tab.",
+            "search_placeholder": "Search chatters...",
+            "count": "{filtered} of {total} chatter | {filtered} of {total} chatters",
+            "invite_member": "Invite chatter",
             "table": {
                 "name": "Name",
                 "email": "Email",
@@ -1496,14 +1651,14 @@
                 "no_access": "No access"
             },
             "no_email": "No email",
-            "empty_title": "No members in your workspace yet.",
+            "empty_title": "No chatters yet.",
             "empty_description": "Invite someone to get started — they'll show up here.",
-            "no_results_title": "No members found matching your search.",
+            "no_results_title": "No chatters found matching your search.",
             "no_results_description": "Try adjusting your search terms.",
             "grant": "Grant",
             "grant_title": "Grant {name} access to this agent",
             "revoke_title": "Revoke access for {name}",
-            "invite_dialog_title": "Invite a member",
+            "invite_dialog_title": "Invite a chatter",
             "invite_dialog_description": "We'll email a sign-up link to this address. They can set a password or sign in with Google or Slack.",
             "email_label": "Email address",
             "email_placeholder": "person{'@'}example.com",
@@ -1513,23 +1668,23 @@
             "expires": "Expires {date}.",
             "invite_another": "Invite another",
             "done": "Done",
-            "sheet_description": "Member details and access for this agent.",
+            "sheet_description": "Chatter details and access for this agent.",
             "member_id": "ID",
-            "copy_member_id": "Copy member ID",
+            "copy_member_id": "Copy chatter ID",
             "joined": "Joined {date}",
             "invitation_pending": "Invitation pending",
-            "invitation_pending_hint": "This member hasn't accepted yet. Share their personal sign-up link below.",
+            "invitation_pending_hint": "This chatter hasn't accepted yet. Share their personal sign-up link below.",
             "link_expired": "The invitation link has expired or is no longer available. Generate a fresh one below.",
             "resend_invitation": "Resend invitation",
             "generate_link": "Generate new link",
-            "manage_hint": "To manage this member, go to the {link}.",
-            "members_page": "members page",
+            "manage_hint": "To manage this chatter, go to the {link}.",
+            "members_page": "chatters page",
             "revoke_access": "Revoke access",
             "grant_access": "Grant access",
             "revoke_dialog_title": "Revoke access",
             "revoke_dialog_description": "{name} will lose access to this agent immediately. They stay in your workspace and you can grant access again at any time.",
             "revoke": "Revoke",
-            "load_error": "Failed to load members",
+            "load_error": "Failed to load chatters",
             "invitation_sent": "Invitation sent",
             "invitation_sent_to": "Invitation sent to {email}",
             "access_revoked": "{name} no longer has access to this agent",
@@ -1542,9 +1697,9 @@
         "setup": {
             "title": "Setup",
             "surfaces": {
-                "chat": "Chat",
-                "widget": "Widget",
-                "bar": "Bar"
+                "chat": "Hosted Chat",
+                "widget": "Chat Widget",
+                "bar": "Command Bar"
             },
             "menu": {
                 "info": "Info",
@@ -1587,8 +1742,8 @@
                 "logo_removed": "Logo removed",
                 "remove_error": "Could not remove {key}",
                 "hosted_saved": "Hosted Chat behaviour saved",
-                "widget_saved": "Widget behaviour saved",
-                "bar_saved": "Bar behaviour saved",
+                "widget_saved": "Chat Widget behaviour saved",
+                "bar_saved": "Command Bar behaviour saved",
                 "behaviour_error": "Could not save behaviour",
                 "bubbles_saved": "Bubbles saved",
                 "bubbles_error": "Could not save bubbles",
@@ -1651,9 +1806,9 @@
             "behavior": {
                 "hosted_title": "Hosted Chat behaviour",
                 "hosted_description": "Iframe options for the embedded Hosted Chat surface.",
-                "widget_title": "Widget behaviour",
+                "widget_title": "Chat Widget behaviour",
                 "widget_description": "Position, size, theme, and allowlisted sites for the floating widget.",
-                "bar_title": "Bar behaviour",
+                "bar_title": "Command Bar behaviour",
                 "bar_description": "Keyboard trigger and on-page position of the launcher.",
                 "default_theme": "Default theme",
                 "language": "Language",
@@ -1746,7 +1901,8 @@
                     "destroy": "Destroys widget & cleans up",
                     "on": "Subscribe to events (open, close, ready)",
                     "off": "Unsubscribe from events"
-                }
+                },
+                "code_language": "JavaScript"
             },
             "options": {
                 "theme_auto": "Auto",
@@ -2003,6 +2159,45 @@
                 "months_ago": "{count} month ago | {count} months ago",
                 "years_ago": "{count} year ago | {count} years ago"
             }
+        },
+        "deploy": {
+            "title": "Deploy",
+            "subtitle": "Put your agent in front of people — pick a surface and copy the code.",
+            "head_title": "Deploy — {name}",
+            "copy": "Copy",
+            "copied": "Copied!",
+            "copy_failed": "Copy failed",
+            "customize": "Customize appearance",
+            "install_label": "Add this to your site",
+            "protected_title": "This agent is protected",
+            "protected_description": "Embeds need a signed token, otherwise anyone with the snippet sees a locked screen. Make it public or wire up auth in",
+            "open_security": "Security settings",
+            "widget": {
+                "title": "Chat Widget",
+                "description": "A floating chat bubble in the corner of any page — the classic assistant."
+            },
+            "chat": {
+                "title": "Hosted Chat",
+                "description": "A full-page chat at your own link. Share it directly, or embed it in a page.",
+                "url_label": "Agent URL",
+                "open": "Open",
+                "embed_label": "Embed in a page",
+                "iframe_title": "Chat with {name}",
+                "width": "Width",
+                "height": "Height",
+                "preset_full": "Full",
+                "preset_large": "Large",
+                "preset_medium": "Medium",
+                "preset_small": "Small"
+            },
+            "bar": {
+                "title": "Command Bar",
+                "description": "A ⌘K command-palette overlay. Perfect for docs, dashboards, and apps."
+            },
+            "save": "Save",
+            "sites_saved": "Allowed sites updated",
+            "sites_error": "Couldn't save — please try again",
+            "api_docs": "JavaScript API"
         }
     },
     "auth": {
@@ -2103,7 +2298,9 @@
             "verify": "Verify",
             "verifying": "Verifying...",
             "use_recovery_code": "Use a recovery code",
-            "use_authenticator_code": "Use an authenticator code"
+            "use_authenticator_code": "Use an authenticator code",
+            "code_placeholder": "123456",
+            "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
         "set_password": {
             "title": "Choose your password",
@@ -2213,6 +2410,13 @@
             "card_title": "Invitation Expired",
             "contact_owner": "Please contact the team owner to request a new invitation.",
             "go_to_login": "Go to Login"
+        },
+        "split": {
+            "headline": "Build your own {brand} in minutes",
+            "subheadline": "Create AI assistants that learn from {data} and knowledge",
+            "your_data": "your data",
+            "secure_data": "Secure data handling",
+            "custom_gpt": "Custom GPT"
         }
     },
     "billing": {
@@ -2528,6 +2732,183 @@
                 "remaining": "{count} remaining",
                 "load_error": "Unable to load usage data"
             }
+        },
+        "catalog": {
+            "packages": {
+                "starter": {
+                    "name": "Starter",
+                    "description": "For small businesses getting started.",
+                    "features": {
+                        "monthly": {
+                            "messages": "6,000 messages per month",
+                            "agents": "5 AI agents",
+                            "pages": "2,000 pages (PDF, Word, Text)",
+                            "links": "2,000 website links",
+                            "minutes": "500 minutes audio/video",
+                            "teams": "1 team",
+                            "members": "5 members (team members + chatters)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "90 days of chat history"
+                        },
+                        "yearly": {
+                            "messages": "78,000 messages per year",
+                            "agents": "5 AI agents",
+                            "pages": "2,000 pages (PDF, Word, Text)",
+                            "links": "2,000 website links",
+                            "minutes": "500 minutes audio/video",
+                            "teams": "1 team",
+                            "members": "5 members (team members + chatters)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "90 days of chat history"
+                        }
+                    }
+                },
+                "standard": {
+                    "name": "Standard",
+                    "description": "For growing teams and businesses.",
+                    "features": {
+                        "monthly": {
+                            "messages": "15,000 messages per month",
+                            "agents": "10 AI agents",
+                            "pages": "5,000 pages (PDF, Word, Text)",
+                            "links": "5,000 website links",
+                            "minutes": "2,000 minutes audio/video",
+                            "sentiment": "Sentiment analysis",
+                            "handoff": "Handoff",
+                            "api": "API access",
+                            "teams": "5 team",
+                            "members": "20 members (team members + chatters)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "180 days of chat history"
+                        },
+                        "yearly": {
+                            "messages": "192,000 messages per year",
+                            "agents": "10 AI agents",
+                            "pages": "5,000 pages (PDF, Word, Text)",
+                            "links": "5,000 website links",
+                            "minutes": "2,000 minutes audio/video",
+                            "sentiment": "Sentiment analysis",
+                            "handoff": "Handoff",
+                            "api": "API access",
+                            "teams": "5 team",
+                            "members": "20 members (team members + chatters)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "180 days of chat history"
+                        }
+                    }
+                },
+                "pro": {
+                    "name": "Pro",
+                    "description": "For organizations that need it all.",
+                    "features": {
+                        "monthly": {
+                            "messages": "50,000 messages per month",
+                            "agents": "20 AI agents",
+                            "pages": "10,000 pages (PDF, Word, Text)",
+                            "links": "10,000 website links",
+                            "minutes": "10,000 minutes audio/video",
+                            "sentiment": "Sentiment analysis",
+                            "tone": "Tone analysis",
+                            "topics": "Topic analysis",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API access",
+                            "integrations": "Custom integrations",
+                            "branding": "White-label (remove Chatvia branding)",
+                            "teams": "10 team",
+                            "members": "100 members (team members + chatters)",
+                            "retention": "366 days of chat history"
+                        },
+                        "yearly": {
+                            "messages": "648,000 messages per year",
+                            "agents": "20 AI agents",
+                            "pages": "10,000 pages (PDF, Word, Text)",
+                            "links": "10,000 website links",
+                            "minutes": "10,000 minutes audio/video",
+                            "sentiment": "Sentiment analysis",
+                            "tone": "Tone analysis",
+                            "topics": "Topic analysis",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API access",
+                            "integrations": "Custom integrations",
+                            "branding": "White-label (remove Chatvia branding)",
+                            "teams": "10 team",
+                            "members": "100 members (team members + chatters)",
+                            "retention": "366 days of chat history"
+                        }
+                    }
+                },
+                "enterprise": {
+                    "name": "Enterprise",
+                    "description": "For organizations with security, compliance, and scale needs.",
+                    "features": {
+                        "monthly": {
+                            "messages": "Custom message volume",
+                            "agents": "Unlimited AI agents",
+                            "pages": "Custom knowledge base",
+                            "links": "Custom website links",
+                            "minutes": "Custom audio/video",
+                            "sentiment": "Sentiment analysis",
+                            "tone": "Tone analysis",
+                            "topics": "Topic analysis",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API access",
+                            "integrations": "Custom integrations",
+                            "branding": "White-label (remove Chatvia branding)",
+                            "residency": "EU data residency",
+                            "sso": "SSO / SAML",
+                            "sla": "Uptime SLA",
+                            "support": "Dedicated support",
+                            "dpa": "Custom contract & DPA",
+                            "teams": "Unlimited teams",
+                            "members": "Unlimited members",
+                            "retention": "Custom data retention"
+                        },
+                        "yearly": {
+                            "messages": "Custom message volume",
+                            "agents": "Unlimited AI agents",
+                            "pages": "Custom knowledge base",
+                            "links": "Custom website links",
+                            "minutes": "Custom audio/video",
+                            "sentiment": "Sentiment analysis",
+                            "tone": "Tone analysis",
+                            "topics": "Topic analysis",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API access",
+                            "integrations": "Custom integrations",
+                            "branding": "White-label (remove Chatvia branding)",
+                            "residency": "EU data residency",
+                            "sso": "SSO / SAML",
+                            "sla": "Uptime SLA",
+                            "support": "Dedicated support",
+                            "dpa": "Custom contract & DPA",
+                            "teams": "Unlimited teams",
+                            "members": "Unlimited members",
+                            "retention": "Custom data retention"
+                        }
+                    }
+                }
+            },
+            "ui": {
+                "yearly_savings_text": "Save 20%",
+                "popular_badge_text": "Most Popular",
+                "current_plan_text": "Current Plan"
+            }
         }
     },
     "teams": {
@@ -2664,6 +3045,234 @@
                 "subtitle_prefix": "Update the",
                 "subtitle_middle": "role for",
                 "save": "Save"
+            }
+        },
+        "permissions_meta": {
+            "scopes": {
+                "agent": {
+                    "label": "Agent permissions",
+                    "description": "What this role can do inside each agent it has access to. These actions apply per agent — picked from the Agent Access list above."
+                },
+                "account": {
+                    "label": "Account permissions",
+                    "description": "Shared, account-wide tools and settings. These apply once across every agent and are managed from the Settings menu."
+                }
+            },
+            "groups": {
+                "setup": {
+                    "label": "Setup",
+                    "description": "Edit the agent itself — personality, models, widget, embed."
+                },
+                "sources": {
+                    "label": "Sources",
+                    "description": "Manage the training data the agent learns from."
+                },
+                "chat": {
+                    "label": "Chat",
+                    "description": "Read, take over, export, or delete live conversations."
+                },
+                "audit": {
+                    "label": "Audit",
+                    "description": "View the tool-call audit log (tools, connectors, approvals)."
+                },
+                "evals": {
+                    "label": "Evals",
+                    "description": "Test the agent against a suite and track pass-rate over time."
+                },
+                "guardrails": {
+                    "label": "Guardrails",
+                    "description": "AI-safety guards: PII, prompt-injection, blocked topics, toxicity."
+                },
+                "analytics": {
+                    "label": "Analytics",
+                    "description": "Inspect usage, sentiment, tone, topics, and source performance."
+                },
+                "topics": {
+                    "label": "Topics",
+                    "description": "Curate the topics conversations are grouped under."
+                },
+                "leads": {
+                    "label": "Leads",
+                    "description": "See, configure, and export leads captured by the agent."
+                },
+                "administration": {
+                    "label": "Administration",
+                    "description": "Owner-style per-agent tasks — chatters and signing secret."
+                },
+                "security": {
+                    "label": "Security",
+                    "description": "Personal credentials used to call the public API."
+                },
+                "integrations": {
+                    "label": "Integrations",
+                    "description": "Connect third-party services and custom webhook functions, then attach them to any agent."
+                },
+                "library": {
+                    "label": "Library",
+                    "description": "Reusable prompts shared across the account."
+                },
+                "people": {
+                    "label": "People",
+                    "description": "Manage the chatters granted access to your agents."
+                },
+                "governance": {
+                    "label": "Governance",
+                    "description": "Audit and control every action your agents take through tools and connectors."
+                }
+            },
+            "codes": {
+                "agents_access_all": {
+                    "label": "Access all agents",
+                    "description": "Grant access to all current and future agents in the team"
+                },
+                "agent_setup": {
+                    "label": "Setup agent",
+                    "description": "Modify agent settings, personality, and behavior"
+                },
+                "agent_sources_train_files": {
+                    "label": "Train Files",
+                    "description": "Upload and process documents (PDF, Word, etc.)"
+                },
+                "agent_sources_train_text": {
+                    "label": "Train Text",
+                    "description": "Upload and process plain text files"
+                },
+                "agent_sources_train_qa": {
+                    "label": "Train Q&A",
+                    "description": "Add question and answer pairs"
+                },
+                "agent_sources_train_web": {
+                    "label": "Train Web",
+                    "description": "Crawl and process website content"
+                },
+                "agent_sources_train_audio": {
+                    "label": "Train Audio",
+                    "description": "Upload and transcribe audio files"
+                },
+                "agent_sources_train_video": {
+                    "label": "Train Video",
+                    "description": "Upload and transcribe video files"
+                },
+                "agent_sources_train_functions": {
+                    "label": "Manage Functions",
+                    "description": "Define LLM tool calls that hit your own webhook endpoints"
+                },
+                "agent_sources_train_connectors": {
+                    "label": "Manage Connectors",
+                    "description": "Connect third-party services (Stripe, GitHub, Notion, …) as live data sources"
+                },
+                "agent_sources_delete": {
+                    "label": "Delete sources",
+                    "description": "Remove training sources from the agent"
+                },
+                "agent_chat_view": {
+                    "label": "View conversations",
+                    "description": "Read chat history and conversation logs"
+                },
+                "agent_chat_pulse": {
+                    "label": "Conversation Pulse",
+                    "description": "View real-time conversation health metrics and sentiment tracking"
+                },
+                "agent_chat_takeover": {
+                    "label": "Take over",
+                    "description": "Take control of a live conversation from the AI"
+                },
+                "agent_chat_delete": {
+                    "label": "Delete conversations",
+                    "description": "Permanently delete conversation history"
+                },
+                "agent_chat_export": {
+                    "label": "Export conversations",
+                    "description": "Export chat history to CSV or other formats"
+                },
+                "agent_audit_view": {
+                    "label": "View audit log",
+                    "description": "See the tool-call audit log for this agent"
+                },
+                "agent_evals_view": {
+                    "label": "View evals",
+                    "description": "See agent eval suites and run history"
+                },
+                "agent_evals_manage": {
+                    "label": "Manage evals",
+                    "description": "Create test cases and run eval suites"
+                },
+                "agent_guardrails_view": {
+                    "label": "View guardrails",
+                    "description": "See the AI-safety settings and trigger log for this agent"
+                },
+                "agent_guardrails_manage": {
+                    "label": "Manage guardrails",
+                    "description": "Configure PII, prompt-injection, topic and toxicity guards"
+                },
+                "agent_analytics_chats": {
+                    "label": "Chat analytics",
+                    "description": "View conversation volume and trends"
+                },
+                "agent_analytics_sentiment": {
+                    "label": "Sentiment",
+                    "description": "View sentiment analysis of conversations"
+                },
+                "agent_analytics_tone": {
+                    "label": "Tones",
+                    "description": "View tone analysis of conversations"
+                },
+                "agent_analytics_topics": {
+                    "label": "Topics",
+                    "description": "View and manage topics"
+                },
+                "agent_analytics_sources": {
+                    "label": "Sources",
+                    "description": "View which sources are being used in responses"
+                },
+                "agent_topics_manage": {
+                    "label": "Manage topics",
+                    "description": "Create, edit, and delete conversation topics"
+                },
+                "agent_leads_view": {
+                    "label": "View leads",
+                    "description": "See captured lead information"
+                },
+                "agent_leads_settings": {
+                    "label": "Lead settings",
+                    "description": "Configure lead capture forms and rules"
+                },
+                "agent_leads_export": {
+                    "label": "Export leads",
+                    "description": "Download leads as CSV or integrate with CRM"
+                },
+                "agent_members_manage": {
+                    "label": "Agent Chatters",
+                    "description": "Invite, view, and remove chatters granted access to this agent"
+                },
+                "agent_identity_manage": {
+                    "label": "Agent Identity Verification",
+                    "description": "View and use the per-agent signing secret for sign-in tokens"
+                },
+                "account_api_keys": {
+                    "label": "API keys",
+                    "description": "Create and revoke personal API tokens"
+                },
+                "account_connectors": {
+                    "label": "Connectors",
+                    "description": "Manage account-level third-party connectors (MCP servers)"
+                },
+                "account_functions": {
+                    "label": "Functions",
+                    "description": "Define webhook functions agents can call"
+                },
+                "account_prompts": {
+                    "label": "Prompts",
+                    "description": "Manage the shared prompts library"
+                },
+                "account_members_manage": {
+                    "label": "Chatters",
+                    "description": "View, reset password, and remove chatters across the workspace"
+                },
+                "account_governance": {
+                    "label": "Governance",
+                    "description": "View the tool-call audit log and access controls"
+                }
             }
         }
     },
@@ -2809,63 +3418,6 @@
         "subtitle": "Ask about your account in plain language — messages, users, channels, leads, and more. Charts render inline.",
         "composer_placeholder": "Ask about your account…",
         "disclaimer": "Answers come from your live analytics. This chat isn't saved."
-    },
-    "consent": {
-        "head_title": "Data Processing Consent - ChatVia",
-        "header_subtitle": "Data Processing Consent",
-        "page_title": "Data Processing Consent",
-        "intro": "Before you start using ChatVia, we need to know how you want your data to be processed. This page will help you understand your rights and choices.",
-        "intro_note": "Please note that this page describes the data processing, which is a preliminary stage to make your data ready for your agent.",
-        "how_it_works_title": "How ChatVia Works",
-        "how_it_works_intro": "When you create a training-based agent, ChatVia will send your data to different providers for processing. Here are the key points about our data processing:",
-        "infra_label": "Data Processing Infrastructure:",
-        "infra_text_before": "We use Cohere (",
-        "privacy_policy_link": "privacy policy",
-        "infra_text_after": "), Mistral for EU users, and Google/OpenAI for US users.",
-        "storage_label": "Data Storage:",
-        "storage_text": "Your data will be stored and encrypted locally in the EU (Germany/Finland).",
-        "no_training_label": "No Training:",
-        "no_training_text": "We don't train models on your data. Instead, we use RAG (Retrieval-Augmented Generation) and GraphRAG to find relevant information and send it to your chosen model for processing.",
-        "control_label": "Data Control:",
-        "control_text": "You can easily delete your data at any time through your account settings.",
-        "region_title": "Choose Your Data Storage Region",
-        "region_description": "Select where you would like your data to be stored and processed. This choice affects which data protection laws apply to your information.",
-        "eu_title": "European Union (EU)",
-        "eu_description": "Your data will be stored and processed within the European Union, ensuring full GDPR compliance and maximum privacy protection.",
-        "eu_feature_1": "Full GDPR protection",
-        "eu_feature_2": "Data remains within EU borders",
-        "eu_feature_3": "Processed using Mistral AI",
-        "us_title": "United States (US)",
-        "us_description": "Your data will be stored and processed in the United States, with strong privacy protections and access to the latest AI infrastructure. This region provides direct access to leading AI providers.",
-        "us_feature_1": "Access to OpenAI and Google AI",
-        "us_feature_2": "Optimized performance and speed",
-        "us_feature_3": "Strong data protection standards",
-        "preferences_title": "Additional Preferences",
-        "marketing_label": "Marketing Communications",
-        "marketing_description": "Receive updates about new features, tips, and special offers. You can unsubscribe at any time.",
-        "analytics_label": "Analytics & Performance",
-        "analytics_description": "Help us improve ChatVia by allowing anonymous usage analytics and performance monitoring.",
-        "gdpr_title": "Your Rights Under GDPR",
-        "gdpr_intro": "Regardless of your chosen region, if you are an EU resident, you have the following rights under GDPR:",
-        "right_access_label": "Right to Access:",
-        "right_access_text": "Request a copy of your personal data",
-        "right_rectification_label": "Right to Rectification:",
-        "right_rectification_text": "Correct inaccurate or incomplete data",
-        "right_erasure_label": "Right to Erasure:",
-        "right_erasure_text": "Request deletion of your personal data",
-        "right_portability_label": "Right to Portability:",
-        "right_portability_text": "Transfer your data to another service",
-        "right_object_label": "Right to Object:",
-        "right_object_text": "Object to processing of your personal data",
-        "important_label": "Important:",
-        "important_text": "When using AI models from third-party providers (such as OpenAI, Google, or Mistral), your chat interactions may be subject to their respective privacy policies and data processing practices. We recommend reviewing their privacy policies for complete transparency.",
-        "contact_text": "To exercise these rights or for any privacy-related questions, contact us at",
-        "saving": "Saving...",
-        "save_preferences": "Save Preferences",
-        "footer_before": "By clicking \"Save Preferences\", you acknowledge that you have read and understood our",
-        "footer_privacy": "Privacy Policy",
-        "footer_and": "and",
-        "footer_terms": "Terms of Service"
     },
     "workspace": {
         "common": {
@@ -3087,13 +3639,13 @@
             }
         },
         "members": {
-            "breadcrumb": "Members",
-            "title": "Members",
-            "description": "Everyone you've granted access to chat with your agents. Send a password reset link or remove a member entirely.",
-            "search_placeholder": "Search members...",
-            "count": "{shown} of {total} member | {shown} of {total} members",
-            "invite": "Invite member",
-            "invite_disabled_hint": "Create a protected agent first — members can only be invited to protected agents.",
+            "breadcrumb": "Chatters",
+            "title": "Chatters",
+            "description": "Everyone you've granted access to chat with your agents. Send a password reset link or remove a chatter entirely.",
+            "search_placeholder": "Search chatters...",
+            "count": "{shown} of {total} chatter | {shown} of {total} chatters",
+            "invite": "Invite chatter",
+            "invite_disabled_hint": "Create a protected agent first — chatters can only be invited to protected agents.",
             "no_email": "No email",
             "reset_title": "Send password reset link to {name}",
             "remove_title": "Remove {name}",
@@ -3112,20 +3664,20 @@
                 "active": "Active"
             },
             "empty": {
-                "title": "No members yet.",
-                "description": "Invite someone below, or from any agent's Members tab — they'll show up here.",
-                "invite_first": "Invite your first member"
+                "title": "No chatters yet.",
+                "description": "Invite someone below, or from any agent's Chatters tab — they'll show up here.",
+                "invite_first": "Invite your first chatter"
             },
             "no_results": {
-                "title": "No members found matching your search.",
+                "title": "No chatters found matching your search.",
                 "description": "Try adjusting your search terms."
             },
             "invite_dialog": {
-                "title": "Invite a member",
+                "title": "Invite a chatter",
                 "description": "We'll email a sign-up link to this address. Pick the agents they can chat with — at least one is required.",
                 "email": "Email address",
                 "agents": "Agents",
-                "agents_hint": "The member can chat only with the agents you select.",
+                "agents_hint": "The chatter can chat only with the agents you select.",
                 "send": "Send invite",
                 "emailed_to": "Invitation emailed to {email}. You can also copy the link below.",
                 "signup_link": "Sign-up link",
@@ -3139,19 +3691,19 @@
                 "confirm": "Send link"
             },
             "delete_dialog": {
-                "title": "Remove member",
+                "title": "Remove chatter",
                 "description": "{name} will be permanently deleted along with their access to every agent in your workspace. This cannot be undone.",
                 "confirm": "Remove"
             },
             "toast": {
-                "load_failed": "Failed to load members",
+                "load_failed": "Failed to load chatters",
                 "invite_sent_to": "Invitation sent to {email}",
                 "invite_sent": "Invitation sent",
                 "invite_failed": "Could not send the invitation",
                 "reset_sent": "Password reset link sent to {email}",
                 "reset_failed": "Could not send the reset link",
                 "removed": "{name} removed",
-                "remove_failed": "Could not remove this member"
+                "remove_failed": "Could not remove this chatter"
             }
         },
         "governance": {
@@ -3162,6 +3714,20 @@
         "layout": {
             "heading": "Workspace",
             "description": "Manage integrations, people and governance"
+        },
+        "sections": {
+            "integrations": "Integrations",
+            "library": "Library",
+            "people": "People",
+            "governance": "Governance"
+        },
+        "nav": {
+            "connectors": "Connectors",
+            "functions": "Functions",
+            "api_keys": "API Keys",
+            "prompts": "Prompts",
+            "members": "Chatters",
+            "audit_log": "Audit Log"
         }
     },
     "app": {
@@ -3283,7 +3849,9 @@
             "created": "Created",
             "dialog_title": "Name your passkey",
             "dialog_description": "Choose a name so you can tell your passkeys apart later.",
-            "register": "Register passkey"
+            "register": "Register passkey",
+            "delete_title": "Delete this passkey?",
+            "delete_description": "{name} will no longer be able to sign in. This can't be undone."
         },
         "social": {
             "title": "Social accounts",
@@ -3294,7 +3862,8 @@
             "disconnect": "Disconnect",
             "connect": "Connect",
             "disconnect_title": "Disconnect {provider}?",
-            "disconnect_description": "You won't be able to sign in with {provider} until you connect it again."
+            "disconnect_description": "You won't be able to sign in with {provider} until you connect it again.",
+            "connected": "Connected"
         },
         "data_export": {
             "title": "Download my data",
@@ -3323,7 +3892,7 @@
             "removes_agents": "Your agents and their settings",
             "removes_conversations": "All conversations and messages",
             "removes_knowledge": "Knowledge sources, documents, and uploaded files",
-            "removes_team": "Your team, members, API keys, and connectors",
+            "removes_team": "Your team, chatters, API keys, and connectors",
             "agents_will_delete": "{count} agent will be permanently deleted: | {count} agents will be permanently deleted:",
             "subscription_cancel": "Your active subscription will be canceled and you won't be billed again.",
             "email_confirmed": "Email confirmed. This is your last step — there's no going back after this.",
@@ -3360,5 +3929,537 @@
         "error": "Could not confirm password. Please try again.",
         "cancel": "Cancel",
         "confirm": "Confirm"
+    },
+    "shared": {
+        "message_card": {
+            "cancel": "Cancel",
+            "send": "Send",
+            "copy_aria": "Copy message",
+            "copy_tooltip": "Copy",
+            "thumbs_up_aria": "Thumbs up",
+            "helpful_tooltip": "Helpful",
+            "thumbs_down_aria": "Thumbs down",
+            "not_helpful_tooltip": "Not helpful",
+            "delete_title": "Delete this message?",
+            "delete_description": "This action cannot be undone.",
+            "delete_confirm": "Yes, delete",
+            "delete_cancel": "No, keep it",
+            "delete_aria": "Delete message",
+            "delete_tooltip": "Delete the current response",
+            "export_aria": "Export message",
+            "export_tooltip": "Export",
+            "export_as": "Export as",
+            "export_pdf": "PDF",
+            "export_markdown": "Markdown",
+            "export_text": "Text",
+            "generated_by": "Generated by {model}"
+        },
+        "image_upload": {
+            "upload": "Upload",
+            "remove": "Remove"
+        },
+        "color_picker": {
+            "color_intensity": "Color Intensity",
+            "light": "Light",
+            "dark": "Dark"
+        },
+        "color_theme_picker": {
+            "title": "Choose Color Theme",
+            "description": "Select a color and shade for your agent's primary theme",
+            "apply": "Apply"
+        },
+        "icon_picker": {
+            "search_placeholder": "Search icons...",
+            "choose_icon": "Choose icon",
+            "choose_icon_title": "Choose an icon",
+            "no_icon": "No icon",
+            "icon_aria": "Icon: {name}",
+            "no_results": "No icons match your search."
+        },
+        "error": "Error",
+        "saved_successfully": "Saved successfully",
+        "settings_saved_successfully": "Settings saved successfully",
+        "fix_errors_below": "Please fix errors below",
+        "chat_log_off": "Chat log is off",
+        "feature_turned_off": "{title} is turned off",
+        "enable_feature": "Enable {title}",
+        "enabling": "Enabling…",
+        "enable_now": "Enable now",
+        "upgrade_now": "Upgrade Now",
+        "desktop": "Desktop",
+        "tablet": "Tablet",
+        "mobile": "Mobile",
+        "close_preview": "Close Preview",
+        "widget_preview": "Widget Preview",
+        "preview": "Preview",
+        "composer_placeholder": "Ask anything...",
+        "chat_title_fallback": "Chat",
+        "more_options": "More options",
+        "delete_confirmation_title": "Delete confirmation",
+        "delete_confirmation_description": "This action cannot be undone.",
+        "yes_delete": "Yes, delete",
+        "no_keep": "No, keep it",
+        "information": "Information",
+        "dismiss_banner": "Dismiss banner",
+        "training_in_progress": "Training in progress",
+        "unknown": "Unknown",
+        "chats": "chats",
+        "file_uploader": {
+            "title_default": "Upload Files",
+            "description_default": "Add files to analyze",
+            "quota_label_default": "pages",
+            "disabled_message_default": "Upload disabled",
+            "file_count": "{current} / {max} files",
+            "quota_limit_reached_alert": "You have reached your {quotaLabel} limit of {quotaLimit} {quotaLabel}. Please upgrade your plan to process more documents.",
+            "drop_zone_file_limit_reached": "File limit reached",
+            "drop_zone_quota_limit_reached": "{quotaLabel} limit reached",
+            "drop_zone_select_files": "Select files",
+            "drop_zone_max_files_hint": "Maximum {max} files allowed. Remove some files to add more.",
+            "drop_zone_quota_exhausted_hint": "You've used all {quotaLimit} {quotaLabel}. Upgrade your plan to continue.",
+            "drop_zone_unavailable": "Upload not available",
+            "drop_zone_default_hint": "Drag and drop or click to select files",
+            "total_quota": "{count} {label} total",
+            "exceeds_quota": "Exceeds quota by {amount} {quotaLabel}",
+            "clear_failed": "Clear Failed",
+            "clear_all": "Clear All",
+            "badge_analyzed": "Analyzed",
+            "badge_analyzing": "Analyzing",
+            "badge_failed": "Failed",
+            "progress_analyzed": "{progress}% analyzed",
+            "remove_file": "Remove file",
+            "minute_length": "{count} minute | {count} minutes",
+            "page_length": "{count} page | {count} pages",
+            "toast_max_files_title": "Maximum file limit reached",
+            "toast_max_files_description": "You can only upload a maximum of {max} files.",
+            "toast_file_size_title": "File size limit exceeded",
+            "toast_file_size_description": "The following file(s) exceed the {maxSize} MB limit: {fileList}"
+        },
+        "voice_recorder": {
+            "title_default": "Record Voice Note",
+            "description_default": "Record audio directly from your microphone",
+            "not_supported": "Your browser doesn't support audio recording. Please use a modern browser like Chrome, Firefox, or Safari.",
+            "recording": "Recording",
+            "remaining_time": "{time} remaining",
+            "start_recording": "Start Recording",
+            "stop": "Stop",
+            "recorded": "Recorded",
+            "recording_name_label": "Recording Name",
+            "recording_name_placeholder": "Enter a name for your recording",
+            "discard": "Discard",
+            "save_recording": "Save Recording",
+            "tips_heading": "Tips:",
+            "tip_speak_clearly": "Speak clearly and at a steady pace",
+            "tip_quiet_environment": "Use a quiet environment for best results",
+            "tip_max_duration": "Maximum recording length: {minutes} minute | Maximum recording length: {minutes} minutes"
+        },
+        "date_range": {
+            "pick_range": "Pick a date range",
+            "select_placeholder": "Select date range",
+            "preset_today": "Today",
+            "preset_yesterday": "Yesterday",
+            "preset_last_7_days": "Last 7 days",
+            "preset_last_30_days": "Last 30 days",
+            "preset_this_month": "This month",
+            "preset_last_month": "Last month",
+            "preset_last_3_months": "Last 3 months",
+            "preset_last_12_months": "Last 12 months",
+            "preset_custom": "Custom range"
+        },
+        "response_settings": {
+            "title": "Response Settings",
+            "description_widget": "Control how your AI agent responds. These settings will be applied to the selected model and affect the style and creativity of all responses.",
+            "description_default": "Control how your AI agent responds. These settings will be applied to all selected models and affect the style and creativity of all responses.",
+            "parameters_heading": "Response Parameters",
+            "temperature": {
+                "label": "Creativity Level",
+                "param": "Temperature",
+                "help": "Low = predictable, consistent responses. High = more creative, varied answers.",
+                "scale_focused": "Focused",
+                "scale_balanced": "Balanced",
+                "scale_creative": "Creative",
+                "badge_conservative": "Conservative",
+                "badge_balanced": "Balanced",
+                "badge_creative": "Creative"
+            },
+            "top_k": {
+                "label": "Word Choice Variety",
+                "param": "Top-K",
+                "help": "0 = disabled. Lower = uses more common words. Higher = considers more word options.",
+                "scale_disabled": "Disabled",
+                "scale_focused": "Focused",
+                "scale_balanced": "Balanced",
+                "scale_diverse": "Diverse",
+                "badge_disabled": "Disabled",
+                "badge_focused": "Focused",
+                "badge_balanced": "Balanced",
+                "badge_diverse": "Diverse"
+            },
+            "top_p": {
+                "label": "Response Focus",
+                "param": "Top-P",
+                "help": "Lower = more focused responses. Higher = broader, more diverse responses.",
+                "scale_focused": "Focused",
+                "scale_balanced": "Balanced",
+                "scale_broad": "Broad",
+                "badge_focused": "Focused",
+                "badge_balanced": "Balanced",
+                "badge_broad": "Broad"
+            },
+            "presence_penalty": {
+                "label": "Avoid Repeating Topics",
+                "param": "Presence Penalty",
+                "help": "Higher values discourage repeating the same topics or ideas.",
+                "scale_repetitive": "Repetitive",
+                "scale_neutral": "Neutral",
+                "scale_diverse": "Diverse",
+                "badge_repetitive": "Repetitive",
+                "badge_neutral": "Neutral",
+                "badge_diverse": "Diverse"
+            },
+            "frequency_penalty": {
+                "label": "Avoid Repeating Words",
+                "param": "Frequency Penalty",
+                "help": "Higher values discourage using the same words multiple times.",
+                "scale_repetitive": "Repetitive",
+                "scale_neutral": "Neutral",
+                "scale_varied": "Varied",
+                "badge_repetitive": "Repetitive",
+                "badge_neutral": "Neutral",
+                "badge_varied": "Varied"
+            }
+        },
+        "persona_editor": {
+            "label": "Instructions (System prompt)",
+            "description": "Define how your AI agent should behave and respond to users",
+            "select_placeholder": "Select a preset...",
+            "saved_prompts": "Saved prompts",
+            "default_group": "Default",
+            "base_instructions": "Base Instructions",
+            "reset_title": "Reset to saved",
+            "library_hint": "Using the saved prompt {name} (read-only). Manage it in Settings → Prompts, or switch to {base} to edit a copy for just this agent.",
+            "textarea_placeholder": "Enter your instructions...",
+            "save": "Save",
+            "save_success": "Instructions saved successfully",
+            "save_error": "Failed to save instructions"
+        },
+        "connector_sheet": {
+            "default_description": "Custom MCP server added directly via URL.",
+            "status_not_connected": "Not connected",
+            "status_connected": "Connected",
+            "disconnect_description_settings": "The chat will no longer be able to call tools from this connector. You can reconnect anytime.",
+            "disconnect_description_agent_specific": "This connector lives only inside this agent and cannot be recovered.",
+            "disconnect_description_agent_generic": "This agent will lose access. The connector definition stays available in Settings → Connectors.",
+            "tab_overview": "Overview",
+            "tab_tools": "Tools",
+            "tab_agents": "Agents",
+            "coming_soon": "This connector is coming soon.",
+            "sign_in_with": "Sign in with {name}",
+            "connect_name": "Connect {name}",
+            "server_id": "Server ID",
+            "copy_server_id_title": "Copy server ID — pass as mcp_id when attaching via the API",
+            "endpoint": "Endpoint",
+            "auth": "Auth",
+            "scope": "Scope",
+            "scope_agent_specific": "Agent-specific",
+            "scope_generic_shared": "Generic (shared)",
+            "tools_count": "Tools",
+            "calls": "Calls",
+            "last_call": "Last call",
+            "last_error": "Last error",
+            "enabled_here": "Enabled here",
+            "enabled": "Enabled",
+            "on": "On",
+            "off": "Off",
+            "disconnect": "Disconnect",
+            "disconnect_title": "Disconnect {name}?",
+            "keep": "Keep",
+            "refresh_tools": "Refresh tools",
+            "loading_tools": "Loading tools",
+            "no_tools_advertised": "No tools advertised by this server.",
+            "search_tools_placeholder": "Search tools",
+            "no_tools_match_search": "No tools match your search.",
+            "section_read_only": "Read-only tools",
+            "section_write_delete": "Write/delete tools",
+            "section_none": "None.",
+            "permission_always_allow": "Always allow",
+            "permission_needs_approval": "Needs approval",
+            "permission_blocked": "Blocked",
+            "view_details": "View details",
+            "function": "Function",
+            "description": "Description",
+            "input_schema": "Input schema",
+            "agents_toggle_description": "Toggle which of your agents can use this connector.",
+            "loading_agents": "Loading agents",
+            "no_agents_yet": "You have no agents yet.",
+            "toast_load_tools_failed": "Failed to load tools",
+            "toast_refresh_success": "{name}: {count} tools",
+            "toast_refresh_failed": "Failed to refresh tools",
+            "toast_toggle_failed": "Failed to toggle",
+            "toast_permission_failed": "Failed to update tool permission",
+            "toast_disconnected": "Disconnected {name}",
+            "toast_disconnect_failed": "Failed",
+            "set_all": "Set all",
+            "toast_bulk_permission": "Set {count} tool to “{permission}” | Set {count} tools to “{permission}”"
+        },
+        "member_sheet": {
+            "sr_description": "Manage this chatter's limits, agent access, and status.",
+            "status_pending": "Pending",
+            "status_active": "Active",
+            "no_email": "No email",
+            "id_label": "ID",
+            "copy_id_title": "Copy chatter ID",
+            "joined": "Joined {date}",
+            "tab_limits": "Limits",
+            "tab_agents": "Agents",
+            "tab_status": "Status",
+            "tab_actions": "Actions",
+            "monthly_limit_title": "Monthly message limit",
+            "monthly_limit_description": "Cap how many messages this chatter can send each month. Leave empty for no limit.",
+            "no_limit_placeholder": "No limit",
+            "remove_limit": "Remove limit",
+            "usage_this_month": "{used} of {limit} used this month.",
+            "agents_toggle_description": "Toggle which of your agents this chatter can chat with.",
+            "loading_agents": "Loading agents",
+            "no_agents_in_workspace": "You have no agents in this workspace yet.",
+            "deactivate_title": "Deactivate chatter",
+            "deactivate_description": "A deactivated chatter can't sign in or send messages.",
+            "deactivation_reason_placeholder": "Reason (optional) — visible to your team only",
+            "save_changes": "Save changes",
+            "send_password_reset": "Send password reset link",
+            "remove_member": "Remove chatter",
+            "toast_updated": "{name} updated",
+            "toast_update_failed": "Could not update this chatter",
+            "toast_limit_removed": "Limit removed for {name}",
+            "toast_limit_remove_failed": "Could not remove the limit"
+        },
+        "audit_table": {
+            "filter_outcome": "Outcome",
+            "filter_connector": "Connector",
+            "filter_agent": "Agent",
+            "all_outcomes": "All outcomes",
+            "all_connectors": "All connectors",
+            "all_agents": "All agents",
+            "col_by": "By",
+            "col_agent": "Agent",
+            "col_tool": "Tool",
+            "col_connector": "Connector",
+            "col_outcome": "Outcome",
+            "col_latency": "Latency",
+            "visitor": "visitor",
+            "error_suffix": "error",
+            "gated": "gated",
+            "latency_ms": "{ms} ms",
+            "empty": "No tool calls recorded yet.",
+            "previous": "Previous",
+            "next": "Next",
+            "tab_preview": "Preview",
+            "tab_markdown": "Markdown",
+            "detail_arguments": "Arguments",
+            "detail_result": "Result",
+            "detail_conversation": "Conversation:",
+            "detail_trace": "Trace:",
+            "outcome_auto": "auto",
+            "outcome_approved": "approved",
+            "outcome_denied": "denied",
+            "outcome_rate_limited": "rate limited"
+        },
+        "attach_file": {
+            "title": "Choose from Already Trained Files",
+            "description": "Select a file from your library that has already been trained to add to this agent.",
+            "filter_type_suffix": " Showing {type} files only.",
+            "search_placeholder": "Search files...",
+            "loading": "Loading files...",
+            "empty_title": "No trained files available.",
+            "empty_description": "Files must be fully trained before they can be shared across agents.",
+            "no_search_results": "No files match your search.",
+            "type_pdf": "PDF",
+            "type_word": "Word",
+            "type_audio": "Audio",
+            "type_video": "Video",
+            "minute_length": "{count} minute | {count} minutes",
+            "page_length": "{count} page | {count} pages",
+            "agents_count": "{count} agent | {count} agents",
+            "used_in": "Used in:",
+            "add": "Add",
+            "added": "Added",
+            "toast_load_failed": "Failed to load available files.",
+            "toast_success": "{filename} added to agent successfully!",
+            "toast_failed": "Failed to add file to agent."
+        },
+        "attach_text": {
+            "title": "Choose from Already Trained Texts",
+            "description": "Select a text from your library that has already been trained to add to this agent.",
+            "search_placeholder": "Search texts...",
+            "loading": "Loading texts...",
+            "empty_title": "No trained texts available.",
+            "empty_description": "Texts must be fully trained before they can be shared across agents.",
+            "no_search_results": "No texts match your search.",
+            "word_count": "{count} words",
+            "agents_count": "{count} agent | {count} agents",
+            "used_in": "Used in:",
+            "add": "Add",
+            "added": "Added",
+            "toast_load_failed": "Failed to load available texts.",
+            "toast_success": "Text added to agent successfully!",
+            "toast_failed": "Failed to add text to agent."
+        },
+        "attach_website": {
+            "title": "Attach Trained Website",
+            "description": "Select a website that has already been trained to attach to this agent.",
+            "search_placeholder": "Search websites by URL...",
+            "empty_title": "No trained websites available to attach.",
+            "empty_description": "Train a website first, then you can attach it to multiple agents.",
+            "no_search_results": "No websites match your search.",
+            "pages_count": "{count} pages",
+            "used_in_agents": "Used in agents:",
+            "adding": "Adding...",
+            "add": "Add",
+            "added": "Added",
+            "footer_added": "{count} website added | {count} websites added",
+            "footer_hint": "Select websites to add to this agent",
+            "toast_load_failed": "Failed to load available websites.",
+            "toast_success": "Website added to agent successfully!",
+            "toast_failed": "Failed to add website to agent."
+        },
+        "chat_volume": "Chat Volume",
+        "accessibility": {
+            "close": "Close",
+            "more": "More",
+            "toggle_sidebar": "Toggle Sidebar",
+            "sidebar": "Sidebar",
+            "sidebar_description": "Displays the mobile sidebar."
+        }
+    },
+    "connectors": {
+        "categories": {
+            "utilities": "Utilities",
+            "sales": "Sales",
+            "payments": "Payments",
+            "developer_tools": "Developer Tools",
+            "productivity": "Productivity",
+            "communication": "Communication",
+            "automation": "Automation",
+            "analytics": "Analytics"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "Search the live web with Perplexity Sonar — news, prices, recent events — with cited sources.",
+                "token_label": "Perplexity API key",
+                "token_placeholder": "Your Perplexity API key"
+            },
+            "weather": {
+                "name": "Weather",
+                "description": "Live weather (temperature, conditions, humidity, wind) for any city, powered by OpenWeatherMap.",
+                "token_label": "OpenWeatherMap API key",
+                "token_placeholder": "Your OpenWeatherMap API key"
+            },
+            "currency": {
+                "name": "Currency Converter",
+                "description": "Convert amounts between any two currencies using current exchange rates (exchangerate-api).",
+                "token_label": "ExchangeRate-API key",
+                "token_placeholder": "Your ExchangeRate-API key"
+            },
+            "charts": {
+                "name": "Interactive charts",
+                "description": "Render interactive charts inline in the chat — bar, line, pie, scatter, radar, gauge, heatmap, and more."
+            },
+            "leads": {
+                "name": "Leads",
+                "description": "Capture visitor contact details (name, email, phone, and more)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "Search transactions, customers, products, and payments in your Stripe account."
+            },
+            "github": {
+                "name": "GitHub",
+                "description": "Read repos, issues, PRs, and code from any account you have access to."
+            },
+            "notion": {
+                "name": "Notion",
+                "description": "Read pages, databases, and comments from your Notion workspace."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "Search issues, projects, and cycles across your Linear workspace."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "Jira issues, Confluence pages, and workflows from your Atlassian sites."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "Search messages, read threads, and draft replies from your Gmail inbox."
+            },
+            "google-calendar": {
+                "name": "Google Calendar",
+                "description": "Read and create events across your Google Calendars."
+            },
+            "google-drive": {
+                "name": "Google Drive",
+                "description": "Read files and folders from your Google Drive."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "Search messages, post replies, and read channel history across your Slack workspace."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "Let visitors book meetings on your Calendly, and let agents read your scheduled events."
+            },
+            "todoist": {
+                "name": "Todoist",
+                "description": "Manage tasks, projects, and labels across your Todoist account."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "Trigger Zapier actions across 9,000+ connected apps."
+            },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "Read tickets, users, and Help Center articles from your Zendesk Support account.",
+                "token_label": "Zendesk API token",
+                "token_placeholder": "Your Zendesk API token"
+            },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "Read and update contacts, companies, deals, and tickets in your HubSpot CRM."
+            },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "Read and update accounts, contacts, opportunities, and cases from your Salesforce org."
+            },
+            "box": {
+                "name": "Box",
+                "description": "Search and read files, folders, and metadata from your Box account."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "Read and update tasks, projects, and portfolios across your Asana workspace."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "Read issues, errors, and releases from your Sentry projects."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "Search meeting transcripts, summaries, and action items from Fireflies.ai."
+            },
+            "amplitude": {
+                "name": "Amplitude",
+                "description": "Query product analytics — events, charts, and cohorts — from your Amplitude project."
+            }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "Account Analytics",
+                "description": "Answer the workspace owner's questions about their own account in numbers — messages, conversations, users, channels, leads, satisfaction, response time, topics and handoffs."
+            },
+            "charts": {
+                "name": "Interactive charts",
+                "description": "Render interactive charts (bar, line, pie, gauge, scatter, radar, heatmap, …) inline in the chat."
+            }
+        }
     }
 }

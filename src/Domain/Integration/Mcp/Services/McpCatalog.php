@@ -89,17 +89,9 @@ class McpCatalog
         $rawTools = $this->fetchOrThrow($server);
 
         $now = now();
-        // A REMOTE server's self-reported readOnlyHint is not trustworthy, so
-        // only our own built-in servers (internal URL) auto-Allow read tools;
-        // every third-party tool defaults to Approval (human-in-the-loop).
-        // Derived from the CANONICAL connector URL — never the row's, so a
-        // workspace-influenced URL can't promote a shared default. (refresh()
-        // guarantees they match here; this keeps the trust source explicit.)
-        $canonical = (string) AgentMcpServer::canonicalConnectorUrl((string) $server->connector_slug);
-        $isInternal = InternalMcpSignature::isInternalUrl($canonical);
         $validatedToolIds = [];
 
-        DB::transaction(function () use ($server, $rawTools, $now, $isInternal, &$validatedToolIds): void {
+        DB::transaction(function () use ($server, $rawTools, $now, &$validatedToolIds): void {
             foreach ($rawTools as $tool) {
                 if (! is_array($tool) || ! isset($tool['name']) || ! is_string($tool['name'])) {
                     continue;
@@ -116,7 +108,9 @@ class McpCatalog
                 $scope = ($annotations['readOnlyHint'] ?? false) === true
                     ? McpToolScope::Read
                     : McpToolScope::Write;
-                $defaultPermission = ($isInternal && $scope === McpToolScope::Read)
+                // Read-only tools auto-Allow; write/delete tools default to
+                // Approval (human-in-the-loop), regardless of the server's origin.
+                $defaultPermission = $scope === McpToolScope::Read
                     ? McpToolPermission::Allow
                     : McpToolPermission::Approval;
 
@@ -238,14 +232,10 @@ class McpCatalog
                 ]);
 
                 // Seed the per-tool permission on first sight only — a re-sync must
-                // never clobber a user's choice. A REMOTE server's self-reported
-                // readOnlyHint is not trustworthy, so only an internal URL (one of
-                // Chatvia's own servers) auto-Allows read tools; everything else
-                // defaults to Approval (human-in-the-loop).
+                // never clobber a user's choice. Read-only tools auto-Allow;
+                // write/delete tools default to Approval (human-in-the-loop).
                 if (! $row->exists) {
-                    $isBuiltin = InternalMcpSignature::isInternalUrl((string) $server->url);
-
-                    $row->permission = ($isBuiltin && $scope === McpToolScope::Read)
+                    $row->permission = $scope === McpToolScope::Read
                         ? McpToolPermission::Allow
                         : McpToolPermission::Approval;
                 }

@@ -2,9 +2,11 @@
 
 namespace Domain\Conversation\Services\Memory;
 
+use App\Identity\Chatter\Actions\DeleteChatterAction;
+use Carbon\CarbonInterface;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Observers\AgentObserver;
 use Illuminate\Cache\TaggedCache;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class ChatCache
@@ -22,7 +24,7 @@ class ChatCache
      */
     public function getTaggedCache(): TaggedCache
     {
-        return Cache::driver('chat')->tags($this->sessionId);
+        return Cache::driver('chat')->tags(self::sessionTag($this->sessionId));
     }
 
     /**
@@ -85,6 +87,71 @@ class ChatCache
     }
 
     /**
+     * Per-workspace tag. Every chat-memory entry carries it (see
+     * {@see self::tagsFor()}, {@see self::rememberOwner()} and
+     * {@see TurnState::getChatCache()}), so account teardown can drop an
+     * entire workspace's Redis chat memory with a single
+     * `tags(workspaceTag($id))->flush()` instead of walking every session and
+     * conversation — including the `forever` ownership markers and member
+     * session entries that otherwise never expire.
+     *
+     * Keyed by the workspace's `external_id` (uuid7), not the integer
+     * `user_id`, to stay consistent with every other id in the tag scheme
+     * (session/conversation tags are uuids too) and avoid any ambiguity with
+     * a bare integer. Resolve it via {@see Agent::workspaceExternalId()}.
+     */
+    public static function workspaceTag(string $workspaceExternalId): string
+    {
+        return "workspace:{$workspaceExternalId}";
+    }
+
+    /**
+     * Per-agent tag. Mirrors {@see self::workspaceTag()} one level down the
+     * hierarchy: every session-scoped entry carries it (see
+     * {@see self::sessionTags()}), so deleting a single agent can drop its
+     * entire Redis chat memory with one `tags(agentTag($id))->flush()` — the
+     * same one-shot pattern workspace teardown uses, and what
+     * {@see AgentObserver} relies on instead of walking
+     * every session and conversation by hand.
+     *
+     * Keyed by the agent's `external_id` (uuid7), consistent with every other
+     * id in the tag scheme.
+     */
+    public static function agentTag(string $agentExternalId): string
+    {
+        return "agent:{$agentExternalId}";
+    }
+
+    /**
+     * Per-session tag. The narrowest scope in the {@see self::sessionTags()}
+     * prefix, and the single tag a "wipe this whole session" flush targets
+     * ({@see self::getTaggedCache()},
+     * {@see DeleteChatterAction}). Prefixed like
+     * the rest of the scheme (workspace:/agent:/conversation:) so the session
+     * id is never a bare tag, and keyed by the session's `external_id` (uuid7).
+     */
+    public static function sessionTag(string $sessionExternalId): string
+    {
+        return "session:{$sessionExternalId}";
+    }
+
+    /**
+     * The ordered tag prefix every session-scoped entry shares —
+     * workspace ⊃ agent ⊃ session, broad to narrow. Single source of truth so
+     * the two builders that touch the session-data key — {@see self::tagsFor()}
+     * (which may append a conversation tag) and {@see TurnState::getChatCache()}
+     * — cannot drift: tagged-cache reads hash the full ordered tag set, so any
+     * divergence in tags or order yields a different namespace and the read
+     * silently misses.
+     *
+     * @return list<string>
+     */
+    public static function sessionTags(string $workspaceExternalId, string $agentExternalId, string $sessionId): array
+    {
+        return [self::workspaceTag($workspaceExternalId), self::agentTag($agentExternalId), self::sessionTag($sessionId)];
+    }
+
+    /**
      * Cache key proving `$userId` owns `$conversationId`. The key itself
      * encodes the (user, conversation) pair — a different user resolves
      * to a different key, so a `has()` under the wrong user is a cache
@@ -99,28 +166,36 @@ class ChatCache
     }
 
     /**
-     * Stamp an ownership marker for (user, conversation). Tagged with
-     * the per-conversation tag so it gets swept by `flushConversation`
-     * when the conversation is deleted. Stored `forever` because
-     * chatters on protected agents keep their conversations until
+     * Stamp an ownership marker for (user, conversation). Tagged with both
+     * the per-conversation tag (so it gets swept by `flushConversation` when
+     * the conversation is deleted) and the workspace tag (so account teardown
+     * sweeps it too — see {@see self::workspaceTag()}). Stored `forever`
+     * because chatters on protected agents keep their conversations until
      * explicitly deleted — matching how {@see TurnState::initializeSession()}
-     * stores the session itself.
+     * stores the session itself, which is exactly why the workspace tag
+     * matters: without it these markers never expire and outlive the deleted
+     * workspace. `$workspaceExternalId` is the agent owner's external id
+     * ({@see Agent::workspaceExternalId()}).
      */
-    public static function rememberOwner(string $conversationId, int|string|null $userId): void
+    public static function rememberOwner(string $conversationId, int|string|null $userId, string $workspaceExternalId): void
     {
         Cache::driver('chat')
-            ->tags(self::conversationTag($conversationId))
+            ->tags([self::conversationTag($conversationId), self::workspaceTag($workspaceExternalId)])
             ->forever(self::ownerKey($userId, $conversationId), true);
     }
 
     /**
-     * True iff the ownership marker for (user, conversation) exists —
-     * i.e. the same user created it. Wrong user → different key → miss.
+     * True iff the ownership marker for (user, conversation) exists — i.e. the
+     * same user created it. Wrong user → different key → miss.
+     * `$workspaceExternalId` must be the same agent-owner external id passed to
+     * {@see self::rememberOwner()}; the tag set is part of the lookup
+     * namespace, so a mismatch reads as a miss (→ a spurious 403 on protected
+     * agents).
      */
-    public static function isOwnedBy(string $conversationId, int|string|null $userId): bool
+    public static function isOwnedBy(string $conversationId, int|string|null $userId, string $workspaceExternalId): bool
     {
         return Cache::driver('chat')
-            ->tags(self::conversationTag($conversationId))
+            ->tags([self::conversationTag($conversationId), self::workspaceTag($workspaceExternalId)])
             ->has(self::ownerKey($userId, $conversationId));
     }
 
@@ -151,7 +226,15 @@ class ChatCache
      */
     private function tagsFor(?string $conversationId): TaggedCache
     {
-        $tags = [$this->sessionId];
+        // The workspace ⊃ agent ⊃ session prefix lets account- and
+        // single-agent teardown each flush all matching chat memory in one
+        // call; the optional conversation tag keeps the per-conversation flush
+        // working. ORDER MATTERS: tagged-cache reads hash the full ordered tag
+        // set, so the prefix is centralized in {@see self::sessionTags()} and
+        // MUST match every other reader of the session-data key — in particular
+        // {@see TurnState::getChatCache()} — or the namespaces diverge and
+        // reads silently miss.
+        $tags = self::sessionTags($this->agent->workspaceExternalId(), $this->agent->external_id, $this->sessionId);
         if ($conversationId !== null) {
             $tags[] = self::conversationTag($conversationId);
         }
@@ -164,7 +247,7 @@ class ChatCache
      * through team->owner->capabilities->retentionDays so this stays in
      * lock-step with what's stamped on chat_conversations.expires_at.
      */
-    private function getMessageRetention(): Carbon
+    private function getMessageRetention(): CarbonInterface
     {
         return now()->addDays($this->agent->messageRetentionInDays());
     }

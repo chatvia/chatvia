@@ -56,7 +56,7 @@ const submit = () => {
     >
         <Head :title="userExists ? t('auth.accept_invitation.head_existing') : t('auth.accept_invitation.head_new')" />
 
-        <div class="absolute top-4 end-4">
+        <div class="absolute end-4 top-4">
             <ThemeSwitcher />
         </div>
 
@@ -130,7 +130,11 @@ const submit = () => {
                             :tabindex="userExists ? 1 : 2"
                             :autocomplete="userExists ? 'current-password' : 'new-password'"
                             v-model="form.password"
-                            :placeholder="userExists ? t('auth.accept_invitation.password_placeholder_existing') : t('auth.accept_invitation.password_placeholder_new')"
+                            :placeholder="
+                                userExists
+                                    ? t('auth.accept_invitation.password_placeholder_existing')
+                                    : t('auth.accept_invitation.password_placeholder_new')
+                            "
                             class="h-12 ps-10 text-base"
                         />
                     </div>
@@ -173,9 +177,9 @@ const submit = () => {
                         <div class="text-sm">
                             <label for="policy" class="text-muted-foreground">
                                 {{ t('auth.accept_invitation.agree_to') }}
-                                <a href="/privacy-policy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer"
-                                    >{{ t('auth.accept_invitation.privacy_policy') }}</a
-                                >
+                                <a href="/privacy-policy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{{
+                                    t('auth.accept_invitation.privacy_policy')
+                                }}</a>
                             </label>
                             <InputError :message="form.errors.policy" />
                         </div>
@@ -194,9 +198,9 @@ const submit = () => {
                         <div class="text-sm">
                             <label for="terms" class="text-muted-foreground">
                                 {{ t('auth.accept_invitation.agree_to') }}
-                                <a href="/terms-of-service" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer"
-                                    >{{ t('auth.accept_invitation.terms_of_service') }}</a
-                                >
+                                <a href="/terms-of-service" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{{
+                                    t('auth.accept_invitation.terms_of_service')
+                                }}</a>
                             </label>
                             <InputError :message="form.errors.terms" />
                         </div>

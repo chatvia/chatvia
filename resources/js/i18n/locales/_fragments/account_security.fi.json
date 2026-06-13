@@ -1,0 +1,59 @@
+{
+    "account": {
+        "passkeys": {
+            "name_required": "Anna tunnistimelle ensin nimi.",
+            "register_error": "Tunnistimen rekisteröinti epäonnistui.",
+            "never": "Ei koskaan",
+            "delete_aria": "Poista tunnistin",
+            "name_placeholder": "MacBook Pro, iPhone, YubiKey…",
+            "heading": "Tunnistimet",
+            "description": "Kirjaudu sisään sormenjäljellä, kasvojentunnistuksella tai suojausavaimella — salasanaa ei tarvita.",
+            "add_passkey": "Lisää tunnistin",
+            "no_passkeys": "Ei vielä tunnistimia",
+            "no_passkeys_hint": "Lisää tunnistin nopeampaa kirjautumista varten tällä laitteella.",
+            "last_used": "Viimeksi käytetty",
+            "created": "Luotu",
+            "dialog_title": "Nimeä tunnistimesi",
+            "dialog_description": "Valitse nimi, jotta voit erottaa tunnistimesi toisistaan myöhemmin.",
+            "register": "Rekisteröi tunnistin",
+            "delete_title": "Poistetaanko tämä tunnistin?",
+            "delete_description": "{name} ei enää voi kirjautua sisään. Tätä toimintoa ei voi kumota."
+        },
+        "two_factor": {
+            "heading": "Kaksivaiheinen tunnistautuminen",
+            "description": "Vaadi kirjautumisen yhteydessä 6-numeroinen koodi todennussovelluksesta salasanan lisäksi.",
+            "disable_title": "Poistetaanko kaksivaiheinen tunnistautuminen käytöstä?",
+            "disable_description": "Tiliäsi suojaa tällöin vain salasanasi. Voit ottaa 2FA:n uudelleen käyttöön milloin tahansa.",
+            "status": "Tila",
+            "enabled": "Käytössä",
+            "disabled": "Ei käytössä",
+            "off_title": "Kaksivaiheinen tunnistautuminen on pois käytöstä",
+            "off_description": "Ota se käyttöön vaatiaksesi 6-numeroisen koodin kirjautumisen yhteydessä.",
+            "enable": "Ota kaksivaiheinen tunnistautuminen käyttöön",
+            "finish_setup_title": "Viimeistele asetukset",
+            "finish_setup_description": "Skannaa QR-koodi todennussovelluksellasi ja syötä sitten 6-numeroinen koodi vahvistukseksi.",
+            "loading_qr": "Ladataan QR-koodia…",
+            "secret_manual": "Tai syötä tämä salaisuus manuaalisesti",
+            "confirmation_code": "Vahvistuskoodi",
+            "confirm": "Vahvista",
+            "cancel_setup": "Peruuta asetukset",
+            "recovery_title": "Palautuskoodit",
+            "recovery_description": "Tallenna nämä kertakäyttöiset koodit turvalliseen paikkaan. Kukin koodi voi avata tilisi, jos menetät todennussovelluksesi.",
+            "loading_codes": "Ladataan palautuskoodeja…",
+            "show_codes": "Näytä palautuskoodit",
+            "regenerate_codes": "Luo koodit uudelleen",
+            "disable": "Poista kaksivaiheinen tunnistautuminen käytöstä"
+        },
+        "social": {
+            "heading": "Sosiaalisen median tilit",
+            "description": "Yhdistä Google, Microsoft tai Slack kirjautuaksesi yhdellä napsautuksella ja pitääksesi tilisi synkronoituina.",
+            "connected_since": "Yhdistetty {date} alkaen",
+            "connected": "Yhdistetty",
+            "not_connected": "Ei yhdistetty",
+            "disconnect": "Katkaise yhteys",
+            "connect": "Yhdistä",
+            "disconnect_title": "Katkaistako yhteys palveluun {provider}?",
+            "disconnect_description": "Et voi kirjautua sisään {provider}-palvelulla ennen kuin yhdistät sen uudelleen."
+        }
+    }
+}

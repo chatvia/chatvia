@@ -1,0 +1,139 @@
+{
+    "teams": {
+        "breadcrumb": "Equipas",
+        "common": {
+            "cancel": "Cancelar",
+            "create_role": "Criar Função"
+        },
+        "index": {
+            "title": "Equipas",
+            "heading": "Equipas",
+            "subtitle": "Faça a gestão das suas equipas e colabore com outros.",
+            "create_team": "Criar Equipa",
+            "search_placeholder": "Pesquisar equipas",
+            "empty_title": "Ainda não existem equipas",
+            "empty_description": "Crie a sua primeira equipa para começar a colaborar com outros",
+            "no_results": "Nenhuma equipa encontrada para \"{query}\".",
+            "clear_search": "Limpar pesquisa",
+            "primary": "Principal",
+            "open_menu": "Abrir menu",
+            "manage": "Gerir",
+            "leave": "Sair",
+            "delete": "Eliminar",
+            "table": {
+                "name": "Nome da equipa",
+                "agents": "Agentes",
+                "members": "Membros",
+                "created": "Criada"
+            },
+            "leave_dialog": {
+                "title": "Sair da Equipa",
+                "description": "Tem a certeza de que pretende sair de \"{name}\"?"
+            },
+            "delete_dialog": {
+                "title": "Eliminar Equipa",
+                "description": "Tem a certeza de que pretende eliminar \"{name}\"? Esta ação não pode ser revertida."
+            },
+            "create_dialog": {
+                "title": "Criar Nova Equipa",
+                "description": "Crie uma equipa para colaborar com outros.",
+                "name_label": "Nome da Equipa",
+                "name_placeholder": "Introduza o nome da equipa"
+            }
+        },
+        "show": {
+            "title": "Equipa: {name}",
+            "back": "Voltar às Equipas",
+            "copied": "Copiado!",
+            "copy_team_id": "Copiar ID da equipa",
+            "add_member": "Adicionar Membro",
+            "view_members": "Ver Membros ({count})",
+            "role": "Função",
+            "actions": "Ações",
+            "roles": {
+                "title": "Funções e Permissões",
+                "description": "Defina funções e as respetivas permissões para os membros da equipa.",
+                "empty": "Ainda não existem funções personalizadas. Crie uma função para atribuir permissões específicas aos membros da equipa.",
+                "copy_role_id": "Copiar ID da função",
+                "edit_role": "Editar Função",
+                "delete_role": "Eliminar Função",
+                "agent_access_label": "Acesso a Agentes:",
+                "all_agents": "Todos os agentes",
+                "no_agents_assigned": "Nenhum agente atribuído",
+                "agent_count": "{count} agente | {count} agentes",
+                "delete_description": "Tem a certeza de que pretende eliminar a função \"{name}\"? Esta ação não pode ser revertida."
+            },
+            "members": {
+                "title": "Membros da Equipa",
+                "description": "Membros com acesso a esta equipa.",
+                "you": "Você",
+                "change_role": "Alterar Função",
+                "change_role_title": "Alterar Função do Membro",
+                "update_role_description": "Atualizar a função de {name}.",
+                "select_role_placeholder": "Selecionar uma função",
+                "update_role": "Atualizar Função",
+                "remove": "Remover",
+                "remove_title": "Remover Membro da Equipa",
+                "remove_description": "Tem a certeza de que pretende remover {name} desta equipa? O membro perderá o acesso a todos os recursos da equipa.",
+                "remove_confirm": "Remover Membro",
+                "table": {
+                    "member": "Membro"
+                }
+            },
+            "invitations": {
+                "title": "Convites Pendentes",
+                "description": "Estes convites estão a aguardar aceitação.",
+                "table": {
+                    "email": "E-mail",
+                    "sent": "Enviado"
+                }
+            },
+            "invite": {
+                "title": "Adicionar Membro à Equipa",
+                "description": "Adicione um utilizador existente ou convide alguém novo para se juntar a esta equipa.",
+                "select_existing": "Selecionar Existente",
+                "invite_by_email": "Convidar por E-mail",
+                "select_user_label": "Selecionar Utilizador",
+                "select_user_placeholder": "Escolher um utilizador...",
+                "email_label": "Endereço de E-mail",
+                "email_placeholder": "colega{'@'}exemplo.com",
+                "send_invitation": "Enviar Convite"
+            },
+            "role_members": {
+                "title": "Membros de {name}",
+                "description": "Membros com esta função. Pode remover o acesso destes membros à equipa.",
+                "empty": "Ainda não existem membros com esta função.",
+                "close": "Fechar"
+            }
+        },
+        "roles": {
+            "details": "Detalhes da Função",
+            "role_name_label": "Nome da Função",
+            "role_name_placeholder": "ex.: Agente de Suporte, Editor de Conteúdo",
+            "agent_access": "Acesso a Agentes",
+            "agent_access_description": "Escolha quais os agentes que esta função pode visualizar e com os quais pode interagir.",
+            "all_agents": "Todos os Agentes",
+            "all_agents_description": "Acesso a todos os agentes atuais e futuros",
+            "select_specific": "Selecionar agentes específicos:",
+            "select_agents": "Selecionar agentes...",
+            "agents_more": "{names} +{count} mais",
+            "no_agents_available": "Nenhum agente disponível",
+            "permissions": {
+                "title": "Permissões",
+                "description": "Escolha as ações que os utilizadores com esta função podem realizar.",
+                "requires": "Requer:"
+            },
+            "create": {
+                "subtitle": "Definir uma nova função para"
+            },
+            "edit": {
+                "title": "Editar Função: {name}",
+                "breadcrumb": "Editar: {name}",
+                "heading": "Editar Função",
+                "subtitle_prefix": "Atualizar a função",
+                "subtitle_middle": "para",
+                "save": "Guardar"
+            }
+        }
+    }
+}

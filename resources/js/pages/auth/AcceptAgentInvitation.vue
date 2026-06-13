@@ -45,7 +45,7 @@ const submit = () => {
     <AuthBase :title="t('auth.accept_agent_invitation.title')" :description="t('auth.accept_agent_invitation.description', { name: agent.name })">
         <Head :title="t('auth.accept_agent_invitation.head')" />
 
-        <div class="absolute top-4 end-4">
+        <div class="absolute end-4 top-4">
             <ThemeSwitcher />
         </div>
 
@@ -125,7 +125,9 @@ const submit = () => {
 
                 <!-- Confirm password -->
                 <div class="space-y-2">
-                    <Label for="password_confirmation" class="text-base font-medium">{{ t('auth.accept_agent_invitation.confirm_password_label') }}</Label>
+                    <Label for="password_confirmation" class="text-base font-medium">{{
+                        t('auth.accept_agent_invitation.confirm_password_label')
+                    }}</Label>
                     <div class="relative">
                         <div class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
                             <LockKeyhole class="h-5 w-5" />
@@ -168,7 +170,8 @@ const submit = () => {
             <SocialLoginButtons :google-url="social_urls.google" :slack-url="social_urls.slack" />
 
             <p class="text-muted-foreground text-center text-xs">
-                {{ t('auth.accept_agent_invitation.social_email_note_prefix') }} <span class="text-foreground font-medium">{{ email }}</span> {{ t('auth.accept_agent_invitation.social_email_note_suffix') }}
+                {{ t('auth.accept_agent_invitation.social_email_note_prefix') }} <span class="text-foreground font-medium">{{ email }}</span>
+                {{ t('auth.accept_agent_invitation.social_email_note_suffix') }}
             </p>
         </div>
     </AuthBase>

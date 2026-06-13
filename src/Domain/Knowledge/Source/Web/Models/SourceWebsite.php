@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Support\Traits\Chunkable;
 use Support\Traits\HasStorageFile;
-use Support\Traits\SupportsExternalId;
+use Support\Concerns\HasExternalId;
 
 /**
  * @property int $id
@@ -77,7 +77,7 @@ use Support\Traits\SupportsExternalId;
 #[Guarded(['id'])]
 class SourceWebsite extends Model implements ChunkableContract
 {
-    use Chunkable, HasStorageFile, SupportsExternalId;
+    use Chunkable, HasExternalId, HasStorageFile;
 
     /**
      * @return MorphToMany<Agent, $this, AgentSource>

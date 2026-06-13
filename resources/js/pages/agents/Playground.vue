@@ -3,8 +3,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Check, Copy, ExternalLink, Globe, MessageSquare, Monitor, Search, Smartphone, Tablet } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 
@@ -91,7 +91,7 @@ const copyExternalId = async () => {
     <AgentLayout :agent="agent" :title="t('agents.playground.title')" hide-header :no-padding="true" :full-height="true">
         <div class="bg-background flex h-full flex-col">
             <!-- Surface tabs (Setup-style underline nav) + device toggle + open-in-new-tab -->
-            <div class="bg-background border-border flex flex-shrink-0 flex-wrap items-center justify-between gap-3 border-b pr-4 lg:pr-6">
+            <div class="bg-background border-border flex flex-shrink-0 flex-wrap items-center justify-between gap-3 border-b pe-4 lg:pe-6">
                 <nav class="flex items-center gap-1 px-4">
                     <button
                         v-for="tab in surfaceTabs"
@@ -103,7 +103,7 @@ const copyExternalId = async () => {
                     >
                         <component :is="tab.icon" class="h-4 w-4" />
                         <span>{{ t(tab.label) }}</span>
-                        <span v-if="surface === tab.value" class="bg-foreground absolute end-0 -bottom-px start-0 h-0.5"></span>
+                        <span v-if="surface === tab.value" class="bg-foreground absolute start-0 end-0 -bottom-px h-0.5"></span>
                     </button>
                 </nav>
 
@@ -161,7 +161,13 @@ const copyExternalId = async () => {
                  use a fixed-width device frame so breakpoints are visible. -->
             <div class="bg-muted flex flex-1 items-center justify-center overflow-hidden">
                 <div :class="frameClass" class="transition-all duration-300">
-                    <iframe :key="`${surface}-${device}`" :src="currentUrl" class="h-full w-full border-0" :title="t('agents.playground.preview_title')" loading="lazy" />
+                    <iframe
+                        :key="`${surface}-${device}`"
+                        :src="currentUrl"
+                        class="h-full w-full border-0"
+                        :title="t('agents.playground.preview_title')"
+                        loading="lazy"
+                    />
                 </div>
             </div>
         </div>

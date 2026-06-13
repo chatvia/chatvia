@@ -35,8 +35,8 @@ import {
 } from 'chart.js';
 import { ChevronLeft, ChevronRight, Info, LoaderCircle, Maximize2, MessageSquare, Plus, Search, Sparkles, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { Line, Pie } from 'vue-chartjs';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
@@ -493,10 +493,7 @@ onMounted(() => {
             <MessageSquare class="h-5 w-5" />
         </template>
 
-        <LockedFeature
-            v-if="!hasAccess"
-            :description="t('agents.topics_index.locked_description')"
-        />
+        <LockedFeature v-if="!hasAccess" :description="t('agents.topics_index.locked_description')" />
 
         <!-- Plan allows it, but the owner switched it off for this agent -->
         <AnalyticsDisabled
@@ -521,7 +518,9 @@ onMounted(() => {
                     <CardContent class="pt-6">
                         <div class="space-y-2 text-center">
                             <p class="text-destructive font-medium">{{ error }}</p>
-                            <button @click="fetchTopicsData" class="text-muted-foreground hover:text-foreground text-sm underline">{{ t('agents.topics_index.try_again') }}</button>
+                            <button @click="fetchTopicsData" class="text-muted-foreground hover:text-foreground text-sm underline">
+                                {{ t('agents.topics_index.try_again') }}
+                            </button>
                         </div>
                     </CardContent>
                 </Card>
@@ -612,7 +611,7 @@ onMounted(() => {
                             </div>
 
                             <!-- Topics Sidebar -->
-                            <div class="w-full border-t pt-6 lg:w-80 lg:border-t-0 lg:border-s lg:pt-0 lg:ps-6">
+                            <div class="w-full border-t pt-6 lg:w-80 lg:border-s lg:border-t-0 lg:ps-6 lg:pt-0">
                                 <div class="flex h-96 flex-col space-y-4">
                                     <!-- Total Topics -->
                                     <div>
@@ -670,7 +669,7 @@ onMounted(() => {
 
                     <div class="flex flex-1 flex-col space-y-4 overflow-hidden">
                         <div class="relative">
-                            <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2 transform" />
+                            <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
                             <Input v-model="searchQuery" :placeholder="t('agents.topics_index.search_placeholder')" class="ps-10" />
                         </div>
 
@@ -719,7 +718,9 @@ onMounted(() => {
                                         <div class="min-w-0 flex-1">
                                             <div class="flex items-center gap-2">
                                                 <h4 class="text-sm font-medium">{{ topic.topic }}</h4>
-                                                <Badge v-if="isTopicAssociated(topic.id)" variant="secondary" class="text-xs">{{ t('agents.topics_index.active') }}</Badge>
+                                                <Badge v-if="isTopicAssociated(topic.id)" variant="secondary" class="text-xs">{{
+                                                    t('agents.topics_index.active')
+                                                }}</Badge>
                                             </div>
                                             <p class="text-muted-foreground mt-1 text-sm">{{ topic.description }}</p>
                                         </div>

@@ -1,0 +1,309 @@
+{
+    "workspace": {
+        "common": {
+            "cancel": "Peruuta",
+            "save": "Tallenna",
+            "delete": "Poista",
+            "keep": "Säilytä",
+            "connect": "Yhdistä",
+            "copy": "Kopioi"
+        },
+        "prompts": {
+            "breadcrumb": "Kehotteet",
+            "title": "Kehotteet",
+            "description": "Uudelleenkäytettävät järjestelmäkehotteet. Kirjoita kehoite tähän ja liitä se mihin tahansa agentin Persoona-sivulta — muokkaa kerran ja jokainen sitä käyttävä agentti saa muutoksen.",
+            "add": "Lisää kehoite",
+            "search_placeholder": "Hae kehotteitä",
+            "empty": "Ei vielä kehotteitä. Napsauta \"Lisää kehoite\" luodaksesi ensimmäisen.",
+            "no_results": "Hakuasi vastaavia kehotteitä ei löydy.",
+            "fallback_name": "kehoite",
+            "delete_confirm_title": "Poistetaanko {name}?",
+            "delete_confirm_description": "Tätä kehoitetta käyttävät agentit palautuvat omiin mukautettuihin ohjeisiinsa. Tätä toimintoa ei voi kumota.",
+            "table": {
+                "prompt": "Kehoite",
+                "agents": "Agentit",
+                "created": "Luotu"
+            },
+            "sheet": {
+                "edit_title": "Muokkaa kehoitetta",
+                "create_title": "Lisää kehoite",
+                "description": "Kirjoita uudelleenkäytettävä järjestelmäkehoite kerran ja liitä se mihin tahansa agentin Persoona-sivulta. Muokkaaminen tässä päivittää kaikki sitä käyttävät agentit.",
+                "id_label": "Tunnus",
+                "copy_id_title": "Kopioi kehoitteen tunnus — anna prompt_id-parametrina luotaessa/päivitettäessä agenttia API:n kautta"
+            },
+            "form": {
+                "name": "Nimi",
+                "name_placeholder": "Tukiagentin persoona",
+                "prompt": "Kehoite",
+                "prompt_placeholder": "Olet avulias assistentti, joka on erikoistunut...",
+                "prompt_hint": "Tukee Markdownia. Tästä tulee agentin järjestelmäkehoite, kun se on liitetty."
+            }
+        },
+        "functions": {
+            "breadcrumb": "Funktiot",
+            "title": "Funktiot",
+            "description": "Webhook-pohjaiset työkalut, joita LLM voi kutsua. Määritä kerran ja liitä mihin tahansa agenttiisi. Kutsuttaessa Chatvia lähettää parametrit webhookillesi POST-pyyntönä ja välittää vastauksen takaisin mallille.",
+            "add": "Lisää funktio",
+            "search_placeholder": "Hae funktioita",
+            "empty": "Ei vielä funktioita. Napsauta \"Lisää funktio\" luodaksesi ensimmäisen.",
+            "no_results": "Hakuasi vastaavia funktioita ei löydy.",
+            "fallback_name": "funktio",
+            "delete_confirm_title": "Poistetaanko {name}?",
+            "delete_confirm_description": "Se irrotetaan kaikista sitä käyttävistä agenteista. Tätä toimintoa ei voi kumota.",
+            "table": {
+                "name": "Funktion nimi",
+                "method": "Metodi",
+                "agents": "Agentit",
+                "enabled": "Käytössä"
+            },
+            "tabs": {
+                "edit": "Muokkaa",
+                "agents": "Agentit"
+            },
+            "sheet": {
+                "edit_title": "Muokkaa funktiota",
+                "create_title": "Lisää funktio",
+                "description": "Funktioiden avulla agentit voivat kutsua omia API:tasi LLM-työkaluina. {name} ja {description} ovat ne tiedot, jotka malli näkee päättäessään, kutsuako funktiota — ole täsmällinen. {learn_more}",
+                "learn_more": "Lue lisää",
+                "id_label": "Tunnus",
+                "copy_id_title": "Kopioi funktion tunnus — anna function_id-parametrina liitettäessä API:n kautta"
+            },
+            "form": {
+                "name": "Nimi",
+                "name_hint": "Kirjaimia, numeroita, alaviiva. Täytyy alkaa kirjaimella.",
+                "display_name": "Näyttönimi",
+                "optional": "(valinnainen)",
+                "display_name_placeholder": "Hae tilauksen tila",
+                "display_name_hint": "Käyttäjäystävällinen nimi, joka näytetään käyttäjille chatissa. Palautuu yllä olevaan nimeen, jos jätetty tyhjäksi.",
+                "description": "Kuvaus",
+                "description_placeholder": "Hae asiakkaan tilauksen nykyinen tila tunnuksen perusteella.",
+                "parameters": "Parametrit (JSON-skeema)",
+                "parameters_aria": "Funktion parametriskeema",
+                "webhook_url": "Webhook-URL",
+                "method": "Metodi",
+                "require_approval": "Vaadi hyväksyntä",
+                "require_approval_hint": "Kysy käyttäjältä ennen funktion suorittamista — suositellaan toiminnoille, jotka kirjoittavat tai muuttavat tietoja.",
+                "auth": "Todennus",
+                "auth_none": "Ei mitään — todennusotsikkoa ei lähetetä",
+                "auth_bearer": "Bearer-token — lähetetään muodossa `Authorization: Bearer …`",
+                "auth_header": "Mukautettu otsikko — oma otsikkonimi ja -arvo",
+                "auth_hmac": "HMAC — pyyntörunko allekirjoitetaan jaetulla salaisuudella",
+                "bearer_token": "Bearer-token",
+                "keep_token": "Jätä tyhjäksi säilyttääksesi nykyisen tokenin",
+                "bearer_hint": "Lähetetään muodossa {header}.",
+                "header_name": "Otsikon nimi",
+                "header_value": "Otsikon arvo",
+                "keep_value": "Jätä tyhjäksi säilyttääksesi nykyisen arvon",
+                "signing_secret": "Allekirjoitussalaisuus",
+                "keep_secret": "Jätä tyhjäksi säilyttääksesi nykyisen salaisuuden",
+                "hmac_hint": "Käytetään pyyntörungon HMAC-SHA256-allekirjoitukseen; tarkista omassa päässäsi."
+            },
+            "agents": {
+                "intro": "Valitse, mitkä agentit voivat käyttää tätä funktiota.",
+                "loading": "Ladataan agentteja",
+                "empty": "Sinulla ei ole vielä yhtään agenttia."
+            }
+        },
+        "api_keys": {
+            "breadcrumb": "API-avaimet",
+            "title": "API-avaimet",
+            "description": "Tilinavaimet {api_link}-rajapintaa varten — luo ja hallinnoi agentteja, tietokantoja, MCP-palvelimia ja funktioita.",
+            "api_link": "Chatvia API",
+            "generate": "Luo avain",
+            "locked": "Päivitä tilaukseasi luodaksesi API-avaimia ja integroidaksesi Chatvian sovelluksiisi.",
+            "empty_title": "Ei vielä API-avaimia",
+            "empty_description": "Luo avain aloittaaksesi Chatvia API:n käytön.",
+            "never": "Ei koskaan",
+            "revoke_aria": "Peruuta avain",
+            "table": {
+                "name": "Nimi",
+                "created": "Luotu",
+                "last_used": "Viimeksi käytetty",
+                "revoke": "Peruuta"
+            },
+            "generate_dialog": {
+                "title": "Luo uusi avain",
+                "description": "Valitse nimi, jonka tunnistat myöhemmin — esim. {example}. Itse token näytetään vain kerran.",
+                "name": "Nimi",
+                "submit": "Luo"
+            },
+            "reveal_dialog": {
+                "title": "Kopioi uusi API-avaimesi",
+                "description": "Tämä on ainoa kerta, kun näet {name}:n. Tallenna se turvalliseen paikkaan — jos kadotat sen, luo uusi.",
+                "warning": "Käsittele tätä kuin salasanaa. Kuka tahansa, jolla se on, voi luoda agentteja puolestasi.",
+                "confirm": "Olen tallentanut sen turvallisesti"
+            },
+            "revoke_dialog": {
+                "title": "Peruuta API-avain",
+                "description": "Peruutetaanko {name}? Kaikki tätä tokenia käyttävät palvelut lakkaavat toimimasta välittömästi. Tätä toimintoa ei voi kumota.",
+                "confirm": "Peruuta"
+            }
+        },
+        "connectors": {
+            "breadcrumb": "Liittimet",
+            "title": "Liittimet",
+            "description": "Liitä kolmannen osapuolen palvelut tilillesi kerran ja liitä ne sitten mihin tahansa agenttiin. Valitse luettelosta tai lisää mikä tahansa MCP-palvelin URL-osoitteen avulla.",
+            "add": "Lisää liitin",
+            "search_placeholder": "Hae liittimiä",
+            "loading": "Ladataan liittimiä",
+            "empty": "Ei vielä liittimiä.",
+            "enabled_section": "Käytössä olevat liittimet",
+            "custom_section": "Mukautetut liittimet",
+            "available_section": "Saatavilla olevat liittimet",
+            "no_results": "Hakuasi vastaavia liittimiä ei löydy.",
+            "coming_soon": "Tulossa",
+            "connect_title": "Yhdistä {name}",
+            "table": {
+                "name": "Liittimen nimi",
+                "tools": "Työkalut",
+                "agents": "Agentit",
+                "enabled": "Käytössä"
+            },
+            "toast": {
+                "load_failed": "Liittimien lataus epäonnistui",
+                "connected": "{name} yhdistetty",
+                "connect_failed": "{name}:n yhdistäminen epäonnistui",
+                "toggle_failed": "Tilan vaihto epäonnistui"
+            },
+            "add_modal": {
+                "title": "Lisää mukautettu liitin",
+                "description": "Osoita chat mihin tahansa MCP-palvelimeen. Nykyaikaiset palvelimet (Notion, Linear, Atlassian, …) ilmoittavat OAuth-tuen — valitse se, niin hoidamme kirjautumisen. Vanhemmat palvelimet käyttävät yleensä bearer-tokenia.",
+                "display_name": "Näyttönimi",
+                "display_name_placeholder": "esim. Notion (työ)",
+                "server_url": "MCP-palvelimen URL",
+                "authentication": "Todennus",
+                "strategy_oauth": "OAuth (automaattinen)",
+                "strategy_token": "Bearer-token",
+                "strategy_none": "Ei mitään",
+                "hint_oauth": "Löydämme todennuspalvelimen ja hoidamme kirjautumisen puolestasi.",
+                "hint_token": "Lähetämme tokenisi Bearer-otsikkona jokaisessa kutsussa.",
+                "hint_none": "Palvelin on saavutettavissa ilman todennusta.",
+                "bearer_token": "Bearer-token",
+                "continue_signin": "Jatka kirjautumiseen",
+                "submit": "Lisää liitin",
+                "added": "{name} lisätty",
+                "error": "Liittimen lisääminen epäonnistui — tarkista URL ja yritä uudelleen."
+            },
+            "salesforce": {
+                "description": "Salesforce käyttää organisaatiokohtaista OAuth-sovellusta. Luo External Client App -sovellus organisaatiossasi ja syötä sen Consumer Key alla — hyväksyt käyttöoikeudet Salesforcessa seuraavaksi.",
+                "environment": "Ympäristö",
+                "production": "Tuotanto",
+                "sandbox": "Hiekkalaatikko",
+                "consumer_key": "Consumer Key",
+                "help_link": "Kuinka luoda External Client App",
+                "consumer_secret": "Consumer Secret",
+                "optional": "(valinnainen)",
+                "consumer_secret_placeholder": "Jätä tyhjäksi julkiselle PKCE-sovellukselle",
+                "mcp_server": "MCP-palvelin",
+                "my_domain": "My Domain",
+                "my_domain_hint": "Jätä tyhjäksi kirjautuaksesi login.salesforce.com-osoitteen kautta. Pakollinen, jos organisaatiosi vaatii My Domainin.",
+                "continue": "Jatka Salesforceen",
+                "error": "Yhteyden muodostaminen epäonnistui — tarkista tiedot ja yritä uudelleen.",
+                "servers": {
+                    "sobject_all": "Objektit — luku ja kirjoitus (suositeltu)",
+                    "sobject_reads": "Objektit — vain luku",
+                    "flows": "Työnkulut",
+                    "invocable_actions": "Kutsuttavat toiminnot",
+                    "data_360": "Data 360",
+                    "prompt_builder": "Kehoitemallit",
+                    "tableau_next": "Tableau Next"
+                }
+            },
+            "token_modal": {
+                "server_url": "MCP-palvelimen URL",
+                "server_url_hint": "{name}:llä ei ole isännöityä MCP-palvelinta — liitä oman (itse isännöidyn tai kumppanin hallinnoiman) {name} MCP-palvelimesi URL.",
+                "token": "Token",
+                "help_link": "Mistä löydän tämän?",
+                "format_warning": "Muoto ei vaikuta oikealta. Tarkista arvo ennen yhdistämistä.",
+                "error": "Yhdistäminen epäonnistui — yritä uudelleen."
+            }
+        },
+        "members": {
+            "breadcrumb": "Chatterit",
+            "title": "Chatterit",
+            "description": "Kaikki, joille olet myöntänyt pääsyn keskustella agenttiesi kanssa. Lähetä salasanan palautuslinkki tai poista chatter kokonaan.",
+            "search_placeholder": "Hae chattereita...",
+            "count": "{shown} / {total} chatter | {shown} / {total} chatteria",
+            "invite": "Kutsu chatter",
+            "invite_disabled_hint": "Luo ensin suojattu agentti — chattereita voidaan kutsua vain suojattuihin agentteihin.",
+            "no_email": "Ei sähköpostia",
+            "reset_title": "Lähetä salasanan palautuslinkki käyttäjälle {name}",
+            "remove_title": "Poista {name}",
+            "table": {
+                "name": "Nimi",
+                "email": "Sähköposti",
+                "status": "Tila",
+                "agents": "Agentit",
+                "messages": "Viestit",
+                "created": "Luotu",
+                "actions": "Toiminnot"
+            },
+            "status": {
+                "deactivated": "Poistettu käytöstä",
+                "pending": "Odottaa",
+                "active": "Aktiivinen"
+            },
+            "empty": {
+                "title": "Ei vielä chattereita.",
+                "description": "Kutsu joku alla tai minkä tahansa agentin Chatterit-välilehdeltä — he ilmestyvät tähän.",
+                "invite_first": "Kutsu ensimmäinen chatterisi"
+            },
+            "no_results": {
+                "title": "Hakuasi vastaavia chattereita ei löydy.",
+                "description": "Kokeile muuttaa hakuehtojasi."
+            },
+            "invite_dialog": {
+                "title": "Kutsu chatter",
+                "description": "Lähetämme rekisteröitymislinkin tähän osoitteeseen. Valitse agentit, joiden kanssa he voivat chattailla — vähintään yksi vaaditaan.",
+                "email": "Sähköpostiosoite",
+                "agents": "Agentit",
+                "agents_hint": "Chatter voi chattailla vain valitsemiesi agenttien kanssa.",
+                "send": "Lähetä kutsu",
+                "emailed_to": "Kutsu lähetetty sähköpostitse osoitteeseen {email}. Voit myös kopioida linkin alta.",
+                "signup_link": "Rekisteröitymislinkki",
+                "expires": "Vanhenee {date}.",
+                "invite_another": "Kutsu toinen",
+                "done": "Valmis"
+            },
+            "reset_dialog": {
+                "title": "Lähetetäänkö salasanan palautuslinkki?",
+                "description": "Lähetämme palautuslinkin osoitteeseen {email}. He voivat asettaa uuden salasanan linkin kautta — et näe uutta arvoa.",
+                "confirm": "Lähetä linkki"
+            },
+            "delete_dialog": {
+                "title": "Poista chatter",
+                "description": "{name} poistetaan pysyvästi yhdessä heidän pääsynsä kaikkiin työtilasi agentteihin. Tätä ei voi kumota.",
+                "confirm": "Poista"
+            },
+            "toast": {
+                "load_failed": "Chatterien lataus epäonnistui",
+                "invite_sent_to": "Kutsu lähetetty osoitteeseen {email}",
+                "invite_sent": "Kutsu lähetetty",
+                "invite_failed": "Kutsun lähettäminen epäonnistui",
+                "reset_sent": "Salasanan palautuslinkki lähetetty osoitteeseen {email}",
+                "reset_failed": "Palautuslinkin lähettäminen epäonnistui",
+                "removed": "{name} poistettu",
+                "remove_failed": "Tätä chatteria ei voitu poistaa"
+            }
+        },
+        "governance": {
+            "breadcrumb": "Hallinto",
+            "title": "Tarkistuskirjaus",
+            "description": "Kaikki toiminnot, joita agenttisi tekevät työkalujen ja liittimien kautta — sallitut, hyväksytyt, hylätyt tai nopeusrajoitetut — argumentteineen, tuloksineen ja käynnistäjineen."
+        },
+        "sections": {
+            "integrations": "Integraatiot",
+            "library": "Kirjasto",
+            "people": "Ihmiset",
+            "governance": "Hallinto"
+        },
+        "nav": {
+            "connectors": "Liittimet",
+            "functions": "Funktiot",
+            "api_keys": "API-avaimet",
+            "prompts": "Kehotteet",
+            "members": "Chatterit",
+            "audit_log": "Tarkistuskirjaus"
+        }
+    }
+}

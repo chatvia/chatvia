@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Session as ChatSession;
+use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Services\Memory\TurnState;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -42,7 +43,9 @@ it('honours an in-memory cs:session marker on the same request', function (): vo
     $session = ChatSession::create(['agent_id' => $agent->id]);
     Session::put('cs:session', $session->external_id);
 
-    Cache::driver('chat')->tags($session->external_id)
+    // Plant under the same [workspace, agent, session] tag set the reader uses
+    // (see ChatCache::sessionTags / TurnState::getChatCache).
+    Cache::driver('chat')->tags(ChatCache::sessionTags($agent->workspaceExternalId(), $agent->external_id, $session->external_id))
         ->forever($session->external_id, ['conversations' => []]);
 
     expect(app(TurnState::class)->firstOrCreateSession($agent))->toBe($session->external_id);

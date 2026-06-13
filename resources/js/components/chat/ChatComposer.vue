@@ -301,7 +301,7 @@ const toggleRecording = async () => {
                         <button
                             type="button"
                             @click="removeAttachment(att.id)"
-                            class="text-muted-foreground hover:text-foreground -mr-1 rounded p-0.5"
+                            class="text-muted-foreground hover:text-foreground -me-1 rounded p-0.5"
                             :aria-label="t('composer.remove_attachment', 'Remove attachment')"
                         >
                             <X class="h-3.5 w-3.5" />
@@ -318,7 +318,7 @@ const toggleRecording = async () => {
                      uploads or while streaming. Disabled (greyed) once the local
                      attachments list hits the per-chat ceiling; the click handler
                      also re-checks and surfaces a toast as a fallback. -->
-                    <div v-if="showUploadButton" class="flex items-center py-2 pl-2">
+                    <div v-if="showUploadButton" class="flex items-center py-2 ps-2">
                         <Tooltip>
                             <TooltipTrigger as-child>
                                 <Button
@@ -353,8 +353,8 @@ const toggleRecording = async () => {
                             @focus="handleFocus"
                             @blur="handleBlur"
                             :placeholder="disabled ? t('composer.disabled') : placeholder || t('composer.default_placeholder')"
-                            class="text-foreground placeholder:text-muted-foreground/50 max-h-[160px] min-h-[28px] w-full resize-none !border-0 !bg-transparent py-4 pr-2 text-sm !shadow-none focus-visible:!border-0 focus-visible:ring-0 focus-visible:outline-none dark:!bg-transparent"
-                            :class="showUploadButton ? 'pl-2' : 'pl-4'"
+                            class="text-foreground placeholder:text-muted-foreground/50 max-h-[160px] min-h-[28px] w-full resize-none !border-0 !bg-transparent py-4 pe-2 text-sm !shadow-none focus-visible:!border-0 focus-visible:ring-0 focus-visible:outline-none dark:!bg-transparent"
+                            :class="showUploadButton ? 'ps-2' : 'ps-4'"
                             :disabled="isThinking || disabled"
                             rows="1"
                         />

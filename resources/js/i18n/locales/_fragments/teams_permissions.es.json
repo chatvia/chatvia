@@ -1,0 +1,232 @@
+{
+    "teams": {
+        "permissions_meta": {
+            "scopes": {
+                "agent": {
+                    "label": "Permisos del agente",
+                    "description": "Lo que este rol puede hacer dentro de cada agente al que tiene acceso. Estas acciones aplican por agente y se eligen desde la lista de Acceso al Agente de arriba."
+                },
+                "account": {
+                    "label": "Permisos de cuenta",
+                    "description": "Herramientas y configuraciones compartidas a nivel de cuenta. Estas aplican una vez en todos los agentes y se gestionan desde el menú de Configuración."
+                }
+            },
+            "groups": {
+                "setup": {
+                    "label": "Configuración",
+                    "description": "Editar el agente en sí: personalidad, modelos, widget e integración."
+                },
+                "sources": {
+                    "label": "Fuentes",
+                    "description": "Administrar los datos de entrenamiento de los que aprende el agente."
+                },
+                "chat": {
+                    "label": "Chat",
+                    "description": "Leer, tomar el control, exportar o eliminar conversaciones en curso."
+                },
+                "audit": {
+                    "label": "Auditoría",
+                    "description": "Ver el registro de auditoría de llamadas a herramientas (herramientas, conectores, aprobaciones)."
+                },
+                "evals": {
+                    "label": "Evaluaciones",
+                    "description": "Probar el agente con un conjunto de pruebas y hacer seguimiento de la tasa de aprobación a lo largo del tiempo."
+                },
+                "guardrails": {
+                    "label": "Restricciones de seguridad",
+                    "description": "Controles de seguridad de IA: PII, inyección de prompts, temas bloqueados, toxicidad."
+                },
+                "analytics": {
+                    "label": "Analítica",
+                    "description": "Inspeccionar uso, sentimiento, tono, temas y rendimiento de fuentes."
+                },
+                "topics": {
+                    "label": "Temas",
+                    "description": "Gestionar los temas bajo los cuales se agrupan las conversaciones."
+                },
+                "leads": {
+                    "label": "Prospectos",
+                    "description": "Ver, configurar y exportar los prospectos capturados por el agente."
+                },
+                "administration": {
+                    "label": "Administración",
+                    "description": "Tareas de propietario por agente: chatters y secreto de firma."
+                },
+                "security": {
+                    "label": "Seguridad",
+                    "description": "Credenciales personales para llamar a la API pública."
+                },
+                "integrations": {
+                    "label": "Integraciones",
+                    "description": "Conectar servicios de terceros y funciones webhook personalizadas, y luego vincularlos a cualquier agente."
+                },
+                "library": {
+                    "label": "Biblioteca",
+                    "description": "Prompts reutilizables compartidos en toda la cuenta."
+                },
+                "people": {
+                    "label": "Personas",
+                    "description": "Gestionar los chatters con acceso a tus agentes."
+                },
+                "governance": {
+                    "label": "Gobernanza",
+                    "description": "Auditar y controlar cada acción que tus agentes realizan mediante herramientas y conectores."
+                }
+            },
+            "codes": {
+                "agents_access_all": {
+                    "label": "Acceder a todos los agentes",
+                    "description": "Conceder acceso a todos los agentes actuales y futuros del equipo"
+                },
+                "agent_setup": {
+                    "label": "Configurar agente",
+                    "description": "Modificar la configuración, personalidad y comportamiento del agente"
+                },
+                "agent_sources_train_files": {
+                    "label": "Entrenar con archivos",
+                    "description": "Subir y procesar documentos (PDF, Word, etc.)"
+                },
+                "agent_sources_train_text": {
+                    "label": "Entrenar con texto",
+                    "description": "Subir y procesar archivos de texto plano"
+                },
+                "agent_sources_train_qa": {
+                    "label": "Entrenar con preguntas y respuestas",
+                    "description": "Agregar pares de preguntas y respuestas"
+                },
+                "agent_sources_train_web": {
+                    "label": "Entrenar con web",
+                    "description": "Rastrear y procesar contenido de sitios web"
+                },
+                "agent_sources_train_audio": {
+                    "label": "Entrenar con audio",
+                    "description": "Subir y transcribir archivos de audio"
+                },
+                "agent_sources_train_video": {
+                    "label": "Entrenar con video",
+                    "description": "Subir y transcribir archivos de video"
+                },
+                "agent_sources_train_functions": {
+                    "label": "Gestionar funciones",
+                    "description": "Definir llamadas a herramientas LLM que apunten a tus propios endpoints webhook"
+                },
+                "agent_sources_train_connectors": {
+                    "label": "Gestionar conectores",
+                    "description": "Conectar servicios de terceros (Stripe, GitHub, Notion, …) como fuentes de datos en tiempo real"
+                },
+                "agent_sources_delete": {
+                    "label": "Eliminar fuentes",
+                    "description": "Quitar fuentes de entrenamiento del agente"
+                },
+                "agent_chat_view": {
+                    "label": "Ver conversaciones",
+                    "description": "Leer el historial de chat y los registros de conversaciones"
+                },
+                "agent_chat_pulse": {
+                    "label": "Pulso de conversación",
+                    "description": "Ver métricas de salud de conversaciones en tiempo real y seguimiento de sentimiento"
+                },
+                "agent_chat_takeover": {
+                    "label": "Tomar el control",
+                    "description": "Tomar el control de una conversación en curso desde la IA"
+                },
+                "agent_chat_delete": {
+                    "label": "Eliminar conversaciones",
+                    "description": "Eliminar permanentemente el historial de conversaciones"
+                },
+                "agent_chat_export": {
+                    "label": "Exportar conversaciones",
+                    "description": "Exportar el historial de chat a CSV u otros formatos"
+                },
+                "agent_audit_view": {
+                    "label": "Ver registro de auditoría",
+                    "description": "Ver el registro de auditoría de llamadas a herramientas de este agente"
+                },
+                "agent_evals_view": {
+                    "label": "Ver evaluaciones",
+                    "description": "Ver los conjuntos de evaluación del agente y el historial de ejecuciones"
+                },
+                "agent_evals_manage": {
+                    "label": "Gestionar evaluaciones",
+                    "description": "Crear casos de prueba y ejecutar conjuntos de evaluación"
+                },
+                "agent_guardrails_view": {
+                    "label": "Ver restricciones de seguridad",
+                    "description": "Ver la configuración de seguridad de IA y el registro de activaciones de este agente"
+                },
+                "agent_guardrails_manage": {
+                    "label": "Gestionar restricciones de seguridad",
+                    "description": "Configurar controles de PII, inyección de prompts, temas y toxicidad"
+                },
+                "agent_analytics_chats": {
+                    "label": "Analítica de chats",
+                    "description": "Ver el volumen de conversaciones y tendencias"
+                },
+                "agent_analytics_sentiment": {
+                    "label": "Sentimiento",
+                    "description": "Ver el análisis de sentimiento de las conversaciones"
+                },
+                "agent_analytics_tone": {
+                    "label": "Tonos",
+                    "description": "Ver el análisis de tono de las conversaciones"
+                },
+                "agent_analytics_topics": {
+                    "label": "Temas",
+                    "description": "Ver y gestionar temas"
+                },
+                "agent_analytics_sources": {
+                    "label": "Fuentes",
+                    "description": "Ver qué fuentes se están utilizando en las respuestas"
+                },
+                "agent_topics_manage": {
+                    "label": "Gestionar temas",
+                    "description": "Crear, editar y eliminar temas de conversación"
+                },
+                "agent_leads_view": {
+                    "label": "Ver prospectos",
+                    "description": "Ver la información de prospectos capturados"
+                },
+                "agent_leads_settings": {
+                    "label": "Configuración de prospectos",
+                    "description": "Configurar formularios y reglas de captura de prospectos"
+                },
+                "agent_leads_export": {
+                    "label": "Exportar prospectos",
+                    "description": "Descargar prospectos como CSV o integrar con CRM"
+                },
+                "agent_members_manage": {
+                    "label": "Chatters del agente",
+                    "description": "Invitar, ver y eliminar chatters con acceso a este agente"
+                },
+                "agent_identity_manage": {
+                    "label": "Verificación de identidad del agente",
+                    "description": "Ver y usar el secreto de firma por agente para tokens de inicio de sesión"
+                },
+                "account_api_keys": {
+                    "label": "Claves de API",
+                    "description": "Crear y revocar tokens de API personales"
+                },
+                "account_connectors": {
+                    "label": "Conectores",
+                    "description": "Gestionar conectores de terceros a nivel de cuenta (servidores MCP)"
+                },
+                "account_functions": {
+                    "label": "Funciones",
+                    "description": "Definir funciones webhook que los agentes pueden invocar"
+                },
+                "account_prompts": {
+                    "label": "Prompts",
+                    "description": "Gestionar la biblioteca de prompts compartidos"
+                },
+                "account_members_manage": {
+                    "label": "Chatters",
+                    "description": "Ver, restablecer contraseña y eliminar chatters en todo el espacio de trabajo"
+                },
+                "account_governance": {
+                    "label": "Gobernanza",
+                    "description": "Ver el registro de auditoría de llamadas a herramientas y los controles de acceso"
+                }
+            }
+        }
+    }
+}

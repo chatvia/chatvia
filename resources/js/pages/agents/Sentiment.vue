@@ -311,10 +311,7 @@ onMounted(() => {
             <SmilePlus class="h-5 w-5" />
         </template>
 
-        <LockedFeature
-            v-if="!hasAccess"
-            :description="t('agents.sentiment.locked_description')"
-        />
+        <LockedFeature v-if="!hasAccess" :description="t('agents.sentiment.locked_description')" />
 
         <AnalyticsDisabled
             v-else-if="!chatlogEnabled || !isEnabled"

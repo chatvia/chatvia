@@ -209,7 +209,7 @@ async function copyId(): Promise<void> {
                         <div class="grid gap-2">
                             <Label for="internal_name">{{ t('workspace.functions.form.name') }}</Label>
                             <div class="relative">
-                                <Hash class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                                <Hash class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                                 <Input id="internal_name" v-model="form.internal_name" placeholder="get_order_status" class="ps-9" required />
                             </div>
                             <p class="text-muted-foreground text-xs">{{ t('workspace.functions.form.name_hint') }}</p>
@@ -222,7 +222,7 @@ async function copyId(): Promise<void> {
                                 <span class="text-muted-foreground font-normal">{{ t('workspace.functions.form.optional') }}</span></Label
                             >
                             <div class="relative">
-                                <Hash class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                                <Hash class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                                 <Input
                                     id="display_name"
                                     v-model="form.display_name"
@@ -237,7 +237,7 @@ async function copyId(): Promise<void> {
                         <div class="grid gap-2">
                             <Label for="description">{{ t('workspace.functions.form.description') }}</Label>
                             <div class="relative">
-                                <AlignLeft class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                                <AlignLeft class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                                 <Input
                                     id="description"
                                     v-model="form.description"
@@ -259,7 +259,7 @@ async function copyId(): Promise<void> {
                             <div class="col-span-2 grid gap-2">
                                 <Label for="webhook_url">{{ t('workspace.functions.form.webhook_url') }}</Label>
                                 <div class="relative">
-                                    <Webhook class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                                    <Webhook class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                                     <Input
                                         id="webhook_url"
                                         v-model="form.webhook_url"
@@ -274,11 +274,11 @@ async function copyId(): Promise<void> {
                             <div class="grid gap-2">
                                 <Label for="webhook_method">{{ t('workspace.functions.form.method') }}</Label>
                                 <div class="relative">
-                                    <Send class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                                    <Send class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                                     <select
                                         id="webhook_method"
                                         v-model="form.webhook_method"
-                                        class="border-input bg-background h-9 w-full rounded-md border pe-3 ps-9 text-sm"
+                                        class="border-input bg-background h-9 w-full rounded-md border ps-9 pe-3 text-sm"
                                     >
                                         <option value="POST">POST</option>
                                         <option value="GET">GET</option>
@@ -304,11 +304,11 @@ async function copyId(): Promise<void> {
                         <div class="grid gap-2">
                             <Label for="auth_type">{{ t('workspace.functions.form.auth') }}</Label>
                             <div class="relative">
-                                <Shield class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                                <Shield class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                                 <select
                                     id="auth_type"
                                     v-model="form.auth_type"
-                                    class="border-input bg-background h-9 w-full rounded-md border pe-3 ps-9 text-sm"
+                                    class="border-input bg-background h-9 w-full rounded-md border ps-9 pe-3 text-sm"
                                 >
                                     <option value="none">{{ t('workspace.functions.form.auth_none') }}</option>
                                     <option value="bearer">{{ t('workspace.functions.form.auth_bearer') }}</option>
@@ -320,7 +320,7 @@ async function copyId(): Promise<void> {
                             <div v-if="form.auth_type === 'bearer'" class="mt-2 grid gap-2">
                                 <Label for="auth_value">{{ t('workspace.functions.form.bearer_token') }}</Label>
                                 <div class="relative">
-                                    <KeyRound class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                                    <KeyRound class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                                     <Input
                                         id="auth_value"
                                         v-model="form.auth_value"
@@ -342,7 +342,7 @@ async function copyId(): Promise<void> {
                                 <div class="grid gap-2">
                                     <Label for="auth_header_name">{{ t('workspace.functions.form.header_name') }}</Label>
                                     <div class="relative">
-                                        <Key class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                                        <Key class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                                         <Input id="auth_header_name" v-model="form.auth_header_name" placeholder="X-Api-Key" class="ps-9" />
                                     </div>
                                     <InputError :message="form.errors.auth_header_name" />
@@ -350,7 +350,7 @@ async function copyId(): Promise<void> {
                                 <div class="grid gap-2">
                                     <Label for="auth_value">{{ t('workspace.functions.form.header_value') }}</Label>
                                     <div class="relative">
-                                        <Lock class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                                        <Lock class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                                         <Input
                                             id="auth_value"
                                             v-model="form.auth_value"
@@ -367,7 +367,7 @@ async function copyId(): Promise<void> {
                             <div v-else-if="form.auth_type === 'hmac'" class="mt-2 grid gap-2">
                                 <Label for="auth_value">{{ t('workspace.functions.form.signing_secret') }}</Label>
                                 <div class="relative">
-                                    <Lock class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                                    <Lock class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                                     <Input
                                         id="auth_value"
                                         v-model="form.auth_value"

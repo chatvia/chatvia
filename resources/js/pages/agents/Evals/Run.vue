@@ -90,7 +90,10 @@ const stats = computed(() => {
             secondary: null as string | null,
             bar: run.pass_rate,
             barClass: (run.pass_rate ?? 0) >= 50 ? 'bg-emerald-500' : 'bg-destructive',
-            note: total > 0 ? t('agents.evals.run.stats.cases_passed', { passed: run.passed_count, total }) : t('agents.evals.run.stats.no_cases_scored'),
+            note:
+                total > 0
+                    ? t('agents.evals.run.stats.cases_passed', { passed: run.passed_count, total })
+                    : t('agents.evals.run.stats.no_cases_scored'),
         },
         {
             key: 'passed',
@@ -167,7 +170,8 @@ const openDetail = (result: EvalResult) => {
                             </Badge>
                         </h2>
                         <p class="text-muted-foreground text-sm">
-                            {{ t('agents.evals.run.triggered_by', { name: props.run.triggered_by_name ?? '—' }) }} · {{ formatDateTime(props.run.created_at) }}
+                            {{ t('agents.evals.run.triggered_by', { name: props.run.triggered_by_name ?? '—' }) }} ·
+                            {{ formatDateTime(props.run.created_at) }}
                         </p>
                     </div>
                 </div>
@@ -226,7 +230,9 @@ const openDetail = (result: EvalResult) => {
                                     <span v-if="result.pass" class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                                         <CheckCircle2 class="h-4 w-4" /> {{ t('agents.evals.run.pass') }}
                                     </span>
-                                    <span v-else class="text-destructive flex items-center gap-1"> <XCircle class="h-4 w-4" /> {{ t('agents.evals.run.fail') }} </span>
+                                    <span v-else class="text-destructive flex items-center gap-1">
+                                        <XCircle class="h-4 w-4" /> {{ t('agents.evals.run.fail') }}
+                                    </span>
                                 </TableCell>
                                 <TableCell class="tabular-nums">{{ result.score !== null ? Math.round(result.score * 100) + '%' : '—' }}</TableCell>
                                 <TableCell>
@@ -282,11 +288,15 @@ const openDetail = (result: EvalResult) => {
                     </div>
 
                     <div>
-                        <p class="text-muted-foreground mb-1.5 text-xs font-medium tracking-wide uppercase">{{ t('agents.evals.run.agent_answer') }}</p>
+                        <p class="text-muted-foreground mb-1.5 text-xs font-medium tracking-wide uppercase">
+                            {{ t('agents.evals.run.agent_answer') }}
+                        </p>
                         <p class="bg-muted/40 max-h-64 overflow-y-auto rounded-md border p-3 leading-relaxed break-words whitespace-pre-wrap">
                             {{ selected.actual_output?.trim() || t('agents.evals.run.empty_output') }}
                         </p>
-                        <p v-if="selected.actual_output_truncated" class="text-muted-foreground mt-1 text-xs">{{ t('agents.evals.run.truncated') }}</p>
+                        <p v-if="selected.actual_output_truncated" class="text-muted-foreground mt-1 text-xs">
+                            {{ t('agents.evals.run.truncated') }}
+                        </p>
                     </div>
 
                     <div v-if="selected.tools_called.length">
@@ -297,7 +307,9 @@ const openDetail = (result: EvalResult) => {
                     </div>
 
                     <div v-if="selected.sources_used.length">
-                        <p class="text-muted-foreground mb-1.5 text-xs font-medium tracking-wide uppercase">{{ t('agents.evals.run.sources_retrieved') }}</p>
+                        <p class="text-muted-foreground mb-1.5 text-xs font-medium tracking-wide uppercase">
+                            {{ t('agents.evals.run.sources_retrieved') }}
+                        </p>
                         <div class="flex flex-wrap gap-1.5">
                             <Badge v-for="(source, i) in selected.sources_used" :key="i" variant="outline" class="font-normal">{{ source }}</Badge>
                         </div>
@@ -305,7 +317,9 @@ const openDetail = (result: EvalResult) => {
 
                     <div class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 border-t pt-3 text-xs">
                         <span v-if="selected.latency_ms !== null" class="tabular-nums">{{ selected.latency_ms.toLocaleString() }} ms</span>
-                        <span v-if="selected.tokens !== null" class="tabular-nums">{{ t('agents.evals.run.tokens_count', { count: selected.tokens.toLocaleString() }) }}</span>
+                        <span v-if="selected.tokens !== null" class="tabular-nums">{{
+                            t('agents.evals.run.tokens_count', { count: selected.tokens.toLocaleString() })
+                        }}</span>
                         <span v-if="selected.trace_id" class="truncate font-mono">{{ selected.trace_id }}</span>
                     </div>
                 </div>

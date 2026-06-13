@@ -28,8 +28,8 @@ return new class extends Migration
             $table->foreignId('chat_conversation_id')->index()
                 ->constrained('chat_conversations')->cascadeOnDelete();
             $table->string('peer_name')->nullable(); // the sender's display name at first contact (personal chats)
-            $table->timestampTz('last_message_at')->nullable();
-            $table->timestampsTz();
+            $table->timestamp('last_message_at')->nullable();
+            $table->timestamps();
 
             $table->unique(['agent_teams_bot_id', 'conversation_id']);
         });

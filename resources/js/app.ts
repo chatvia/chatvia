@@ -3,15 +3,15 @@ import '../css/app.css';
 import { createInertiaApp, router } from '@inertiajs/vue3';
 import { configureEcho } from '@laravel/echo-vue';
 import 'primeicons/primeicons.css';
-import { createApp, h } from 'vue';
-import { createGtag } from 'vue-gtag';
+import { ConfigProvider } from 'reka-ui';
+import { computed, createApp, h } from 'vue';
 import { toast } from 'vue-sonner';
 import 'vue-sonner/style.css';
 import Vue3ColorPicker from 'vue3-colorpicker';
 import 'vue3-colorpicker/style.css';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
-import { i18n, resolveLocale, setI18nLocale } from './i18n';
+import { i18n, isRTL, normalizeLocale, resolveLocale, setI18nLocale } from './i18n';
 import { createChatEventBus } from './utils/eventBus';
 
 const chatEventBus = createChatEventBus();
@@ -25,8 +25,6 @@ configureEcho({
     forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
     enabledTransports: ['ws', 'wss'],
 });
-
-const vueTag = createGtag({ tagId: 'G-RTCBL1ZT5C' });
 
 // Extend ImportMeta interface for Vite...
 interface ImportMetaEnv {
@@ -49,12 +47,17 @@ createInertiaApp({
             void setI18nLocale(resolveLocale(initialLocale));
         }
 
-        createApp({ render: () => h(App, props) })
+        // reka-ui primitives (NavigationMenu, DropdownMenu, Tabs, Sheet, …) read
+        // their layout direction from a ConfigProvider, defaulting to LTR. Bind
+        // it to the active locale so RTL languages mirror the whole UI (nav order,
+        // dropdown alignment, sheet side) — `dir` is reactive via the i18n locale.
+        const dir = computed<'ltr' | 'rtl'>(() => (isRTL(normalizeLocale(i18n.global.locale.value)) ? 'rtl' : 'ltr'));
+
+        createApp({ render: () => h(ConfigProvider, { dir: dir.value }, () => h(App, props)) })
             .use(plugin)
             .use(i18n)
             .use(ZiggyVue)
             .use(Vue3ColorPicker)
-            .use(vueTag)
             .provide('chatEventBus', chatEventBus)
             .mount(el as Element);
     },

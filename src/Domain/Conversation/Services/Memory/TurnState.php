@@ -16,9 +16,12 @@ class TurnState
 
     public function firstOrCreateSession(Agent $agent): string
     {
+        $workspaceExternalId = $agent->workspaceExternalId();
+        $agentExternalId = $agent->external_id;
+
         $existingSessionId = Session::get(self::SESSION_KEY);
 
-        if ($existingSessionId && $this->isValidSession($existingSessionId)) {
+        if ($existingSessionId && $this->isValidSession($existingSessionId, $workspaceExternalId, $agentExternalId)) {
             return $existingSessionId;
         }
 
@@ -44,7 +47,7 @@ class TurnState
             'user_id' => Auth::guard('web')->id(),
         ]);
 
-        $this->initializeSession($session->external_id);
+        $this->initializeSession($session->external_id, $workspaceExternalId, $agentExternalId);
 
         return $session->external_id;
     }
@@ -54,19 +57,19 @@ class TurnState
         return Auth::guard('web')->check();
     }
 
-    private function isValidSession(string $sessionId): bool
+    private function isValidSession(string $sessionId, string $workspaceExternalId, string $agentExternalId): bool
     {
-        return $this->getChatCache($sessionId)->has($sessionId);
+        return $this->getChatCache($sessionId, $workspaceExternalId, $agentExternalId)->has($sessionId);
     }
 
-    private function initializeSession(string $sessionId): void
+    private function initializeSession(string $sessionId, string $workspaceExternalId, string $agentExternalId): void
     {
         $sessionData = ['conversations' => []];
 
         if ($this->isMemberAuth()) {
-            $this->getChatCache($sessionId)->forever($sessionId, CacheCipher::encrypt($sessionData));
+            $this->getChatCache($sessionId, $workspaceExternalId, $agentExternalId)->forever($sessionId, CacheCipher::encrypt($sessionData));
         } else {
-            $this->getChatCache($sessionId)->put(
+            $this->getChatCache($sessionId, $workspaceExternalId, $agentExternalId)->put(
                 key: $sessionId,
                 value: CacheCipher::encrypt($sessionData),
                 ttl: now()->addDays(self::GUEST_SESSION_TTL_DAYS)
@@ -76,13 +79,16 @@ class TurnState
         Session::put(self::SESSION_KEY, $sessionId);
     }
 
-    public function deleteSession($sessionId): void
+    /**
+     * Session-scoped tagged cache. The tag set is the shared session prefix
+     * from {@see ChatCache::sessionTags()} — `[workspaceTag, agentTag,
+     * sessionId]`, in that order — because this touches the same session-data
+     * key as {@see ChatCache::tagsFor()} with a null conversation. Tagged-cache
+     * reads hash the full ordered tag set, so any divergence (different tags or
+     * order) yields a different namespace and the read silently misses.
+     */
+    private function getChatCache(string $sessionId, string $workspaceExternalId, string $agentExternalId): Repository
     {
-        $this->getChatCache($sessionId)->forget($sessionId);
-    }
-
-    private function getChatCache($sessionId): Repository
-    {
-        return Cache::driver('chat')->tags($sessionId);
+        return Cache::driver('chat')->tags(ChatCache::sessionTags($workspaceExternalId, $agentExternalId, $sessionId));
     }
 }

@@ -1,0 +1,309 @@
+{
+    "workspace": {
+        "common": {
+            "cancel": "Anuluj",
+            "save": "Zapisz",
+            "delete": "Usuń",
+            "keep": "Zachowaj",
+            "connect": "Połącz",
+            "copy": "Kopiuj"
+        },
+        "prompts": {
+            "breadcrumb": "Prompty",
+            "title": "Prompty",
+            "description": "Wielokrotnego użytku prompty systemowe. Napisz je tutaj, a następnie dołącz do dowolnego agenta z jego strony Persona — edytuj raz, a każdy agent korzystający z niego automatycznie pobierze zmianę.",
+            "add": "Dodaj prompt",
+            "search_placeholder": "Szukaj promptów",
+            "empty": "Brak promptów. Kliknij „Dodaj prompt\", aby utworzyć pierwszy.",
+            "no_results": "Żaden prompt nie pasuje do wyszukiwania.",
+            "fallback_name": "prompt",
+            "delete_confirm_title": "Usunąć {name}?",
+            "delete_confirm_description": "Agenci korzystający z tego promptu powrócą do własnych niestandardowych instrukcji. Tej operacji nie można cofnąć.",
+            "table": {
+                "prompt": "Prompt",
+                "agents": "Agenci",
+                "created": "Utworzono"
+            },
+            "sheet": {
+                "edit_title": "Edytuj prompt",
+                "create_title": "Dodaj prompt",
+                "description": "Napisz wielokrotnego użytku prompt systemowy raz, a następnie dołącz go do dowolnego agenta z jego strony Persona. Edycja tutaj aktualizuje każdego agenta, który go używa.",
+                "id_label": "ID",
+                "copy_id_title": "Kopiuj ID promptu — przekaż jako prompt_id podczas tworzenia/aktualizowania agenta przez API"
+            },
+            "form": {
+                "name": "Nazwa",
+                "name_placeholder": "Persona agenta wsparcia",
+                "prompt": "Prompt",
+                "prompt_placeholder": "Jesteś pomocnym asystentem specjalizującym się w...",
+                "prompt_hint": "Obsługuje Markdown. Po dołączeniu staje się promptem systemowym agenta."
+            }
+        },
+        "functions": {
+            "breadcrumb": "Funkcje",
+            "title": "Funkcje",
+            "description": "Narzędzia oparte na webhookach, które LLM może wywoływać. Zdefiniuj raz, dołącz do dowolnego agenta. Po wywołaniu Chatvia wysyła parametry POST do Twojego webhooka i przekazuje odpowiedź z powrotem do modelu.",
+            "add": "Dodaj funkcję",
+            "search_placeholder": "Szukaj funkcji",
+            "empty": "Brak funkcji. Kliknij „Dodaj funkcję\", aby utworzyć pierwszą.",
+            "no_results": "Żadna funkcja nie pasuje do wyszukiwania.",
+            "fallback_name": "funkcja",
+            "delete_confirm_title": "Usunąć {name}?",
+            "delete_confirm_description": "Zostanie odłączona od wszystkich agentów, którzy jej używają. Tej operacji nie można cofnąć.",
+            "table": {
+                "name": "Nazwa funkcji",
+                "method": "Metoda",
+                "agents": "Agenci",
+                "enabled": "Włączona"
+            },
+            "tabs": {
+                "edit": "Edytuj",
+                "agents": "Agenci"
+            },
+            "sheet": {
+                "edit_title": "Edytuj funkcję",
+                "create_title": "Dodaj funkcję",
+                "description": "Funkcje umożliwiają agentom wywoływanie Twoich własnych API jako narzędzi LLM. {name} i {description} to informacje, które model widzi przy podejmowaniu decyzji o wywołaniu — bądź precyzyjny. {learn_more}",
+                "learn_more": "Dowiedz się więcej",
+                "id_label": "ID",
+                "copy_id_title": "Kopiuj ID funkcji — przekaż jako function_id podczas dołączania przez API"
+            },
+            "form": {
+                "name": "Nazwa",
+                "name_hint": "Litery, cyfry, podkreślenie. Musi zaczynać się od litery.",
+                "display_name": "Nazwa wyświetlana",
+                "optional": "(opcjonalnie)",
+                "display_name_placeholder": "Pobierz status zamówienia",
+                "display_name_hint": "Przyjazna nazwa wyświetlana użytkownikom na czacie. Jeśli brak, używana jest nazwa powyżej.",
+                "description": "Opis",
+                "description_placeholder": "Sprawdź aktualny status zamówienia klienta według identyfikatora.",
+                "parameters": "Parametry (schemat JSON)",
+                "parameters_aria": "Schemat parametrów funkcji",
+                "webhook_url": "Adres URL webhooka",
+                "method": "Metoda",
+                "require_approval": "Wymagaj zatwierdzenia",
+                "require_approval_hint": "Zapytaj użytkownika przed uruchomieniem tej funkcji — zalecane dla akcji zapisujących lub modyfikujących dane.",
+                "auth": "Uwierzytelnianie",
+                "auth_none": "Brak — nie wysyłany nagłówek uwierzytelniania",
+                "auth_bearer": "Token Bearer — wysyłany jako `Authorization: Bearer …`",
+                "auth_header": "Niestandardowy nagłówek — własna nazwa i wartość nagłówka",
+                "auth_hmac": "HMAC — treść podpisana wspólnym sekretem",
+                "bearer_token": "Token Bearer",
+                "keep_token": "Pozostaw puste, aby zachować bieżący token",
+                "bearer_hint": "Wysyłany jako {header}.",
+                "header_name": "Nazwa nagłówka",
+                "header_value": "Wartość nagłówka",
+                "keep_value": "Pozostaw puste, aby zachować bieżącą wartość",
+                "signing_secret": "Sekret podpisywania",
+                "keep_secret": "Pozostaw puste, aby zachować bieżący sekret",
+                "hmac_hint": "Używany do podpisania treści żądania algorytmem HMAC-SHA256; zweryfikuj po swojej stronie."
+            },
+            "agents": {
+                "intro": "Wybierz, którzy z Twoich agentów mogą korzystać z tej funkcji.",
+                "loading": "Ładowanie agentów",
+                "empty": "Nie masz jeszcze żadnych agentów."
+            }
+        },
+        "api_keys": {
+            "breadcrumb": "Klucze API",
+            "title": "Klucze API",
+            "description": "Klucze konta dla {api_link} — twórz agentów, zasoby wiedzy, serwery MCP i funkcje oraz zarządzaj nimi.",
+            "api_link": "Chatvia API",
+            "generate": "Generuj klucz",
+            "locked": "Ulepsz swój plan, aby tworzyć klucze API i integrować Chatvia z aplikacjami.",
+            "empty_title": "Brak kluczy API",
+            "empty_description": "Wygeneruj klucz, aby rozpocząć korzystanie z Chatvia API.",
+            "never": "Nigdy",
+            "revoke_aria": "Unieważnij klucz",
+            "table": {
+                "name": "Nazwa",
+                "created": "Utworzono",
+                "last_used": "Ostatnio używany",
+                "revoke": "Unieważnij"
+            },
+            "generate_dialog": {
+                "title": "Wygeneruj nowy klucz",
+                "description": "Wybierz nazwę, którą później rozpoznasz — np. {example}. Token jest wyświetlany tylko raz.",
+                "name": "Nazwa",
+                "submit": "Generuj"
+            },
+            "reveal_dialog": {
+                "title": "Skopiuj nowy klucz API",
+                "description": "To jedyna okazja, aby zobaczyć {name}. Przechowaj go w bezpiecznym miejscu — jeśli go zgubisz, wygeneruj nowy.",
+                "warning": "Traktuj ten klucz jak hasło. Każdy, kto go posiada, może provisjonować agentów w Twoim imieniu.",
+                "confirm": "Przechowałem go bezpiecznie"
+            },
+            "revoke_dialog": {
+                "title": "Unieważnij klucz API",
+                "description": "Unieważnić {name}? Każda usługa korzystająca z tego tokenu przestanie działać natychmiast. Tej operacji nie można cofnąć.",
+                "confirm": "Unieważnij"
+            }
+        },
+        "connectors": {
+            "breadcrumb": "Konektory",
+            "title": "Konektory",
+            "description": "Podłącz usługi zewnętrzne do swojego konta raz, a następnie dołączaj je do dowolnego agenta. Wybierz z katalogu lub dodaj dowolny serwer MCP przez URL.",
+            "add": "Dodaj konektor",
+            "search_placeholder": "Szukaj konektorów",
+            "loading": "Ładowanie konektorów",
+            "empty": "Brak konektorów.",
+            "enabled_section": "Włączone konektory",
+            "custom_section": "Niestandardowe konektory",
+            "available_section": "Dostępne konektory",
+            "no_results": "Żaden konektor nie pasuje.",
+            "coming_soon": "Wkrótce",
+            "connect_title": "Połącz {name}",
+            "table": {
+                "name": "Nazwa konektora",
+                "tools": "Narzędzia",
+                "agents": "Agenci",
+                "enabled": "Włączony"
+            },
+            "toast": {
+                "load_failed": "Nie udało się załadować konektorów",
+                "connected": "Połączono {name}",
+                "connect_failed": "Nie udało się połączyć {name}",
+                "toggle_failed": "Nie udało się przełączyć"
+            },
+            "add_modal": {
+                "title": "Dodaj niestandardowy konektor",
+                "description": "Wskaż czatowi dowolny serwer MCP. Nowoczesne serwery (Notion, Linear, Atlassian, …) obsługują OAuth — wybierz tę opcję, a my zajmiemy się logowaniem. Starsze serwery zazwyczaj wymagają tokenu Bearer.",
+                "display_name": "Nazwa wyświetlana",
+                "display_name_placeholder": "np. Notion (praca)",
+                "server_url": "Adres URL serwera MCP",
+                "authentication": "Uwierzytelnianie",
+                "strategy_oauth": "OAuth (automatyczne)",
+                "strategy_token": "Token Bearer",
+                "strategy_none": "Brak",
+                "hint_oauth": "Automatycznie wykryjemy serwer uwierzytelniania i przeprowadzimy logowanie.",
+                "hint_token": "Twój token zostanie wysłany jako nagłówek Bearer przy każdym wywołaniu.",
+                "hint_none": "Serwer jest dostępny bez uwierzytelniania.",
+                "bearer_token": "Token Bearer",
+                "continue_signin": "Przejdź do logowania",
+                "submit": "Dodaj konektor",
+                "added": "Dodano {name}",
+                "error": "Nie można dodać tego konektora — sprawdź adres URL i spróbuj ponownie."
+            },
+            "salesforce": {
+                "description": "Salesforce używa aplikacji OAuth per organizacja. Utwórz zewnętrzną aplikację klienta w swojej organizacji, a następnie wprowadź jej klucz Consumer Key poniżej — następnie zatwierdzisz dostęp w Salesforce.",
+                "environment": "Środowisko",
+                "production": "Produkcyjne",
+                "sandbox": "Sandbox",
+                "consumer_key": "Consumer Key",
+                "help_link": "Jak utworzyć zewnętrzną aplikację klienta",
+                "consumer_secret": "Consumer Secret",
+                "optional": "(opcjonalnie)",
+                "consumer_secret_placeholder": "Pozostaw puste dla publicznej aplikacji PKCE",
+                "mcp_server": "Serwer MCP",
+                "my_domain": "Moja domena",
+                "my_domain_hint": "Pozostaw puste, aby zalogować się przez login.salesforce.com. Wymagane, jeśli Twoja organizacja wymusza My Domain.",
+                "continue": "Przejdź do Salesforce",
+                "error": "Nie można uruchomić połączenia — sprawdź szczegóły i spróbuj ponownie.",
+                "servers": {
+                    "sobject_all": "Obiekty — odczyt i zapis (zalecane)",
+                    "sobject_reads": "Obiekty — tylko odczyt",
+                    "flows": "Przepływy",
+                    "invocable_actions": "Akcje wywoływalne",
+                    "data_360": "Data 360",
+                    "prompt_builder": "Szablony promptów",
+                    "tableau_next": "Tableau Next"
+                }
+            },
+            "token_modal": {
+                "server_url": "Adres URL serwera MCP",
+                "server_url_hint": "{name} nie posiada własnego serwera MCP — wklej adres URL swojego własnego (samodzielnie hostowanego lub zarządzanego przez partnera) serwera MCP {name}.",
+                "token": "Token",
+                "help_link": "Gdzie to znaleźć?",
+                "format_warning": "Format wygląda nieprawidłowo. Sprawdź wartość przed połączeniem.",
+                "error": "Nie można nawiązać połączenia — spróbuj ponownie."
+            }
+        },
+        "members": {
+            "breadcrumb": "Czatowicze",
+            "title": "Czatowicze",
+            "description": "Wszyscy, którym przyznano dostęp do czatowania z Twoimi agentami. Wyślij link do resetowania hasła lub całkowicie usuń czatowicza.",
+            "search_placeholder": "Szukaj czatowiczów...",
+            "count": "{shown} z {total} czatowicza | {shown} z {total} czatowiczów",
+            "invite": "Zaproś czatowicza",
+            "invite_disabled_hint": "Najpierw utwórz chronionego agenta — czatowiczów można zapraszać tylko do chronionych agentów.",
+            "no_email": "Brak adresu e-mail",
+            "reset_title": "Wyślij link do resetowania hasła do {name}",
+            "remove_title": "Usuń {name}",
+            "table": {
+                "name": "Nazwa",
+                "email": "E-mail",
+                "status": "Status",
+                "agents": "Agenci",
+                "messages": "Wiadomości",
+                "created": "Utworzono",
+                "actions": "Akcje"
+            },
+            "status": {
+                "deactivated": "Dezaktywowany",
+                "pending": "Oczekujący",
+                "active": "Aktywny"
+            },
+            "empty": {
+                "title": "Brak czatowiczów.",
+                "description": "Zaproś kogoś poniżej lub z karty Czatowicze dowolnego agenta — pojawią się tutaj.",
+                "invite_first": "Zaproś pierwszego czatowicza"
+            },
+            "no_results": {
+                "title": "Nie znaleziono czatowiczów pasujących do wyszukiwania.",
+                "description": "Spróbuj zmienić kryteria wyszukiwania."
+            },
+            "invite_dialog": {
+                "title": "Zaproś czatowicza",
+                "description": "Wyślemy link rejestracyjny na ten adres. Wybierz agentów, z którymi będą mogli rozmawiać — wymagany jest co najmniej jeden.",
+                "email": "Adres e-mail",
+                "agents": "Agenci",
+                "agents_hint": "Czatowicz może rozmawiać tylko z wybranymi agentami.",
+                "send": "Wyślij zaproszenie",
+                "emailed_to": "Zaproszenie wysłane e-mailem na adres {email}. Możesz też skopiować link poniżej.",
+                "signup_link": "Link rejestracyjny",
+                "expires": "Wygasa {date}.",
+                "invite_another": "Zaproś kolejnego",
+                "done": "Gotowe"
+            },
+            "reset_dialog": {
+                "title": "Wysłać link do resetowania hasła?",
+                "description": "Wyślemy link resetujący na adres {email}. Czatowicz będzie mógł ustawić nowe hasło z linku — nie zobaczysz nowej wartości.",
+                "confirm": "Wyślij link"
+            },
+            "delete_dialog": {
+                "title": "Usuń czatowicza",
+                "description": "{name} zostanie trwale usunięty wraz z dostępem do wszystkich agentów w Twoim obszarze roboczym. Tej operacji nie można cofnąć.",
+                "confirm": "Usuń"
+            },
+            "toast": {
+                "load_failed": "Nie udało się załadować czatowiczów",
+                "invite_sent_to": "Zaproszenie wysłane do {email}",
+                "invite_sent": "Zaproszenie wysłane",
+                "invite_failed": "Nie można wysłać zaproszenia",
+                "reset_sent": "Link do resetowania hasła wysłany na adres {email}",
+                "reset_failed": "Nie można wysłać linku resetującego",
+                "removed": "{name} usunięty",
+                "remove_failed": "Nie można usunąć tego czatowicza"
+            }
+        },
+        "governance": {
+            "breadcrumb": "Zarządzanie",
+            "title": "Dziennik audytu",
+            "description": "Każda akcja wykonana przez Twoich agentów za pomocą narzędzi i konektorów — dozwolona, zatwierdzona, odmówiona lub z ograniczeniem częstotliwości — wraz z argumentami, wynikiem i informacją o tym, kto ją wywołał."
+        },
+        "sections": {
+            "integrations": "Integracje",
+            "library": "Biblioteka",
+            "people": "Użytkownicy",
+            "governance": "Zarządzanie"
+        },
+        "nav": {
+            "connectors": "Konektory",
+            "functions": "Funkcje",
+            "api_keys": "Klucze API",
+            "prompts": "Prompty",
+            "members": "Czatowicze",
+            "audit_log": "Dziennik audytu"
+        }
+    }
+}

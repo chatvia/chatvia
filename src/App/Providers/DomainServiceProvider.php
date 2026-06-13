@@ -62,8 +62,8 @@ use Domain\Llm\Providers\Mistral as LlmMistral;
 use Domain\Llm\Providers\OpenRouter;
 use Domain\Llm\Providers\Scaleway;
 use Domain\Llm\Usage\TokenUsageContext;
-use Domain\Membership\Agent\Events\AgentMemberInvited;
-use Domain\Membership\Agent\Listeners\SendAgentMemberInvitationEmail;
+use Domain\Membership\Agent\Events\AgentChatterInvited;
+use Domain\Membership\Agent\Listeners\SendAgentChatterInvitationEmail;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Listeners\SendTeamInvitationEmail;
 use Domain\Security\Events\SecurityEventOccurred;
@@ -95,7 +95,9 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->bind(ToolDispatcherInterface::class, RoutingToolDispatcher::class);
 
         // SSE stream transformer: parses the upstream OpenAI-compatible byte
-        // stream into envelope events. Single implementation today.
+        // stream into envelope events. Kept behind an interface as the seam the
+        // tool loop streams through — ToolLoopRunnerTest injects fake transformers
+        // to drive canned tool-call streams without a live upstream.
         $this->app->bind(StreamTransformer::class, OpenAiCompatibleTransformer::class);
 
         // Per-request / per-job accumulator that attributes LLM token usage to a
@@ -168,7 +170,7 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(Failed::class, RecordFailedLoginSecurityEvent::class);
         Event::listen(Logout::class, RecordLogoutSecurityEvent::class);
 
-        Event::listen(AgentMemberInvited::class, SendAgentMemberInvitationEmail::class);
+        Event::listen(AgentChatterInvited::class, SendAgentChatterInvitationEmail::class);
         Event::listen(TeamInvitationCreated::class, SendTeamInvitationEmail::class);
         Event::listen(MagicLinkRequested::class, SendMagicLinkEmail::class);
         Event::listen(MessageCreditsLow::class, TriggerAutoRecharge::class);

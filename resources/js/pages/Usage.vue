@@ -70,12 +70,60 @@ const metrics = computed<Metric[]>(() => {
             capped: false,
             note: t('usage.tokens_note'),
         },
-        { key: 'pages', label: t('usage.label_pages'), icon: FileText, used: d.pages.used, limit: d.pages.limit, remaining: d.pages.remaining, capped: true },
-        { key: 'minutes', label: t('usage.label_minutes'), icon: Clock, used: d.minutes.used, limit: d.minutes.limit, remaining: d.minutes.remaining, capped: true },
-        { key: 'links', label: t('usage.label_links'), icon: Link2, used: d.links.used, limit: d.links.limit, remaining: d.links.remaining, capped: true },
-        { key: 'agents', label: t('usage.label_agents'), icon: Bot, used: d.agents.used, limit: d.agents.limit, remaining: d.agents.remaining, capped: true },
-        { key: 'teams', label: t('usage.label_teams'), icon: Layers, used: d.teams.used, limit: d.teams.limit, remaining: d.teams.remaining, capped: true },
-        { key: 'members', label: t('usage.label_members'), icon: Users, used: d.members.used, limit: d.members.limit, remaining: d.members.remaining, capped: true },
+        {
+            key: 'pages',
+            label: t('usage.label_pages'),
+            icon: FileText,
+            used: d.pages.used,
+            limit: d.pages.limit,
+            remaining: d.pages.remaining,
+            capped: true,
+        },
+        {
+            key: 'minutes',
+            label: t('usage.label_minutes'),
+            icon: Clock,
+            used: d.minutes.used,
+            limit: d.minutes.limit,
+            remaining: d.minutes.remaining,
+            capped: true,
+        },
+        {
+            key: 'links',
+            label: t('usage.label_links'),
+            icon: Link2,
+            used: d.links.used,
+            limit: d.links.limit,
+            remaining: d.links.remaining,
+            capped: true,
+        },
+        {
+            key: 'agents',
+            label: t('usage.label_agents'),
+            icon: Bot,
+            used: d.agents.used,
+            limit: d.agents.limit,
+            remaining: d.agents.remaining,
+            capped: true,
+        },
+        {
+            key: 'teams',
+            label: t('usage.label_teams'),
+            icon: Layers,
+            used: d.teams.used,
+            limit: d.teams.limit,
+            remaining: d.teams.remaining,
+            capped: true,
+        },
+        {
+            key: 'members',
+            label: t('usage.label_members'),
+            icon: Users,
+            used: d.members.used,
+            limit: d.members.limit,
+            remaining: d.members.remaining,
+            capped: true,
+        },
     ];
 });
 
@@ -119,7 +167,9 @@ onMounted(fetchUsageData);
                     <CardContent class="space-y-2.5">
                         <div class="flex items-baseline justify-between gap-2">
                             <span class="text-2xl font-bold tracking-tight tabular-nums">{{ m.used.toLocaleString() }}</span>
-                            <span v-if="m.capped" class="text-muted-foreground text-xs whitespace-nowrap">{{ t('usage.of', { limit: m.limit.toLocaleString() }) }}</span>
+                            <span v-if="m.capped" class="text-muted-foreground text-xs whitespace-nowrap">{{
+                                t('usage.of', { limit: m.limit.toLocaleString() })
+                            }}</span>
                         </div>
 
                         <template v-if="m.capped">

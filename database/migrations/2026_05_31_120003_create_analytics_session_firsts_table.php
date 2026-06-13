@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('agent_id');
             $table->unsignedBigInteger('workspace_id');
             $table->uuid('session_external_id');
-            $table->timestampTz('first_seen_at');
+            $table->timestamp('first_seen_at');
 
             $table->primary(['agent_id', 'session_external_id']);
             $table->index(['agent_id', 'first_seen_at']);

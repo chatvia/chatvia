@@ -29,7 +29,7 @@ const submit = () => {
     <AuthLayout :title="t('auth.forgot_password.title')" :description="t('auth.forgot_password.description')">
         <Head :title="t('auth.forgot_password.head')" />
 
-        <div class="absolute top-4 end-4">
+        <div class="absolute end-4 top-4">
             <ThemeSwitcher />
         </div>
 
@@ -77,7 +77,9 @@ const submit = () => {
             <div class="pt-4 text-center">
                 <p class="text-muted-foreground text-base">
                     {{ t('auth.forgot_password.return_to') }}
-                    <TextLink :href="route('login')" class="text-primary hover:text-primary/80 ms-1 font-semibold"> {{ t('auth.forgot_password.log_in') }} </TextLink>
+                    <TextLink :href="route('login')" class="text-primary hover:text-primary/80 ms-1 font-semibold">
+                        {{ t('auth.forgot_password.log_in') }}
+                    </TextLink>
                 </p>
             </div>
         </div>

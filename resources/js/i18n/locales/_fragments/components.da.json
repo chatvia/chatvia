@@ -1,0 +1,39 @@
+{
+    "nav": {
+        "platform": "Platform"
+    },
+    "theme": {
+        "toggle": "Skift tema",
+        "light": "Lyst",
+        "dark": "Mørkt",
+        "system": "System"
+    },
+    "team_switcher": {
+        "select_team": "Vælg team",
+        "no_teams": "Ingen tilgængelige teams",
+        "manage_teams": "Administrer teams"
+    },
+    "agents": {
+        "create_modal": {
+            "title": "Opret agent",
+            "limit_title": "Agentgrænse nået",
+            "limit_description": "Du har nået din agentgrænse.",
+            "upgrade_plan": "Opgrader plan",
+            "name_label": "Agentens navn",
+            "name_placeholder": "F.eks. Kundesupport",
+            "load_error": "Kunne ikke indlæse forbrugsoplysninger",
+            "limit_toast_title": "Agentgrænse nået",
+            "limit_toast_description": "Du har nået din agentgrænse."
+        }
+    },
+    "confirm_password": {
+        "title": "Bekræft din adgangskode",
+        "description": "Af sikkerhedshensyn skal du bekræfte din adgangskode, inden du ændrer sikkerhedsindstillinger.",
+        "password_label": "Adgangskode",
+        "password_required": "Adgangskode er påkrævet.",
+        "incorrect": "Forkert adgangskode.",
+        "error": "Kunne ikke bekræfte adgangskoden. Prøv igen.",
+        "cancel": "Annuller",
+        "confirm": "Bekræft"
+    }
+}

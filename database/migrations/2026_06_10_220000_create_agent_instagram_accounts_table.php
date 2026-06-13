@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('username')->nullable();
             $table->string('webhook_secret', 64)->unique();
             $table->boolean('enabled')->default(true);
-            $table->timestampsTz();
+            $table->timestamps();
         });
     }
 

@@ -7,6 +7,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { heroiconNames, humanizeIconName } from '@/lib/heroicons';
 import { Plus, Search, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = withDefaults(
     defineProps<{
@@ -48,7 +51,7 @@ watch(open, (isOpen) => {
             size="icon"
             :disabled="disabled"
             class="shrink-0"
-            :aria-label="modelValue ? `Icon: ${humanizeIconName(modelValue)}` : 'Choose icon'"
+            :aria-label="modelValue ? t('shared.icon_picker.icon_aria', { name: humanizeIconName(modelValue) }) : t('shared.icon_picker.choose_icon')"
             @click="open = true"
         >
             <HeroIcon v-if="modelValue" :name="modelValue" class="h-4 w-4" />
@@ -57,12 +60,12 @@ watch(open, (isOpen) => {
 
         <DialogContent class="sm:max-w-lg">
             <DialogHeader>
-                <DialogTitle>Choose an icon</DialogTitle>
+                <DialogTitle>{{ t('shared.icon_picker.choose_icon_title') }}</DialogTitle>
             </DialogHeader>
 
             <div class="relative">
-                <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                <Input v-model="search" placeholder="Search icons..." class="pl-9" />
+                <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                <Input v-model="search" :placeholder="t('shared.icon_picker.search_placeholder')" class="ps-9" />
             </div>
 
             <ScrollArea class="-mx-1 h-72 px-1">
@@ -72,7 +75,7 @@ watch(open, (isOpen) => {
                         type="button"
                         class="hover:bg-muted text-muted-foreground flex aspect-square items-center justify-center rounded-md border"
                         :class="modelValue ? 'border-transparent' : 'border-primary bg-primary/5'"
-                        aria-label="No icon"
+                        :aria-label="t('shared.icon_picker.no_icon')"
                         @click="select(null)"
                     >
                         <X class="h-4 w-4" />
@@ -91,7 +94,7 @@ watch(open, (isOpen) => {
                     </button>
                 </div>
 
-                <p v-if="!filtered.length" class="text-muted-foreground py-8 text-center text-sm">No icons match your search.</p>
+                <p v-if="!filtered.length" class="text-muted-foreground py-8 text-center text-sm">{{ t('shared.icon_picker.no_results') }}</p>
             </ScrollArea>
         </DialogContent>
     </Dialog>

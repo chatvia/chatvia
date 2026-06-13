@@ -1,0 +1,42 @@
+{
+    "agents": {
+        "usage": {
+            "title": "آمار استفاده",
+            "description": "ببینید این عامل واقعاً از کدام منابع، توابع و سرورهای MCP استفاده می‌کند",
+            "load_error": "بارگذاری آمار ناموفق بود",
+            "try_again": "دوباره تلاش کنید",
+            "tabs": {
+                "knowledge": "دانش",
+                "functions": "توابع",
+                "mcp": "MCP"
+            },
+            "knowledge_empty": "هنوز هیچ منبع دانشی بازیابی نشده",
+            "knowledge_empty_hint": "فایل‌ها، وب‌سایت‌ها، قطعات متنی و ویدیوهای YouTube پس از استفاده توسط عامل اینجا نمایش داده می‌شوند.",
+            "functions_empty": "هنوز هیچ فراخوانی تابعی انجام نشده",
+            "functions_empty_hint": "توابع وب‌هوک پس از فراخوانی توسط عامل اینجا نمایش داده می‌شوند.",
+            "mcp_empty": "هنوز هیچ فراخوانی ابزار MCP انجام نشده",
+            "mcp_empty_hint": "ابزارهای منفرد از سرورهای MCP متصل پس از فراخوانی توسط عامل اینجا نمایش داده می‌شوند.",
+            "retrievals": "{count} بازیابی | {count} بازیابی",
+            "calls": "{count} فراخوانی | {count} فراخوانی",
+            "last_used": "آخرین استفاده {time}",
+            "last_called": "آخرین فراخوانی {time}",
+            "via_server": "از طریق {name}",
+            "sub_kind": {
+                "source_file": "فایل",
+                "source_website": "وب‌سایت",
+                "source_text": "متن",
+                "source_youtube_video": "YouTube",
+                "agent_website_url": "صفحه وب"
+            },
+            "relative": {
+                "just_now": "همین الان",
+                "minutes_ago": "{count} دقیقه پیش | {count} دقیقه پیش",
+                "hours_ago": "{count} ساعت پیش | {count} ساعت پیش",
+                "days_ago": "{count} روز پیش | {count} روز پیش",
+                "weeks_ago": "{count} هفته پیش | {count} هفته پیش",
+                "months_ago": "{count} ماه پیش | {count} ماه پیش",
+                "years_ago": "{count} سال پیش | {count} سال پیش"
+            }
+        }
+    }
+}

@@ -3,7 +3,7 @@
 namespace App\Http\Middleware\Chat;
 
 use Closure;
-use Domain\Agent\Services\Agent;
+use Domain\Agent\Services\AgentLocator;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +20,7 @@ class EnsureChatIsAccessible
             return to_route('chat.home');
         }
 
-        $agent = Agent::resolveAgentFromSubdomain($slug);
+        $agent = AgentLocator::resolveAgentFromSubdomain($slug);
 
         if (! $agent) {
             return Inertia::render('agents/chat/AgentNotFound');
@@ -80,7 +80,7 @@ class EnsureChatIsAccessible
             $conversationId = $request->route('conversationId');
 
             if (! blank($conversationId)) {
-                if (! ChatCache::isOwnedBy($conversationId, Auth::id())) {
+                if (! ChatCache::isOwnedBy($conversationId, Auth::id(), $agent->workspaceExternalId())) {
                     abort(403);
                 }
             } elseif (! Auth::guard('web')->user()->canAccessAgent($agent)) {

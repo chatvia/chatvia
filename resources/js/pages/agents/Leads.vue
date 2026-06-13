@@ -13,8 +13,8 @@ import { Link, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { AlertTriangle, Download, ExternalLink, Eye, LoaderCircle, Plug, Search, Settings, Trash2, Users } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 
@@ -331,7 +331,7 @@ const cancelDelete = () => {
                         <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                             <!-- Search Input -->
                             <div class="relative w-full sm:w-64">
-                                <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+                                <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
                                 <Input v-model="searchQuery" :placeholder="t('agents.leads.search_placeholder')" class="ps-10" />
                             </div>
 
@@ -348,8 +348,8 @@ const cancelDelete = () => {
                                     :disabled="!hasSelectedLeads || isExporting"
                                     class="flex-1 sm:flex-none"
                                 >
-                                    <LoaderCircle v-if="isExporting" class="mr-2 h-4 w-4 animate-spin" />
-                                    <Download v-else class="mr-2 h-4 w-4" />
+                                    <LoaderCircle v-if="isExporting" class="me-2 h-4 w-4 animate-spin" />
+                                    <Download v-else class="me-2 h-4 w-4" />
                                     {{ isExporting ? t('agents.leads.exporting') : t('agents.leads.export_csv') }}
                                 </Button>
                                 <Button
@@ -532,7 +532,9 @@ const cancelDelete = () => {
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" @click="showSettingsDialog = false" :disabled="settingsForm.processing">{{ t('common.cancel') }}</Button>
+                    <Button variant="outline" @click="showSettingsDialog = false" :disabled="settingsForm.processing">{{
+                        t('common.cancel')
+                    }}</Button>
                     <Button :disabled="settingsForm.processing" @click="saveSettings">
                         <LoaderCircle v-if="settingsForm.processing" class="me-2 h-4 w-4 animate-spin" />
                         {{ t('common.save') }}

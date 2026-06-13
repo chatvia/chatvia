@@ -1,0 +1,115 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "title": "Utvärderingar",
+                "head_title": "Utvärderingar — {name}",
+                "description": "Testsviter som betygsätter agentens riktiga svar – samma kunskapsbas, verktyg och modell som i produktion. Kör sviten och följ om ändringar gör agenten bättre eller sämre.",
+                "run_suite": "Kör svit",
+                "cases_heading": "Testfall",
+                "cases_summary": "{total} totalt · {active} aktiva",
+                "from_knowledge": "Från kunskapsbas",
+                "add_case": "Lägg till testfall",
+                "table": {
+                    "case": "Testfall",
+                    "scorer": "Bedömare",
+                    "status": "Status",
+                    "actions": "Åtgärder",
+                    "by": "Av",
+                    "pass_rate": "Godkännandegrad",
+                    "passed_failed": "Godkänd / Underkänd",
+                    "avg_score": "Medelpoäng",
+                    "when": "När"
+                },
+                "status_active": "Aktiv",
+                "status_inactive": "Inaktiv",
+                "empty_cases": "Inga testfall ännu. Lägg till ett för att börja mäta svarskvaliteten.",
+                "recent_runs": "Senaste körningar",
+                "recent_runs_description": "Varje körning betygsätts mot de testfall som var aktiva vid det tillfället.",
+                "clear": "Rensa",
+                "empty_runs": "Inga körningar ännu. Klicka på \"Kör svit\" för att betygsätta de aktiva testfallen.",
+                "case_dialog": {
+                    "edit_title": "Redigera testfall",
+                    "add_title": "Lägg till testfall",
+                    "description": "Inmatningen skickas till agenten precis som en besökare skulle fråga den.",
+                    "name_label": "Namn",
+                    "name_placeholder": "t.ex. Återbetalningspolicyn är korrekt",
+                    "input_label": "Inmatningsprompt",
+                    "input_placeholder": "Vad är er återbetalningspolicy?",
+                    "scorer_label": "Bedömare",
+                    "scorer_placeholder": "Välj en bedömare",
+                    "expected_substring": "Förväntad delsträng",
+                    "expected_substring_placeholder": "t.ex. 30 dagar",
+                    "case_sensitive": "Skiftlägeskänslig",
+                    "pattern_label": "Mönster",
+                    "pattern_placeholder": "/\\b30 days\\b/i",
+                    "required_keys": "Obligatoriska nycklar",
+                    "required_keys_placeholder": "komma,separerade,nycklar",
+                    "required_keys_hint": "Svaret måste vara giltig JSON som innehåller varje nyckel.",
+                    "grading_criteria": "Bedömningskriterier",
+                    "grading_criteria_placeholder": "Svaret måste ange att återbetalningar är möjliga inom 30 dagar efter köpet.",
+                    "expected_answer": "Förväntat svar",
+                    "reference_answer": "Referenssvar (valfritt)",
+                    "active_label": "Aktiv (ingår i körningar)",
+                    "save": "Spara"
+                },
+                "knowledge_dialog": {
+                    "title": "Lägg till testfall från kunskapsbas",
+                    "description": "Välj frågor från agentens kunskapsbas. Var och en blir ett testfall som bedöms av AI-domaren mot sin källtext.",
+                    "search_placeholder": "Sök frågor...",
+                    "added_badge": "Tillagd",
+                    "no_search_results": "Inga frågor matchar din sökning.",
+                    "no_questions": "Inga frågor hittades i agentens kunskapsbas ännu.",
+                    "add_cases": "Lägg till testfall",
+                    "add_count": "Lägg till {count} testfall | Lägg till {count} testfall"
+                },
+                "delete_case_title": "Ta bort testfall",
+                "delete_case_description": "Ta bort \"{name}\"? Tidigare körningsresultat behåller sin kopia av det här testfallet – endast framtida körningar påverkas.",
+                "delete_run_title": "Ta bort körning",
+                "delete_run_description": "Ta bort den här körningen och dess resultat per testfall? Det går inte att ångra. Testfallen påverkas inte.",
+                "clear_runs_title": "Rensa körningshistorik",
+                "clear_runs_description": "Ta bort alla {count} körning för den här agenten och deras resultat? Det går inte att ångra. Testfallen påverkas inte. | Ta bort alla {count} körningar för den här agenten och deras resultat? Det går inte att ångra. Testfallen påverkas inte.",
+                "clear_all": "Rensa allt",
+                "scorers": {
+                    "contains": {
+                        "label": "Innehåller text",
+                        "help": "Godkänns om svaret innehåller en delsträng."
+                    },
+                    "regex": {
+                        "label": "Regexmatchning",
+                        "help": "Godkänns om svaret matchar ett reguljärt uttryck."
+                    },
+                    "exact": {
+                        "label": "Exakt matchning",
+                        "help": "Godkänns bara om svaret exakt stämmer överens med referenssvaret."
+                    },
+                    "json_schema": {
+                        "label": "JSON-struktur",
+                        "help": "Godkänns om svaret är giltig JSON med de obligatoriska nycklarna."
+                    },
+                    "llm_judge": {
+                        "label": "AI-domare",
+                        "help": "En öppen modell betygsätter svaret mot dina kriterier."
+                    }
+                },
+                "toasts": {
+                    "case_updated": "Testfall uppdaterat",
+                    "case_added": "Testfall tillagt",
+                    "cases_added": "{count} testfall tillagt | {count} testfall tillagda",
+                    "case_deleted": "Testfall borttaget",
+                    "run_started": "Utvärderingskörning startad",
+                    "run_start_error": "Det gick inte att starta körningen",
+                    "run_deleted": "Körning borttagen",
+                    "history_cleared": "Körningshistorik rensad"
+                }
+            },
+            "scorers": {
+                "contains": "Innehåller",
+                "regex": "Regex",
+                "exact": "Exakt matchning",
+                "json_schema": "JSON-schema",
+                "llm_judge": "LLM-domare"
+            }
+        }
+    }
+}

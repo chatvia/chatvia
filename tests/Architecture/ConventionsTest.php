@@ -187,7 +187,6 @@ const INLINE_VALIDATE_ALLOWLIST = [
     'src/App/Http/Controllers/Auth/ForgotPasswordController.php',
     'src/App/Http/Controllers/Chat/Messages/MessageDeleteController.php',
     'src/App/Http/Controllers/Chat/Messages/MessageFeedbackController.php',
-    'src/App/Http/Controllers/Landing/Legal/ConsentController.php',
     'src/App/Http/Controllers/Settings/Connector/Catalog/ConnectController.php',
 ];
 

@@ -115,8 +115,7 @@ class SetupController
         // domain. Exclude the current agent so editing its own value doesn't
         // count against the available bucket.
         $used = (int) $user->agents()
-            ->whereNotNull('domain')
-            ->where('domain', '!=', '')
+            ->withCustomDomain()
             ->where('id', '!=', $agent->id)
             ->count();
 

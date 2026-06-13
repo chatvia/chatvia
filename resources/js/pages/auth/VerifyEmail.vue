@@ -33,7 +33,9 @@ const submit = () => {
                 {{ t('auth.verify_email.resend') }}
             </Button>
 
-            <TextLink :href="route('logout')" method="post" as="button" class="mx-auto block text-sm"> {{ t('auth.verify_email.log_out') }} </TextLink>
+            <TextLink :href="route('logout')" method="post" as="button" class="mx-auto block text-sm">
+                {{ t('auth.verify_email.log_out') }}
+            </TextLink>
         </form>
     </AuthLayout>
 </template>

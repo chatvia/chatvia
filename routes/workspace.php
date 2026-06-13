@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\Settings\Account\ApiKeyController;
+use App\Http\Controllers\Settings\Chatter\SettingsChatterController;
 use App\Http\Controllers\Settings\Connector\Catalog\ConnectController;
 use App\Http\Controllers\Settings\Connector\Catalog\ConnectorController;
 use App\Http\Controllers\Settings\Connector\Manage\ConnectorAgentController;
 use App\Http\Controllers\Settings\Connector\Manage\ConnectorToolController;
 use App\Http\Controllers\Settings\Connector\Manage\SetConnectorToolPermissionController;
+use App\Http\Controllers\Settings\Connector\Manage\SetConnectorToolsScopePermissionController;
 use App\Http\Controllers\Settings\Connector\Manage\ToggleConnectorController;
 use App\Http\Controllers\Settings\Connector\Provisioning\CustomAddController;
 use App\Http\Controllers\Settings\Connector\Provisioning\OAuthStartController;
@@ -15,7 +17,6 @@ use App\Http\Controllers\Settings\Function\FunctionAgentController;
 use App\Http\Controllers\Settings\Function\FunctionController;
 use App\Http\Controllers\Settings\Function\ToggleFunctionController;
 use App\Http\Controllers\Settings\Governance\GovernanceAuditController;
-use App\Http\Controllers\Settings\Member\SettingsMemberController;
 use App\Http\Controllers\Settings\Prompt\PromptController;
 use App\Http\Controllers\Team\Crud\TeamDeleteController;
 use App\Http\Controllers\Team\Crud\TeamLeaveController;
@@ -62,6 +63,11 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
             ->whereNumber('tool')
             ->name('connectors.tools.permission');
 
+        // Bulk: set the same permission on every tool in one scope (read /
+        // write) at once — the section "apply to all" dropdown in the UI.
+        Route::put('connectors/{slug}/tools/permissions', SetConnectorToolsScopePermissionController::class)
+            ->name('connectors.tools.scope-permission');
+
         // Manage which agents use a connector (from the Connectors sheet).
         Route::get('connectors/{slug}/agents', [ConnectorAgentController::class, 'index'])->name('connectors.agents.index');
         Route::post('connectors/{slug}/agents/{agent}', [ConnectorAgentController::class, 'store'])->name('connectors.agents.attach');
@@ -96,19 +102,19 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     // People — workspace-level chat members (chatters): list, fetch the agents one
     // member can access (toggle attach/detach from the detail sheet), send a
     // password-reset link, or remove a chatter outright. Gated by
-    // `account.members.manage`.
-    Route::middleware('team.permission:account.members.manage')->prefix('my/workspace/people')->name('people.')->group(function (): void {
-        Route::get('members', [SettingsMemberController::class, 'index'])->name('members.index');
-        Route::post('members/invite', [SettingsMemberController::class, 'invite'])->name('members.invite');
-        Route::patch('members/{chatter}', [SettingsMemberController::class, 'update'])->name('members.update');
-        Route::post('members/{chatter}/reset-password', [SettingsMemberController::class, 'resetPassword'])->name('members.reset-password');
-        Route::delete('members/{chatter}', [SettingsMemberController::class, 'destroy'])->name('members.destroy');
+    // `account.chatters.manage`.
+    Route::middleware('team.permission:account.chatters.manage')->prefix('my/workspace/people')->name('people.')->group(function (): void {
+        Route::get('chatters', [SettingsChatterController::class, 'index'])->name('chatters.index');
+        Route::post('chatters/invite', [SettingsChatterController::class, 'invite'])->name('chatters.invite');
+        Route::patch('chatters/{chatter}', [SettingsChatterController::class, 'update'])->name('chatters.update');
+        Route::post('chatters/{chatter}/reset-password', [SettingsChatterController::class, 'resetPassword'])->name('chatters.reset-password');
+        Route::delete('chatters/{chatter}', [SettingsChatterController::class, 'destroy'])->name('chatters.destroy');
 
         // Per-chatter agent grants — same shape as the Connectors/Functions agent
-        // toggles, consumed by useAgentAttachments('member').
-        Route::get('members/{chatter}/agents', [SettingsMemberController::class, 'listAgents'])->name('members.agents.index');
-        Route::post('members/{chatter}/agents/{agent}', [SettingsMemberController::class, 'attachAgent'])->name('members.agents.attach');
-        Route::delete('members/{chatter}/agents/{agent}', [SettingsMemberController::class, 'detachAgent'])->name('members.agents.detach');
+        // toggles, consumed by useAgentAttachments('chatter').
+        Route::get('chatters/{chatter}/agents', [SettingsChatterController::class, 'listAgents'])->name('chatters.agents.index');
+        Route::post('chatters/{chatter}/agents/{agent}', [SettingsChatterController::class, 'attachAgent'])->name('chatters.agents.attach');
+        Route::delete('chatters/{chatter}/agents/{agent}', [SettingsChatterController::class, 'detachAgent'])->name('chatters.agents.detach');
     });
 
     // Governance — the tool-call audit log (Governed MCP Gateway). Read-only;

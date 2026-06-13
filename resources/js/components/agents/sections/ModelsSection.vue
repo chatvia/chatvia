@@ -51,7 +51,8 @@ const filtered = computed(() => {
 const selectedModels = computed(() => props.catalog.filter((m) => props.models.includes(m.id)));
 
 const triggerLabel = computed(() => {
-    if (selectedModels.value.length === 0) return props.single ? t('agents.setup.sections.models_select_one') : t('agents.setup.sections.models_select_many');
+    if (selectedModels.value.length === 0)
+        return props.single ? t('agents.setup.sections.models_select_one') : t('agents.setup.sections.models_select_many');
     if (selectedModels.value.length === 1) return selectedModels.value[0].name;
     return t('agents.setup.sections.models_selected', { count: selectedModels.value.length });
 });
@@ -110,13 +111,13 @@ function remove(id: string): void {
                             </template>
                             <span class="truncate">{{ triggerLabel }}</span>
                         </span>
-                        <ChevronDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDown class="ms-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent class="w-[var(--radix-popover-trigger-width)] p-0" align="start">
                     <div class="border-b p-2">
                         <div class="relative">
-                            <Search class="text-muted-foreground absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2" />
+                            <Search class="text-muted-foreground absolute start-2 top-1/2 h-4 w-4 -translate-y-1/2" />
                             <Input v-model="searchQuery" :placeholder="t('agents.setup.sections.models_search')" class="h-8 ps-8" />
                         </div>
                     </div>
@@ -129,7 +130,7 @@ function remove(id: string): void {
                                 <TooltipTrigger as-child>
                                     <button
                                         type="button"
-                                        class="hover:bg-accent flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors"
+                                        class="hover:bg-accent flex w-full items-center gap-3 rounded-md px-2 py-2 text-start transition-colors"
                                         :class="{ 'bg-accent': isSelected(model.id) }"
                                         @click="toggle(model.id)"
                                     >
@@ -156,7 +157,7 @@ function remove(id: string): void {
 
                                         <div class="text-sm">
                                             <span class="font-medium">{{ t('agents.setup.sections.models_credits') }}</span>
-                                            <span class="ml-1">{{ model.credits }}</span>
+                                            <span class="ms-1">{{ model.credits }}</span>
                                         </div>
 
                                         <div class="text-sm">
@@ -190,7 +191,9 @@ function remove(id: string): void {
                                     </div>
                                 </TooltipContent>
                             </Tooltip>
-                            <div v-if="filtered.length === 0" class="text-muted-foreground px-2 py-4 text-center text-sm">{{ t('agents.setup.sections.models_not_found') }}</div>
+                            <div v-if="filtered.length === 0" class="text-muted-foreground px-2 py-4 text-center text-sm">
+                                {{ t('agents.setup.sections.models_not_found') }}
+                            </div>
                         </div>
                     </TooltipProvider>
                 </PopoverContent>
@@ -202,7 +205,7 @@ function remove(id: string): void {
                 <span
                     v-for="model in selectedModels"
                     :key="model.id"
-                    class="bg-muted inline-flex items-center gap-1.5 rounded-full py-1 pr-2 pl-3 text-sm"
+                    class="bg-muted inline-flex items-center gap-1.5 rounded-full py-1 ps-3 pe-2 text-sm"
                 >
                     <img v-if="model.icon" :src="`/images/llms/${model.icon}`" :alt="model.name" class="h-4 w-4" />
                     {{ model.name }}

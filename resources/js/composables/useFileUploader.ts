@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { computed, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 export type FileAnalyzedData = Domain.Agent.Data.Sources.KnowledgeAnalyzeResourceData;
@@ -40,6 +41,7 @@ export interface FileUploaderConfig {
 }
 
 export function useFileUploader(config: FileUploaderConfig) {
+    const { t } = useI18n();
     const uploadingFiles = ref<UploadingFileData[]>([]);
     const isDragOver = ref(false);
     const dragCounter = ref(0);
@@ -146,8 +148,8 @@ export function useFileUploader(config: FileUploaderConfig) {
     const addFiles = async (files: File[]) => {
         // Check file limit
         if (uploadingFiles.value.length + files.length > config.maxFiles) {
-            toast.error('Maximum file limit reached', {
-                description: `You can only upload a maximum of ${config.maxFiles} files.`,
+            toast.error(t('shared.file_uploader.toast_max_files_title'), {
+                description: t('shared.file_uploader.toast_max_files_description', { max: config.maxFiles }),
                 duration: 5000,
                 position: 'top-center',
             });
@@ -161,8 +163,8 @@ export function useFileUploader(config: FileUploaderConfig) {
 
             if (oversizedFiles.length > 0) {
                 const fileList = oversizedFiles.map((f) => f.name).join(', ');
-                toast.error('File size limit exceeded', {
-                    description: `The following file(s) exceed the ${config.maxFileSize} MB limit: ${fileList}`,
+                toast.error(t('shared.file_uploader.toast_file_size_title'), {
+                    description: t('shared.file_uploader.toast_file_size_description', { maxSize: config.maxFileSize, fileList }),
                     duration: 7000,
                     position: 'top-center',
                 });

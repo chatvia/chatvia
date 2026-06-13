@@ -15,7 +15,9 @@
             "created": "Created",
             "dialog_title": "Name your passkey",
             "dialog_description": "Choose a name so you can tell your passkeys apart later.",
-            "register": "Register passkey"
+            "register": "Register passkey",
+            "delete_title": "Delete this passkey?",
+            "delete_description": "{name} will no longer be able to sign in. This can't be undone."
         },
         "two_factor": {
             "heading": "Two-factor authentication",
@@ -46,6 +48,7 @@
             "heading": "Social accounts",
             "description": "Connect Google, Microsoft, or Slack to sign in with one click and keep your accounts in sync.",
             "connected_since": "Connected since {date}",
+            "connected": "Connected",
             "not_connected": "Not connected",
             "disconnect": "Disconnect",
             "connect": "Connect",

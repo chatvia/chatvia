@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Embeddings\EmbedMcpToolsAction;
 use Domain\Conversation\Jobs\EmbedConnectorToolsJob;
+use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
@@ -32,7 +34,7 @@ use ReflectionClass;
         {--fresh : Re-embed every tool, not only ones whose text changed}')]
 class SyncBuiltinMcpRegistry extends Command
 {
-    public function handle(EmbedMcpToolsAction $embed): int
+    public function handle(EmbedMcpToolsAction $embed, ToolRegistry $registry): int
     {
         $now = now();
         $base = rtrim((string) config('app.url'), '/');
@@ -76,7 +78,23 @@ class SyncBuiltinMcpRegistry extends Command
             }
         }
 
-        $this->info('Built-in MCP registry synced.');
+        // A builtin catalog change alters every agent's effective tool pool —
+        // the global always-on builtins are unioned into ToolRegistry::for(),
+        // which caches per agent for an hour and is otherwise only invalidated
+        // by per-agent pivot observers (agent_mcp_server / agent_function). A
+        // global builtin sync trips none of those, so without this every warm
+        // agent serves a stale pool until the TTL lapses — and an agent whose
+        // pool was cached empty (chatted before the first-ever sync) stays
+        // toolless, since ToolSelector gates the whole turn on an empty pool.
+        $flushed = 0;
+        Agent::query()->select('id')->chunkById(500, function ($agents) use ($registry, &$flushed): void {
+            foreach ($agents as $agent) {
+                $registry->forget($agent->id);
+                $flushed++;
+            }
+        });
+
+        $this->info("Built-in MCP registry synced. Flushed tool-pool cache for {$flushed} agent(s).");
 
         return self::SUCCESS;
     }

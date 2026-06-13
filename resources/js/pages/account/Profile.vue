@@ -147,7 +147,7 @@ const submitDateFormat = () => {
         <AccountLayout>
             <div class="flex flex-col space-y-8">
                 <!-- Profile Header with Avatar -->
-                <div class="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:gap-6">
+                <div class="flex flex-col items-center space-y-4 sm:flex-row sm:gap-6 sm:space-y-0">
                     <button
                         type="button"
                         @click="openFilePicker"

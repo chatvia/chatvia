@@ -2,56 +2,56 @@
     $features = $landing['features'] ?? [
         'short' => [],
         'slide' => [
-            'title' => 'See it in action',
-            'subheadline' => 'Real screenshots from the product — from the first embed to the audit trail.',
+            'title' => __('landing.showcase.title'),
+            'subheadline' => __('landing.showcase.subtitle'),
             'tabs' => [
                 [
                     'img' => 'images/chatvia/v2/widget.png',
-                    'tab_name' => 'Chat Widget',
-                    'title' => 'Deploy your agent anywhere',
-                    'description' => 'Embed it as a widget, share it as a full-page hosted chat, drop in a ⌘K command bar, or reach people on Telegram and Slack. The same agent everywhere — answering from your data and your tools, here pulling live news from the web mid-conversation.',
+                    'tab_name' => __('landing.showcase.tabs.widget.tab_name'),
+                    'title' => __('landing.showcase.tabs.widget.title'),
+                    'description' => __('landing.showcase.tabs.widget.description'),
                 ],
                 [
                     'img' => 'images/chatvia/v2/connectors.png',
-                    'tab_name' => 'Connectors',
-                    'title' => 'Plug your agent into your tools',
-                    'description' => 'One click connects Perplexity web search, Slack, Gmail, Stripe, and 25+ other tools over MCP. Your agent stops just answering and starts doing.',
+                    'tab_name' => __('landing.showcase.tabs.connectors.tab_name'),
+                    'title' => __('landing.showcase.tabs.connectors.title'),
+                    'description' => __('landing.showcase.tabs.connectors.description'),
                 ],
                 [
                     'img' => 'images/chatvia/v2/control-panel.png',
-                    'tab_name' => 'Control Panel',
-                    'title' => 'Manage every agent in one place',
-                    'description' => 'Build and run all your AI agents from one dashboard. Configure behavior, connect tools, pick models, and control every agent across your workspace.',
+                    'tab_name' => __('landing.showcase.tabs.control_panel.tab_name'),
+                    'title' => __('landing.showcase.tabs.control_panel.title'),
+                    'description' => __('landing.showcase.tabs.control_panel.description'),
                 ],
                 [
                     'img' => 'images/chatvia/v2/inbox.png',
-                    'tab_name' => 'Inbox',
-                    'title' => 'Complete conversation history',
-                    'description' => 'Review every conversation with sentiment, topic, and country at a glance. Spot gaps in your data, jump in with live handoff, and refine your agent where it matters.',
+                    'tab_name' => __('landing.showcase.tabs.inbox.tab_name'),
+                    'title' => __('landing.showcase.tabs.inbox.title'),
+                    'description' => __('landing.showcase.tabs.inbox.description'),
                 ],
                 [
                     'img' => 'images/chatvia/v2/pulse.png',
-                    'tab_name' => 'Pulse',
-                    'title' => 'Feel every conversation\'s pulse',
-                    'description' => 'Each conversation gets a pulse — how it started, how it ended, and where it peaked. Catch a frustrated user before they give up, not after.',
+                    'tab_name' => __('landing.showcase.tabs.pulse.tab_name'),
+                    'title' => __('landing.showcase.tabs.pulse.title'),
+                    'description' => __('landing.showcase.tabs.pulse.description'),
                 ],
                 [
                     'img' => 'images/chatvia/v2/sentiment.png',
-                    'tab_name' => 'Analytics',
-                    'title' => 'Analytics & insights',
-                    'description' => 'Track usage, sentiment, tone, and topics across every conversation. See exactly how your agents perform and make data-driven decisions to improve them.',
+                    'tab_name' => __('landing.showcase.tabs.analytics.tab_name'),
+                    'title' => __('landing.showcase.tabs.analytics.title'),
+                    'description' => __('landing.showcase.tabs.analytics.description'),
                 ],
                 [
                     'img' => 'images/chatvia/v2/governance.png',
-                    'tab_name' => 'Governance',
-                    'title' => 'Every tool call, on the record',
-                    'description' => 'An immutable audit log of every action your agents take — which tool, which arguments, what outcome, how fast. Compliance-ready by default.',
+                    'tab_name' => __('landing.showcase.tabs.governance.tab_name'),
+                    'title' => __('landing.showcase.tabs.governance.title'),
+                    'description' => __('landing.showcase.tabs.governance.description'),
                 ],
                 [
                     'img' => 'images/chatvia/v2/leads.png',
-                    'tab_name' => 'Leads',
-                    'title' => 'Capture leads in conversation',
-                    'description' => 'Let your agent capture and qualify leads mid-conversation, then push them to your CRM through an MCP server or a custom function.',
+                    'tab_name' => __('landing.showcase.tabs.leads.tab_name'),
+                    'title' => __('landing.showcase.tabs.leads.title'),
+                    'description' => __('landing.showcase.tabs.leads.description'),
                 ],
             ],
         ],
@@ -61,11 +61,11 @@
             'slides' => [],
         ],
         'steps' => [
-            'title' => 'From idea to live agent in minutes',
+            'title' => __('landing.steps.title'),
             'steps' => [
-                ['title' => 'Create', 'description' => 'Create an agent in a click — name it, pick a model, and choose how you want to deploy it.'],
-                ['title' => 'Train & connect', 'description' => 'Train it on your data — upload documents, crawl your site, and connect MCP servers and custom functions so it can act in your tools.'],
-                ['title' => 'Deploy', 'description' => 'Deploy anywhere — embed it, share a hosted link, or call it from your app. Your agent is live and working in your existing tools.'],
+                ['title' => __('landing.steps.create_title'), 'description' => __('landing.steps.create_desc')],
+                ['title' => __('landing.steps.train_title'), 'description' => __('landing.steps.train_desc')],
+                ['title' => __('landing.steps.deploy_title'), 'description' => __('landing.steps.deploy_desc')],
             ],
         ],
     ];
@@ -79,8 +79,7 @@
                 <div class="py-16 md:py-24">
 
                     <!-- Items -->
-                    <div class="relative max-w-sm mx-auto grid gap-16 md:grid-cols-2 lg:grid-cols-3 lg:gap-y-20 items-start md:max-w-2xl lg:max-w-none"
-                        data-aos-id-blocks>
+                    <div class="relative max-w-sm mx-auto grid gap-16 md:grid-cols-2 lg:grid-cols-3 lg:gap-y-20 items-start md:max-w-2xl lg:max-w-none">
 
                         <!-- Lines decoration -->
                         <div class="absolute inset-0 -my-8 md:-my-12 pointer-events-none hidden md:flex"
@@ -96,7 +95,7 @@
                         </div>
 
                         @foreach ($features['short'] as $feature)
-                            <div class="relative" data-aos="fade-up" data-aos-anchor="[data-aos-id-blocks]">
+                            <div class="relative">
                                 <div class="mb-5">
                                     <img src="{{ asset('images/icons/' . $feature['icon']) }}.svg"
                                         alt="{{ $feature['title'] }} icon" class="w-15" />
@@ -127,7 +126,7 @@
 
                     @if (!empty($features['slide']['title']) || !empty($features['slide']['subheadline']))
                         <!-- Section header -->
-                        <div class="max-w-4xl mx-auto text-center pb-16" data-aos="fade-up">
+                        <div class="max-w-4xl mx-auto text-center pb-16">
                             @if (!empty($features['slide']['title']))
                                 <h2 class="text-3xl sm:text-4xl md:text-5xl font-display text-slate-900 mb-4">
                                     {{ $features['slide']['title'] }}
@@ -142,7 +141,7 @@
                     @endif
 
                     <!-- Section content -->
-                    <div class="max-w-6xl mx-auto" data-aos="fade-up" data-aos-delay="100" x-data="{
+                    <div class="max-w-6xl mx-auto" x-data="{
                         tab: '1',
                         autoSlide: true,
                         manuallyPaused: false,
@@ -500,7 +499,7 @@
                         x-data="{ tab: '1' }">
 
                         <!-- Tabs items (images) -->
-                        <div class="md:rtl md:w-5/12 lg:w-1/2 order-1 md:order-none" data-aos="fade-down">
+                        <div class="md:rtl md:w-5/12 lg:w-1/2 order-1 md:order-none">
                             <div class="relative flex flex-col">
                                 @foreach ($features['slide2']['slides'] as $index => $slide)
                                     <div class="w-full" x-show="tab === '{{ $index + 1 }}'"
@@ -520,7 +519,7 @@
                         </div>
 
                         <!-- Content -->
-                        <div class="md:w-7/12 lg:w-1/2" data-aos="fade-up">
+                        <div class="md:w-7/12 lg:w-1/2">
 
                             <!-- Tabs buttons -->
                             <div class="mb-8 md:mb-0 space-y-3">
@@ -565,7 +564,7 @@
             <div class="max-w-5xl mx-auto px-4 sm:px-6">
 
                 <!-- Section header -->
-                <div class="text-center mb-12 md:mb-16" data-aos="fade-up">
+                <div class="text-center mb-12 md:mb-16">
                     <h2 class="text-3xl sm:text-4xl md:text-5xl font-display text-white mb-4">
                         {{ $features['steps']['title'] }}
                     </h2>
@@ -586,7 +585,7 @@
                     </div>
 
                     <!-- Step 1 -->
-                    <div class="text-center" data-aos="fade-up">
+                    <div class="text-center">
                         <div
                             class="w-14 h-14 bg-indigo-500 rounded-full flex items-center justify-center mx-auto mb-5">
                             <span class="text-2xl font-bold text-white">1</span>
@@ -602,7 +601,7 @@
                     </div>
 
                     <!-- Step 2 -->
-                    <div class="text-center" data-aos="fade-up" data-aos-delay="100">
+                    <div class="text-center">
                         <div
                             class="w-14 h-14 bg-indigo-500 rounded-full flex items-center justify-center mx-auto mb-5">
                             <span class="text-2xl font-bold text-white">2</span>
@@ -618,7 +617,7 @@
                     </div>
 
                     <!-- Step 3 -->
-                    <div class="text-center" data-aos="fade-up" data-aos-delay="200">
+                    <div class="text-center">
                         <div
                             class="w-14 h-14 bg-indigo-500 rounded-full flex items-center justify-center mx-auto mb-5">
                             <span class="text-2xl font-bold text-white">3</span>

@@ -4,15 +4,18 @@ namespace Domain\Agent\Observers;
 
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
-use Domain\Agent\Services\Agent as AgentHelper;
+use Domain\Agent\Services\AgentLocator as AgentHelper;
 use Domain\Conversation\Models\Session;
-use Domain\Conversation\Services\Memory\TurnState;
+use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 class AgentObserver
 {
@@ -76,15 +79,22 @@ class AgentObserver
             }
         }
 
-        $memory = app(TurnState::class);
-
-        Session::query()
-            ->where('agent_id', $agent->id)
-            ->select(['id'])
-            ->cursor()
-            ->each(function (Session $session) use ($memory): void {
-                $memory->deleteSession($session->id);
-            });
+        // Drop this agent's Redis chat memory in one shot. Every session-scoped
+        // entry carries the agent tag ({@see ChatCache::agentTag()}), so a
+        // single flush clears the conversation lists, message/turn/source caches
+        // and session-data entries together — reaching the per-message and
+        // per-source caches the old per-session forget never touched. Best
+        // effort: a transient cache outage must not block deleting the agent
+        // (the rows below are the source of truth), mirroring the workspace
+        // teardown in DeleteUserAccountAction.
+        try {
+            Cache::driver('chat')->tags(ChatCache::agentTag($agent->external_id))->flush();
+        } catch (Throwable $e) {
+            Log::warning('Agent deletion: failed to flush agent chat memory cache.', [
+                'agent_id' => $agent->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         Session::query()->where('agent_id', $agent->id)->delete();
     }

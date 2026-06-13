@@ -23,7 +23,7 @@ defineProps<Props>();
     <AuthBase :title="t('auth.invitation_invalid.title')" :description="t('auth.invitation_invalid.description')">
         <Head :title="t('auth.invitation_invalid.head')" />
 
-        <div class="absolute top-4 end-4">
+        <div class="absolute end-4 top-4">
             <ThemeSwitcher />
         </div>
 
@@ -40,7 +40,8 @@ defineProps<Props>();
                 </CardHeader>
                 <CardContent class="space-y-4 text-center">
                     <p class="text-muted-foreground">
-                        {{ t('auth.invitation_invalid.cannot_accept_prefix') }} <strong>{{ team.name }}</strong> {{ t('auth.invitation_invalid.cannot_accept_suffix') }}
+                        {{ t('auth.invitation_invalid.cannot_accept_prefix') }} <strong>{{ team.name }}</strong>
+                        {{ t('auth.invitation_invalid.cannot_accept_suffix') }}
                     </p>
                     <p class="text-muted-foreground text-sm">{{ t('auth.invitation_invalid.contact_owner') }}</p>
                     <Link :href="route('login')">

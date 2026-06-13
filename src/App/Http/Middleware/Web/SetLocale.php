@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Symfony\Component\HttpFoundation\Response;
 
 class SetLocale
@@ -18,6 +19,14 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // On the public site an explicit locale segment in the URL (e.g. `/ar/...`)
+        // is authoritative — laravel-localization has already set the app locale from
+        // it. Don't let a signed-in user's saved preference override the language they
+        // deliberately navigated to, or the page would render in the wrong language.
+        if (in_array($request->segment(1), LaravelLocalization::getSupportedLanguagesKeys(), true)) {
+            return $next($request);
+        }
+
         /** @var User|null $user */
         $user = $request->user();
 

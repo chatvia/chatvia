@@ -1,0 +1,134 @@
+{
+    "connectors": {
+        "categories": {
+            "utilities": "Verktøy",
+            "sales": "Salg",
+            "payments": "Betalinger",
+            "developer_tools": "Utviklerverktøy",
+            "productivity": "Produktivitet",
+            "communication": "Kommunikasjon",
+            "automation": "Automatisering",
+            "analytics": "Analyse"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "Søk på nettet i sanntid med Perplexity Sonar — nyheter, priser, aktuelle hendelser — med kildeangivelse.",
+                "token_label": "Perplexity API-nøkkel",
+                "token_placeholder": "Din Perplexity API-nøkkel"
+            },
+            "weather": {
+                "name": "Vær",
+                "description": "Sanntidsvær (temperatur, forhold, luftfuktighet, vind) for hvilken som helst by, drevet av OpenWeatherMap.",
+                "token_label": "OpenWeatherMap API-nøkkel",
+                "token_placeholder": "Din OpenWeatherMap API-nøkkel"
+            },
+            "currency": {
+                "name": "Valutaomregner",
+                "description": "Omregn beløp mellom to valgfrie valutaer ved hjelp av gjeldende valutakurser (exchangerate-api).",
+                "token_label": "ExchangeRate-API-nøkkel",
+                "token_placeholder": "Din ExchangeRate-API-nøkkel"
+            },
+            "charts": {
+                "name": "Interaktive diagrammer",
+                "description": "Vis interaktive diagrammer direkte i chatten — stolpe, linje, sektor, spredning, radar, måler, varmekart og mer."
+            },
+            "leads": {
+                "name": "Leads",
+                "description": "Samle inn besøkendes kontaktinformasjon (navn, e-post, telefon og mer)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "Søk i transaksjoner, kunder, produkter og betalinger i din Stripe-konto."
+            },
+            "github": {
+                "name": "GitHub",
+                "description": "Les repoer, issues, PR-er og kode fra alle kontoer du har tilgang til."
+            },
+            "notion": {
+                "name": "Notion",
+                "description": "Les sider, databaser og kommentarer fra ditt Notion-arbeidsområde."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "Søk i issues, prosjekter og sykluser i ditt Linear-arbeidsområde."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "Jira-issues, Confluence-sider og arbeidsflyter fra dine Atlassian-nettsteder."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "Søk i meldinger, les tråder og skriv svar fra Gmail-innboksen din."
+            },
+            "google-calendar": {
+                "name": "Google Kalender",
+                "description": "Les og opprett hendelser i dine Google-kalendere."
+            },
+            "google-drive": {
+                "name": "Google Disk",
+                "description": "Les filer og mapper fra Google Disk."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "Søk i meldinger, post svar og les kanalhistorikk i ditt Slack-arbeidsområde."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "La besøkende booke møter i Calendly, og la agenter lese dine planlagte hendelser."
+            },
+            "todoist": {
+                "name": "Todoist",
+                "description": "Administrer oppgaver, prosjekter og etiketter i Todoist-kontoen din."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "Utløs Zapier-handlinger på tvers av over 9 000 tilkoblede apper."
+            },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "Les saker, brukere og hjelpesenterartikler fra Zendesk Support-kontoen din.",
+                "token_label": "Zendesk API-token",
+                "token_placeholder": "Ditt Zendesk API-token"
+            },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "Les og oppdater kontakter, selskaper, avtaler og saker i HubSpot CRM."
+            },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "Les og oppdater kontoer, kontakter, muligheter og saker fra din Salesforce-organisasjon."
+            },
+            "box": {
+                "name": "Box",
+                "description": "Søk i og les filer, mapper og metadata fra Box-kontoen din."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "Les og oppdater oppgaver, prosjekter og porteføljer i ditt Asana-arbeidsområde."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "Les issues, feil og utgivelser fra Sentry-prosjektene dine."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "Søk i møtetranskripsjoner, sammendrag og handlingspunkter fra Fireflies.ai."
+            },
+            "amplitude": {
+                "name": "Amplitude",
+                "description": "Spør om produktanalyse — hendelser, diagrammer og kohorter — fra Amplitude-prosjektet ditt."
+            }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "Kontoanalyse",
+                "description": "Svar på arbeidsområdeeierens spørsmål om sin egen konto i tall — meldinger, samtaler, brukere, kanaler, leads, tilfredshet, responstid, emner og overføringer."
+            },
+            "charts": {
+                "name": "Interaktive diagrammer",
+                "description": "Vis interaktive diagrammer (stolpe, linje, sektor, måler, spredning, radar, varmekart, …) direkte i chatten."
+            }
+        }
+    }
+}

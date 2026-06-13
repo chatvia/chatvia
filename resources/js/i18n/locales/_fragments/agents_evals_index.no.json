@@ -1,0 +1,115 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "title": "Evalueringer",
+                "head_title": "Evalueringer — {name}",
+                "description": "Testsuiter som vurderer agentens faktiske svar – samme kunnskap, verktøy og modell som i produksjon. Kjør suiten og følg med på om endringer gjør agenten bedre eller dårligere.",
+                "run_suite": "Kjør suite",
+                "cases_heading": "Saker",
+                "cases_summary": "{total} totalt · {active} aktive",
+                "from_knowledge": "Fra kunnskapsbase",
+                "add_case": "Legg til sak",
+                "table": {
+                    "case": "Sak",
+                    "scorer": "Vurderer",
+                    "status": "Status",
+                    "actions": "Handlinger",
+                    "by": "Av",
+                    "pass_rate": "Bestått-rate",
+                    "passed_failed": "Bestått / Ikke bestått",
+                    "avg_score": "Gjennomsnittspoeng",
+                    "when": "Tidspunkt"
+                },
+                "status_active": "Aktiv",
+                "status_inactive": "Inaktiv",
+                "empty_cases": "Ingen evalueringssaker ennå. Legg til én for å begynne å måle svarskvaliteten.",
+                "recent_runs": "Siste kjøringer",
+                "recent_runs_description": "Hver kjøring vurderes mot de sakene som var aktive på det tidspunktet.",
+                "clear": "Tøm",
+                "empty_runs": "Ingen kjøringer ennå. Klikk «Kjør suite» for å vurdere de aktive sakene.",
+                "case_dialog": {
+                    "edit_title": "Rediger sak",
+                    "add_title": "Legg til sak",
+                    "description": "Inndata sendes til agenten akkurat slik en besøkende ville stilt spørsmålet.",
+                    "name_label": "Navn",
+                    "name_placeholder": "f.eks. Refusjonspolicyen er korrekt",
+                    "input_label": "Inndata-spørsmål",
+                    "input_placeholder": "Hva er refusjonspolicyen din?",
+                    "scorer_label": "Vurderer",
+                    "scorer_placeholder": "Velg en vurderer",
+                    "expected_substring": "Forventet delstreng",
+                    "expected_substring_placeholder": "f.eks. 30 dager",
+                    "case_sensitive": "Skiller mellom store og små bokstaver",
+                    "pattern_label": "Mønster",
+                    "pattern_placeholder": "/\\b30 days\\b/i",
+                    "required_keys": "Påkrevde nøkler",
+                    "required_keys_placeholder": "komma,separerte,nøkler",
+                    "required_keys_hint": "Svaret må være gyldig JSON som inneholder hver nøkkel.",
+                    "grading_criteria": "Vurderingskriterier",
+                    "grading_criteria_placeholder": "Svaret må angi at refusjoner er tilgjengelige innen 30 dager etter kjøp.",
+                    "expected_answer": "Forventet svar",
+                    "reference_answer": "Referansesvar (valgfritt)",
+                    "active_label": "Aktiv (inkludert i kjøringer)",
+                    "save": "Lagre"
+                },
+                "knowledge_dialog": {
+                    "title": "Legg til saker fra kunnskapsbase",
+                    "description": "Velg spørsmål fra agentens kunnskapsbase. Hvert spørsmål blir en sak som vurderes av AI-dommeren mot kildeteksten.",
+                    "search_placeholder": "Søk etter spørsmål...",
+                    "added_badge": "Lagt til",
+                    "no_search_results": "Ingen spørsmål samsvarer med søket ditt.",
+                    "no_questions": "Ingen spørsmål funnet i agentens kunnskapsbase ennå.",
+                    "add_cases": "Legg til saker",
+                    "add_count": "Legg til {count} sak | Legg til {count} saker"
+                },
+                "delete_case_title": "Slett sak",
+                "delete_case_description": "Slette «{name}»? Tidligere kjøringsresultater beholder sin kopi av denne saken – bare fremtidige kjøringer påvirkes.",
+                "delete_run_title": "Slett kjøring",
+                "delete_run_description": "Slette denne kjøringen og dens resultater per sak? Dette kan ikke angres. Saker påvirkes ikke.",
+                "clear_runs_title": "Tøm kjøringshistorikk",
+                "clear_runs_description": "Slette alle {count} kjøring for denne agenten og resultatene? Dette kan ikke angres. Saker påvirkes ikke. | Slette alle {count} kjøringer for denne agenten og resultatene? Dette kan ikke angres. Saker påvirkes ikke.",
+                "clear_all": "Tøm alt",
+                "scorers": {
+                    "contains": {
+                        "label": "Inneholder tekst",
+                        "help": "Består hvis svaret inneholder en delstreng."
+                    },
+                    "regex": {
+                        "label": "Regex-samsvar",
+                        "help": "Består hvis svaret samsvarer med et regulært uttrykk."
+                    },
+                    "exact": {
+                        "label": "Eksakt samsvar",
+                        "help": "Består bare hvis svaret er identisk med referansesvaret."
+                    },
+                    "json_schema": {
+                        "label": "JSON-form",
+                        "help": "Består hvis svaret er gyldig JSON med de påkrevde nøklene."
+                    },
+                    "llm_judge": {
+                        "label": "AI-dommer",
+                        "help": "En åpen modell vurderer svaret mot kriteriene dine."
+                    }
+                },
+                "toasts": {
+                    "case_updated": "Sak oppdatert",
+                    "case_added": "Sak lagt til",
+                    "cases_added": "{count} sak lagt til | {count} saker lagt til",
+                    "case_deleted": "Sak slettet",
+                    "run_started": "Evalueringskjøring startet",
+                    "run_start_error": "Kunne ikke starte kjøringen",
+                    "run_deleted": "Kjøring slettet",
+                    "history_cleared": "Kjøringshistorikk tømt"
+                }
+            },
+            "scorers": {
+                "contains": "Inneholder",
+                "regex": "Regex",
+                "exact": "Eksakt samsvar",
+                "json_schema": "JSON-skjema",
+                "llm_judge": "LLM-dommer"
+            }
+        }
+    }
+}

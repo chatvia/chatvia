@@ -3,7 +3,7 @@
 namespace App\Http\Middleware\Chat;
 
 use Closure;
-use Domain\Agent\Services\Agent;
+use Domain\Agent\Services\AgentLocator;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -20,7 +20,7 @@ class ResolveAgentFromSubdomain
         $slug = $request->agentSlug();
 
         if ($slug) {
-            if (! Agent::resolveAgentFromSubdomain($slug)) {
+            if (! AgentLocator::resolveAgentFromSubdomain($slug)) {
                 return Inertia::render('agents/chat/AgentNotFound');
             }
         }

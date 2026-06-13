@@ -29,4 +29,18 @@ class ChatInputPayload extends Data
         public ?string $source = null,
         public array $attachments = [],
     ) {}
+
+    /**
+     * Immutable copy with a different LLM-facing message. Used when knowledge
+     * retrieval enriches the user turn with retrieved context: every other
+     * field carries over untouched, so a newly-added field can never be
+     * silently dropped by a hand-maintained field-by-field rebuild.
+     */
+    public function withMessageForLlm(?string $messageForLlm): self
+    {
+        $clone = clone $this;
+        $clone->message_for_llm = $messageForLlm;
+
+        return $clone;
+    }
 }

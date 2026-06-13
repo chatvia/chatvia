@@ -260,17 +260,17 @@ watch(liveChatAvailable, (available) => {
                             <div class="flex items-center gap-3">
                                 <!-- Search Bar -->
                                 <div class="relative max-w-md flex-1">
-                                    <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                                    <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                                     <Input
                                         v-model="search"
                                         :placeholder="t('agents.chatlog.search_placeholder')"
-                                        class="bg-muted/50 h-9 border-0 pe-9 ps-9 focus-visible:ring-1"
+                                        class="bg-muted/50 h-9 border-0 ps-9 pe-9 focus-visible:ring-1"
                                         :disabled="!currentConversationId"
                                     />
                                     <button
                                         v-if="search"
                                         @click="clearSearch"
-                                        class="text-muted-foreground hover:text-foreground absolute top-1/2 end-3 -translate-y-1/2 transition-colors"
+                                        class="text-muted-foreground hover:text-foreground absolute end-3 top-1/2 -translate-y-1/2 transition-colors"
                                     >
                                         <X class="h-4 w-4" />
                                     </button>
@@ -319,7 +319,7 @@ watch(liveChatAvailable, (available) => {
                                 <TabsList class="h-11 w-full justify-start gap-0 border-b bg-transparent p-0">
                                     <TabsTrigger
                                         value="chat"
-                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:start-0 after:end-0 after:bottom-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                     >
                                         <MessageSquare class="me-2 h-4 w-4" />
                                         {{ t('agents.chatlog.tabs.chat') }}
@@ -327,14 +327,14 @@ watch(liveChatAvailable, (available) => {
                                     <TabsTrigger
                                         v-if="canViewPulse"
                                         value="pulse"
-                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:start-0 after:end-0 after:bottom-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                     >
                                         <Activity class="me-2 h-4 w-4" />
                                         {{ t('agents.chatlog.tabs.pulse') }}
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="details"
-                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:start-0 after:end-0 after:bottom-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                     >
                                         <Tag class="me-2 h-4 w-4" />
                                         {{ t('agents.chatlog.tabs.details') }}
@@ -342,7 +342,7 @@ watch(liveChatAvailable, (available) => {
                                     <TabsTrigger
                                         v-if="liveChatAvailable"
                                         value="handoff"
-                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                                        class="text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:after:bg-primary relative cursor-pointer rounded-none bg-transparent px-4 py-2.5 text-sm font-medium transition-colors after:absolute after:start-0 after:end-0 after:bottom-0 after:h-0.5 after:bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                         :class="{ 'text-amber-600 dark:text-amber-400': handoff.isHandedOff.value }"
                                     >
                                         <Phone class="me-2 h-4 w-4" />

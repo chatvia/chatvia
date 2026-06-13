@@ -485,4 +485,26 @@ return [
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://mcp.amplitude.com/mcp',
     ],
+
+    'serpapi' => [
+        'slug' => 'serpapi',
+        'name' => 'SerpApi',
+        'description' => 'Search Google, Bing, YouTube, and other engines for live results — news, prices, locations — powered by SerpApi.',
+        'category' => 'Utilities',
+        'icon' => 'serpapi',
+        'brand_color' => '377FEA',
+        'logo_url' => '/images/logos/connectors/serpapi.svg',
+        'priority' => 15,
+        // SerpApi hosts its own MCP server at a fixed endpoint; the workspace
+        // supplies its SerpApi API key, sent as a Bearer token. SerpApi also
+        // accepts a path-based key (/KEY/mcp), but the header form keeps the key
+        // out of the stored `url` and lets every workspace share the canonical
+        // catalog (shouldUseCentralCatalog matches on the fixed mcp_url).
+        'auth_strategy' => 'token',
+        'auth_type' => 'bearer',
+        'token_label' => 'SerpApi API key',
+        'token_help_url' => 'https://serpapi.com/manage-api-key',
+        'token_placeholder' => 'Your SerpApi API key',
+        'mcp_url' => 'https://mcp.serpapi.com/mcp',
+    ],
 ];

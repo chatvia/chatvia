@@ -1,0 +1,43 @@
+{
+    "agents": {
+        "deploy": {
+            "title": "Deploy",
+            "subtitle": "Put your agent in front of people — pick a surface and copy the code.",
+            "head_title": "Deploy — {name}",
+            "copy": "Copy",
+            "copied": "Copied!",
+            "copy_failed": "Copy failed",
+            "customize": "Customize appearance",
+            "install_label": "Add this to your site",
+            "protected_title": "This agent is protected",
+            "protected_description": "Embeds need a signed token, otherwise anyone with the snippet sees a locked screen. Make it public or wire up auth in",
+            "open_security": "Security settings",
+            "widget": {
+                "title": "Chat Widget",
+                "description": "A floating chat bubble in the corner of any page — the classic assistant."
+            },
+            "chat": {
+                "title": "Hosted Chat",
+                "description": "A full-page chat at your own link. Share it directly, or embed it in a page.",
+                "url_label": "Agent URL",
+                "open": "Open",
+                "embed_label": "Embed in a page",
+                "iframe_title": "Chat with {name}",
+                "width": "Width",
+                "height": "Height",
+                "preset_full": "Full",
+                "preset_large": "Large",
+                "preset_medium": "Medium",
+                "preset_small": "Small"
+            },
+            "bar": {
+                "title": "Command Bar",
+                "description": "A ⌘K command-palette overlay. Perfect for docs, dashboards, and apps."
+            },
+            "save": "Save",
+            "sites_saved": "Allowed sites updated",
+            "sites_error": "Couldn't save — please try again",
+            "api_docs": "JavaScript API"
+        }
+    }
+}

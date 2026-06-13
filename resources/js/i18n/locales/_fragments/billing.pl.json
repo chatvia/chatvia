@@ -1,0 +1,317 @@
+{
+    "billing": {
+        "common": {
+            "billing": "Rozliczenia",
+            "back_to_billing": "Powrót do rozliczeń",
+            "view_plans": "Zobacz plany",
+            "cancel": "Anuluj",
+            "processing": "Przetwarzanie...",
+            "not_available": "N/D"
+        },
+        "payment_success": {
+            "page_title": "Płatność zakończona pomyślnie",
+            "heading": "Płatność przyjęta",
+            "description": "Dziękujemy! Płatność została przetworzona pomyślnie. Trwa konfiguracja Twojej subskrypcji.",
+            "redirecting_prefix": "Przekierowanie za",
+            "redirecting_suffix": "sekund...",
+            "go_to_billing": "Przejdź do rozliczeń teraz"
+        },
+        "invoices": {
+            "breadcrumb": "Faktury",
+            "page_title": "Faktury",
+            "heading": "Faktury",
+            "subheading": "Przeglądaj i pobieraj historię rozliczeń oraz faktury",
+            "history_title": "Historia rozliczeń",
+            "history_description": "Pobieraj potwierdzenia i faktury za płatności subskrypcji",
+            "invoice_number": "Faktura #{number}",
+            "status": {
+                "paid": "Opłacona",
+                "pending": "Oczekująca",
+                "failed": "Nieudana"
+            },
+            "download_pdf": "Pobierz PDF",
+            "view_online": "Wyświetl online",
+            "empty_title": "Brak faktur",
+            "empty_description": "Historia rozliczeń i faktury pojawią się tutaj po uruchomieniu subskrypcji.",
+            "total_invoices": "Łączna liczba faktur",
+            "total_spent": "Łączna kwota wydatków",
+            "since": "Od",
+            "help_title": "Potrzebujesz pomocy z rozliczeniami?",
+            "help_description": "Jeśli masz pytania dotyczące faktur lub potrzebujesz pomocy w zakresie rozliczeń, nasz zespół wsparcia jest do Twojej dyspozycji.",
+            "contact_support": "Skontaktuj się z pomocą techniczną"
+        },
+        "payment_methods": {
+            "breadcrumb": "Metody płatności",
+            "page_title": "Metody płatności",
+            "heading": "Metody płatności",
+            "subheading": "Zarządzaj metodami płatności i danymi rozliczeniowymi",
+            "add_method": "Dodaj metodę płatności",
+            "saved_title": "Zapisane metody płatności",
+            "saved_description": "Zarządzaj zapisanymi metodami płatności. Możesz ustawić domyślną metodę do automatycznego rozliczania.",
+            "default": "Domyślna",
+            "expires": "Wygasa {date}",
+            "set_default": "Ustaw jako domyślną",
+            "empty_title": "Brak metod płatności",
+            "empty_description": "Dodaj metodę płatności, aby zarządzać subskrypcjami i dokonywać płatności.",
+            "add_first": "Dodaj pierwszą metodę płatności",
+            "info_title": "Dane rozliczeniowe",
+            "info_description": "Zaktualizuj adres rozliczeniowy i dane kontaktowe",
+            "not_set": "Nie ustawiono",
+            "update_info": "Zaktualizuj dane rozliczeniowe",
+            "secure_title": "Bezpieczne przetwarzanie płatności",
+            "secure_description": "Dane płatności są szyfrowane i bezpiecznie przetwarzane przez Stripe. Nigdy nie przechowujemy pełnych danych karty na naszych serwerach.",
+            "updating": "Aktualizowanie...",
+            "update_information": "Zaktualizuj dane",
+            "card_information": "Dane karty",
+            "remove_dialog": {
+                "title": "Usuń metodę płatności",
+                "description": "Czy na pewno chcesz usunąć tę metodę płatności? Tej operacji nie można cofnąć.",
+                "confirm": "Tak, usuń"
+            },
+            "fields": {
+                "name": "Imię i nazwisko",
+                "email": "Adres e-mail",
+                "address": "Adres",
+                "city_state_country": "Miasto, województwo i kraj",
+                "billing_address": "Adres rozliczeniowy",
+                "line1": "Adres — wiersz 1",
+                "line2": "Adres — wiersz 2 (opcjonalnie)",
+                "city": "Miasto",
+                "state": "Województwo",
+                "postal_code": "Kod pocztowy",
+                "country": "Kraj"
+            },
+            "placeholders": {
+                "name": "Jan Kowalski",
+                "email": "jan{'@'}przyklad.pl",
+                "line1": "ul. Główna 123",
+                "line2": "Mieszkanie, apartament itp.",
+                "city": "Warszawa",
+                "state": "Mazowieckie",
+                "postal_code": "00-001",
+                "country": "Wybierz kraj..."
+            },
+            "info_dialog": {
+                "title": "Zaktualizuj dane rozliczeniowe",
+                "description": "Zaktualizuj adres rozliczeniowy i dane kontaktowe do celów fakturowania i przetwarzania płatności."
+            },
+            "add_dialog": {
+                "description": "Dodaj nową metodę płatności do swojego konta. Dane karty są bezpieczne i zaszyfrowane.",
+                "success_title": "Metoda płatności dodana!",
+                "success_description": "Metoda płatności została pomyślnie dodana do Twojego konta.",
+                "secure_note": "Dane płatności są szyfrowane i bezpiecznie przetwarzane przez Stripe. Nigdy nie przechowujemy pełnych danych karty."
+            },
+            "errors": {
+                "init_failed": "Nie udało się zainicjować systemu płatności",
+                "not_ready": "System płatności nie jest gotowy",
+                "add_failed": "Wystąpił błąd podczas dodawania metody płatności"
+            },
+            "toast": {
+                "added": "Metoda płatności dodana pomyślnie!",
+                "info_updated": "Dane rozliczeniowe zaktualizowane pomyślnie!",
+                "info_failed": "Nie udało się zaktualizować danych rozliczeniowych"
+            }
+        },
+        "plans": {
+            "breadcrumb": "Wybierz plan",
+            "page_title": "Wybierz swój plan",
+            "heading": "Wybierz swój plan",
+            "subheading": "Wybierz plan idealnie dopasowany do Twoich potrzeb. Możesz go zmienić lub anulować w dowolnym momencie.",
+            "monthly": "Miesięcznie",
+            "yearly": "Rocznie",
+            "custom": "Niestandardowy",
+            "per_month": "/miesiąc",
+            "save_percent": "Oszczędź {percent}%",
+            "billed_yearly": "Rozliczane rocznie: {amount}",
+            "features_included": "Funkcje w planie:",
+            "everything_in": "Wszystko z planu {plan} +",
+            "actions": {
+                "contact_sales": "Skontaktuj się z działem sprzedaży",
+                "upgrade": "Ulepsz",
+                "upgrade_plan": "Ulepsz plan",
+                "downgrade_to_free": "Przejdź na plan bezpłatny",
+                "downgrade_plan": "Obniż plan",
+                "switch_plan": "Zmień plan",
+                "select_plan": "Wybierz plan"
+            },
+            "discount": {
+                "banner": "{percent}% ZNIŻKI — oferta ograniczona czasowo!",
+                "ends": "Oferta kończy się {date} — nie przegap!",
+                "limited": "Ograniczona czasowo zniżka na wszystkie płatne plany!",
+                "off": "{percent}% TANIEJ"
+            },
+            "llms": {
+                "title": "Dostępne modele AI",
+                "description": "Wybieraj spośród naszej bogatej oferty najnowocześniejszych modeli językowych",
+                "empty": "Brak dostępnych modeli"
+            }
+        },
+        "addons": {
+            "title": "Dodatki",
+            "description": "Dodatkowe kredyty, agenci i domeny ponad Twój plan",
+            "per_agent": " / agent",
+            "per_domain": " / domena",
+            "per_member": " / członek",
+            "per_month": " / miesiąc",
+            "requires_subscription": "Dodatkowi agenci, własna domena, usunięcie brandingu i członkowie wymagają aktywnej głównej subskrypcji.",
+            "common": {
+                "none": "Brak",
+                "subscribe": "Subskrybuj",
+                "change": "Zmień",
+                "update_quantity": "Zaktualizuj ilość",
+                "monthly_cost": "Miesięczny koszt:",
+                "keep_subscription": "Zachowaj subskrypcję",
+                "yes_cancel": "Tak, anuluj",
+                "ends": "Kończy się {date}"
+            },
+            "auto_recharge": {
+                "title": "Automatyczne doładowanie",
+                "on": "Włączone",
+                "off": "Wyłączone",
+                "summary": "Automatyczny zakup {amount} kredytów, gdy saldo spadnie poniżej {threshold}.",
+                "manage": "Zarządzaj",
+                "enable": "Włącz",
+                "dialog_title": "Ustawienia automatycznego doładowania",
+                "dialog_description": "Gdy pozostałe kredyty spadną do poziomu progu lub poniżej, automatycznie obciążymy Twoją domyślną metodę płatności i uzupełnimy saldo.",
+                "enable_label": "Włącz automatyczne doładowanie",
+                "enable_hint": "Obciążaj automatycznie, gdy kredyty są na wyczerpaniu",
+                "threshold_label": "Próg (kredyty)",
+                "threshold_hint": "Doładowanie następuje, gdy saldo spadnie do tej wartości lub poniżej.",
+                "amount_label": "Kwota doładowania (kredyty)",
+                "each_recharge": "Każde doładowanie:",
+                "charged_note": "Obciążenie naliczane natychmiast do domyślnej metody płatności po wyzwoleniu.",
+                "save": "Zapisz ustawienia"
+            },
+            "extra_credits": {
+                "title": "Dodatkowe kredyty",
+                "summary": "Jednorazowe doładowanie. Każdy pakiet dodaje 1 000 wiadomości wygasających po 30 dniach.",
+                "buy": "Kup kredyty",
+                "dialog_title": "Kup kredyty wiadomości",
+                "dialog_description": "Każdy pakiet zawiera 1 000 wiadomości, które należy wykorzystać w ciągu jednego miesiąca od zakupu.",
+                "quantity_label": "Ilość (1 000 wiadomości na pakiet)",
+                "total_messages": "Łączna liczba wiadomości:",
+                "total_price": "Łączna cena:",
+                "purchase_for": "Kup za ${amount}"
+            },
+            "extra_agents": {
+                "title": "Dodatkowi agenci",
+                "summary": "Dodaj więcej agentów AI ponad limit Twojego planu.",
+                "cancel_title": "Anulować subskrypcję dodatkowych agentów?",
+                "cancel_description": "Quota dodatkowych agentów zostanie natychmiast usunięta i nie będziesz już obciążany.",
+                "change_title": "Zmień liczbę dodatkowych agentów",
+                "subscribe_title": "Subskrybuj dodatkowych agentów",
+                "dialog_description": "Dodaj dodatkowych agentów AI ponad Twój plan. Rozliczane miesięcznie — 5 USD za agenta.",
+                "quantity_label": "Liczba dodatkowych agentów"
+            },
+            "custom_domains": {
+                "title": "Własna domena",
+                "summary": "Używaj własnej domeny dla agentów AI.",
+                "cancel_title": "Anulować subskrypcję własnej domeny?",
+                "cancel_description": "Quota własnej domeny zostanie natychmiast usunięta i nie będziesz już obciążany.",
+                "change_title": "Zmień liczbę własnych domen",
+                "subscribe_title": "Subskrybuj własną domenę",
+                "dialog_description": "Używaj własnej domeny dla agentów AI. Rozliczane miesięcznie — 29 USD za domenę.",
+                "quantity_label": "Liczba domen"
+            },
+            "remove_branding": {
+                "title": "Usuń branding",
+                "active": "Aktywne",
+                "summary": "Ukryj oznaczenie „Powered by Chatvia\" w widżecie i hostowanym czacie.",
+                "cancel_title": "Anulować subskrypcję usunięcia brandingu?",
+                "cancel_description": "Oznaczenie „Powered by Chatvia\" natychmiast pojawi się z powrotem w widżecie i hostowanym czacie, a dalsze obciążenia nie będą naliczane."
+            },
+            "members": {
+                "title": "Członkowie",
+                "summary": "Dodaj więcej członków zespołu do swojego obszaru roboczego.",
+                "cancel_title": "Anulować subskrypcję członków?",
+                "cancel_description": "Dodatkowe miejsca dla członków zostaną natychmiast usunięte i nie będziesz już obciążany.",
+                "change_title": "Zmień liczbę członków",
+                "subscribe_title": "Subskrybuj dodatkowych członków",
+                "dialog_description": "Dodaj dodatkowych członków zespołu do swojego obszaru roboczego. Rozliczane miesięcznie — 9 USD za członka.",
+                "quantity_label": "Liczba członków"
+            }
+        },
+        "index": {
+            "page_title": "Rozliczenia",
+            "heading": "Rozliczenia",
+            "subheading": "Zarządzaj subskrypcją, danymi rozliczeniowymi i limitami użytkowania",
+            "stripe_notice": "Płatności bezpiecznie przetwarzane przez",
+            "status_label": "Status",
+            "trial_ends": "Koniec okresu próbnego",
+            "next_billing": "Następne rozliczenie",
+            "access_ends": "Koniec dostępu",
+            "plan_features": "Funkcje planu",
+            "show_less": "Pokaż mniej",
+            "show_more": "Pokaż {count} więcej",
+            "per_year": "Rok",
+            "per_month": "Miesiąc",
+            "status": {
+                "active": "Aktywna",
+                "trial": "Okres próbny",
+                "cancelled": "Anulowana",
+                "incomplete": "Niekompletna",
+                "past_due": "Zaległa"
+            },
+            "trial": {
+                "heading": "🎉 Korzystasz z bezpłatnego okresu próbnego!",
+                "ends_on": "Okres próbny planu {plan} kończy się",
+                "auto_start": "Płatna subskrypcja zostanie uruchomiona automatycznie {date}",
+                "badge": "Okres próbny aktywny"
+            },
+            "upgrade": {
+                "heading": "Przejdź na plan Premium",
+                "description": "Uzyskaj dostęp do zaawansowanych modeli AI, wyższych limitów wiadomości i wsparcia priorytetowego"
+            },
+            "current_plan": {
+                "title": "Aktualny plan",
+                "description": "Aktywna subskrypcja i szczegóły użytkowania"
+            },
+            "pending_change": {
+                "heading": "Zmiana planu zaplanowana",
+                "change_from": "Twój plan zmieni się z",
+                "to": "na",
+                "cycle_yearly": "(Rocznie)",
+                "cycle_monthly": "(Miesięcznie)",
+                "on_date": "{date}.",
+                "scheduled_for": "Masz zaplanowaną zmianę planu na {date}.",
+                "access_note": "Do tego czasu zachowasz dostęp do funkcji bieżącego planu.",
+                "cancel_schedule": "Anuluj harmonogram",
+                "cancel_dialog": {
+                    "title": "Anuluj zaplanowaną zmianę planu",
+                    "description": "Czy na pewno chcesz anulować zaplanowaną zmianę planu? Pozostaniesz na bieżącym planie.",
+                    "confirm": "Tak, anuluj harmonogram",
+                    "cancel": "Zachowaj harmonogram"
+                }
+            },
+            "cancelled": {
+                "title": "Subskrypcja anulowana",
+                "description": "Twoja subskrypcja zakończy się {date}. Możesz wznowić subskrypcję w dowolnym momencie przed tą datą.",
+                "resume": "Wznów subskrypcję"
+            },
+            "management": {
+                "title": "Zarządzanie",
+                "manage_payment_methods": "Zarządzaj metodami płatności",
+                "view_invoices": "Wyświetl faktury",
+                "go_to_stripe": "Przejdź do Stripe",
+                "change_plan": "Zmień plan",
+                "cancel_subscription": "Anuluj subskrypcję"
+            },
+            "cancel_dialog": {
+                "title": "Anuluj subskrypcję",
+                "description": "Czy na pewno chcesz anulować subskrypcję? Zachowasz dostęp do końca bieżącego okresu rozliczeniowego.",
+                "confirm": "Tak, anuluj",
+                "cancel": "Zachowaj subskrypcję"
+            },
+            "usage": {
+                "title": "Użytkowanie",
+                "messages": "Wiadomości",
+                "pages": "Strony",
+                "agents": "Agenci",
+                "links": "Linki",
+                "minutes": "Minuty",
+                "remaining": "Pozostało: {count}",
+                "load_error": "Nie można załadować danych użytkowania"
+            }
+        }
+    }
+}

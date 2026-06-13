@@ -33,11 +33,11 @@ class AgentRateLimitNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("Your agent \"{$this->agent->name}\" hit its rate limit")
-            ->greeting('Heads up!')
-            ->line("Your agent \"{$this->agent->name}\" reached its chat rate limit of {$this->limitPerMinute} messages per minute, so some messages were turned away.")
-            ->line('If this is expected traffic, raise the limit on the agent\'s Security page. If it looks like abuse, you may want to make the agent protected.')
-            ->action('Open agent security settings', url(route('agents.identity', $this->agent->external_id, absolute: true)))
-            ->line('You can turn these alerts off from the same page.');
+            ->subject(__('Your agent ":name" hit its rate limit', ['name' => $this->agent->name]))
+            ->greeting(__('Heads up!'))
+            ->line(__('Your agent ":name" reached its chat rate limit of :limit messages per minute, so some messages were turned away.', ['name' => $this->agent->name, 'limit' => $this->limitPerMinute]))
+            ->line(__('If this is expected traffic, raise the limit on the agent\'s Security page. If it looks like abuse, you may want to make the agent protected.'))
+            ->action(__('Open agent security settings'), url(route('agents.identity', $this->agent->external_id, absolute: true)))
+            ->line(__('You can turn these alerts off from the same page.'));
     }
 }

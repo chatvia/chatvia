@@ -25,19 +25,19 @@ class MagicLinkNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $subject = $this->contextName !== null
-            ? "Sign in to {$this->contextName}"
-            : 'Your sign-in link';
+            ? __('Sign in to :context', ['context' => $this->contextName])
+            : __('Your sign-in link');
 
         $intro = $this->contextName !== null
-            ? "Click the button below to sign in to **{$this->contextName}**."
-            : 'Click the button below to sign in.';
+            ? __('Click the button below to sign in to **:context**.', ['context' => $this->contextName])
+            : __('Click the button below to sign in.');
 
         return (new MailMessage)
             ->subject($subject)
-            ->greeting('Hello!')
+            ->greeting(__('Hello!'))
             ->line($intro)
-            ->action('Sign in', $this->url)
-            ->line('This link will expire in 15 minutes and can only be used once.')
-            ->line("If you didn't request this email, you can safely ignore it.");
+            ->action(__('Sign in'), $this->url)
+            ->line(__('This link will expire in 15 minutes and can only be used once.'))
+            ->line(__("If you didn't request this email, you can safely ignore it."));
     }
 }

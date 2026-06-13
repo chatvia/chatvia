@@ -1,0 +1,131 @@
+{
+    "common": {
+        "saved": "Tallennettu",
+        "remove": "Poista",
+        "preview": "Esikatselu",
+        "upload": "Lataa",
+        "cancel": "Peruuta",
+        "save": "Tallenna",
+        "confirm": "Vahvista",
+        "deleting": "Poistetaan..."
+    },
+    "nav": {
+        "account": "Tili",
+        "workspace": "Työtila",
+        "logout": "Kirjaudu ulos",
+        "language": "Kieli"
+    },
+    "account": {
+        "layout": {
+            "heading": "Tili",
+            "description": "Hallitse henkilökohtaista profiiliasi, tietoturvaasi ja tietojasi"
+        },
+        "nav": {
+            "profile": "Profiili",
+            "password": "Salasana",
+            "two_factor": "Kaksivaiheinen tunnistus",
+            "passkeys": "Avainluvat",
+            "social": "Sosiaalinen tilit",
+            "data_export": "Lataa tietoni",
+            "delete": "Poista tili"
+        },
+        "profile": {
+            "title": "Profiilin asetukset",
+            "change_photo": "Vaihda profiilikuva",
+            "upload_photo": "Lataa profiilikuva",
+            "managed_by": "Hallinnoi: {name}",
+            "copy_account_id": "Kopioi tilin tunnus",
+            "copied": "Kopioitu!",
+            "remove_photo": "Poista kuva",
+            "remove_photo_title": "Poista profiilikuva",
+            "remove_photo_description": "Avatarisi palautuu nimikirjaimiisi. Voit ladata uuden kuvan milloin tahansa.",
+            "info_title": "Profiilin tiedot",
+            "info_description": "Päivitä tilisi profiilitiedot ja sähköpostiosoite.",
+            "name": "Nimi",
+            "name_placeholder": "Koko nimi",
+            "email": "Sähköpostiosoite",
+            "email_placeholder": "Sähköpostiosoite",
+            "email_unverified": "Sähköpostiosoitettasi ei ole vahvistettu.",
+            "resend_verification": "Napsauta tästä lähettääksesi vahvistussähköpostin uudelleen.",
+            "verification_sent": "Uusi vahvistuslinkki on lähetetty sähköpostiosoitteeseesi.",
+            "updated": "Profiili päivitetty onnistuneesti",
+            "datetime_title": "Päivämäärä ja aika",
+            "datetime_description": "Valitse, miten päivämäärät näytetään hallintapaneelissasi.",
+            "date_format": "Päivämäärämuoto",
+            "date_format_placeholder": "Valitse päivämäärämuoto"
+        },
+        "password": {
+            "title": "Salasana-asetukset",
+            "heading": "Salasanan tietoturva",
+            "subtitle": "Hallitse tilisi salasanaa.",
+            "update_title": "Päivitä salasana",
+            "update_description": "Varmista, että tilisi käyttää vahvaa ja turvallista salasanaa tilisi suojaamiseksi.",
+            "current": "Nykyinen salasana",
+            "current_placeholder": "Syötä nykyinen salasanasi",
+            "new": "Uusi salasana",
+            "new_placeholder": "Syötä uusi salasanasi",
+            "confirm": "Vahvista salasana",
+            "confirm_placeholder": "Vahvista uusi salasanasi",
+            "submit": "Päivitä salasana",
+            "updated": "Salasana päivitetty onnistuneesti"
+        },
+        "two_factor": {
+            "title": "Kaksivaiheinen tunnistus"
+        },
+        "passkeys": {
+            "title": "Avainluvat"
+        },
+        "social": {
+            "title": "Sosiaalisen median tilit"
+        },
+        "data_export": {
+            "title": "Lataa tietoni",
+            "heading": "Lataa kopio tiedoistani",
+            "description": "Saat ZIP-arkiston, joka sisältää kaikki sinusta tallentamamme henkilökohtaiset tiedot — agentit, keskustelut, viestit, tietolähteet ja ladatut tiedostot. Laadittu GDPR:n 15. ja 20. artiklan mukaisesti.",
+            "idle_title": "Tietosi, sinun hallinnassasi.",
+            "idle_description": "Arkiston rakentaminen tapahtuu taustalla — lähetämme sinulle sähköpostin, kun se on valmis. Lataus on saatavilla 24 tunnin ajan, jonka jälkeen se poistetaan palvelimiltamme.",
+            "request_button": "Pyydä kopio tiedoistani",
+            "processing_title": "Valmistellaan vientiä…",
+            "processing_description": "Pakkaamme tietojasi ZIP-tiedostoon. Tämä kestää yleensä muutaman minuutin — lähetämme sinulle sähköpostin, kun se on valmis, ja tämä sivu päivittyy automaattisesti.",
+            "check_status": "Tarkista tila",
+            "ready_title": "Tietovientisi on valmis.",
+            "available_for": "Saatavilla {time}",
+            "download_zip": "Lataa ZIP",
+            "failed_title": "Vientiä ei voitu valmistella.",
+            "try_again": "Yritä uudelleen"
+        },
+        "delete": {
+            "title": "Poista tili",
+            "subtitle": "Poista tilisi ja kaikki sen sisältö pysyvästi.",
+            "data_export_title": "Haluatko ensin kopion tiedoistasi?",
+            "data_export_description": "Kun tilisi on poistettu, myös tietosi poistuvat sen mukana. Voit {link} kaikesta sinusta tallentamastamme ennen poistamista.",
+            "data_export_link": "ladata arkiston",
+            "cannot_undo": "Tätä toimintoa ei voi peruuttaa",
+            "removes_intro": "Tilin poistaminen poistaa pysyvästi kaiken sen sisällön, mukaan lukien:",
+            "removes_agents": "Agentit ja niiden asetukset",
+            "removes_conversations": "Kaikki keskustelut ja viestit",
+            "removes_knowledge": "Tietolähteet, asiakirjat ja ladatut tiedostot",
+            "removes_team": "Tiimisi, chatterit, API-avaimet ja yhdistimet",
+            "agents_will_delete": "{count} agentti poistetaan pysyvästi: | {count} agenttia poistetaan pysyvästi:",
+            "subscription_cancel": "Aktiivinen tilauksesi peruutetaan, eikä sinua laskuteta enää.",
+            "email_confirmed": "Sähköposti vahvistettu. Tämä on viimeinen vaiheesi — tästä ei ole paluuta.",
+            "delete_button": "Poista tilini pysyvästi",
+            "final_dialog_title": "Poistetaanko tilisi pysyvästi?",
+            "final_dialog_description": "Tämä poistaa tilisi ja kaikki sen tiedot pysyvästi, eikä toimintoa voi peruuttaa.",
+            "final_dialog_subscription": "Tilauksesi peruutetaan myös.",
+            "final_confirm": "Kyllä, poista kaikki",
+            "check_email": "Tarkista sähköpostisi — lähetimme vahvistuslinkin tilin poistamisen viimeistelemiseksi. Se vanhenee 30 minuutissa. Avaa linkki jatkaaksesi.",
+            "resend_link": "Lähetä linkki uudelleen",
+            "password_dialog_title": "Vahvista salasanasi",
+            "password_dialog_description": "Syötä salasanasi jatkaaksesi. Lähetämme sinulle vahvistuslinkin tilin poistamisen viimeistelemiseksi.",
+            "password_placeholder": "Salasana",
+            "send_confirmation": "Lähetä vahvistussähköposti"
+        }
+    },
+    "workspace": {
+        "layout": {
+            "heading": "Työtila",
+            "description": "Hallitse integraatioita, henkilöitä ja hallintoa"
+        }
+    }
+}

@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Agent\Invitations;
 
 use App\Http\Controllers\Controller;
-use Domain\Membership\Agent\Models\AgentMemberInvitation;
+use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
  * Land an agent-invitation link. The URL carries an opaque token; we look up
- * the matching {@see AgentMemberInvitation} row, check expiry, and render the
+ * the matching {@see AgentChatterInvitation} row, check expiry, and render the
  * onboarding page with the carried (agent, email). Expired / unknown tokens
  * 404 — the page handles the "no longer valid" copy.
  */
@@ -17,7 +17,7 @@ class AgentInvitationController extends Controller
 {
     public function __invoke(string $token): Response
     {
-        $invitation = AgentMemberInvitation::query()
+        $invitation = AgentChatterInvitation::query()
             ->with('agent')
             ->where('token', $token)
             ->first();

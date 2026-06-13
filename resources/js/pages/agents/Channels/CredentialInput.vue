@@ -26,7 +26,7 @@ const emit = defineEmits<{ enter: [] }>();
             <span v-if="hint" class="text-muted-foreground font-normal">{{ hint }}</span>
         </Label>
         <div class="relative">
-            <component :is="icon" class="text-muted-foreground/70 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <component :is="icon" class="text-muted-foreground/70 pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
             <!-- These fields hold API credentials, never login passwords — the data-*
                  attributes opt out of 1Password/LastPass/Bitwarden/Dashlane autofill,
                  and `new-password` stops Chrome's own manager on masked fields. -->
@@ -35,7 +35,7 @@ const emit = defineEmits<{ enter: [] }>();
                 v-model="model"
                 :type="secret ? 'password' : 'text'"
                 :placeholder="placeholder"
-                class="pl-9 font-mono"
+                class="ps-9 font-mono"
                 :autocomplete="secret ? 'new-password' : 'off'"
                 autocapitalize="off"
                 autocorrect="off"

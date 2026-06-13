@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useFileUploader, type FileAnalyzedData, type FileUploaderConfig, type UploadingFileData } from '@/composables/useFileUploader';
 import { AlertCircle, CheckCircle, File, LoaderCircle, Trash2, Upload } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     title?: string;
@@ -22,15 +23,17 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    title: 'Upload Files',
-    description: 'Add files to analyze',
     showQuota: false,
     quotaUsed: 0,
     quotaLimit: 100,
-    quotaLabel: 'pages',
     disabled: false,
-    disabledMessage: 'Upload disabled',
 });
+
+const { t } = useI18n();
+
+const displayTitle = computed(() => props.title ?? t('shared.file_uploader.title_default'));
+const displayDescription = computed(() => props.description ?? t('shared.file_uploader.description_default'));
+const displayQuotaLabel = computed(() => props.quotaLabel ?? t('shared.file_uploader.quota_label_default'));
 
 const emit = defineEmits<{
     filesChanged: [files: UploadingFileData[]];
@@ -75,15 +78,24 @@ const {
     formatSpeed,
 } = useFileUploader(uploaderConfig);
 
+const quotaLabelForCount = (count: number): string => {
+    const label = displayQuotaLabel.value;
+    if (count === 1 && label.endsWith('s')) {
+        return label.slice(0, -1);
+    }
+
+    return label;
+};
+
 // Helper function to format file length (pages or duration)
 const formatFileLength = (file: UploadingFileData): string => {
     if (!file.stats?.length) return '';
 
     if (file.stats.is_audio_file) {
-        return `${file.stats.length} minute${file.stats.length !== 1 ? 's' : ''}`;
-    } else {
-        return `${file.stats.length} page${file.stats.length !== 1 ? 's' : ''}`;
+        return t('shared.file_uploader.minute_length', { count: file.stats.length }, { plural: file.stats.length });
     }
+
+    return t('shared.file_uploader.page_length', { count: file.stats.length }, { plural: file.stats.length });
 };
 
 // Quota computations
@@ -106,6 +118,39 @@ const wouldExceedQuota = computed(() => {
 // UI state
 const canUpload = computed(() => {
     return !props.disabled && totalFiles.value < props.config.maxFiles && (!props.showQuota || quotaRemaining.value > 0);
+});
+
+const dropZoneTitle = computed(() => {
+    if (!canUpload.value && !props.disabled) {
+        if (totalFiles.value >= props.config.maxFiles) {
+            return t('shared.file_uploader.drop_zone_file_limit_reached');
+        }
+
+        return t('shared.file_uploader.drop_zone_quota_limit_reached', {
+            quotaLabel: displayQuotaLabel.value.charAt(0).toUpperCase() + displayQuotaLabel.value.slice(1),
+        });
+    }
+
+    return t('shared.file_uploader.drop_zone_select_files');
+});
+
+const dropZoneHint = computed(() => {
+    if (!canUpload.value && !props.disabled) {
+        if (totalFiles.value >= props.config.maxFiles) {
+            return t('shared.file_uploader.drop_zone_max_files_hint', { max: props.config.maxFiles });
+        }
+
+        if (props.showQuota) {
+            return t('shared.file_uploader.drop_zone_quota_exhausted_hint', {
+                quotaLimit: props.quotaLimit,
+                quotaLabel: displayQuotaLabel.value,
+            });
+        }
+
+        return t('shared.file_uploader.drop_zone_unavailable');
+    }
+
+    return t('shared.file_uploader.drop_zone_default_hint');
 });
 
 const triggerFileInput = () => {
@@ -158,17 +203,19 @@ defineExpose({
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
                 <Upload class="h-5 w-5" />
-                {{ title }}
+                {{ displayTitle }}
             </CardTitle>
-            <CardDescription>{{ description }}</CardDescription>
+            <CardDescription>{{ displayDescription }}</CardDescription>
         </CardHeader>
         <CardContent>
             <div class="space-y-4">
                 <!-- File count and quota indicators -->
                 <div class="flex items-center justify-between">
-                    <span class="text-muted-foreground text-sm"> {{ totalFiles }} / {{ config.maxFiles }} files </span>
+                    <span class="text-muted-foreground text-sm">
+                        {{ t('shared.file_uploader.file_count', { current: totalFiles, max: config.maxFiles }) }}
+                    </span>
                     <div v-if="showQuota" class="flex items-center gap-2">
-                        <span class="text-muted-foreground text-sm"> {{ quotaUsed + totalPages }} / {{ quotaLimit }} {{ quotaLabel }} </span>
+                        <span class="text-muted-foreground text-sm"> {{ quotaUsed + totalPages }} / {{ quotaLimit }} {{ displayQuotaLabel }} </span>
                         <div class="bg-muted h-2 w-20 rounded-full">
                             <div
                                 class="h-2 rounded-full transition-all duration-300"
@@ -187,8 +234,12 @@ defineExpose({
                 <Alert v-if="showQuota && quotaRemaining <= 0" variant="destructive">
                     <AlertCircle class="h-4 w-4" />
                     <AlertDescription>
-                        You have reached your {{ quotaLabel }} limit of {{ quotaLimit }} {{ quotaLabel }}. Please upgrade your plan to process more
-                        documents.
+                        {{
+                            t('shared.file_uploader.quota_limit_reached_alert', {
+                                quotaLabel: displayQuotaLabel,
+                                quotaLimit,
+                            })
+                        }}
                     </AlertDescription>
                 </Alert>
 
@@ -212,24 +263,10 @@ defineExpose({
                 >
                     <Upload class="text-muted-foreground mb-3 h-8 w-8" />
                     <div class="mb-1 text-base font-medium">
-                        {{
-                            !canUpload && !disabled
-                                ? totalFiles >= config.maxFiles
-                                    ? 'File limit reached'
-                                    : `${quotaLabel.charAt(0).toUpperCase() + quotaLabel.slice(1)} limit reached`
-                                : 'Select files'
-                        }}
+                        {{ dropZoneTitle }}
                     </div>
                     <p class="text-muted-foreground text-sm">
-                        {{
-                            !canUpload && !disabled
-                                ? totalFiles >= config.maxFiles
-                                    ? `Maximum ${config.maxFiles} files allowed. Remove some files to add more.`
-                                    : showQuota
-                                      ? `You've used all ${quotaLimit} ${quotaLabel}. Upgrade your plan to continue.`
-                                      : 'Upload not available'
-                                : 'Drag and drop or click to select files'
-                        }}
+                        {{ dropZoneHint }}
                     </p>
                 </div>
 
@@ -239,10 +276,21 @@ defineExpose({
                         <div>
                             <p class="text-muted-foreground text-sm">
                                 <span v-if="totalPages > 0">
-                                    {{ totalPages }} {{ totalPages !== 1 ? quotaLabel : quotaLabel.replace(/s$/, '') }} total
+                                    {{
+                                        t('shared.file_uploader.total_quota', {
+                                            count: totalPages,
+                                            label: quotaLabelForCount(totalPages),
+                                        })
+                                    }}
                                 </span>
-                                <span v-if="showQuota && wouldExceedQuota" class="text-destructive ml-2 font-medium">
-                                    • Exceeds quota by {{ totalPages - quotaRemaining }} {{ quotaLabel }}
+                                <span v-if="showQuota && wouldExceedQuota" class="text-destructive ms-2 font-medium">
+                                    •
+                                    {{
+                                        t('shared.file_uploader.exceeds_quota', {
+                                            amount: totalPages - quotaRemaining,
+                                            quotaLabel: displayQuotaLabel,
+                                        })
+                                    }}
                                 </span>
                             </p>
                         </div>
@@ -254,16 +302,16 @@ defineExpose({
                                 @click="clearFailedFiles"
                                 class="text-yellow-600 hover:text-yellow-700"
                             >
-                                Clear Failed
+                                {{ t('shared.file_uploader.clear_failed') }}
                             </Button>
                             <Button variant="outline" size="sm" @click="onClearAllFiles" class="text-destructive hover:text-destructive/90">
-                                <Trash2 class="mr-2 h-4 w-4" />
-                                Clear All
+                                <Trash2 class="me-2 h-4 w-4" />
+                                {{ t('shared.file_uploader.clear_all') }}
                             </Button>
                         </div>
                     </div>
 
-                    <ScrollArea v-if="uploadingFiles.length > 5" class="h-[400px] pr-4">
+                    <ScrollArea v-if="uploadingFiles.length > 5" class="h-[400px] pe-4">
                         <div class="space-y-2">
                             <template v-for="file in uploadingFiles" :key="file.id">
                                 <div class="flex items-center justify-between rounded-lg border p-3">
@@ -276,26 +324,28 @@ defineExpose({
                                                     {{ formatFileType(file.stats?.mime_type || file.file.type) }}
                                                 </Badge>
                                                 <Badge v-if="file.isAnalyzed" variant="outline" class="text-xs">
-                                                    <CheckCircle class="mr-1 h-3 w-3" />
-                                                    Analyzed
+                                                    <CheckCircle class="me-1 h-3 w-3" />
+                                                    {{ t('shared.file_uploader.badge_analyzed') }}
                                                 </Badge>
                                                 <Badge v-if="file.uploading" variant="outline" class="text-xs">
-                                                    <LoaderCircle class="mr-1 h-3 w-3 animate-spin" />
-                                                    Analyzing
+                                                    <LoaderCircle class="me-1 h-3 w-3 animate-spin" />
+                                                    {{ t('shared.file_uploader.badge_analyzing') }}
                                                 </Badge>
                                                 <Badge v-if="file.error" variant="destructive" class="text-xs">
-                                                    <AlertCircle class="mr-1 h-3 w-3" />
-                                                    Failed
+                                                    <AlertCircle class="me-1 h-3 w-3" />
+                                                    {{ t('shared.file_uploader.badge_failed') }}
                                                 </Badge>
                                             </div>
                                             <div class="text-muted-foreground text-xs">
                                                 {{ formatFileSize(file.file.size) }}
-                                                <span v-if="formatFileLength(file)" class="ml-2"> • {{ formatFileLength(file) }} </span>
-                                                <span v-if="file.uploading && file.progress > 0" class="ml-2"> • {{ file.progress }}% analyzed </span>
-                                                <span v-if="file.uploading && file.uploadSpeed > 0" class="ml-2">
+                                                <span v-if="formatFileLength(file)" class="ms-2"> • {{ formatFileLength(file) }} </span>
+                                                <span v-if="file.uploading && file.progress > 0" class="ms-2">
+                                                    • {{ t('shared.file_uploader.progress_analyzed', { progress: file.progress }) }}
+                                                </span>
+                                                <span v-if="file.uploading && file.uploadSpeed > 0" class="ms-2">
                                                     • {{ formatSpeed(file.uploadSpeed) }}
                                                 </span>
-                                                <span v-if="file.error" class="text-destructive ml-2"> • {{ file.error }} </span>
+                                                <span v-if="file.error" class="text-destructive ms-2"> • {{ file.error }} </span>
                                             </div>
                                             <!-- Progress bar -->
                                             <div v-if="file.uploading && file.progress > 0" class="mt-2">
@@ -317,12 +367,12 @@ defineExpose({
                                                     variant="ghost"
                                                     @click="onRemoveFile(file.id)"
                                                 >
-                                                    <span class="sr-only">Remove file</span>
+                                                    <span class="sr-only">{{ t('shared.file_uploader.remove_file') }}</span>
                                                     <Trash2 class="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Remove file</p>
+                                                <p>{{ t('shared.file_uploader.remove_file') }}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -342,26 +392,28 @@ defineExpose({
                                                 {{ formatFileType(file.stats?.mime_type || file.file.type) }}
                                             </Badge>
                                             <Badge v-if="file.isAnalyzed" variant="outline" class="text-xs">
-                                                <CheckCircle class="mr-1 h-3 w-3" />
-                                                Analyzed
+                                                <CheckCircle class="me-1 h-3 w-3" />
+                                                {{ t('shared.file_uploader.badge_analyzed') }}
                                             </Badge>
                                             <Badge v-if="file.uploading" variant="outline" class="text-xs">
-                                                <LoaderCircle class="mr-1 h-3 w-3 animate-spin" />
-                                                Analyzing
+                                                <LoaderCircle class="me-1 h-3 w-3 animate-spin" />
+                                                {{ t('shared.file_uploader.badge_analyzing') }}
                                             </Badge>
                                             <Badge v-if="file.error" variant="destructive" class="text-xs">
-                                                <AlertCircle class="mr-1 h-3 w-3" />
-                                                Failed
+                                                <AlertCircle class="me-1 h-3 w-3" />
+                                                {{ t('shared.file_uploader.badge_failed') }}
                                             </Badge>
                                         </div>
                                         <div class="text-muted-foreground text-xs">
                                             {{ formatFileSize(file.file.size) }}
-                                            <span v-if="formatFileLength(file)" class="ml-2"> • {{ formatFileLength(file) }} </span>
-                                            <span v-if="file.uploading && file.progress > 0" class="ml-2"> • {{ file.progress }}% analyzed </span>
-                                            <span v-if="file.uploading && file.uploadSpeed > 0" class="ml-2">
+                                            <span v-if="formatFileLength(file)" class="ms-2"> • {{ formatFileLength(file) }} </span>
+                                            <span v-if="file.uploading && file.progress > 0" class="ms-2">
+                                                • {{ t('shared.file_uploader.progress_analyzed', { progress: file.progress }) }}
+                                            </span>
+                                            <span v-if="file.uploading && file.uploadSpeed > 0" class="ms-2">
                                                 • {{ formatSpeed(file.uploadSpeed) }}
                                             </span>
-                                            <span v-if="file.error" class="text-destructive ml-2"> • {{ file.error }} </span>
+                                            <span v-if="file.error" class="text-destructive ms-2"> • {{ file.error }} </span>
                                         </div>
                                         <!-- Progress bar -->
                                         <div v-if="file.uploading && file.progress > 0" class="mt-2">
@@ -383,12 +435,12 @@ defineExpose({
                                                 variant="ghost"
                                                 @click="onRemoveFile(file.id)"
                                             >
-                                                <span class="sr-only">Remove file</span>
+                                                <span class="sr-only">{{ t('shared.file_uploader.remove_file') }}</span>
                                                 <Trash2 class="h-4 w-4" />
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>Remove file</p>
+                                            <p>{{ t('shared.file_uploader.remove_file') }}</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>

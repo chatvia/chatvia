@@ -363,7 +363,13 @@ fetchQAEntries();
                     <!-- Answer -->
                     <div class="space-y-2">
                         <Label for="answer">{{ t('agents.sources.qa.answer_label') }}</Label>
-                        <Textarea id="answer" v-model="form.answer" :placeholder="t('agents.sources.qa.answer_placeholder')" rows="8" :disabled="isSubmitting" />
+                        <Textarea
+                            id="answer"
+                            v-model="form.answer"
+                            :placeholder="t('agents.sources.qa.answer_placeholder')"
+                            rows="8"
+                            :disabled="isSubmitting"
+                        />
                         <div class="text-muted-foreground text-sm">{{ t('agents.sources.qa.char_count', { count: form.answer.length }) }}</div>
                         <InputError :message="form.errors.answer" />
                     </div>
@@ -479,7 +485,9 @@ fetchQAEntries();
                         <!-- Meta Info -->
                         <div class="text-muted-foreground mt-4 flex items-center gap-4 text-xs">
                             <span>{{ t('agents.sources.qa.created_at', { date: formatDate(entry.created_at) }) }}</span>
-                            <span v-if="entry.agents_count && entry.agents_count > 1"> {{ t('agents.sources.qa.used_by_agents', { count: entry.agents_count }) }} </span>
+                            <span v-if="entry.agents_count && entry.agents_count > 1">
+                                {{ t('agents.sources.qa.used_by_agents', { count: entry.agents_count }) }}
+                            </span>
                         </div>
                     </CardContent>
                 </Card>
@@ -493,7 +501,9 @@ fetchQAEntries();
                         <DialogDescription> {{ t('agents.sources.qa.delete_description') }} </DialogDescription>
                     </DialogHeader>
                     <div class="mt-4 flex justify-end gap-2">
-                        <Button @click="deleteDialogOpen = false" variant="outline" :disabled="isDeleting"> {{ t('agents.sources.common.cancel') }} </Button>
+                        <Button @click="deleteDialogOpen = false" variant="outline" :disabled="isDeleting">
+                            {{ t('agents.sources.common.cancel') }}
+                        </Button>
                         <Button @click="deleteEntry" variant="destructive" :disabled="isDeleting">
                             <LoaderCircle v-if="isDeleting" class="me-2 h-4 w-4 animate-spin" />
                             <Trash2 v-else class="me-2 h-4 w-4" />

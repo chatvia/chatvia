@@ -1,5 +1,7 @@
 <?php
 
+use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
+use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
 use App\Identity\Workspace\Models\User;
 
 /**
@@ -12,7 +14,7 @@ it('deactivates every member when the workspace is deactivated', function (): vo
     $employee = User::factory()->employee($workspace)->create();
     $chatter = User::factory()->chatter($workspace)->create();
 
-    $workspace->deactivate('Terms of service violation');
+    app(DeactivateAccountAction::class)->execute($workspace, 'Terms of service violation');
 
     expect($workspace->fresh()->isDeactivated())->toBeTrue()
         ->and($employee->fresh()->isDeactivated())->toBeTrue()
@@ -27,7 +29,7 @@ it('does not touch members of other workspaces', function (): void {
     $otherWorkspace = User::factory()->create();
     $otherMember = User::factory()->chatter($otherWorkspace)->create();
 
-    $workspace->deactivate('abuse');
+    app(DeactivateAccountAction::class)->execute($workspace, 'abuse');
 
     expect($member->fresh()->isDeactivated())->toBeTrue()
         ->and($otherWorkspace->fresh()->isDeactivated())->toBeFalse()
@@ -38,8 +40,8 @@ it('restores members when the workspace is reactivated', function (): void {
     $workspace = User::factory()->create();
     $member = User::factory()->employee($workspace)->create();
 
-    $workspace->deactivate('temporary');
-    $workspace->reactivate();
+    app(DeactivateAccountAction::class)->execute($workspace, 'temporary');
+    app(ReactivateAccountAction::class)->execute($workspace);
 
     expect($workspace->fresh()->isDeactivated())->toBeFalse()
         ->and($member->fresh()->isDeactivated())->toBeFalse()
@@ -50,7 +52,7 @@ it('does not cascade when a member (non-workspace) is deactivated', function ():
     $workspace = User::factory()->create();
     $chatter = User::factory()->chatter($workspace)->create();
 
-    $chatter->deactivate('individual ban');
+    app(DeactivateAccountAction::class)->execute($chatter, 'individual ban');
 
     expect($chatter->fresh()->isDeactivated())->toBeTrue()
         ->and($workspace->fresh()->isDeactivated())->toBeFalse();

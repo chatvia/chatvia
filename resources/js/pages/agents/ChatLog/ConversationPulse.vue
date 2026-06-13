@@ -218,13 +218,23 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
                                         <TooltipContent side="right" class="max-w-[240px]">
                                             <p class="text-xs">
                                                 <i18n-t keypath="agents.chatlog.pulse.trend_tooltip" tag="span" scope="global">
-                                                    <template #first><strong>{{ t('agents.chatlog.pulse.trend_first') }}</strong></template>
-                                                    <template #last><strong>{{ t('agents.chatlog.pulse.trend_last') }}</strong></template>
+                                                    <template #first
+                                                        ><strong>{{ t('agents.chatlog.pulse.trend_first') }}</strong></template
+                                                    >
+                                                    <template #last
+                                                        ><strong>{{ t('agents.chatlog.pulse.trend_last') }}</strong></template
+                                                    >
                                                 </i18n-t>
                                             </p>
                                             <ul class="mt-1.5 space-y-0.5 text-xs">
-                                                <li><span class="text-green-500">{{ t('agents.chatlog.pulse.trend_improving') }}</span> {{ t('agents.chatlog.pulse.trend_improving_hint') }}</li>
-                                                <li><span class="text-red-500">{{ t('agents.chatlog.pulse.trend_declining') }}</span> {{ t('agents.chatlog.pulse.trend_declining_hint') }}</li>
+                                                <li>
+                                                    <span class="text-green-500">{{ t('agents.chatlog.pulse.trend_improving') }}</span>
+                                                    {{ t('agents.chatlog.pulse.trend_improving_hint') }}
+                                                </li>
+                                                <li>
+                                                    <span class="text-red-500">{{ t('agents.chatlog.pulse.trend_declining') }}</span>
+                                                    {{ t('agents.chatlog.pulse.trend_declining_hint') }}
+                                                </li>
                                                 <li>{{ t('agents.chatlog.pulse.trend_stable') }}</li>
                                             </ul>
                                         </TooltipContent>
@@ -258,7 +268,10 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
                                         <TooltipContent side="right" class="max-w-[240px]">
                                             <p class="text-xs">{{ t('agents.chatlog.pulse.resolution_tooltip') }}</p>
                                             <ul class="mt-1.5 space-y-0.5 text-xs">
-                                                <li><span class="text-green-500">{{ t('agents.chatlog.pulse.resolution_resolved') }}</span> {{ t('agents.chatlog.pulse.resolution_resolved_hint') }}</li>
+                                                <li>
+                                                    <span class="text-green-500">{{ t('agents.chatlog.pulse.resolution_resolved') }}</span>
+                                                    {{ t('agents.chatlog.pulse.resolution_resolved_hint') }}
+                                                </li>
                                                 <li>{{ t('agents.chatlog.pulse.resolution_ongoing_hint') }}</li>
                                             </ul>
                                         </TooltipContent>
@@ -267,7 +280,9 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
                             </div>
                         </td>
                         <td class="px-4 py-3">
-                            <span v-if="pulseData.summary.resolution" class="text-green-600 dark:text-green-400">{{ t('agents.chatlog.pulse.resolved') }}</span>
+                            <span v-if="pulseData.summary.resolution" class="text-green-600 dark:text-green-400">{{
+                                t('agents.chatlog.pulse.resolved')
+                            }}</span>
                             <span v-else class="text-muted-foreground">{{ t('agents.chatlog.pulse.ongoing') }}</span>
                         </td>
                     </tr>
@@ -291,7 +306,9 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
                         <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.pulse.peak_negative') }}</td>
                         <td class="px-4 py-3 capitalize">
                             {{ pulseData.summary.peak_negative.tone || pulseData.summary.peak_negative.sentiment }}
-                            <span class="text-muted-foreground"> · {{ t('agents.chatlog.pulse.message_number', { number: pulseData.summary.peak_negative.index }) }}</span>
+                            <span class="text-muted-foreground">
+                                · {{ t('agents.chatlog.pulse.message_number', { number: pulseData.summary.peak_negative.index }) }}</span
+                            >
                         </td>
                     </tr>
                 </tbody>
@@ -331,7 +348,7 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
                     <tr v-for="msg in pulseData.messages" :key="msg.index">
                         <td class="text-muted-foreground w-12 px-4 py-3 text-center font-medium">{{ msg.index }}</td>
                         <td class="max-w-[200px] truncate px-4 py-3">{{ msg.content_preview }}</td>
-                        <td class="px-4 py-3 text-right capitalize">
+                        <td class="px-4 py-3 text-end capitalize">
                             <template v-if="msg.tone || msg.sentiment">{{ msg.tone || msg.sentiment }}</template>
                             <span v-else class="text-muted-foreground italic">{{ t('agents.chatlog.pulse.waiting') }}</span>
                         </td>

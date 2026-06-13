@@ -4,7 +4,7 @@ namespace Domain\Agent\Actions\Account;
 
 use Domain\Agent\Data\Account\CreateAgentData;
 use Domain\Agent\Models\Agent;
-use Domain\Agent\Services\Agent as AgentService;
+use Domain\Agent\Services\AgentLocator as AgentService;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

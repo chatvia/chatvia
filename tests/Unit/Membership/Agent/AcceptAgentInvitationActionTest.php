@@ -6,7 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
 use Domain\Membership\Agent\Data\AcceptAgentInvitationData;
 use Domain\Membership\Agent\Enums\InvitationCredentialKind;
-use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
+use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Illuminate\Support\Facades\Hash;
 use Support\Enums\User\SocialProvider;
 use Support\Enums\User\UserType;
@@ -104,7 +104,7 @@ it('REJECTS the social path when the OAuth email does not match the invited emai
         socialEmail: 'attacker@evil.example',
         socialProvider: SocialProvider::Google,
         socialProviderId: 'goog-999',
-    )))->toThrow(AgentMemberInvitationRejectedException::class);
+    )))->toThrow(AgentChatterInvitationRejectedException::class);
 });
 
 it('REJECTS replays: an already-verified chatter cannot reuse the invite', function (): void {
@@ -117,7 +117,7 @@ it('REJECTS replays: an already-verified chatter cannot reuse the invite', funct
         name: 'Replay Attempt',
         kind: InvitationCredentialKind::Password,
         password: 'new-password-xxxx',
-    )))->toThrow(AgentMemberInvitationRejectedException::class);
+    )))->toThrow(AgentChatterInvitationRejectedException::class);
 });
 
 it('REJECTS a chatter from a different workspace even when the email matches', function (): void {
@@ -138,7 +138,7 @@ it('REJECTS a chatter from a different workspace even when the email matches', f
         name: 'Foreign Chatter',
         kind: InvitationCredentialKind::Password,
         password: 'pw-1234-5678',
-    )))->toThrow(AgentMemberInvitationRejectedException::class);
+    )))->toThrow(AgentChatterInvitationRejectedException::class);
 });
 
 it('REJECTS when the agent_user pivot was revoked between invitation and accept', function (): void {
@@ -151,5 +151,5 @@ it('REJECTS when the agent_user pivot was revoked between invitation and accept'
         name: 'Revoked',
         kind: InvitationCredentialKind::Password,
         password: 'pw-revoked-12',
-    )))->toThrow(AgentMemberInvitationRejectedException::class);
+    )))->toThrow(AgentChatterInvitationRejectedException::class);
 });

@@ -1,0 +1,93 @@
+{
+    "app": {
+        "header": {
+            "dashboard": "Panel główny",
+            "agents": "Agenci",
+            "usage": "Użycie",
+            "ask_your_data": "Zapytaj swoje dane",
+            "billing": "Rozliczenia",
+            "support": "Wsparcie",
+            "teams": "Zespoły",
+            "documentation": "Dokumentacja",
+            "api": "API",
+            "nav_menu_sr": "Menu nawigacyjne",
+            "upgrade": "Ulepsz plan",
+            "subscribed": "Masz aktywną subskrypcję"
+        }
+    },
+    "agents": {
+        "nav": {
+            "default_title": "Ustawienia agenta",
+            "playground": "Plac zabaw",
+            "playground_tooltip": "Podejrzyj swojego agenta na każdej platformie",
+            "setup": "Konfiguracja",
+            "setup_tooltip": "Skonfiguruj swojego agenta — dotyczy każdej platformy",
+            "channels": "Kanały",
+            "channels_tooltip": "Wdróż agenta — strona internetowa, widget i Telegram",
+            "groups": {
+                "insights": "Statystyki",
+                "training": "Szkolenie",
+                "access": "Dostęp",
+                "settings": "Ustawienia",
+                "danger_zone": "Strefa zagrożenia"
+            },
+            "analytics": "Analityka",
+            "analytics_tooltip": "Przeglądaj statystyki użycia i analizy",
+            "chats": "Czaty",
+            "sentiment": "Nastrój",
+            "tone": "Ton",
+            "topics": "Tematy",
+            "sources": "Źródła",
+            "chat": "Czat",
+            "chat_tooltip": "Przeglądaj surowe wiadomości czatu według sesji",
+            "audit": "Audyt",
+            "audit_tooltip": "Dziennik audytu wywołań narzędzi dla tego agenta",
+            "evals": "Testy",
+            "evals_tooltip": "Zestawy testów oceniające odpowiedzi agenta",
+            "guardrails": "Zabezpieczenia",
+            "guardrails_tooltip": "Zabezpieczenia AI: PII, wstrzykiwanie promptów, tematy, toksyczność",
+            "leads": "Leady",
+            "leads_tooltip": "Zarządzaj leadami przechwywanymi przez agenta",
+            "knowledge_sources": "Źródła",
+            "knowledge_sources_tooltip": "Zarządzaj wiedzą i danymi szkoleniowymi agenta",
+            "functions": "Funkcje",
+            "functions_tooltip": "Zarządzaj niestandardowymi funkcjami wywoływanymi przez agenta",
+            "connectors": "Konektory",
+            "connectors_tooltip": "Dołącz konektory, aby agent mógł korzystać z zewnętrznych narzędzi",
+            "members": "Czatowicze",
+            "members_tooltip": "Czatowicze uprawnieni do rozmowy z tym agentem",
+            "security": "Bezpieczeństwo",
+            "security_tooltip": "Kontrola dostępu, sekret podpisywania i limity żądań dla agenta",
+            "identity": "Tożsamość",
+            "rate_limiting": "Ograniczenie żądań",
+            "rename": "Zmień nazwę",
+            "rename_tooltip": "Zmień nazwę agenta",
+            "delete_agent": "Usuń agenta",
+            "delete_agent_tooltip": "Trwale usuń tego agenta",
+            "expand_sidebar": "Rozwiń pasek boczny",
+            "delete_dialog": {
+                "title": "Usuń agenta",
+                "description": "Tej operacji nie można cofnąć. Spowoduje to trwałe usunięcie agenta {name} wraz ze wszystkimi jego danymi.",
+                "confirm_label": "Wpisz {name}, aby potwierdzić",
+                "confirm_placeholder": "Wprowadź nazwę agenta, aby potwierdzić",
+                "name_mismatch": "Nazwa agenta nie pasuje",
+                "submit": "Usuń agenta",
+                "deleted_toast": "Agent został pomyślnie usunięty",
+                "delete_error_toast": "Nie udało się usunąć agenta. Spróbuj ponownie."
+            },
+            "rename_dialog": {
+                "title": "Zmień nazwę agenta",
+                "description": "Wprowadź nową nazwę dla agenta {name}.",
+                "name_label": "Nazwa agenta",
+                "name_placeholder": "Wprowadź nową nazwę agenta",
+                "subdomain_label": "Subdomena",
+                "subdomain_placeholder": "twoja-subdomena",
+                "subdomain_hint": "Dozwolone są tylko małe litery, cyfry i myślniki.",
+                "save": "Zapisz",
+                "updated_toast": "Agent został pomyślnie zaktualizowany"
+            },
+            "deploy": "Wdrożenie",
+            "deploy_tooltip": "Osadź agenta — widget czatu, hostowany czat lub pasek poleceń"
+        }
+    }
+}

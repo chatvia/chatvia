@@ -15,7 +15,9 @@
             "created": "تاريخ الإنشاء",
             "dialog_title": "سمِّ مفتاح المرور",
             "dialog_description": "اختر اسماً لتمييز مفاتيح المرور لاحقاً.",
-            "register": "تسجيل مفتاح المرور"
+            "register": "تسجيل مفتاح المرور",
+            "delete_title": "حذف مفتاح المرور هذا؟",
+            "delete_description": "لن يتمكن {name} من تسجيل الدخول بعد الآن. لا يمكن التراجع عن هذا الإجراء."
         },
         "two_factor": {
             "heading": "المصادقة الثنائية",
@@ -46,6 +48,7 @@
             "heading": "حسابات التواصل الاجتماعي",
             "description": "اربط Google أو Microsoft أو Slack لتسجيل الدخول بنقرة واحدة ومزامنة حساباتك.",
             "connected_since": "متصل منذ {date}",
+            "connected": "متصل",
             "not_connected": "غير متصل",
             "disconnect": "قطع الاتصال",
             "connect": "ربط",

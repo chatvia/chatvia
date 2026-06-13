@@ -42,7 +42,7 @@ it('deactivates a chatter with a reason', function (): void {
 });
 
 it('reactivates a previously deactivated chatter and clears the reason', function (): void {
-    $this->chatter->deactivate('temporary');
+    $this->chatter->update(['deactivated_at' => now(), 'deactivation_reason' => 'temporary']);
 
     $this->action->execute(new UpdateChatterAccessData(
         chatter: $this->chatter,

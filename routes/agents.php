@@ -32,6 +32,7 @@ use App\Http\Controllers\Agent\ChatLog\ConversationMessageController as ChatLogC
 use App\Http\Controllers\Agent\ChatLog\ConversationPulseController as ChatLogConversationPulseController;
 use App\Http\Controllers\Agent\ChatLog\CountryController as ChatLogCountriesController;
 use App\Http\Controllers\Agent\ChatLog\TopicController as ChatLogTopicsController;
+use App\Http\Controllers\Agent\Chatter\AgentChatterController;
 use App\Http\Controllers\Agent\Eval\AgentEvalCaseController;
 use App\Http\Controllers\Agent\Eval\AgentEvalController;
 use App\Http\Controllers\Agent\Eval\AgentEvalRunController;
@@ -49,7 +50,6 @@ use App\Http\Controllers\Agent\Identity\RegenerateAgentAuthSecretController;
 use App\Http\Controllers\Agent\Lead\AgentLeadController;
 use App\Http\Controllers\Agent\Lead\AgentLeadSettingsController;
 use App\Http\Controllers\Agent\Lead\AgentLeadsExportController;
-use App\Http\Controllers\Agent\Member\AgentMemberController;
 use App\Http\Controllers\Agent\Persona\AgentShowPersonaController;
 use App\Http\Controllers\Agent\Playground\AgentPlaygroundController;
 use App\Http\Controllers\Agent\RenameAgentController;
@@ -57,6 +57,7 @@ use App\Http\Controllers\Agent\Security\AgentRateLimitController;
 use App\Http\Controllers\Agent\Security\AgentSecurityUpdateController;
 use App\Http\Controllers\Agent\Security\UpdateAgentSecuritySettingsController;
 use App\Http\Controllers\Agent\Settings\AgentSettingsController;
+use App\Http\Controllers\Agent\Setup\AgentDeployController;
 use App\Http\Controllers\Agent\Setup\SetupController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentDomainController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentLlmController;
@@ -248,11 +249,11 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // `has_access` flag for this agent); store invites a brand-new
         // chatter; grant gives an existing chatter access to this agent;
         // destroy revokes this agent's grant (user record stays).
-        Route::middleware('agent.permission:agent.members.manage')->group(function (): void {
-            Route::get('members', [AgentMemberController::class, 'index'])->name('members.index');
-            Route::post('members', [AgentMemberController::class, 'store'])->name('members.store');
-            Route::post('members/{chatter}/grant', [AgentMemberController::class, 'grant'])->name('members.grant');
-            Route::delete('members/{chatter}', [AgentMemberController::class, 'destroy'])->name('members.destroy');
+        Route::middleware('agent.permission:agent.chatters.manage')->group(function (): void {
+            Route::get('chatters', [AgentChatterController::class, 'index'])->name('chatters.index');
+            Route::post('chatters', [AgentChatterController::class, 'store'])->name('chatters.store');
+            Route::post('chatters/{chatter}/grant', [AgentChatterController::class, 'grant'])->name('chatters.grant');
+            Route::delete('chatters/{chatter}', [AgentChatterController::class, 'destroy'])->name('chatters.destroy');
         });
 
         Route::get('logs', [AgentChatLogController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('logs');
@@ -316,6 +317,9 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // settings groups (widget / bar / embed).
         Route::get('setup', SetupController::class)->name('setup');
 
+        // Deploy — embed/install hub (Widget, Hosted Chat, Command Bar snippets).
+        Route::get('deploy', AgentDeployController::class)->middleware('agent.permission:agent.setup')->name('deploy');
+
         // Single-model picker — sets the agent's `llm_id` and hyperparameters.
         Route::patch('llm', UpdateAgentLlmController::class)
             ->middleware('agent.permission:agent.setup')->name('llm.update');
@@ -359,8 +363,8 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Members
         Route::get('team', AgentTeamController::class)->name('team');
 
-        // Rename Agent
-        Route::patch('rename', RenameAgentController::class)->name('rename');
+        // Rename Agent (renaming is part of agent setup)
+        Route::patch('rename', RenameAgentController::class)->middleware('agent.permission:agent.setup')->name('rename');
 
         // Linking / Unlinking Source Files
         Route::get('sources/trained-files', [AgentTrainedFileController::class, 'index'])->name('sources.list');
@@ -377,7 +381,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::post('sources/trained-websites/{websiteId}/unlink', [AgentTrainedWebsiteController::class, 'destroy'])->name('sources.trained-websites.unlink');
 
         // Delete Agent
-        Route::delete('/', [AgentController::class, 'destroy'])->name('delete');
+        Route::delete('/', [AgentController::class, 'destroy'])->middleware('agent.permission:agent.delete')->name('delete');
 
     });
 

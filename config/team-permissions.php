@@ -26,10 +26,13 @@ return [
             'description' => 'Grant access to all current and future agents in the team',
         ],
 
-        // Agent permissions (create/delete/rename only by company owner)
+        // Editing the agent itself. "Setup" is the broad agent-configuration
+        // grant: everything that defines how the agent looks, thinks, and ships
+        // — including renaming it. (Creating a brand-new agent stays owner-only;
+        // deleting one is its own grant below.)
         'agent.setup' => [
             'label' => 'Setup agent',
-            'description' => 'Modify agent settings, personality, and behavior',
+            'description' => 'Edit the agent itself — its name, AI model & temperature, system instructions / persona, branding, chat widget & embed, custom domain, conversation starters, and messaging channels.',
         ],
 
         // Sources - Training by type
@@ -169,13 +172,17 @@ return [
         ],
 
         // Agent administration (per-agent owner-style actions)
-        'agent.members.manage' => [
+        'agent.chatters.manage' => [
             'label' => 'Agent Members',
             'description' => 'Invite, view, and remove people granted access to this agent',
         ],
         'agent.identity.manage' => [
             'label' => 'Agent Identity Verification',
             'description' => 'View and use the per-agent signing secret for sign-in tokens',
+        ],
+        'agent.delete' => [
+            'label' => 'Delete agent',
+            'description' => 'Permanently delete this agent and everything attached to it — conversations, sources, settings, and channels.',
         ],
 
         // Account (team-level settings — Settings sidebar items)
@@ -195,7 +202,7 @@ return [
             'label' => 'Prompts',
             'description' => 'Manage the shared prompts library',
         ],
-        'account.members.manage' => [
+        'account.chatters.manage' => [
             'label' => 'Members',
             'description' => 'View, reset password, and remove chat members across the workspace',
         ],
@@ -347,10 +354,11 @@ return [
         'administration' => [
             'scope' => 'agent',
             'label' => 'Administration',
-            'description' => 'Owner-style per-agent tasks — members and signing secret.',
+            'description' => 'Owner-style per-agent tasks — members, signing secret, and deleting the agent.',
             'permissions' => [
-                'agent.members.manage',
+                'agent.chatters.manage',
                 'agent.identity.manage',
+                'agent.delete',
             ],
         ],
 
@@ -385,7 +393,7 @@ return [
             'label' => 'People',
             'description' => 'Manage the chat members granted access to your agents.',
             'permissions' => [
-                'account.members.manage',
+                'account.chatters.manage',
             ],
         ],
         'governance' => [

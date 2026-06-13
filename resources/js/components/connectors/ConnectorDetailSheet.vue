@@ -3,19 +3,25 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import Switch from '@/components/ui/switch/Switch.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAgentAttachments } from '@/composables/useAgentAttachments';
+import { useConnectorText } from '@/composables/useConnectorText';
 import type { AgentMcpServer, Connector, McpTool, McpToolPermission, McpToolScope } from '@/types/connector';
 import axios from 'axios';
 import hljs from 'highlight.js/lib/core';
 import json from 'highlight.js/lib/languages/json';
 import { Ban, Check, CheckCircle2, ChevronDown, ChevronRight, Copy, Hand, LoaderCircle, Plug, RefreshCw, Search, Unplug } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
+
+const { t } = useI18n();
+const { connectorName, connectorDescription } = useConnectorText();
 
 hljs.registerLanguage('json', json);
 
@@ -81,8 +87,8 @@ const filteredTools = computed(() => {
 // below, matching the Anthropic connector layout. Scope is derived from the
 // MCP server's `readOnlyHint` annotation at catalog time.
 const toolSections = computed<Array<{ key: McpToolScope; title: string; items: McpTool[] }>>(() => [
-    { key: 'read', title: 'Read-only tools', items: filteredTools.value.filter((t) => t.scope === 'read') },
-    { key: 'write', title: 'Write/delete tools', items: filteredTools.value.filter((t) => t.scope === 'write') },
+    { key: 'read', title: t('shared.connector_sheet.section_read_only'), items: filteredTools.value.filter((tool) => tool.scope === 'read') },
+    { key: 'write', title: t('shared.connector_sheet.section_write_delete'), items: filteredTools.value.filter((tool) => tool.scope === 'write') },
 ]);
 
 // Both sections start collapsed — the user opens whichever one they want
@@ -92,8 +98,8 @@ const disconnectOpen = ref(false);
 
 const connector = computed(() => props.row?.connector ?? null);
 const server = computed(() => props.row?.server ?? null);
-const displayName = computed(() => connector.value?.name ?? server.value?.name ?? '');
-const description = computed(() => connector.value?.description ?? 'Custom MCP server added directly via URL.');
+const displayName = computed(() => (connector.value ? connectorName(connector.value) : (server.value?.name ?? '')));
+const description = computed(() => (connector.value ? connectorDescription(connector.value) : t('shared.connector_sheet.default_description')));
 const isConnected = computed(() => server.value !== null);
 const idCopied = ref(false);
 
@@ -116,8 +122,8 @@ const logo = computed(() => {
 // looking at when the same sheet renders for different contexts. Customers
 // don't care about agent-specific vs generic — both show as "Connected".
 const statusLabel = computed(() => {
-    if (!isConnected.value) return 'Not connected';
-    return 'Connected';
+    if (!isConnected.value) return t('shared.connector_sheet.status_not_connected');
+    return t('shared.connector_sheet.status_connected');
 });
 
 // One verb everywhere. The semantics still differ underneath — agent-
@@ -127,11 +133,11 @@ const statusLabel = computed(() => {
 // description below switches text based on scope.
 const destructiveDescription = computed(() => {
     if (!isAgentMode.value) {
-        return 'The chat will no longer be able to call tools from this connector. You can reconnect anytime.';
+        return t('shared.connector_sheet.disconnect_description_settings');
     }
     return isAgentScope.value
-        ? 'This connector lives only inside this agent and cannot be recovered.'
-        : 'This agent will lose access. The connector definition stays available in Settings → Connectors.';
+        ? t('shared.connector_sheet.disconnect_description_agent_specific')
+        : t('shared.connector_sheet.disconnect_description_agent_generic');
 });
 
 // `currentEnabled` reads the right flag for the current scope so the same
@@ -224,7 +230,7 @@ async function loadTools(): Promise<void> {
         tools.value = response.data.tools;
     } catch (err) {
         console.error(err);
-        toast.error('Failed to load tools');
+        toast.error(t('shared.connector_sheet.toast_load_tools_failed'));
     } finally {
         toolsLoading.value = false;
     }
@@ -239,10 +245,10 @@ async function refreshTools(): Promise<void> {
         const response = await axios.post(refreshRoute(server.value.slug));
         emit('updated', response.data.data);
         await loadTools();
-        toast.success(`${displayName.value}: ${response.data.tools_count} tools`);
+        toast.success(t('shared.connector_sheet.toast_refresh_success', { name: displayName.value, count: response.data.tools_count }));
     } catch (e: unknown) {
         const err = e as { response?: { data?: { message?: string } } };
-        toast.error(err.response?.data?.message ?? 'Failed to refresh tools');
+        toast.error(err.response?.data?.message ?? t('shared.connector_sheet.toast_refresh_failed'));
     } finally {
         refreshing.value = false;
     }
@@ -255,18 +261,18 @@ async function toggleEnabled(): Promise<void> {
         emit('updated', response.data.data);
     } catch (err) {
         console.error(err);
-        toast.error('Failed to toggle');
+        toast.error(t('shared.connector_sheet.toast_toggle_failed'));
     }
 }
 
 // Tri-state permission options shown per tool. The icon set mirrors the
 // Anthropic connector UX: check = always allow, hand = needs approval,
 // ban = blocked (excluded from the catalog).
-const permissionOptions: Array<{ value: McpToolPermission; label: string; icon: typeof Check }> = [
-    { value: 'allow', label: 'Always allow', icon: Check },
-    { value: 'approval', label: 'Needs approval', icon: Hand },
-    { value: 'blocked', label: 'Blocked', icon: Ban },
-];
+const permissionOptions = computed<Array<{ value: McpToolPermission; label: string; icon: typeof Check }>>(() => [
+    { value: 'allow', label: t('shared.connector_sheet.permission_always_allow'), icon: Check },
+    { value: 'approval', label: t('shared.connector_sheet.permission_needs_approval'), icon: Hand },
+    { value: 'blocked', label: t('shared.connector_sheet.permission_blocked'), icon: Ban },
+]);
 
 // `create_event` → `Create Event`. Matches Laravel's Str::title for snake/
 // kebab-cased tool names; non-separated camelCase keeps its existing casing.
@@ -299,7 +305,27 @@ async function setToolPermission(tool: McpTool, permission: McpToolPermission): 
     } catch (e: unknown) {
         tool.permission = previous;
         const err = e as { response?: { data?: { message?: string } } };
-        toast.error(err.response?.data?.message ?? 'Failed to update tool permission');
+        toast.error(err.response?.data?.message ?? t('shared.connector_sheet.toast_permission_failed'));
+    }
+}
+
+// Bulk apply one permission to every tool in a section (settings mode only).
+// Operates on the whole scope, optimistically updating all rows and reverting
+// them together on failure — one request via the scope-permission endpoint.
+async function applySectionPermission(scope: McpToolScope, permission: McpToolPermission): Promise<void> {
+    if (isAgentMode.value || !server.value) return;
+    const items = tools.value.filter((tool) => tool.scope === scope && tool.id !== undefined);
+    if (items.length === 0) return;
+    const previous = new Map(items.map((tool) => [tool.id, tool.permission] as const));
+    items.forEach((tool) => (tool.permission = permission));
+    try {
+        await axios.put(route('integrations.connectors.tools.scope-permission', { slug: server.value.slug }), { scope, permission });
+        const label = permissionOptions.value.find((option) => option.value === permission)?.label ?? '';
+        toast.success(t('shared.connector_sheet.toast_bulk_permission', { count: items.length, permission: label }, items.length));
+    } catch (e: unknown) {
+        items.forEach((tool) => (tool.permission = previous.get(tool.id) ?? tool.permission));
+        const err = e as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message ?? t('shared.connector_sheet.toast_permission_failed'));
     }
 }
 
@@ -319,10 +345,10 @@ async function confirmDisconnect(): Promise<void> {
         await axios.delete(destructiveRoute(slug));
         emit('removed', slug);
         emit('update:open', false);
-        toast.success(`Disconnected ${displayName.value}`);
+        toast.success(t('shared.connector_sheet.toast_disconnected', { name: displayName.value }));
     } catch (err) {
         console.error(err);
-        toast.error('Failed');
+        toast.error(t('shared.connector_sheet.toast_disconnect_failed'));
     } finally {
         disconnectOpen.value = false;
     }
@@ -339,8 +365,12 @@ function startConnect(): void {
 
 const connectButtonLabel = computed(() => {
     if (!connector.value) return '';
-    return connector.value.authStrategy === 'oauth' ? `Sign in with ${connector.value.name}` : `Connect ${connector.value.name}`;
+    return connector.value.authStrategy === 'oauth'
+        ? t('shared.connector_sheet.sign_in_with', { name: connector.value.name })
+        : t('shared.connector_sheet.connect_name', { name: connector.value.name });
 });
+
+const disconnectTitle = computed(() => t('shared.connector_sheet.disconnect_title', { name: displayName.value }));
 </script>
 
 <template>
@@ -365,30 +395,30 @@ const connectButtonLabel = computed(() => {
 
             <Tabs v-model="activeTab" class="px-6 pt-5">
                 <TabsList class="grid w-full grid-cols-3">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="tools" :disabled="!isConnected">Tools</TabsTrigger>
-                    <TabsTrigger value="agents" :disabled="!isConnected">Agents</TabsTrigger>
+                    <TabsTrigger value="overview">{{ t('shared.connector_sheet.tab_overview') }}</TabsTrigger>
+                    <TabsTrigger value="tools" :disabled="!isConnected">{{ t('shared.connector_sheet.tab_tools') }}</TabsTrigger>
+                    <TabsTrigger value="agents" :disabled="!isConnected">{{ t('shared.connector_sheet.tab_agents') }}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" class="space-y-6 pt-6">
                     <div v-if="!isConnected && connector">
-                        <p v-if="connector.comingSoon" class="text-muted-foreground text-sm">This connector is coming soon.</p>
+                        <p v-if="connector.comingSoon" class="text-muted-foreground text-sm">{{ t('shared.connector_sheet.coming_soon') }}</p>
                         <Button v-else class="w-full" @click="startConnect">
-                            <Plug class="mr-2 h-4 w-4" />
+                            <Plug class="me-2 h-4 w-4" />
                             {{ connectButtonLabel }}
                         </Button>
                     </div>
 
                     <dl v-if="isConnected" class="divide-border divide-y text-sm">
                         <div v-if="server" class="grid grid-cols-3 gap-4 py-3 first:pt-0">
-                            <dt class="text-muted-foreground col-span-1">Server ID</dt>
+                            <dt class="text-muted-foreground col-span-1">{{ t('shared.connector_sheet.server_id') }}</dt>
                             <dd class="col-span-2 flex min-w-0 items-center gap-1.5">
                                 <code class="min-w-0 flex-1 truncate font-mono text-xs" :title="server?.external_id">{{ server?.external_id }}</code>
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     class="h-6 shrink-0 px-1.5"
-                                    title="Copy server ID — pass as mcp_id when attaching via the API"
+                                    :title="t('shared.connector_sheet.copy_server_id_title')"
                                     @click="copyServerId"
                                 >
                                     <Check v-if="idCopied" class="size-3.5 text-green-600" />
@@ -397,72 +427,78 @@ const connectButtonLabel = computed(() => {
                             </dd>
                         </div>
                         <div class="grid grid-cols-3 gap-4 py-3 first:pt-0">
-                            <dt class="text-muted-foreground col-span-1">Endpoint</dt>
+                            <dt class="text-muted-foreground col-span-1">{{ t('shared.connector_sheet.endpoint') }}</dt>
                             <dd class="col-span-2 font-mono text-xs leading-relaxed break-all">{{ server?.url }}</dd>
                         </div>
                         <div class="grid grid-cols-3 gap-4 py-3">
-                            <dt class="text-muted-foreground col-span-1">Auth</dt>
+                            <dt class="text-muted-foreground col-span-1">{{ t('shared.connector_sheet.auth') }}</dt>
                             <dd class="col-span-2 capitalize">{{ server?.auth_type }}</dd>
                         </div>
                         <div v-if="isAgentMode" class="grid grid-cols-3 gap-4 py-3">
-                            <dt class="text-muted-foreground col-span-1">Scope</dt>
-                            <dd class="col-span-2">{{ isAgentScope ? 'Agent-specific' : 'Generic (shared)' }}</dd>
+                            <dt class="text-muted-foreground col-span-1">{{ t('shared.connector_sheet.scope') }}</dt>
+                            <dd class="col-span-2">
+                                {{
+                                    isAgentScope ? t('shared.connector_sheet.scope_agent_specific') : t('shared.connector_sheet.scope_generic_shared')
+                                }}
+                            </dd>
                         </div>
                         <div class="grid grid-cols-3 gap-4 py-3">
-                            <dt class="text-muted-foreground col-span-1">Tools</dt>
+                            <dt class="text-muted-foreground col-span-1">{{ t('shared.connector_sheet.tools_count') }}</dt>
                             <dd class="col-span-2">{{ server?.catalog_tools_count }}</dd>
                         </div>
                         <div class="grid grid-cols-3 gap-4 py-3">
-                            <dt class="text-muted-foreground col-span-1">Calls</dt>
+                            <dt class="text-muted-foreground col-span-1">{{ t('shared.connector_sheet.calls') }}</dt>
                             <dd class="col-span-2">{{ server?.invocation_count ?? 0 }}</dd>
                         </div>
                         <div v-if="server?.last_invoked_at" class="grid grid-cols-3 gap-4 py-3">
-                            <dt class="text-muted-foreground col-span-1">Last call</dt>
+                            <dt class="text-muted-foreground col-span-1">{{ t('shared.connector_sheet.last_call') }}</dt>
                             <dd class="col-span-2">{{ new Date(server.last_invoked_at).toLocaleString() }}</dd>
                         </div>
                         <div v-if="server?.last_error" class="grid grid-cols-3 gap-4 py-3 last:pb-0">
-                            <dt class="text-muted-foreground col-span-1">Last error</dt>
+                            <dt class="text-muted-foreground col-span-1">{{ t('shared.connector_sheet.last_error') }}</dt>
                             <dd class="text-destructive col-span-2">{{ server.last_error }}</dd>
                         </div>
                     </dl>
 
                     <div v-if="isConnected" class="space-y-4 border-t pt-5">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium">{{ isAgentMode ? 'Enabled here' : 'Enabled' }}</span>
+                            <span class="text-sm font-medium">{{
+                                isAgentMode ? t('shared.connector_sheet.enabled_here') : t('shared.connector_sheet.enabled')
+                            }}</span>
                             <Button size="sm" :variant="currentEnabled ? 'default' : 'outline'" class="min-w-16" @click="toggleEnabled">
-                                {{ currentEnabled ? 'On' : 'Off' }}
+                                {{ currentEnabled ? t('shared.connector_sheet.on') : t('shared.connector_sheet.off') }}
                             </Button>
                         </div>
                         <Button variant="destructive" class="w-full" @click="askDisconnect">
-                            <Unplug class="mr-2 h-4 w-4" />
-                            Disconnect
+                            <Unplug class="me-2 h-4 w-4" />
+                            {{ t('shared.connector_sheet.disconnect') }}
                         </Button>
                     </div>
                 </TabsContent>
 
                 <TabsContent value="tools" class="space-y-4 pt-6">
                     <Button variant="outline" class="w-full" :disabled="refreshing" @click="refreshTools">
-                        <RefreshCw class="mr-2 h-4 w-4" :class="{ 'animate-spin': refreshing }" />
-                        Refresh tools
+                        <RefreshCw class="me-2 h-4 w-4" :class="{ 'animate-spin': refreshing }" />
+                        {{ t('shared.connector_sheet.refresh_tools') }}
                     </Button>
 
                     <div v-if="toolsLoading" class="text-muted-foreground flex items-center gap-2 py-6 text-sm">
                         <LoaderCircle class="h-4 w-4 animate-spin" />
-                        Loading tools
+                        {{ t('shared.connector_sheet.loading_tools') }}
                     </div>
 
                     <div v-else-if="tools.length === 0" class="text-muted-foreground py-6 text-center text-sm">
-                        No tools advertised by this server.
+                        {{ t('shared.connector_sheet.no_tools_advertised') }}
                     </div>
 
                     <div v-else>
                         <div class="relative mb-4">
-                            <Search class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                            <Input v-model="toolSearch" placeholder="Search tools" class="pl-9" />
+                            <Search class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
+                            <Input v-model="toolSearch" :placeholder="t('shared.connector_sheet.search_tools_placeholder')" class="ps-9" />
                         </div>
 
                         <div v-if="filteredTools.length === 0" class="text-muted-foreground py-6 text-center text-sm">
-                            No tools match your search.
+                            {{ t('shared.connector_sheet.no_tools_match_search') }}
                         </div>
 
                         <template v-else>
@@ -472,20 +508,49 @@ const connectButtonLabel = computed(() => {
                                  each tool's blast radius. -->
                             <div v-for="section in toolSections" :key="section.key" class="border-b last:border-b-0">
                                 <Collapsible v-model:open="sectionsOpen[section.key]">
-                                    <CollapsibleTrigger
-                                        class="hover:bg-muted/40 flex w-full items-center justify-between gap-3 rounded-md px-2 py-3 transition-colors"
-                                        :disabled="section.items.length === 0"
-                                    >
-                                        <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-1">
+                                        <CollapsibleTrigger
+                                            class="hover:bg-muted/40 flex flex-1 items-center gap-2 rounded-md px-2 py-3 transition-colors"
+                                            :disabled="section.items.length === 0"
+                                        >
                                             <ChevronRight v-if="!sectionsOpen[section.key]" class="text-muted-foreground h-4 w-4" />
                                             <ChevronDown v-else class="text-muted-foreground h-4 w-4" />
                                             <span class="text-sm font-medium">{{ section.title }}</span>
                                             <Badge variant="secondary" class="text-xs">{{ section.items.length }}</Badge>
-                                        </div>
-                                    </CollapsibleTrigger>
+                                        </CollapsibleTrigger>
+
+                                        <!-- Section-level bulk permission (settings mode only): applies
+                                             one permission to every tool in this scope at once, so the
+                                             user doesn't have to set them one by one. -->
+                                        <DropdownMenu v-if="!isAgentMode && section.items.length > 0">
+                                            <DropdownMenuTrigger as-child>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    class="text-muted-foreground hover:text-foreground h-7 shrink-0 gap-1 px-2 text-xs"
+                                                >
+                                                    {{ t('shared.connector_sheet.set_all') }}
+                                                    <ChevronDown class="h-3.5 w-3.5" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" class="w-48">
+                                                <DropdownMenuItem
+                                                    v-for="option in permissionOptions"
+                                                    :key="option.value"
+                                                    class="cursor-pointer"
+                                                    @select="applySectionPermission(section.key, option.value)"
+                                                >
+                                                    <component :is="option.icon" class="me-2 h-4 w-4" />
+                                                    {{ option.label }}
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
                                     <CollapsibleContent>
-                                        <div v-if="section.items.length === 0" class="text-muted-foreground px-2 py-4 text-center text-xs">None.</div>
-                                        <div v-else class="divide-border divide-y pl-6">
+                                        <div v-if="section.items.length === 0" class="text-muted-foreground px-2 py-4 text-center text-xs">
+                                            {{ t('shared.connector_sheet.section_none') }}
+                                        </div>
+                                        <div v-else class="divide-border divide-y ps-6">
                                             <div v-for="tool in section.items" :key="tool.name" class="py-4 first:pt-0 last:pb-0">
                                                 <div class="flex items-start justify-between gap-3">
                                                     <div class="min-w-0">
@@ -531,19 +596,25 @@ const connectButtonLabel = computed(() => {
                                                         class="h-3 w-3 transition-transform"
                                                         :class="{ 'rotate-90': expanded[tool.name] }"
                                                     />
-                                                    View details
+                                                    {{ t('shared.connector_sheet.view_details') }}
                                                 </button>
                                                 <div v-if="expanded[tool.name]" class="mt-3 space-y-3">
                                                     <div>
-                                                        <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Function</p>
+                                                        <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                                                            {{ t('shared.connector_sheet.function') }}
+                                                        </p>
                                                         <code class="mt-1 block font-mono text-xs break-all">{{ tool.short_name }}</code>
                                                     </div>
                                                     <div>
-                                                        <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Description</p>
+                                                        <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                                                            {{ t('shared.connector_sheet.description') }}
+                                                        </p>
                                                         <p class="mt-1 text-sm leading-relaxed">{{ tool.description }}</p>
                                                     </div>
                                                     <div>
-                                                        <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Input schema</p>
+                                                        <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                                                            {{ t('shared.connector_sheet.input_schema') }}
+                                                        </p>
                                                         <pre
                                                             class="bg-muted mt-1 overflow-x-auto rounded p-3 font-mono text-xs leading-relaxed"
                                                         ><code class="hljs language-json" v-html="highlightSchema(tool.parameters)"></code></pre>
@@ -559,15 +630,15 @@ const connectButtonLabel = computed(() => {
                 </TabsContent>
 
                 <TabsContent value="agents" class="pt-6">
-                    <p class="text-muted-foreground mb-3 text-sm">Toggle which of your agents can use this connector.</p>
+                    <p class="text-muted-foreground mb-3 text-sm">{{ t('shared.connector_sheet.agents_toggle_description') }}</p>
 
                     <div v-if="agentMgmt.loading.value" class="text-muted-foreground flex items-center gap-2 py-6 text-sm">
                         <LoaderCircle class="size-4 animate-spin" />
-                        Loading agents
+                        {{ t('shared.connector_sheet.loading_agents') }}
                     </div>
 
                     <div v-else-if="agentMgmt.all.value.length === 0" class="text-muted-foreground py-6 text-center text-sm">
-                        You have no agents yet.
+                        {{ t('shared.connector_sheet.no_agents_yet') }}
                     </div>
 
                     <ul v-else class="divide-border divide-y">
@@ -593,10 +664,10 @@ const connectButtonLabel = computed(() => {
 
     <DeleteConfirmationDialog
         :open="disconnectOpen"
-        :title="`Disconnect ${displayName}?`"
+        :title="disconnectTitle"
         :description="destructiveDescription"
-        confirm-text="Disconnect"
-        cancel-text="Keep"
+        :confirm-text="t('shared.connector_sheet.disconnect')"
+        :cancel-text="t('shared.connector_sheet.keep')"
         @cancel="disconnectOpen = false"
         @confirm="confirmDisconnect"
     />

@@ -1,0 +1,115 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "title": "Ewaluacje",
+                "head_title": "Ewaluacje — {name}",
+                "description": "Zestawy testów oceniające rzeczywiste odpowiedzi agenta — ta sama wiedza, narzędzia i model co w środowisku produkcyjnym. Uruchom zestaw i śledź, czy zmiany ulepszają agenta, czy pogarszają jego działanie.",
+                "run_suite": "Uruchom zestaw",
+                "cases_heading": "Przypadki",
+                "cases_summary": "{total} łącznie · {active} aktywnych",
+                "from_knowledge": "Z bazy wiedzy",
+                "add_case": "Dodaj przypadek",
+                "table": {
+                    "case": "Przypadek",
+                    "scorer": "Oceniający",
+                    "status": "Status",
+                    "actions": "Akcje",
+                    "by": "Przez",
+                    "pass_rate": "Wskaźnik zdawalności",
+                    "passed_failed": "Zdane / Niezdane",
+                    "avg_score": "Średni wynik",
+                    "when": "Kiedy"
+                },
+                "status_active": "Aktywny",
+                "status_inactive": "Nieaktywny",
+                "empty_cases": "Brak przypadków ewaluacyjnych. Dodaj jeden, aby rozpocząć mierzenie jakości odpowiedzi.",
+                "recent_runs": "Ostatnie uruchomienia",
+                "recent_runs_description": "Każde uruchomienie jest oceniane względem przypadków aktywnych w danym momencie.",
+                "clear": "Wyczyść",
+                "empty_runs": "Brak uruchomień. Kliknij „Uruchom zestaw\", aby ocenić aktywne przypadki.",
+                "case_dialog": {
+                    "edit_title": "Edytuj przypadek",
+                    "add_title": "Dodaj przypadek",
+                    "description": "Dane wejściowe są wysyłane do agenta dokładnie tak, jak zapytałby odwiedzający.",
+                    "name_label": "Nazwa",
+                    "name_placeholder": "np. Polityka zwrotów jest prawidłowa",
+                    "input_label": "Treść zapytania",
+                    "input_placeholder": "Jaka jest Twoja polityka zwrotów?",
+                    "scorer_label": "Oceniający",
+                    "scorer_placeholder": "Wybierz oceniającego",
+                    "expected_substring": "Oczekiwany podciąg",
+                    "expected_substring_placeholder": "np. 30 dni",
+                    "case_sensitive": "Rozróżnianie wielkości liter",
+                    "pattern_label": "Wzorzec",
+                    "pattern_placeholder": "/\\b30 days\\b/i",
+                    "required_keys": "Wymagane klucze",
+                    "required_keys_placeholder": "klucz1,klucz2,klucz3",
+                    "required_keys_hint": "Odpowiedź musi być prawidłowym JSON zawierającym każdy z kluczy.",
+                    "grading_criteria": "Kryteria oceny",
+                    "grading_criteria_placeholder": "Odpowiedź musi stwierdzać, że zwroty są możliwe w ciągu 30 dni od zakupu.",
+                    "expected_answer": "Oczekiwana odpowiedź",
+                    "reference_answer": "Odpowiedź referencyjna (opcjonalnie)",
+                    "active_label": "Aktywny (uwzględniany w uruchomieniach)",
+                    "save": "Zapisz"
+                },
+                "knowledge_dialog": {
+                    "title": "Dodaj przypadki z bazy wiedzy",
+                    "description": "Wybierz pytania z bazy wiedzy tego agenta. Każde staje się przypadkiem ocenianym przez sędziego AI względem tekstu źródłowego.",
+                    "search_placeholder": "Szukaj pytań...",
+                    "added_badge": "Dodano",
+                    "no_search_results": "Brak pytań pasujących do wyszukiwania.",
+                    "no_questions": "Nie znaleziono jeszcze żadnych pytań w bazie wiedzy tego agenta.",
+                    "add_cases": "Dodaj przypadki",
+                    "add_count": "Dodaj {count} przypadek | Dodaj {count} przypadki | Dodaj {count} przypadków"
+                },
+                "delete_case_title": "Usuń przypadek",
+                "delete_case_description": "Usunąć „{name}\"? Wyniki poprzednich uruchomień zachowają swoją kopię tego przypadku — wpłynie to tylko na przyszłe uruchomienia.",
+                "delete_run_title": "Usuń uruchomienie",
+                "delete_run_description": "Usunąć to uruchomienie wraz z wynikami dla poszczególnych przypadków? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone.",
+                "clear_runs_title": "Wyczyść historię uruchomień",
+                "clear_runs_description": "Usunąć wszystkie {count} uruchomienie tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone. | Usunąć wszystkie {count} uruchomienia tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone. | Usunąć wszystkie {count} uruchomień tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone.",
+                "clear_all": "Wyczyść wszystko",
+                "scorers": {
+                    "contains": {
+                        "label": "Zawiera tekst",
+                        "help": "Zaliczone, jeśli odpowiedź zawiera określony podciąg."
+                    },
+                    "regex": {
+                        "label": "Dopasowanie wyrażenia regularnego",
+                        "help": "Zaliczone, jeśli odpowiedź pasuje do wyrażenia regularnego."
+                    },
+                    "exact": {
+                        "label": "Dokładne dopasowanie",
+                        "help": "Zaliczone tylko wtedy, gdy odpowiedź jest identyczna z odpowiedzią referencyjną."
+                    },
+                    "json_schema": {
+                        "label": "Struktura JSON",
+                        "help": "Zaliczone, jeśli odpowiedź jest prawidłowym JSON zawierającym wymagane klucze."
+                    },
+                    "llm_judge": {
+                        "label": "Sędzia AI",
+                        "help": "Model open-weight ocenia odpowiedź względem Twoich kryteriów."
+                    }
+                },
+                "toasts": {
+                    "case_updated": "Przypadek zaktualizowany",
+                    "case_added": "Przypadek dodany",
+                    "cases_added": "{count} przypadek dodany | {count} przypadki dodane | {count} przypadków dodanych",
+                    "case_deleted": "Przypadek usunięty",
+                    "run_started": "Uruchomienie ewaluacji rozpoczęte",
+                    "run_start_error": "Nie można uruchomić zestawu",
+                    "run_deleted": "Uruchomienie usunięte",
+                    "history_cleared": "Historia uruchomień wyczyszczona"
+                }
+            },
+            "scorers": {
+                "contains": "Zawiera",
+                "regex": "Regex",
+                "exact": "Dokładne dopasowanie",
+                "json_schema": "Schemat JSON",
+                "llm_judge": "Sędzia LLM"
+            }
+        }
+    }
+}

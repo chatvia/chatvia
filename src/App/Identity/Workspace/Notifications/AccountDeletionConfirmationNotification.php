@@ -29,12 +29,12 @@ class AccountDeletionConfirmationNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Confirm your account deletion')
-            ->greeting('Hi '.$this->name.',')
-            ->line('We received a request to permanently delete your ChatVia account.')
-            ->line('Click the button below to confirm. Nothing is deleted until you confirm again on the page that opens.')
-            ->action('Confirm account deletion', $this->url)
-            ->line('This link will expire in 30 minutes.')
-            ->line("If you didn't request this, you can safely ignore this email — your account stays active. We'd also recommend changing your password.");
+            ->subject(__('Confirm your account deletion'))
+            ->greeting(__('Hi :name,', ['name' => $this->name]))
+            ->line(__('We received a request to permanently delete your ChatVia account.'))
+            ->line(__('Click the button below to confirm. Nothing is deleted until you confirm again on the page that opens.'))
+            ->action(__('Confirm account deletion'), $this->url)
+            ->line(__('This link will expire in 30 minutes.'))
+            ->line(__("If you didn't request this, you can safely ignore this email — your account stays active. We'd also recommend changing your password."));
     }
 }

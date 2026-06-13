@@ -1,0 +1,137 @@
+{
+    "agents": {
+        "channels": {
+            "setup": {
+                "names": {
+                    "telegram": "Telegram",
+                    "slack": "Slack",
+                    "messenger": "Messenger",
+                    "whatsapp": "WhatsApp",
+                    "msteams": "Microsoft Teams",
+                    "instagram": "Instagram"
+                },
+                "public_only": "{channel} is available for public agents only. Make this agent public on its {security} page, then connect it here.",
+                "labels": {
+                    "bot_token": "Bot token",
+                    "signing_secret": "Signing secret",
+                    "request_url": "Request URL",
+                    "callback_url": "Callback URL",
+                    "verify_token": "Verify token",
+                    "page_access_token": "Page access token",
+                    "app_secret": "App secret",
+                    "access_token": "Access token",
+                    "phone_number_id": "Phone number ID",
+                    "waba_id": "WhatsApp Business Account ID",
+                    "microsoft_app_id": "Microsoft App ID",
+                    "client_secret": "Client secret",
+                    "tenant_id": "Tenant ID",
+                    "messaging_endpoint": "Messaging endpoint"
+                },
+                "hints": {
+                    "tenant_single_only": "(Single Tenant bots only)"
+                },
+                "placeholders": {
+                    "telegram_bot_token": "123456789:ABCdef…",
+                    "slack_bot_token": "xoxb-…",
+                    "meta_token": "EAAG…",
+                    "phone_number_id": "123456789012345",
+                    "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
+                    "tenant_id": "Leave empty for Multi Tenant",
+                    "instagram_token": "IGAA…"
+                },
+                "guide": {
+                    "need_detail_before": "Need more detail? Follow the",
+                    "step_by_step_guide": "step-by-step guide",
+                    "need_detail_after": "with screenshots."
+                },
+                "shared": {
+                    "subscribe_webhook": "Subscribe the webhook to the {field} field",
+                    "messages_field": "messages",
+                    "create_meta_app_at": "Create an app at {link}",
+                    "copy_app_secret_both": "Copy the app secret from {section} and paste both below",
+                    "copy_app_secret_all": "Copy the app secret from {section} and paste everything below",
+                    "copy_app_secret_same_page": "Copy the app secret from the same page and paste both below",
+                    "reply_streams_live": "— the reply streams in live"
+                },
+                "telegram": {
+                    "connected_description": "People can message your bot on Telegram and your agent replies automatically — billing, history, and guardrails all apply.",
+                    "steps": {
+                        "connect_1": "Open {botfather} in Telegram",
+                        "connect_2": "Send {command} and follow the prompts",
+                        "connect_3": "Paste the token below — we connect it automatically"
+                    },
+                    "botfather": "{'@'}BotFather"
+                },
+                "slack": {
+                    "steps": {
+                        "connected_1": "In {link}, open {event_subscriptions}, enable it, and paste the Request URL above",
+                        "connected_2": "Subscribe to the bot events {mention} and {im}, then save",
+                        "connected_3": "Invite the bot to a channel with {invite} and @@mention it {live}",
+                        "connect_1": "Create an app at {link} in your workspace",
+                        "connect_2": "Under {oauth}, add the bot scopes {scope1}, {scope2}, {scope3}, then install the app and copy the bot token",
+                        "connect_3": "Copy the signing secret from {basic_info} and paste both below"
+                    },
+                    "your_slack_app": "your Slack app",
+                    "event_subscriptions": "Event Subscriptions",
+                    "oauth_permissions": "OAuth & Permissions",
+                    "basic_information": "Basic Information"
+                },
+                "messenger": {
+                    "steps": {
+                        "connected_1": "In {link}, open {webhooks} and paste the Callback URL + verify token above",
+                        "connected_3": "Message your page on Messenger — your agent replies automatically",
+                        "connect_1": "Create an app at {link} and add the {product} product",
+                        "connect_2": "Under {api_settings}, connect your Facebook Page and generate a page access token"
+                    },
+                    "your_meta_app": "your Meta app",
+                    "webhooks_path": "Messenger → Settings → Webhooks",
+                    "api_settings_path": "Messenger → API settings",
+                    "app_settings_basic": "App settings → Basic",
+                    "product": "Messenger"
+                },
+                "whatsapp": {
+                    "steps": {
+                        "connected_1": "In {link}, open {configuration} and paste the Callback URL + verify token above",
+                        "connected_3": "Message your number on WhatsApp — your agent replies automatically",
+                        "connect_1": "Create an app at {link} with the {use_case} use case",
+                        "connect_2": "Complete {basic_setup}, then copy the phone number ID, WhatsApp Business Account ID, and an access token"
+                    },
+                    "configuration_path": "WhatsApp → Configuration",
+                    "use_case": "Connect with customers through WhatsApp",
+                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                },
+                "msteams": {
+                    "app_id_label": "App {id}",
+                    "steps": {
+                        "connected_1": "In {link}, open your bot's {configuration} page and paste the messaging endpoint above",
+                        "connected_2": "Under {channels}, add {teams}",
+                        "connected_3": "{open_chat} {live}",
+                        "connect_1": "Create an {azure_bot} resource at {link} (Multi Tenant or Single Tenant)",
+                        "connect_2": "Copy the {app_id} from Configuration, then create a client secret under {secrets}",
+                        "connect_3": "Paste both below — for a Single Tenant bot also add your {tenant_id}"
+                    },
+                    "azure_portal": "the Azure portal",
+                    "configuration": "Configuration",
+                    "channels": "Channels",
+                    "azure_bot": "Azure Bot",
+                    "microsoft_app_id": "Microsoft App ID",
+                    "manage_password": "Manage password → Certificates & secrets",
+                    "directory_tenant_id": "Directory (tenant) ID",
+                    "open_chat_in_teams": "Open a chat with your bot in Teams"
+                },
+                "instagram": {
+                    "steps": {
+                        "connected_1": "In {link}, open {webhooks} and paste the Callback URL + verify token above",
+                        "connected_3": "In the Instagram app, allow message access under {message_controls}, then DM your account",
+                        "connect_1": "Create an app at {link} and add the {product} product — your Instagram account must be a professional (business or creator) account",
+                        "connect_2": "Under {api_setup}, generate an access token for your account"
+                    },
+                    "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
+                    "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
+                    "api_setup_path": "Instagram → API setup with Instagram login",
+                    "product": "Instagram"
+                }
+            }
+        }
+    }
+}

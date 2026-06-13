@@ -1,0 +1,232 @@
+{
+    "teams": {
+        "permissions_meta": {
+            "scopes": {
+                "agent": {
+                    "label": "Agentrettigheder",
+                    "description": "Hvad denne rolle kan gøre inden for hver agent, den har adgang til. Disse handlinger gælder pr. agent — valgt fra listen Agentadgang ovenfor."
+                },
+                "account": {
+                    "label": "Kontorettigheder",
+                    "description": "Delte værktøjer og indstillinger på tværs af hele kontoen. Disse gælder én gang for alle agenter og administreres fra menuen Indstillinger."
+                }
+            },
+            "groups": {
+                "setup": {
+                    "label": "Opsætning",
+                    "description": "Rediger selve agenten — personlighed, modeller, widget og integrering."
+                },
+                "sources": {
+                    "label": "Kilder",
+                    "description": "Administrer de træningsdata, agenten lærer fra."
+                },
+                "chat": {
+                    "label": "Chat",
+                    "description": "Læs, overtag, eksporter eller slet aktive samtaler."
+                },
+                "audit": {
+                    "label": "Revision",
+                    "description": "Se revisionsloggen for værktøjskald (værktøjer, connectorer, godkendelser)."
+                },
+                "evals": {
+                    "label": "Evalueringer",
+                    "description": "Test agenten mod et sæt testcases og følg beståelsesraten over tid."
+                },
+                "guardrails": {
+                    "label": "Sikkerhedsværn",
+                    "description": "AI-sikkerhedsværn: PII, prompt-injektion, blokerede emner og toksicitet."
+                },
+                "analytics": {
+                    "label": "Analyser",
+                    "description": "Undersøg brug, stemning, tone, emner og kildeperformance."
+                },
+                "topics": {
+                    "label": "Emner",
+                    "description": "Kuratér de emner, samtaler grupperes under."
+                },
+                "leads": {
+                    "label": "Leads",
+                    "description": "Se, konfigurer og eksporter leads, der er registreret af agenten."
+                },
+                "administration": {
+                    "label": "Administration",
+                    "description": "Ejer-lignende opgaver pr. agent — chattere og signeringshemlighed."
+                },
+                "security": {
+                    "label": "Sikkerhed",
+                    "description": "Personlige legitimationsoplysninger til kald af den offentlige API."
+                },
+                "integrations": {
+                    "label": "Integrationer",
+                    "description": "Forbind tredjepartstjenester og brugerdefinerede webhook-funktioner, og tilknyt dem til en hvilken som helst agent."
+                },
+                "library": {
+                    "label": "Bibliotek",
+                    "description": "Genbrugelige prompts delt på tværs af kontoen."
+                },
+                "people": {
+                    "label": "Personer",
+                    "description": "Administrer de chattere, der har adgang til dine agenter."
+                },
+                "governance": {
+                    "label": "Styring",
+                    "description": "Revidér og kontrollér alle handlinger, dine agenter foretager via værktøjer og connectorer."
+                }
+            },
+            "codes": {
+                "agents_access_all": {
+                    "label": "Adgang til alle agenter",
+                    "description": "Giv adgang til alle nuværende og fremtidige agenter i teamet"
+                },
+                "agent_setup": {
+                    "label": "Opsæt agent",
+                    "description": "Ændre agentindstillinger, personlighed og adfærd"
+                },
+                "agent_sources_train_files": {
+                    "label": "Træn filer",
+                    "description": "Upload og behandl dokumenter (PDF, Word osv.)"
+                },
+                "agent_sources_train_text": {
+                    "label": "Træn tekst",
+                    "description": "Upload og behandl rene tekstfiler"
+                },
+                "agent_sources_train_qa": {
+                    "label": "Træn spørgsmål og svar",
+                    "description": "Tilføj spørgsmål og svar-par"
+                },
+                "agent_sources_train_web": {
+                    "label": "Træn web",
+                    "description": "Gennemsøg og behandl websiteindhold"
+                },
+                "agent_sources_train_audio": {
+                    "label": "Træn lyd",
+                    "description": "Upload og transskribér lydfiler"
+                },
+                "agent_sources_train_video": {
+                    "label": "Træn video",
+                    "description": "Upload og transskribér videofiler"
+                },
+                "agent_sources_train_functions": {
+                    "label": "Administrer funktioner",
+                    "description": "Definer LLM-værktøjskald, der rammer dine egne webhook-endepunkter"
+                },
+                "agent_sources_train_connectors": {
+                    "label": "Administrer connectorer",
+                    "description": "Forbind tredjepartstjenester (Stripe, GitHub, Notion, …) som aktive datakilder"
+                },
+                "agent_sources_delete": {
+                    "label": "Slet kilder",
+                    "description": "Fjern træningskilder fra agenten"
+                },
+                "agent_chat_view": {
+                    "label": "Se samtaler",
+                    "description": "Læs chathistorik og samtalelogge"
+                },
+                "agent_chat_pulse": {
+                    "label": "Samtalepuls",
+                    "description": "Se realtidsmålinger for samtaletilstand og stemningssporing"
+                },
+                "agent_chat_takeover": {
+                    "label": "Overtag",
+                    "description": "Overtag styringen af en aktiv samtale fra AI'en"
+                },
+                "agent_chat_delete": {
+                    "label": "Slet samtaler",
+                    "description": "Slet samtalehistorik permanent"
+                },
+                "agent_chat_export": {
+                    "label": "Eksporter samtaler",
+                    "description": "Eksporter chathistorik til CSV eller andre formater"
+                },
+                "agent_audit_view": {
+                    "label": "Se revisionslog",
+                    "description": "Se revisionsloggen for værktøjskald for denne agent"
+                },
+                "agent_evals_view": {
+                    "label": "Se evalueringer",
+                    "description": "Se agentens evalueringssæt og kørselshistorik"
+                },
+                "agent_evals_manage": {
+                    "label": "Administrer evalueringer",
+                    "description": "Opret testcases og kør evalueringssæt"
+                },
+                "agent_guardrails_view": {
+                    "label": "Se sikkerhedsværn",
+                    "description": "Se AI-sikkerhedsindstillinger og udløsningslog for denne agent"
+                },
+                "agent_guardrails_manage": {
+                    "label": "Administrer sikkerhedsværn",
+                    "description": "Konfigurer PII-, prompt-injektions-, emne- og toksicitetsværn"
+                },
+                "agent_analytics_chats": {
+                    "label": "Chatanalyse",
+                    "description": "Se samtalevolumen og tendenser"
+                },
+                "agent_analytics_sentiment": {
+                    "label": "Stemning",
+                    "description": "Se stemningsanalyse af samtaler"
+                },
+                "agent_analytics_tone": {
+                    "label": "Toner",
+                    "description": "Se toneanalyse af samtaler"
+                },
+                "agent_analytics_topics": {
+                    "label": "Emner",
+                    "description": "Se og administrer emner"
+                },
+                "agent_analytics_sources": {
+                    "label": "Kilder",
+                    "description": "Se hvilke kilder der bruges i svar"
+                },
+                "agent_topics_manage": {
+                    "label": "Administrer emner",
+                    "description": "Opret, rediger og slet samtaleemner"
+                },
+                "agent_leads_view": {
+                    "label": "Se leads",
+                    "description": "Se registrerede leadoplysninger"
+                },
+                "agent_leads_settings": {
+                    "label": "Lead-indstillinger",
+                    "description": "Konfigurer lead-indsamlingsformularer og -regler"
+                },
+                "agent_leads_export": {
+                    "label": "Eksporter leads",
+                    "description": "Download leads som CSV eller integrer med CRM"
+                },
+                "agent_members_manage": {
+                    "label": "Agentchattere",
+                    "description": "Inviter, se og fjern chattere med adgang til denne agent"
+                },
+                "agent_identity_manage": {
+                    "label": "Agentidentitetsbekræftelse",
+                    "description": "Se og brug agentens signeringshemlighed til login-tokens"
+                },
+                "account_api_keys": {
+                    "label": "API-nøgler",
+                    "description": "Opret og tilbagekald personlige API-tokens"
+                },
+                "account_connectors": {
+                    "label": "Connectorer",
+                    "description": "Administrer tredjepartsconnectorer på kontoniveau (MCP-servere)"
+                },
+                "account_functions": {
+                    "label": "Funktioner",
+                    "description": "Definer webhook-funktioner, som agenter kan kalde"
+                },
+                "account_prompts": {
+                    "label": "Prompts",
+                    "description": "Administrer det delte prompt-bibliotek"
+                },
+                "account_members_manage": {
+                    "label": "Chattere",
+                    "description": "Se, nulstil adgangskode for og fjern chattere på tværs af arbejdsområdet"
+                },
+                "account_governance": {
+                    "label": "Styring",
+                    "description": "Se revisionsloggen for værktøjskald og adgangskontroller"
+                }
+            }
+        }
+    }
+}

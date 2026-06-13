@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chat_errors": {
+            "disabled_title": "Agenten är inaktiverad",
+            "disabled_description": "Den här agenten är för närvarande otillgänglig",
+            "disabled_heading": "Agenten är inaktiverad",
+            "disabled_message": "Den här agenten har inaktiverats. Kontakta administratören för hjälp.",
+            "disabled_hint": "Om du tror att detta är ett fel eller behöver omedelbar hjälp, kontakta din administratör.",
+            "contact_admin": "Kontakta administratören",
+            "return_dashboard": "Återgå till instrumentpanelen",
+            "no_messages_title": "Inga meddelanden kvar",
+            "no_messages_description": "Du har nått din meddelandegräns",
+            "not_found_title": "Agenten hittades inte",
+            "not_found_description": "Agenten du letar efter finns inte",
+            "not_found_heading": "Agenten hittades inte",
+            "not_found_message": "Agenten du försöker nå finns inte eller kan ha tagits bort.",
+            "not_found_hint": "Kontrollera URL:en eller kontakta din administratör om du tror att den här agenten borde vara tillgänglig."
+        }
+    }
+}

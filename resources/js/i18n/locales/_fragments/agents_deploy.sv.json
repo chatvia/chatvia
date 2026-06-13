@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "deploy": {
+            "title": "Driftsätt",
+            "subtitle": "Lägg din agent framför användarna – välj en yta och kopiera koden.",
+            "head_title": "Driftsätt — {name}",
+            "copy": "Kopiera",
+            "copied": "Kopierat!",
+            "copy_failed": "Kopiering misslyckades",
+            "customize": "Anpassa utseende",
+            "install_label": "Lägg till detta på din webbplats",
+            "protected_title": "Den här agenten är skyddad",
+            "protected_description": "Inbäddningar kräver en signerad token, annars ser alla med kodavsnittet en låst skärm. Gör den offentlig eller konfigurera autentisering i",
+            "open_security": "Säkerhetsinställningar",
+            "widget": {
+                "title": "Chatt-widget",
+                "description": "En flytande chattbubbla i hörnet av valfri sida – den klassiska assistenten."
+            },
+            "chat": {
+                "title": "Hostad chatt",
+                "description": "En helsides chatt på din egen länk. Dela den direkt, eller bädda in den på en sida.",
+                "url_label": "Agent-URL",
+                "open": "Öppna",
+                "embed_label": "Bädda in på en sida",
+                "iframe_title": "Chatta med {name}",
+                "width": "Bredd",
+                "height": "Höjd",
+                "preset_full": "Full",
+                "preset_large": "Stor",
+                "preset_medium": "Medel",
+                "preset_small": "Liten"
+            },
+            "bar": {
+                "title": "Kommandorad",
+                "description": "Ett ⌘K-kommandopalett-overlay. Perfekt för dokumentation, instrumentpaneler och appar."
+            }
+        }
+    }
+}

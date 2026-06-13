@@ -258,25 +258,10 @@ readonly class ChatService
             $sources
         );
 
-        $enrichedPayload = ChatInputPayload::from([
-            'external_session_id' => $context->payload->external_session_id,
-            'external_conversation_id' => $context->payload->external_conversation_id,
-            'external_message_id' => $context->payload->external_message_id,
-            'model' => $context->payload->model,
-            'message' => $context->payload->message,
-            'sent_at' => $context->payload->sent_at,
-            'updated_message_info' => $context->payload->updated_message_info,
-            'message_for_llm' => $contextualMessage,
-            'user_id' => $context->payload->user_id,
-            'language' => $context->payload->language,
-            'ip_address' => $context->payload->ip_address,
-            'user_agent' => $context->payload->user_agent,
-            'referrer_url' => $context->payload->referrer_url,
-            'page_url' => $context->payload->page_url,
-            'locale' => $context->payload->locale,
-            'source' => $context->payload->source,
-            'attachments' => $context->payload->attachments,
-        ]);
+        // Only message_for_llm changes when we enrich with retrieved context;
+        // clone the payload so a newly-added field can never be silently dropped
+        // by a hand-maintained field-by-field rebuild.
+        $enrichedPayload = $context->payload->withMessageForLlm($contextualMessage);
 
         $enrichedContext = new ChatContext(
             requestData: $context->requestData,

@@ -24,8 +24,8 @@ return new class extends Migration
             $table->foreignId('chat_conversation_id')->index()
                 ->constrained('chat_conversations')->cascadeOnDelete();
             $table->string('channel_name')->nullable(); // looked up once at first contact (best-effort)
-            $table->timestampTz('last_message_at')->nullable();
-            $table->timestampsTz();
+            $table->timestamp('last_message_at')->nullable();
+            $table->timestamps();
 
             $table->unique(['agent_slack_app_id', 'channel_id']);
         });

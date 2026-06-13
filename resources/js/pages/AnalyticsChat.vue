@@ -128,7 +128,7 @@ function onComposerKeydown(e: KeyboardEvent): void {
                         <button
                             v-for="s in STARTERS"
                             :key="s.text"
-                            class="group border-border bg-card hover:bg-accent flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors"
+                            class="group border-border bg-card hover:bg-accent flex items-center gap-3 rounded-lg border px-3 py-2.5 text-start text-sm transition-colors"
                             @click="send(s.text)"
                         >
                             <span
@@ -145,7 +145,7 @@ function onComposerKeydown(e: KeyboardEvent): void {
                 <div v-for="m in messages" :key="m.id" class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
                     <div
                         v-if="m.role === 'user'"
-                        class="bg-primary text-primary-foreground max-w-[85%] rounded-2xl rounded-br-sm px-4 py-2 text-sm whitespace-pre-wrap"
+                        class="bg-primary text-primary-foreground max-w-[85%] rounded-2xl rounded-ee-sm px-4 py-2 text-sm whitespace-pre-wrap"
                     >
                         {{ m.content }}
                     </div>

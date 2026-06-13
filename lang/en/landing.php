@@ -1,0 +1,344 @@
+<?php
+
+// Public marketing homepage (resources/views/landing/*). English is the source of
+// truth and the default locale, so this file mirrors the copy shown on the site —
+// keep it in sync with lang/ar/landing.php (same keys).
+
+return [
+
+    'meta' => [
+        'title' => 'ChatVia — GDPR-Native AI Agents, Hosted in the EU | Zero US Data Processing',
+        'description' => 'Build no-code AI agents trained on your data that act in your tools — fully hosted in the EU, GDPR-compliant, with zero US data processing and no US sub-processors. Start free.',
+        'og_title' => 'ChatVia — GDPR-Native AI Agents, Hosted in the EU',
+        'og_description' => 'No-code AI agents trained on your data that book meetings, trigger workflows, and act in your tools — hosted in the EU (Germany & France), GDPR by default, with a DPA on every plan.',
+    ],
+
+    'nav' => [
+        'home' => 'Home',
+        'features' => 'Features',
+        'pricing' => 'Pricing',
+        'mission' => 'Mission',
+        'security' => 'Security',
+        'dpa' => 'DPA',
+        'dashboard' => 'Dashboard',
+        'logout' => 'Logout',
+        'login' => 'Log in',
+        'get_started' => 'Get started',
+        'menu' => 'Menu',
+        'language' => 'Language',
+    ],
+
+    'hero' => [
+        'badges' => [
+            'gdpr' => 'GDPR',
+            'eu_hosted' => 'EU Hosted',
+            'encrypted' => 'Encrypted Data',
+        ],
+        'title_line1' => 'AI agents that',
+        'title_make' => 'never leave the',
+        'title_minutes' => 'EU',
+        'subtitle' => 'AI agents trained on your data that book meetings, trigger workflows, and act in your tools — fully hosted in Europe, with your data never crossing the Atlantic.',
+        'no_code' => 'No code, no engineers.',
+        'eu_hosting' => 'Hosted in the EU · GDPR by default · No US sub-processors · DPA included',
+        'gdpr_alt' => 'GDPR Compliant',
+        'region' => 'Stored & processed in the EU — Germany & France',
+        'cta' => 'Start free trial',
+        'cta_secondary' => 'Book a 15-min demo',
+        'cta_note' => 'No credit card needed.',
+    ],
+
+    'trust' => [
+        'section_title' => 'Your data never leaves Europe',
+        'section_subtitle' => 'US-hosted AI tools route your customers\' data through American infrastructure — exposing it to the US CLOUD Act. ChatVia runs entirely in the EU, so it never does.',
+        'eu_title' => 'Your data never leaves the EU',
+        'eu_desc' => 'EU-based infrastructure, with processing and storage exclusively within European Union borders — Germany and France.',
+        'eu_badge_gdpr' => 'GDPR compliant',
+        'eu_badge_union' => 'European Union',
+        'oss_title' => 'State-of-the-art open-source models',
+        'oss_desc' => 'Powered by leading open-weight models running on EU infrastructure. No vendor lock-in, no US model providers.',
+        'oss_badge' => 'Open source',
+        'bullet_residency_title' => 'EU data residency',
+        'bullet_residency_desc' => 'Storage and processing stay in Germany and France. No transatlantic transfers.',
+        'bullet_subprocessors_title' => 'No US sub-processors',
+        'bullet_subprocessors_desc' => 'Your data is never handed to a US cloud provider.',
+        'bullet_dpa_title' => 'DPA on every plan',
+        'bullet_dpa_desc' => 'Sign it in minutes and hand it to your DPO.',
+        'link_security' => 'Read our security overview',
+        'link_dpa' => 'See the DPA',
+    ],
+
+    'comparison' => [
+        'eyebrow' => 'Data sovereignty',
+        'title' => 'ChatVia vs. US-hosted AI',
+        'subtitle' => 'The same agentic capabilities. A fundamentally different answer to the one question your DPO cares about: where does the data go?',
+        'col_chatvia' => 'ChatVia',
+        'col_us' => 'Typical US-hosted AI tool',
+        'rows' => [
+            'residency' => ['label' => 'Data residency', 'ours' => 'Germany & France', 'theirs' => 'US / global'],
+            'cloud_act' => ['label' => 'US CLOUD Act exposure', 'ours' => 'None', 'theirs' => 'Yes'],
+            'dpa' => ['label' => 'DPA', 'ours' => 'Enterprise plan', 'theirs' => 'Add-on or enterprise-only'],
+            'subprocessors' => ['label' => 'US sub-processors', 'ours' => 'None', 'theirs' => 'Common'],
+            'ai_models' => ['label' => 'AI models', 'ours' => 'EU-hosted', 'theirs' => 'US-hosted'],
+            'agentic' => ['label' => 'Agentic actions (MCP, tools)', 'ours' => 'Yes', 'theirs' => 'Sometimes'],
+            'governance' => ['label' => 'Governance (audit, evals, guardrails)', 'ours' => 'Built-in', 'theirs' => 'Often enterprise-tier'],
+        ],
+    ],
+
+    'integrations' => [
+        'eyebrow' => 'Supercharge your agent',
+        'title' => 'Direct integrations with',
+        'title_highlight' => 'your favorite tools',
+        'subtitle' => 'Connect your agent to Slack, HubSpot, Salesforce and 20+ tools through MCP and custom functions',
+    ],
+
+    'channels' => [
+        'eyebrow' => 'Be everywhere',
+        'title' => 'One agent, every channel',
+        'subtitle' => 'Deploy the same agent to Telegram, WhatsApp, Slack, Messenger, Microsoft Teams, and Instagram.',
+    ],
+
+    'features_bar' => [
+        'train_on_data' => 'Train on your data',
+        'live_in_minutes' => 'Live in minutes',
+        'tool_calling' => 'Tool calling',
+        'chat_with_data' => 'Chat with your data',
+        'white_label' => 'White-label',
+        'deploy_anywhere' => 'Deploy anywhere',
+        'custom_functions' => 'Custom functions',
+        'mcp_servers' => 'MCP servers',
+        'prev' => 'Previous features',
+        'next' => 'Next features',
+    ],
+
+    'cards' => [
+        'header_title' => 'Your data. Your tools. Your agents.',
+        'header_subtitle' => 'Train it on your data, connect it to your tools, and see exactly what happens in every conversation — with your team and your customers.',
+        'card1_title' => 'Train on your own data',
+        'card1_desc' => 'Upload files, crawl your website, or add Q&A pairs and videos. Your agent answers from your content and stays in sync as it changes.',
+        'card2_title' => 'Acts in your tools',
+        'card2_desc' => "Your agent doesn't just answer — it books meetings, checks inventory, and creates tickets by calling your tools and APIs through MCP servers and custom functions.",
+        'card3_title' => 'Advanced reporting',
+        'card3_desc' => 'Topics, sentiment, and usage across every conversation. See what people ask, how the agent answers, and where to improve.',
+        'sources' => 'Sources',
+        'add_source' => '+ Add source',
+        'trained' => 'Trained',
+        'training' => 'Training',
+        'done' => 'Done',
+        'online' => 'Online',
+        'demo_pages' => '12 pages · synced 2h ago',
+        'demo_crawled' => '128 pages crawled',
+        'demo_product_faq' => 'Product FAQ',
+        'demo_book' => 'Book me a demo for Tuesday afternoon.',
+        'demo_booking' => 'Booking demo · Tue 3:00 PM',
+        'demo_booked' => "Done — you're booked for Tuesday at 3:00 PM.",
+        'demo_topics' => 'Topics',
+        'last_7_days' => 'Last 7 days',
+        'demo_account_setup' => 'Account setup',
+        'demo_positive' => '94% Positive',
+        'demo_negative' => '4% Negative',
+    ],
+
+    'showcase' => [
+        'title' => 'See it in action',
+        'subtitle' => 'Real screenshots from the product — from the first embed to the audit trail.',
+        'tabs' => [
+            'widget' => [
+                'tab_name' => 'Chat Widget',
+                'title' => 'Deploy your agent anywhere',
+                'description' => 'Embed it as a widget, share it as a full-page hosted chat, drop in a ⌘K command bar, or reach people on Telegram and Slack. The same agent everywhere — answering from your data and your tools, here pulling live news from the web mid-conversation.',
+            ],
+            'connectors' => [
+                'tab_name' => 'Connectors',
+                'title' => 'Plug your agent into your tools',
+                'description' => 'One click connects Perplexity web search, Slack, Gmail, Stripe, and 25+ other tools over MCP. Your agent stops just answering and starts doing.',
+            ],
+            'control_panel' => [
+                'tab_name' => 'Control Panel',
+                'title' => 'Manage every agent in one place',
+                'description' => 'Build and run all your AI agents from one dashboard. Configure behavior, connect tools, pick models, and control every agent across your workspace.',
+            ],
+            'inbox' => [
+                'tab_name' => 'Inbox',
+                'title' => 'Complete conversation history',
+                'description' => 'Review every conversation with sentiment, topic, and country at a glance. Spot gaps in your data, jump in with live handoff, and refine your agent where it matters.',
+            ],
+            'pulse' => [
+                'tab_name' => 'Pulse',
+                'title' => "Feel every conversation's pulse",
+                'description' => 'Each conversation gets a pulse — how it started, how it ended, and where it peaked. Catch a frustrated user before they give up, not after.',
+            ],
+            'analytics' => [
+                'tab_name' => 'Analytics',
+                'title' => 'Analytics & insights',
+                'description' => 'Track usage, sentiment, tone, and topics across every conversation. See exactly how your agents perform and make data-driven decisions to improve them.',
+            ],
+            'governance' => [
+                'tab_name' => 'Governance',
+                'title' => 'Every tool call, on the record',
+                'description' => 'An immutable audit log of every action your agents take — which tool, which arguments, what outcome, how fast. Compliance-ready by default.',
+            ],
+            'leads' => [
+                'tab_name' => 'Leads',
+                'title' => 'Capture leads in conversation',
+                'description' => 'Let your agent capture and qualify leads mid-conversation, then push them to your CRM through an MCP server or a custom function.',
+            ],
+        ],
+    ],
+
+    'steps' => [
+        'title' => 'From idea to live agent in minutes',
+        'create_title' => 'Create',
+        'create_desc' => 'Create an agent in a click — name it, pick a model, and choose how you want to deploy it.',
+        'train_title' => 'Train & connect',
+        'train_desc' => 'Train it on your data — upload documents, crawl your site, and connect MCP servers and custom functions so it can act in your tools.',
+        'deploy_title' => 'Deploy',
+        'deploy_desc' => 'Deploy anywhere — embed it, share a hosted link, or call it from your app. Your agent is live and working in your existing tools.',
+    ],
+
+    'pricing' => [
+        'heading' => 'Pricing',
+        'residency_note' => 'Every plan: EU-hosted · GDPR by default · no US data processing',
+        'regulated_teams' => 'For regulated teams',
+        'pay_monthly' => 'Pay Monthly',
+        'pay_yearly' => 'Pay Yearly',
+        'per_month' => '/month',
+        'billed_yearly_at' => 'Billed yearly at',
+        'custom' => 'Custom',
+        'unlimited' => 'Unlimited',
+        'lets_talk' => "Let's talk",
+        'contact_sales' => 'Contact sales',
+        'start_free_trial' => 'Start free trial',
+        'comparison_caption' => 'Pricing plan comparison',
+        'price_sr' => 'Price',
+        'days' => 'days',
+        'included_in' => 'Included in :plan',
+        'not_included_in' => 'Not included in :plan',
+        'what_is' => 'What is :label?',
+        'groups' => [
+            'usage' => 'Usage',
+            'features' => 'Features',
+            'security_support' => 'Security & support',
+        ],
+        'rows' => [
+            'messages' => 'Messages / month',
+            'agents' => 'AI agents',
+            'pages' => 'Knowledge pages',
+            'links' => 'Website links',
+            'minutes' => 'Audio / video minutes',
+            'team_members' => 'Team members',
+            'teams' => 'Teams',
+            'chat_history' => 'Chat history',
+            'sentiment' => 'Sentiment analysis',
+            'tone' => 'Tone analysis',
+            'topics' => 'Topic analysis',
+            'pulse' => 'Conversation Pulse',
+            'handoff' => 'Handoff to humans',
+            'api' => 'API access',
+            'mcp' => 'MCP',
+            'function_calling' => 'Function calling',
+            'integrations' => 'Custom integrations',
+            'white_label' => 'White-label (remove branding)',
+            'sso' => 'SSO / SAML',
+            'sla' => 'Uptime SLA',
+            'support' => 'Dedicated support',
+            'dpa' => 'Custom contract & DPA',
+        ],
+        'tips' => [
+            'chat_history' => 'How long each conversation is stored before it is automatically deleted.',
+            'sentiment' => 'Automatically detects whether each conversation feels positive, neutral, or negative.',
+            'tone' => 'Reads the emotional tone of a chat so your replies can stay on-brand.',
+            'topics' => 'Groups conversations by subject so you can see what people ask about most.',
+            'pulse' => 'A live health score for each conversation that blends sentiment and tone to flag chats that need attention.',
+            'handoff' => 'Let a human agent step in and take over from the AI during a live chat.',
+            'api' => 'Connect Chatvia to your own apps and workflows through our API.',
+            'mcp' => 'Connect external tools and data to your agent using the Model Context Protocol.',
+            'function_calling' => 'Let your agent call your own functions and webhooks to take actions during a chat.',
+            'integrations' => 'Hook up your own tools and services to extend what your agents can do.',
+            'white_label' => 'Hide the "Powered by Chatvia" badge across your widget and chat pages.',
+            'sso' => 'Let your team sign in through your company identity provider, like Okta or Azure AD.',
+            'sla' => 'A written guarantee on how often the service stays available.',
+            'support' => 'A named contact and faster response times for your team.',
+            'dpa' => 'A tailored agreement and data-processing terms for your legal team.',
+        ],
+    ],
+
+    'faqs' => [
+        'heading' => 'Frequently Asked Questions',
+        'subtitle' => 'Everything you need to know about building AI agents with Chatvia.',
+        'still_questions' => 'Still have questions?',
+        'talk_to_ai' => 'Talk to our AI',
+        'items' => [
+            'what' => [
+                'question' => 'What is Chatvia?',
+                'answer' => 'Chatvia is a B2B platform for building and training your own AI agents on your data. Your agents answer from your knowledge and act in your tools — connect MCP servers, call your APIs with custom functions, and deploy anywhere.',
+            ],
+            'support_bot' => [
+                'question' => 'Is Chatvia just a support chatbot?',
+                'answer' => 'No. Chatvia is for building AI agents for any workflow — internal knowledge assistants, research tools, data lookups, booking and ordering flows, and more. Customer support is one use case you can build, not the whole product.',
+            ],
+            'apis' => [
+                'question' => 'Can my agents call our APIs and tools?',
+                'answer' => 'Yes. Define custom functions (webhooks) so an agent can call any HTTP endpoint, and connect MCP servers to give it whole toolsets at once. The agent decides when to call them during a conversation to fetch data or take action.',
+            ],
+            'mcp' => [
+                'question' => 'What is MCP, and can I connect my own servers?',
+                'answer' => 'MCP (Model Context Protocol) is an open standard for giving agents tools. You can connect any remote MCP server in seconds and pick which tools each agent can use — including your own internal servers.',
+            ],
+            'training' => [
+                'question' => 'What does training mean?',
+                'answer' => 'Training feeds your data through a retrieval pipeline (RAG) so the agent understands it and answers from your real content instead of guessing. We never train third-party models on your data, so it stays private.',
+            ],
+            'sources' => [
+                'question' => 'Can I train on my website, documents, audio and video?',
+                'answer' => 'Yes. Upload documents (PDF, Word, Text), crawl your website, or connect data sources — and audio and video are transcribed automatically. Your agent learns from your content and stays in sync as it changes.',
+            ],
+            'models' => [
+                'question' => 'What AI models does Chatvia use?',
+                'answer' => 'You can choose the best model for each agent and switch anytime.',
+            ],
+            'agent_count' => [
+                'question' => 'How many AI agents can I create?',
+                'answer' => 'It depends on your plan. See the pricing section for the number of agents included in each plan.',
+            ],
+            'white_label' => [
+                'question' => 'Can I customize and white-label my agents?',
+                'answer' => "Yes. Customize each agent's name, persona, branding, and logo, and serve it on your own domain for a fully white-label experience.",
+            ],
+            'security' => [
+                'question' => 'Is my data secure and private?',
+                'answer' => 'Chatvia is GDPR compliant, hosted in the EU, and uses enterprise-grade security. We never train third-party models on your data, and your documents and conversations stay private and encrypted.',
+            ],
+            'team' => [
+                'question' => 'Do you offer team collaboration?',
+                'answer' => 'Yes. All plans include team collaboration — invite team members and share agents across your team.',
+            ],
+            'payment' => [
+                'question' => 'What payment methods do you accept?',
+                'answer' => 'We accept all major credit cards (Visa, MasterCard, American Express) and PayPal, processed securely through Stripe. Upgrade, downgrade, or cancel anytime.',
+            ],
+        ],
+    ],
+
+    'cta' => [
+        'headline_pre' => 'Ship your first AI agent in',
+        'headline_highlight' => 'minutes',
+        'description' => 'Build agents trained on your data that connect MCP servers, call your APIs, and act in your existing tools — no code, no engineers.',
+        'button' => 'Start your free trial',
+        'talk_to_ai' => 'Talk to our AI',
+    ],
+
+    'footer' => [
+        'terms' => 'Terms of Service',
+        'privacy' => 'Privacy',
+        'refund' => 'Refund Policy',
+        'subprocessors' => 'Sub-processors',
+        'made_with_love' => 'Made with ❤️ in Denmark',
+    ],
+
+    'cookie_banner' => [
+        'message' => 'We use essential cookies to keep the site working. No tracking cookies.',
+        'accept' => 'Got it',
+        'privacy' => 'Privacy Policy',
+    ],
+
+];

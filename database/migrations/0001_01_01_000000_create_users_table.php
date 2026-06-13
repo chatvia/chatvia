@@ -18,6 +18,13 @@ return new class extends Migration
             $table->text('two_factor_secret')->nullable();
             $table->text('two_factor_recovery_codes')->nullable();
             $table->timestamp('two_factor_confirmed_at')->nullable();
+
+            // Filament panel multi-factor auth (app authenticator + recovery
+            // codes). Stored encrypted by the InteractsWithAppAuthentication*
+            // traits — separate from Fortify's two_factor_* columns above, which
+            // back the Inertia/Vue dashboard's 2FA.
+            $table->text('app_authentication_secret')->nullable();
+            $table->text('app_authentication_recovery_codes')->nullable();
             $table->enum('type', ['admin', 'workspace', 'employee', 'chatter'])->default('workspace')->index();
             $table->enum('source', ['dashboard', 'api'])->default('dashboard')->index();
             $table->rememberToken();
@@ -42,12 +49,6 @@ return new class extends Migration
 
             $table->timestamp('deactivated_at')->nullable();
             $table->timestamp('last_login_at')->nullable();
-
-            // Cookie/consent preferences captured on the public consent page.
-            $table->string('data_region')->nullable();
-            $table->boolean('marketing_consent')->default(false);
-            $table->boolean('analytics_consent')->default(false);
-            $table->timestamp('consent_given_at')->nullable();
 
             // Preferred date display format across the dashboard
             // (Settings → Date & time). Null falls back to the ISO default —

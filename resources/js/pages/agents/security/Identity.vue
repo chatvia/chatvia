@@ -35,8 +35,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { ArrowUpRight, Check, Copy, Eye, EyeOff, RefreshCw, ShieldCheck } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 
@@ -242,7 +242,9 @@ const hmacBlocks = computed<RenderedExample[]>(() =>
                                                 <Eye v-else class="size-4" />
                                             </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent>{{ revealed ? t('agents.identity_verification.hide') : t('agents.identity_verification.reveal') }}</TooltipContent>
+                                        <TooltipContent>{{
+                                            revealed ? t('agents.identity_verification.hide') : t('agents.identity_verification.reveal')
+                                        }}</TooltipContent>
                                     </Tooltip>
 
                                     <Tooltip>
@@ -252,7 +254,9 @@ const hmacBlocks = computed<RenderedExample[]>(() =>
                                                 <Copy v-else class="size-4" />
                                             </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent>{{ copiedKey === 'secret' ? t('agents.identity_verification.copied') : t('agents.identity_verification.copy') }}</TooltipContent>
+                                        <TooltipContent>{{
+                                            copiedKey === 'secret' ? t('agents.identity_verification.copied') : t('agents.identity_verification.copy')
+                                        }}</TooltipContent>
                                     </Tooltip>
 
                                     <Tooltip>
@@ -327,7 +331,7 @@ const hmacBlocks = computed<RenderedExample[]>(() =>
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                class="absolute top-3 end-3 gap-2"
+                                                class="absolute end-3 top-3 gap-2"
                                                 @click="copy(lang.code, `jwt-${lang.id}`)"
                                             >
                                                 <Check v-if="copiedKey === `jwt-${lang.id}`" class="size-4 text-green-600" />
@@ -373,7 +377,7 @@ const hmacBlocks = computed<RenderedExample[]>(() =>
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                class="absolute top-3 end-3 gap-2"
+                                                class="absolute end-3 top-3 gap-2"
                                                 @click="copy(lang.code, `hmac-${lang.id}`)"
                                             >
                                                 <Check v-if="copiedKey === `hmac-${lang.id}`" class="size-4 text-green-600" />
@@ -394,8 +398,9 @@ const hmacBlocks = computed<RenderedExample[]>(() =>
                                 <div>
                                     <p class="text-sm font-medium">{{ t('agents.identity_verification.use_token_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
-                                        {{ t('agents.identity_verification.use_token_before') }} <code>data-auth</code>{{ t('agents.identity_verification.use_token_middle') }}
-                                        <code>?token=</code>{{ t('agents.identity_verification.use_token_after') }}
+                                        {{ t('agents.identity_verification.use_token_before') }} <code>data-auth</code
+                                        >{{ t('agents.identity_verification.use_token_middle') }} <code>?token=</code
+                                        >{{ t('agents.identity_verification.use_token_after') }}
                                     </p>
                                 </div>
 
@@ -406,7 +411,7 @@ const hmacBlocks = computed<RenderedExample[]>(() =>
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            class="absolute top-3 end-3 gap-2"
+                                            class="absolute end-3 top-3 gap-2"
                                             @click="copy(embedSnippet, 'embed')"
                                         >
                                             <Check v-if="copiedKey === 'embed'" class="size-4 text-green-600" />
@@ -473,7 +478,9 @@ const hmacBlocks = computed<RenderedExample[]>(() =>
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div class="grid gap-2">
-                    <Label for="regenerate-confirmation">{{ t('agents.identity_verification.regenerate_confirm_label', { phrase: confirmPhrase }) }}</Label>
+                    <Label for="regenerate-confirmation">{{
+                        t('agents.identity_verification.regenerate_confirm_label', { phrase: confirmPhrase })
+                    }}</Label>
                     <Input id="regenerate-confirmation" v-model="regenerateConfirmation" :placeholder="confirmPhrase" autocomplete="off" />
                 </div>
                 <AlertDialogFooter>

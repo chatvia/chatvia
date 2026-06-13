@@ -5,6 +5,7 @@ import DateRangePicker from '@/components/ui/DateRangePicker.vue';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WorldMap from '@/components/WorldMap.vue';
+import { useLocaleDate } from '@/composables/useLocaleDate';
 import { useTimeAgo } from '@/composables/useTimeAgo';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import axios from 'axios';
@@ -22,10 +23,11 @@ import {
 } from 'chart.js';
 import { BarChart3, Coins, Globe2, LoaderCircle, MessageCircle, MessageSquare, ThumbsDown, ThumbsUp, TrendingUp, Zap } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { Bar, Line } from 'vue-chartjs';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const { formatMonthDay, formatDayOfWeek, intlLocale } = useLocaleDate();
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, ChartTooltip, Filler);
@@ -178,11 +180,13 @@ const getBusiestDay = () => {
     const days = analytics.value?.activity_by_day_of_week || [];
     if (!days.length) return t('agents.analytics.na');
     const busiest = [...days].sort((a, b) => b.count - a.count)[0];
-    return busiest?.day || t('agents.analytics.na');
+    return busiest != null ? formatDayOfWeek(busiest.day_number) : t('agents.analytics.na');
 };
 
 // Chart data for conversations trend - Dynamic based on date range
 const conversationChartData = computed(() => {
+    void intlLocale.value;
+
     const trend = analytics.value?.conversations_trend || [];
     const trendData = new Map(trend.map((item) => [item.date, item.conversations || 0]));
 
@@ -198,7 +202,7 @@ const conversationChartData = computed(() => {
 
         result.push({
             date: dateStr,
-            dayMonth: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            dayMonth: formatMonthDay(dateStr),
             conversations: trendData.get(dateStr) || 0,
         });
     }
@@ -401,9 +405,11 @@ const hourlyChartOptions = computed<ChartOptions<'bar'>>(() => ({
 
 // Day of week chart data
 const dayOfWeekChartData = computed(() => {
+    void intlLocale.value;
+
     const days = analytics.value?.activity_by_day_of_week || [];
     return {
-        labels: days.map((d) => d.day),
+        labels: days.map((d) => formatDayOfWeek(d.day_number)),
         datasets: [
             {
                 label: t('agents.analytics.chart_conversations'),
@@ -486,7 +492,9 @@ const dayOfWeekChartOptions = computed<ChartOptions<'bar'>>(() => ({
                 <CardContent class="pt-6">
                     <div class="space-y-2 text-center">
                         <p class="text-destructive font-medium">{{ error }}</p>
-                        <button @click="fetchAnalytics" class="text-muted-foreground hover:text-foreground text-sm underline">{{ t('agents.analytics.try_again') }}</button>
+                        <button @click="fetchAnalytics" class="text-muted-foreground hover:text-foreground text-sm underline">
+                            {{ t('agents.analytics.try_again') }}
+                        </button>
                     </div>
                 </CardContent>
             </Card>
@@ -592,10 +600,12 @@ const dayOfWeekChartOptions = computed<ChartOptions<'bar'>>(() => ({
                             <div class="flex items-center justify-between px-2 text-sm">
                                 <div class="flex items-center gap-4">
                                     <span class="text-muted-foreground"
-                                        >{{ t('agents.analytics.peak_hour') }}: <span class="text-foreground font-medium">{{ getPeakActivity() }}</span></span
+                                        >{{ t('agents.analytics.peak_hour') }}:
+                                        <span class="text-foreground font-medium">{{ getPeakActivity() }}</span></span
                                     >
                                     <span class="text-muted-foreground"
-                                        >{{ t('agents.analytics.busiest_day') }}: <span class="text-foreground font-medium">{{ getBusiestDay() }}</span></span
+                                        >{{ t('agents.analytics.busiest_day') }}:
+                                        <span class="text-foreground font-medium">{{ getBusiestDay() }}</span></span
                                     >
                                 </div>
                                 <Dialog v-model:open="isDayOfWeekDialogOpen">
@@ -645,9 +655,15 @@ const dayOfWeekChartOptions = computed<ChartOptions<'bar'>>(() => ({
                                     <div class="space-y-3">
                                         <div class="bg-background sticky top-0 z-10 flex items-center justify-between border-b pb-3">
                                             <div class="text-muted-foreground flex-1 text-sm font-medium">{{ t('agents.analytics.country') }}</div>
-                                            <div class="text-muted-foreground w-32 text-right text-sm font-medium">{{ t('agents.analytics.progress') }}</div>
-                                            <div class="text-muted-foreground w-16 text-right text-sm font-medium">{{ t('agents.analytics.chats') }}</div>
-                                            <div class="text-muted-foreground w-16 text-right text-sm font-medium">{{ t('agents.analytics.percent') }}</div>
+                                            <div class="text-muted-foreground w-32 text-end text-sm font-medium">
+                                                {{ t('agents.analytics.progress') }}
+                                            </div>
+                                            <div class="text-muted-foreground w-16 text-end text-sm font-medium">
+                                                {{ t('agents.analytics.chats') }}
+                                            </div>
+                                            <div class="text-muted-foreground w-16 text-end text-sm font-medium">
+                                                {{ t('agents.analytics.percent') }}
+                                            </div>
                                         </div>
 
                                         <div
@@ -668,8 +684,8 @@ const dayOfWeekChartOptions = computed<ChartOptions<'bar'>>(() => ({
                                                 <div class="bg-muted h-2 w-32 overflow-hidden rounded-full">
                                                     <div class="h-full bg-blue-600 transition-all" :style="{ width: `${country.percentage}%` }"></div>
                                                 </div>
-                                                <span class="w-16 text-right text-sm font-bold">{{ country.count }}</span>
-                                                <span class="text-muted-foreground w-16 text-right text-sm"
+                                                <span class="w-16 text-end text-sm font-bold">{{ country.count }}</span>
+                                                <span class="text-muted-foreground w-16 text-end text-sm"
                                                     >{{ Number(country.percentage).toFixed(1) }}%</span
                                                 >
                                             </div>
@@ -681,7 +697,9 @@ const dayOfWeekChartOptions = computed<ChartOptions<'bar'>>(() => ({
                     </div>
                 </CardHeader>
                 <CardContent class="overflow-hidden">
-                    <div v-if="!analytics?.country_usage?.length" class="text-muted-foreground py-8 text-center">{{ t('agents.analytics.no_geo_data') }}</div>
+                    <div v-if="!analytics?.country_usage?.length" class="text-muted-foreground py-8 text-center">
+                        {{ t('agents.analytics.no_geo_data') }}
+                    </div>
                     <div v-else class="overflow-hidden">
                         <WorldMap :country-data="analytics?.country_usage ?? []" />
                     </div>
@@ -719,7 +737,9 @@ const dayOfWeekChartOptions = computed<ChartOptions<'bar'>>(() => ({
                             <p class="text-2xl font-bold">{{ (analytics?.unique_sessions ?? 0).toLocaleString() }}</p>
                         </div>
                         <div>
-                            <p class="text-muted-foreground mb-1 flex items-center gap-1 text-sm"><Coins class="h-3.5 w-3.5" /> {{ t('agents.analytics.total_tokens') }}</p>
+                            <p class="text-muted-foreground mb-1 flex items-center gap-1 text-sm">
+                                <Coins class="h-3.5 w-3.5" /> {{ t('agents.analytics.total_tokens') }}
+                            </p>
                             <p class="text-2xl font-bold">{{ (analytics?.total_tokens_used ?? 0).toLocaleString() }}</p>
                         </div>
                         <div>

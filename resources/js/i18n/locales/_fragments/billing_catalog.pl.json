@@ -1,0 +1,181 @@
+{
+    "billing": {
+        "catalog": {
+            "packages": {
+                "starter": {
+                    "name": "Starter",
+                    "description": "Dla małych firm, które dopiero zaczynają.",
+                    "features": {
+                        "monthly": {
+                            "messages": "6 000 wiadomości miesięcznie",
+                            "agents": "5 agentów AI",
+                            "pages": "2 000 stron (PDF, Word, tekst)",
+                            "links": "2 000 linków do stron internetowych",
+                            "minutes": "500 minut audio/wideo",
+                            "teams": "1 zespół",
+                            "members": "5 członków (członkowie zespołu + użytkownicy czatu)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "90 dni historii czatu"
+                        },
+                        "yearly": {
+                            "messages": "78 000 wiadomości rocznie",
+                            "agents": "5 agentów AI",
+                            "pages": "2 000 stron (PDF, Word, tekst)",
+                            "links": "2 000 linków do stron internetowych",
+                            "minutes": "500 minut audio/wideo",
+                            "teams": "1 zespół",
+                            "members": "5 członków (członkowie zespołu + użytkownicy czatu)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "90 dni historii czatu"
+                        }
+                    }
+                },
+                "standard": {
+                    "name": "Standard",
+                    "description": "Dla rozwijających się zespołów i firm.",
+                    "features": {
+                        "monthly": {
+                            "messages": "15 000 wiadomości miesięcznie",
+                            "agents": "10 agentów AI",
+                            "pages": "5 000 stron (PDF, Word, tekst)",
+                            "links": "5 000 linków do stron internetowych",
+                            "minutes": "2 000 minut audio/wideo",
+                            "sentiment": "Analiza sentymentu",
+                            "handoff": "Handoff",
+                            "api": "Dostęp do API",
+                            "teams": "5 zespołów",
+                            "members": "20 członków (członkowie zespołu + użytkownicy czatu)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "180 dni historii czatu"
+                        },
+                        "yearly": {
+                            "messages": "192 000 wiadomości rocznie",
+                            "agents": "10 agentów AI",
+                            "pages": "5 000 stron (PDF, Word, tekst)",
+                            "links": "5 000 linków do stron internetowych",
+                            "minutes": "2 000 minut audio/wideo",
+                            "sentiment": "Analiza sentymentu",
+                            "handoff": "Handoff",
+                            "api": "Dostęp do API",
+                            "teams": "5 zespołów",
+                            "members": "20 członków (członkowie zespołu + użytkownicy czatu)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "180 dni historii czatu"
+                        }
+                    }
+                },
+                "pro": {
+                    "name": "Pro",
+                    "description": "Dla organizacji, które potrzebują wszystkiego.",
+                    "features": {
+                        "monthly": {
+                            "messages": "50 000 wiadomości miesięcznie",
+                            "agents": "20 agentów AI",
+                            "pages": "10 000 stron (PDF, Word, tekst)",
+                            "links": "10 000 linków do stron internetowych",
+                            "minutes": "10 000 minut audio/wideo",
+                            "sentiment": "Analiza sentymentu",
+                            "tone": "Analiza tonu",
+                            "topics": "Analiza tematów",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "Dostęp do API",
+                            "integrations": "Niestandardowe integracje",
+                            "branding": "White-label (usunięcie brandingu Chatvia)",
+                            "teams": "10 zespołów",
+                            "members": "100 członków (członkowie zespołu + użytkownicy czatu)",
+                            "retention": "366 dni historii czatu"
+                        },
+                        "yearly": {
+                            "messages": "648 000 wiadomości rocznie",
+                            "agents": "20 agentów AI",
+                            "pages": "10 000 stron (PDF, Word, tekst)",
+                            "links": "10 000 linków do stron internetowych",
+                            "minutes": "10 000 minut audio/wideo",
+                            "sentiment": "Analiza sentymentu",
+                            "tone": "Analiza tonu",
+                            "topics": "Analiza tematów",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "Dostęp do API",
+                            "integrations": "Niestandardowe integracje",
+                            "branding": "White-label (usunięcie brandingu Chatvia)",
+                            "teams": "10 zespołów",
+                            "members": "100 członków (członkowie zespołu + użytkownicy czatu)",
+                            "retention": "366 dni historii czatu"
+                        }
+                    }
+                },
+                "enterprise": {
+                    "name": "Enterprise",
+                    "description": "Dla organizacji wymagających bezpieczeństwa, zgodności i skalowalności.",
+                    "features": {
+                        "monthly": {
+                            "messages": "Indywidualny limit wiadomości",
+                            "agents": "Nieograniczona liczba agentów AI",
+                            "pages": "Niestandardowa baza wiedzy",
+                            "links": "Niestandardowe linki do stron internetowych",
+                            "minutes": "Niestandardowy limit audio/wideo",
+                            "sentiment": "Analiza sentymentu",
+                            "tone": "Analiza tonu",
+                            "topics": "Analiza tematów",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "Dostęp do API",
+                            "integrations": "Niestandardowe integracje",
+                            "branding": "White-label (usunięcie brandingu Chatvia)",
+                            "residency": "Rezydencja danych w UE",
+                            "sso": "SSO / SAML",
+                            "sla": "SLA czasu dostępności",
+                            "support": "Dedykowane wsparcie",
+                            "dpa": "Niestandardowa umowa i DPA",
+                            "teams": "Nieograniczona liczba zespołów",
+                            "members": "Nieograniczona liczba członków",
+                            "retention": "Niestandardowe przechowywanie danych"
+                        },
+                        "yearly": {
+                            "messages": "Indywidualny limit wiadomości",
+                            "agents": "Nieograniczona liczba agentów AI",
+                            "pages": "Niestandardowa baza wiedzy",
+                            "links": "Niestandardowe linki do stron internetowych",
+                            "minutes": "Niestandardowy limit audio/wideo",
+                            "sentiment": "Analiza sentymentu",
+                            "tone": "Analiza tonu",
+                            "topics": "Analiza tematów",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "Dostęp do API",
+                            "integrations": "Niestandardowe integracje",
+                            "branding": "White-label (usunięcie brandingu Chatvia)",
+                            "residency": "Rezydencja danych w UE",
+                            "sso": "SSO / SAML",
+                            "sla": "SLA czasu dostępności",
+                            "support": "Dedykowane wsparcie",
+                            "dpa": "Niestandardowa umowa i DPA",
+                            "teams": "Nieograniczona liczba zespołów",
+                            "members": "Nieograniczona liczba członków",
+                            "retention": "Niestandardowe przechowywanie danych"
+                        }
+                    }
+                }
+            },
+            "ui": {
+                "yearly_savings_text": "Oszczędź 20%",
+                "popular_badge_text": "Najpopularniejszy",
+                "current_plan_text": "Aktualny plan"
+            }
+        }
+    }
+}

@@ -672,7 +672,7 @@ is_selected: boolean;
 };
 }
 declare namespace Domain.Membership.Agent.Data.Resources {
-export type AgentMemberRowData = {
+export type AgentChatterRowData = {
 external_id: string;
 name: string;
 email: string | null;

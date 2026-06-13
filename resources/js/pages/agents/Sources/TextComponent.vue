@@ -413,17 +413,17 @@ fetchTextEntries();
                                 <Button class="flex items-center gap-2">
                                     <Plus class="h-4 w-4" />
                                     {{ t('agents.sources.text.add_text') }}
-                                    <ChevronDown class="ml-1 h-4 w-4" />
+                                    <ChevronDown class="ms-1 h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" class="w-64">
                                 <DropdownMenuGroup>
                                     <DropdownMenuItem @click="openCreateForm" class="cursor-pointer">
-                                        <Plus class="mr-2 h-4 w-4" />
+                                        <Plus class="me-2 h-4 w-4" />
                                         {{ t('agents.sources.text.create_new') }}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem @click="openAttachTextDialog" class="cursor-pointer">
-                                        <Link2 class="mr-2 h-4 w-4" />
+                                        <Link2 class="me-2 h-4 w-4" />
                                         {{ t('agents.sources.text.already_trained') }}
                                     </DropdownMenuItem>
                                 </DropdownMenuGroup>
@@ -475,7 +475,13 @@ fetchTextEntries();
                         <Button @click="saveTextEntry" :disabled="isSubmitting" class="flex items-center gap-2">
                             <LoaderCircle v-if="isSubmitting" class="h-4 w-4 animate-spin" />
                             <Save v-else class="h-4 w-4" />
-                            {{ isSubmitting ? t('agents.sources.text.saving') : editingEntry ? t('agents.sources.text.update_entry') : t('agents.sources.text.save_entry') }}
+                            {{
+                                isSubmitting
+                                    ? t('agents.sources.text.saving')
+                                    : editingEntry
+                                      ? t('agents.sources.text.update_entry')
+                                      : t('agents.sources.text.save_entry')
+                            }}
                         </Button>
                     </div>
                 </CardContent>
@@ -520,7 +526,7 @@ fetchTextEntries();
                                 <!-- Progress bar for processing text entries -->
                                 <IngestionProgressBar v-if="entry.status === 'ingesting'" :progress="entry.progress ?? 0" />
                             </div>
-                            <div class="ml-4 flex items-center gap-2">
+                            <div class="ms-4 flex items-center gap-2">
                                 <TooltipProvider v-if="entry.status !== 'pending' && entry.status !== 'ingesting'">
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -549,7 +555,9 @@ fetchTextEntries();
                                             <div class="text-xs">
                                                 <p v-if="isTextShared(entry)">
                                                     {{ t('agents.sources.common.remove_from_agent') }}<br />
-                                                    <span class="text-muted-foreground">{{ t('agents.sources.common.used_in_agents', { count: entry.agents_count }) }}</span>
+                                                    <span class="text-muted-foreground">{{
+                                                        t('agents.sources.common.used_in_agents', { count: entry.agents_count })
+                                                    }}</span>
                                                 </p>
                                                 <p v-else>{{ t('agents.sources.common.delete_from_knowledge_base') }}</p>
                                             </div>
@@ -602,7 +610,9 @@ fetchTextEntries();
                         </DialogDescription>
                     </DialogHeader>
                     <div class="mt-4 flex items-center justify-end gap-2">
-                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeleting"> {{ t('agents.sources.common.cancel') }} </Button>
+                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeleting">
+                            {{ t('agents.sources.common.cancel') }}
+                        </Button>
                         <Button
                             v-if="isTextShared(entryToDelete)"
                             variant="secondary"
@@ -618,7 +628,9 @@ fetchTextEntries();
                             <LoaderCircle v-if="isDeleting" class="me-2 h-4 w-4 animate-spin" />
                             <Trash2 v-else class="me-2 h-4 w-4" />
                             <span v-if="isDeleting">{{ t('agents.sources.common.deleting') }}</span>
-                            <span v-else>{{ isTextShared(entryToDelete) ? t('agents.sources.common.delete_permanently') : t('agents.sources.common.delete') }}</span>
+                            <span v-else>{{
+                                isTextShared(entryToDelete) ? t('agents.sources.common.delete_permanently') : t('agents.sources.common.delete')
+                            }}</span>
                         </Button>
                     </div>
                 </DialogContent>

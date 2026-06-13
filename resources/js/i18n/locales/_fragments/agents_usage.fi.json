@@ -1,0 +1,42 @@
+{
+    "agents": {
+        "usage": {
+            "title": "Käyttötiedot",
+            "description": "Katso, mitä lähteitä, funktioita ja MCP-palvelimia tämä agentti todellisuudessa käyttää",
+            "load_error": "Käyttötietojen lataaminen epäonnistui",
+            "try_again": "Yritä uudelleen",
+            "tabs": {
+                "knowledge": "Tieto",
+                "functions": "Funktiot",
+                "mcp": "MCP"
+            },
+            "knowledge_empty": "Tietolähteitä ei ole vielä haettu",
+            "knowledge_empty_hint": "Tiedostot, verkkosivustot, tekstikatkelmat ja YouTube-videot näkyvät tässä, kun agentti on käyttänyt niitä.",
+            "functions_empty": "Funktiokutsuja ei ole vielä tehty",
+            "functions_empty_hint": "Webhook-funktiot näkyvät tässä, kun agentti on kutsunut niitä.",
+            "mcp_empty": "MCP-työkalukutsuja ei ole vielä tehty",
+            "mcp_empty_hint": "Yhdistettyjen MCP-palvelimien yksittäiset työkalut näkyvät tässä, kun agentti on kutsunut niitä.",
+            "retrievals": "{count} haku | {count} hakua",
+            "calls": "{count} kutsu | {count} kutsua",
+            "last_used": "Viimeksi käytetty {time}",
+            "last_called": "Viimeksi kutsuttu {time}",
+            "via_server": "palvelimen {name} kautta",
+            "sub_kind": {
+                "source_file": "Tiedosto",
+                "source_website": "Verkkosivusto",
+                "source_text": "Teksti",
+                "source_youtube_video": "YouTube",
+                "agent_website_url": "Verkkosivu"
+            },
+            "relative": {
+                "just_now": "juuri nyt",
+                "minutes_ago": "{count} minuutti sitten | {count} minuuttia sitten",
+                "hours_ago": "{count} tunti sitten | {count} tuntia sitten",
+                "days_ago": "{count} päivä sitten | {count} päivää sitten",
+                "weeks_ago": "{count} viikko sitten | {count} viikkoa sitten",
+                "months_ago": "{count} kuukausi sitten | {count} kuukautta sitten",
+                "years_ago": "{count} vuosi sitten | {count} vuotta sitten"
+            }
+        }
+    }
+}

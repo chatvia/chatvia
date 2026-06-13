@@ -20,7 +20,7 @@ defineProps<Props>();
     <AuthBase :title="t('auth.invitation_expired.title')" :description="t('auth.invitation_expired.description')">
         <Head :title="t('auth.invitation_expired.head')" />
 
-        <div class="absolute top-4 end-4">
+        <div class="absolute end-4 top-4">
             <ThemeSwitcher />
         </div>
 

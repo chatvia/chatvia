@@ -1,0 +1,81 @@
+{
+    "shared": {
+        "response_settings": {
+            "title": "Vastausasetukset",
+            "description_widget": "Hallitse tekoälyagentin vastauksia. Nämä asetukset sovelletaan valittuun malliin ja vaikuttavat kaikkien vastausten tyyliin ja luovuuteen.",
+            "description_default": "Hallitse tekoälyagentin vastauksia. Nämä asetukset sovelletaan kaikkiin valittuihin malleihin ja vaikuttavat kaikkien vastausten tyyliin ja luovuuteen.",
+            "parameters_heading": "Vastausparametrit",
+            "temperature": {
+                "label": "Luovuustaso",
+                "param": "Lämpötila",
+                "help": "Matala = ennakoitavat, johdonmukaiset vastaukset. Korkea = luovemmat, vaihtelevammat vastaukset.",
+                "scale_focused": "Tarkennettu",
+                "scale_balanced": "Tasapainoinen",
+                "scale_creative": "Luova",
+                "badge_conservative": "Konservatiivinen",
+                "badge_balanced": "Tasapainoinen",
+                "badge_creative": "Luova"
+            },
+            "top_k": {
+                "label": "Sanavalikoiman laajuus",
+                "param": "Top-K",
+                "help": "0 = poistettu käytöstä. Pienempi = käyttää yleisempiä sanoja. Suurempi = harkitsee useampia sanavaihtoehtoja.",
+                "scale_disabled": "Pois käytöstä",
+                "scale_focused": "Tarkennettu",
+                "scale_balanced": "Tasapainoinen",
+                "scale_diverse": "Monipuolinen",
+                "badge_disabled": "Pois käytöstä",
+                "badge_focused": "Tarkennettu",
+                "badge_balanced": "Tasapainoinen",
+                "badge_diverse": "Monipuolinen"
+            },
+            "top_p": {
+                "label": "Vastauksen tarkkuus",
+                "param": "Top-P",
+                "help": "Pienempi = tarkemmat vastaukset. Suurempi = laajemmat, monipuolisemmat vastaukset.",
+                "scale_focused": "Tarkennettu",
+                "scale_balanced": "Tasapainoinen",
+                "scale_broad": "Laaja",
+                "badge_focused": "Tarkennettu",
+                "badge_balanced": "Tasapainoinen",
+                "badge_broad": "Laaja"
+            },
+            "presence_penalty": {
+                "label": "Aiheiden toiston välttäminen",
+                "param": "Läsnäolorangaistus",
+                "help": "Korkeammat arvot vähentävät samojen aiheiden tai ideoiden toistamista.",
+                "scale_repetitive": "Toistuva",
+                "scale_neutral": "Neutraali",
+                "scale_diverse": "Monipuolinen",
+                "badge_repetitive": "Toistuva",
+                "badge_neutral": "Neutraali",
+                "badge_diverse": "Monipuolinen"
+            },
+            "frequency_penalty": {
+                "label": "Sanojen toiston välttäminen",
+                "param": "Toistuvuusrangaistus",
+                "help": "Korkeammat arvot vähentävät samojen sanojen käyttämistä useita kertoja.",
+                "scale_repetitive": "Toistuva",
+                "scale_neutral": "Neutraali",
+                "scale_varied": "Vaihteleva",
+                "badge_repetitive": "Toistuva",
+                "badge_neutral": "Neutraali",
+                "badge_varied": "Vaihteleva"
+            }
+        },
+        "persona_editor": {
+            "label": "Ohjeet (Järjestelmäkehote)",
+            "description": "Määritä, kuinka tekoälyagentin tulisi toimia ja vastata käyttäjille",
+            "select_placeholder": "Valitse esiasetus...",
+            "saved_prompts": "Tallennetut kehotteet",
+            "default_group": "Oletus",
+            "base_instructions": "Perusohjeet",
+            "reset_title": "Palauta tallennettuun",
+            "library_hint": "Käytetään tallennettua kehottetta {name} (vain luku). Hallinnoi sitä kohdassa Asetukset → Kehotteet tai vaihda {base}-tilaan muokataksesi kopiota vain tätä agentia varten.",
+            "textarea_placeholder": "Kirjoita ohjeesi...",
+            "save": "Tallenna",
+            "save_success": "Ohjeet tallennettu onnistuneesti",
+            "save_error": "Ohjeiden tallentaminen epäonnistui"
+        }
+    }
+}

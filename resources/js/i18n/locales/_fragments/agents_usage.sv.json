@@ -1,0 +1,42 @@
+{
+    "agents": {
+        "usage": {
+            "title": "Användningsinsikter",
+            "description": "Se vilka källor, funktioner och MCP-servrar den här agenten faktiskt använder",
+            "load_error": "Det gick inte att läsa in användning",
+            "try_again": "Försök igen",
+            "tabs": {
+                "knowledge": "Kunskap",
+                "functions": "Funktioner",
+                "mcp": "MCP"
+            },
+            "knowledge_empty": "Inga kunskapskällor har hämtats ännu",
+            "knowledge_empty_hint": "Filer, webbplatser, textavsnitt och YouTube-videor visas här när agenten använder dem.",
+            "functions_empty": "Inga funktionsanrop ännu",
+            "functions_empty_hint": "Webhook-funktioner visas här när agenten anropar dem.",
+            "mcp_empty": "Inga MCP-verktygsanrop ännu",
+            "mcp_empty_hint": "Enskilda verktyg från anslutna MCP-servrar visas här när agenten anropar dem.",
+            "retrievals": "{count} hämtning | {count} hämtningar",
+            "calls": "{count} anrop | {count} anrop",
+            "last_used": "Senast använd {time}",
+            "last_called": "Senast anropad {time}",
+            "via_server": "via {name}",
+            "sub_kind": {
+                "source_file": "Fil",
+                "source_website": "Webbplats",
+                "source_text": "Text",
+                "source_youtube_video": "YouTube",
+                "agent_website_url": "Webbsida"
+            },
+            "relative": {
+                "just_now": "just nu",
+                "minutes_ago": "{count} minut sedan | {count} minuter sedan",
+                "hours_ago": "{count} timme sedan | {count} timmar sedan",
+                "days_ago": "{count} dag sedan | {count} dagar sedan",
+                "weeks_ago": "{count} vecka sedan | {count} veckor sedan",
+                "months_ago": "{count} månad sedan | {count} månader sedan",
+                "years_ago": "{count} år sedan | {count} år sedan"
+            }
+        }
+    }
+}

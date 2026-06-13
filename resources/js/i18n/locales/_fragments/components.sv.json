@@ -1,0 +1,39 @@
+{
+    "nav": {
+        "platform": "Plattform"
+    },
+    "theme": {
+        "toggle": "Växla tema",
+        "light": "Ljust",
+        "dark": "Mörkt",
+        "system": "System"
+    },
+    "team_switcher": {
+        "select_team": "Välj team",
+        "no_teams": "Inga team tillgängliga",
+        "manage_teams": "Hantera team"
+    },
+    "agents": {
+        "create_modal": {
+            "title": "Skapa agent",
+            "limit_title": "Agentgräns nådd",
+            "limit_description": "Du har nått din agentgräns.",
+            "upgrade_plan": "Uppgradera plan",
+            "name_label": "Agentnamn",
+            "name_placeholder": "T.ex. Kundsupport",
+            "load_error": "Det gick inte att läsa in användningsinformation",
+            "limit_toast_title": "Agentgräns nådd",
+            "limit_toast_description": "Du har nått din agentgräns."
+        }
+    },
+    "confirm_password": {
+        "title": "Bekräfta ditt lösenord",
+        "description": "Av säkerhetsskäl, bekräfta ditt lösenord innan du ändrar säkerhetsinställningar.",
+        "password_label": "Lösenord",
+        "password_required": "Lösenord krävs.",
+        "incorrect": "Felaktigt lösenord.",
+        "error": "Det gick inte att bekräfta lösenordet. Försök igen.",
+        "cancel": "Avbryt",
+        "confirm": "Bekräfta"
+    }
+}

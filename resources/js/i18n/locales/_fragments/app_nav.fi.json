@@ -1,0 +1,93 @@
+{
+    "app": {
+        "header": {
+            "dashboard": "Kojelauta",
+            "agents": "Agentit",
+            "usage": "Käyttö",
+            "ask_your_data": "Kysy tiedoistasi",
+            "billing": "Laskutus",
+            "support": "Tuki",
+            "teams": "Tiimit",
+            "documentation": "Dokumentaatio",
+            "api": "API",
+            "nav_menu_sr": "Navigointivalikko",
+            "upgrade": "Päivitä",
+            "subscribed": "Olet tilaaja"
+        }
+    },
+    "agents": {
+        "nav": {
+            "default_title": "Agentin asetukset",
+            "playground": "Hiekkalaatikko",
+            "playground_tooltip": "Esikatsele agenttiasi kaikilla alustoilla",
+            "setup": "Asennus",
+            "setup_tooltip": "Määritä agenttisi — koskee kaikkia alustoja",
+            "channels": "Kanavat",
+            "channels_tooltip": "Ota agenttisi käyttöön — verkkosivusto, widget ja Telegram",
+            "groups": {
+                "insights": "Analytiikka",
+                "training": "Koulutus",
+                "access": "Käyttöoikeus",
+                "settings": "Asetukset",
+                "danger_zone": "Vaarallinen alue"
+            },
+            "analytics": "Analytiikka",
+            "analytics_tooltip": "Tarkastele käyttötilastoja ja analytiikkaa",
+            "chats": "Keskustelut",
+            "sentiment": "Tunnelma",
+            "tone": "Sävy",
+            "topics": "Aiheet",
+            "sources": "Lähteet",
+            "chat": "Keskustelu",
+            "chat_tooltip": "Tarkastele raakaviestejä istunnoittain",
+            "audit": "Tarkastus",
+            "audit_tooltip": "Tämän agentin työkalukutsujen tarkastusloki",
+            "evals": "Arvioinnit",
+            "evals_tooltip": "Testipaketit, jotka arvioivat tämän agentin vastauksia",
+            "guardrails": "Turvarajat",
+            "guardrails_tooltip": "Tekoälyturvallisuuden suojat: PII, kehotteen injektio, aiheet, myrkyllisyys",
+            "leads": "Liidit",
+            "leads_tooltip": "Hallinnoi agenttiesi keräimiä liidejä",
+            "knowledge_sources": "Lähteet",
+            "knowledge_sources_tooltip": "Hallinnoi agentin tietoja ja koulutusaineistoa",
+            "functions": "Funktiot",
+            "functions_tooltip": "Hallinnoi mukautettuja funktioita, joita agenttisi voi kutsua",
+            "connectors": "Liittimet",
+            "connectors_tooltip": "Liitä liittimiä, jotta agenttisi voi käyttää ulkoisia työkaluja",
+            "members": "Chatterit",
+            "members_tooltip": "Chatterit, joille on myönnetty oikeus keskustella tämän agentin kanssa",
+            "security": "Suojaus",
+            "security_tooltip": "Käyttöoikeuksien hallinta, allekirjoitussalaisuus ja nopeusrajoitukset tälle agentille",
+            "identity": "Identiteetti",
+            "rate_limiting": "Nopeusrajoitus",
+            "rename": "Nimeä uudelleen",
+            "rename_tooltip": "Nimeä tämä agentti uudelleen",
+            "delete_agent": "Poista agentti",
+            "delete_agent_tooltip": "Poista tämä agentti pysyvästi",
+            "expand_sidebar": "Laajenna sivupalkki",
+            "delete_dialog": {
+                "title": "Poista agentti",
+                "description": "Tätä toimintoa ei voi peruuttaa. Tämä poistaa pysyvästi agentin {name} ja kaikki sen tiedot.",
+                "confirm_label": "Kirjoita {name} vahvistaaksesi",
+                "confirm_placeholder": "Kirjoita agentin nimi vahvistusta varten",
+                "name_mismatch": "Agentin nimi ei täsmää",
+                "submit": "Poista agentti",
+                "deleted_toast": "Agentti poistettu onnistuneesti",
+                "delete_error_toast": "Agentin poistaminen epäonnistui. Yritä uudelleen."
+            },
+            "rename_dialog": {
+                "title": "Nimeä agentti uudelleen",
+                "description": "Anna uusi nimi agentillesi {name}.",
+                "name_label": "Agentin nimi",
+                "name_placeholder": "Kirjoita uusi agentin nimi",
+                "subdomain_label": "Aliverkkotunnus",
+                "subdomain_placeholder": "aliverkkotunnuksesi",
+                "subdomain_hint": "Vain pienet kirjaimet, numerot ja väliviivoitetut merkit sallittu.",
+                "save": "Tallenna",
+                "updated_toast": "Agentti päivitetty onnistuneesti"
+            },
+            "deploy": "Julkaise",
+            "deploy_tooltip": "Upota agenttisi — chat-widget, isännöity chat tai komentopalkki"
+        }
+    }
+}

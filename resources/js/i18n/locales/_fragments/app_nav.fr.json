@@ -1,0 +1,91 @@
+{
+    "app": {
+        "header": {
+            "dashboard": "Tableau de bord",
+            "agents": "Agents",
+            "usage": "Utilisation",
+            "ask_your_data": "Interrogez vos données",
+            "billing": "Facturation",
+            "support": "Assistance",
+            "teams": "Équipes",
+            "documentation": "Documentation",
+            "api": "API",
+            "nav_menu_sr": "Menu de navigation",
+            "upgrade": "Mettre à niveau",
+            "subscribed": "Vous êtes abonné"
+        }
+    },
+    "agents": {
+        "nav": {
+            "default_title": "Paramètres de l'agent",
+            "playground": "Bac à sable",
+            "playground_tooltip": "Prévisualisez votre agent sur chaque interface",
+            "setup": "Configuration",
+            "setup_tooltip": "Configurez votre agent — s'applique à toutes les interfaces",
+            "channels": "Canaux",
+            "channels_tooltip": "Déployez votre agent — site web, widget et Telegram",
+            "groups": {
+                "insights": "Analyses",
+                "training": "Entraînement",
+                "access": "Accès",
+                "settings": "Paramètres",
+                "danger_zone": "Zone dangereuse"
+            },
+            "analytics": "Analytique",
+            "analytics_tooltip": "Consultez les statistiques d'utilisation et les analyses",
+            "chats": "Conversations",
+            "sentiment": "Sentiment",
+            "tone": "Ton",
+            "topics": "Sujets",
+            "sources": "Sources",
+            "chat": "Chat",
+            "chat_tooltip": "Inspectez les messages bruts par session",
+            "audit": "Audit",
+            "audit_tooltip": "Journal d'audit des appels d'outils pour cet agent",
+            "evals": "Évaluations",
+            "evals_tooltip": "Suites de tests qui évaluent les réponses de cet agent",
+            "guardrails": "Garde-fous",
+            "guardrails_tooltip": "Protections IA : données personnelles, injection de prompt, sujets, toxicité",
+            "leads": "Prospects",
+            "leads_tooltip": "Gérez les prospects capturés par votre agent",
+            "knowledge_sources": "Sources",
+            "knowledge_sources_tooltip": "Gérez les connaissances et les données d'entraînement de l'agent",
+            "functions": "Fonctions",
+            "functions_tooltip": "Gérez les fonctions personnalisées que votre agent peut appeler",
+            "connectors": "Connecteurs",
+            "connectors_tooltip": "Associez des connecteurs pour que votre agent puisse utiliser des outils externes",
+            "members": "Chatters",
+            "members_tooltip": "Chatters autorisés à discuter avec cet agent",
+            "security": "Sécurité",
+            "security_tooltip": "Contrôle d'accès, secret de signature et limites de débit pour cet agent",
+            "identity": "Identité",
+            "rate_limiting": "Limitation de débit",
+            "rename": "Renommer",
+            "rename_tooltip": "Renommer cet agent",
+            "delete_agent": "Supprimer l'agent",
+            "delete_agent_tooltip": "Supprimer définitivement cet agent",
+            "expand_sidebar": "Développer la barre latérale",
+            "delete_dialog": {
+                "title": "Supprimer l'agent",
+                "description": "Cette action est irréversible. Elle supprimera définitivement l'agent {name} ainsi que toutes ses données.",
+                "confirm_label": "Veuillez saisir {name} pour confirmer",
+                "confirm_placeholder": "Saisissez le nom de l'agent pour confirmer",
+                "name_mismatch": "Le nom de l'agent ne correspond pas",
+                "submit": "Supprimer l'agent",
+                "deleted_toast": "Agent supprimé avec succès",
+                "delete_error_toast": "Échec de la suppression de l'agent. Veuillez réessayer."
+            },
+            "rename_dialog": {
+                "title": "Renommer l'agent",
+                "description": "Saisissez un nouveau nom pour votre agent {name}.",
+                "name_label": "Nom de l'agent",
+                "name_placeholder": "Saisissez le nouveau nom de l'agent",
+                "subdomain_label": "Sous-domaine",
+                "subdomain_placeholder": "votre-sous-domaine",
+                "subdomain_hint": "Seuls les lettres minuscules, les chiffres et les tirets sont autorisés.",
+                "save": "Enregistrer",
+                "updated_toast": "Agent mis à jour avec succès"
+            }
+        }
+    }
+}

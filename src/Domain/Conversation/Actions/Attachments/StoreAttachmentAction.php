@@ -22,7 +22,7 @@ class StoreAttachmentAction
     public function execute(UploadAttachmentData $data): Attachment
     {
         // Generate the storage filename from a fresh UUID. The model's
-        // external_id is auto-filled by SupportsExternalId on `creating`,
+        // external_id is auto-filled by HasExternalId on `creating`,
         // and it's intentionally not on Fillable — we want callers using
         // ::create() to never overwrite it.
         $extension = strtolower($data->file->getClientOriginalExtension() ?: 'pdf');

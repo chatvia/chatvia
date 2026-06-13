@@ -3,6 +3,7 @@ import axios from 'axios';
 import jsVectorMap from 'jsvectormap';
 import 'jsvectormap/dist/maps/world.js';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface CountryData {
     country_code: string;
@@ -17,6 +18,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const mapContainer = ref<HTMLElement | null>(null);
+const { t } = useI18n();
 let mapInstance: any = null;
 let tooltipElement: HTMLElement | null = null;
 let isMapInitialized = false;
@@ -127,7 +129,7 @@ const initMap = () => {
                     if (code && tooltipElement) {
                         // Check if country has data, otherwise use 0
                         const country = countryMap[code];
-                        const countryName = country ? country.country_name : allCountries.value[code] || 'Unknown';
+                        const countryName = country ? country.country_name : allCountries.value[code] || t('shared.unknown');
                         const chatCount = country ? country.count : 0;
                         const percentage = country ? Number(country.percentage).toFixed(1) : '0.0';
                         const flagPath = `/images/flags/${code.toLowerCase()}.svg`;
@@ -138,7 +140,7 @@ const initMap = () => {
                                 <div style="font-weight: 600;">${countryName}</div>
                             </div>
                             <div style="font-size: 12px; color: #9ca3af; margin-left: 28px;">
-                                <span style="color: #3b82f6; font-weight: 600;">${chatCount}</span> chats
+                                <span style="color: #3b82f6; font-weight: 600;">${chatCount}</span> ${t('shared.chats')}
                                 <span style="margin-left: 8px;">(${percentage}%)</span>
                             </div>
                         `;
@@ -204,9 +206,9 @@ watch(
         <div ref="mapContainer" style="height: 450px" class="bg-card w-full overflow-hidden"></div>
 
         <!-- Color Legend (inside map, positioned left) -->
-        <div class="absolute bottom-4 left-4 z-10 rounded-lg border bg-white p-3 shadow-sm dark:bg-gray-800">
+        <div class="absolute start-4 bottom-4 z-10 rounded-lg border bg-white p-3 shadow-sm dark:bg-gray-800">
             <div class="text-muted-foreground flex flex-col gap-2 text-xs">
-                <span class="font-medium">Chat Volume</span>
+                <span class="font-medium">{{ t('shared.chat_volume') }}</span>
                 <div class="flex items-center gap-2">
                     <span class="text-[10px]">0</span>
                     <div class="flex h-2.5 w-32 overflow-hidden rounded border">

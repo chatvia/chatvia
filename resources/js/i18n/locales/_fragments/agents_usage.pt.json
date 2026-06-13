@@ -1,0 +1,42 @@
+{
+    "agents": {
+        "usage": {
+            "title": "Informações de Utilização",
+            "description": "Veja quais fontes, funções e servidores MCP este agente utiliza efetivamente",
+            "load_error": "Falha ao carregar a utilização",
+            "try_again": "Tentar novamente",
+            "tabs": {
+                "knowledge": "Conhecimento",
+                "functions": "Funções",
+                "mcp": "MCP"
+            },
+            "knowledge_empty": "Nenhuma fonte de conhecimento recuperada ainda",
+            "knowledge_empty_hint": "Ficheiros, websites, excertos de texto e vídeos do YouTube aparecem aqui assim que o agente os utilizar.",
+            "functions_empty": "Nenhuma chamada de função ainda",
+            "functions_empty_hint": "As funções webhook aparecem aqui assim que o agente as invocar.",
+            "mcp_empty": "Nenhuma chamada de ferramenta MCP ainda",
+            "mcp_empty_hint": "As ferramentas individuais dos servidores MCP ligados aparecem aqui assim que o agente as invocar.",
+            "retrievals": "{count} recuperação | {count} recuperações",
+            "calls": "{count} chamada | {count} chamadas",
+            "last_used": "Utilizado pela última vez {time}",
+            "last_called": "Chamado pela última vez {time}",
+            "via_server": "via {name}",
+            "sub_kind": {
+                "source_file": "Ficheiro",
+                "source_website": "Website",
+                "source_text": "Texto",
+                "source_youtube_video": "YouTube",
+                "agent_website_url": "Página web"
+            },
+            "relative": {
+                "just_now": "agora mesmo",
+                "minutes_ago": "há {count} minuto | há {count} minutos",
+                "hours_ago": "há {count} hora | há {count} horas",
+                "days_ago": "há {count} dia | há {count} dias",
+                "weeks_ago": "há {count} semana | há {count} semanas",
+                "months_ago": "há {count} mês | há {count} meses",
+                "years_ago": "há {count} ano | há {count} anos"
+            }
+        }
+    }
+}

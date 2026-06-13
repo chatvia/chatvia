@@ -2,16 +2,16 @@
 
 use App\Http\Middleware\Access\EnsureAgentHasMessagesCapacity;
 use App\Http\Middleware\Access\EnsureAgentPermission;
-use App\Http\Middleware\Access\EnsureCanAccessApiAgent;
+use App\Http\Middleware\Access\EnsureApiWorkspaceOwner;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
 use App\Http\Middleware\Access\EnsureTeamPermission;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
 use App\Http\Middleware\Access\EnsureUserHasCapability;
 use App\Http\Middleware\Access\EnsureUserHasSubscription;
+use App\Http\Middleware\Auth\AuthenticateChatter;
 use App\Http\Middleware\Auth\AuthenticateChatterUsingToken;
 use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
-use App\Http\Middleware\Auth\AuthenticateMember;
-use App\Http\Middleware\Auth\MemberGuestMiddleware;
+use App\Http\Middleware\Auth\ChatterGuestMiddleware;
 use App\Http\Middleware\Auth\RequirePasswordSetup;
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use App\Http\Middleware\Chat\EnsureChatIsAccessible;
@@ -30,6 +30,8 @@ use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Laravel\Pennant\Middleware\EnsureFeaturesAreActive;
+use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
+use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
 use Sentry\Laravel\Integration as SentryIntegration;
 use Support\Exceptions\DomainValidationException;
 
@@ -90,16 +92,20 @@ $app = Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'auth.member' => AuthenticateMember::class,
-            'guest.member' => MemberGuestMiddleware::class,
+            'auth.chatter' => AuthenticateChatter::class,
+            'guest.chatter' => ChatterGuestMiddleware::class,
             'can.access.agent' => EnsureUserCanAccessAgent::class,
             'user.subscribed' => EnsureUserHasSubscription::class,
-            'api.agent' => EnsureCanAccessApiAgent::class,
+            'api.owner' => EnsureApiWorkspaceOwner::class,
             'can.access.dashboard' => EnsureCanAccessDashboard::class,
             'capability' => EnsureUserHasCapability::class,
             'features' => EnsureFeaturesAreActive::class,
             'agent.permission' => EnsureAgentPermission::class,
             'team.permission' => EnsureTeamPermission::class,
+            // Public-site localization (mcamara/laravel-localization): browser-detect
+            // + redirect to the matching `/ar` URL, persisting the choice in session.
+            'localeSessionRedirect' => LocaleSessionRedirect::class,
+            'localizationRedirect' => LaravelLocalizationRedirectFilter::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

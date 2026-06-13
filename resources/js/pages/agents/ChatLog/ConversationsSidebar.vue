@@ -161,7 +161,7 @@ import { ref } from 'vue';
 </script>
 
 <template>
-    <div class="bg-muted/30 flex h-full w-[300px] flex-shrink-0 flex-col border-r">
+    <div class="bg-muted/30 flex h-full w-[300px] flex-shrink-0 flex-col border-e">
         <!-- Header Section -->
         <div class="border-border/50 bg-muted/30 flex-shrink-0 border-b px-4 pt-4 pb-3">
             <div class="mb-3 flex items-center justify-between">
@@ -203,7 +203,7 @@ import { ref } from 'vue';
                         <Filter class="h-4 w-4" />
                         <span
                             v-if="hasActiveFilters"
-                            class="bg-primary text-primary-foreground absolute -top-0.5 -end-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-medium"
+                            class="bg-primary text-primary-foreground absolute -end-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-medium"
                         >
                             {{ activeFilterCount }}
                         </span>

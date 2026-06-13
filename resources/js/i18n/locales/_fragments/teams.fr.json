@@ -1,0 +1,139 @@
+{
+    "teams": {
+        "breadcrumb": "Équipes",
+        "common": {
+            "cancel": "Annuler",
+            "create_role": "Créer un rôle"
+        },
+        "index": {
+            "title": "Équipes",
+            "heading": "Équipes",
+            "subtitle": "Gérez vos équipes et collaborez avec d'autres personnes.",
+            "create_team": "Créer une équipe",
+            "search_placeholder": "Rechercher des équipes",
+            "empty_title": "Aucune équipe pour l'instant",
+            "empty_description": "Créez votre première équipe pour commencer à collaborer avec d'autres personnes",
+            "no_results": "Aucune équipe trouvée pour \"{query}\".",
+            "clear_search": "Effacer la recherche",
+            "primary": "Principale",
+            "open_menu": "Ouvrir le menu",
+            "manage": "Gérer",
+            "leave": "Quitter",
+            "delete": "Supprimer",
+            "table": {
+                "name": "Nom de l'équipe",
+                "agents": "Agents",
+                "members": "Membres",
+                "created": "Créée"
+            },
+            "leave_dialog": {
+                "title": "Quitter l'équipe",
+                "description": "Êtes-vous sûr de vouloir quitter \"{name}\" ?"
+            },
+            "delete_dialog": {
+                "title": "Supprimer l'équipe",
+                "description": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action est irréversible."
+            },
+            "create_dialog": {
+                "title": "Créer une nouvelle équipe",
+                "description": "Créez une équipe pour collaborer avec d'autres personnes.",
+                "name_label": "Nom de l'équipe",
+                "name_placeholder": "Saisir le nom de l'équipe"
+            }
+        },
+        "show": {
+            "title": "Équipe : {name}",
+            "back": "Retour aux équipes",
+            "copied": "Copié !",
+            "copy_team_id": "Copier l'identifiant de l'équipe",
+            "add_member": "Ajouter un membre",
+            "view_members": "Voir les membres ({count})",
+            "role": "Rôle",
+            "actions": "Actions",
+            "roles": {
+                "title": "Rôles et permissions",
+                "description": "Définissez les rôles et leurs permissions pour les membres de l'équipe.",
+                "empty": "Aucun rôle personnalisé pour l'instant. Créez un rôle pour attribuer des permissions spécifiques aux membres de l'équipe.",
+                "copy_role_id": "Copier l'identifiant du rôle",
+                "edit_role": "Modifier le rôle",
+                "delete_role": "Supprimer le rôle",
+                "agent_access_label": "Accès aux agents :",
+                "all_agents": "Tous les agents",
+                "no_agents_assigned": "Aucun agent assigné",
+                "agent_count": "{count} agent | {count} agents",
+                "delete_description": "Êtes-vous sûr de vouloir supprimer le rôle \"{name}\" ? Cette action est irréversible."
+            },
+            "members": {
+                "title": "Membres de l'équipe",
+                "description": "Membres ayant accès à cette équipe.",
+                "you": "Vous",
+                "change_role": "Changer de rôle",
+                "change_role_title": "Modifier le rôle du membre",
+                "update_role_description": "Mettre à jour le rôle de {name}.",
+                "select_role_placeholder": "Sélectionner un rôle",
+                "update_role": "Mettre à jour le rôle",
+                "remove": "Retirer",
+                "remove_title": "Retirer le membre de l'équipe",
+                "remove_description": "Êtes-vous sûr de vouloir retirer {name} de cette équipe ? Il perdra l'accès à toutes les ressources de l'équipe.",
+                "remove_confirm": "Retirer le membre",
+                "table": {
+                    "member": "Membre"
+                }
+            },
+            "invitations": {
+                "title": "Invitations en attente",
+                "description": "Ces invitations sont en attente d'acceptation.",
+                "table": {
+                    "email": "E-mail",
+                    "sent": "Envoyée"
+                }
+            },
+            "invite": {
+                "title": "Ajouter un membre à l'équipe",
+                "description": "Ajoutez un utilisateur existant ou invitez une nouvelle personne à rejoindre cette équipe.",
+                "select_existing": "Sélectionner un existant",
+                "invite_by_email": "Inviter par e-mail",
+                "select_user_label": "Sélectionner un utilisateur",
+                "select_user_placeholder": "Choisir un utilisateur…",
+                "email_label": "Adresse e-mail",
+                "email_placeholder": "collegue{'@'}exemple.com",
+                "send_invitation": "Envoyer l'invitation"
+            },
+            "role_members": {
+                "title": "Membres — {name}",
+                "description": "Membres ayant ce rôle. Vous pouvez leur retirer l'accès à cette équipe.",
+                "empty": "Aucun membre avec ce rôle pour l'instant.",
+                "close": "Fermer"
+            }
+        },
+        "roles": {
+            "details": "Détails du rôle",
+            "role_name_label": "Nom du rôle",
+            "role_name_placeholder": "ex. : Agent support, Éditeur de contenu",
+            "agent_access": "Accès aux agents",
+            "agent_access_description": "Choisissez quels agents ce rôle peut consulter et avec lesquels il peut interagir.",
+            "all_agents": "Tous les agents",
+            "all_agents_description": "Accès à tous les agents actuels et futurs",
+            "select_specific": "Sélectionner des agents spécifiques :",
+            "select_agents": "Sélectionner des agents…",
+            "agents_more": "{names} +{count} de plus",
+            "no_agents_available": "Aucun agent disponible",
+            "permissions": {
+                "title": "Permissions",
+                "description": "Choisissez les actions que les utilisateurs ayant ce rôle peuvent effectuer.",
+                "requires": "Requiert :"
+            },
+            "create": {
+                "subtitle": "Définir un nouveau rôle pour"
+            },
+            "edit": {
+                "title": "Modifier le rôle : {name}",
+                "breadcrumb": "Modifier : {name}",
+                "heading": "Modifier le rôle",
+                "subtitle_prefix": "Mettre à jour le rôle",
+                "subtitle_middle": "pour",
+                "save": "Enregistrer"
+            }
+        }
+    }
+}

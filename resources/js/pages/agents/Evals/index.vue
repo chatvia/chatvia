@@ -39,8 +39,8 @@ import {
     X,
 } from 'lucide-vue-next';
 import { computed, onUnmounted, ref, watch, type Component } from 'vue';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 
@@ -386,11 +386,7 @@ const knowledgeAddLabel = computed(() => {
 </script>
 
 <template>
-    <AgentLayout
-        :agent="props.agent"
-        :title="t('agents.evals.index.title')"
-        :description="t('agents.evals.index.description')"
-    >
+    <AgentLayout :agent="props.agent" :title="t('agents.evals.index.title')" :description="t('agents.evals.index.description')">
         <template #header-actions>
             <Button v-if="canManage" :disabled="!canRun || runProcessing" @click="triggerRun">
                 <LoaderCircle v-if="runProcessing || hasRunning" class="me-2 h-4 w-4 animate-spin" />
@@ -432,7 +428,7 @@ const knowledgeAddLabel = computed(() => {
                                         <TableHead>{{ t('agents.evals.index.table.case') }}</TableHead>
                                         <TableHead>{{ t('agents.evals.index.table.scorer') }}</TableHead>
                                         <TableHead>{{ t('agents.evals.index.table.status') }}</TableHead>
-                                        <TableHead class="w-0 text-right">{{ t('agents.evals.index.table.actions') }}</TableHead>
+                                        <TableHead class="w-0 text-end">{{ t('agents.evals.index.table.actions') }}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -475,7 +471,7 @@ const knowledgeAddLabel = computed(() => {
                                                 {{ item.active ? t('agents.evals.index.status_active') : t('agents.evals.index.status_inactive') }}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell class="text-right">
+                                        <TableCell class="text-end">
                                             <div v-if="canManage" class="flex items-center justify-end gap-1">
                                                 <Button variant="ghost" size="icon" @click="openEdit(item)">
                                                     <Pencil class="h-4 w-4" />
@@ -518,7 +514,7 @@ const knowledgeAddLabel = computed(() => {
                                         <TableHead>{{ t('agents.evals.index.table.passed_failed') }}</TableHead>
                                         <TableHead>{{ t('agents.evals.index.table.avg_score') }}</TableHead>
                                         <TableHead>{{ t('agents.evals.index.table.status') }}</TableHead>
-                                        <TableHead class="text-right">{{ t('agents.evals.index.table.when') }}</TableHead>
+                                        <TableHead class="text-end">{{ t('agents.evals.index.table.when') }}</TableHead>
                                         <TableHead v-if="canManage" class="w-0"></TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -571,10 +567,10 @@ const knowledgeAddLabel = computed(() => {
                                                 {{ run.status }}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell class="text-muted-foreground text-right whitespace-nowrap">{{
+                                        <TableCell class="text-muted-foreground text-end whitespace-nowrap">{{
                                             formatDateTime(run.created_at)
                                         }}</TableCell>
-                                        <TableCell v-if="canManage" class="text-right">
+                                        <TableCell v-if="canManage" class="text-end">
                                             <Button variant="ghost" size="icon" @click.stop="confirmDeleteRun(run)">
                                                 <Trash2 class="text-destructive h-4 w-4" />
                                             </Button>
@@ -597,7 +593,9 @@ const knowledgeAddLabel = computed(() => {
         <Dialog v-model:open="isCaseDialogOpen">
             <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>{{ editingId ? t('agents.evals.index.case_dialog.edit_title') : t('agents.evals.index.case_dialog.add_title') }}</DialogTitle>
+                    <DialogTitle>{{
+                        editingId ? t('agents.evals.index.case_dialog.edit_title') : t('agents.evals.index.case_dialog.add_title')
+                    }}</DialogTitle>
                     <DialogDescription>{{ t('agents.evals.index.case_dialog.description') }}</DialogDescription>
                 </DialogHeader>
 
@@ -605,7 +603,7 @@ const knowledgeAddLabel = computed(() => {
                     <div class="space-y-1.5">
                         <Label for="case-name">{{ t('agents.evals.index.case_dialog.name_label') }}</Label>
                         <div class="relative">
-                            <Tag class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                            <Tag class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                             <Input
                                 id="case-name"
                                 v-model="form.name"
@@ -619,7 +617,7 @@ const knowledgeAddLabel = computed(() => {
                     <div class="space-y-1.5">
                         <Label for="case-input">{{ t('agents.evals.index.case_dialog.input_label') }}</Label>
                         <div class="relative">
-                            <MessageSquare class="text-muted-foreground pointer-events-none absolute top-3 start-3 h-4 w-4" />
+                            <MessageSquare class="text-muted-foreground pointer-events-none absolute start-3 top-3 h-4 w-4" />
                             <Textarea
                                 id="case-input"
                                 v-model="form.input"
@@ -654,7 +652,7 @@ const knowledgeAddLabel = computed(() => {
                         <div class="space-y-1.5">
                             <Label for="cfg-value">{{ t('agents.evals.index.case_dialog.expected_substring') }}</Label>
                             <div class="relative">
-                                <Search class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                                <Search class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                                 <Input
                                     id="cfg-value"
                                     v-model="form.value"
@@ -673,7 +671,7 @@ const knowledgeAddLabel = computed(() => {
                     <div v-else-if="form.scorer_type === 'regex'" class="space-y-1.5">
                         <Label for="cfg-pattern">{{ t('agents.evals.index.case_dialog.pattern_label') }}</Label>
                         <div class="relative">
-                            <Regex class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                            <Regex class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                             <Input
                                 id="cfg-pattern"
                                 v-model="form.pattern"
@@ -687,7 +685,7 @@ const knowledgeAddLabel = computed(() => {
                     <div v-else-if="form.scorer_type === 'json_schema'" class="space-y-1.5">
                         <Label for="cfg-required">{{ t('agents.evals.index.case_dialog.required_keys') }}</Label>
                         <div class="relative">
-                            <Braces class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                            <Braces class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                             <Input
                                 id="cfg-required"
                                 v-model="form.required"
@@ -701,7 +699,7 @@ const knowledgeAddLabel = computed(() => {
                     <div v-else-if="form.scorer_type === 'llm_judge'" class="space-y-1.5">
                         <Label for="cfg-criteria">{{ t('agents.evals.index.case_dialog.grading_criteria') }}</Label>
                         <div class="relative">
-                            <Scale class="text-muted-foreground pointer-events-none absolute top-3 start-3 h-4 w-4" />
+                            <Scale class="text-muted-foreground pointer-events-none absolute start-3 top-3 h-4 w-4" />
                             <Textarea
                                 id="cfg-criteria"
                                 v-model="form.criteria"
@@ -724,8 +722,8 @@ const knowledgeAddLabel = computed(() => {
                             }}
                         </Label>
                         <div class="relative">
-                            <FileText class="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                            <Textarea id="cfg-expected" v-model="form.expected_output" rows="2" class="pl-9" />
+                            <FileText class="text-muted-foreground pointer-events-none absolute start-3 top-3 h-4 w-4" />
+                            <Textarea id="cfg-expected" v-model="form.expected_output" rows="2" class="ps-9" />
                         </div>
                         <p v-if="form.errors.expected_output" class="text-destructive text-xs">{{ form.errors.expected_output }}</p>
                     </div>
@@ -760,7 +758,7 @@ const knowledgeAddLabel = computed(() => {
                 </DialogHeader>
 
                 <div class="relative">
-                    <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                    <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                     <Input v-model="knowledgeSearch" :placeholder="t('agents.evals.index.knowledge_dialog.search_placeholder')" class="ps-9" />
                 </div>
 
@@ -774,7 +772,7 @@ const knowledgeAddLabel = computed(() => {
                             :key="q.key"
                             role="button"
                             :aria-disabled="q.already_added"
-                            class="hover:bg-muted/50 flex w-full cursor-pointer items-start gap-3 rounded-md border p-3 text-left text-sm transition-colors"
+                            class="hover:bg-muted/50 flex w-full cursor-pointer items-start gap-3 rounded-md border p-3 text-start text-sm transition-colors"
                             :class="[
                                 isQuestionSelected(q) ? 'border-primary bg-primary/5' : 'border-transparent',
                                 q.already_added ? 'cursor-not-allowed opacity-60 hover:bg-transparent' : '',
@@ -788,7 +786,9 @@ const knowledgeAddLabel = computed(() => {
                             />
                             <span class="flex-1">{{ q.question }}</span>
                             <Badge variant="outline" class="shrink-0">{{ q.source }}</Badge>
-                            <Badge v-if="q.already_added" variant="secondary" class="shrink-0">{{ t('agents.evals.index.knowledge_dialog.added_badge') }}</Badge>
+                            <Badge v-if="q.already_added" variant="secondary" class="shrink-0">{{
+                                t('agents.evals.index.knowledge_dialog.added_badge')
+                            }}</Badge>
                         </div>
 
                         <p v-if="!filteredQuestions.length" class="text-muted-foreground py-8 text-center text-sm">

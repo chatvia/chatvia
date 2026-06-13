@@ -154,7 +154,7 @@ function openReviseDialog(message: Message) {
                                 <span class="group relative cursor-help tabular-nums" :class="getConfidenceColor(getConfidenceScore(m))">
                                     {{ formatConfidenceScore(getConfidenceScore(m)) }}
                                     <span
-                                        class="pointer-events-none absolute bottom-full start-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                                        class="pointer-events-none absolute start-0 bottom-full z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
                                     >
                                         {{ t('agents.chatlog.messages.confidence', { percent: (getConfidenceScore(m) * 100).toFixed(0) }) }}
                                     </span>
@@ -167,7 +167,7 @@ function openReviseDialog(message: Message) {
                                 <span class="group relative cursor-help tabular-nums">
                                     {{ t('agents.chatlog.messages.tokens', { count: formatTokens(getTotalTokens(m)!) }) }}
                                     <span
-                                        class="pointer-events-none absolute bottom-full start-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                                        class="pointer-events-none absolute start-0 bottom-full z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
                                     >
                                         {{
                                             t('agents.chatlog.messages.tokens_breakdown', {
@@ -204,7 +204,7 @@ function openReviseDialog(message: Message) {
                                     <ThumbsUp v-if="m.feedback === 'positive'" class="h-3 w-3" />
                                     <ThumbsDown v-else class="h-3 w-3" />
                                     <span
-                                        class="pointer-events-none absolute bottom-full start-0 z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                                        class="pointer-events-none absolute start-0 bottom-full z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
                                     >
                                         {{ getFeedbackInfo(m.feedback)?.label }}
                                     </span>

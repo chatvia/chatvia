@@ -11,9 +11,19 @@ import { ArrowLeft, Bot, Building, Check, Crown, Gift, Package, Sparkles, Star, 
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { useCatalogText } from '@/composables/useCatalogText';
 import { usePage } from '@inertiajs/vue3';
 
 const { t } = useI18n();
+const { catalogText } = useCatalogText();
+
+// Plan name / feature bullets / UI labels come from config/billing.php (English
+// source of truth); these overlay the Arabic translation by stable key, falling
+// back to the English the server sent. See connectors_catalog/billing_catalog fragments.
+const planName = (pkg: { id: string; name: string }): string => catalogText(`billing.catalog.packages.${pkg.id}.name`, pkg.name);
+const featureLabel = (pkg: { id: string }, key: string, feature: string): string =>
+    catalogText(`billing.catalog.packages.${pkg.id}.features.${isYearly.value ? 'yearly' : 'monthly'}.${key}`, feature);
+const uiText = (key: string, fallback: string): string => catalogText(`billing.catalog.ui.${key}`, fallback);
 
 const page = usePage();
 
@@ -258,7 +268,7 @@ const getButtonText = (packageId: string) => {
 
     switch (action) {
         case 'current':
-            return props.billingConfig.ui.current_plan_text;
+            return uiText('current_plan_text', props.billingConfig.ui.current_plan_text);
         case 'upgrade':
             return props.currentPackage === 'free' ? t('billing.plans.actions.upgrade') : t('billing.plans.actions.upgrade_plan');
         case 'downgrade':
@@ -332,7 +342,7 @@ const getFeatureHeader = (packageId: string, packages: Package[]) => {
     }
 
     const previousPackage = packagesArray[packageIndex - 1] as Package;
-    return t('billing.plans.everything_in', { plan: previousPackage.name });
+    return t('billing.plans.everything_in', { plan: planName(previousPackage) });
 };
 
 const getPackageFeatures = (pkg: Package) => {
@@ -405,7 +415,9 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                             "
                         >
                             {{ t('billing.plans.yearly') }}
-                            <Badge variant="secondary" class="text-xs">{{ billingConfig.ui.yearly_savings_text }}</Badge>
+                            <Badge variant="secondary" class="text-xs">{{
+                                uiText('yearly_savings_text', billingConfig.ui.yearly_savings_text)
+                            }}</Badge>
                         </Label>
                     </div>
                 </div>
@@ -414,11 +426,15 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                 <div v-if="isDiscountActive" class="rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 p-4 text-center text-white">
                     <div class="mb-2 flex items-center justify-center gap-2">
                         <Sparkles class="h-5 w-5" />
-                        <span class="text-lg font-bold">{{ t('billing.plans.discount.banner', { percent: billingConfig.discount.percentage }) }}</span>
+                        <span class="text-lg font-bold">{{
+                            t('billing.plans.discount.banner', { percent: billingConfig.discount.percentage })
+                        }}</span>
                         <Sparkles class="h-5 w-5" />
                     </div>
                     <p class="text-green-100">
-                        <template v-if="billingConfig.discount.ends_at">{{ t('billing.plans.discount.ends', { date: formatDiscountEndDate }) }}</template>
+                        <template v-if="billingConfig.discount.ends_at">{{
+                            t('billing.plans.discount.ends', { date: formatDiscountEndDate })
+                        }}</template>
                         <template v-else>{{ t('billing.plans.discount.limited') }}</template>
                     </p>
                 </div>
@@ -430,7 +446,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                         <div v-if="pkg.is_popular" class="absolute -top-3 left-1/2 z-10 -translate-x-1/2">
                             <Badge class="bg-primary text-primary-foreground px-3 py-1 text-xs">
                                 <Star class="me-1 h-3 w-3" />
-                                {{ billingConfig.ui.popular_badge_text }}
+                                {{ uiText('popular_badge_text', billingConfig.ui.popular_badge_text) }}
                             </Badge>
                         </div>
 
@@ -444,9 +460,9 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                             ]"
                         >
                             <!-- Current Plan Indicator -->
-                            <div v-if="isCurrentPackage(pkg.id)" class="absolute top-4 end-4">
+                            <div v-if="isCurrentPackage(pkg.id)" class="absolute end-4 top-4">
                                 <Badge variant="secondary" class="text-xs">
-                                    {{ billingConfig.ui.current_plan_text }}
+                                    {{ uiText('current_plan_text', billingConfig.ui.current_plan_text) }}
                                 </Badge>
                             </div>
 
@@ -457,7 +473,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                 >
                                     <component :is="getPackageIcon(pkg.id).icon" class="h-6 w-6" :class="getPackageIcon(pkg.id).color" />
                                 </div>
-                                <CardTitle class="text-xl">{{ pkg.name }}</CardTitle>
+                                <CardTitle class="text-xl">{{ planName(pkg) }}</CardTitle>
                             </CardHeader>
 
                             <CardContent class="flex flex-1 flex-col">
@@ -544,7 +560,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                                 rel="noopener noreferrer"
                                                 class="text-sm leading-relaxed text-blue-600 underline decoration-dotted underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                                             >
-                                                {{ feature }}
+                                                {{ featureLabel(pkg, key, feature) }}
                                             </a>
                                             <span
                                                 v-else
@@ -556,7 +572,7 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                                 ]"
                                                 @click="handleFeatureClick(feature, index, String(packageKey))"
                                             >
-                                                {{ feature }}
+                                                {{ featureLabel(pkg, key, feature) }}
                                             </span>
                                         </div>
                                     </div>

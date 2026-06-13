@@ -2,12 +2,15 @@
 import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/vue3';
 import { Lock, Zap } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     description: string;
 }
 
 defineProps<Props>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -29,7 +32,7 @@ defineProps<Props>();
             <Button as-child size="lg" class="gap-2 shadow-lg transition-all duration-300 hover:shadow-xl">
                 <Link :href="route('billing.packages')">
                     <Zap class="h-5 w-5" />
-                    Upgrade Now
+                    {{ t('shared.upgrade_now') }}
                 </Link>
             </Button>
         </div>

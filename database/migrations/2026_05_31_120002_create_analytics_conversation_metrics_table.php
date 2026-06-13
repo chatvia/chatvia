@@ -17,11 +17,11 @@ return new class extends Migration
             $table->uuid('conversation_external_id')->primary();
             $table->unsignedBigInteger('agent_id');
             $table->unsignedBigInteger('workspace_id');
-            $table->timestampTz('started_at');
-            $table->timestampTz('ended_at')->nullable();
+            $table->timestamp('started_at');
+            $table->timestamp('ended_at')->nullable();
             // First user/assistant turn, upserted by RecordMessageSentAction; feeds avg first-response.
-            $table->timestampTz('first_user_at')->nullable();
-            $table->timestampTz('first_assistant_at')->nullable();
+            $table->timestamp('first_user_at')->nullable();
+            $table->timestamp('first_assistant_at')->nullable();
             $table->unsignedInteger('message_count')->default(0);
             $table->unsignedInteger('duration_seconds')->default(0);
 

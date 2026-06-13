@@ -1,0 +1,317 @@
+{
+    "billing": {
+        "common": {
+            "billing": "Fakturering",
+            "back_to_billing": "Tilbake til fakturering",
+            "view_plans": "Se planer",
+            "cancel": "Avbryt",
+            "processing": "Behandler...",
+            "not_available": "N/A"
+        },
+        "payment_success": {
+            "page_title": "Betaling vellykket",
+            "heading": "Betaling mottatt",
+            "description": "Takk! Betalingen din er behandlet. Vi setter opp abonnementet ditt nå.",
+            "redirecting_prefix": "Omdirigerer om",
+            "redirecting_suffix": "sekunder...",
+            "go_to_billing": "Gå til fakturering nå"
+        },
+        "invoices": {
+            "breadcrumb": "Fakturaer",
+            "page_title": "Fakturaer",
+            "heading": "Fakturaer",
+            "subheading": "Se og last ned faktureringshistorikk og fakturaer",
+            "history_title": "Faktureringshistorikk",
+            "history_description": "Last ned kvitteringer og fakturaer for abonnementsbetalingene dine",
+            "invoice_number": "Faktura #{number}",
+            "status": {
+                "paid": "Betalt",
+                "pending": "Venter",
+                "failed": "Mislyktes"
+            },
+            "download_pdf": "Last ned PDF",
+            "view_online": "Se online",
+            "empty_title": "Ingen fakturaer ennå",
+            "empty_description": "Faktureringshistorikk og fakturaer vil vises her når du starter et abonnement.",
+            "total_invoices": "Totalt antall fakturaer",
+            "total_spent": "Totalt brukt",
+            "since": "Siden",
+            "help_title": "Trenger du hjelp med fakturering?",
+            "help_description": "Har du spørsmål om fakturaene dine eller trenger hjelp med fakturering, er supportteamet vårt her for deg.",
+            "contact_support": "Kontakt support"
+        },
+        "payment_methods": {
+            "breadcrumb": "Betalingsmetoder",
+            "page_title": "Betalingsmetoder",
+            "heading": "Betalingsmetoder",
+            "subheading": "Administrer betalingsmetodene og faktureringsinformasjonen din",
+            "add_method": "Legg til betalingsmetode",
+            "saved_title": "Lagrede betalingsmetoder",
+            "saved_description": "Administrer de lagrede betalingsmetodene dine. Du kan angi en standardmetode for automatisk fakturering.",
+            "default": "Standard",
+            "expires": "Utløper {date}",
+            "set_default": "Sett som standard",
+            "empty_title": "Ingen betalingsmetoder",
+            "empty_description": "Legg til en betalingsmetode for å administrere abonnementene dine og gjøre betalinger.",
+            "add_first": "Legg til din første betalingsmetode",
+            "info_title": "Faktureringsinformasjon",
+            "info_description": "Oppdater faktureringsadressen og kontaktinformasjonen din",
+            "not_set": "Ikke angitt",
+            "update_info": "Oppdater faktureringsinformasjon",
+            "secure_title": "Sikker betalingsbehandling",
+            "secure_description": "Betalingsinformasjonen din er kryptert og behandles sikkert av Stripe. Vi lagrer aldri fullstendige kortopplysninger på våre servere.",
+            "updating": "Oppdaterer...",
+            "update_information": "Oppdater informasjon",
+            "card_information": "Kortinformasjon",
+            "remove_dialog": {
+                "title": "Fjern betalingsmetode",
+                "description": "Er du sikker på at du vil fjerne denne betalingsmetoden? Denne handlingen kan ikke angres.",
+                "confirm": "Ja, fjern"
+            },
+            "fields": {
+                "name": "Navn",
+                "email": "E-postadresse",
+                "address": "Adresse",
+                "city_state_country": "By, stat og land",
+                "billing_address": "Faktureringsadresse",
+                "line1": "Adresselinje 1",
+                "line2": "Adresselinje 2 (valgfritt)",
+                "city": "By",
+                "state": "Stat",
+                "postal_code": "Postnummer",
+                "country": "Land"
+            },
+            "placeholders": {
+                "name": "Ola Nordmann",
+                "email": "ola{'@'}eksempel.no",
+                "line1": "Storgata 1",
+                "line2": "Leilighet, suite, osv.",
+                "city": "Oslo",
+                "state": "Oslo",
+                "postal_code": "0150",
+                "country": "Velg land..."
+            },
+            "info_dialog": {
+                "title": "Oppdater faktureringsinformasjon",
+                "description": "Oppdater faktureringsadressen og kontaktinformasjonen din for fakturering og betalingsbehandling."
+            },
+            "add_dialog": {
+                "description": "Legg til en ny betalingsmetode på kontoen din. Kortinformasjonen din er sikker og kryptert.",
+                "success_title": "Betalingsmetode lagt til!",
+                "success_description": "Betalingsmetoden din er lagt til kontoen din.",
+                "secure_note": "Betalingsinformasjonen din er kryptert og behandles sikkert av Stripe. Vi lagrer aldri fullstendige kortopplysninger."
+            },
+            "errors": {
+                "init_failed": "Kunne ikke initialisere betalingssystemet",
+                "not_ready": "Betalingssystemet er ikke klart",
+                "add_failed": "Det oppstod en feil ved tillegg av betalingsmetoden din"
+            },
+            "toast": {
+                "added": "Betalingsmetode lagt til!",
+                "info_updated": "Faktureringsinformasjon oppdatert!",
+                "info_failed": "Kunne ikke oppdatere faktureringsinformasjon"
+            }
+        },
+        "plans": {
+            "breadcrumb": "Velg plan",
+            "page_title": "Velg din plan",
+            "heading": "Velg din plan",
+            "subheading": "Velg den perfekte planen for dine behov. Du kan endre eller si opp når som helst.",
+            "monthly": "Månedlig",
+            "yearly": "Årlig",
+            "custom": "Egendefinert",
+            "per_month": "/mnd",
+            "save_percent": "Spar {percent}%",
+            "billed_yearly": "Faktureres årlig til {amount}",
+            "features_included": "Inkluderte funksjoner:",
+            "everything_in": "Alt i {plan} +",
+            "actions": {
+                "contact_sales": "Kontakt salg",
+                "upgrade": "Oppgrader",
+                "upgrade_plan": "Oppgrader plan",
+                "downgrade_to_free": "Nedgrader til gratis",
+                "downgrade_plan": "Nedgrader plan",
+                "switch_plan": "Bytt plan",
+                "select_plan": "Velg plan"
+            },
+            "discount": {
+                "banner": "{percent}% RABATT – begrenset tilbud!",
+                "ends": "Tilbudet avsluttes {date} – ikke gå glipp av det!",
+                "limited": "Tidsbegrenset rabatt på alle betalte planer!",
+                "off": "{percent}% RABATT"
+            },
+            "llms": {
+                "title": "Tilgjengelige AI-modeller",
+                "description": "Velg fra vårt brede utvalg av toppmoderne språkmodeller",
+                "empty": "Ingen modeller tilgjengelig"
+            }
+        },
+        "addons": {
+            "title": "Tillegg",
+            "description": "Ekstra kreditter, agenter og domener i tillegg til planen din",
+            "per_agent": " / agent",
+            "per_domain": " / domene",
+            "per_member": " / medlem",
+            "per_month": " / mnd",
+            "requires_subscription": "Ekstra agenter, egendefinert domene, fjerning av merkevare og medlemmer krever et aktivt hovedabonnement.",
+            "common": {
+                "none": "Ingen",
+                "subscribe": "Abonner",
+                "change": "Endre",
+                "update_quantity": "Oppdater antall",
+                "monthly_cost": "Månedlig kostnad:",
+                "keep_subscription": "Behold abonnement",
+                "yes_cancel": "Ja, avslutt",
+                "ends": "Avsluttes {date}"
+            },
+            "auto_recharge": {
+                "title": "Automatisk påfylling",
+                "on": "På",
+                "off": "Av",
+                "summary": "Kjøp automatisk {amount} kreditter når saldoen faller under {threshold}.",
+                "manage": "Administrer",
+                "enable": "Aktiver",
+                "dialog_title": "Innstillinger for automatisk påfylling",
+                "dialog_description": "Når de gjenværende kredittene dine faller til eller under grensen, belaster vi automatisk standardbetalingsmetoden din og fyller opp saldoen.",
+                "enable_label": "Aktiver automatisk påfylling",
+                "enable_hint": "Belast automatisk når kreditter er i ferd med å gå tom",
+                "threshold_label": "Grense (kreditter)",
+                "threshold_hint": "Påfylling aktiveres når saldoen din faller til eller under dette beløpet.",
+                "amount_label": "Påfyllingsbeløp (kreditter)",
+                "each_recharge": "Hver påfylling:",
+                "charged_note": "Belastes umiddelbart på standardbetalingsmetoden din når det utløses.",
+                "save": "Lagre innstillinger"
+            },
+            "extra_credits": {
+                "title": "Ekstra kreditter",
+                "summary": "Engangsopplading. Hvert pakke legger til 1 000 meldinger som utløper etter 30 dager.",
+                "buy": "Kjøp kreditter",
+                "dialog_title": "Kjøp meldingskreditter",
+                "dialog_description": "Hvert pakke inneholder 1 000 meldinger som må brukes innen én måned etter kjøp.",
+                "quantity_label": "Antall (1 000 meldinger per pakke)",
+                "total_messages": "Totalt antall meldinger:",
+                "total_price": "Totalpris:",
+                "purchase_for": "Kjøp for ${amount}"
+            },
+            "extra_agents": {
+                "title": "Ekstra agenter",
+                "summary": "Legg til flere AI-agenter utover plangrensen din.",
+                "cancel_title": "Avslutte abonnement på ekstra agenter?",
+                "cancel_description": "Kvoten for ekstra agenter fjernes umiddelbart og du belastes ikke igjen.",
+                "change_title": "Endre ekstra agenter",
+                "subscribe_title": "Abonner på ekstra agenter",
+                "dialog_description": "Legg til ekstra AI-agenter i tillegg til planen din. Faktureres månedlig til $5 per agent.",
+                "quantity_label": "Antall ekstra agenter"
+            },
+            "custom_domains": {
+                "title": "Egendefinert domene",
+                "summary": "Bruk ditt eget domene for AI-agenter.",
+                "cancel_title": "Avslutte abonnement på egendefinert domene?",
+                "cancel_description": "Kvoten for egendefinert domene fjernes umiddelbart og du belastes ikke igjen.",
+                "change_title": "Endre egendefinerte domener",
+                "subscribe_title": "Abonner på egendefinert domene",
+                "dialog_description": "Bruk ditt eget domene for AI-agenter. Faktureres månedlig til $29 per domene.",
+                "quantity_label": "Antall domener"
+            },
+            "remove_branding": {
+                "title": "Fjern merkevare",
+                "active": "Aktiv",
+                "summary": "Skjul «Drevet av Chatvia»-merket i widgeten og den hostede chatten din.",
+                "cancel_title": "Avslutte abonnement på fjerning av merkevare?",
+                "cancel_description": "«Drevet av Chatvia»-merket vil umiddelbart vises igjen i widgeten og den hostede chatten din, og du belastes ikke igjen."
+            },
+            "members": {
+                "title": "Medlemmer",
+                "summary": "Legg til flere teammedlemmer i arbeidsområdet ditt.",
+                "cancel_title": "Avslutte abonnement på medlemmer?",
+                "cancel_description": "De ekstra medlemsplassene fjernes umiddelbart og du belastes ikke igjen.",
+                "change_title": "Endre medlemmer",
+                "subscribe_title": "Abonner på medlemmer",
+                "dialog_description": "Legg til ekstra teammedlemmer i arbeidsområdet ditt. Faktureres månedlig til $9 per medlem.",
+                "quantity_label": "Antall medlemmer"
+            }
+        },
+        "index": {
+            "page_title": "Fakturering",
+            "heading": "Fakturering",
+            "subheading": "Administrer abonnementet, faktureringsinformasjonen og bruksgrensene dine",
+            "stripe_notice": "Betalinger behandles sikkert av",
+            "status_label": "Status",
+            "trial_ends": "Prøveperiode avsluttes",
+            "next_billing": "Neste fakturering",
+            "access_ends": "Tilgang avsluttes",
+            "plan_features": "Planfunksjoner",
+            "show_less": "Vis mindre",
+            "show_more": "Vis {count} til",
+            "per_year": "År",
+            "per_month": "Måned",
+            "status": {
+                "active": "Aktiv",
+                "trial": "Prøveperiode",
+                "cancelled": "Avsluttet",
+                "incomplete": "Ufullstendig",
+                "past_due": "Forfalt"
+            },
+            "trial": {
+                "heading": "🎉 Du er på en gratis prøveperiode!",
+                "ends_on": "Prøveperioden for {plan} avsluttes",
+                "auto_start": "Det betalte abonnementet ditt starter automatisk {date}",
+                "badge": "Prøveperiode aktiv"
+            },
+            "upgrade": {
+                "heading": "Oppgrader til Premium",
+                "description": "Få tilgang til avanserte AI-modeller, høyere meldingsgrenser og prioritert support"
+            },
+            "current_plan": {
+                "title": "Nåværende plan",
+                "description": "Det aktive abonnementet ditt og bruksdetaljer"
+            },
+            "pending_change": {
+                "heading": "Planendring planlagt",
+                "change_from": "Planen din vil endres fra",
+                "to": "til",
+                "cycle_yearly": "(Årlig)",
+                "cycle_monthly": "(Månedlig)",
+                "on_date": "den {date}.",
+                "scheduled_for": "Du har en planlagt planendring {date}.",
+                "access_note": "Du vil fortsette å ha tilgang til gjeldende planfunksjoner frem til da.",
+                "cancel_schedule": "Avbryt planlegging",
+                "cancel_dialog": {
+                    "title": "Avbryt planlagt planendring",
+                    "description": "Er du sikker på at du vil avbryte den planlagte planendringen? Du beholder gjeldende plan.",
+                    "confirm": "Ja, avbryt planlegging",
+                    "cancel": "Behold planlegging"
+                }
+            },
+            "cancelled": {
+                "title": "Abonnement avsluttet",
+                "description": "Abonnementet ditt avsluttes {date}. Du kan gjenoppta abonnementet når som helst før denne datoen.",
+                "resume": "Gjenoppta abonnement"
+            },
+            "management": {
+                "title": "Administrasjon",
+                "manage_payment_methods": "Administrer betalingsmetoder",
+                "view_invoices": "Se fakturaer",
+                "go_to_stripe": "Gå til Stripe",
+                "change_plan": "Endre plan",
+                "cancel_subscription": "Avslutt abonnement"
+            },
+            "cancel_dialog": {
+                "title": "Avslutt abonnement",
+                "description": "Er du sikker på at du vil avslutte abonnementet? Du vil fortsette å ha tilgang til slutten av faktureringsperioden.",
+                "confirm": "Ja, avslutt",
+                "cancel": "Behold abonnement"
+            },
+            "usage": {
+                "title": "Bruk",
+                "messages": "Meldinger",
+                "pages": "Sider",
+                "agents": "Agenter",
+                "links": "Lenker",
+                "minutes": "Minutter",
+                "remaining": "{count} gjenstående",
+                "load_error": "Kan ikke laste bruksdata"
+            }
+        }
+    }
+}

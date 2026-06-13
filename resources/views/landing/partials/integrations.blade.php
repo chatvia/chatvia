@@ -1,15 +1,15 @@
 <!-- Integrations Section -->
 @php
-    // Every connector + channel your agent can use. Slack lives in both folders —
-    // listed once here. Order controls which marquee row each chip lands in.
+    // Connectors only — tools the agent can CALL (MCP servers + custom functions).
+    // Messaging channels (where the agent gets DEPLOYED) live in their own partial
+    // (landing.partials.channels), rendered below the features bar. Order controls
+    // which marquee row each chip lands in.
     $wall = [
         ['img' => 'images/logos/connectors/slack.svg',           'label' => 'Slack'],
         ['img' => 'images/logos/connectors/hubspot.svg',         'label' => 'HubSpot'],
-        ['img' => 'images/logos/channels/whatsapp.svg',          'label' => 'WhatsApp'],
         ['img' => 'images/logos/connectors/salesforce.svg',      'label' => 'Salesforce'],
         ['img' => 'images/logos/connectors/notion.svg',          'label' => 'Notion'],
         ['img' => 'images/logos/connectors/github.svg',          'label' => 'GitHub'],
-        ['img' => 'images/logos/channels/telegram.svg',          'label' => 'Telegram'],
         ['img' => 'images/logos/connectors/zendesk.svg',         'label' => 'Zendesk'],
         ['img' => 'images/logos/connectors/linear.svg',          'label' => 'Linear'],
         ['img' => 'images/logos/connectors/atlassian.svg',       'label' => 'Atlassian'],
@@ -18,7 +18,6 @@
         ['img' => 'images/logos/connectors/google-calendar.svg', 'label' => 'Google Calendar'],
         ['img' => 'images/logos/connectors/google-drive.svg',    'label' => 'Google Drive'],
         ['img' => 'images/logos/connectors/outlook.svg',         'label' => 'Outlook'],
-        ['img' => 'images/logos/channels/messenger.svg',         'label' => 'Messenger'],
         ['img' => 'images/logos/connectors/calendly.svg',        'label' => 'Calendly'],
         ['img' => 'images/logos/connectors/asana.svg',           'label' => 'Asana'],
         ['img' => 'images/logos/connectors/todoist.svg',         'label' => 'Todoist'],
@@ -39,7 +38,7 @@
     $rows = [array_slice($wall, 0, $half), array_slice($wall, $half)];
 @endphp
 
-<section id="integrations" class="relative overflow-hidden bg-gradient-to-b from-white via-indigo-50/30 to-white py-16 sm:py-24">
+<section id="integrations" class="relative overflow-hidden bg-gradient-to-b from-white via-indigo-50/30 to-white pt-16 sm:pt-24 pb-10">
     <!-- Soft decorative glows -->
     <div class="absolute inset-0 pointer-events-none">
         <div class="absolute top-1/3 left-1/4 w-72 h-72 bg-indigo-200/40 rounded-full blur-3xl"></div>
@@ -49,24 +48,25 @@
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6">
 
         <!-- Heading -->
-        <div class="text-center max-w-3xl mx-auto" data-aos="fade-up">
+        <div class="text-center max-w-3xl mx-auto">
             <span class="block text-sm font-bold uppercase tracking-widest text-indigo-600 mb-4">
-                Supercharge your agent
+                {{ __('landing.integrations.eyebrow') }}
             </span>
             <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 leading-tight tracking-tight">
-                Direct integrations with
+                {{ __('landing.integrations.title') }}
                 <span class="relative inline-block">
-                    <span class="relative z-10">your favorite tools</span>
+                    <span class="relative z-10">{{ __('landing.integrations.title_highlight') }}</span>
                     <span class="absolute bottom-1 left-0 right-0 h-3 sm:h-4 bg-linear-to-r from-indigo-200 via-indigo-300 to-purple-200 -rotate-1 opacity-60"></span>
                 </span>
             </h2>
             <p class="mt-6 text-base sm:text-lg text-slate-600 leading-relaxed">
-                Connect your agent to Slack, HubSpot, Salesforce and 20+ tools through MCP and custom functions
+                {{ __('landing.integrations.subtitle') }}
             </p>
         </div>
 
-        <!-- Logo marquee -->
-        <div id="integrations-tools" class="mt-12 sm:mt-16 scroll-mt-24" data-aos="fade-up">
+        <!-- Logo marquee — pinned to LTR so the translateX animation + chip spacing
+             stay identical on RTL (Arabic) pages; the logos are language-neutral. -->
+        <div id="integrations-tools" dir="ltr" class="mt-12 sm:mt-16 scroll-mt-24">
             <div class="space-y-4 sm:space-y-5">
                 @foreach ($rows as $r => $row)
                     <div class="int-marquee-group int-marquee-mask overflow-hidden">

@@ -1,0 +1,134 @@
+{
+    "connectors": {
+        "categories": {
+            "utilities": "Utilities",
+            "sales": "Sales",
+            "payments": "Payments",
+            "developer_tools": "Developer Tools",
+            "productivity": "Productivity",
+            "communication": "Communication",
+            "automation": "Automation",
+            "analytics": "Analytics"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "Search the live web with Perplexity Sonar — news, prices, recent events — with cited sources.",
+                "token_label": "Perplexity API key",
+                "token_placeholder": "Your Perplexity API key"
+            },
+            "weather": {
+                "name": "Weather",
+                "description": "Live weather (temperature, conditions, humidity, wind) for any city, powered by OpenWeatherMap.",
+                "token_label": "OpenWeatherMap API key",
+                "token_placeholder": "Your OpenWeatherMap API key"
+            },
+            "currency": {
+                "name": "Currency Converter",
+                "description": "Convert amounts between any two currencies using current exchange rates (exchangerate-api).",
+                "token_label": "ExchangeRate-API key",
+                "token_placeholder": "Your ExchangeRate-API key"
+            },
+            "charts": {
+                "name": "Interactive charts",
+                "description": "Render interactive charts inline in the chat — bar, line, pie, scatter, radar, gauge, heatmap, and more."
+            },
+            "leads": {
+                "name": "Leads",
+                "description": "Capture visitor contact details (name, email, phone, and more)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "Search transactions, customers, products, and payments in your Stripe account."
+            },
+            "github": {
+                "name": "GitHub",
+                "description": "Read repos, issues, PRs, and code from any account you have access to."
+            },
+            "notion": {
+                "name": "Notion",
+                "description": "Read pages, databases, and comments from your Notion workspace."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "Search issues, projects, and cycles across your Linear workspace."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "Jira issues, Confluence pages, and workflows from your Atlassian sites."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "Search messages, read threads, and draft replies from your Gmail inbox."
+            },
+            "google-calendar": {
+                "name": "Google Calendar",
+                "description": "Read and create events across your Google Calendars."
+            },
+            "google-drive": {
+                "name": "Google Drive",
+                "description": "Read files and folders from your Google Drive."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "Search messages, post replies, and read channel history across your Slack workspace."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "Let visitors book meetings on your Calendly, and let agents read your scheduled events."
+            },
+            "todoist": {
+                "name": "Todoist",
+                "description": "Manage tasks, projects, and labels across your Todoist account."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "Trigger Zapier actions across 9,000+ connected apps."
+            },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "Read tickets, users, and Help Center articles from your Zendesk Support account.",
+                "token_label": "Zendesk API token",
+                "token_placeholder": "Your Zendesk API token"
+            },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "Read and update contacts, companies, deals, and tickets in your HubSpot CRM."
+            },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "Read and update accounts, contacts, opportunities, and cases from your Salesforce org."
+            },
+            "box": {
+                "name": "Box",
+                "description": "Search and read files, folders, and metadata from your Box account."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "Read and update tasks, projects, and portfolios across your Asana workspace."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "Read issues, errors, and releases from your Sentry projects."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "Search meeting transcripts, summaries, and action items from Fireflies.ai."
+            },
+            "amplitude": {
+                "name": "Amplitude",
+                "description": "Query product analytics — events, charts, and cohorts — from your Amplitude project."
+            }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "Account Analytics",
+                "description": "Answer the workspace owner's questions about their own account in numbers — messages, conversations, users, channels, leads, satisfaction, response time, topics and handoffs."
+            },
+            "charts": {
+                "name": "Interactive charts",
+                "description": "Render interactive charts (bar, line, pie, gauge, scatter, radar, heatmap, …) inline in the chat."
+            }
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "nav": { "platform": "Alusta" },
+    "theme": { "toggle": "Vaihda teema", "light": "Vaalea", "dark": "Tumma", "system": "Järjestelmä" },
+    "team_switcher": { "select_team": "Valitse tiimi", "no_teams": "Ei tiimejä saatavilla", "manage_teams": "Hallinnoi tiimejä" },
+    "agents": {
+        "create_modal": {
+            "title": "Luo agentti",
+            "limit_title": "Agenttirajasi on täynnä",
+            "limit_description": "Olet saavuttanut agenttirajasi.",
+            "upgrade_plan": "Päivitä suunnitelma",
+            "name_label": "Agentin nimi",
+            "name_placeholder": "Esim. Asiakastuki",
+            "load_error": "Käyttötietojen lataaminen epäonnistui",
+            "limit_toast_title": "Agenttirajasi on täynnä",
+            "limit_toast_description": "Olet saavuttanut agenttirajasi."
+        }
+    },
+    "confirm_password": {
+        "title": "Vahvista salasanasi",
+        "description": "Turvallisuutesi vuoksi vahvista salasanasi ennen tietoturva-asetusten muuttamista.",
+        "password_label": "Salasana",
+        "password_required": "Salasana on pakollinen.",
+        "incorrect": "Virheellinen salasana.",
+        "error": "Salasanan vahvistaminen epäonnistui. Yritä uudelleen.",
+        "cancel": "Peruuta",
+        "confirm": "Vahvista"
+    }
+}

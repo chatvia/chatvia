@@ -1,0 +1,91 @@
+{
+    "app": {
+        "header": {
+            "dashboard": "Dashboard",
+            "agents": "Agentes",
+            "usage": "Utilização",
+            "ask_your_data": "Pergunte aos seus dados",
+            "billing": "Faturação",
+            "support": "Suporte",
+            "teams": "Equipas",
+            "documentation": "Documentação",
+            "api": "API",
+            "nav_menu_sr": "Menu de Navegação",
+            "upgrade": "Atualizar",
+            "subscribed": "Tem uma subscrição ativa"
+        }
+    },
+    "agents": {
+        "nav": {
+            "default_title": "Definições do Agente",
+            "playground": "Playground",
+            "playground_tooltip": "Pré-visualize o seu agente em todas as superfícies",
+            "setup": "Configuração",
+            "setup_tooltip": "Configure o seu agente — aplica-se a todas as superfícies",
+            "channels": "Canais",
+            "channels_tooltip": "Implemente o seu agente — website, widget e Telegram",
+            "groups": {
+                "insights": "Informações",
+                "training": "Treino",
+                "access": "Acesso",
+                "settings": "Definições",
+                "danger_zone": "Zona de Perigo"
+            },
+            "analytics": "Análises",
+            "analytics_tooltip": "Consulte análises de utilização e informações",
+            "chats": "Conversas",
+            "sentiment": "Sentimento",
+            "tone": "Tom",
+            "topics": "Tópicos",
+            "sources": "Fontes",
+            "chat": "Conversa",
+            "chat_tooltip": "Inspecione mensagens de conversas por sessão",
+            "audit": "Auditoria",
+            "audit_tooltip": "Registo de auditoria de chamadas de ferramentas deste agente",
+            "evals": "Avaliações",
+            "evals_tooltip": "Conjuntos de testes que avaliam as respostas deste agente",
+            "guardrails": "Proteções",
+            "guardrails_tooltip": "Proteções de segurança de IA: PII, injeção de prompts, tópicos, toxicidade",
+            "leads": "Contactos",
+            "leads_tooltip": "Gerir contactos capturados pelo seu agente",
+            "knowledge_sources": "Fontes",
+            "knowledge_sources_tooltip": "Gerir conhecimento e dados de treino do agente",
+            "functions": "Funções",
+            "functions_tooltip": "Gerir funções personalizadas que o seu agente pode invocar",
+            "connectors": "Conectores",
+            "connectors_tooltip": "Associe conectores para que o seu agente possa utilizar ferramentas externas",
+            "members": "Chatters",
+            "members_tooltip": "Chatters com acesso para conversar com este agente",
+            "security": "Segurança",
+            "security_tooltip": "Controlo de acesso, segredo de assinatura e limites de taxa para este agente",
+            "identity": "Identidade",
+            "rate_limiting": "Limitação de Taxa",
+            "rename": "Renomear",
+            "rename_tooltip": "Renomear este agente",
+            "delete_agent": "Eliminar Agente",
+            "delete_agent_tooltip": "Eliminar permanentemente este agente",
+            "expand_sidebar": "Expandir barra lateral",
+            "delete_dialog": {
+                "title": "Eliminar Agente",
+                "description": "Esta ação não pode ser desfeita. Isto eliminará permanentemente o agente {name} e todos os seus dados.",
+                "confirm_label": "Escreva {name} para confirmar",
+                "confirm_placeholder": "Introduza o nome do agente para confirmar",
+                "name_mismatch": "O nome do agente não corresponde",
+                "submit": "Eliminar Agente",
+                "deleted_toast": "Agente eliminado com sucesso",
+                "delete_error_toast": "Falha ao eliminar o agente. Por favor, tente novamente."
+            },
+            "rename_dialog": {
+                "title": "Renomear Agente",
+                "description": "Introduza um novo nome para o seu agente {name}.",
+                "name_label": "Nome do agente",
+                "name_placeholder": "Introduza o novo nome do agente",
+                "subdomain_label": "Subdomínio",
+                "subdomain_placeholder": "o-seu-subdominio",
+                "subdomain_hint": "Apenas letras minúsculas, números e hífenes são permitidos.",
+                "save": "Guardar",
+                "updated_toast": "Agente atualizado com sucesso"
+            }
+        }
+    }
+}

@@ -144,10 +144,16 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
 
                     <!-- Topic -->
                     <div class="space-y-2">
-                        <Label for="topic-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasTopicsAccess }">{{ t('agents.chatlog.filters.topic') }}</Label>
+                        <Label for="topic-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasTopicsAccess }">{{
+                            t('agents.chatlog.filters.topic')
+                        }}</Label>
                         <Select v-model="selectedTopic" :disabled="!hasTopicsAccess">
                             <SelectTrigger id="topic-filter" class="w-full" :disabled="!hasTopicsAccess">
-                                <SelectValue :placeholder="hasTopicsAccess ? t('agents.chatlog.filters.select_topic') : t('agents.chatlog.filters.upgrade_to_unlock')" />
+                                <SelectValue
+                                    :placeholder="
+                                        hasTopicsAccess ? t('agents.chatlog.filters.select_topic') : t('agents.chatlog.filters.upgrade_to_unlock')
+                                    "
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">{{ t('agents.chatlog.filters.all_topics') }}</SelectItem>
@@ -160,10 +166,18 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
 
                     <!-- Sentiment -->
                     <div class="space-y-2">
-                        <Label for="sentiment-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasSentimentAccess }">{{ t('agents.chatlog.filters.sentiment') }}</Label>
+                        <Label for="sentiment-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasSentimentAccess }">{{
+                            t('agents.chatlog.filters.sentiment')
+                        }}</Label>
                         <Select v-model="selectedSentiment" :disabled="!hasSentimentAccess">
                             <SelectTrigger id="sentiment-filter" class="w-full" :disabled="!hasSentimentAccess">
-                                <SelectValue :placeholder="hasSentimentAccess ? t('agents.chatlog.filters.select_sentiment') : t('agents.chatlog.filters.upgrade_to_unlock')" />
+                                <SelectValue
+                                    :placeholder="
+                                        hasSentimentAccess
+                                            ? t('agents.chatlog.filters.select_sentiment')
+                                            : t('agents.chatlog.filters.upgrade_to_unlock')
+                                    "
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">{{ t('agents.chatlog.filters.all_sentiments') }}</SelectItem>
@@ -176,10 +190,16 @@ const hasTopicsAccess = computed(() => hasCapability('topics'));
 
                     <!-- Tone -->
                     <div class="space-y-2">
-                        <Label for="tone-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasToneAccess }">{{ t('agents.chatlog.filters.tone') }}</Label>
+                        <Label for="tone-filter" class="text-sm font-medium" :class="{ 'opacity-50': !hasToneAccess }">{{
+                            t('agents.chatlog.filters.tone')
+                        }}</Label>
                         <Select v-model="selectedTone" :disabled="!hasToneAccess">
                             <SelectTrigger id="tone-filter" class="w-full" :disabled="!hasToneAccess">
-                                <SelectValue :placeholder="hasToneAccess ? t('agents.chatlog.filters.select_tone') : t('agents.chatlog.filters.upgrade_to_unlock')" />
+                                <SelectValue
+                                    :placeholder="
+                                        hasToneAccess ? t('agents.chatlog.filters.select_tone') : t('agents.chatlog.filters.upgrade_to_unlock')
+                                    "
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">{{ t('agents.chatlog.filters.all_tones') }}</SelectItem>

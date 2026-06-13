@@ -160,7 +160,7 @@ function formatDate(dt: string | null | undefined) {
             <div
                 class="from-background/60 to-background supports-[backdrop-filter]:bg-background/40 border-b bg-gradient-to-b px-6 pt-6 pb-4 backdrop-blur"
             >
-                <SheetHeader class="items-start text-left">
+                <SheetHeader class="items-start text-start">
                     <SheetTitle class="flex items-center gap-2 text-base font-semibold">
                         <span>{{ t('agents.leads.details_sheet.title') }}</span>
                     </SheetTitle>
@@ -219,7 +219,9 @@ function formatDate(dt: string | null | undefined) {
                     </div>
                 </div>
                 <div v-if="lead.custom_fields && Object.keys(lead.custom_fields).length" class="space-y-3">
-                    <h3 class="text-muted-foreground text-xs font-medium tracking-wide uppercase">{{ t('agents.leads.details_sheet.custom_fields') }}</h3>
+                    <h3 class="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                        {{ t('agents.leads.details_sheet.custom_fields') }}
+                    </h3>
                     <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <div
                             v-for="(val, key) in lead.custom_fields"
@@ -276,14 +278,16 @@ function formatDate(dt: string | null | undefined) {
                         </div>
                         <div class="flex flex-col gap-0.5 sm:col-span-2">
                             <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.user_agent') }}</span>
-                            <span class="max-h-20 overflow-y-auto pr-1 font-mono text-[10px] leading-relaxed break-all">{{
+                            <span class="max-h-20 overflow-y-auto pe-1 font-mono text-[10px] leading-relaxed break-all">{{
                                 parsedLeadUA?.raw || '—'
                             }}</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div v-else class="text-muted-foreground flex flex-1 items-center justify-center p-10 text-sm">{{ t('agents.leads.details_sheet.no_data') }}</div>
+            <div v-else class="text-muted-foreground flex flex-1 items-center justify-center p-10 text-sm">
+                {{ t('agents.leads.details_sheet.no_data') }}
+            </div>
             <div class="bg-background/80 flex items-center justify-end gap-2 border-t px-6 py-4 backdrop-blur">
                 <SheetClose as-child>
                     <Button variant="outline" size="sm">{{ t('agents.leads.details_sheet.close') }}</Button>

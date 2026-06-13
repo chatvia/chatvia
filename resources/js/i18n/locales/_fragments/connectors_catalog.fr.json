@@ -1,0 +1,134 @@
+{
+    "connectors": {
+        "categories": {
+            "utilities": "Utilitaires",
+            "sales": "Ventes",
+            "payments": "Paiements",
+            "developer_tools": "Outils de développement",
+            "productivity": "Productivité",
+            "communication": "Communication",
+            "automation": "Automatisation",
+            "analytics": "Analytique"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "Recherchez sur le web en temps réel avec Perplexity Sonar — actualités, prix, événements récents — avec sources citées.",
+                "token_label": "Clé API Perplexity",
+                "token_placeholder": "Votre clé API Perplexity"
+            },
+            "weather": {
+                "name": "Météo",
+                "description": "Météo en direct (température, conditions, humidité, vent) pour n'importe quelle ville, propulsé par OpenWeatherMap.",
+                "token_label": "Clé API OpenWeatherMap",
+                "token_placeholder": "Votre clé API OpenWeatherMap"
+            },
+            "currency": {
+                "name": "Convertisseur de devises",
+                "description": "Convertissez des montants entre deux devises quelconques en utilisant les taux de change actuels (exchangerate-api).",
+                "token_label": "Clé ExchangeRate-API",
+                "token_placeholder": "Votre clé ExchangeRate-API"
+            },
+            "charts": {
+                "name": "Graphiques interactifs",
+                "description": "Affichez des graphiques interactifs directement dans le chat — barres, courbes, secteurs, nuages de points, radar, jauge, carte thermique, et bien plus."
+            },
+            "leads": {
+                "name": "Prospects",
+                "description": "Capturez les coordonnées des visiteurs (nom, e-mail, téléphone, et plus)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "Recherchez des transactions, clients, produits et paiements dans votre compte Stripe."
+            },
+            "github": {
+                "name": "GitHub",
+                "description": "Consultez les dépôts, issues, PR et le code de tout compte auquel vous avez accès."
+            },
+            "notion": {
+                "name": "Notion",
+                "description": "Consultez les pages, bases de données et commentaires de votre espace de travail Notion."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "Recherchez des issues, projets et cycles dans votre espace de travail Linear."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "Issues Jira, pages Confluence et workflows depuis vos sites Atlassian."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "Recherchez des messages, lisez des fils de discussion et rédigez des réponses depuis votre boîte Gmail."
+            },
+            "google-calendar": {
+                "name": "Google Agenda",
+                "description": "Consultez et créez des événements dans vos agendas Google."
+            },
+            "google-drive": {
+                "name": "Google Drive",
+                "description": "Consultez les fichiers et dossiers de votre Google Drive."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "Recherchez des messages, publiez des réponses et consultez l'historique des canaux dans votre espace de travail Slack."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "Permettez aux visiteurs de réserver des réunions sur votre Calendly, et laissez les agents consulter vos événements planifiés."
+            },
+            "todoist": {
+                "name": "Todoist",
+                "description": "Gérez les tâches, projets et étiquettes de votre compte Todoist."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "Déclenchez des actions Zapier sur plus de 9 000 applications connectées."
+            },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "Consultez les tickets, utilisateurs et articles du Centre d'aide depuis votre compte Zendesk Support.",
+                "token_label": "Jeton API Zendesk",
+                "token_placeholder": "Votre jeton API Zendesk"
+            },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "Consultez et mettez à jour les contacts, entreprises, opportunités et tickets dans votre CRM HubSpot."
+            },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "Consultez et mettez à jour les comptes, contacts, opportunités et requêtes depuis votre organisation Salesforce."
+            },
+            "box": {
+                "name": "Box",
+                "description": "Recherchez et consultez les fichiers, dossiers et métadonnées de votre compte Box."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "Consultez et mettez à jour les tâches, projets et portefeuilles dans votre espace de travail Asana."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "Consultez les issues, erreurs et versions de vos projets Sentry."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "Recherchez des transcriptions de réunions, résumés et points d'action depuis Fireflies.ai."
+            },
+            "amplitude": {
+                "name": "Amplitude",
+                "description": "Interrogez les analyses produit — événements, graphiques et cohortes — depuis votre projet Amplitude."
+            }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "Analytique du compte",
+                "description": "Répondez aux questions du propriétaire de l'espace de travail sur son propre compte en chiffres — messages, conversations, utilisateurs, canaux, prospects, satisfaction, temps de réponse, sujets et transferts."
+            },
+            "charts": {
+                "name": "Graphiques interactifs",
+                "description": "Affichez des graphiques interactifs (barres, courbes, secteurs, jauge, nuages de points, radar, carte thermique, …) directement dans le chat."
+            }
+        }
+    }
+}

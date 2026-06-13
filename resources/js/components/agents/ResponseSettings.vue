@@ -5,6 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Settings, Thermometer } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface ModelSettings {
     temperature: number;
@@ -45,9 +48,9 @@ const getTemperatureColor = (temp: number) => {
 };
 
 const getTemperatureLabel = (temp: number) => {
-    if (temp <= 0.3) return 'Conservative';
-    if (temp <= 0.7) return 'Balanced';
-    return 'Creative';
+    if (temp <= 0.3) return t('shared.response_settings.temperature.badge_conservative');
+    if (temp <= 0.7) return t('shared.response_settings.temperature.badge_balanced');
+    return t('shared.response_settings.temperature.badge_creative');
 };
 
 const getTopKColor = (topK: number) => {
@@ -58,10 +61,10 @@ const getTopKColor = (topK: number) => {
 };
 
 const getTopKLabel = (topK: number) => {
-    if (topK === 0) return 'Disabled';
-    if (topK <= 20) return 'Focused';
-    if (topK <= 60) return 'Balanced';
-    return 'Diverse';
+    if (topK === 0) return t('shared.response_settings.top_k.badge_disabled');
+    if (topK <= 20) return t('shared.response_settings.top_k.badge_focused');
+    if (topK <= 60) return t('shared.response_settings.top_k.badge_balanced');
+    return t('shared.response_settings.top_k.badge_diverse');
 };
 
 const getTopPColor = (topP: number) => {
@@ -71,9 +74,9 @@ const getTopPColor = (topP: number) => {
 };
 
 const getTopPLabel = (topP: number) => {
-    if (topP <= 0.5) return 'Focused';
-    if (topP <= 0.8) return 'Balanced';
-    return 'Broad';
+    if (topP <= 0.5) return t('shared.response_settings.top_p.badge_focused');
+    if (topP <= 0.8) return t('shared.response_settings.top_p.badge_balanced');
+    return t('shared.response_settings.top_p.badge_broad');
 };
 
 const getPenaltyColor = (penalty: number) => {
@@ -83,15 +86,15 @@ const getPenaltyColor = (penalty: number) => {
 };
 
 const getPresencePenaltyLabel = (penalty: number) => {
-    if (penalty < -0.1) return 'Repetitive';
-    if (penalty <= 0.1) return 'Neutral';
-    return 'Diverse';
+    if (penalty < -0.1) return t('shared.response_settings.presence_penalty.badge_repetitive');
+    if (penalty <= 0.1) return t('shared.response_settings.presence_penalty.badge_neutral');
+    return t('shared.response_settings.presence_penalty.badge_diverse');
 };
 
 const getFrequencyPenaltyLabel = (penalty: number) => {
-    if (penalty < -0.1) return 'Repetitive';
-    if (penalty <= 0.1) return 'Neutral';
-    return 'Varied';
+    if (penalty < -0.1) return t('shared.response_settings.frequency_penalty.badge_repetitive');
+    if (penalty <= 0.1) return t('shared.response_settings.frequency_penalty.badge_neutral');
+    return t('shared.response_settings.frequency_penalty.badge_varied');
 };
 </script>
 
@@ -100,11 +103,10 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
         <CardHeader class="from-secondary/5 to-secondary/10 bg-gradient-to-r">
             <CardTitle class="flex items-center gap-3">
                 <Settings class="text-secondary-foreground h-6 w-6" />
-                Response Settings
+                {{ t('shared.response_settings.title') }}
             </CardTitle>
             <CardDescription class="text-foreground/80 text-base">
-                Control how your AI agent responds. These settings will be applied to
-                {{ agentType === 'widget' ? 'the selected model' : 'all selected models' }} and affect the style and creativity of all responses.
+                {{ agentType === 'widget' ? t('shared.response_settings.description_widget') : t('shared.response_settings.description_default') }}
             </CardDescription>
         </CardHeader>
         <CardContent class="p-6">
@@ -112,13 +114,16 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
                 <!-- Section Header -->
                 <div class="flex items-center gap-2">
                     <Thermometer class="text-primary h-5 w-5" />
-                    <h3 class="text-lg font-semibold">Response Parameters</h3>
+                    <h3 class="text-lg font-semibold">{{ t('shared.response_settings.parameters_heading') }}</h3>
                 </div>
 
                 <!-- Temperature -->
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
-                        <Label class="text-base font-medium">Creativity Level <span class="text-muted-foreground text-sm">(Temperature)</span></Label>
+                        <Label class="text-base font-medium"
+                            >{{ t('shared.response_settings.temperature.label') }}
+                            <span class="text-muted-foreground text-sm">({{ t('shared.response_settings.temperature.param') }})</span></Label
+                        >
                         <div class="flex items-center gap-2">
                             <span class="rounded px-2 py-1 text-sm font-medium" :class="getTemperatureColor(settings.temperature)">
                                 {{ getTemperatureLabel(settings.temperature) }}
@@ -141,18 +146,21 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
                             {{ errors.temperature }}
                         </p>
                         <div class="text-muted-foreground mt-1 flex justify-between text-xs">
-                            <span>Focused</span>
-                            <span>Balanced</span>
-                            <span>Creative</span>
+                            <span>{{ t('shared.response_settings.temperature.scale_focused') }}</span>
+                            <span>{{ t('shared.response_settings.temperature.scale_balanced') }}</span>
+                            <span>{{ t('shared.response_settings.temperature.scale_creative') }}</span>
                         </div>
                     </div>
-                    <p class="text-muted-foreground text-sm">Low = predictable, consistent responses. High = more creative, varied answers.</p>
+                    <p class="text-muted-foreground text-sm">{{ t('shared.response_settings.temperature.help') }}</p>
                 </div>
 
                 <!-- Top-K -->
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
-                        <Label class="text-base font-medium">Word Choice Variety <span class="text-muted-foreground text-sm">(Top-K)</span></Label>
+                        <Label class="text-base font-medium"
+                            >{{ t('shared.response_settings.top_k.label') }}
+                            <span class="text-muted-foreground text-sm">({{ t('shared.response_settings.top_k.param') }})</span></Label
+                        >
                         <div class="flex items-center gap-2">
                             <span class="rounded px-2 py-1 text-sm font-medium" :class="getTopKColor(settings.top_k)">
                                 {{ getTopKLabel(settings.top_k) }}
@@ -172,22 +180,25 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
                             :class="{ 'border-destructive': errors?.top_k }"
                         />
                         <div class="text-muted-foreground mt-1 flex justify-between text-xs">
-                            <span>Disabled</span>
-                            <span>Focused</span>
-                            <span>Balanced</span>
-                            <span>Diverse</span>
+                            <span>{{ t('shared.response_settings.top_k.scale_disabled') }}</span>
+                            <span>{{ t('shared.response_settings.top_k.scale_focused') }}</span>
+                            <span>{{ t('shared.response_settings.top_k.scale_balanced') }}</span>
+                            <span>{{ t('shared.response_settings.top_k.scale_diverse') }}</span>
                         </div>
                     </div>
                     <p v-if="errors?.top_k" class="text-destructive mt-1 text-sm">
                         {{ errors.top_k }}
                     </p>
-                    <p class="text-muted-foreground text-sm">0 = disabled. Lower = uses more common words. Higher = considers more word options.</p>
+                    <p class="text-muted-foreground text-sm">{{ t('shared.response_settings.top_k.help') }}</p>
                 </div>
 
                 <!-- Top-P -->
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
-                        <Label class="text-base font-medium">Response Focus <span class="text-muted-foreground text-sm">(Top-P)</span></Label>
+                        <Label class="text-base font-medium"
+                            >{{ t('shared.response_settings.top_p.label') }}
+                            <span class="text-muted-foreground text-sm">({{ t('shared.response_settings.top_p.param') }})</span></Label
+                        >
                         <div class="flex items-center gap-2">
                             <span class="rounded px-2 py-1 text-sm font-medium" :class="getTopPColor(settings.top_p)">
                                 {{ getTopPLabel(settings.top_p) }}
@@ -207,22 +218,23 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
                             :class="{ 'border-destructive': errors?.top_p }"
                         />
                         <div class="text-muted-foreground mt-1 flex justify-between text-xs">
-                            <span>Focused</span>
-                            <span>Balanced</span>
-                            <span>Broad</span>
+                            <span>{{ t('shared.response_settings.top_p.scale_focused') }}</span>
+                            <span>{{ t('shared.response_settings.top_p.scale_balanced') }}</span>
+                            <span>{{ t('shared.response_settings.top_p.scale_broad') }}</span>
                         </div>
                     </div>
                     <p v-if="errors?.top_p" class="text-destructive mt-1 text-sm">
                         {{ errors.top_p }}
                     </p>
-                    <p class="text-muted-foreground text-sm">Lower = more focused responses. Higher = broader, more diverse responses.</p>
+                    <p class="text-muted-foreground text-sm">{{ t('shared.response_settings.top_p.help') }}</p>
                 </div>
 
                 <!-- Presence Penalty -->
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
                         <Label class="text-base font-medium"
-                            >Avoid Repeating Topics <span class="text-muted-foreground text-sm">(Presence Penalty)</span></Label
+                            >{{ t('shared.response_settings.presence_penalty.label') }}
+                            <span class="text-muted-foreground text-sm">({{ t('shared.response_settings.presence_penalty.param') }})</span></Label
                         >
                         <div class="flex items-center gap-2">
                             <span class="rounded px-2 py-1 text-sm font-medium" :class="getPenaltyColor(settings.presence_penalty)">
@@ -243,22 +255,23 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
                             :class="{ 'border-destructive': errors?.presence_penalty }"
                         />
                         <div class="text-muted-foreground mt-1 flex justify-between text-xs">
-                            <span>Repetitive</span>
-                            <span>Neutral</span>
-                            <span>Diverse</span>
+                            <span>{{ t('shared.response_settings.presence_penalty.scale_repetitive') }}</span>
+                            <span>{{ t('shared.response_settings.presence_penalty.scale_neutral') }}</span>
+                            <span>{{ t('shared.response_settings.presence_penalty.scale_diverse') }}</span>
                         </div>
                     </div>
                     <p v-if="errors?.presence_penalty" class="text-destructive mt-1 text-sm">
                         {{ errors.presence_penalty }}
                     </p>
-                    <p class="text-muted-foreground text-sm">Higher values discourage repeating the same topics or ideas.</p>
+                    <p class="text-muted-foreground text-sm">{{ t('shared.response_settings.presence_penalty.help') }}</p>
                 </div>
 
                 <!-- Frequency Penalty -->
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
                         <Label class="text-base font-medium"
-                            >Avoid Repeating Words <span class="text-muted-foreground text-sm">(Frequency Penalty)</span></Label
+                            >{{ t('shared.response_settings.frequency_penalty.label') }}
+                            <span class="text-muted-foreground text-sm">({{ t('shared.response_settings.frequency_penalty.param') }})</span></Label
                         >
                         <div class="flex items-center gap-2">
                             <span class="rounded px-2 py-1 text-sm font-medium" :class="getPenaltyColor(settings.frequency_penalty)">
@@ -279,15 +292,15 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
                             :class="{ 'border-destructive': errors?.frequency_penalty }"
                         />
                         <div class="text-muted-foreground mt-1 flex justify-between text-xs">
-                            <span>Repetitive</span>
-                            <span>Neutral</span>
-                            <span>Varied</span>
+                            <span>{{ t('shared.response_settings.frequency_penalty.scale_repetitive') }}</span>
+                            <span>{{ t('shared.response_settings.frequency_penalty.scale_neutral') }}</span>
+                            <span>{{ t('shared.response_settings.frequency_penalty.scale_varied') }}</span>
                         </div>
                     </div>
                     <p v-if="errors?.frequency_penalty" class="text-destructive mt-1 text-sm">
                         {{ errors.frequency_penalty }}
                     </p>
-                    <p class="text-muted-foreground text-sm">Higher values discourage using the same words multiple times.</p>
+                    <p class="text-muted-foreground text-sm">{{ t('shared.response_settings.frequency_penalty.help') }}</p>
                 </div>
             </div>
         </CardContent>

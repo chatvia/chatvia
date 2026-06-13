@@ -115,7 +115,7 @@ const destroy = () => {
                 </div>
             </div>
 
-            <ul class="ml-8 list-disc space-y-1 text-sm text-red-600 dark:text-red-100">
+            <ul class="ms-8 list-disc space-y-1 text-sm text-red-600 dark:text-red-100">
                 <li>{{ t('account.delete.removes_agents') }}</li>
                 <li>{{ t('account.delete.removes_conversations') }}</li>
                 <li>{{ t('account.delete.removes_knowledge') }}</li>
@@ -123,7 +123,7 @@ const destroy = () => {
             </ul>
 
             <!-- Agents that will be deleted -->
-            <div v-if="props.agents.length" class="ml-8 space-y-2">
+            <div v-if="props.agents.length" class="ms-8 space-y-2">
                 <p class="flex items-center gap-2 text-sm font-medium text-red-600 dark:text-red-100">
                     <Bot class="size-4 shrink-0" />
                     {{ t('account.delete.agents_will_delete', { count: props.agents.length }, props.agents.length) }}
@@ -142,7 +142,7 @@ const destroy = () => {
             <!-- Subscription cancellation notice -->
             <div
                 v-if="props.hasSubscription"
-                class="ml-8 flex items-start gap-2 rounded-md bg-red-100/60 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-100"
+                class="ms-8 flex items-start gap-2 rounded-md bg-red-100/60 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-100"
             >
                 <CreditCard class="mt-0.5 size-4 shrink-0" />
                 <span>{{ t('account.delete.subscription_cancel') }}</span>
@@ -223,7 +223,7 @@ const destroy = () => {
                     <div class="grid gap-2">
                         <Label for="password" class="sr-only">{{ t('confirm_password.password_label') }}</Label>
                         <div class="relative">
-                            <Lock class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                            <Lock class="text-muted-foreground absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                             <Input
                                 id="password"
                                 ref="passwordInput"

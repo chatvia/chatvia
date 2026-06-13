@@ -98,7 +98,7 @@ onBeforeUnmount(cancelPasskeys);
     <AuthBase :title="t('auth.login.title')" :description="t('auth.login.description')">
         <Head :title="t('auth.login.head')" />
 
-        <div class="absolute top-4 end-4">
+        <div class="absolute end-4 top-4">
             <ThemeSwitcher />
         </div>
 
@@ -255,7 +255,9 @@ onBeforeUnmount(cancelPasskeys);
             <div class="pt-4 text-center">
                 <p class="text-muted-foreground text-base">
                     {{ t('auth.login.no_account') }}
-                    <a href="/#pricing" :tabindex="8" class="text-primary hover:text-primary/80 ms-1 font-semibold"> {{ t('auth.login.start_free_trial') }} </a>
+                    <a href="/#pricing" :tabindex="8" class="text-primary hover:text-primary/80 ms-1 font-semibold">
+                        {{ t('auth.login.start_free_trial') }}
+                    </a>
                 </p>
             </div>
         </div>

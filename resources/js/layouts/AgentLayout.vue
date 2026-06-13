@@ -52,6 +52,7 @@ import {
     MessageSquare,
     Pencil,
     Plug,
+    Rocket,
     Send,
     ShieldAlert,
     ShieldCheck,
@@ -137,6 +138,13 @@ const uiNavigationItems = computed(() => {
             tooltip: t('agents.nav.setup_tooltip'),
         });
         baseItems.push({
+            id: 'deploy',
+            label: t('agents.nav.deploy'),
+            icon: Rocket,
+            route: 'agents.deploy',
+            tooltip: t('agents.nav.deploy_tooltip'),
+        });
+        baseItems.push({
             id: 'channels',
             label: t('agents.nav.channels'),
             icon: Send,
@@ -186,7 +194,12 @@ const managementGroups = computed(() => {
             analyticsSubItems.push({ id: 'analytics-overview', label: t('agents.nav.chats'), icon: BarChart3, route: 'agents.analytics' });
         }
         if (hasPermission('agent.analytics.sentiment')) {
-            analyticsSubItems.push({ id: 'analytics-sentiment', label: t('agents.nav.sentiment'), icon: SmilePlus, route: 'agents.analytics.sentiment' });
+            analyticsSubItems.push({
+                id: 'analytics-sentiment',
+                label: t('agents.nav.sentiment'),
+                icon: SmilePlus,
+                route: 'agents.analytics.sentiment',
+            });
         }
         if (hasPermission('agent.analytics.tone')) {
             analyticsSubItems.push({ id: 'analytics-tone', label: t('agents.nav.tone'), icon: Heart, route: 'agents.analytics.tone' });
@@ -213,7 +226,13 @@ const managementGroups = computed(() => {
         insights.push({ id: 'logs', label: t('agents.nav.chat'), icon: MessageSquare, route: 'agents.logs', tooltip: t('agents.nav.chat_tooltip') });
     }
     if (hasPermission('agent.audit.view')) {
-        insights.push({ id: 'audit', label: t('agents.nav.audit'), icon: ShieldCheck, route: 'agents.audit', tooltip: t('agents.nav.audit_tooltip') });
+        insights.push({
+            id: 'audit',
+            label: t('agents.nav.audit'),
+            icon: ShieldCheck,
+            route: 'agents.audit',
+            tooltip: t('agents.nav.audit_tooltip'),
+        });
     }
     if (hasPermission('agent.evals.view')) {
         insights.push({
@@ -234,7 +253,13 @@ const managementGroups = computed(() => {
         });
     }
     if (hasPermission('agent.leads.view') && props.agent.leads_mcp_enabled) {
-        insights.push({ id: 'leads', label: t('agents.nav.leads'), icon: UserCheck, route: 'agents.leads.index', tooltip: t('agents.nav.leads_tooltip') });
+        insights.push({
+            id: 'leads',
+            label: t('agents.nav.leads'),
+            icon: UserCheck,
+            route: 'agents.leads.index',
+            tooltip: t('agents.nav.leads_tooltip'),
+        });
     }
     if (insights.length) groups.push({ id: 'insights', label: t('agents.nav.groups.insights'), items: insights });
 
@@ -271,12 +296,12 @@ const managementGroups = computed(() => {
 
     // Access — who can chat with the agent and how they prove it
     const access: any[] = [];
-    if (hasPermission('agent.members.manage')) {
+    if (hasPermission('agent.chatters.manage')) {
         access.push({
             id: 'members',
             label: t('agents.nav.members'),
             icon: Users,
-            route: 'agents.members.index',
+            route: 'agents.chatters.index',
             tooltip: t('agents.nav.members_tooltip'),
         });
     }
@@ -442,7 +467,7 @@ onMounted(() => {
     <SidebarProvider v-model:open="sidebarOpen">
         <div class="bg-background flex min-h-screen w-full">
             <!-- Left Sidebar - Full Height -->
-            <Sidebar collapsible="icon" class="border-r">
+            <Sidebar collapsible="icon" class="border-e">
                 <!-- Sidebar Header with Logo and Toggle -->
                 <div class="border-border border-b">
                     <!-- Expanded State -->
@@ -541,7 +566,7 @@ onMounted(() => {
                                             <component :is="item.icon" />
                                             <span>{{ item.label }}</span>
                                             <ChevronDown
-                                                class="ml-auto h-4 w-4 transition-transform duration-200"
+                                                class="ms-auto h-4 w-4 transition-transform duration-200"
                                                 :class="{ 'rotate-180': analyticsSubmenuOpen }"
                                             />
                                         </SidebarMenuButton>
@@ -603,7 +628,7 @@ onMounted(() => {
                                             <component :is="item.icon" />
                                             <span>{{ item.label }}</span>
                                             <ChevronDown
-                                                class="ml-auto h-4 w-4 transition-transform duration-200"
+                                                class="ms-auto h-4 w-4 transition-transform duration-200"
                                                 :class="{ 'rotate-180': sourcesSubmenuOpen }"
                                             />
                                         </SidebarMenuButton>
@@ -664,7 +689,7 @@ onMounted(() => {
                                             <component :is="item.icon" />
                                             <span>{{ item.label }}</span>
                                             <ChevronDown
-                                                class="ml-auto h-4 w-4 transition-transform duration-200"
+                                                class="ms-auto h-4 w-4 transition-transform duration-200"
                                                 :class="{ 'rotate-180': securitySubmenuOpen }"
                                             />
                                         </SidebarMenuButton>
@@ -756,16 +781,16 @@ onMounted(() => {
                                         :href="route('dashboard')"
                                         class="text-muted-foreground hover:text-foreground hidden transition-colors md:inline"
                                     >
-                                        Dashboard
+                                        {{ t('app.header.dashboard') }}
                                     </Link>
-                                    <ChevronRight class="text-muted-foreground hidden h-4 w-4 md:block" />
+                                    <ChevronRight class="text-muted-foreground hidden h-4 w-4 md:block rtl:rotate-180" />
                                     <Link
                                         :href="route('agents.index')"
                                         class="text-muted-foreground hover:text-foreground hidden transition-colors md:inline"
                                     >
-                                        Agents
+                                        {{ t('app.header.agents') }}
                                     </Link>
-                                    <ChevronRight class="text-muted-foreground hidden h-4 w-4 md:block" />
+                                    <ChevronRight class="text-muted-foreground hidden h-4 w-4 md:block rtl:rotate-180" />
                                     <span class="text-foreground font-medium">{{ agent.name }}</span>
                                 </div>
                             </div>
@@ -905,7 +930,7 @@ onMounted(() => {
                         </label>
                         <div class="flex">
                             <span
-                                class="bg-muted border-input text-muted-foreground inline-flex items-center rounded-l-md border border-r-0 px-3 py-2 text-sm"
+                                class="bg-muted border-input text-muted-foreground inline-flex items-center rounded-s-md border border-e-0 px-3 py-2 text-sm"
                             >
                                 https://
                             </span>
@@ -919,7 +944,7 @@ onMounted(() => {
                                 @keyup.enter="renameAgent"
                             />
                             <span
-                                class="bg-muted border-input text-muted-foreground inline-flex items-center rounded-r-md border border-l-0 px-3 py-2 text-sm"
+                                class="bg-muted border-input text-muted-foreground inline-flex items-center rounded-e-md border border-s-0 px-3 py-2 text-sm"
                             >
                                 .chatvia.ai
                             </span>

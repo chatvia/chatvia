@@ -31,13 +31,13 @@
                         <div class="mb-8">
                             <!-- Title and excerpt -->
                             <div class="text-center md:text-left">
-                                <a class="inline-flex font-semibold text-blue-600 hover:text-blue-500 transition duration-150 ease-in-out group mb-2" href="{{ route('blog') }}" data-aos="fade-down"><span class="tracking-normal text-blue-600 group-hover:-translate-x-0.5 transition-transform duration-150 ease-in-out mr-1">&lt;-</span> Back to Blog</a>
+                                <a class="inline-flex font-semibold text-blue-600 hover:text-blue-500 transition duration-150 ease-in-out group mb-2" href="{{ route('blog') }}"><span class="tracking-normal text-blue-600 group-hover:-translate-x-0.5 transition-transform duration-150 ease-in-out mr-1">&lt;-</span> Back to Blog</a>
                                 <h1 class="h2 font-playfair-display text-slate-100 mb-6">
                                     {{ $post->title }}
                                 </h1>
                             </div>
                             <!-- Article meta -->
-                            <div class="md:flex md:items-center md:justify-between mt-3" data-aos="fade-up">
+                            <div class="md:flex md:items-center md:justify-between mt-3">
                                 <!-- Social links -->
                                 <div class="flex justify-center mt-4 md:mt-0">
                                     <ul class="flex space-x-5 mb-4 md:order-1 md:ml-4 md:mb-0">

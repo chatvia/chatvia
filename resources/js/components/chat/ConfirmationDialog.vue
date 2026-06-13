@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     title: string;
@@ -10,15 +11,17 @@ interface Props {
     cancelText?: string;
 }
 
-withDefaults(defineProps<Props>(), {
-    confirmText: 'Confirm',
-    cancelText: 'Cancel',
-});
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
     (e: 'confirm'): void;
     (e: 'cancel'): void;
 }>();
+
+const { t } = useI18n();
+
+const displayConfirmText = computed(() => props.confirmText ?? t('common.confirm'));
+const displayCancelText = computed(() => props.cancelText ?? t('common.cancel'));
 
 const isOpen = ref(false);
 
@@ -47,10 +50,10 @@ const cancel = () => {
             </DialogHeader>
             <DialogFooter class="sm:justify-start">
                 <Button class="cursor-pointer" type="button" variant="secondary" @click="cancel">
-                    {{ cancelText }}
+                    {{ displayCancelText }}
                 </Button>
                 <Button class="cursor-pointer" type="button" variant="default" @click="confirm">
-                    {{ confirmText }}
+                    {{ displayConfirmText }}
                 </Button>
             </DialogFooter>
         </DialogContent>

@@ -21,7 +21,7 @@ Route::post('invitation/{invitation}/accept', AcceptTeamInvitationController::cl
     ->name('teams.invitation.accept');
 
 // Agent member invitations. The `{token}` segment is a high-entropy random
-// string stored on `agent_member_invitations` and looked up at the controller — it
+// string stored on `agent_chatter_invitations` and looked up at the controller — it
 // replaces Laravel's signed-URL approach. The row is deleted on accept, so
 // the link is single-use. Expiry is checked in the controller.
 Route::get('chat-invitation/{token}', AgentInvitationController::class)

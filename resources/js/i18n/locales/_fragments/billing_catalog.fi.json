@@ -1,0 +1,181 @@
+{
+    "billing": {
+        "catalog": {
+            "packages": {
+                "starter": {
+                    "name": "Starter",
+                    "description": "Pienyrityksille, jotka aloittavat toimintansa.",
+                    "features": {
+                        "monthly": {
+                            "messages": "6 000 viestiä kuukaudessa",
+                            "agents": "5 tekoälyagenttia",
+                            "pages": "2 000 sivua (PDF, Word, teksti)",
+                            "links": "2 000 verkkosivulinkkiä",
+                            "minutes": "500 minuuttia ääntä/videota",
+                            "teams": "1 tiimi",
+                            "members": "5 jäsentä (tiimin jäsenet + chatters)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "90 päivän chat-historia"
+                        },
+                        "yearly": {
+                            "messages": "78 000 viestiä vuodessa",
+                            "agents": "5 tekoälyagenttia",
+                            "pages": "2 000 sivua (PDF, Word, teksti)",
+                            "links": "2 000 verkkosivulinkkiä",
+                            "minutes": "500 minuuttia ääntä/videota",
+                            "teams": "1 tiimi",
+                            "members": "5 jäsentä (tiimin jäsenet + chatters)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "90 päivän chat-historia"
+                        }
+                    }
+                },
+                "standard": {
+                    "name": "Standard",
+                    "description": "Kasvaville tiimeille ja yrityksille.",
+                    "features": {
+                        "monthly": {
+                            "messages": "15 000 viestiä kuukaudessa",
+                            "agents": "10 tekoälyagenttia",
+                            "pages": "5 000 sivua (PDF, Word, teksti)",
+                            "links": "5 000 verkkosivulinkkiä",
+                            "minutes": "2 000 minuuttia ääntä/videota",
+                            "sentiment": "Tunneanalyysi",
+                            "handoff": "Handoff",
+                            "api": "API-käyttöoikeus",
+                            "teams": "5 tiimiä",
+                            "members": "20 jäsentä (tiimin jäsenet + chatters)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "180 päivän chat-historia"
+                        },
+                        "yearly": {
+                            "messages": "192 000 viestiä vuodessa",
+                            "agents": "10 tekoälyagenttia",
+                            "pages": "5 000 sivua (PDF, Word, teksti)",
+                            "links": "5 000 verkkosivulinkkiä",
+                            "minutes": "2 000 minuuttia ääntä/videota",
+                            "sentiment": "Tunneanalyysi",
+                            "handoff": "Handoff",
+                            "api": "API-käyttöoikeus",
+                            "teams": "5 tiimiä",
+                            "members": "20 jäsentä (tiimin jäsenet + chatters)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "180 päivän chat-historia"
+                        }
+                    }
+                },
+                "pro": {
+                    "name": "Pro",
+                    "description": "Organisaatioille, jotka tarvitsevat kaiken.",
+                    "features": {
+                        "monthly": {
+                            "messages": "50 000 viestiä kuukaudessa",
+                            "agents": "20 tekoälyagenttia",
+                            "pages": "10 000 sivua (PDF, Word, teksti)",
+                            "links": "10 000 verkkosivulinkkiä",
+                            "minutes": "10 000 minuuttia ääntä/videota",
+                            "sentiment": "Tunneanalyysi",
+                            "tone": "Sävyanalyysi",
+                            "topics": "Aiheanalyysi",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API-käyttöoikeus",
+                            "integrations": "Mukautetut integraatiot",
+                            "branding": "White-label (poista Chatvia-brändäys)",
+                            "teams": "10 tiimiä",
+                            "members": "100 jäsentä (tiimin jäsenet + chatters)",
+                            "retention": "366 päivän chat-historia"
+                        },
+                        "yearly": {
+                            "messages": "648 000 viestiä vuodessa",
+                            "agents": "20 tekoälyagenttia",
+                            "pages": "10 000 sivua (PDF, Word, teksti)",
+                            "links": "10 000 verkkosivulinkkiä",
+                            "minutes": "10 000 minuuttia ääntä/videota",
+                            "sentiment": "Tunneanalyysi",
+                            "tone": "Sävyanalyysi",
+                            "topics": "Aiheanalyysi",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API-käyttöoikeus",
+                            "integrations": "Mukautetut integraatiot",
+                            "branding": "White-label (poista Chatvia-brändäys)",
+                            "teams": "10 tiimiä",
+                            "members": "100 jäsentä (tiimin jäsenet + chatters)",
+                            "retention": "366 päivän chat-historia"
+                        }
+                    }
+                },
+                "enterprise": {
+                    "name": "Enterprise",
+                    "description": "Organisaatioille, joilla on tietoturva-, vaatimustenmukaisuus- ja skaalaustarpeita.",
+                    "features": {
+                        "monthly": {
+                            "messages": "Mukautettu viestivolyymi",
+                            "agents": "Rajaton määrä tekoälyagentteja",
+                            "pages": "Mukautettu tietopohja",
+                            "links": "Mukautetut verkkosivulinkit",
+                            "minutes": "Mukautettu ääni/video",
+                            "sentiment": "Tunneanalyysi",
+                            "tone": "Sävyanalyysi",
+                            "topics": "Aiheanalyysi",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API-käyttöoikeus",
+                            "integrations": "Mukautetut integraatiot",
+                            "branding": "White-label (poista Chatvia-brändäys)",
+                            "residency": "EU-tietojen sijainti",
+                            "sso": "SSO / SAML",
+                            "sla": "Käytettävyyden SLA",
+                            "support": "Omistettu tuki",
+                            "dpa": "Mukautettu sopimus ja DPA",
+                            "teams": "Rajaton määrä tiimejä",
+                            "members": "Rajaton määrä jäseniä",
+                            "retention": "Mukautettu tietojen säilytys"
+                        },
+                        "yearly": {
+                            "messages": "Mukautettu viestivolyymi",
+                            "agents": "Rajaton määrä tekoälyagentteja",
+                            "pages": "Mukautettu tietopohja",
+                            "links": "Mukautetut verkkosivulinkit",
+                            "minutes": "Mukautettu ääni/video",
+                            "sentiment": "Tunneanalyysi",
+                            "tone": "Sävyanalyysi",
+                            "topics": "Aiheanalyysi",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API-käyttöoikeus",
+                            "integrations": "Mukautetut integraatiot",
+                            "branding": "White-label (poista Chatvia-brändäys)",
+                            "residency": "EU-tietojen sijainti",
+                            "sso": "SSO / SAML",
+                            "sla": "Käytettävyyden SLA",
+                            "support": "Omistettu tuki",
+                            "dpa": "Mukautettu sopimus ja DPA",
+                            "teams": "Rajaton määrä tiimejä",
+                            "members": "Rajaton määrä jäseniä",
+                            "retention": "Mukautettu tietojen säilytys"
+                        }
+                    }
+                }
+            },
+            "ui": {
+                "yearly_savings_text": "Säästä 20 %",
+                "popular_badge_text": "Suosituin",
+                "current_plan_text": "Nykyinen paketti"
+            }
+        }
+    }
+}

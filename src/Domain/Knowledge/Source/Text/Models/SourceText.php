@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Support\Concerns\HasExternalId;
 use Support\Traits\Chunkable;
 use Support\Traits\HasStorageFile;
 
@@ -73,7 +74,7 @@ use Support\Traits\HasStorageFile;
 #[Guarded(['id'])]
 class SourceText extends Model implements ChunkableContract
 {
-    use Chunkable, HasStorageFile;
+    use Chunkable, HasStorageFile, HasExternalId;
 
     /**
      * @return MorphToMany<Agent, $this, AgentSource>

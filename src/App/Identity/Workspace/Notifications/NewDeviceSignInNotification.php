@@ -31,14 +31,14 @@ class NewDeviceSignInNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('New sign-in to your account')
-            ->greeting('Hello!')
-            ->line('We noticed a sign-in to your account from a device we haven\'t seen before.')
-            ->line('**When:** '.$this->signedInAt->toDayDateTimeString().' UTC')
-            ->line('**IP address:** '.($this->ip ?? 'unknown'))
-            ->line('**Browser / device:** '.($this->userAgent ?? 'unknown'))
-            ->line('If this was you, no action is needed.')
-            ->action('Review your password', url(route('account.password.edit', absolute: true)))
-            ->line('If this wasn\'t you, change your password immediately and review your two-factor settings.');
+            ->subject(__('New sign-in to your account'))
+            ->greeting(__('Hello!'))
+            ->line(__('We noticed a sign-in to your account from a device we haven\'t seen before.'))
+            ->line(__('**When:** :when UTC', ['when' => $this->signedInAt->toDayDateTimeString()]))
+            ->line(__('**IP address:** :ip', ['ip' => $this->ip ?? __('unknown')]))
+            ->line(__('**Browser / device:** :device', ['device' => $this->userAgent ?? __('unknown')]))
+            ->line(__('If this was you, no action is needed.'))
+            ->action(__('Review your password'), url(route('account.password.edit', absolute: true)))
+            ->line(__('If this wasn\'t you, change your password immediately and review your two-factor settings.'));
     }
 }

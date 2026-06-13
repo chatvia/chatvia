@@ -30,7 +30,7 @@ return new class extends Migration
             $table->jsonb('scorer_config')->nullable(); // expected substring / regex / schema / judge rubric
             $table->text('expected_output')->nullable(); // reference answer for exact / judge
             $table->boolean('active')->default(true);
-            $table->timestampsTz();
+            $table->timestamps();
 
             $table->index('agent_id');
             $table->index('workspace_id');
@@ -53,9 +53,9 @@ return new class extends Migration
             $table->foreignId('triggered_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('triggered_by_name')->nullable();
             $table->uuid('batch_id')->nullable(); // Bus::batch id
-            $table->timestampTz('started_at')->nullable();
-            $table->timestampTz('finished_at')->nullable();
-            $table->timestampsTz();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('finished_at')->nullable();
+            $table->timestamps();
 
             $table->index('workspace_id');
             $table->index(['agent_id', 'id']); // previous-run lookup (order by id desc)
@@ -80,7 +80,7 @@ return new class extends Migration
             $table->unsignedInteger('latency_ms')->nullable();
             $table->unsignedInteger('tokens')->nullable();
             $table->string('trace_id')->nullable(); // = the eval assistant message id (joins spectra_requests)
-            $table->timestampTz('created_at')->useCurrent(); // immutable; no updated_at
+            $table->timestamp('created_at')->useCurrent(); // immutable; no updated_at
 
             $table->index(['run_id', 'pass']); // also serves bare run_id (FK)
         });

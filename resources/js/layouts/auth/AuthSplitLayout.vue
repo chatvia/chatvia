@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const page = usePage();
 const name = page.props.name;
@@ -14,36 +17,39 @@ defineProps<{
 
 <template>
     <div class="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
-        <div class="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r">
+        <div class="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-e">
             <div class="absolute inset-0 bg-zinc-900" />
             <Link :href="route('home')" class="relative z-20 flex items-center text-lg font-medium">
-                <AppLogoIcon class="mr-2 size-16" />
+                <AppLogoIcon class="me-2 size-16" />
                 {{ name }}
             </Link>
             <!-- Added beautiful centered title -->
             <div class="relative z-20 flex flex-1 items-center justify-center">
                 <div class="text-center">
-                    <h1 class="text-4xl font-bold tracking-tight text-white">
-                        Build your own <span class="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">ChatGPT</span> in
-                        minutes
-                    </h1>
-                    <p class="mt-4 text-lg text-neutral-300">
-                        Create AI assistants that learn from <span class="font-semibold text-white">your data</span> and knowledge
-                    </p>
+                    <i18n-t keypath="auth.split.headline" tag="h1" class="text-4xl font-bold tracking-tight text-white" scope="global">
+                        <template #brand>
+                            <span class="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">ChatGPT</span>
+                        </template>
+                    </i18n-t>
+                    <i18n-t keypath="auth.split.subheadline" tag="p" class="mt-4 text-lg text-neutral-300" scope="global">
+                        <template #data>
+                            <span class="font-semibold text-white">{{ t('auth.split.your_data') }}</span>
+                        </template>
+                    </i18n-t>
                     <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
                         <span class="inline-flex items-center rounded-full bg-blue-900/30 px-3 py-1 text-sm text-blue-300">
-                            <svg class="mr-1.5 h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg class="me-1.5 h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                 <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
                             </svg>
-                            Secure data handling
+                            {{ t('auth.split.secure_data') }}
                         </span>
                         <span class="inline-flex items-center rounded-full bg-purple-900/30 px-3 py-1 text-sm text-purple-300">
-                            <svg class="mr-1.5 h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg class="me-1.5 h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                 <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
                             </svg>
-                            Custom GPT
+                            {{ t('auth.split.custom_gpt') }}
                         </span>
                     </div>
                 </div>

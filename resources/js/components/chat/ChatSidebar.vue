@@ -564,17 +564,23 @@ const switchToSelectedAgent = () => {
 
                                 <!-- Hover actions -->
                                 <div
-                                    class="bg-accent/80 absolute top-1/2 right-1 flex -translate-y-1/2 items-center gap-0.5 rounded-md px-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                                    class="bg-accent/80 absolute end-1 top-1/2 flex -translate-y-1/2 items-center gap-0.5 rounded-md px-0.5 opacity-0 transition-opacity group-hover:opacity-100"
                                 >
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button aria-label="More options" class="h-7 w-7" size="icon" variant="ghost" @click.prevent.stop>
+                                            <Button
+                                                :aria-label="t('shared.more_options')"
+                                                class="h-7 w-7"
+                                                size="icon"
+                                                variant="ghost"
+                                                @click.prevent.stop
+                                            >
                                                 <MoreVertical class="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" class="w-40">
                                             <DropdownMenuItem class="cursor-pointer" @click="editConversation(chat.id)">
-                                                <Edit class="mr-2 h-4 w-4" />
+                                                <Edit class="me-2 h-4 w-4" />
                                                 <span>{{ t('sidebar.rename_conversation') }}</span>
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
@@ -582,7 +588,7 @@ const switchToSelectedAgent = () => {
                                                 class="text-destructive focus:text-destructive cursor-pointer"
                                                 @click="openDeleteDialog(chat.id)"
                                             >
-                                                <Trash2 class="mr-2 h-4 w-4" />
+                                                <Trash2 class="me-2 h-4 w-4" />
                                                 <span>{{ t('common.delete') }}</span>
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
@@ -658,22 +664,22 @@ const switchToSelectedAgent = () => {
                                 <AvatarImage :src="(page.props.auth as any)?.user?.avatar || ''" />
                                 <AvatarFallback class="text-xs">{{ (page.props.auth as any)?.user?.name?.charAt(0) || 'U' }}</AvatarFallback>
                             </Avatar>
-                            <span class="flex-1 truncate text-left">{{ (page.props.auth as any)?.user?.name || 'User' }}</span>
+                            <span class="flex-1 truncate text-start">{{ (page.props.auth as any)?.user?.name || 'User' }}</span>
                             <MoreVertical class="text-muted-foreground h-4 w-4" />
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" side="top" class="w-56">
                         <DropdownMenuItem class="cursor-pointer" @click="openProfileDialog">
-                            <User class="mr-2 h-4 w-4" />
+                            <User class="me-2 h-4 w-4" />
                             <span>{{ t('sidebar.profile') }}</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem class="cursor-pointer" @click="openAgentsDialog">
-                            <Bot class="mr-2 h-4 w-4" />
+                            <Bot class="me-2 h-4 w-4" />
                             <span>{{ t('sidebar.my_agents') }}</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
-                            <LogOut class="mr-2 h-4 w-4" />
+                            <LogOut class="me-2 h-4 w-4" />
                             <span>{{ t('sidebar.logout') }}</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -712,7 +718,7 @@ const switchToSelectedAgent = () => {
                     :disabled="removingPhoto"
                     @click.prevent="confirmRemoveAvatar"
                 >
-                    <Loader2 v-if="removingPhoto" class="mr-2 size-4 animate-spin" />
+                    <Loader2 v-if="removingPhoto" class="me-2 size-4 animate-spin" />
                     {{ t('sidebar.remove_photo') }}
                 </AlertDialogAction>
             </AlertDialogFooter>
@@ -770,24 +776,24 @@ const switchToSelectedAgent = () => {
                 </div>
                 <Separator />
                 <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="name" class="text-right">{{ t('sidebar.profile_name') }}</Label>
+                    <Label for="name" class="text-end">{{ t('sidebar.profile_name') }}</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
-                            <User class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-                            <Input id="name" v-model="profileForm.name" class="pl-10" :placeholder="t('sidebar.name_input_placeholder')" />
+                            <User class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
+                            <Input id="name" v-model="profileForm.name" class="ps-10" :placeholder="t('sidebar.name_input_placeholder')" />
                         </div>
                         <InputError :message="profileForm.errors.name" class="text-xs" />
                     </div>
                 </div>
                 <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="email" class="text-right">{{ t('sidebar.profile_email') }}</Label>
+                    <Label for="email" class="text-end">{{ t('sidebar.profile_email') }}</Label>
                     <div class="relative col-span-3">
-                        <Mail class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+                        <Mail class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
                         <Input
                             id="email"
                             v-model="profileForm.email"
                             type="email"
-                            class="bg-muted cursor-not-allowed pl-10"
+                            class="bg-muted cursor-not-allowed ps-10"
                             :placeholder="t('sidebar.email_input_placeholder')"
                             readonly
                             disabled
@@ -796,20 +802,20 @@ const switchToSelectedAgent = () => {
                 </div>
                 <Separator />
                 <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="current-password" class="text-right">{{ t('sidebar.current_password') }}</Label>
+                    <Label for="current-password" class="text-end">{{ t('sidebar.current_password') }}</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
-                            <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+                            <Lock class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
                             <Input
                                 id="current-password"
                                 v-model="profileForm.current_password"
                                 :type="showCurrentPassword ? 'text' : 'password'"
-                                class="pr-10 pl-10"
+                                class="ps-10 pe-10"
                                 :placeholder="t('sidebar.current_password_placeholder')"
                             />
                             <button
                                 type="button"
-                                class="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transform"
+                                class="text-muted-foreground hover:text-foreground absolute end-3 top-1/2 -translate-y-1/2 transform"
                                 @click="showCurrentPassword = !showCurrentPassword"
                             >
                                 <Eye v-if="!showCurrentPassword" class="h-4 w-4" />
@@ -820,20 +826,20 @@ const switchToSelectedAgent = () => {
                     </div>
                 </div>
                 <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="new-password" class="text-right">{{ t('sidebar.new_password') }}</Label>
+                    <Label for="new-password" class="text-end">{{ t('sidebar.new_password') }}</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
-                            <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+                            <Lock class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
                             <Input
                                 id="new-password"
                                 v-model="profileForm.password"
                                 :type="showNewPassword ? 'text' : 'password'"
-                                class="pr-10 pl-10"
+                                class="ps-10 pe-10"
                                 :placeholder="t('sidebar.new_password_placeholder')"
                             />
                             <button
                                 type="button"
-                                class="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transform"
+                                class="text-muted-foreground hover:text-foreground absolute end-3 top-1/2 -translate-y-1/2 transform"
                                 @click="showNewPassword = !showNewPassword"
                             >
                                 <Eye v-if="!showNewPassword" class="h-4 w-4" />
@@ -844,20 +850,20 @@ const switchToSelectedAgent = () => {
                     </div>
                 </div>
                 <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="confirm-password" class="text-right">{{ t('sidebar.confirm_password') }}</Label>
+                    <Label for="confirm-password" class="text-end">{{ t('sidebar.confirm_password') }}</Label>
                     <div class="col-span-3 space-y-1">
                         <div class="relative">
-                            <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+                            <Lock class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
                             <Input
                                 id="confirm-password"
                                 v-model="profileForm.password_confirmation"
                                 :type="showConfirmPassword ? 'text' : 'password'"
-                                class="pr-10 pl-10"
+                                class="ps-10 pe-10"
                                 :placeholder="t('sidebar.confirm_password_placeholder')"
                             />
                             <button
                                 type="button"
-                                class="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transform"
+                                class="text-muted-foreground hover:text-foreground absolute end-3 top-1/2 -translate-y-1/2 transform"
                                 @click="showConfirmPassword = !showConfirmPassword"
                             >
                                 <Eye v-if="!showConfirmPassword" class="h-4 w-4" />
@@ -941,7 +947,7 @@ const switchToSelectedAgent = () => {
                 <Button @click="switchToSelectedAgent" :disabled="!selectedAgent || agentSwitchForm.processing" class="w-full sm:w-auto">
                     <svg
                         v-if="agentSwitchForm.processing"
-                        class="mr-2 h-4 w-4 animate-spin"
+                        class="me-2 h-4 w-4 animate-spin"
                         fill="none"
                         viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg"
@@ -953,7 +959,7 @@ const switchToSelectedAgent = () => {
                             fill="currentColor"
                         ></path>
                     </svg>
-                    <Bot v-else class="mr-2 h-4 w-4" />
+                    <Bot v-else class="me-2 h-4 w-4" />
                     {{
                         agentSwitchForm.processing ? t('sidebar.switching_agent') : t('sidebar.switch_to_agent', { name: selectedAgent?.name || '' })
                     }}

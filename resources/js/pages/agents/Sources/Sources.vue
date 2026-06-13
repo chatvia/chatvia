@@ -232,7 +232,11 @@ onMounted(() => {
                                 :class="`pi ${contentTypes.find((t) => t.id === selectedContentType)?.icon} text-muted-foreground mx-auto mb-4 text-6xl`"
                             />
                             <h3 class="mb-2 text-lg font-medium">
-                                {{ t('agents.sources.overview.coming_soon', { type: t(contentTypes.find((type) => type.id === selectedContentType)?.label ?? '') }) }}
+                                {{
+                                    t('agents.sources.overview.coming_soon', {
+                                        type: t(contentTypes.find((type) => type.id === selectedContentType)?.label ?? ''),
+                                    })
+                                }}
                             </h3>
                             <p class="text-muted-foreground max-w-md">
                                 {{ t(contentTypes.find((type) => type.id === selectedContentType)?.description ?? '') }}

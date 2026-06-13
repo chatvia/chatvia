@@ -81,14 +81,14 @@ defineExpose({ open });
                 <div class="space-y-2">
                     <Label for="confirm-password">{{ t('confirm_password.password_label') }}</Label>
                     <div class="relative">
-                        <Lock class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                        <Lock class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                         <Input
                             id="confirm-password"
                             ref="passwordInput"
                             v-model="password"
                             type="password"
                             autocomplete="current-password"
-                            class="pl-9"
+                            class="ps-9"
                             required
                         />
                     </div>

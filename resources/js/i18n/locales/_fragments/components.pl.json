@@ -1,0 +1,28 @@
+{
+    "nav": { "platform": "Platforma" },
+    "theme": { "toggle": "Przełącz motyw", "light": "Jasny", "dark": "Ciemny", "system": "Systemowy" },
+    "team_switcher": { "select_team": "Wybierz zespół", "no_teams": "Brak dostępnych zespołów", "manage_teams": "Zarządzaj zespołami" },
+    "agents": {
+        "create_modal": {
+            "title": "Utwórz agenta",
+            "limit_title": "Osiągnięto limit agentów",
+            "limit_description": "Osiągnięto limit agentów.",
+            "upgrade_plan": "Ulepsz plan",
+            "name_label": "Nazwa agenta",
+            "name_placeholder": "Np. Obsługa klienta",
+            "load_error": "Nie udało się załadować informacji o wykorzystaniu",
+            "limit_toast_title": "Osiągnięto limit agentów",
+            "limit_toast_description": "Osiągnięto limit agentów."
+        }
+    },
+    "confirm_password": {
+        "title": "Potwierdź swoje hasło",
+        "description": "Ze względów bezpieczeństwa potwierdź hasło przed zmianą ustawień zabezpieczeń.",
+        "password_label": "Hasło",
+        "password_required": "Hasło jest wymagane.",
+        "incorrect": "Nieprawidłowe hasło.",
+        "error": "Nie udało się potwierdzić hasła. Spróbuj ponownie.",
+        "cancel": "Anuluj",
+        "confirm": "Potwierdź"
+    }
+}

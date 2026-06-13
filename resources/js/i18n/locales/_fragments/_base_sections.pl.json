@@ -1,0 +1,88 @@
+{
+    "approval": {
+        "badge": "Wymaga zatwierdzenia",
+        "prompt": "Czy chcesz kontynuować?",
+        "mcp_tool": "Narzędzie MCP",
+        "function": "Funkcja",
+        "approve": "Zatwierdź",
+        "deny": "Odrzuć"
+    },
+    "header": {
+        "toggle_sidebar": "Przełącz panel boczny",
+        "toggle_expand": "Przełącz pełny ekran",
+        "incognito_mode": "Incognito",
+        "delete_conversation": "Usuń rozmowę",
+        "delete_dialog_title": "Usunąć rozmowę?",
+        "delete_dialog_description": "Tej operacji nie można cofnąć."
+    },
+    "sidebar": {
+        "open_sidebar": "Otwórz panel boczny",
+        "new_chat": "Nowy czat",
+        "your_chats": "Twoje czaty",
+        "loading": "Ładowanie...",
+        "no_conversations": "Brak rozmów",
+        "rename_conversation": "Zmień nazwę",
+        "clear_all_chats": "Wyczyść wszystkie czaty",
+        "delete_all_title": "Usunąć wszystkie rozmowy?",
+        "delete_all_description": "Tej operacji nie można cofnąć. Wszystkie Twoje rozmowy zostaną trwale usunięte.",
+        "delete_all_confirm": "Usuń wszystkie",
+        "profile": "Profil",
+        "my_agents": "Moi agenci",
+        "logout": "Wyloguj się",
+        "delete_conversation_title": "Usuń rozmowę",
+        "delete_conversation_description": "Czy na pewno chcesz usunąć tę rozmowę? Tej operacji nie można cofnąć.",
+        "profile_settings_title": "Ustawienia profilu",
+        "profile_settings_description": "Zaktualizuj dane swojego konta i hasło.",
+        "profile_name": "Imię i nazwisko",
+        "name_input_placeholder": "Wprowadź swoje imię i nazwisko",
+        "profile_email": "Adres e-mail",
+        "email_input_placeholder": "Wprowadź swój adres e-mail",
+        "current_password": "Aktualne hasło",
+        "current_password_placeholder": "Wprowadź aktualne hasło",
+        "new_password": "Nowe hasło",
+        "new_password_placeholder": "Wprowadź nowe hasło",
+        "confirm_password": "Potwierdź hasło",
+        "confirm_password_placeholder": "Potwierdź nowe hasło",
+        "save_changes": "Zapisz zmiany",
+        "upload_photo": "Prześlij zdjęcie",
+        "change_photo": "Zmień zdjęcie",
+        "remove_photo": "Usuń zdjęcie",
+        "remove_photo_title": "Usunąć zdjęcie profilowe?",
+        "remove_photo_description": "Twoje zdjęcie zostanie zastąpione inicjałami. Możesz w każdej chwili przesłać nowe.",
+        "agents_dialog_title": "Moi agenci",
+        "agents_dialog_description": "Uzyskaj dostęp do swoich agentów AI",
+        "loading_agents": "Ładowanie agentów...",
+        "no_agents": "Nie znaleziono agentów.",
+        "switching_agent": "Przełączanie...",
+        "switch_to_agent": "Przełącz na {name}"
+    },
+    "chat": {
+        "message_limit_reached": "Osiągnięto limit wiadomości",
+        "upgrade_prompt": "Uaktualnij swój plan, aby kontynuować czatowanie",
+        "regenerate_failed": "Nie udało się wygenerować odpowiedzi ponownie. Spróbuj jeszcze raz.",
+        "loading_conversation": "Ładowanie rozmowy"
+    },
+    "errors": {
+        "subscription_expired": "Subskrypcja wygasła",
+        "renew_subscription": "Odnów subskrypcję",
+        "message_limit_reached": "Osiągnięto limit wiadomości",
+        "token_limit_reached": "Osiągnięto limit tokenów",
+        "upgrade_plan": "Uaktualnij plan",
+        "model_unavailable": "Model niedostępny",
+        "too_many_requests": "Zbyt wiele żądań",
+        "connection_lost": "Utracono połączenie",
+        "unexpected_response": "Nieoczekiwana odpowiedź",
+        "something_went_wrong": "Coś poszło nie tak",
+        "try_again": "Spróbuj ponownie"
+    },
+    "sources": {
+        "title": "Źródła wiedzy",
+        "source_count": "{count} źródło | {count} źródła | {count} źródeł",
+        "description": "{count} źródło użyte do wygenerowania tej odpowiedzi | {count} źródła użyte do wygenerowania tej odpowiedzi | {count} źródeł użytych do wygenerowania tej odpowiedzi",
+        "page_label": "Strona {page}"
+    },
+    "home": {
+        "logo_alt": "Logo",
+        "welcome_message": "W czym mogę Ci dzisiaj pomóc?"
+    }
+}

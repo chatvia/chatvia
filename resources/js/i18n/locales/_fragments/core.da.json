@@ -1,0 +1,131 @@
+{
+    "common": {
+        "saved": "Gemt",
+        "remove": "Fjern",
+        "preview": "Forhåndsvisning",
+        "upload": "Upload",
+        "cancel": "Annuller",
+        "save": "Gem",
+        "confirm": "Bekræft",
+        "deleting": "Sletter..."
+    },
+    "nav": {
+        "account": "Konto",
+        "workspace": "Arbejdsrum",
+        "logout": "Log ud",
+        "language": "Sprog"
+    },
+    "account": {
+        "layout": {
+            "heading": "Konto",
+            "description": "Administrer din personlige profil, sikkerhed og data"
+        },
+        "nav": {
+            "profile": "Profil",
+            "password": "Adgangskode",
+            "two_factor": "To-faktor",
+            "passkeys": "Adgangsnøgler",
+            "social": "Sociale konti",
+            "data_export": "Download mine data",
+            "delete": "Slet konto"
+        },
+        "profile": {
+            "title": "Profilindstillinger",
+            "change_photo": "Skift profilbillede",
+            "upload_photo": "Upload profilbillede",
+            "managed_by": "Administreres af {name}",
+            "copy_account_id": "Kopiér konto-ID",
+            "copied": "Kopieret!",
+            "remove_photo": "Fjern billede",
+            "remove_photo_title": "Fjern profilbillede",
+            "remove_photo_description": "Din avatar skifter tilbage til dine initialer. Du kan uploade et nyt billede når som helst.",
+            "info_title": "Profiloplysninger",
+            "info_description": "Opdater din kontos profiloplysninger og e-mailadresse.",
+            "name": "Navn",
+            "name_placeholder": "Fulde navn",
+            "email": "E-mailadresse",
+            "email_placeholder": "E-mailadresse",
+            "email_unverified": "Din e-mailadresse er ikke bekræftet.",
+            "resend_verification": "Klik her for at sende bekræftelsesmailen igen.",
+            "verification_sent": "Et nyt bekræftelseslink er sendt til din e-mailadresse.",
+            "updated": "Profil opdateret",
+            "datetime_title": "Dato og tid",
+            "datetime_description": "Vælg, hvordan datoer vises i dit dashboard.",
+            "date_format": "Datoformat",
+            "date_format_placeholder": "Vælg et datoformat"
+        },
+        "password": {
+            "title": "Adgangskodeindstillinger",
+            "heading": "Adgangskodesikkerhed",
+            "subtitle": "Administrer din kontos adgangskode.",
+            "update_title": "Opdater adgangskode",
+            "update_description": "Sørg for, at din konto bruger en stærk, sikker adgangskode.",
+            "current": "Nuværende adgangskode",
+            "current_placeholder": "Indtast din nuværende adgangskode",
+            "new": "Ny adgangskode",
+            "new_placeholder": "Indtast din nye adgangskode",
+            "confirm": "Bekræft adgangskode",
+            "confirm_placeholder": "Bekræft din nye adgangskode",
+            "submit": "Opdater adgangskode",
+            "updated": "Adgangskode opdateret"
+        },
+        "two_factor": {
+            "title": "To-faktor-godkendelse"
+        },
+        "passkeys": {
+            "title": "Adgangsnøgler"
+        },
+        "social": {
+            "title": "Sociale konti"
+        },
+        "data_export": {
+            "title": "Download mine data",
+            "heading": "Download en kopi af mine data",
+            "description": "Få et ZIP-arkiv med alle personlige data, vi opbevarer om dig — dine agenter, samtaler, beskeder, videnskilder og uploadede filer. Udarbejdet i overensstemmelse med GDPR-artikel 15 og 20.",
+            "idle_title": "Dine data, i dine hænder.",
+            "idle_description": "Opbygningen af arkivet sker i baggrunden — vi sender dig en e-mail, når det er klar. Downloaden er tilgængelig i 24 timer, hvorefter den slettes fra vores servere.",
+            "request_button": "Anmod om en kopi af mine data",
+            "processing_title": "Forbereder din eksport…",
+            "processing_description": "Vi pakker dine data i en ZIP-fil. Det tager normalt et par minutter — vi sender dig en e-mail, når det er klar, og denne side opdateres automatisk.",
+            "check_status": "Tjek status",
+            "ready_title": "Din dataeksport er klar.",
+            "available_for": "Tilgængelig i {time}",
+            "download_zip": "Download ZIP",
+            "failed_title": "Vi kunne ikke forberede din eksport.",
+            "try_again": "Prøv igen"
+        },
+        "delete": {
+            "title": "Slet konto",
+            "subtitle": "Slet din konto og alt indhold permanent.",
+            "data_export_title": "Vil du have en kopi af dine data først?",
+            "data_export_description": "Når din konto er væk, er dine data også væk. Du kan {link} med alt, hvad vi opbevarer om dig, inden du sletter.",
+            "data_export_link": "downloade et arkiv",
+            "cannot_undo": "Dette kan ikke fortrydes",
+            "removes_intro": "Sletning af din konto fjerner permanent alt indhold, herunder:",
+            "removes_agents": "Dine agenter og deres indstillinger",
+            "removes_conversations": "Alle samtaler og beskeder",
+            "removes_knowledge": "Videnskilder, dokumenter og uploadede filer",
+            "removes_team": "Dit team, chattere, API-nøgler og connectors",
+            "agents_will_delete": "{count} agent slettes permanent | {count} agenter slettes permanent",
+            "subscription_cancel": "Dit aktive abonnement annulleres, og du vil ikke blive opkrævet igen.",
+            "email_confirmed": "E-mail bekræftet. Dette er dit sidste trin — der er ingen vej tilbage efter dette.",
+            "delete_button": "Slet min konto permanent",
+            "final_dialog_title": "Slet din konto permanent?",
+            "final_dialog_description": "Dette sletter permanent din konto og alle dens data og kan ikke fortrydes.",
+            "final_dialog_subscription": "Dit abonnement vil også blive annulleret.",
+            "final_confirm": "Ja, slet alt",
+            "check_email": "Tjek din e-mail — vi har sendt et bekræftelseslink til at fuldføre sletningen af din konto. Det udløber om 30 minutter. Åbn linket for at fortsætte.",
+            "resend_link": "Send linket igen",
+            "password_dialog_title": "Bekræft din adgangskode",
+            "password_dialog_description": "Indtast din adgangskode for at fortsætte. Vi sender dig et bekræftelseslink til at fuldføre sletningen af din konto.",
+            "password_placeholder": "Adgangskode",
+            "send_confirmation": "Send bekræftelses-e-mail"
+        }
+    },
+    "workspace": {
+        "layout": {
+            "heading": "Arbejdsrum",
+            "description": "Administrer integrationer, personer og styring"
+        }
+    }
+}

@@ -1,0 +1,131 @@
+{
+    "common": {
+        "saved": "Guardado",
+        "remove": "Eliminar",
+        "preview": "Vista previa",
+        "upload": "Subir",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "confirm": "Confirmar",
+        "deleting": "Eliminando..."
+    },
+    "nav": {
+        "account": "Cuenta",
+        "workspace": "Espacio de trabajo",
+        "logout": "Cerrar sesión",
+        "language": "Idioma"
+    },
+    "account": {
+        "layout": {
+            "heading": "Cuenta",
+            "description": "Administra tu perfil personal, seguridad y datos"
+        },
+        "nav": {
+            "profile": "Perfil",
+            "password": "Contraseña",
+            "two_factor": "Doble factor",
+            "passkeys": "Claves de acceso",
+            "social": "Cuentas sociales",
+            "data_export": "Descargar mis datos",
+            "delete": "Eliminar cuenta"
+        },
+        "profile": {
+            "title": "Configuración de perfil",
+            "change_photo": "Cambiar foto de perfil",
+            "upload_photo": "Subir foto de perfil",
+            "managed_by": "Administrado por {name}",
+            "copy_account_id": "Copiar ID de cuenta",
+            "copied": "¡Copiado!",
+            "remove_photo": "Eliminar foto",
+            "remove_photo_title": "Eliminar foto de perfil",
+            "remove_photo_description": "Tu avatar volverá a mostrar tus iniciales. Puedes subir una nueva foto en cualquier momento.",
+            "info_title": "Información de perfil",
+            "info_description": "Actualiza la información de perfil y la dirección de correo electrónico de tu cuenta.",
+            "name": "Nombre",
+            "name_placeholder": "Nombre completo",
+            "email": "Dirección de correo electrónico",
+            "email_placeholder": "Dirección de correo electrónico",
+            "email_unverified": "Tu dirección de correo electrónico no está verificada.",
+            "resend_verification": "Haz clic aquí para reenviar el correo de verificación.",
+            "verification_sent": "Se ha enviado un nuevo enlace de verificación a tu dirección de correo electrónico.",
+            "updated": "Perfil actualizado correctamente",
+            "datetime_title": "Fecha y hora",
+            "datetime_description": "Elige cómo se muestran las fechas en tu panel.",
+            "date_format": "Formato de fecha",
+            "date_format_placeholder": "Selecciona un formato de fecha"
+        },
+        "password": {
+            "title": "Configuración de contraseña",
+            "heading": "Seguridad de contraseña",
+            "subtitle": "Administra la contraseña de tu cuenta.",
+            "update_title": "Actualizar contraseña",
+            "update_description": "Asegúrate de que tu cuenta use una contraseña segura para protegerla.",
+            "current": "Contraseña actual",
+            "current_placeholder": "Ingresa tu contraseña actual",
+            "new": "Nueva contraseña",
+            "new_placeholder": "Ingresa tu nueva contraseña",
+            "confirm": "Confirmar contraseña",
+            "confirm_placeholder": "Confirma tu nueva contraseña",
+            "submit": "Actualizar contraseña",
+            "updated": "Contraseña actualizada correctamente"
+        },
+        "two_factor": {
+            "title": "Autenticación de doble factor"
+        },
+        "passkeys": {
+            "title": "Claves de acceso"
+        },
+        "social": {
+            "title": "Cuentas sociales"
+        },
+        "data_export": {
+            "title": "Descargar mis datos",
+            "heading": "Descargar una copia de mis datos",
+            "description": "Obtén un archivo ZIP con todos los datos personales que tenemos sobre ti: tus agentes, conversaciones, mensajes, fuentes de conocimiento y archivos subidos. Preparado conforme a los artículos 15 y 20 del GDPR.",
+            "idle_title": "Tus datos, en tus manos.",
+            "idle_description": "La creación del archivo se ejecuta en segundo plano — te enviaremos un correo cuando esté listo. La descarga estará disponible durante 24 horas y luego se eliminará de nuestros servidores.",
+            "request_button": "Solicitar una copia de mis datos",
+            "processing_title": "Preparando tu exportación…",
+            "processing_description": "Estamos empaquetando tus datos en un archivo ZIP. Esto suele tardar unos minutos — te enviaremos un correo cuando esté listo y esta página se actualizará automáticamente.",
+            "check_status": "Verificar estado",
+            "ready_title": "Tu exportación de datos está lista.",
+            "available_for": "Disponible por {time}",
+            "download_zip": "Descargar ZIP",
+            "failed_title": "No pudimos preparar tu exportación.",
+            "try_again": "Intentar de nuevo"
+        },
+        "delete": {
+            "title": "Eliminar cuenta",
+            "subtitle": "Elimina permanentemente tu cuenta y todo lo que contiene.",
+            "data_export_title": "¿Quieres una copia de tus datos primero?",
+            "data_export_description": "Una vez que tu cuenta se elimine, tus datos se eliminarán con ella. Puedes {link} de todo lo que tenemos sobre ti antes de eliminar.",
+            "data_export_link": "descargar un archivo",
+            "cannot_undo": "Esta acción no se puede deshacer",
+            "removes_intro": "Eliminar tu cuenta borra permanentemente todo lo que contiene, incluyendo:",
+            "removes_agents": "Tus agentes y su configuración",
+            "removes_conversations": "Todas las conversaciones y mensajes",
+            "removes_knowledge": "Fuentes de conocimiento, documentos y archivos subidos",
+            "removes_team": "Tu equipo, chatters, claves API y conectores",
+            "agents_will_delete": "{count} agente se eliminará permanentemente: | {count} agentes se eliminarán permanentemente:",
+            "subscription_cancel": "Tu suscripción activa se cancelará y no se te cobrará más.",
+            "email_confirmed": "Correo confirmado. Este es tu último paso — no hay vuelta atrás después de esto.",
+            "delete_button": "Eliminar permanentemente mi cuenta",
+            "final_dialog_title": "¿Eliminar permanentemente tu cuenta?",
+            "final_dialog_description": "Esto eliminará permanentemente tu cuenta y todos sus datos, y no se puede deshacer.",
+            "final_dialog_subscription": "Tu suscripción también se cancelará.",
+            "final_confirm": "Sí, eliminar todo",
+            "check_email": "Revisa tu correo — te enviamos un enlace de confirmación para finalizar la eliminación de tu cuenta. Expira en 30 minutos. Abre el enlace para continuar.",
+            "resend_link": "Enviar el enlace de nuevo",
+            "password_dialog_title": "Confirma tu contraseña",
+            "password_dialog_description": "Ingresa tu contraseña para continuar. Te enviaremos un enlace de confirmación por correo para finalizar la eliminación de tu cuenta.",
+            "password_placeholder": "Contraseña",
+            "send_confirmation": "Enviar correo de confirmación"
+        }
+    },
+    "workspace": {
+        "layout": {
+            "heading": "Espacio de trabajo",
+            "description": "Administra integraciones, personas y gobernanza"
+        }
+    }
+}

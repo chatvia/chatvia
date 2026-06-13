@@ -25,8 +25,8 @@ return new class extends Migration
                 ->constrained('chat_conversations')->cascadeOnDelete();
             $table->string('first_name')->nullable();
             $table->string('username')->nullable();
-            $table->timestampTz('last_message_at')->nullable();
-            $table->timestampsTz();
+            $table->timestamp('last_message_at')->nullable();
+            $table->timestamps();
 
             $table->unique(['agent_telegram_bot_id', 'chat_id']);
         });

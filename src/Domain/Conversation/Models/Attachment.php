@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Support\Traits\HasStorageFile;
-use Support\Traits\SupportsExternalId;
+use Support\Concerns\HasExternalId;
 use Throwable;
 
 /**
@@ -51,7 +51,7 @@ use Throwable;
 #[Table(name: 'chat_attachments')]
 class Attachment extends Model
 {
-    use HasStorageFile, SupportsExternalId;
+    use HasExternalId, HasStorageFile;
 
     /**
      * Public bucket every chat attachment lives on. Hardcoded rather than a

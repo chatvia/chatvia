@@ -49,7 +49,7 @@ it('signs a deactivated chatter out of the hosted chat mid-session', function ()
     expect(Auth::guard('web')->id())->toBe($this->chatter->id);
 
     // Admin deactivates the chatter while their session is live.
-    $this->chatter->deactivate('blocked by admin');
+    app(\App\Identity\Workspace\Actions\Account\DeactivateAccountAction::class)->execute($this->chatter, 'blocked by admin');
 
     // In production each request is a fresh process that re-loads the user from
     // the DB; the test process caches the guard user, so forget it to simulate
@@ -67,12 +67,12 @@ it('signs a deactivated chatter out of the hosted chat mid-session', function ()
 it('blocks a reactivated-then-deactivated chatter again', function (): void {
     signIn();
 
-    $this->chatter->deactivate('temporary');
+    app(\App\Identity\Workspace\Actions\Account\DeactivateAccountAction::class)->execute($this->chatter, 'temporary');
     Auth::forgetGuards();
     $this->get('https://'.$this->host.'/chat')->assertRedirectContains('/chat/login');
 
     // Reactivate + sign in again → allowed.
-    $this->chatter->reactivate();
+    app(\App\Identity\Workspace\Actions\Account\ReactivateAccountAction::class)->execute($this->chatter);
     signIn();
     expect(Auth::guard('web')->id())->toBe($this->chatter->id);
 });

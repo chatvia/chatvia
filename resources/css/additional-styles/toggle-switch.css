@@ -15,3 +15,14 @@
 .form-switch input[type='checkbox']:checked + label > span:first-child {
     @apply left-6 border-blue-600 bg-blue-200;
 }
+
+/* RTL: the Monthly / Yearly labels are mirrored, so the knob must travel the
+   opposite way — it rests on the right (next to "Monthly") and slides left when
+   checked (next to "Yearly"), keeping the visual state aligned with the labels. */
+[dir='rtl'] .form-switch label > span:first-child {
+    @apply -right-2 left-auto;
+}
+
+[dir='rtl'] .form-switch input[type='checkbox']:checked + label > span:first-child {
+    @apply right-6 left-auto;
+}

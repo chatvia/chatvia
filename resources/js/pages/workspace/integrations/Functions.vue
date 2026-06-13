@@ -81,7 +81,7 @@ function refreshFunctions(): void {
                 </div>
 
                 <div class="relative max-w-sm">
-                    <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                    <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                     <Input v-model="search" :placeholder="t('workspace.functions.search_placeholder')" class="ps-9" />
                 </div>
 

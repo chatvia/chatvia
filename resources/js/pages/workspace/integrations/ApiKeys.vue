@@ -133,7 +133,9 @@ const dismissDialog = () => {
                         </h1>
                         <p class="text-muted-foreground mt-1 text-sm">
                             <i18n-t keypath="workspace.api_keys.description" tag="span">
-                                <template #api_link><a class="underline" href="/docs/api" target="_blank">{{ t('workspace.api_keys.api_link') }}</a></template>
+                                <template #api_link
+                                    ><a class="underline" href="/docs/api" target="_blank">{{ t('workspace.api_keys.api_link') }}</a></template
+                                >
                             </i18n-t>
                         </p>
                     </div>
@@ -240,7 +242,9 @@ const dismissDialog = () => {
                         </DialogTitle>
                         <DialogDescription>
                             <i18n-t keypath="workspace.api_keys.reveal_dialog.description" tag="span">
-                                <template #name><strong>{{ created_token?.name }}</strong></template>
+                                <template #name
+                                    ><strong>{{ created_token?.name }}</strong></template
+                                >
                             </i18n-t>
                         </DialogDescription>
                     </DialogHeader>
@@ -276,7 +280,9 @@ const dismissDialog = () => {
                         <AlertDialogTitle>{{ t('workspace.api_keys.revoke_dialog.title') }}</AlertDialogTitle>
                         <AlertDialogDescription>
                             <i18n-t keypath="workspace.api_keys.revoke_dialog.description" tag="span">
-                                <template #name><span class="font-medium">{{ tokenToRevoke?.name }}</span></template>
+                                <template #name
+                                    ><span class="font-medium">{{ tokenToRevoke?.name }}</span></template
+                                >
                             </i18n-t>
                         </AlertDialogDescription>
                     </AlertDialogHeader>

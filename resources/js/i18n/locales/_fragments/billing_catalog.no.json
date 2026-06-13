@@ -1,0 +1,181 @@
+{
+    "billing": {
+        "catalog": {
+            "packages": {
+                "starter": {
+                    "name": "Starter",
+                    "description": "For små bedrifter som er i gang.",
+                    "features": {
+                        "monthly": {
+                            "messages": "6 000 meldinger per måned",
+                            "agents": "5 AI-agenter",
+                            "pages": "2 000 sider (PDF, Word, tekst)",
+                            "links": "2 000 nettsidelenker",
+                            "minutes": "500 minutter lyd/video",
+                            "teams": "1 team",
+                            "members": "5 medlemmer (teammedlemmer + chattere)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "90 dagers chathistorikk"
+                        },
+                        "yearly": {
+                            "messages": "78 000 meldinger per år",
+                            "agents": "5 AI-agenter",
+                            "pages": "2 000 sider (PDF, Word, tekst)",
+                            "links": "2 000 nettsidelenker",
+                            "minutes": "500 minutter lyd/video",
+                            "teams": "1 team",
+                            "members": "5 medlemmer (teammedlemmer + chattere)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "90 dagers chathistorikk"
+                        }
+                    }
+                },
+                "standard": {
+                    "name": "Standard",
+                    "description": "For voksende team og bedrifter.",
+                    "features": {
+                        "monthly": {
+                            "messages": "15 000 meldinger per måned",
+                            "agents": "10 AI-agenter",
+                            "pages": "5 000 sider (PDF, Word, tekst)",
+                            "links": "5 000 nettsidelenker",
+                            "minutes": "2 000 minutter lyd/video",
+                            "sentiment": "Sentimentanalyse",
+                            "handoff": "Handoff",
+                            "api": "API-tilgang",
+                            "teams": "5 team",
+                            "members": "20 medlemmer (teammedlemmer + chattere)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "180 dagers chathistorikk"
+                        },
+                        "yearly": {
+                            "messages": "192 000 meldinger per år",
+                            "agents": "10 AI-agenter",
+                            "pages": "5 000 sider (PDF, Word, tekst)",
+                            "links": "5 000 nettsidelenker",
+                            "minutes": "2 000 minutter lyd/video",
+                            "sentiment": "Sentimentanalyse",
+                            "handoff": "Handoff",
+                            "api": "API-tilgang",
+                            "teams": "5 team",
+                            "members": "20 medlemmer (teammedlemmer + chattere)",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "retention": "180 dagers chathistorikk"
+                        }
+                    }
+                },
+                "pro": {
+                    "name": "Pro",
+                    "description": "For organisasjoner som trenger alt.",
+                    "features": {
+                        "monthly": {
+                            "messages": "50 000 meldinger per måned",
+                            "agents": "20 AI-agenter",
+                            "pages": "10 000 sider (PDF, Word, tekst)",
+                            "links": "10 000 nettsidelenker",
+                            "minutes": "10 000 minutter lyd/video",
+                            "sentiment": "Sentimentanalyse",
+                            "tone": "Toneanalyse",
+                            "topics": "Temaanalyse",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API-tilgang",
+                            "integrations": "Egendefinerte integrasjoner",
+                            "branding": "White-label (fjern Chatvia-merkevare)",
+                            "teams": "10 team",
+                            "members": "100 medlemmer (teammedlemmer + chattere)",
+                            "retention": "366 dagers chathistorikk"
+                        },
+                        "yearly": {
+                            "messages": "648 000 meldinger per år",
+                            "agents": "20 AI-agenter",
+                            "pages": "10 000 sider (PDF, Word, tekst)",
+                            "links": "10 000 nettsidelenker",
+                            "minutes": "10 000 minutter lyd/video",
+                            "sentiment": "Sentimentanalyse",
+                            "tone": "Toneanalyse",
+                            "topics": "Temaanalyse",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API-tilgang",
+                            "integrations": "Egendefinerte integrasjoner",
+                            "branding": "White-label (fjern Chatvia-merkevare)",
+                            "teams": "10 team",
+                            "members": "100 medlemmer (teammedlemmer + chattere)",
+                            "retention": "366 dagers chathistorikk"
+                        }
+                    }
+                },
+                "enterprise": {
+                    "name": "Enterprise",
+                    "description": "For organisasjoner med behov for sikkerhet, samsvar og skalering.",
+                    "features": {
+                        "monthly": {
+                            "messages": "Egendefinert meldingsvolum",
+                            "agents": "Ubegrenset antall AI-agenter",
+                            "pages": "Egendefinert kunnskapsbase",
+                            "links": "Egendefinerte nettsidelenker",
+                            "minutes": "Egendefinert lyd/video",
+                            "sentiment": "Sentimentanalyse",
+                            "tone": "Toneanalyse",
+                            "topics": "Temaanalyse",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API-tilgang",
+                            "integrations": "Egendefinerte integrasjoner",
+                            "branding": "White-label (fjern Chatvia-merkevare)",
+                            "residency": "EU-datalagring",
+                            "sso": "SSO / SAML",
+                            "sla": "Oppetids-SLA",
+                            "support": "Dedikert support",
+                            "dpa": "Egendefinert kontrakt og DPA",
+                            "teams": "Ubegrenset antall team",
+                            "members": "Ubegrenset antall medlemmer",
+                            "retention": "Egendefinert datalagring"
+                        },
+                        "yearly": {
+                            "messages": "Egendefinert meldingsvolum",
+                            "agents": "Ubegrenset antall AI-agenter",
+                            "pages": "Egendefinert kunnskapsbase",
+                            "links": "Egendefinerte nettsidelenker",
+                            "minutes": "Egendefinert lyd/video",
+                            "sentiment": "Sentimentanalyse",
+                            "tone": "Toneanalyse",
+                            "topics": "Temaanalyse",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
+                            "mcp": "MCP",
+                            "function_calling": "Function Calling",
+                            "api": "API-tilgang",
+                            "integrations": "Egendefinerte integrasjoner",
+                            "branding": "White-label (fjern Chatvia-merkevare)",
+                            "residency": "EU-datalagring",
+                            "sso": "SSO / SAML",
+                            "sla": "Oppetids-SLA",
+                            "support": "Dedikert support",
+                            "dpa": "Egendefinert kontrakt og DPA",
+                            "teams": "Ubegrenset antall team",
+                            "members": "Ubegrenset antall medlemmer",
+                            "retention": "Egendefinert datalagring"
+                        }
+                    }
+                }
+            },
+            "ui": {
+                "yearly_savings_text": "Spar 20 %",
+                "popular_badge_text": "Mest populær",
+                "current_plan_text": "Gjeldende abonnement"
+            }
+        }
+    }
+}

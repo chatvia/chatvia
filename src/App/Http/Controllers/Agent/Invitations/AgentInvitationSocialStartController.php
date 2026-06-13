@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agent\Invitations;
 
 use App\Http\Controllers\Controller;
-use Domain\Membership\Agent\Models\AgentMemberInvitation;
+use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 /**
  * Kick off the OAuth flow for a chatter accepting an agent invitation through
  * Google / Slack / etc. The URL carries the invitation `token`; we resolve
- * the {@see AgentMemberInvitation} row, stash its id in the session so the callback
+ * the {@see AgentChatterInvitation} row, stash its id in the session so the callback
  * can finalize against the same row, and redirect to the provider.
  */
 class AgentInvitationSocialStartController extends Controller
@@ -24,7 +24,7 @@ class AgentInvitationSocialStartController extends Controller
 
         abort_if($providerEnum === null, 404);
 
-        $invitation = AgentMemberInvitation::query()->where('token', $token)->first();
+        $invitation = AgentChatterInvitation::query()->where('token', $token)->first();
 
         abort_if($invitation === null || $invitation->hasExpired(), 404);
 

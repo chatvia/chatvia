@@ -39,7 +39,7 @@ return new class extends Migration
             $table->boolean('webhook_enabled')->default(false);
             $table->jsonb('webhook_events')->nullable();         // action allowlist; null = all
             $table->unsignedInteger('webhook_failures')->default(0);
-            $table->timestampTz('webhook_last_delivered_at')->nullable();
+            $table->timestamp('webhook_last_delivered_at')->nullable();
 
             // SCIM provisioning toggle.
             $table->boolean('scim_enabled')->default(false);

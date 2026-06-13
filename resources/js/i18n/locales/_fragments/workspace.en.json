@@ -219,13 +219,13 @@
             }
         },
         "members": {
-            "breadcrumb": "Members",
-            "title": "Members",
-            "description": "Everyone you've granted access to chat with your agents. Send a password reset link or remove a member entirely.",
-            "search_placeholder": "Search members...",
-            "count": "{shown} of {total} member | {shown} of {total} members",
-            "invite": "Invite member",
-            "invite_disabled_hint": "Create a protected agent first — members can only be invited to protected agents.",
+            "breadcrumb": "Chatters",
+            "title": "Chatters",
+            "description": "Everyone you've granted access to chat with your agents. Send a password reset link or remove a chatter entirely.",
+            "search_placeholder": "Search chatters...",
+            "count": "{shown} of {total} chatter | {shown} of {total} chatters",
+            "invite": "Invite chatter",
+            "invite_disabled_hint": "Create a protected agent first — chatters can only be invited to protected agents.",
             "no_email": "No email",
             "reset_title": "Send password reset link to {name}",
             "remove_title": "Remove {name}",
@@ -244,20 +244,20 @@
                 "active": "Active"
             },
             "empty": {
-                "title": "No members yet.",
-                "description": "Invite someone below, or from any agent's Members tab — they'll show up here.",
-                "invite_first": "Invite your first member"
+                "title": "No chatters yet.",
+                "description": "Invite someone below, or from any agent's Chatters tab — they'll show up here.",
+                "invite_first": "Invite your first chatter"
             },
             "no_results": {
-                "title": "No members found matching your search.",
+                "title": "No chatters found matching your search.",
                 "description": "Try adjusting your search terms."
             },
             "invite_dialog": {
-                "title": "Invite a member",
+                "title": "Invite a chatter",
                 "description": "We'll email a sign-up link to this address. Pick the agents they can chat with — at least one is required.",
                 "email": "Email address",
                 "agents": "Agents",
-                "agents_hint": "The member can chat only with the agents you select.",
+                "agents_hint": "The chatter can chat only with the agents you select.",
                 "send": "Send invite",
                 "emailed_to": "Invitation emailed to {email}. You can also copy the link below.",
                 "signup_link": "Sign-up link",
@@ -271,25 +271,39 @@
                 "confirm": "Send link"
             },
             "delete_dialog": {
-                "title": "Remove member",
+                "title": "Remove chatter",
                 "description": "{name} will be permanently deleted along with their access to every agent in your workspace. This cannot be undone.",
                 "confirm": "Remove"
             },
             "toast": {
-                "load_failed": "Failed to load members",
+                "load_failed": "Failed to load chatters",
                 "invite_sent_to": "Invitation sent to {email}",
                 "invite_sent": "Invitation sent",
                 "invite_failed": "Could not send the invitation",
                 "reset_sent": "Password reset link sent to {email}",
                 "reset_failed": "Could not send the reset link",
                 "removed": "{name} removed",
-                "remove_failed": "Could not remove this member"
+                "remove_failed": "Could not remove this chatter"
             }
         },
         "governance": {
             "breadcrumb": "Governance",
             "title": "Audit log",
             "description": "Every action your agents take through tools and connectors — allowed, approved, denied, or rate-limited — with the arguments, result, and who triggered it."
+        },
+        "sections": {
+            "integrations": "Integrations",
+            "library": "Library",
+            "people": "People",
+            "governance": "Governance"
+        },
+        "nav": {
+            "connectors": "Connectors",
+            "functions": "Functions",
+            "api_keys": "API Keys",
+            "prompts": "Prompts",
+            "members": "Chatters",
+            "audit_log": "Audit Log"
         }
     }
 }

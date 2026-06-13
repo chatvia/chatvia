@@ -14,7 +14,7 @@
                             class="gap-2"
                         >
                             <Monitor class="h-4 w-4" />
-                            Desktop
+                            {{ t('shared.desktop') }}
                         </Button>
                         <Button
                             type="button"
@@ -24,7 +24,7 @@
                             class="gap-2"
                         >
                             <Tablet class="h-4 w-4" />
-                            Tablet
+                            {{ t('shared.tablet') }}
                         </Button>
                         <Button
                             type="button"
@@ -34,14 +34,14 @@
                             class="gap-2"
                         >
                             <Smartphone class="h-4 w-4" />
-                            Mobile
+                            {{ t('shared.mobile') }}
                         </Button>
                     </div>
 
                     <!-- Close Button -->
                     <Button type="button" variant="secondary" size="sm" @click="closeModal" class="gap-2">
                         <X class="h-4 w-4" />
-                        Close Preview
+                        {{ t('shared.close_preview') }}
                     </Button>
                 </div>
 
@@ -58,7 +58,13 @@
                                   : 'h-[calc(100vh-8rem)] max-h-[700px] w-[414px] rounded-xl border shadow-lg',
                         ]"
                     >
-                        <iframe :key="iframeKey" :src="previewUrl" class="h-full w-full border-0" title="Widget Preview" loading="lazy"></iframe>
+                        <iframe
+                            :key="iframeKey"
+                            :src="previewUrl"
+                            class="h-full w-full border-0"
+                            :title="t('shared.widget_preview')"
+                            loading="lazy"
+                        ></iframe>
                     </div>
 
                     <div v-else-if="previewType === 'embed'" class="flex h-full w-full items-center justify-center p-4">
@@ -66,7 +72,7 @@
                             <iframe
                                 :key="iframeKey"
                                 :src="previewUrl"
-                                :title="iframeTitle"
+                                :title="displayIframeTitle"
                                 frameborder="0"
                                 class="h-full w-full rounded-lg border shadow-lg transition-all duration-300"
                             ></iframe>
@@ -83,6 +89,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Monitor, Smartphone, Tablet, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     modelValue: boolean;
@@ -92,14 +99,16 @@ interface Props {
     iframeOptions?: any;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-    iframeTitle: 'Preview',
-});
+const props = defineProps<Props>();
 
 const emit = defineEmits(['update:modelValue']);
 
+const { t } = useI18n();
+
 const selectedDevice = ref('desktop');
 const iframeKey = ref(0);
+
+const displayIframeTitle = computed(() => props.iframeTitle ?? t('shared.preview'));
 
 const isOpen = computed({
     get: () => props.modelValue,

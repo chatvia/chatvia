@@ -328,10 +328,7 @@ onMounted(() => {
         </template>
 
         <!-- Show locked feature if user doesn't have access -->
-        <LockedFeature
-            v-if="!hasAccess"
-            :description="t('agents.tone.locked_description')"
-        />
+        <LockedFeature v-if="!hasAccess" :description="t('agents.tone.locked_description')" />
 
         <!-- Plan allows it, but the owner switched it off for this agent -->
         <AnalyticsDisabled
@@ -368,7 +365,9 @@ onMounted(() => {
                     <CardContent class="pt-6">
                         <div class="space-y-2 text-center">
                             <p class="text-destructive font-medium">{{ error }}</p>
-                            <button @click="fetchToneData" class="text-muted-foreground hover:text-foreground text-sm underline">{{ t('agents.tone.try_again') }}</button>
+                            <button @click="fetchToneData" class="text-muted-foreground hover:text-foreground text-sm underline">
+                                {{ t('agents.tone.try_again') }}
+                            </button>
                         </div>
                     </CardContent>
                 </Card>

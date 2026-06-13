@@ -1,0 +1,39 @@
+{
+    "nav": {
+        "platform": "Plataforma"
+    },
+    "theme": {
+        "toggle": "Cambiar tema",
+        "light": "Claro",
+        "dark": "Oscuro",
+        "system": "Sistema"
+    },
+    "team_switcher": {
+        "select_team": "Seleccionar equipo",
+        "no_teams": "No hay equipos disponibles",
+        "manage_teams": "Administrar equipos"
+    },
+    "agents": {
+        "create_modal": {
+            "title": "Crear agente",
+            "limit_title": "Límite de agentes alcanzado",
+            "limit_description": "Has alcanzado tu límite de agentes.",
+            "upgrade_plan": "Mejorar plan",
+            "name_label": "Nombre del agente",
+            "name_placeholder": "Ej., Soporte al cliente",
+            "load_error": "No se pudo cargar la información de uso",
+            "limit_toast_title": "Límite de agentes alcanzado",
+            "limit_toast_description": "Has alcanzado tu límite de agentes."
+        }
+    },
+    "confirm_password": {
+        "title": "Confirma tu contraseña",
+        "description": "Por tu seguridad, confirma tu contraseña antes de cambiar la configuración de seguridad.",
+        "password_label": "Contraseña",
+        "password_required": "La contraseña es obligatoria.",
+        "incorrect": "Contraseña incorrecta.",
+        "error": "No se pudo confirmar la contraseña. Inténtalo de nuevo.",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar"
+    }
+}

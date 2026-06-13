@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Storage;
 use Support\MimeType;
 use Support\Traits\Chunkable;
 use Support\Traits\HasStorageFile;
-use Support\Traits\SupportsExternalId;
+use Support\Concerns\HasExternalId;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -102,7 +102,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Guarded(['id'])]
 class SourceFile extends Model implements ChunkableContract
 {
-    use Chunkable, HasFactory, HasStorageFile, SupportsExternalId;
+    use Chunkable, HasExternalId, HasFactory, HasStorageFile;
 
     public function newEloquentBuilder($query): SourceFileQueryBuilder
     {

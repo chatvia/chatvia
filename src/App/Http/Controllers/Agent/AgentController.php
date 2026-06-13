@@ -78,14 +78,11 @@ class AgentController
         return response()->json(['success' => true]);
     }
 
-    public function destroy(Request $request, Agent $agent): RedirectResponse
+    public function destroy(Agent $agent): RedirectResponse
     {
-        $team = $this->ensureCurrentTeamOwnership($request->user(), 'Only team owners can delete agents.');
-
-        if ($agent->team_id !== $team->id) {
-            abort(404);
-        }
-
+        // Authorization is enforced by route middleware: `can.access.agent`
+        // (tenant + per-agent access) + `agent.permission:agent.delete`. Owners
+        // and granted teammates pass; everyone else is stopped before here.
         $agent->delete();
 
         return redirect()->route('agents.index');

@@ -1,0 +1,309 @@
+{
+    "workspace": {
+        "common": {
+            "cancel": "Abbrechen",
+            "save": "Speichern",
+            "delete": "Löschen",
+            "keep": "Behalten",
+            "connect": "Verbinden",
+            "copy": "Kopieren"
+        },
+        "prompts": {
+            "breadcrumb": "Prompts",
+            "title": "Prompts",
+            "description": "Wiederverwendbare System-Prompts. Erstellen Sie einen Prompt hier und fügen Sie ihn dann einem beliebigen Agenten über dessen Persona-Seite hinzu — bearbeiten Sie ihn einmal, und jeder Agent, der ihn verwendet, übernimmt die Änderung.",
+            "add": "Prompt hinzufügen",
+            "search_placeholder": "Prompts suchen",
+            "empty": "Noch keine Prompts. Klicken Sie auf „Prompt hinzufügen“, um Ihren ersten zu erstellen.",
+            "no_results": "Keine Prompts entsprechen Ihrer Suche.",
+            "fallback_name": "Prompt",
+            "delete_confirm_title": "{name} löschen?",
+            "delete_confirm_description": "Agenten, die diesen Prompt verwenden, werden auf ihre eigenen benutzerdefinierten Anweisungen zurückgreifen. Diese Aktion kann nicht rückgängig gemacht werden.",
+            "table": {
+                "prompt": "Prompt",
+                "agents": "Agenten",
+                "created": "Erstellt"
+            },
+            "sheet": {
+                "edit_title": "Prompt bearbeiten",
+                "create_title": "Prompt hinzufügen",
+                "description": "Erstellen Sie einmalig einen wiederverwendbaren System-Prompt und fügen Sie ihn dann einem beliebigen Agenten über dessen Persona-Seite hinzu. Eine Bearbeitung hier aktualisiert jeden Agenten, der ihn verwendet.",
+                "id_label": "ID",
+                "copy_id_title": "Prompt-ID kopieren — als prompt_id übergeben, wenn ein Agent über die API erstellt oder aktualisiert wird"
+            },
+            "form": {
+                "name": "Name",
+                "name_placeholder": "Support-Agenten-Persona",
+                "prompt": "Prompt",
+                "prompt_placeholder": "Sie sind ein hilfreicher Assistent, der sich auf … spezialisiert hat.",
+                "prompt_hint": "Unterstützt Markdown. Wird bei Zuweisung zum System-Prompt des Agenten."
+            }
+        },
+        "functions": {
+            "breadcrumb": "Funktionen",
+            "title": "Funktionen",
+            "description": "Webhook-basierte Tools, die das LLM aufrufen kann. Einmalig definieren und beliebigen Agenten zuweisen. Bei Aufruf sendet Chatvia die Parameter als POST-Anfrage an Ihren Webhook und leitet die Antwort an das Modell weiter.",
+            "add": "Funktion hinzufügen",
+            "search_placeholder": "Funktionen suchen",
+            "empty": "Noch keine Funktionen. Klicken Sie auf „Funktion hinzufügen“, um Ihre erste zu erstellen.",
+            "no_results": "Keine Funktionen entsprechen Ihrer Suche.",
+            "fallback_name": "Funktion",
+            "delete_confirm_title": "{name} löschen?",
+            "delete_confirm_description": "Sie wird von allen Agenten getrennt, die sie verwenden. Diese Aktion kann nicht rückgängig gemacht werden.",
+            "table": {
+                "name": "Funktionsname",
+                "method": "Methode",
+                "agents": "Agenten",
+                "enabled": "Aktiviert"
+            },
+            "tabs": {
+                "edit": "Bearbeiten",
+                "agents": "Agenten"
+            },
+            "sheet": {
+                "edit_title": "Funktion bearbeiten",
+                "create_title": "Funktion hinzufügen",
+                "description": "Funktionen ermöglichen es Ihren Agenten, Ihre eigenen APIs als LLM-Tools aufzurufen. {name} und {description} sind das, was das Modell sieht, wenn es entscheidet, ob es die Funktion aufruft — seien Sie konkret. {learn_more}",
+                "learn_more": "Mehr erfahren",
+                "id_label": "ID",
+                "copy_id_title": "Funktions-ID kopieren — als function_id übergeben, wenn die Funktion über die API zugewiesen wird"
+            },
+            "form": {
+                "name": "Name",
+                "name_hint": "Buchstaben, Ziffern, Unterstriche. Muss mit einem Buchstaben beginnen.",
+                "display_name": "Anzeigename",
+                "optional": "(optional)",
+                "display_name_placeholder": "Bestellstatus abrufen",
+                "display_name_hint": "Benutzerfreundlicher Name, der im Chat angezeigt wird. Fällt auf den obigen Namen zurück.",
+                "description": "Beschreibung",
+                "description_placeholder": "Den aktuellen Status einer Kundenbestellung anhand der ID nachschlagen.",
+                "parameters": "Parameter (JSON-Schema)",
+                "parameters_aria": "Funktionsparameter-Schema",
+                "webhook_url": "Webhook-URL",
+                "method": "Methode",
+                "require_approval": "Genehmigung erforderlich",
+                "require_approval_hint": "Den Benutzer vor der Ausführung dieser Funktion fragen — empfohlen für Aktionen, die Daten schreiben oder ändern.",
+                "auth": "Authentifizierung",
+                "auth_none": "Keine — kein Auth-Header wird gesendet",
+                "auth_bearer": "Bearer-Token — wird als `Authorization: Bearer …` gesendet",
+                "auth_header": "Benutzerdefinierter Header — eigener Header-Name und -Wert",
+                "auth_hmac": "HMAC — Body wird mit einem gemeinsamen Secret signiert",
+                "bearer_token": "Bearer-Token",
+                "keep_token": "Leer lassen, um das aktuelle Token beizubehalten",
+                "bearer_hint": "Wird als {header} gesendet.",
+                "header_name": "Header-Name",
+                "header_value": "Header-Wert",
+                "keep_value": "Leer lassen, um den aktuellen Wert beizubehalten",
+                "signing_secret": "Signing-Secret",
+                "keep_secret": "Leer lassen, um das aktuelle Secret beizubehalten",
+                "hmac_hint": "Wird verwendet, um den Request-Body per HMAC-SHA256 zu signieren; auf Ihrer Seite verifizieren."
+            },
+            "agents": {
+                "intro": "Legen Sie fest, welche Ihrer Agenten diese Funktion verwenden dürfen.",
+                "loading": "Agenten werden geladen",
+                "empty": "Sie haben noch keine Agenten."
+            }
+        },
+        "api_keys": {
+            "breadcrumb": "API-Schlüssel",
+            "title": "API-Schlüssel",
+            "description": "Kontoschlüssel für die {api_link} — Agenten, Wissensdatenbanken, MCP-Server und Funktionen erstellen und verwalten.",
+            "api_link": "Chatvia API",
+            "generate": "Schlüssel generieren",
+            "locked": "Upgraden Sie Ihren Plan, um API-Schlüssel zu erstellen und Chatvia mit Ihren Anwendungen zu integrieren.",
+            "empty_title": "Noch keine API-Schlüssel",
+            "empty_description": "Generieren Sie einen, um die Chatvia API zu nutzen.",
+            "never": "Nie",
+            "revoke_aria": "Schlüssel widerrufen",
+            "table": {
+                "name": "Name",
+                "created": "Erstellt",
+                "last_used": "Zuletzt verwendet",
+                "revoke": "Widerrufen"
+            },
+            "generate_dialog": {
+                "title": "Neuen Schlüssel generieren",
+                "description": "Wählen Sie einen Namen, den Sie später wiedererkennen — z. B. {example}. Das Token selbst wird nur einmal angezeigt.",
+                "name": "Name",
+                "submit": "Generieren"
+            },
+            "reveal_dialog": {
+                "title": "Neuen API-Schlüssel kopieren",
+                "description": "Dies ist das einzige Mal, dass Sie {name} sehen. Bewahren Sie ihn sicher auf — falls Sie ihn verlieren, generieren Sie einen neuen.",
+                "warning": "Behandeln Sie diesen Schlüssel wie ein Passwort. Jeder, der ihn besitzt, kann in Ihrem Namen Agenten bereitstellen.",
+                "confirm": "Ich habe ihn sicher gespeichert"
+            },
+            "revoke_dialog": {
+                "title": "API-Schlüssel widerrufen",
+                "description": "{name} widerrufen? Jeder Dienst, der dieses Token verwendet, hört sofort auf zu funktionieren. Diese Aktion kann nicht rückgängig gemacht werden.",
+                "confirm": "Widerrufen"
+            }
+        },
+        "connectors": {
+            "breadcrumb": "Konnektoren",
+            "title": "Konnektoren",
+            "description": "Verbinden Sie Drittanbieterdienste einmalig mit Ihrem Konto und weisen Sie sie dann beliebigen Agenten zu. Wählen Sie aus dem Katalog oder fügen Sie einen beliebigen MCP-Server per URL hinzu.",
+            "add": "Konnektor hinzufügen",
+            "search_placeholder": "Konnektoren suchen",
+            "loading": "Konnektoren werden geladen",
+            "empty": "Noch keine Konnektoren.",
+            "enabled_section": "Aktivierte Konnektoren",
+            "custom_section": "Benutzerdefinierte Konnektoren",
+            "available_section": "Verfügbare Konnektoren",
+            "no_results": "Keine Konnektoren gefunden.",
+            "coming_soon": "Demnächst",
+            "connect_title": "{name} verbinden",
+            "table": {
+                "name": "Konnektorname",
+                "tools": "Tools",
+                "agents": "Agenten",
+                "enabled": "Aktiviert"
+            },
+            "toast": {
+                "load_failed": "Konnektoren konnten nicht geladen werden",
+                "connected": "{name} verbunden",
+                "connect_failed": "{name} konnte nicht verbunden werden",
+                "toggle_failed": "Umschalten fehlgeschlagen"
+            },
+            "add_modal": {
+                "title": "Benutzerdefinierten Konnektor hinzufügen",
+                "description": "Verbinden Sie den Chat mit einem beliebigen MCP-Server. Moderne Server (Notion, Linear, Atlassian, …) bieten OAuth an — wählen Sie diese Option und wir übernehmen die Anmeldung. Ältere Server verwenden meist ein Bearer-Token.",
+                "display_name": "Anzeigename",
+                "display_name_placeholder": "z. B. Notion (Arbeit)",
+                "server_url": "MCP-Server-URL",
+                "authentication": "Authentifizierung",
+                "strategy_oauth": "OAuth (automatisch)",
+                "strategy_token": "Bearer-Token",
+                "strategy_none": "Keine",
+                "hint_oauth": "Wir ermitteln den Auth-Server und führen die Anmeldung für Sie durch.",
+                "hint_token": "Wir senden Ihr Token bei jedem Aufruf als Bearer-Header.",
+                "hint_none": "Der Server ist ohne Authentifizierung erreichbar.",
+                "bearer_token": "Bearer-Token",
+                "continue_signin": "Weiter zur Anmeldung",
+                "submit": "Konnektor hinzufügen",
+                "added": "{name} hinzugefügt",
+                "error": "Dieser Konnektor konnte nicht hinzugefügt werden — prüfen Sie die URL und versuchen Sie es erneut."
+            },
+            "salesforce": {
+                "description": "Salesforce verwendet eine organisationsspezifische OAuth-App. Erstellen Sie eine externe Client-App in Ihrer Organisation und geben Sie dann den Consumer Key ein — anschließend genehmigen Sie den Zugriff in Salesforce.",
+                "environment": "Umgebung",
+                "production": "Produktion",
+                "sandbox": "Sandbox",
+                "consumer_key": "Consumer Key",
+                "help_link": "So erstellen Sie eine externe Client-App",
+                "consumer_secret": "Consumer Secret",
+                "optional": "(optional)",
+                "consumer_secret_placeholder": "Leer lassen für eine öffentliche PKCE-App",
+                "mcp_server": "MCP-Server",
+                "my_domain": "My Domain",
+                "my_domain_hint": "Leer lassen, um sich über login.salesforce.com anzumelden. Erforderlich, wenn Ihre Organisation My Domain erzwingt.",
+                "continue": "Weiter zu Salesforce",
+                "error": "Die Verbindung konnte nicht gestartet werden — prüfen Sie die Details und versuchen Sie es erneut.",
+                "servers": {
+                    "sobject_all": "Objekte — Lesen & Schreiben (empfohlen)",
+                    "sobject_reads": "Objekte — nur Lesen",
+                    "flows": "Flows",
+                    "invocable_actions": "Aufrufbare Aktionen",
+                    "data_360": "Data 360",
+                    "prompt_builder": "Prompt-Vorlagen",
+                    "tableau_next": "Tableau Next"
+                }
+            },
+            "token_modal": {
+                "server_url": "MCP-Server-URL",
+                "server_url_hint": "{name} hat keinen gehosteten MCP-Server — fügen Sie die URL Ihres eigenen (selbst gehosteten oder partnerverwalteten) {name}-MCP-Servers ein.",
+                "token": "Token",
+                "help_link": "Wo finde ich das?",
+                "format_warning": "Das Format sieht nicht korrekt aus. Prüfen Sie den Wert vor dem Verbinden.",
+                "error": "Verbindung fehlgeschlagen — bitte versuchen Sie es erneut."
+            }
+        },
+        "members": {
+            "breadcrumb": "Chatter",
+            "title": "Chatter",
+            "description": "Alle, denen Sie Zugriff auf den Chat mit Ihren Agenten gewährt haben. Senden Sie einen Link zum Zurücksetzen des Passworts oder entfernen Sie einen Chatter vollständig.",
+            "search_placeholder": "Chatter suchen...",
+            "count": "{shown} von {total} Chatter | {shown} von {total} Chattern",
+            "invite": "Chatter einladen",
+            "invite_disabled_hint": "Erstellen Sie zuerst einen geschützten Agenten — Chatter können nur zu geschützten Agenten eingeladen werden.",
+            "no_email": "Keine E-Mail",
+            "reset_title": "Link zum Zurücksetzen des Passworts an {name} senden",
+            "remove_title": "{name} entfernen",
+            "table": {
+                "name": "Name",
+                "email": "E-Mail",
+                "status": "Status",
+                "agents": "Agenten",
+                "messages": "Nachrichten",
+                "created": "Erstellt",
+                "actions": "Aktionen"
+            },
+            "status": {
+                "deactivated": "Deaktiviert",
+                "pending": "Ausstehend",
+                "active": "Aktiv"
+            },
+            "empty": {
+                "title": "Noch keine Chatter.",
+                "description": "Laden Sie jemanden unten ein oder über den Chatter-Tab eines beliebigen Agenten — sie erscheinen dann hier.",
+                "invite_first": "Ersten Chatter einladen"
+            },
+            "no_results": {
+                "title": "Keine Chatter gefunden, die Ihrer Suche entsprechen.",
+                "description": "Versuchen Sie, Ihre Suchbegriffe anzupassen."
+            },
+            "invite_dialog": {
+                "title": "Einen Chatter einladen",
+                "description": "Wir senden einen Registrierungslink an diese Adresse. Wählen Sie die Agenten aus, mit denen der Chatter chatten darf — mindestens einer ist erforderlich.",
+                "email": "E-Mail-Adresse",
+                "agents": "Agenten",
+                "agents_hint": "Der Chatter kann nur mit den ausgewählten Agenten chatten.",
+                "send": "Einladung senden",
+                "emailed_to": "Einladung an {email} gesendet. Sie können den Link auch unten kopieren.",
+                "signup_link": "Registrierungslink",
+                "expires": "Läuft ab am {date}.",
+                "invite_another": "Weitere einladen",
+                "done": "Fertig"
+            },
+            "reset_dialog": {
+                "title": "Link zum Zurücksetzen des Passworts senden?",
+                "description": "Wir senden einen Reset-Link an {email}. Der Chatter kann über den Link ein neues Passwort festlegen — Sie sehen den neuen Wert nicht.",
+                "confirm": "Link senden"
+            },
+            "delete_dialog": {
+                "title": "Chatter entfernen",
+                "description": "{name} wird zusammen mit dem Zugriff auf alle Agenten in Ihrem Arbeitsbereich dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+                "confirm": "Entfernen"
+            },
+            "toast": {
+                "load_failed": "Chatter konnten nicht geladen werden",
+                "invite_sent_to": "Einladung an {email} gesendet",
+                "invite_sent": "Einladung gesendet",
+                "invite_failed": "Die Einladung konnte nicht gesendet werden",
+                "reset_sent": "Link zum Zurücksetzen des Passworts an {email} gesendet",
+                "reset_failed": "Der Reset-Link konnte nicht gesendet werden",
+                "removed": "{name} entfernt",
+                "remove_failed": "Dieser Chatter konnte nicht entfernt werden"
+            }
+        },
+        "governance": {
+            "breadcrumb": "Governance",
+            "title": "Audit-Log",
+            "description": "Jede Aktion, die Ihre Agenten über Tools und Konnektoren ausführen — erlaubt, genehmigt, abgelehnt oder rate-limitiert — mit Argumenten, Ergebnis und auslösender Person."
+        },
+        "sections": {
+            "integrations": "Integrationen",
+            "library": "Bibliothek",
+            "people": "Personen",
+            "governance": "Governance"
+        },
+        "nav": {
+            "connectors": "Konnektoren",
+            "functions": "Funktionen",
+            "api_keys": "API-Schlüssel",
+            "prompts": "Prompts",
+            "members": "Chatter",
+            "audit_log": "Audit-Log"
+        }
+    }
+}

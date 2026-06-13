@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { X } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     title?: string;
@@ -11,11 +12,14 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    title: 'Information',
     message: '',
     storageKey: 'info-banner-dismissed',
     variant: 'info'
 });
+
+const { t } = useI18n();
+
+const displayTitle = computed(() => props.title ?? t('shared.information'));
 
 const isVisible = ref(true);
 
@@ -76,7 +80,7 @@ const getButtonStyles = () => {
             <div class="flex items-start gap-3">
                 <div :class="`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${getDotColor()}`"></div>
                 <div class="text-sm">
-                    <span class="font-medium">{{ title }}:</span> {{ message }}
+                    <span class="font-medium">{{ displayTitle }}:</span> {{ message }}
                 </div>
             </div>
             <Button
@@ -86,7 +90,7 @@ const getButtonStyles = () => {
                 @click="dismissBanner"
             >
                 <X class="h-4 w-4" />
-                <span class="sr-only">Dismiss banner</span>
+                <span class="sr-only">{{ t('shared.dismiss_banner') }}</span>
             </Button>
         </div>
     </div>

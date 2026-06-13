@@ -7,8 +7,8 @@ use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
 use Domain\Membership\Agent\Data\AcceptAgentInvitationData;
 use Domain\Membership\Agent\Enums\InvitationCredentialKind;
-use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
-use Domain\Membership\Agent\Models\AgentMemberInvitation;
+use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
+use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
@@ -42,7 +42,7 @@ class AgentInvitationSocialCallbackController extends Controller
             return redirect()->route('login')->with('error', 'Your invitation link expired. Ask for a fresh one.');
         }
 
-        $invitation = AgentMemberInvitation::query()
+        $invitation = AgentChatterInvitation::query()
             ->with('agent')
             ->find($pending['invitation_id'] ?? 0);
 
@@ -77,7 +77,7 @@ class AgentInvitationSocialCallbackController extends Controller
                 socialProvider: $providerEnum,
                 socialProviderId: (string) $socialUser->getId(),
             ));
-        } catch (AgentMemberInvitationRejectedException $e) {
+        } catch (AgentChatterInvitationRejectedException $e) {
             return redirect()->route('login')->with('error', $e->getMessage());
         }
 

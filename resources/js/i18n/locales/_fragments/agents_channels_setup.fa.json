@@ -1,0 +1,135 @@
+{
+    "agents": {
+        "channels": {
+            "setup": {
+                "names": {
+                    "telegram": "Telegram",
+                    "slack": "Slack",
+                    "messenger": "Messenger",
+                    "whatsapp": "WhatsApp",
+                    "msteams": "Microsoft Teams",
+                    "instagram": "Instagram"
+                },
+                "public_only": "{channel} فقط برای عامل‌های عمومی در دسترس است. این عامل را در صفحه {security} عمومی کنید، سپس آن را اینجا متصل نمایید.",
+                "labels": {
+                    "bot_token": "توکن ربات",
+                    "signing_secret": "کلید امضا",
+                    "request_url": "آدرس درخواست",
+                    "callback_url": "آدرس بازگشت",
+                    "verify_token": "توکن تأیید",
+                    "page_access_token": "توکن دسترسی صفحه",
+                    "app_secret": "کلید مخفی برنامه",
+                    "access_token": "توکن دسترسی",
+                    "phone_number_id": "شناسه شماره تلفن",
+                    "waba_id": "شناسه حساب تجاری WhatsApp",
+                    "microsoft_app_id": "شناسه برنامه Microsoft",
+                    "client_secret": "کلید مخفی کاربر",
+                    "tenant_id": "شناسه مستأجر",
+                    "messaging_endpoint": "نقطه پایانی پیام‌رسانی"
+                },
+                "hints": { "tenant_single_only": "(فقط برای ربات‌های Single Tenant)" },
+                "placeholders": {
+                    "telegram_bot_token": "123456789:ABCdef…",
+                    "slack_bot_token": "xoxb-…",
+                    "meta_token": "EAAG…",
+                    "phone_number_id": "123456789012345",
+                    "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
+                    "tenant_id": "برای Multi Tenant خالی بگذارید",
+                    "instagram_token": "IGAA…"
+                },
+                "guide": {
+                    "need_detail_before": "به جزئیات بیشتر نیاز دارید؟ راهنمای",
+                    "step_by_step_guide": "گام‌به‌گام",
+                    "need_detail_after": "را با تصاویر دنبال کنید."
+                },
+                "shared": {
+                    "subscribe_webhook": "Webhook را در فیلد {field} مشترک کنید",
+                    "messages_field": "پیام‌ها",
+                    "create_meta_app_at": "یک برنامه در {link} ایجاد کنید",
+                    "copy_app_secret_both": "کلید مخفی برنامه را از {section} کپی کرده و هر دو را در زیر پیست کنید",
+                    "copy_app_secret_all": "کلید مخفی برنامه را از {section} کپی کرده و همه را در زیر پیست کنید",
+                    "copy_app_secret_same_page": "کلید مخفی برنامه را از همین صفحه کپی کرده و هر دو را در زیر پیست کنید",
+                    "reply_streams_live": "— پاسخ به صورت زنده نمایش داده می‌شود"
+                },
+                "telegram": {
+                    "connected_description": "کاربران می‌توانند با ربات شما در Telegram پیام بفرستند و عامل شما به صورت خودکار پاسخ می‌دهد — صورتحساب، تاریخچه و محافظ‌ها همگی اعمال می‌شوند.",
+                    "steps": {
+                        "connect_1": "{botfather} را در Telegram باز کنید",
+                        "connect_2": "دستور {command} را ارسال کرده و مراحل را دنبال کنید",
+                        "connect_3": "توکن را در زیر پیست کنید — ما آن را به صورت خودکار متصل می‌کنیم"
+                    },
+                    "botfather": "{'@'}BotFather"
+                },
+                "slack": {
+                    "steps": {
+                        "connected_1": "در {link}، بخش {event_subscriptions} را باز کرده، آن را فعال کنید و آدرس درخواست بالا را پیست کنید",
+                        "connected_2": "رویدادهای ربات {mention} و {im} را مشترک شوید، سپس ذخیره کنید",
+                        "connected_3": "ربات را با {invite} به یک کانال دعوت کنید و آن را {live} {'@'}mention کنید",
+                        "connect_1": "یک برنامه در {link} در فضای کاری خود ایجاد کنید",
+                        "connect_2": "در بخش {oauth}، دسترسی‌های ربات {scope1}، {scope2}، {scope3} را اضافه کنید، سپس برنامه را نصب کرده و توکن ربات را کپی کنید",
+                        "connect_3": "کلید امضا را از {basic_info} کپی کرده و هر دو را در زیر پیست کنید"
+                    },
+                    "your_slack_app": "برنامه Slack شما",
+                    "event_subscriptions": "Event Subscriptions",
+                    "oauth_permissions": "OAuth & Permissions",
+                    "basic_information": "Basic Information"
+                },
+                "messenger": {
+                    "steps": {
+                        "connected_1": "در {link}، بخش {webhooks} را باز کرده و Callback URL و توکن تأیید بالا را پیست کنید",
+                        "connected_3": "با صفحه خود در Messenger پیام بفرستید — عامل شما به صورت خودکار پاسخ می‌دهد",
+                        "connect_1": "یک برنامه در {link} ایجاد کرده و محصول {product} را اضافه کنید",
+                        "connect_2": "در بخش {api_settings}، صفحه Facebook خود را متصل کرده و یک توکن دسترسی صفحه تولید کنید"
+                    },
+                    "your_meta_app": "برنامه Meta شما",
+                    "webhooks_path": "Messenger → Settings → Webhooks",
+                    "api_settings_path": "Messenger → API settings",
+                    "app_settings_basic": "App settings → Basic",
+                    "product": "Messenger"
+                },
+                "whatsapp": {
+                    "steps": {
+                        "connected_1": "در {link}، بخش {configuration} را باز کرده و Callback URL و توکن تأیید بالا را پیست کنید",
+                        "connected_3": "با شماره خود در WhatsApp پیام بفرستید — عامل شما به صورت خودکار پاسخ می‌دهد",
+                        "connect_1": "یک برنامه در {link} با حالت استفاده {use_case} ایجاد کنید",
+                        "connect_2": "مراحل {basic_setup} را کامل کنید، سپس شناسه شماره تلفن، شناسه حساب تجاری WhatsApp و یک توکن دسترسی را کپی کنید"
+                    },
+                    "configuration_path": "WhatsApp → Configuration",
+                    "use_case": "ارتباط با مشتریان از طریق WhatsApp",
+                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                },
+                "msteams": {
+                    "app_id_label": "App {id}",
+                    "steps": {
+                        "connected_1": "در {link}، صفحه {configuration} ربات خود را باز کرده و نقطه پایانی پیام‌رسانی بالا را پیست کنید",
+                        "connected_2": "در بخش {channels}، {teams} را اضافه کنید",
+                        "connected_3": "{open_chat} {live}",
+                        "connect_1": "یک منبع {azure_bot} در {link} ایجاد کنید (Multi Tenant یا Single Tenant)",
+                        "connect_2": "شناسه {app_id} را از Configuration کپی کنید، سپس یک کلید مخفی کاربر در بخش {secrets} ایجاد کنید",
+                        "connect_3": "هر دو را در زیر پیست کنید — برای ربات Single Tenant، {tenant_id} خود را نیز اضافه کنید"
+                    },
+                    "azure_portal": "پورتال Azure",
+                    "configuration": "Configuration",
+                    "channels": "Channels",
+                    "azure_bot": "Azure Bot",
+                    "microsoft_app_id": "Microsoft App ID",
+                    "manage_password": "Manage password → Certificates & secrets",
+                    "directory_tenant_id": "Directory (tenant) ID",
+                    "open_chat_in_teams": "یک چت با ربات خود در Teams باز کنید"
+                },
+                "instagram": {
+                    "steps": {
+                        "connected_1": "در {link}، بخش {webhooks} را باز کرده و Callback URL و توکن تأیید بالا را پیست کنید",
+                        "connected_3": "در برنامه Instagram، دسترسی به پیام را در بخش {message_controls} فعال کنید، سپس به حساب خود پیام مستقیم بفرستید",
+                        "connect_1": "یک برنامه در {link} ایجاد کرده و محصول {product} را اضافه کنید — حساب Instagram شما باید یک حساب حرفه‌ای (کسب‌وکار یا سازنده) باشد",
+                        "connect_2": "در بخش {api_setup}، یک توکن دسترسی برای حساب خود تولید کنید"
+                    },
+                    "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
+                    "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
+                    "api_setup_path": "Instagram → API setup with Instagram login",
+                    "product": "Instagram"
+                }
+            }
+        }
+    }
+}

@@ -2,9 +2,9 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserQuota;
-use Domain\Membership\Agent\Events\AgentMemberInvited;
-use Domain\Membership\Agent\Models\AgentMemberInvitation;
-use Domain\Membership\Agent\Notifications\AgentMemberInvitationNotification;
+use Domain\Membership\Agent\Events\AgentChatterInvited;
+use Domain\Membership\Agent\Models\AgentChatterInvitation;
+use Domain\Membership\Agent\Notifications\AgentChatterInvitationNotification;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
@@ -23,9 +23,9 @@ use Support\Enums\User\UserType;
  *                            real events) the SendTeamInvitationEmail listener
  *                            registered in DomainServiceProvider mailing the
  *                            invitee on demand.
- *   agents.members.store   — InviteAgentMemberAction's row + chatter + pivot +
- *                            AgentMemberInvited, and the
- *                            SendAgentMemberInvitationEmail listener end to end.
+ *   agents.chatters.store   — InviteAgentChatterAction's row + chatter + pivot +
+ *                            AgentChatterInvited, and the
+ *                            SendAgentChatterInvitationEmail listener end to end.
  *   teams.cancel-invitation — owner deletes the row; non-owner is forbidden;
  *                            an invitation of another team 404s (scoped lookup).
  */
@@ -129,17 +129,17 @@ describe('teams.invite', function (): void {
     });
 });
 
-describe('agents.members.store', function (): void {
+describe('agents.chatters.store', function (): void {
     beforeEach(function (): void {
         $this->agent = createAgent($this->owner);
     });
 
-    it('provisions the chatter, persists the invitation and dispatches AgentMemberInvited', function (): void {
-        Event::fake([AgentMemberInvited::class]);
+    it('provisions the chatter, persists the invitation and dispatches AgentChatterInvited', function (): void {
+        Event::fake([AgentChatterInvited::class]);
 
         $this->actingAs($this->owner)
             ->from('/')
-            ->post(route('agents.members.store', $this->agent), [
+            ->post(route('agents.chatters.store', $this->agent), [
                 'email' => 'Chatter@Example.com',
             ])
             ->assertRedirect()
@@ -147,7 +147,7 @@ describe('agents.members.store', function (): void {
             ->assertSessionHas('invitation');
 
         // The email is normalised to lowercase before anything is persisted.
-        $invitation = AgentMemberInvitation::query()
+        $invitation = AgentChatterInvitation::query()
             ->where('agent_id', $this->agent->id)
             ->where('email', 'chatter@example.com')
             ->first();
@@ -164,27 +164,27 @@ describe('agents.members.store', function (): void {
             ->and($this->agent->chatters()->whereKey($chatter->id)->exists())->toBeTrue();
 
         Event::assertDispatched(
-            AgentMemberInvited::class,
-            fn (AgentMemberInvited $event): bool => $event->agent->is($this->agent)
+            AgentChatterInvited::class,
+            fn (AgentChatterInvited $event): bool => $event->agent->is($this->agent)
                 && $event->email === 'chatter@example.com'
                 && $event->acceptUrl === route('agents.invitation.show', ['token' => $invitation->token]),
         );
     });
 
     it('emails the invitee through the registered listener', function (): void {
-        // Real events again — pins AgentMemberInvited → SendAgentMemberInvitationEmail.
+        // Real events again — pins AgentChatterInvited → SendAgentChatterInvitationEmail.
         Notification::fake();
 
         $this->actingAs($this->owner)
             ->from('/')
-            ->post(route('agents.members.store', $this->agent), [
+            ->post(route('agents.chatters.store', $this->agent), [
                 'email' => 'chatter@example.com',
             ])
             ->assertRedirect()
             ->assertSessionHasNoErrors();
 
         Notification::assertSentOnDemand(
-            AgentMemberInvitationNotification::class,
+            AgentChatterInvitationNotification::class,
             fn ($notification, array $channels, object $notifiable): bool => ($notifiable->routes['mail'] ?? null) === 'chatter@example.com',
         );
     });

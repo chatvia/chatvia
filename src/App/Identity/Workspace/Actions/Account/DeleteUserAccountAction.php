@@ -3,15 +3,25 @@
 namespace App\Identity\Workspace\Actions\Account;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Conversation\Models\Attachment;
+use Domain\Conversation\Services\Memory\ChatCache;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Subscription;
 use Stripe\Exception\ApiErrorException;
+use Throwable;
 
 /**
  * Tear down a whole workspace: the owner, their employees + chatters, their
  * teams, and (by FK cascade) every agent, conversation, knowledge source,
  * credit, billing row, etc. that hangs off them.
+ *
+ * Two things the FK cascade can't do, handled explicitly here: attachment
+ * files on S3 (the cascade drops the rows but never fires the Eloquent
+ * `deleting` event that wipes the object — see {@see self::deleteAttachmentFiles()})
+ * and the workspace's Redis chat memory (cache, not DB — see
+ * {@see self::flushChatMemoryCache()}).
  *
  * Only a workspace owner reaches here. Employees and chatters can't own teams,
  * so the teardown never recurses through sub-user-owned teams.
@@ -21,6 +31,14 @@ class DeleteUserAccountAction
     public function execute(User $user): void
     {
         $this->cancelSubscriptions($user);
+
+        // Wipe attachment files through Eloquent BEFORE the raw chat_messages
+        // delete and the final user cascade. Both remove chat_attachments rows
+        // by FK cascade (chat_message_id and chat_conversation_id are
+        // cascadeOnDelete) WITHOUT firing the Attachment `deleting` observer —
+        // so the S3 objects would leak. Deleting the models here fires the
+        // observer ({@see Attachment::booted}) and wipes the files first.
+        $this->deleteAttachmentFiles($user);
 
         // Pre-delete the unbounded children (chunks carry 2 vchordrq + 2 bm25 + GIN
         // indexes each) in batches outside the final transaction; the FK cascade
@@ -65,6 +83,54 @@ class DeleteUserAccountAction
             // Finally the owner; every remaining reference cascades or nulls out.
             $user->delete();
         });
+
+        $this->flushChatMemoryCache($user);
+    }
+
+    /**
+     * Wipe every conversation-bound attachment's S3 object by deleting the
+     * models through Eloquent (firing {@see Attachment::booted}'s `deleting`
+     * hook). Runs before the chat_messages batch-delete and the user cascade,
+     * both of which would otherwise drop the rows via FK cascade without ever
+     * touching S3. chunkById is delete-safe (it pages by `id > lastId`, so
+     * removing the current page never skips rows). Orphan composer uploads
+     * (no conversation, keyed only by agent path) aren't chat memory and are
+     * left to the daily orphan-object prune.
+     */
+    private function deleteAttachmentFiles(User $user): void
+    {
+        Attachment::query()
+            ->whereExists(function ($query) use ($user): void {
+                $query->selectRaw('1')
+                    ->from('chat_conversations as c')
+                    ->join('agents as a', 'a.id', '=', 'c.agent_id')
+                    ->whereColumn('c.id', 'chat_attachments.chat_conversation_id')
+                    ->where('a.user_id', $user->id);
+            })
+            ->chunkById(500, static function ($attachments): void {
+                $attachments->each(static fn (Attachment $attachment) => $attachment->delete());
+            });
+    }
+
+    /**
+     * Drop the workspace's Redis chat memory in one shot. Every chat-cache
+     * entry carries the workspace tag ({@see ChatCache::workspaceTag()}), so a
+     * single tag flush clears conversation lists, message/turn caches, source
+     * caches and the `forever` ownership markers that would otherwise outlive
+     * the deleted DB rows (they never expire). Best-effort: a teardown must not
+     * fail because the cache store is briefly unreachable — log and carry on,
+     * mirroring how the S3 and Stripe steps tolerate downstream failures.
+     */
+    private function flushChatMemoryCache(User $user): void
+    {
+        try {
+            Cache::driver('chat')->tags(ChatCache::workspaceTag($user->external_id))->flush();
+        } catch (Throwable $e) {
+            Log::warning('Account deletion: failed to flush workspace chat memory cache.', [
+                'workspace_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /** Loop a bounded DELETE until it stops matching rows. */

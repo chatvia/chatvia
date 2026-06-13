@@ -102,6 +102,13 @@
                     "run_deleted": "Run deleted",
                     "history_cleared": "Run history cleared"
                 }
+            },
+            "scorers": {
+                "contains": "Contains",
+                "regex": "Regex",
+                "exact": "Exact match",
+                "json_schema": "JSON schema",
+                "llm_judge": "LLM judge"
             }
         }
     }

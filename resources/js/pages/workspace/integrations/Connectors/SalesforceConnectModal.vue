@@ -72,10 +72,7 @@ async function submit(): Promise<void> {
         const axiosErr = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
         const errors = axiosErr.response?.data?.errors;
         error.value =
-            axiosErr.response?.data?.message ??
-            errors?.client_id?.[0] ??
-            errors?.my_domain?.[0] ??
-            t('workspace.connectors.salesforce.error');
+            axiosErr.response?.data?.message ?? errors?.client_id?.[0] ?? errors?.my_domain?.[0] ?? t('workspace.connectors.salesforce.error');
         saving.value = false;
     }
 }
@@ -133,7 +130,9 @@ async function submit(): Promise<void> {
                         class="font-mono"
                     />
                     <p v-if="connector.tokenHelpUrl" class="text-muted-foreground flex items-center gap-1 text-xs">
-                        <a :href="connector.tokenHelpUrl" target="_blank" class="hover:underline">{{ t('workspace.connectors.salesforce.help_link') }}</a>
+                        <a :href="connector.tokenHelpUrl" target="_blank" class="hover:underline">{{
+                            t('workspace.connectors.salesforce.help_link')
+                        }}</a>
                         <ExternalLink class="h-3 w-3" />
                     </p>
                 </div>
@@ -191,7 +190,9 @@ async function submit(): Promise<void> {
                 </p>
 
                 <DialogFooter>
-                    <Button type="button" variant="ghost" :disabled="saving" @click="emit('update:open', false)">{{ t('workspace.common.cancel') }}</Button>
+                    <Button type="button" variant="ghost" :disabled="saving" @click="emit('update:open', false)">{{
+                        t('workspace.common.cancel')
+                    }}</Button>
                     <Button type="submit" :disabled="saving || !clientId.trim()">
                         <LoaderCircle v-if="saving" class="me-1 h-4 w-4 animate-spin" />
                         {{ t('workspace.connectors.salesforce.continue') }}

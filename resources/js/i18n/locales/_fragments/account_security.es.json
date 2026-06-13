@@ -1,0 +1,59 @@
+{
+    "account": {
+        "passkeys": {
+            "name_required": "Primero dale un nombre a tu clave de acceso.",
+            "register_error": "No se pudo registrar la clave de acceso.",
+            "never": "Nunca",
+            "delete_aria": "Eliminar clave de acceso",
+            "name_placeholder": "MacBook Pro, iPhone, YubiKey…",
+            "heading": "Claves de acceso",
+            "description": "Inicia sesión con tu huella dactilar, rostro o llave de seguridad — sin contraseña.",
+            "add_passkey": "Agregar clave de acceso",
+            "no_passkeys": "Aún no hay claves de acceso",
+            "no_passkeys_hint": "Agrega una clave de acceso para iniciar sesión más rápido en este dispositivo.",
+            "last_used": "Último uso",
+            "created": "Creada",
+            "dialog_title": "Nombra tu clave de acceso",
+            "dialog_description": "Elige un nombre para distinguir tus claves de acceso más adelante.",
+            "register": "Registrar clave de acceso",
+            "delete_title": "¿Eliminar esta clave de acceso?",
+            "delete_description": "{name} ya no podrá iniciar sesión. Esta acción no se puede deshacer."
+        },
+        "two_factor": {
+            "heading": "Autenticación de dos factores",
+            "description": "Requiere un código de 6 dígitos de una app autenticadora al iniciar sesión, además de tu contraseña.",
+            "disable_title": "¿Desactivar la autenticación de dos factores?",
+            "disable_description": "Tu cuenta solo estará protegida por tu contraseña. Puedes volver a activar 2FA en cualquier momento.",
+            "status": "Estado",
+            "enabled": "Activada",
+            "disabled": "Desactivada",
+            "off_title": "La autenticación de dos factores está desactivada",
+            "off_description": "Actívala para requerir un código de 6 dígitos al iniciar sesión.",
+            "enable": "Activar dos factores",
+            "finish_setup_title": "Finalizar configuración",
+            "finish_setup_description": "Escanea el código QR con tu app autenticadora y luego ingresa el código de 6 dígitos para confirmar.",
+            "loading_qr": "Cargando código QR…",
+            "secret_manual": "O ingresa este secreto manualmente",
+            "confirmation_code": "Código de confirmación",
+            "confirm": "Confirmar",
+            "cancel_setup": "Cancelar configuración",
+            "recovery_title": "Códigos de recuperación",
+            "recovery_description": "Guarda estos códigos de un solo uso en un lugar seguro. Cada uno puede desbloquear tu cuenta si pierdes tu autenticador.",
+            "loading_codes": "Cargando códigos de recuperación…",
+            "show_codes": "Mostrar códigos de recuperación",
+            "regenerate_codes": "Regenerar códigos",
+            "disable": "Desactivar dos factores"
+        },
+        "social": {
+            "heading": "Cuentas sociales",
+            "description": "Conecta Google, Microsoft o Slack para iniciar sesión con un clic y mantener tus cuentas sincronizadas.",
+            "connected_since": "Conectada desde {date}",
+            "connected": "Conectada",
+            "not_connected": "No conectada",
+            "disconnect": "Desconectar",
+            "connect": "Conectar",
+            "disconnect_title": "¿Desconectar {provider}?",
+            "disconnect_description": "No podrás iniciar sesión con {provider} hasta que lo vuelvas a conectar."
+        }
+    }
+}

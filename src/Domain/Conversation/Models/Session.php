@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Support\Localization\Country\Models\Country;
-use Support\Traits\SupportsExternalId;
+use Support\Concerns\HasExternalId;
 
 /**
  * @property int $id
@@ -81,7 +81,7 @@ use Support\Traits\SupportsExternalId;
 #[Table(name: 'chat_sessions')]
 class Session extends Model
 {
-    use HasFactory, SupportsExternalId;
+    use HasExternalId, HasFactory;
 
     protected function casts(): array
     {

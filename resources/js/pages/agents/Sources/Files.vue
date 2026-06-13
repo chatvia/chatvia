@@ -1013,7 +1013,11 @@ defineExpose({
                         : usageData.pages.used + uploadingPagesOnly
                 "
                 :quota-limit="props.fileType === 'audio' || props.fileType === 'video' ? usageData.minutes?.limit || 0 : usageData.pages.limit"
-                :quota-label="props.fileType === 'audio' || props.fileType === 'video' ? t('agents.sources.files.quota_minutes') : t('agents.sources.files.quota_pages')"
+                :quota-label="
+                    props.fileType === 'audio' || props.fileType === 'video'
+                        ? t('agents.sources.files.quota_minutes')
+                        : t('agents.sources.files.quota_pages')
+                "
                 :disabled="isProcessingFiles"
                 :disabled-message="t('agents.sources.files.uploads_disabled')"
                 @files-changed="(files) => (uploadingFiles = files)"
@@ -1034,7 +1038,9 @@ defineExpose({
                                     <span v-if="totalUploadedMinutes > 0" class="ms-1">
                                         • {{ t('agents.sources.files.minutes_count', totalUploadedMinutes) }}
                                     </span>
-                                    <span v-if="wouldExceedQuota" class="text-destructive ms-1 font-medium"> • {{ t('agents.sources.files.exceeds_quota') }} </span>
+                                    <span v-if="wouldExceedQuota" class="text-destructive ms-1 font-medium">
+                                        • {{ t('agents.sources.files.exceeds_quota') }}
+                                    </span>
                                 </CardDescription>
                             </div>
                             <div class="flex items-center gap-2">
@@ -1138,7 +1144,7 @@ defineExpose({
                             {{ t('agents.sources.files.empty') }}
                         </div>
                         <template v-else>
-                            <ScrollArea v-if="processedKnowledgeFiles.length > 5" class="h-[400px] pr-4">
+                            <ScrollArea v-if="processedKnowledgeFiles.length > 5" class="h-[400px] pe-4">
                                 <div class="space-y-2">
                                     <template v-for="file in processedKnowledgeFiles" :key="file.id">
                                         <div class="flex items-center justify-between rounded-lg border p-3">
@@ -1235,7 +1241,9 @@ defineExpose({
                                                             <div class="text-xs">
                                                                 <p v-if="isFileShared(file)">
                                                                     {{ t('agents.sources.common.remove_from_agent') }}<br />
-                                                                    <span class="text-muted-foreground">{{ t('agents.sources.common.used_in_agents', { count: file.agents_count }) }}</span>
+                                                                    <span class="text-muted-foreground">{{
+                                                                        t('agents.sources.common.used_in_agents', { count: file.agents_count })
+                                                                    }}</span>
                                                                 </p>
                                                                 <p v-else>{{ t('agents.sources.common.delete_from_knowledge_base') }}</p>
                                                             </div>
@@ -1277,9 +1285,9 @@ defineExpose({
                                                                     <CheckCircle class="h-4 w-4 flex-shrink-0 text-green-500" />
                                                                 </div>
                                                             </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>{{ t('agents.sources.files.status_ready') }}</p>
-                                                                </TooltipContent>
+                                                            <TooltipContent>
+                                                                <p>{{ t('agents.sources.files.status_ready') }}</p>
+                                                            </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                     <TooltipProvider v-else-if="file.status === 'failed'">
@@ -1343,7 +1351,9 @@ defineExpose({
                                                         <div class="text-xs">
                                                             <p v-if="isFileShared(file)">
                                                                 {{ t('agents.sources.common.remove_from_agent') }}<br />
-                                                                <span class="text-muted-foreground">{{ t('agents.sources.common.used_in_agents', { count: file.agents_count }) }}</span>
+                                                                <span class="text-muted-foreground">{{
+                                                                    t('agents.sources.common.used_in_agents', { count: file.agents_count })
+                                                                }}</span>
                                                             </p>
                                                             <p v-else>{{ t('agents.sources.common.delete_from_knowledge_base') }}</p>
                                                         </div>
@@ -1376,7 +1386,9 @@ defineExpose({
                         </DialogDescription>
                     </DialogHeader>
                     <div class="mt-4 flex items-center justify-end gap-2">
-                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeleting"> {{ t('agents.sources.common.cancel') }} </Button>
+                        <Button variant="outline" @click="deleteDialogOpen = false" :disabled="isUnlinking || isDeleting">
+                            {{ t('agents.sources.common.cancel') }}
+                        </Button>
                         <Button
                             v-if="isFileShared(fileToDelete)"
                             variant="secondary"
@@ -1392,7 +1404,9 @@ defineExpose({
                             <LoaderCircle v-if="isDeleting" class="me-2 h-4 w-4 animate-spin" />
                             <Trash2 v-else class="me-2 h-4 w-4" />
                             <span v-if="isDeleting">{{ t('agents.sources.common.deleting') }}</span>
-                            <span v-else>{{ isFileShared(fileToDelete) ? t('agents.sources.common.delete_permanently') : t('agents.sources.common.delete') }}</span>
+                            <span v-else>{{
+                                isFileShared(fileToDelete) ? t('agents.sources.common.delete_permanently') : t('agents.sources.common.delete')
+                            }}</span>
                         </Button>
                     </div>
                 </DialogContent>
@@ -1474,7 +1488,9 @@ defineExpose({
 
                             <div v-if="summaryData.estimated_reading_time_minutes">
                                 <h3 class="text-foreground mb-1 text-sm font-semibold">{{ t('agents.sources.files.summary_reading_time') }}</h3>
-                                <p class="text-muted-foreground text-sm">{{ t('agents.sources.files.minutes_count', summaryData.estimated_reading_time_minutes) }}</p>
+                                <p class="text-muted-foreground text-sm">
+                                    {{ t('agents.sources.files.minutes_count', summaryData.estimated_reading_time_minutes) }}
+                                </p>
                             </div>
                         </div>
 

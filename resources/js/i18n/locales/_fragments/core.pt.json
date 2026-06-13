@@ -1,0 +1,131 @@
+{
+    "common": {
+        "saved": "Guardado",
+        "remove": "Remover",
+        "preview": "Pré-visualizar",
+        "upload": "Carregar",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "confirm": "Confirmar",
+        "deleting": "A eliminar..."
+    },
+    "nav": {
+        "account": "Conta",
+        "workspace": "Espaço de trabalho",
+        "logout": "Terminar sessão",
+        "language": "Idioma"
+    },
+    "account": {
+        "layout": {
+            "heading": "Conta",
+            "description": "Gerir o seu perfil pessoal, segurança e dados"
+        },
+        "nav": {
+            "profile": "Perfil",
+            "password": "Palavra-passe",
+            "two_factor": "Autenticação de dois fatores",
+            "passkeys": "Chaves de acesso",
+            "social": "Contas sociais",
+            "data_export": "Transferir os meus dados",
+            "delete": "Eliminar conta"
+        },
+        "profile": {
+            "title": "Definições de perfil",
+            "change_photo": "Alterar fotografia de perfil",
+            "upload_photo": "Carregar fotografia de perfil",
+            "managed_by": "Gerido por {name}",
+            "copy_account_id": "Copiar ID da conta",
+            "copied": "Copiado!",
+            "remove_photo": "Remover fotografia",
+            "remove_photo_title": "Remover fotografia de perfil",
+            "remove_photo_description": "O seu avatar voltará às suas iniciais. Pode carregar uma nova fotografia a qualquer momento.",
+            "info_title": "Informações de perfil",
+            "info_description": "Atualize as informações de perfil e o endereço de e-mail da sua conta.",
+            "name": "Nome",
+            "name_placeholder": "Nome completo",
+            "email": "Endereço de e-mail",
+            "email_placeholder": "Endereço de e-mail",
+            "email_unverified": "O seu endereço de e-mail não está verificado.",
+            "resend_verification": "Clique aqui para reenviar o e-mail de verificação.",
+            "verification_sent": "Foi enviada uma nova ligação de verificação para o seu endereço de e-mail.",
+            "updated": "Perfil atualizado com sucesso",
+            "datetime_title": "Data e hora",
+            "datetime_description": "Escolha como as datas são apresentadas no seu painel.",
+            "date_format": "Formato de data",
+            "date_format_placeholder": "Selecionar um formato de data"
+        },
+        "password": {
+            "title": "Definições de palavra-passe",
+            "heading": "Segurança da palavra-passe",
+            "subtitle": "Gerir a palavra-passe da sua conta.",
+            "update_title": "Atualizar palavra-passe",
+            "update_description": "Certifique-se de que a sua conta utiliza uma palavra-passe forte e segura para a proteger.",
+            "current": "Palavra-passe atual",
+            "current_placeholder": "Introduza a sua palavra-passe atual",
+            "new": "Nova palavra-passe",
+            "new_placeholder": "Introduza a sua nova palavra-passe",
+            "confirm": "Confirmar palavra-passe",
+            "confirm_placeholder": "Confirme a sua nova palavra-passe",
+            "submit": "Atualizar palavra-passe",
+            "updated": "Palavra-passe atualizada com sucesso"
+        },
+        "two_factor": {
+            "title": "Autenticação de dois fatores"
+        },
+        "passkeys": {
+            "title": "Chaves de acesso"
+        },
+        "social": {
+            "title": "Contas sociais"
+        },
+        "data_export": {
+            "title": "Transferir os meus dados",
+            "heading": "Transferir uma cópia dos meus dados",
+            "description": "Obtenha um arquivo ZIP com todos os dados pessoais que conservamos sobre si — os seus agentes, conversas, mensagens, fontes de conhecimento e ficheiros carregados. Preparado em conformidade com os Artigos 15 e 20 do RGPD.",
+            "idle_title": "Os seus dados, nas suas mãos.",
+            "idle_description": "A criação do arquivo é executada em segundo plano — iremos enviar-lhe um e-mail quando estiver pronto. A transferência fica disponível durante 24 horas e, em seguida, é eliminada dos nossos servidores.",
+            "request_button": "Solicitar uma cópia dos meus dados",
+            "processing_title": "A preparar a sua exportação…",
+            "processing_description": "Estamos a empacotar os seus dados num ficheiro ZIP. Geralmente demora alguns minutos — iremos enviar-lhe um e-mail quando estiver pronto, e esta página será atualizada automaticamente.",
+            "check_status": "Verificar estado",
+            "ready_title": "A sua exportação de dados está pronta.",
+            "available_for": "Disponível por {time}",
+            "download_zip": "Transferir ZIP",
+            "failed_title": "Não foi possível preparar a sua exportação.",
+            "try_again": "Tentar novamente"
+        },
+        "delete": {
+            "title": "Eliminar conta",
+            "subtitle": "Eliminar permanentemente a sua conta e tudo o que contém.",
+            "data_export_title": "Pretende uma cópia dos seus dados primeiro?",
+            "data_export_description": "Depois de a sua conta ser eliminada, os seus dados também serão eliminados. Pode {link} de tudo o que conservamos sobre si antes de eliminar.",
+            "data_export_link": "transferir um arquivo",
+            "cannot_undo": "Esta ação não pode ser revertida",
+            "removes_intro": "A eliminação da sua conta remove permanentemente tudo o que contém, incluindo:",
+            "removes_agents": "Os seus agentes e respetivas definições",
+            "removes_conversations": "Todas as conversas e mensagens",
+            "removes_knowledge": "Fontes de conhecimento, documentos e ficheiros carregados",
+            "removes_team": "A sua equipa, chatters, chaves API e conectores",
+            "agents_will_delete": "{count} agente será eliminado permanentemente: | {count} agentes serão eliminados permanentemente:",
+            "subscription_cancel": "A sua subscrição ativa será cancelada e não voltará a ser cobrado.",
+            "email_confirmed": "E-mail confirmado. Este é o seu último passo — não há retorno depois disto.",
+            "delete_button": "Eliminar permanentemente a minha conta",
+            "final_dialog_title": "Eliminar permanentemente a sua conta?",
+            "final_dialog_description": "Esta ação eliminará permanentemente a sua conta e todos os seus dados, e não pode ser revertida.",
+            "final_dialog_subscription": "A sua subscrição também será cancelada.",
+            "final_confirm": "Sim, eliminar tudo",
+            "check_email": "Verifique o seu e-mail — enviámos uma ligação de confirmação para concluir a eliminação da sua conta. Expira em 30 minutos. Abra a ligação para continuar.",
+            "resend_link": "Enviar a ligação novamente",
+            "password_dialog_title": "Confirme a sua palavra-passe",
+            "password_dialog_description": "Introduza a sua palavra-passe para continuar. Iremos enviar-lhe uma ligação de confirmação por e-mail para concluir a eliminação da sua conta.",
+            "password_placeholder": "Palavra-passe",
+            "send_confirmation": "Enviar e-mail de confirmação"
+        }
+    },
+    "workspace": {
+        "layout": {
+            "heading": "Espaço de trabalho",
+            "description": "Gerir integrações, pessoas e governação"
+        }
+    }
+}

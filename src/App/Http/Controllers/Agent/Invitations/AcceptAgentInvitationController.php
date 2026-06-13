@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\Agent\Invitations;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Agent\Member\AcceptAgentInvitationRequest;
+use App\Http\Requests\Agent\Chatter\AcceptAgentInvitationRequest;
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
 use Domain\Membership\Agent\Data\AcceptAgentInvitationData;
 use Domain\Membership\Agent\Enums\InvitationCredentialKind;
-use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
-use Domain\Membership\Agent\Models\AgentMemberInvitation;
+use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
+use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Accept an agent-invitation link (password path). The route param is the
- * invitation `token`; we resolve the matching {@see AgentMemberInvitation} row,
+ * invitation `token`; we resolve the matching {@see AgentChatterInvitation} row,
  * activate the chatter, delete the invitation (single-use), and hand the
  * session off to the agent's own subdomain via an `auth_token`.
  *
@@ -32,7 +32,7 @@ class AcceptAgentInvitationController extends Controller
         AcceptAgentInvitationAction $accept,
         ChatterAuthTokenService $authTokens,
     ): Response {
-        $invitation = AgentMemberInvitation::query()
+        $invitation = AgentChatterInvitation::query()
             ->with('agent')
             ->where('token', $token)
             ->first();
@@ -49,7 +49,7 @@ class AcceptAgentInvitationController extends Controller
                 kind: InvitationCredentialKind::Password,
                 password: (string) $request->validated('password'),
             ));
-        } catch (AgentMemberInvitationRejectedException $e) {
+        } catch (AgentChatterInvitationRejectedException $e) {
             return back()->withErrors([$e->field => $e->getMessage()])->withInput();
         }
 

@@ -24,6 +24,7 @@
         "crwlr/crawler": "^3.5",
         "dedoc/scramble": "^0.13.23",
         "dedoc/scramble-pro": "^0.9.2",
+        "filament/filament": "^5.0",
         "firebase/php-jwt": "^v7.0.5",
         "google/cloud-document-ai": "^2.2",
         "graham-campbell/markdown": "^16.0",
@@ -106,7 +107,8 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
+            "@php artisan package:discover --ansi",
+            "@php artisan filament:upgrade"
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"

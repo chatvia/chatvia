@@ -3,6 +3,8 @@
 namespace App\Identity\Chatter\Actions;
 
 use App\Identity\Chatter\Data\UpdateChatterAccessData;
+use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
+use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
 use Domain\Billing\Services\ChatterMessageAllowance;
 
 /**
@@ -14,6 +16,8 @@ class UpdateChatterAccessAction
 {
     public function __construct(
         private readonly ChatterMessageAllowance $allowance,
+        private readonly DeactivateAccountAction $deactivate,
+        private readonly ReactivateAccountAction $reactivate,
     ) {}
 
     public function execute(UpdateChatterAccessData $data): void
@@ -23,12 +27,12 @@ class UpdateChatterAccessAction
         $this->allowance->setLimit($chatter, $data->messagesLimit);
 
         if ($data->deactivated && ! $chatter->isDeactivated()) {
-            $chatter->deactivate($data->deactivationReason);
+            $this->deactivate->execute($chatter, $data->deactivationReason);
         } elseif ($data->deactivated) {
             // Already off — keep the reason current without bumping the timestamp.
             $chatter->update(['deactivation_reason' => $data->deactivationReason]);
         } elseif ($chatter->isDeactivated()) {
-            $chatter->reactivate();
+            $this->reactivate->execute($chatter);
         }
     }
 }

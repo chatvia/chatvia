@@ -1,0 +1,134 @@
+{
+    "connectors": {
+        "categories": {
+            "utilities": "Hjælpeværktøjer",
+            "sales": "Salg",
+            "payments": "Betalinger",
+            "developer_tools": "Udviklerværktøjer",
+            "productivity": "Produktivitet",
+            "communication": "Kommunikation",
+            "automation": "Automatisering",
+            "analytics": "Analyse"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "Søg på den levende web med Perplexity Sonar — nyheder, priser, aktuelle begivenheder — med kildehenvisninger.",
+                "token_label": "Perplexity API-nøgle",
+                "token_placeholder": "Din Perplexity API-nøgle"
+            },
+            "weather": {
+                "name": "Vejr",
+                "description": "Aktuelt vejr (temperatur, forhold, luftfugtighed, vind) for enhver by, drevet af OpenWeatherMap.",
+                "token_label": "OpenWeatherMap API-nøgle",
+                "token_placeholder": "Din OpenWeatherMap API-nøgle"
+            },
+            "currency": {
+                "name": "Valutaomregner",
+                "description": "Omregn beløb mellem to valutaer ved hjælp af aktuelle valutakurser (exchangerate-api).",
+                "token_label": "ExchangeRate-API-nøgle",
+                "token_placeholder": "Din ExchangeRate-API-nøgle"
+            },
+            "charts": {
+                "name": "Interaktive diagrammer",
+                "description": "Vis interaktive diagrammer direkte i chatten — søjle, linje, cirkel, punkt, radar, måler, varmekort og mere."
+            },
+            "leads": {
+                "name": "Leads",
+                "description": "Indsaml besøgendes kontaktoplysninger (navn, e-mail, telefon og mere)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "Søg i transaktioner, kunder, produkter og betalinger på din Stripe-konto."
+            },
+            "github": {
+                "name": "GitHub",
+                "description": "Læs repos, issues, PR'er og kode fra enhver konto, du har adgang til."
+            },
+            "notion": {
+                "name": "Notion",
+                "description": "Læs sider, databaser og kommentarer fra dit Notion-workspace."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "Søg i issues, projekter og cyklusser på tværs af dit Linear-workspace."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "Jira-issues, Confluence-sider og arbejdsgange fra dine Atlassian-sider."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "Søg i beskeder, læs tråde og skriv svar fra din Gmail-indbakke."
+            },
+            "google-calendar": {
+                "name": "Google Kalender",
+                "description": "Læs og opret begivenheder på tværs af dine Google-kalendere."
+            },
+            "google-drive": {
+                "name": "Google Drev",
+                "description": "Læs filer og mapper fra dit Google Drev."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "Søg i beskeder, post svar og læs kanalhistorik på tværs af dit Slack-workspace."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "Lad besøgende booke møder via din Calendly, og lad agenter læse dine planlagte begivenheder."
+            },
+            "todoist": {
+                "name": "Todoist",
+                "description": "Administrer opgaver, projekter og etiketter på tværs af din Todoist-konto."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "Udløs Zapier-handlinger på tværs af 9.000+ forbundne apps."
+            },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "Læs sager, brugere og Hjælpecenter-artikler fra din Zendesk Support-konto.",
+                "token_label": "Zendesk API-token",
+                "token_placeholder": "Dit Zendesk API-token"
+            },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "Læs og opdater kontakter, virksomheder, deals og sager i dit HubSpot CRM."
+            },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "Læs og opdater konti, kontakter, muligheder og sager fra din Salesforce-organisation."
+            },
+            "box": {
+                "name": "Box",
+                "description": "Søg i og læs filer, mapper og metadata fra din Box-konto."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "Læs og opdater opgaver, projekter og porteføljer på tværs af dit Asana-workspace."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "Læs issues, fejl og udgivelser fra dine Sentry-projekter."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "Søg i mødeudskrifter, resuméer og handlingspunkter fra Fireflies.ai."
+            },
+            "amplitude": {
+                "name": "Amplitude",
+                "description": "Forespørg på produktanalyse — hændelser, diagrammer og kohorter — fra dit Amplitude-projekt."
+            }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "Kontoanalyse",
+                "description": "Besvar workspace-ejerens spørgsmål om deres egen konto i tal — beskeder, samtaler, brugere, kanaler, leads, tilfredshed, svartid, emner og overdragelser."
+            },
+            "charts": {
+                "name": "Interaktive diagrammer",
+                "description": "Vis interaktive diagrammer (søjle, linje, cirkel, måler, punkt, radar, varmekort, …) direkte i chatten."
+            }
+        }
+    }
+}

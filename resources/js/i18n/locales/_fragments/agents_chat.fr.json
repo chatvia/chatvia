@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chat_errors": {
+            "disabled_title": "Agent désactivé",
+            "disabled_description": "Cet agent est actuellement indisponible",
+            "disabled_heading": "Agent désactivé",
+            "disabled_message": "Cet agent a été désactivé. Veuillez contacter l'administrateur pour obtenir de l'aide.",
+            "disabled_hint": "Si vous pensez qu'il s'agit d'une erreur ou si vous avez besoin d'une assistance immédiate, veuillez contacter votre administrateur.",
+            "contact_admin": "Contacter l'administrateur",
+            "return_dashboard": "Retourner au tableau de bord",
+            "no_messages_title": "Plus de messages disponibles",
+            "no_messages_description": "Vous avez atteint votre limite de messages",
+            "not_found_title": "Agent introuvable",
+            "not_found_description": "L'agent que vous recherchez n'existe pas",
+            "not_found_heading": "Agent introuvable",
+            "not_found_message": "L'agent auquel vous tentez d'accéder n'existe pas ou a peut-être été supprimé.",
+            "not_found_hint": "Veuillez vérifier l'URL ou contacter votre administrateur si vous pensez que cet agent devrait être disponible."
+        }
+    }
+}

@@ -18,7 +18,6 @@ use App\Http\Controllers\Landing\Blog\ChangelogController;
 use App\Http\Controllers\Landing\Blog\PostController;
 use App\Http\Controllers\Landing\FreeTools\ChatPdfController;
 use App\Http\Controllers\Landing\HomeController;
-use App\Http\Controllers\Landing\Legal\ConsentController;
 use App\Http\Controllers\Landing\Legal\DpaController;
 use App\Http\Controllers\Landing\Legal\PrivacyController;
 use App\Http\Controllers\Landing\Legal\RefundController;
@@ -30,30 +29,46 @@ use App\Http\Controllers\Landing\Marketing\DocController;
 use App\Http\Controllers\Landing\Marketing\MissionController;
 use App\Http\Controllers\Landing\Marketing\PricingController;
 use App\Http\Controllers\Landing\Marketing\UseCaseController;
+use App\Http\Middleware\Web\ResolveLandingLocale;
 use Illuminate\Support\Facades\Route;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
-Route::get('/', HomeController::class)->name('home');
-Route::get('/pricing', PricingController::class)->name('pricing');
-Route::get('/mission', MissionController::class)->name('mission');
-Route::get('/security', SecurityController::class)->name('security');
+// Public marketing + legal pages. Wrapped in the locale group so every page is
+// also reachable under `/ar` (Arabic, right-to-left). `localeSessionRedirect`
+// forwards a visitor to the language their browser asks for (Accept-Language) on
+// first visit and remembers it; `localizationRedirect` drops the redundant `/en`
+// prefix since English is the hidden default. OAuth callbacks, every POST endpoint,
+// and the trial/Stripe flow stay OUTSIDE this group — their URLs must not be
+// locale-prefixed or redirected.
+Route::group([
+    'prefix' => LaravelLocalization::setLocale(),
+    'middleware' => [ResolveLandingLocale::class, 'localeSessionRedirect', 'localizationRedirect'],
+], function (): void {
+    Route::get('/', HomeController::class)->name('home');
+    Route::get('/pricing', PricingController::class)->name('pricing');
+    Route::get('/mission', MissionController::class)->name('mission');
+    Route::get('/security', SecurityController::class)->name('security');
 
-// Consent routes
-Route::get('/consent', [ConsentController::class, 'show'])->name('consent.show');
-Route::post('/consent', [ConsentController::class, 'store'])->name('consent.store');
-Route::get('/privacy-policy', PrivacyController::class)->name('privacy');
-Route::get('/terms-of-service', TermsController::class)->name('terms');
-Route::get('/refund', RefundController::class)->name('refund');
-Route::get('/legal/dpa', [DpaController::class, 'show'])->name('dpa');
+    Route::get('/privacy-policy', PrivacyController::class)->name('privacy');
+    Route::get('/terms-of-service', TermsController::class)->name('terms');
+    Route::get('/refund', RefundController::class)->name('refund');
+    Route::get('/legal/dpa', [DpaController::class, 'show'])->name('dpa');
+    Route::get('/legal/subprocessors', SubprocessorsController::class)->name('subprocessors');
+    Route::get('/changelog', ChangelogController::class)->name('changelog');
+    Route::get('/blog', BlogController::class)->name('blog');
+    Route::get('/blog/{post:slug}', PostController::class)->name('blog.post');
+
+    Route::get('contact', [ContactController::class, 'show'])->name('contact');
+    Route::get('docs', DocController::class)->name('docs');
+    Route::get('/use-cases/{case}', UseCaseController::class)->name('use-cases');
+    Route::get('free-tools/chat-with-pdf', ChatPdfController::class)->name('free-tools.chat-with-pdf');
+});
+
 Route::get('/legal/dpa/download', [DpaController::class, 'download'])->name('dpa.download');
-Route::get('/legal/subprocessors', SubprocessorsController::class)->name('subprocessors');
-Route::get('/changelog', ChangelogController::class)->name('changelog');
-Route::get('/blog', BlogController::class)->name('blog');
-Route::get('/blog/{post:slug}', PostController::class)->name('blog.post');
 
-Route::get('contact', [ContactController::class, 'show'])->name('contact');
+// Contact form submission posts to the non-localized action URL (a localized POST
+// would be redirected to a GET by the locale middleware).
 Route::post('contact', [ContactController::class, 'submit'])->name('contact.submit');
-
-Route::get('docs', DocController::class)->name('docs');
 
 // Social OAuth routes. Starts get a tighter cap (cheap redirect, only abused
 // for traffic generation); callbacks get a higher cap (legit users can land
@@ -70,10 +85,6 @@ Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->
 
 Route::get('/auth/slack', SlackAuthController::class)->middleware('throttle:10,1')->name('auth.slack');
 Route::get('/auth/slack/callback', SlackCallbackController::class)->middleware('throttle:30,1')->name('auth.slack.callback');
-
-Route::get('/use-cases/{case}', UseCaseController::class)->name('use-cases');
-
-Route::get('free-tools/chat-with-pdf', ChatPdfController::class)->name('free-tools.chat-with-pdf');
 
 // Trial routes (guest accessible)
 Route::post('trial/checkout', TrialCheckoutController::class)->name('trial.checkout');

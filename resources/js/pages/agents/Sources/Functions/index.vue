@@ -107,7 +107,7 @@ onMounted(fetchFunctions);
                     </CardHeader>
                     <CardContent class="space-y-6">
                         <div class="relative max-w-sm">
-                            <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                             <Input v-model="search" :placeholder="t('agents.sources.functions.search_placeholder')" class="ps-9" />
                         </div>
 
@@ -121,7 +121,10 @@ onMounted(fetchFunctions);
                             <p class="font-medium">{{ t('agents.sources.functions.empty_title') }}</p>
                             <p class="mt-1">
                                 {{ t('agents.sources.functions.empty_prefix') }}
-                                <Link :href="route('integrations.functions.edit')" class="underline">{{ t('agents.sources.functions.settings_link') }}</Link>.
+                                <Link :href="route('integrations.functions.edit')" class="underline">{{
+                                    t('agents.sources.functions.settings_link')
+                                }}</Link
+                                >.
                             </p>
                         </div>
 
@@ -145,7 +148,9 @@ onMounted(fetchFunctions);
                                                 <div class="flex items-center gap-2">
                                                     <span v-if="fn.display_name" class="text-sm font-medium">{{ fn.display_name }}</span>
                                                     <code class="bg-muted rounded px-1.5 py-0.5 text-xs font-semibold">{{ fn.internal_name }}</code>
-                                                    <Badge v-if="!fn.is_enabled" variant="secondary">{{ t('agents.sources.functions.disabled') }}</Badge>
+                                                    <Badge v-if="!fn.is_enabled" variant="secondary">{{
+                                                        t('agents.sources.functions.disabled')
+                                                    }}</Badge>
                                                     <Badge v-if="fn.last_error" variant="destructive" class="gap-1">
                                                         <AlertCircle class="h-3 w-3" />
                                                         {{ t('agents.sources.functions.last_call_failed') }}

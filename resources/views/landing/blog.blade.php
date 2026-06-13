@@ -52,7 +52,7 @@
 
                     <article class="max-w-sm mx-auto space-y-5 md:max-w-none md:flex md:items-center md:space-y-0 md:space-x-8 lg:space-x-16">
                         <!-- Image -->
-                        <a class="relative block group overflow-hidden md:w-1/2" href="{{ route('blog.post', ['post' => $featured->slug]) }}" data-aos="fade-down">
+                        <a class="relative block group overflow-hidden md:w-1/2" href="{{ route('blog.post', ['post' => $featured->slug]) }}">
                             <img class="w-full aspect-16/9 md:aspect-27/17 object-cover group-hover:scale-105 transition duration-700 ease-out" src="{{ $featured->img_url }}" width="540" height="340" alt="{{ $featured->title }}" />
                             <div class="absolute top-6 right-6">
                                 <svg class="w-8 h-8" viewBox="0 0 32 32">
@@ -62,7 +62,7 @@
                             </div>
                         </a>
                         <!-- Content -->
-                        <div class="md:w-1/2" data-aos="fade-up">
+                        <div class="md:w-1/2">
                             <header>
                                 <h2 class="h4 md:text-4xl lg:text-5xl font-playfair-display mb-3">
                                     <a class="text-slate-800 hover:underline hover:decoration-blue-100" href="{{ route('blog.post', ['post' => $featured->slug]) }}">
@@ -97,7 +97,7 @@
                     <div>
                         <div class="max-w-sm mx-auto md:max-w-none grid gap-12 md:grid-cols-3 md:gap-x-6 md:gap-y-8 items-start">
                             @foreach($posts as $post)
-                                <article class="h-full flex flex-col space-y-5" data-aos="fade-up">
+                                <article class="h-full flex flex-col space-y-5">
                                     <!-- Image -->
                                     <a class="block group overflow-hidden" href="{{ route('blog.post', ['post' => $post->slug]) }}">
                                         @if($post->img_url)

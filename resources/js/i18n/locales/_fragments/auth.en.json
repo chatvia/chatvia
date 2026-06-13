@@ -92,7 +92,9 @@
             "description": "Enter the code from your authenticator app to continue.",
             "head": "Two-factor challenge",
             "code_label": "Authentication code",
+            "code_placeholder": "123456",
             "recovery_code_label": "Recovery code",
+            "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx",
             "verify": "Verify",
             "verifying": "Verifying...",
             "use_recovery_code": "Use a recovery code",
@@ -206,6 +208,13 @@
             "card_title": "Invitation Expired",
             "contact_owner": "Please contact the team owner to request a new invitation.",
             "go_to_login": "Go to Login"
+        },
+        "split": {
+            "headline": "Build your own {brand} in minutes",
+            "subheadline": "Create AI assistants that learn from {data} and knowledge",
+            "your_data": "your data",
+            "secure_data": "Secure data handling",
+            "custom_gpt": "Custom GPT"
         }
     }
 }

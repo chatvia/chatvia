@@ -14,6 +14,9 @@ import { User } from 'lucide-vue-next';
 import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface AuditRow {
     id: number;
@@ -77,7 +80,13 @@ const outcomeVariant = (value: string): 'default' | 'secondary' | 'destructive' 
     }
 };
 
-const outcomeLabel = (value: string): string => value.replace('_', ' ');
+const outcomeLabel = (value: string): string => {
+    const key = `shared.audit_table.outcome_${value}`;
+    const translated = t(key);
+    return translated !== key ? translated : value.replace('_', ' ');
+};
+
+const formatLatency = (ms: number | null): string => (ms !== null ? t('shared.audit_table.latency_ms', { ms }) : '—');
 
 const applyFilters = (): void => {
     router.get(
@@ -157,40 +166,40 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
         <!-- Filters -->
         <div class="flex flex-wrap items-end gap-3">
             <div class="flex flex-col gap-1">
-                <label class="text-muted-foreground text-xs font-medium" for="filter-outcome">Outcome</label>
+                <label class="text-muted-foreground text-xs font-medium" for="filter-outcome">{{ t('shared.audit_table.filter_outcome') }}</label>
                 <select
                     id="filter-outcome"
                     v-model="outcome"
                     class="border-input bg-background h-9 rounded-md border px-3 text-sm"
                     @change="applyFilters"
                 >
-                    <option value="">All outcomes</option>
+                    <option value="">{{ t('shared.audit_table.all_outcomes') }}</option>
                     <option v-for="o in outcomes" :key="o" :value="o">{{ outcomeLabel(o) }}</option>
                 </select>
             </div>
 
             <div class="flex flex-col gap-1">
-                <label class="text-muted-foreground text-xs font-medium" for="filter-connector">Connector</label>
+                <label class="text-muted-foreground text-xs font-medium" for="filter-connector">{{ t('shared.audit_table.filter_connector') }}</label>
                 <select
                     id="filter-connector"
                     v-model="connector"
                     class="border-input bg-background h-9 rounded-md border px-3 text-sm"
                     @change="applyFilters"
                 >
-                    <option value="">All connectors</option>
+                    <option value="">{{ t('shared.audit_table.all_connectors') }}</option>
                     <option v-for="c in connectors" :key="c.slug" :value="c.slug">{{ c.name }}</option>
                 </select>
             </div>
 
             <div v-if="showAgent" class="flex flex-col gap-1">
-                <label class="text-muted-foreground text-xs font-medium" for="filter-agent">Agent</label>
+                <label class="text-muted-foreground text-xs font-medium" for="filter-agent">{{ t('shared.audit_table.filter_agent') }}</label>
                 <select
                     id="filter-agent"
                     v-model="agentId"
                     class="border-input bg-background h-9 rounded-md border px-3 text-sm"
                     @change="applyFilters"
                 >
-                    <option value="">All agents</option>
+                    <option value="">{{ t('shared.audit_table.all_agents') }}</option>
                     <option v-for="a in agents" :key="a.id" :value="String(a.id)">{{ a.name }}</option>
                 </select>
             </div>
@@ -201,12 +210,12 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>By</TableHead>
-                        <TableHead v-if="showAgent">Agent</TableHead>
-                        <TableHead>Tool</TableHead>
-                        <TableHead>Connector</TableHead>
-                        <TableHead>Outcome</TableHead>
-                        <TableHead class="text-right">Latency</TableHead>
+                        <TableHead>{{ t('shared.audit_table.col_by') }}</TableHead>
+                        <TableHead v-if="showAgent">{{ t('shared.audit_table.col_agent') }}</TableHead>
+                        <TableHead>{{ t('shared.audit_table.col_tool') }}</TableHead>
+                        <TableHead>{{ t('shared.audit_table.col_connector') }}</TableHead>
+                        <TableHead>{{ t('shared.audit_table.col_outcome') }}</TableHead>
+                        <TableHead class="text-end">{{ t('shared.audit_table.col_latency') }}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -220,25 +229,27 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
                                         <User v-else class="text-muted-foreground size-3.5" />
                                     </AvatarFallback>
                                 </Avatar>
-                                <span :class="row.user_name ? 'text-sm' : 'text-muted-foreground text-sm'">{{ row.user_name ?? 'visitor' }}</span>
+                                <span :class="row.user_name ? 'text-sm' : 'text-muted-foreground text-sm'">{{
+                                    row.user_name ?? t('shared.audit_table.visitor')
+                                }}</span>
                             </div>
                         </TableCell>
                         <TableCell v-if="showAgent" class="text-sm">{{ row.agent_name }}</TableCell>
                         <TableCell class="font-mono text-xs">
                             {{ row.tool_name }}
-                            <span v-if="row.is_error" class="text-destructive ml-1">· error</span>
+                            <span v-if="row.is_error" class="text-destructive ms-1">· {{ t('shared.audit_table.error_suffix') }}</span>
                         </TableCell>
                         <TableCell class="text-sm">{{ row.connector_name ?? '—' }}</TableCell>
                         <TableCell>
                             <Badge :variant="outcomeVariant(row.outcome)">{{ outcomeLabel(row.outcome) }}</Badge>
-                            <Badge v-if="row.gated" variant="outline" class="ml-1">gated</Badge>
+                            <Badge v-if="row.gated" variant="outline" class="ms-1">{{ t('shared.audit_table.gated') }}</Badge>
                         </TableCell>
-                        <TableCell class="text-muted-foreground text-right text-sm">{{
-                            row.latency_ms !== null ? `${row.latency_ms} ms` : '—'
-                        }}</TableCell>
+                        <TableCell class="text-muted-foreground text-end text-sm">{{ formatLatency(row.latency_ms) }}</TableCell>
                     </TableRow>
                     <TableRow v-if="rows.data.length === 0">
-                        <TableCell :colspan="colspan" class="text-muted-foreground py-10 text-center text-sm">No tool calls recorded yet.</TableCell>
+                        <TableCell :colspan="colspan" class="text-muted-foreground py-10 text-center text-sm">{{
+                            t('shared.audit_table.empty')
+                        }}</TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
@@ -247,8 +258,12 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
         <!-- Pagination (cursor: only prev/next, no page count) -->
         <div v-if="rows.prev_page_url || rows.next_page_url" class="flex items-center justify-end">
             <div class="flex gap-2">
-                <Button variant="outline" size="sm" :disabled="!rows.prev_page_url" @click="go(rows.prev_page_url)">Previous</Button>
-                <Button variant="outline" size="sm" :disabled="!rows.next_page_url" @click="go(rows.next_page_url)">Next</Button>
+                <Button variant="outline" size="sm" :disabled="!rows.prev_page_url" @click="go(rows.prev_page_url)">{{
+                    t('shared.audit_table.previous')
+                }}</Button>
+                <Button variant="outline" size="sm" :disabled="!rows.next_page_url" @click="go(rows.next_page_url)">{{
+                    t('shared.audit_table.next')
+                }}</Button>
             </div>
         </div>
 
@@ -265,36 +280,36 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
                 <div v-if="selected" class="space-y-4 text-sm">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <div class="text-muted-foreground text-xs">Agent</div>
+                            <div class="text-muted-foreground text-xs">{{ t('shared.audit_table.col_agent') }}</div>
                             <div>{{ selected.agent_name }}</div>
                         </div>
                         <div>
-                            <div class="text-muted-foreground text-xs">Connector</div>
+                            <div class="text-muted-foreground text-xs">{{ t('shared.audit_table.col_connector') }}</div>
                             <div>{{ selected.connector_name ?? '—' }}</div>
                         </div>
                         <div>
-                            <div class="text-muted-foreground text-xs">By</div>
-                            <div>{{ selected.user_name ?? 'visitor' }}</div>
+                            <div class="text-muted-foreground text-xs">{{ t('shared.audit_table.col_by') }}</div>
+                            <div>{{ selected.user_name ?? t('shared.audit_table.visitor') }}</div>
                         </div>
                         <div>
-                            <div class="text-muted-foreground text-xs">Latency</div>
-                            <div>{{ selected.latency_ms !== null ? `${selected.latency_ms} ms` : '—' }}</div>
+                            <div class="text-muted-foreground text-xs">{{ t('shared.audit_table.col_latency') }}</div>
+                            <div>{{ formatLatency(selected.latency_ms) }}</div>
                         </div>
                     </div>
 
                     <div>
-                        <div class="text-muted-foreground text-xs">Arguments</div>
+                        <div class="text-muted-foreground text-xs">{{ t('shared.audit_table.detail_arguments') }}</div>
                         <pre
                             class="bg-muted mt-1 rounded-md p-3 text-xs break-words whitespace-pre-wrap"
                         ><code class="hljs language-json" v-html="highlightedArguments"></code></pre>
                     </div>
 
                     <div>
-                        <div class="text-muted-foreground text-xs">Result</div>
+                        <div class="text-muted-foreground text-xs">{{ t('shared.audit_table.detail_result') }}</div>
                         <Tabs v-model="resultTab" class="mt-1">
                             <TabsList class="grid w-full grid-cols-2">
-                                <TabsTrigger value="preview">Preview</TabsTrigger>
-                                <TabsTrigger value="markdown">Markdown</TabsTrigger>
+                                <TabsTrigger value="preview">{{ t('shared.audit_table.tab_preview') }}</TabsTrigger>
+                                <TabsTrigger value="markdown">{{ t('shared.audit_table.tab_markdown') }}</TabsTrigger>
                             </TabsList>
                             <TabsContent value="preview" class="mt-2">
                                 <div
@@ -313,7 +328,7 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
                     </div>
 
                     <div class="text-muted-foreground text-xs">
-                        Conversation:
+                        {{ t('shared.audit_table.detail_conversation') }}
                         <Link
                             v-if="selected.agent_external_id && selected.conversation_external_id"
                             :href="route('agents.logs', { agent: selected.agent_external_id, conversation_id: selected.conversation_external_id })"
@@ -322,7 +337,7 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
                             {{ selected.conversation_external_id }}
                         </Link>
                         <span v-else>{{ selected.conversation_external_id ?? '—' }}</span>
-                        · Trace: {{ selected.trace_id ?? '—' }}
+                        · {{ t('shared.audit_table.detail_trace') }} {{ selected.trace_id ?? '—' }}
                     </div>
                 </div>
             </DialogContent>

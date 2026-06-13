@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { getInitials } from '@/composables/useInitials';
+import { useTeamPermissionsI18n } from '@/composables/useTeamPermissionsI18n';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import {
@@ -53,6 +54,7 @@ import {
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const { permissionLabel, permissionDescription } = useTeamPermissionsI18n();
 
 // Use generated TypeScript types from DTOs
 type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
@@ -281,11 +283,13 @@ const getRoleBadgeVariant = (role: string | null): 'default' | 'secondary' | 'ou
 };
 
 const getPermissionLabel = (permission: string): string => {
-    return props.permissionsConfig[permission]?.label || permission;
+    const fallback = props.permissionsConfig[permission]?.label || permission;
+    return permissionLabel(permission, fallback);
 };
 
 const getPermissionDescription = (permission: string): string => {
-    return props.permissionsConfig[permission]?.description || '';
+    const fallback = props.permissionsConfig[permission]?.description || '';
+    return permissionDescription(permission, fallback);
 };
 
 const hasPermission = (role: TeamRoleData, permission: string): boolean => {
@@ -311,7 +315,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
         <div class="container mx-auto max-w-5xl py-8">
             <!-- Header with back button -->
             <div class="mb-8">
-                <Button variant="ghost" size="sm" as-child class="mb-4 -ms-2 gap-2">
+                <Button variant="ghost" size="sm" as-child class="-ms-2 mb-4 gap-2">
                     <Link :href="route('teams.index')">
                         <ChevronLeft class="size-4" />
                         {{ t('teams.show.back') }}
@@ -435,7 +439,13 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                                         </button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
-                                                        <p>{{ copiedRoleIds.has(role.id) ? t('teams.show.copied') : t('teams.show.roles.copy_role_id') }}</p>
+                                                        <p>
+                                                            {{
+                                                                copiedRoleIds.has(role.id)
+                                                                    ? t('teams.show.copied')
+                                                                    : t('teams.show.roles.copy_role_id')
+                                                            }}
+                                                        </p>
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
@@ -461,7 +471,7 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                                         <UserCog class="size-4" />
                                                         <span
                                                             v-if="getRoleMemberCount(role.code) > 0"
-                                                            class="bg-primary text-primary-foreground absolute -top-1 -end-1 flex size-4 items-center justify-center rounded-full text-[10px]"
+                                                            class="bg-primary text-primary-foreground absolute -end-1 -top-1 flex size-4 items-center justify-center rounded-full text-[10px]"
                                                         >
                                                             {{ getRoleMemberCount(role.code) }}
                                                         </span>
@@ -512,7 +522,9 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                         <Bot class="text-muted-foreground size-4" />
                                         <span class="font-medium">{{ t('teams.show.roles.agent_access_label') }}</span>
                                         <span v-if="role.all_agents" class="text-green-600">{{ t('teams.show.roles.all_agents') }}</span>
-                                        <span v-else-if="role.agent_ids?.length === 0" class="text-muted-foreground">{{ t('teams.show.roles.no_agents_assigned') }}</span>
+                                        <span v-else-if="role.agent_ids?.length === 0" class="text-muted-foreground">{{
+                                            t('teams.show.roles.no_agents_assigned')
+                                        }}</span>
                                         <span v-else class="text-foreground">
                                             {{ t('teams.show.roles.agent_count', { count: role.agent_ids?.length }, role.agent_ids?.length ?? 0) }}
                                             <span class="text-muted-foreground">
@@ -588,7 +600,9 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                             <div>
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-medium">{{ member.name }}</span>
-                                                    <Badge v-if="member.id === currentUser.id" variant="outline" class="text-xs">{{ t('teams.show.members.you') }}</Badge>
+                                                    <Badge v-if="member.id === currentUser.id" variant="outline" class="text-xs">{{
+                                                        t('teams.show.members.you')
+                                                    }}</Badge>
                                                 </div>
                                                 <span class="text-muted-foreground text-sm">{{ member.email }}</span>
                                             </div>
@@ -778,7 +792,9 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
             <Dialog v-model:open="isRoleMembersDialogOpen">
                 <DialogContent class="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle v-if="viewingRoleMembers">{{ t('teams.show.role_members.title', { name: viewingRoleMembers.name }) }}</DialogTitle>
+                        <DialogTitle v-if="viewingRoleMembers">{{
+                            t('teams.show.role_members.title', { name: viewingRoleMembers.name })
+                        }}</DialogTitle>
                         <DialogDescription>{{ t('teams.show.role_members.description') }}</DialogDescription>
                     </DialogHeader>
                     <div v-if="viewingRoleMembers" class="py-4">
@@ -816,7 +832,9 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="button" variant="outline" @click="isRoleMembersDialogOpen = false">{{ t('teams.show.role_members.close') }}</Button>
+                        <Button type="button" variant="outline" @click="isRoleMembersDialogOpen = false">{{
+                            t('teams.show.role_members.close')
+                        }}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

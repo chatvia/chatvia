@@ -28,11 +28,11 @@ function apiHeaders(string $token): array
     return ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/json'];
 }
 
-describe('POST /api/v1/users', function (): void {
+describe('POST /api/v1/chatters', function (): void {
 
     it('creates a chatter granted to the given agent and returns its external id', function (): void {
         $body = $this->withHeaders(apiHeaders($this->token))
-            ->postJson('/api/v1/users', [
+            ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
                 'agent_id' => $this->agent->external_id,
                 'email' => 'jane@example.test',
@@ -56,21 +56,21 @@ describe('POST /api/v1/users', function (): void {
 
     it('requires a name', function (): void {
         $this->withHeaders(apiHeaders($this->token))
-            ->postJson('/api/v1/users', ['agent_id' => $this->agent->external_id])
+            ->postJson('/api/v1/chatters', ['agent_id' => $this->agent->external_id])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['name']);
     });
 
     it('requires an agent_id', function (): void {
         $this->withHeaders(apiHeaders($this->token))
-            ->postJson('/api/v1/users', ['name' => 'Jane'])
+            ->postJson('/api/v1/chatters', ['name' => 'Jane'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['agent_id']);
     });
 
     it('requires email and password (end-users are credentialed now)', function (): void {
         $this->withHeaders(apiHeaders($this->token))
-            ->postJson('/api/v1/users', [
+            ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
                 'agent_id' => $this->agent->external_id,
             ])
@@ -83,7 +83,7 @@ describe('POST /api/v1/users', function (): void {
         $otherAgent = createAgent($other);
 
         $this->withHeaders(apiHeaders($this->token))
-            ->postJson('/api/v1/users', [
+            ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
                 'agent_id' => $otherAgent->external_id,
                 'email' => 'jane@example.test',

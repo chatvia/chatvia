@@ -36,7 +36,7 @@ function fakeTools(): array
     ];
 }
 
-it('seeds every remote tool to Approval — a third-party readOnlyHint is not trusted', function (): void {
+it('seeds read tools to Allow and write tools to Approval on a remote server', function (): void {
     Queue::fake();
 
     $server = approvalServer();
@@ -48,16 +48,19 @@ it('seeds every remote tool to Approval — a third-party readOnlyHint is not tr
     $permissionOf = fn (string $name): McpToolPermission => McpTool::query()
         ->where('mcp_server_id', $server->id)->where('name', $name)->first()->permission;
 
-    expect($permissionOf('read_tool'))->toBe(McpToolPermission::Approval)
+    // Read-only tools auto-Allow; writes (and tools with no readOnlyHint, which
+    // fall to the Write scope) gate on Approval — the server's origin no longer
+    // changes the seed.
+    expect($permissionOf('read_tool'))->toBe(McpToolPermission::Allow)
         ->and($permissionOf('write_tool'))->toBe(McpToolPermission::Approval)
         ->and($permissionOf('unknown_tool'))->toBe(McpToolPermission::Approval);
 });
 
-it('auto-Allows read tools on a built-in (internal URL) server, gating writes', function (): void {
+it('seeds an internal-URL server the same way — read Allow, write Approval', function (): void {
     Queue::fake();
 
-    // An internal URL (under app.url + /mcp/) marks one of Chatvia's own
-    // built-in servers — the only place readOnlyHint is trusted for seeding.
+    // An internal URL (one of Chatvia's own built-in servers) gets the same
+    // origin-independent seeding as any remote server.
     $server = approvalServer(
         url: rtrim((string) config('app.url'), '/').'/mcp/builtin-thing',
         slug: 'builtin',

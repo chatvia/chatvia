@@ -7,8 +7,8 @@ import { router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { AlertTriangle, Bot, LoaderCircle, Plus } from 'lucide-vue-next';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 
@@ -159,13 +159,13 @@ onMounted(() => {
                     <div class="space-y-2">
                         <Label for="name" required>{{ t('agents.create_modal.name_label') }}</Label>
                         <div class="relative">
-                            <Bot class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Bot class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                             <Input
                                 id="name"
                                 v-model="form.name"
                                 :error="form.errors.name"
                                 :disabled="!canCreateAnyAgent"
-                                class="pl-9"
+                                class="ps-9"
                                 :placeholder="t('agents.create_modal.name_placeholder')"
                                 autocomplete="off"
                                 data-1p-ignore

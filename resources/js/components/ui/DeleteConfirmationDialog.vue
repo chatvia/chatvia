@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
   title?: string;
@@ -12,10 +13,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: 'Delete confirmation',
-  description: 'This action cannot be undone.',
-  confirmText: 'Yes, delete',
-  cancelText: 'No, keep it',
   open: false
 });
 
@@ -24,6 +21,13 @@ const emit = defineEmits<{
   (e: 'confirm'): void;
   (e: 'cancel'): void;
 }>();
+
+const { t } = useI18n();
+
+const displayTitle = computed(() => props.title ?? t('shared.delete_confirmation_title'));
+const displayDescription = computed(() => props.description ?? t('shared.delete_confirmation_description'));
+const displayConfirmText = computed(() => props.confirmText ?? t('shared.yes_delete'));
+const displayCancelText = computed(() => props.cancelText ?? t('common.cancel'));
 
 const isOpen = ref(props.open);
 
@@ -57,17 +61,17 @@ watch(isOpen, (newValue) => {
     </DialogTrigger>
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>{{ title }}</DialogTitle>
+        <DialogTitle>{{ displayTitle }}</DialogTitle>
         <DialogDescription>
-          {{ description }}
+          {{ displayDescription }}
         </DialogDescription>
       </DialogHeader>
       <DialogFooter>
         <Button variant="outline" @click="cancel">
-          {{ cancelText }}
+          {{ displayCancelText }}
         </Button>
         <Button variant="destructive" @click="confirm">
-          {{ confirmText }}
+          {{ displayConfirmText }}
         </Button>
       </DialogFooter>
     </DialogContent>

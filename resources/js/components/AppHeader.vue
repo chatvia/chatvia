@@ -137,7 +137,7 @@ const rightNavItems = computed<NavItem[]>(() => [
 
 <template>
     <!-- Fixed header -->
-    <div class="bg-background fixed top-0 right-0 left-0 z-50">
+    <div class="bg-background fixed start-0 end-0 top-0 z-50">
         <div class="border-sidebar-border/80 border-b">
             <div class="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                 <!-- Mobile Menu -->
@@ -150,7 +150,7 @@ const rightNavItems = computed<NavItem[]>(() => [
                         </SheetTrigger>
                         <SheetContent side="left" class="w-[300px] p-6">
                             <SheetTitle class="sr-only">{{ t('app.header.nav_menu_sr') }}</SheetTitle>
-                            <SheetHeader class="flex justify-start text-left">
+                            <SheetHeader class="flex justify-start text-start">
                                 <AppLogoIcon class="size-6 text-black dark:text-white" />
                             </SheetHeader>
                             <div class="flex h-full flex-1 flex-col justify-between space-y-4 py-6">
@@ -181,7 +181,7 @@ const rightNavItems = computed<NavItem[]>(() => [
                                         :key="item.title"
                                         :href="item.href"
                                         rel="noopener noreferrer"
-                                        class="flex items-center space-x-2 text-sm font-medium"
+                                        class="flex items-center gap-2 text-sm font-medium"
                                     >
                                         <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
                                         <span>{{ item.title }}</span>
@@ -198,8 +198,8 @@ const rightNavItems = computed<NavItem[]>(() => [
 
                 <!-- Desktop Menu -->
                 <div class="hidden h-full lg:flex lg:flex-1">
-                    <NavigationMenu class="ml-10 flex h-full items-stretch">
-                        <NavigationMenuList class="flex h-full items-stretch space-x-2">
+                    <NavigationMenu class="ms-10 flex h-full items-stretch">
+                        <NavigationMenuList class="flex h-full items-stretch gap-2">
                             <NavigationMenuItem v-for="(item, index) in mainNavItems" :key="index" class="relative flex h-full items-center">
                                 <Link :href="item.href">
                                     <NavigationMenuLink
@@ -211,19 +211,19 @@ const rightNavItems = computed<NavItem[]>(() => [
                                 </Link>
                                 <div
                                     v-if="isCurrentRoute(item.href)"
-                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
+                                    class="absolute inset-x-0 bottom-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
                                 ></div>
                             </NavigationMenuItem>
                         </NavigationMenuList>
                     </NavigationMenu>
                 </div>
 
-                <div class="ml-auto flex items-center space-x-2">
+                <div class="ms-auto flex items-center gap-2">
                     <TeamSwitcher class="hidden md:flex" />
-                    <div class="relative flex items-center space-x-1">
+                    <div class="relative flex items-center gap-1">
                         <UpgradeButton />
 
-                        <div class="hidden space-x-1 lg:flex">
+                        <div class="hidden gap-1 lg:flex">
                             <template v-for="item in rightNavItems" :key="item.title">
                                 <TooltipProvider :delay-duration="0">
                                     <Tooltip>

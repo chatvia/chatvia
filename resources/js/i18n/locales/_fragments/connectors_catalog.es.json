@@ -1,0 +1,134 @@
+{
+    "connectors": {
+        "categories": {
+            "utilities": "Utilidades",
+            "sales": "Ventas",
+            "payments": "Pagos",
+            "developer_tools": "Herramientas para desarrolladores",
+            "productivity": "Productividad",
+            "communication": "Comunicación",
+            "automation": "Automatización",
+            "analytics": "Análisis"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "Busca en la web en tiempo real con Perplexity Sonar — noticias, precios, eventos recientes — con fuentes citadas.",
+                "token_label": "Clave de API de Perplexity",
+                "token_placeholder": "Tu clave de API de Perplexity"
+            },
+            "weather": {
+                "name": "Clima",
+                "description": "Clima en tiempo real (temperatura, condiciones, humedad, viento) para cualquier ciudad, powered by OpenWeatherMap.",
+                "token_label": "Clave de API de OpenWeatherMap",
+                "token_placeholder": "Tu clave de API de OpenWeatherMap"
+            },
+            "currency": {
+                "name": "Conversor de divisas",
+                "description": "Convierte montos entre cualquier par de divisas usando tasas de cambio actuales (exchangerate-api).",
+                "token_label": "Clave de ExchangeRate-API",
+                "token_placeholder": "Tu clave de ExchangeRate-API"
+            },
+            "charts": {
+                "name": "Gráficos interactivos",
+                "description": "Renderiza gráficos interactivos directamente en el chat — barras, líneas, sectores, dispersión, radar, indicadores, mapas de calor y más."
+            },
+            "leads": {
+                "name": "Leads",
+                "description": "Captura los datos de contacto del visitante (nombre, correo, teléfono y más)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "Busca transacciones, clientes, productos y pagos en tu cuenta de Stripe."
+            },
+            "github": {
+                "name": "GitHub",
+                "description": "Lee repositorios, issues, PRs y código de cualquier cuenta a la que tengas acceso."
+            },
+            "notion": {
+                "name": "Notion",
+                "description": "Lee páginas, bases de datos y comentarios de tu workspace de Notion."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "Busca issues, proyectos y ciclos en tu workspace de Linear."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "Issues de Jira, páginas de Confluence y flujos de trabajo de tus sitios de Atlassian."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "Busca mensajes, lee hilos y redacta respuestas desde tu bandeja de entrada de Gmail."
+            },
+            "google-calendar": {
+                "name": "Google Calendar",
+                "description": "Lee y crea eventos en tus Calendarios de Google."
+            },
+            "google-drive": {
+                "name": "Google Drive",
+                "description": "Lee archivos y carpetas de tu Google Drive."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "Busca mensajes, publica respuestas y lee el historial de canales en tu workspace de Slack."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "Permite que los visitantes agenden reuniones en tu Calendly y que los agentes lean tus eventos programados."
+            },
+            "todoist": {
+                "name": "Todoist",
+                "description": "Gestiona tareas, proyectos y etiquetas en tu cuenta de Todoist."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "Activa acciones de Zapier en más de 9,000 aplicaciones conectadas."
+            },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "Lee tickets, usuarios y artículos del Centro de ayuda desde tu cuenta de Zendesk Support.",
+                "token_label": "Token de API de Zendesk",
+                "token_placeholder": "Tu token de API de Zendesk"
+            },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "Lee y actualiza contactos, empresas, negocios y tickets en tu CRM de HubSpot."
+            },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "Lee y actualiza cuentas, contactos, oportunidades y casos de tu organización de Salesforce."
+            },
+            "box": {
+                "name": "Box",
+                "description": "Busca y lee archivos, carpetas y metadatos de tu cuenta de Box."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "Lee y actualiza tareas, proyectos y portafolios en tu workspace de Asana."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "Lee issues, errores y versiones de tus proyectos en Sentry."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "Busca transcripciones de reuniones, resúmenes y elementos de acción en Fireflies.ai."
+            },
+            "amplitude": {
+                "name": "Amplitude",
+                "description": "Consulta análisis de producto — eventos, gráficos y cohortes — desde tu proyecto de Amplitude."
+            }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "Análisis de cuenta",
+                "description": "Responde las preguntas del propietario del workspace sobre su propia cuenta en cifras — mensajes, conversaciones, usuarios, canales, leads, satisfacción, tiempo de respuesta, temas y transferencias."
+            },
+            "charts": {
+                "name": "Gráficos interactivos",
+                "description": "Renderiza gráficos interactivos (barras, líneas, sectores, indicadores, dispersión, radar, mapas de calor, …) directamente en el chat."
+            }
+        }
+    }
+}

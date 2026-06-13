@@ -15,7 +15,7 @@
             "table": {
                 "name": "Name",
                 "messages": "Messages",
-                "members": "Members",
+                "members": "Chatters",
                 "created": "Created"
             }
         },
@@ -31,7 +31,7 @@
             "connect": "Connect",
             "connected": "Connected",
             "disconnect": "Disconnect",
-            "setup": "Setup",
+            "setup_tab": "Setup",
             "security": "Security",
             "no_permission": "You don't have permission to manage channels.",
             "private_title": "Public agents only",
@@ -108,9 +108,9 @@
                 "satisfied": "Satisfied"
             },
             "source": {
-                "hosted_chat": "Hosted chat",
-                "widget": "Widget",
-                "bar": "Search bar",
+                "hosted_chat": "Hosted Chat",
+                "widget": "Chat Widget",
+                "bar": "Command Bar",
                 "telegram": "Telegram",
                 "slack": "Slack",
                 "messenger": "Messenger",
@@ -339,6 +339,16 @@
                 "outcome": "Outcome",
                 "severity": "Severity",
                 "when": "When"
+            },
+            "injection_label": "Prompt injection detection",
+            "injection_help": "Detect and block attempts to override the agent's instructions or extract its system prompt.",
+            "toxicity_label": "Toxicity filtering",
+            "toxicity_help": "Detect and block toxic, hateful, or abusive language in messages.",
+            "guard_labels": {
+                "prompt_injection": "Prompt injection",
+                "pii": "PII",
+                "blocked_topic": "Blocked topic",
+                "toxicity": "Toxicity"
             }
         },
         "persona": {
@@ -371,6 +381,11 @@
             "copy_error": "Could not copy to clipboard",
             "id_copied": "Agent ID copied",
             "open_new_tab": "Open in new tab",
+            "tabs": {
+                "chat": "Hosted Chat",
+                "widget": "Chat Widget",
+                "bar": "Command Bar"
+            },
             "devices": {
                 "desktop": "Desktop",
                 "tablet": "Tablet",

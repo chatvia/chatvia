@@ -2,17 +2,22 @@
 import { ref, computed, watch } from 'vue';
 import axios from 'axios';
 import { toast } from 'vue-sonner';
+import { useI18n } from 'vue-i18n';
+import { useDateFormat } from '@/composables/useDateFormat';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { LoaderCircle, Globe, Search, CheckCircle, Link2, Users, Plus, Check } from 'lucide-vue-next';
+import { LoaderCircle, Globe, Search, Link2, Users, Plus, Check } from 'lucide-vue-next';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+const { t } = useI18n();
+const { formatDate } = useDateFormat();
 
 interface Props {
     open: boolean;
-    agentId: string | number; // Accept external_id (string) or id (number)
+    agentId: string | number;
 }
 
 interface AvailableWebsite {
@@ -33,42 +38,40 @@ const emit = defineEmits<{
     'websiteAttached': [];
 }>();
 
-// State
 const isLoading = ref(false);
 const availableWebsites = ref<AvailableWebsite[]>([]);
 const searchQuery = ref('');
 const addedWebsiteIds = ref<Set<number>>(new Set());
 const attachingWebsiteIds = ref<Set<number>>(new Set());
 
-// Computed
 const filteredWebsites = computed(() => {
     if (!searchQuery.value.trim()) {
         return availableWebsites.value;
     }
 
     const query = searchQuery.value.toLowerCase().trim();
-    return availableWebsites.value.filter(website =>
-        website.url.toLowerCase().includes(query)
-    );
+    return availableWebsites.value.filter((website) => website.url.toLowerCase().includes(query));
 });
 
-const isWebsiteAdded = (websiteId: number) => {
-    return addedWebsiteIds.value.has(websiteId);
-};
+const footerText = computed(() => {
+    const count = addedWebsiteIds.value.size;
+    return count > 0
+        ? t('shared.attach_website.footer_added', { count }, { plural: count })
+        : t('shared.attach_website.footer_hint');
+});
 
-const isWebsiteAttaching = (websiteId: number) => {
-    return attachingWebsiteIds.value.has(websiteId);
-};
+const isWebsiteAdded = (websiteId: number) => addedWebsiteIds.value.has(websiteId);
 
-// Methods
+const isWebsiteAttaching = (websiteId: number) => attachingWebsiteIds.value.has(websiteId);
+
 const fetchAvailableWebsites = async () => {
     isLoading.value = true;
     try {
         const response = await axios.get(route('agents.sources.trained-websites.index', { agent: props.agentId }));
         availableWebsites.value = response.data;
-    } catch (error: any) {
+    } catch (error) {
         console.error('Error fetching available websites:', error);
-        toast.error('Failed to load available websites.');
+        toast.error(t('shared.attach_website.toast_load_failed'));
     } finally {
         isLoading.value = false;
     }
@@ -80,19 +83,23 @@ const attachWebsite = async (website: AvailableWebsite) => {
     attachingWebsiteIds.value.add(website.id);
 
     try {
-        await axios.post(route('agents.sources.trained-websites.link', {
-            agent: props.agentId,
-            websiteId: website.id
-        }), {
-            website_id: website.id
-        });
+        await axios.post(
+            route('agents.sources.trained-websites.link', {
+                agent: props.agentId,
+                websiteId: website.id,
+            }),
+            {
+                website_id: website.id,
+            },
+        );
 
         addedWebsiteIds.value.add(website.id);
-        toast.success('Website added to agent successfully!');
+        toast.success(t('shared.attach_website.toast_success'));
         emit('websiteAttached');
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error attaching website:', error);
-        const errorMessage = error.response?.data?.message || 'Failed to add website to agent.';
+        const err = error as { response?: { data?: { message?: string } } };
+        const errorMessage = err.response?.data?.message || t('shared.attach_website.toast_failed');
         toast.error(errorMessage);
     } finally {
         attachingWebsiteIds.value.delete(website.id);
@@ -113,68 +120,60 @@ const getDomainFromUrl = (url: string) => {
     }
 };
 
-const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
-};
-
-// Watch for dialog open/close
-watch(() => props.open, (isOpen) => {
-    if (isOpen) {
-        fetchAvailableWebsites();
-    } else {
-        closeDialog();
-    }
-});
+watch(
+    () => props.open,
+    (isOpen) => {
+        if (isOpen) {
+            fetchAvailableWebsites();
+        } else {
+            closeDialog();
+        }
+    },
+);
 </script>
 
 <template>
     <Dialog :open="open" @update:open="(val) => emit('update:open', val)">
-        <DialogContent class="max-w-3xl max-h-[80vh] flex flex-col">
+        <DialogContent class="flex max-h-[80vh] max-w-3xl flex-col">
             <DialogHeader>
                 <DialogTitle class="flex items-center gap-2">
                     <Link2 class="h-5 w-5" />
-                    Attach Trained Website
+                    {{ t('shared.attach_website.title') }}
                 </DialogTitle>
                 <DialogDescription>
-                    Select a website that has already been trained to attach to this agent.
+                    {{ t('shared.attach_website.description') }}
                 </DialogDescription>
             </DialogHeader>
 
-            <!-- Search Bar -->
             <div class="relative">
-                <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search class="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                     v-model="searchQuery"
                     type="text"
-                    placeholder="Search websites by URL..."
-                    class="pl-9"
+                    :placeholder="t('shared.attach_website.search_placeholder')"
+                    class="ps-9"
                 />
             </div>
 
-            <!-- Websites List -->
-            <ScrollArea class="flex-1 pr-4">
+            <ScrollArea class="flex-1 pe-4">
                 <div v-if="isLoading" class="flex items-center justify-center py-12">
                     <LoaderCircle class="h-8 w-8 animate-spin text-primary" />
                 </div>
 
                 <div v-else-if="availableWebsites.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
-                    <Globe class="h-12 w-12 text-muted-foreground mb-4" />
+                    <Globe class="mb-4 h-12 w-12 text-muted-foreground" />
                     <p class="text-sm text-muted-foreground">
-                        No trained websites available to attach.
+                        {{ t('shared.attach_website.empty_title') }}
                     </p>
-                    <p class="text-xs text-muted-foreground mt-1">
-                        Train a website first, then you can attach it to multiple agents.
+                    <p class="mt-1 text-xs text-muted-foreground">
+                        {{ t('shared.attach_website.empty_description') }}
                     </p>
                 </div>
 
                 <div v-else-if="filteredWebsites.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
-                    <Search class="h-12 w-12 text-muted-foreground mb-4" />
+                    <Search class="mb-4 h-12 w-12 text-muted-foreground" />
                     <p class="text-sm text-muted-foreground">
-                        No websites match your search.
+                        {{ t('shared.attach_website.no_search_results') }}
                     </p>
                 </div>
 
@@ -182,30 +181,29 @@ watch(() => props.open, (isOpen) => {
                     <div
                         v-for="website in filteredWebsites"
                         :key="website.id"
-                        class="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
+                        class="rounded-lg border p-4 transition-colors hover:bg-accent/50"
                         :class="{ 'bg-accent/30': isWebsiteAdded(website.id) }"
                     >
                         <div class="flex items-start justify-between gap-4">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <Globe class="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <span class="font-medium truncate">{{ getDomainFromUrl(website.url) }}</span>
+                            <div class="min-w-0 flex-1">
+                                <div class="mb-1 flex items-center gap-2">
+                                    <Globe class="h-4 w-4 shrink-0 text-muted-foreground" />
+                                    <span class="truncate font-medium">{{ getDomainFromUrl(website.url) }}</span>
                                 </div>
                                 <a
                                     :href="website.url"
                                     target="_blank"
-                                    class="text-xs text-muted-foreground hover:underline block truncate"
+                                    class="block truncate text-xs text-muted-foreground hover:underline"
                                 >
                                     {{ website.url }}
                                 </a>
-                                <div class="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                                    <span>{{ website.urls_count }} pages</span>
+                                <div class="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                                    <span>{{ t('shared.attach_website.pages_count', { count: website.urls_count }) }}</span>
                                     <span>•</span>
                                     <span>{{ formatDate(website.created_at) }}</span>
                                 </div>
 
-                                <!-- Show agents using this website -->
-                                <div v-if="website.agents && website.agents.length > 0" class="flex items-center gap-2 mt-2">
+                                <div v-if="website.agents && website.agents.length > 0" class="mt-2 flex items-center gap-2">
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger as-child>
@@ -216,7 +214,7 @@ watch(() => props.open, (isOpen) => {
                                             </TooltipTrigger>
                                             <TooltipContent>
                                                 <div class="text-xs">
-                                                    <p class="font-medium mb-1">Used in agents:</p>
+                                                    <p class="mb-1 font-medium">{{ t('shared.attach_website.used_in_agents') }}</p>
                                                     <ul class="space-y-0.5">
                                                         <li v-for="agent in website.agents" :key="agent.external_id">
                                                             {{ agent.name }}
@@ -229,39 +227,35 @@ watch(() => props.open, (isOpen) => {
                                 </div>
                             </div>
 
-                            <!-- Attach Button -->
                             <Button
                                 v-if="!isWebsiteAdded(website.id)"
                                 size="sm"
-                                @click="attachWebsite(website)"
                                 :disabled="isWebsiteAttaching(website.id)"
-                                class="flex-shrink-0"
+                                class="shrink-0"
+                                @click="attachWebsite(website)"
                             >
-                                <LoaderCircle v-if="isWebsiteAttaching(website.id)" class="h-4 w-4 animate-spin mr-2" />
-                                <Plus v-else class="h-4 w-4 mr-2" />
-                                {{ isWebsiteAttaching(website.id) ? 'Adding...' : 'Add' }}
+                                <LoaderCircle v-if="isWebsiteAttaching(website.id)" class="me-2 h-4 w-4 animate-spin" />
+                                <Plus v-else class="me-2 h-4 w-4" />
+                                {{ isWebsiteAttaching(website.id) ? t('shared.attach_website.adding') : t('shared.attach_website.add') }}
                             </Button>
 
-                            <!-- Added Badge -->
-                            <Badge v-else variant="secondary" class="flex-shrink-0">
-                                <Check class="h-3 w-3 mr-1" />
-                                Added
+                            <Badge v-else variant="secondary" class="shrink-0">
+                                <Check class="me-1 h-3 w-3" />
+                                {{ t('shared.attach_website.added') }}
                             </Badge>
                         </div>
                     </div>
                 </div>
             </ScrollArea>
 
-            <!-- Footer -->
-            <div class="flex items-center justify-between pt-4 border-t">
+            <div class="flex items-center justify-between border-t pt-4">
                 <p class="text-sm text-muted-foreground">
-                    {{ addedWebsiteIds.size > 0 ? `${addedWebsiteIds.size} website${addedWebsiteIds.size !== 1 ? 's' : ''} added` : 'Select websites to add to this agent' }}
+                    {{ footerText }}
                 </p>
                 <Button variant="outline" @click="closeDialog">
-                    Close
+                    {{ t('common.close') }}
                 </Button>
             </div>
         </DialogContent>
     </Dialog>
 </template>
-

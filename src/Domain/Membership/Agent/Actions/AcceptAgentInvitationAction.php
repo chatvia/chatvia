@@ -7,14 +7,14 @@ use App\Identity\Workspace\Models\UserSocial;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Data\AcceptAgentInvitationData;
 use Domain\Membership\Agent\Enums\InvitationCredentialKind;
-use Domain\Membership\Agent\Exceptions\AgentMemberInvitationRejectedException;
+use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Support\Enums\User\UserType;
 
 /**
  * Finalize a signed agent-member invitation. The chatter row is already in
- * the DB (provisioned by {@see InviteAgentMemberAction}) with a random
+ * the DB (provisioned by {@see InviteAgentChatterAction}) with a random
  * password and `email_verified_at = null`; this action just turns them from
  * "pending" into "active" once they pick a credential.
  *
@@ -29,7 +29,7 @@ use Support\Enums\User\UserType;
  * exists. We reject replays: once verified, the link can't be re-used to
  * silently reset the password — the user must go through normal login.
  *
- * @throws AgentMemberInvitationRejectedException
+ * @throws AgentChatterInvitationRejectedException
  */
 class AcceptAgentInvitationAction
 {
@@ -38,7 +38,7 @@ class AcceptAgentInvitationAction
         if ($data->kind === InvitationCredentialKind::Social) {
             $socialEmail = (string) $data->socialEmail;
             if (! hash_equals(strtolower($data->invitedEmail), strtolower($socialEmail))) {
-                throw new AgentMemberInvitationRejectedException(
+                throw new AgentChatterInvitationRejectedException(
                     'email',
                     "This invitation was sent to {$data->invitedEmail}. Sign in with the {$data->socialProvider?->value} account that uses the same email.",
                 );
@@ -80,21 +80,21 @@ class AcceptAgentInvitationAction
             ->first();
 
         if ($chatter === null) {
-            throw new AgentMemberInvitationRejectedException(
+            throw new AgentChatterInvitationRejectedException(
                 'invitation',
                 'This invitation is no longer valid. Ask the agent owner to send a new one.',
             );
         }
 
         if ($chatter->email_verified_at !== null) {
-            throw new AgentMemberInvitationRejectedException(
+            throw new AgentChatterInvitationRejectedException(
                 'invitation',
                 'This invitation has already been used. Sign in with your existing credentials instead.',
             );
         }
 
         if (! $agent->chatters()->whereKey($chatter->id)->exists()) {
-            throw new AgentMemberInvitationRejectedException(
+            throw new AgentChatterInvitationRejectedException(
                 'invitation',
                 'This invitation no longer grants access to this agent.',
             );

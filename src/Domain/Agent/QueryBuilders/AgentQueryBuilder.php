@@ -28,6 +28,16 @@ class AgentQueryBuilder extends Builder
     }
 
     /**
+     * Agents that have claimed a non-empty custom domain. The shared predicate
+     * behind the custom-domain quota count — used by {@see SetAgentDomainAction}'s
+     * gate and the Setup page's quota display, so the two never drift apart.
+     */
+    public function withCustomDomain(): self
+    {
+        return $this->whereNotNull('domain')->where('domain', '!=', '');
+    }
+
+    /**
      * Single-pass aggregate sourced from the analytics rollups (configured DB
      * connection). Counts survive deletion of the underlying chat rows.
      *

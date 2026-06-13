@@ -46,7 +46,11 @@ trait HasStorageFile
         $filePath = $this->filepath;
         $extension = pathinfo($filePath, PATHINFO_EXTENSION);
 
-        $field = $this->parser_filepath ? 'parser_filepath' : 'filepath';
+        // `parser_filepath` only exists on SourceFile/SourceYoutubeVideo. SourceText
+        // and SourceWebsite share this trait without that column, so read the raw
+        // attribute — under `Model::shouldBeStrict()` `$this->parser_filepath` would
+        // throw MissingAttributeException instead of falling back to `filepath`.
+        $field = ($this->getAttributes()['parser_filepath'] ?? null) ? 'parser_filepath' : 'filepath';
 
         if ($extension !== 'pdf') {
             $pdfFilePath = office()->toPdf($this->readFile($field)->getPathname());

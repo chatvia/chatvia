@@ -3,6 +3,7 @@ import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { Link } from '@inertiajs/vue3';
 import { File, FileAudio, FileText, Globe, HelpCircle, Video } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
     agentId: {
@@ -24,6 +25,7 @@ const props = defineProps({
 });
 
 const { hasPermission } = useTeamPermissions();
+const { t } = useI18n();
 
 // Helper function to get source count
 const getSourceCount = (statsKey: string, stats: any): string => {
@@ -34,11 +36,10 @@ const getSourceCount = (statsKey: string, stats: any): string => {
     return count > 0 ? ` (${count})` : '';
 };
 
-// Define all menu items
-const allMenuItems = [
+const menuItemDefinitions = [
     {
         id: 'files',
-        label: 'Files',
+        labelKey: 'agents.sources.page_title.files',
         icon: File,
         route: 'agents.sources.files',
         statsKey: 'files',
@@ -46,7 +47,7 @@ const allMenuItems = [
     },
     {
         id: 'text',
-        label: 'Text',
+        labelKey: 'agents.sources.page_title.text',
         icon: FileText,
         route: 'agents.sources.text.index',
         statsKey: 'texts',
@@ -54,7 +55,7 @@ const allMenuItems = [
     },
     {
         id: 'qa',
-        label: 'Q&A',
+        labelKey: 'agents.sources.page_title.qa',
         icon: HelpCircle,
         route: 'agents.sources.qa.index',
         statsKey: 'qa',
@@ -62,7 +63,7 @@ const allMenuItems = [
     },
     {
         id: 'web',
-        label: 'Web',
+        labelKey: 'agents.sources.page_title.web',
         icon: Globe,
         route: 'agents.sources.web',
         statsKey: 'websites',
@@ -70,7 +71,7 @@ const allMenuItems = [
     },
     {
         id: 'audio',
-        label: 'Audio',
+        labelKey: 'agents.sources.page_title.audio',
         icon: FileAudio,
         route: 'agents.sources.audio',
         statsKey: 'audio',
@@ -78,7 +79,7 @@ const allMenuItems = [
     },
     {
         id: 'video',
-        label: 'Video',
+        labelKey: 'agents.sources.page_title.video',
         icon: Video,
         route: 'agents.sources.video',
         statsKey: 'video',
@@ -88,7 +89,12 @@ const allMenuItems = [
 
 // Filter menu items based on user permissions
 const menuItems = computed(() => {
-    return allMenuItems.filter((item) => hasPermission(item.permission));
+    return menuItemDefinitions
+        .filter((item) => hasPermission(item.permission))
+        .map((item) => ({
+            ...item,
+            label: t(item.labelKey),
+        }));
 });
 </script>
 

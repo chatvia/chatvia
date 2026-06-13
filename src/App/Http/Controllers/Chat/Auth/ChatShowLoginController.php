@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Chat\Auth;
 
-use Domain\Agent\Services\Agent;
+use Domain\Agent\Services\AgentLocator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -14,13 +14,13 @@ class ChatShowLoginController
      */
     public function __invoke(Request $request)
     {
-        $agent = Agent::resolveAgentFromSubdomain($request->agentSlug());
+        $agent = AgentLocator::resolveAgentFromSubdomain($request->agentSlug());
 
         if (is_null($agent) || $agent->is_public) {
             return to_route('chat.home');
         }
 
-        return Inertia::render('auth/LoginMember', [
+        return Inertia::render('auth/LoginChatter', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),
             'agent' => $agent,

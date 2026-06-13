@@ -1,0 +1,71 @@
+{
+    "agents": {
+        "members": {
+            "title": "Chatter",
+            "description": "Ihre Chatter. Chatter mit Zugriff auf diesen Agenten werden zuerst angezeigt; anderen Chattern können Sie mit einem Klick Zugriff gewähren.",
+            "public_title": "Dieser Agent ist öffentlich",
+            "public_description": "Jeder mit dem Link kann mit diesem Agenten chatten, daher gelten keine Chatter-Zugänge. Um Chatter zu verwenden, stellen Sie den Agenten im Setup-Tab auf geschützt.",
+            "search_placeholder": "Chatter suchen...",
+            "count": "{filtered} von {total} Chatter | {filtered} von {total} Chattern",
+            "invite_member": "Chatter einladen",
+            "table": {
+                "name": "Name",
+                "email": "E-Mail",
+                "status": "Status",
+                "access": "Zugriff",
+                "actions": "Aktionen"
+            },
+            "status": {
+                "pending": "Ausstehend",
+                "active": "Aktiv"
+            },
+            "access": {
+                "granted": "Gewährt",
+                "no_access": "Kein Zugriff"
+            },
+            "no_email": "Keine E-Mail",
+            "empty_title": "Noch keine Chatter.",
+            "empty_description": "Laden Sie jemanden ein, um zu beginnen – sie erscheinen dann hier.",
+            "no_results_title": "Keine Chatter gefunden, die Ihrer Suche entsprechen.",
+            "no_results_description": "Versuchen Sie, Ihre Suchbegriffe anzupassen.",
+            "grant": "Gewähren",
+            "grant_title": "{name} Zugriff auf diesen Agenten gewähren",
+            "revoke_title": "Zugriff für {name} widerrufen",
+            "invite_dialog_title": "Einen Chatter einladen",
+            "invite_dialog_description": "Wir senden einen Registrierungslink an diese Adresse. Die Person kann ein Passwort festlegen oder sich mit Google oder Slack anmelden.",
+            "email_label": "E-Mail-Adresse",
+            "email_placeholder": "person{'@'}beispiel.com",
+            "send_invite": "Einladung senden",
+            "invitation_emailed": "Einladung per E-Mail an {email} gesendet. Sie können den Link unten auch kopieren.",
+            "signup_link": "Registrierungslink",
+            "expires": "Läuft ab am {date}.",
+            "invite_another": "Weitere Person einladen",
+            "done": "Fertig",
+            "sheet_description": "Chatter-Details und Zugriff für diesen Agenten.",
+            "member_id": "ID",
+            "copy_member_id": "Chatter-ID kopieren",
+            "joined": "Beigetreten am {date}",
+            "invitation_pending": "Einladung ausstehend",
+            "invitation_pending_hint": "Dieser Chatter hat die Einladung noch nicht angenommen. Teilen Sie den persönlichen Registrierungslink unten.",
+            "link_expired": "Der Einladungslink ist abgelaufen oder nicht mehr verfügbar. Generieren Sie unten einen neuen.",
+            "resend_invitation": "Einladung erneut senden",
+            "generate_link": "Neuen Link generieren",
+            "manage_hint": "Um diesen Chatter zu verwalten, wechseln Sie zur {link}.",
+            "members_page": "Chatter-Seite",
+            "revoke_access": "Zugriff widerrufen",
+            "grant_access": "Zugriff gewähren",
+            "revoke_dialog_title": "Zugriff widerrufen",
+            "revoke_dialog_description": "{name} verliert sofort den Zugriff auf diesen Agenten. Die Person bleibt in Ihrem Workspace und Sie können den Zugriff jederzeit erneut gewähren.",
+            "revoke": "Widerrufen",
+            "load_error": "Chatter konnten nicht geladen werden",
+            "invitation_sent": "Einladung gesendet",
+            "invitation_sent_to": "Einladung an {email} gesendet",
+            "access_revoked": "{name} hat keinen Zugriff mehr auf diesen Agenten",
+            "revoke_error": "Zugriff konnte nicht widerrufen werden",
+            "access_granted": "{name} hat jetzt Zugriff auf diesen Agenten",
+            "grant_error": "Zugriff konnte nicht gewährt werden",
+            "fresh_link": "Neuer Einladungslink für {name} generiert",
+            "link_error": "Einladungslink konnte nicht generiert werden"
+        }
+    }
+}

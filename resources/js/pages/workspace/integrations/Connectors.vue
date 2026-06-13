@@ -16,11 +16,13 @@ import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 import ConnectorDetailSheet from '@/components/connectors/ConnectorDetailSheet.vue';
+import { useConnectorText } from '@/composables/useConnectorText';
 import AddConnectorModal from './Connectors/AddConnectorModal.vue';
 import SalesforceConnectModal from './Connectors/SalesforceConnectModal.vue';
 import TokenConnectModal from './Connectors/TokenConnectModal.vue';
 
 const { t } = useI18n();
+const { connectorName, connectorDescription } = useConnectorText();
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: t('workspace.connectors.breadcrumb'), href: '/my/workspace/integrations/connectors' }];
 
@@ -46,8 +48,8 @@ function logoUrl(c: Connector | null): string | null {
 function matches(row: ConnectorRow): boolean {
     const q = search.value.trim().toLowerCase();
     if (!q) return true;
-    const name = (row.connector?.name ?? row.server?.name ?? '').toLowerCase();
-    const description = (row.connector?.description ?? '').toLowerCase();
+    const name = (row.connector ? connectorName(row.connector) : (row.server?.name ?? '')).toLowerCase();
+    const description = (row.connector ? connectorDescription(row.connector) : '').toLowerCase();
     return name.includes(q) || description.includes(q);
 }
 
@@ -107,10 +109,10 @@ async function startConnect(connector: Connector): Promise<void> {
     try {
         const response = await axios.post(route('integrations.connectors.connect', { slug: connector.slug }));
         onTokenConnected(response.data.data);
-        toast.success(t('workspace.connectors.toast.connected', { name: connector.name }));
+        toast.success(t('workspace.connectors.toast.connected', { name: connectorName(connector) }));
     } catch (e: unknown) {
         const err = e as { response?: { data?: { message?: string } } };
-        toast.error(err.response?.data?.message ?? t('workspace.connectors.toast.connect_failed', { name: connector.name }));
+        toast.error(err.response?.data?.message ?? t('workspace.connectors.toast.connect_failed', { name: connectorName(connector) }));
     }
 }
 
@@ -187,7 +189,7 @@ onMounted(() => {
                 </div>
 
                 <div class="relative max-w-sm">
-                    <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                    <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                     <Input v-model="search" :placeholder="t('workspace.connectors.search_placeholder')" class="ps-9" />
                 </div>
 
@@ -232,10 +234,10 @@ onMounted(() => {
                                                 </div>
                                                 <div class="min-w-0">
                                                     <p class="leading-tight font-medium">
-                                                        {{ row.connector?.name ?? row.server!.name }}
+                                                        {{ row.connector ? connectorName(row.connector) : row.server!.name }}
                                                     </p>
                                                     <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
-                                                        {{ row.connector?.description ?? row.server!.url }}
+                                                        {{ row.connector ? connectorDescription(row.connector) : row.server!.url }}
                                                     </p>
                                                 </div>
                                             </div>
@@ -326,9 +328,9 @@ onMounted(() => {
                                                     <img :src="logoUrl(row.connector)!" :alt="row.connector!.name" class="h-5 w-5" />
                                                 </div>
                                                 <div class="min-w-0">
-                                                    <p class="leading-tight font-medium">{{ row.connector!.name }}</p>
+                                                    <p class="leading-tight font-medium">{{ connectorName(row.connector!) }}</p>
                                                     <p class="text-muted-foreground mt-1 line-clamp-1 text-xs">
-                                                        {{ row.connector!.description }}
+                                                        {{ connectorDescription(row.connector!) }}
                                                     </p>
                                                 </div>
                                             </div>

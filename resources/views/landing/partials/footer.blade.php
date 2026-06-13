@@ -20,13 +20,13 @@
             <!-- Legal links -->
             <div class="flex flex-wrap gap-6 md:gap-8">
                 <a class="text-sm font-medium text-slate-500 hover:text-blue-600 transition duration-150 ease-in-out"
-                    href="{{ route('terms') }}">Terms of Service</a>
+                    href="{{ route('terms') }}">{{ __('landing.footer.terms') }}</a>
                 <a class="text-sm font-medium text-slate-500 hover:text-blue-600 transition duration-150 ease-in-out"
-                    href="{{ route('privacy') }}">Privacy</a>
+                    href="{{ route('privacy') }}">{{ __('landing.footer.privacy') }}</a>
                 <a class="text-sm font-medium text-slate-500 hover:text-blue-600 transition duration-150 ease-in-out"
-                    href="{{ route('refund') }}">Refund Policy</a>
+                    href="{{ route('refund') }}">{{ __('landing.footer.refund') }}</a>
                 <a class="text-sm font-medium text-slate-500 hover:text-blue-600 transition duration-150 ease-in-out"
-                    href="{{ route('subprocessors') }}">Sub-processors</a>
+                    href="{{ route('subprocessors') }}">{{ __('landing.footer.subprocessors') }}</a>
             </div>
 
         </div>
@@ -34,7 +34,7 @@
         <!-- Bottom area -->
         <div class="md:flex md:items-center md:justify-between py-6 md:py-8 border-t border-slate-200">
 
-            <ul class="flex space-x-6 mb-4 md:order-1 md:ml-4 md:mb-0">
+            <ul class="flex space-x-6 rtl:space-x-reverse mb-4 md:order-1 md:ms-4 md:mb-0">
                 <li>
                     <a class="text-blue-500 hover:text-blue-600 transition duration-150 ease-in-out"
                         href="https://facebook.com/chatviaai" aria-label="Facebook">
@@ -56,8 +56,8 @@
             </ul>
 
             <!-- Copyrights note -->
-            <div class="text-sm text-slate-500 mr-4">&copy; {{ config('app.name') }}.
-                Made with ❤️ in Denmark
+            <div class="text-sm text-slate-500 me-4">&copy; {{ config('app.name') }}.
+                {{ __('landing.footer.made_with_love') }}
             </div>
 
         </div>

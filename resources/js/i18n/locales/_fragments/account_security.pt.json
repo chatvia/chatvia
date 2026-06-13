@@ -1,0 +1,59 @@
+{
+    "account": {
+        "passkeys": {
+            "name_required": "Atribua primeiro um nome à sua chave de acesso.",
+            "register_error": "Não foi possível registar a chave de acesso.",
+            "never": "Nunca",
+            "delete_aria": "Eliminar chave de acesso",
+            "name_placeholder": "MacBook Pro, iPhone, YubiKey…",
+            "heading": "Chaves de acesso",
+            "description": "Inicie sessão com a sua impressão digital, rosto ou chave de segurança — sem necessidade de palavra-passe.",
+            "add_passkey": "Adicionar chave de acesso",
+            "no_passkeys": "Ainda não existem chaves de acesso",
+            "no_passkeys_hint": "Adicione uma chave de acesso para iniciar sessão mais rapidamente neste dispositivo.",
+            "last_used": "Última utilização",
+            "created": "Criada",
+            "dialog_title": "Nomeie a sua chave de acesso",
+            "dialog_description": "Escolha um nome para poder distinguir as suas chaves de acesso posteriormente.",
+            "register": "Registar chave de acesso",
+            "delete_title": "Eliminar esta chave de acesso?",
+            "delete_description": "{name} deixará de poder ser utilizada para iniciar sessão. Esta ação não pode ser anulada."
+        },
+        "two_factor": {
+            "heading": "Autenticação de dois fatores",
+            "description": "Exija um código de 6 dígitos de uma aplicação de autenticação no início de sessão, além da sua palavra-passe.",
+            "disable_title": "Desativar a autenticação de dois fatores?",
+            "disable_description": "A sua conta ficará protegida apenas pela sua palavra-passe. Pode reativar a autenticação de dois fatores a qualquer momento.",
+            "status": "Estado",
+            "enabled": "Ativada",
+            "disabled": "Desativada",
+            "off_title": "A autenticação de dois fatores está desativada",
+            "off_description": "Ative-a para exigir um código de 6 dígitos no início de sessão.",
+            "enable": "Ativar dois fatores",
+            "finish_setup_title": "Concluir configuração",
+            "finish_setup_description": "Digitalize o código QR com a sua aplicação de autenticação e, em seguida, introduza o código de 6 dígitos para confirmar.",
+            "loading_qr": "A carregar o código QR…",
+            "secret_manual": "Ou introduza este segredo manualmente",
+            "confirmation_code": "Código de confirmação",
+            "confirm": "Confirmar",
+            "cancel_setup": "Cancelar configuração",
+            "recovery_title": "Códigos de recuperação",
+            "recovery_description": "Guarde estes códigos de utilização única num local seguro. Cada um pode desbloquear a sua conta caso perca o acesso à sua aplicação de autenticação.",
+            "loading_codes": "A carregar os códigos de recuperação…",
+            "show_codes": "Mostrar códigos de recuperação",
+            "regenerate_codes": "Regenerar códigos",
+            "disable": "Desativar dois fatores"
+        },
+        "social": {
+            "heading": "Contas sociais",
+            "description": "Ligue o Google, Microsoft ou Slack para iniciar sessão com um clique e manter as suas contas sincronizadas.",
+            "connected_since": "Ligado desde {date}",
+            "connected": "Ligado",
+            "not_connected": "Não ligado",
+            "disconnect": "Desligar",
+            "connect": "Ligar",
+            "disconnect_title": "Desligar {provider}?",
+            "disconnect_description": "Não poderá iniciar sessão com {provider} até voltar a ligá-lo."
+        }
+    }
+}

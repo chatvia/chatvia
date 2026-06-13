@@ -140,3 +140,44 @@
 html {
     scroll-behavior: smooth;
 }
+
+/* Arabic / Farsi (RTL) surfaces use Rubik (loaded in the landing layout head)
+   so the Arabic script renders correctly — Inter / Plus Jakarta Sans have no
+   Arabic glyphs. Unlayered and re-pointing the `font-*` utility classes
+   directly so it beats Tailwind's layered utilities for every element that
+   opts into them; Latin pages are untouched. */
+html[dir='rtl'] body,
+html[lang='ar'] body,
+html[lang='fa'] body,
+html[dir='rtl'] .font-inter,
+html[lang='ar'] .font-inter,
+html[lang='fa'] .font-inter,
+html[dir='rtl'] .font-display,
+html[lang='ar'] .font-display,
+html[lang='fa'] .font-display,
+html[dir='rtl'] .font-heading,
+html[lang='ar'] .font-heading,
+html[lang='fa'] .font-heading {
+    font-family: 'Rubik', 'Inter', sans-serif;
+}
+
+/* Section-divider hairline: a soft light segment sweeps across, then pauses. */
+@keyframes hairline-sweep {
+    0% {
+        transform: translateX(-100%);
+    }
+    55% {
+        transform: translateX(350%);
+    }
+    100% {
+        transform: translateX(350%);
+    }
+}
+.hairline-sweep {
+    animation: hairline-sweep 4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+    .hairline-sweep {
+        animation: none;
+    }
+}

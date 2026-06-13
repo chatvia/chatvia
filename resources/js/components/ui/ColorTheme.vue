@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Label } from '@/components/ui/label';
+
+const { t } = useI18n();
 
 interface Props {
     modelValue: string;
@@ -112,7 +115,7 @@ const updateShade = (event: Event) => {
 
             <!-- Color Shade Slider (only if shading is enabled) -->
             <div v-if="showShading" class="space-y-2">
-                <Label class="text-sm">Color Intensity</Label>
+                <Label class="text-sm">{{ t('shared.color_picker.color_intensity') }}</Label>
                 <div class="px-1">
                     <input
                         type="range"
@@ -128,9 +131,9 @@ const updateShade = (event: Event) => {
                     />
                 </div>
                 <div class="flex justify-between text-xs text-muted-foreground">
-                    <span>Light</span>
+                    <span>{{ t('shared.color_picker.light') }}</span>
                     <span class="font-medium">{{ currentShade }}</span>
-                    <span>Dark</span>
+                    <span>{{ t('shared.color_picker.dark') }}</span>
                 </div>
             </div>
             

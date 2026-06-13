@@ -305,7 +305,9 @@ const cancelDelete = () => {
                                         <ShieldOff class="h-5 w-5 text-amber-600 dark:text-amber-400" />
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-medium text-amber-800 dark:text-amber-200">{{ t('agents.team.collaboration_disabled_title') }}</h3>
+                                        <h3 class="text-sm font-medium text-amber-800 dark:text-amber-200">
+                                            {{ t('agents.team.collaboration_disabled_title') }}
+                                        </h3>
                                         <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
                                             <i18n-t keypath="agents.team.collaboration_disabled_description" tag="span">
                                                 <template #link>
@@ -329,7 +331,9 @@ const cancelDelete = () => {
                                         <Users class="h-5 w-5 text-orange-600 dark:text-orange-400" />
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-medium text-orange-800 dark:text-orange-200">{{ t('agents.team.limit_reached_title') }}</h3>
+                                        <h3 class="text-sm font-medium text-orange-800 dark:text-orange-200">
+                                            {{ t('agents.team.limit_reached_title') }}
+                                        </h3>
                                         <p class="mt-1 text-sm text-orange-700 dark:text-orange-300">
                                             <i18n-t keypath="agents.team.limit_reached_description" tag="span" :limit="workspaceUsersLimit">
                                                 <template #link>
@@ -420,7 +424,11 @@ const cancelDelete = () => {
                                                                 !member.email_verified_at,
                                                         }"
                                                     >
-                                                        {{ member.email_verified_at ? t('agents.team.status_active') : t('agents.team.status_pending') }}
+                                                        {{
+                                                            member.email_verified_at
+                                                                ? t('agents.team.status_active')
+                                                                : t('agents.team.status_pending')
+                                                        }}
                                                     </span>
                                                     <!-- Access indicator -->
                                                     <span
@@ -513,7 +521,13 @@ const cancelDelete = () => {
                 <div class="space-y-4 py-4">
                     <div class="grid gap-2">
                         <Label for="name" required>{{ t('agents.team.name_label') }}</Label>
-                        <Input id="name" v-model="invitationForm.name" type="text" :placeholder="t('agents.team.name_placeholder')" :error="invitationForm.errors.name" />
+                        <Input
+                            id="name"
+                            v-model="invitationForm.name"
+                            type="text"
+                            :placeholder="t('agents.team.name_placeholder')"
+                            :error="invitationForm.errors.name"
+                        />
                         <p v-if="invitationForm.errors.name" class="text-destructive text-sm">
                             {{ invitationForm.errors.name }}
                         </p>

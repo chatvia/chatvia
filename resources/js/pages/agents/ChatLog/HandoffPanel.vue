@@ -209,7 +209,11 @@ onMounted(() => {
             </p>
             <div class="flex items-center gap-2 text-xs">
                 <Circle class="h-2 w-2 fill-current" :class="handoff.userIsOnline.value ? 'text-green-500' : 'text-gray-400'" />
-                <span>{{ handoff.userIsOnline.value ? t('agents.chatlog.handoff.user_currently_online') : t('agents.chatlog.handoff.user_currently_offline') }}</span>
+                <span>{{
+                    handoff.userIsOnline.value
+                        ? t('agents.chatlog.handoff.user_currently_online')
+                        : t('agents.chatlog.handoff.user_currently_offline')
+                }}</span>
             </div>
         </div>
 
@@ -275,7 +279,9 @@ onMounted(() => {
                                             <path d="M18 6L7 17l-5-5" />
                                             <path d="M22 6L11 17" />
                                         </svg>
-                                        <span class="text-[9px]">{{ m.read_at ? t('agents.chatlog.handoff.read') : t('agents.chatlog.handoff.sent') }}</span>
+                                        <span class="text-[9px]">{{
+                                            m.read_at ? t('agents.chatlog.handoff.read') : t('agents.chatlog.handoff.sent')
+                                        }}</span>
                                     </span>
                                 </div>
                             </div>

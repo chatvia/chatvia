@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "deploy": {
+            "title": "Veröffentlichen",
+            "subtitle": "Bringen Sie Ihren Agenten zu Ihren Nutzern – wählen Sie einen Kanal und kopieren Sie den Code.",
+            "head_title": "Veröffentlichen — {name}",
+            "copy": "Kopieren",
+            "copied": "Kopiert!",
+            "copy_failed": "Kopieren fehlgeschlagen",
+            "customize": "Erscheinungsbild anpassen",
+            "install_label": "Fügen Sie dies Ihrer Website hinzu",
+            "protected_title": "Dieser Agent ist geschützt",
+            "protected_description": "Einbettungen benötigen ein signiertes Token, sonst sehen alle mit dem Code-Snippet einen gesperrten Bildschirm. Machen Sie ihn öffentlich oder konfigurieren Sie die Authentifizierung in",
+            "open_security": "Sicherheitseinstellungen",
+            "widget": {
+                "title": "Chat-Widget",
+                "description": "Eine schwebende Chat-Blase in der Ecke jeder Seite – der klassische Assistent."
+            },
+            "chat": {
+                "title": "Gehosteter Chat",
+                "description": "Ein ganzseitiger Chat unter Ihrem eigenen Link. Direkt teilen oder in eine Seite einbetten.",
+                "url_label": "Agenten-URL",
+                "open": "Öffnen",
+                "embed_label": "In eine Seite einbetten",
+                "iframe_title": "Chat mit {name}",
+                "width": "Breite",
+                "height": "Höhe",
+                "preset_full": "Vollständig",
+                "preset_large": "Groß",
+                "preset_medium": "Mittel",
+                "preset_small": "Klein"
+            },
+            "bar": {
+                "title": "Befehlsleiste",
+                "description": "Ein ⌘K-Befehlspaletten-Overlay. Perfekt für Dokumentation, Dashboards und Apps."
+            }
+        }
+    }
+}

@@ -1,0 +1,91 @@
+{
+    "app": {
+        "header": {
+            "dashboard": "Instrumentpanel",
+            "agents": "Agenter",
+            "usage": "Användning",
+            "ask_your_data": "Fråga din data",
+            "billing": "Fakturering",
+            "support": "Support",
+            "teams": "Team",
+            "documentation": "Dokumentation",
+            "api": "API",
+            "nav_menu_sr": "Navigeringsmeny",
+            "upgrade": "Uppgradera",
+            "subscribed": "Du är prenumerant"
+        }
+    },
+    "agents": {
+        "nav": {
+            "default_title": "Agentinställningar",
+            "playground": "Lekplats",
+            "playground_tooltip": "Förhandsgranska din agent på varje yta",
+            "setup": "Konfiguration",
+            "setup_tooltip": "Konfigurera din agent — gäller för varje yta",
+            "channels": "Kanaler",
+            "channels_tooltip": "Distribuera din agent — webbplats, widget och Telegram",
+            "groups": {
+                "insights": "Insikter",
+                "training": "Träning",
+                "access": "Åtkomst",
+                "settings": "Inställningar",
+                "danger_zone": "Farozon"
+            },
+            "analytics": "Analys",
+            "analytics_tooltip": "Visa användningsanalys och insikter",
+            "chats": "Chattar",
+            "sentiment": "Sentiment",
+            "tone": "Ton",
+            "topics": "Ämnen",
+            "sources": "Källor",
+            "chat": "Chatt",
+            "chat_tooltip": "Granska råa chattmeddelanden per session",
+            "audit": "Revision",
+            "audit_tooltip": "Revisionslogg för verktygsanrop för den här agenten",
+            "evals": "Utvärderingar",
+            "evals_tooltip": "Testsviter som betygsätter den här agentens svar",
+            "guardrails": "Skyddsräcken",
+            "guardrails_tooltip": "AI-säkerhetsskydd: PII, promptinjektion, ämnen, toxicitet",
+            "leads": "Leads",
+            "leads_tooltip": "Hantera leads som fångats av din agent",
+            "knowledge_sources": "Källor",
+            "knowledge_sources_tooltip": "Hantera agentkunskap och träningsdata",
+            "functions": "Funktioner",
+            "functions_tooltip": "Hantera anpassade funktioner som din agent kan anropa",
+            "connectors": "Kopplingar",
+            "connectors_tooltip": "Koppla ihop kontakter så att din agent kan använda externa verktyg",
+            "members": "Chatters",
+            "members_tooltip": "Chatters som beviljats åtkomst att chatta med den här agenten",
+            "security": "Säkerhet",
+            "security_tooltip": "Åtkomstkontroll, signeringshemlig och hastighetsbegränsningar för den här agenten",
+            "identity": "Identitet",
+            "rate_limiting": "Hastighetsbegränsning",
+            "rename": "Byt namn",
+            "rename_tooltip": "Byt namn på den här agenten",
+            "delete_agent": "Radera agent",
+            "delete_agent_tooltip": "Radera den här agenten permanent",
+            "expand_sidebar": "Expandera sidopanel",
+            "delete_dialog": {
+                "title": "Radera agent",
+                "description": "Den här åtgärden kan inte ångras. Detta raderar agenten {name} och all dess data permanent.",
+                "confirm_label": "Ange {name} för att bekräfta",
+                "confirm_placeholder": "Ange agentnamn för att bekräfta",
+                "name_mismatch": "Agentnamnet stämmer inte",
+                "submit": "Radera agent",
+                "deleted_toast": "Agenten raderades",
+                "delete_error_toast": "Det gick inte att radera agenten. Försök igen."
+            },
+            "rename_dialog": {
+                "title": "Byt namn på agent",
+                "description": "Ange ett nytt namn för din agent {name}.",
+                "name_label": "Agentnamn",
+                "name_placeholder": "Ange nytt agentnamn",
+                "subdomain_label": "Underdomän",
+                "subdomain_placeholder": "din-underdomän",
+                "subdomain_hint": "Endast gemener, siffror och bindestreck är tillåtna.",
+                "save": "Spara",
+                "updated_toast": "Agenten uppdaterades"
+            }
+        }
+    }
+}

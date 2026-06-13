@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "deploy": {
+            "title": "Implementér",
+            "subtitle": "Sæt din agent foran folk – vælg en platform og kopiér koden.",
+            "head_title": "Implementér — {name}",
+            "copy": "Kopiér",
+            "copied": "Kopieret!",
+            "copy_failed": "Kopiering mislykkedes",
+            "customize": "Tilpas udseende",
+            "install_label": "Tilføj dette til dit websted",
+            "protected_title": "Denne agent er beskyttet",
+            "protected_description": "Indlejringer kræver et signeret token, ellers ser alle med kodestykket en låst skærm. Gør den offentlig eller opsæt godkendelse i",
+            "open_security": "Sikkerhedsindstillinger",
+            "widget": {
+                "title": "Chat-widget",
+                "description": "En flydende chatboble i hjørnet af enhver side – den klassiske assistent."
+            },
+            "chat": {
+                "title": "Hostet chat",
+                "description": "En fuldsidet chat på dit eget link. Del det direkte, eller indlejr det på en side.",
+                "url_label": "Agent-URL",
+                "open": "Åbn",
+                "embed_label": "Indlejr på en side",
+                "iframe_title": "Chat med {name}",
+                "width": "Bredde",
+                "height": "Højde",
+                "preset_full": "Fuld",
+                "preset_large": "Stor",
+                "preset_medium": "Mellem",
+                "preset_small": "Lille"
+            },
+            "bar": {
+                "title": "Kommandolinje",
+                "description": "Et ⌘K-kommandopalette-overlay. Perfekt til dokumentation, dashboards og apps."
+            }
+        }
+    }
+}

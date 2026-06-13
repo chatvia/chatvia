@@ -16,7 +16,7 @@
         </div>
 
         <!-- Comparison Table -->
-        <div class="overflow-x-auto" data-aos="fade-up">
+        <div class="overflow-x-auto">
             <table class="w-full text-left border-separate border-spacing-0">
                 <!-- Table Header -->
                 <thead>

@@ -1,0 +1,59 @@
+{
+    "account": {
+        "passkeys": {
+            "name_required": "Bitte geben Sie Ihrem Passkey zuerst einen Namen.",
+            "register_error": "Passkey konnte nicht registriert werden.",
+            "never": "Nie",
+            "delete_aria": "Passkey löschen",
+            "name_placeholder": "MacBook Pro, iPhone, YubiKey…",
+            "heading": "Passkeys",
+            "description": "Melden Sie sich mit Ihrem Fingerabdruck, Gesicht oder Sicherheitsschlüssel an – kein Passwort erforderlich.",
+            "add_passkey": "Passkey hinzufügen",
+            "no_passkeys": "Noch keine Passkeys",
+            "no_passkeys_hint": "Fügen Sie einen Passkey hinzu, um sich auf diesem Gerät schneller anzumelden.",
+            "last_used": "Zuletzt verwendet",
+            "created": "Erstellt",
+            "dialog_title": "Passkey benennen",
+            "dialog_description": "Wählen Sie einen Namen, damit Sie Ihre Passkeys später unterscheiden können.",
+            "register": "Passkey registrieren",
+            "delete_title": "Diesen Passkey löschen?",
+            "delete_description": "{name} kann damit nicht mehr zur Anmeldung verwendet werden. Diese Aktion kann nicht rückgängig gemacht werden."
+        },
+        "two_factor": {
+            "heading": "Zwei-Faktor-Authentifizierung",
+            "description": "Erfordert bei der Anmeldung zusätzlich zum Passwort einen 6-stelligen Code aus einer Authentifizierungs-App.",
+            "disable_title": "Zwei-Faktor-Authentifizierung deaktivieren?",
+            "disable_description": "Ihr Konto wird dann nur noch durch Ihr Passwort geschützt. Sie können die 2FA jederzeit wieder aktivieren.",
+            "status": "Status",
+            "enabled": "Aktiviert",
+            "disabled": "Deaktiviert",
+            "off_title": "Zwei-Faktor-Authentifizierung ist deaktiviert",
+            "off_description": "Aktivieren Sie sie, um bei der Anmeldung einen 6-stelligen Code zu verlangen.",
+            "enable": "Zwei-Faktor aktivieren",
+            "finish_setup_title": "Einrichtung abschließen",
+            "finish_setup_description": "Scannen Sie den QR-Code mit Ihrer Authentifizierungs-App und geben Sie dann den 6-stelligen Code zur Bestätigung ein.",
+            "loading_qr": "QR-Code wird geladen…",
+            "secret_manual": "Oder geben Sie diesen Schlüssel manuell ein",
+            "confirmation_code": "Bestätigungscode",
+            "confirm": "Bestätigen",
+            "cancel_setup": "Einrichtung abbrechen",
+            "recovery_title": "Wiederherstellungscodes",
+            "recovery_description": "Speichern Sie diese Einmalcodes an einem sicheren Ort. Jeder Code kann Ihr Konto entsperren, falls Sie Ihre Authentifizierungs-App verlieren.",
+            "loading_codes": "Wiederherstellungscodes werden geladen…",
+            "show_codes": "Wiederherstellungscodes anzeigen",
+            "regenerate_codes": "Codes neu generieren",
+            "disable": "Zwei-Faktor deaktivieren"
+        },
+        "social": {
+            "heading": "Soziale Konten",
+            "description": "Verbinden Sie Google, Microsoft oder Slack, um sich mit einem Klick anzumelden und Ihre Konten synchron zu halten.",
+            "connected_since": "Verbunden seit {date}",
+            "connected": "Verbunden",
+            "not_connected": "Nicht verbunden",
+            "disconnect": "Trennen",
+            "connect": "Verbinden",
+            "disconnect_title": "{provider} trennen?",
+            "disconnect_description": "Sie können sich nicht mehr mit {provider} anmelden, bis Sie die Verbindung erneut herstellen."
+        }
+    }
+}

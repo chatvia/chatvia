@@ -7,7 +7,7 @@ use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Domain\Agent\Models\Agent;
-use Domain\Agent\Services\Agent as AgentService;
+use Domain\Agent\Services\AgentLocator as AgentService;
 use Domain\Billing\Models\UserBilling;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;

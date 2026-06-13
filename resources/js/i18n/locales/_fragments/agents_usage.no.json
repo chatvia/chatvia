@@ -1,0 +1,42 @@
+{
+    "agents": {
+        "usage": {
+            "title": "Bruksinnsikt",
+            "description": "Se hvilke kilder, funksjoner og MCP-servere denne agenten faktisk bruker",
+            "load_error": "Kunne ikke laste bruksdata",
+            "try_again": "Prøv igjen",
+            "tabs": {
+                "knowledge": "Kunnskap",
+                "functions": "Funksjoner",
+                "mcp": "MCP"
+            },
+            "knowledge_empty": "Ingen kunnskapskilder hentet ennå",
+            "knowledge_empty_hint": "Filer, nettsider, tekstutdrag og YouTube-videoer vises her når agenten bruker dem.",
+            "functions_empty": "Ingen funksjonskall ennå",
+            "functions_empty_hint": "Webhook-funksjoner vises her når agenten kaller dem.",
+            "mcp_empty": "Ingen MCP-verktøykall ennå",
+            "mcp_empty_hint": "Individuelle verktøy fra tilkoblede MCP-servere vises her når agenten kaller dem.",
+            "retrievals": "{count} henting | {count} hentinger",
+            "calls": "{count} kall | {count} kall",
+            "last_used": "Sist brukt {time}",
+            "last_called": "Sist kalt {time}",
+            "via_server": "via {name}",
+            "sub_kind": {
+                "source_file": "Fil",
+                "source_website": "Nettside",
+                "source_text": "Tekst",
+                "source_youtube_video": "YouTube",
+                "agent_website_url": "Nettside"
+            },
+            "relative": {
+                "just_now": "akkurat nå",
+                "minutes_ago": "{count} minutt siden | {count} minutter siden",
+                "hours_ago": "{count} time siden | {count} timer siden",
+                "days_ago": "{count} dag siden | {count} dager siden",
+                "weeks_ago": "{count} uke siden | {count} uker siden",
+                "months_ago": "{count} måned siden | {count} måneder siden",
+                "years_ago": "{count} år siden | {count} år siden"
+            }
+        }
+    }
+}

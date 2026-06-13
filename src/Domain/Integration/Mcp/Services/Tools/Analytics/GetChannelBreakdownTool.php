@@ -13,8 +13,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 #[Description(<<<'TXT'
-Conversation volume per channel for a period — web chat, pop-up widget, chat
-bar, Telegram, Slack, WhatsApp, Messenger, MS Teams, Instagram — with each
+Conversation volume per channel for a period — Hosted Chat, Chat Widget, Command
+Bar, Telegram, Slack, WhatsApp, Messenger, MS Teams, Instagram — with each
 channel's share of the total. Answers "which channel is busiest?", "how much
 comes from WhatsApp vs the website?". The per-channel counts are ideal for a pie
 or bar chart. (Reflects retained conversations within the period.)
@@ -24,9 +24,9 @@ TXT)]
 class GetChannelBreakdownTool extends AnalyticsTool
 {
     private const LABELS = [
-        'hosted_chat' => 'Web chat',
-        'widget' => 'Website widget',
-        'bar' => 'Chat bar',
+        'hosted_chat' => 'Hosted Chat',
+        'widget' => 'Chat Widget',
+        'bar' => 'Command Bar',
         'telegram' => 'Telegram',
         'slack' => 'Slack',
         'messenger' => 'Messenger',

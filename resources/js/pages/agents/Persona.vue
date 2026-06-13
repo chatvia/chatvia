@@ -116,7 +116,12 @@ const hasFormErrors = computed(() => {
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div class="grid gap-2">
                                     <Label for="name" required>{{ t('agents.persona.name_label') }}</Label>
-                                    <Input id="name" v-model="form.name" :error="form.errors.name" :placeholder="t('agents.persona.name_placeholder')" />
+                                    <Input
+                                        id="name"
+                                        v-model="form.name"
+                                        :error="form.errors.name"
+                                        :placeholder="t('agents.persona.name_placeholder')"
+                                    />
                                     <p v-if="form.errors.name" class="text-destructive text-sm">
                                         {{ form.errors.name }}
                                     </p>
@@ -129,12 +134,12 @@ const hasFormErrors = computed(() => {
                                             id="domain"
                                             v-model="form.sub_domain"
                                             :error="form.errors.sub_domain"
-                                            class="disabled rounded-r-none"
+                                            class="disabled rounded-e-none"
                                             placeholder=""
                                             :readonly="!$page.props.subscribed"
                                         />
                                         <div
-                                            class="border-input bg-muted text-muted-foreground flex h-9 items-center rounded-r-md border border-l-0 px-3 text-sm"
+                                            class="border-input bg-muted text-muted-foreground flex h-9 items-center rounded-e-md border border-s-0 px-3 text-sm"
                                         >
                                             .chatvia.ai
                                         </div>

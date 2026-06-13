@@ -37,7 +37,7 @@
             "title": "إعدادات الملف الشخصي",
             "change_photo": "تغيير صورة الملف الشخصي",
             "upload_photo": "رفع صورة الملف الشخصي",
-            "managed_by": "تُدار بواسطة {name}",
+            "managed_by": "مُدار من قِبل {name}",
             "copy_account_id": "نسخ معرّف الحساب",
             "copied": "تم النسخ!",
             "remove_photo": "إزالة الصورة",
@@ -115,7 +115,9 @@
             "created": "تاريخ الإنشاء",
             "dialog_title": "سمِّ مفتاح المرور",
             "dialog_description": "اختر اسماً لتمييز مفاتيح المرور لاحقاً.",
-            "register": "تسجيل مفتاح المرور"
+            "register": "تسجيل مفتاح المرور",
+            "delete_title": "حذف مفتاح المرور هذا؟",
+            "delete_description": "لن يتمكن {name} من تسجيل الدخول بعد الآن. لا يمكن التراجع عن هذا الإجراء."
         },
         "social": {
             "title": "حسابات التواصل الاجتماعي",
@@ -126,12 +128,13 @@
             "disconnect": "قطع الاتصال",
             "connect": "ربط",
             "disconnect_title": "قطع اتصال {provider}؟",
-            "disconnect_description": "لن تتمكن من تسجيل الدخول عبر {provider} حتى تعيد ربطه."
+            "disconnect_description": "لن تتمكن من تسجيل الدخول عبر {provider} حتى تعيد ربطه.",
+            "connected": "متصل"
         },
         "data_export": {
             "title": "تنزيل بياناتي",
             "heading": "تنزيل نسخة من بياناتي",
-            "description": "احصل على أرشيف ZIP يحتوي كل البيانات الشخصية التي نحتفظ بها عنك — وكلاؤك ومحادثاتك ورسائلك ومصادر المعرفة والملفات المرفوعة. يُعدّ وفقاً للمادتين 15 و20 من اللائحة العامة لحماية البيانات.",
+            "description": "احصل على أرشيف ZIP يحتوي على كل البيانات الشخصية التي نحتفظ بها عنك — وكلاؤك ومحادثاتك ورسائلك ومصادر المعرفة والملفات المرفوعة. يُعدّ وفقاً للمادتين 15 و20 من اللائحة العامة لحماية البيانات.",
             "idle_title": "بياناتك بين يديك.",
             "idle_description": "يُبنى الأرشيف في الخلفية — سنرسل إليك بريداً عند الجاهزية. يبقى التنزيل متاحاً لمدة 24 ساعة، ثم يُحذف من خوادمنا.",
             "request_button": "طلب نسخة من بياناتي",
@@ -155,9 +158,9 @@
             "removes_agents": "وكلاؤك وإعداداتهم",
             "removes_conversations": "جميع المحادثات والرسائل",
             "removes_knowledge": "مصادر المعرفة والمستندات والملفات المرفوعة",
-            "removes_team": "فريقك والأعضاء ومفاتيح API والموصلات",
+            "removes_team": "فريقك والمحادثون ومفاتيح API والموصلات",
             "agents_will_delete": "سيُحذف وكيل واحد نهائياً: | سيُحذف {count} وكلاء نهائياً:",
-            "subscription_cancel": "سيُلغى اشتراكك النشط ولن تُفوتر مرة أخرى.",
+            "subscription_cancel": "سيُلغى اشتراكك النشط ولن تُحصَّل منك أي رسوم مجدداً.",
             "email_confirmed": "تم تأكيد البريد الإلكتروني. هذه خطوتك الأخيرة — لا رجوع بعدها.",
             "delete_button": "حذف حسابي نهائياً",
             "final_dialog_title": "حذف حسابك نهائياً؟",
@@ -175,59 +178,59 @@
     "workspace": {
         "layout": {
             "heading": "مساحة العمل",
-            "description": "إدارة عمليات الدمج والأشخاص والحوكمة"
+            "description": "إدارة التكاملات والأشخاص والحوكمة"
         },
         "sections": {
-            "integrations": "عمليات الدمج",
+            "integrations": "التكاملات",
             "library": "المكتبة",
             "people": "الأشخاص",
             "governance": "الحوكمة"
         },
         "nav": {
             "connectors": "الموصّلات",
-            "functions": "الوظائف",
+            "functions": "الدوال",
             "api_keys": "مفاتيح API",
-            "prompts": "المطالبات",
-            "members": "الأعضاء",
+            "prompts": "الموجّهات",
+            "members": "المحادثون",
             "audit_log": "سجل التدقيق"
         },
         "common": {
             "cancel": "إلغاء",
             "save": "حفظ",
             "delete": "حذف",
-            "keep": "الاحتفاظ",
+            "keep": "احتفظ",
             "connect": "ربط",
             "copy": "نسخ"
         },
         "prompts": {
-            "breadcrumb": "المطالبات",
-            "title": "المطالبات",
-            "description": "مطالبات نظام قابلة لإعادة الاستخدام. اكتب واحدة هنا، ثم أرفقها بأي وكيل من صفحة الشخصية الخاصة به — عدّلها مرة واحدة وكل وكيل يستخدمها يلتقط التغيير.",
-            "add": "إضافة مطالبة",
-            "search_placeholder": "ابحث في المطالبات",
-            "empty": "لا توجد مطالبات بعد. انقر على \"إضافة مطالبة\" لإنشاء أول مطالبة لك.",
-            "no_results": "لا توجد مطالبات تطابق بحثك.",
-            "fallback_name": "المطالبة",
+            "breadcrumb": "الموجّهات",
+            "title": "الموجّهات",
+            "description": "موجّهات نظام قابلة لإعادة الاستخدام. اكتب واحداً هنا، ثم أرفقه بأي وكيل من صفحة الشخصية الخاصة به — عدّله مرة واحدة وكل وكيل يستخدمه يلتقط التغيير.",
+            "add": "إضافة موجّه",
+            "search_placeholder": "ابحث في الموجّهات",
+            "empty": "لا توجد موجّهات بعد. انقر على \"إضافة موجّه\" لإنشاء أول موجّه لك.",
+            "no_results": "لا توجد موجّهات تطابق بحثك.",
+            "fallback_name": "موجّه",
             "delete_confirm_title": "حذف {name}؟",
-            "delete_confirm_description": "الوكلاء الذين يستخدمون هذه المطالبة سيعودون إلى تعليماتهم المخصّصة. لا يمكن التراجع عن هذا الإجراء.",
+            "delete_confirm_description": "الوكلاء الذين يستخدمون هذا الموجّه سيعودون إلى تعليماتهم المخصّصة. لا يمكن التراجع عن هذا الإجراء.",
             "table": {
-                "prompt": "المطالبة",
+                "prompt": "الموجّه",
                 "agents": "الوكلاء",
                 "created": "تاريخ الإنشاء"
             },
             "sheet": {
-                "edit_title": "تعديل المطالبة",
-                "create_title": "إضافة مطالبة",
-                "description": "اكتب مطالبة نظام قابلة لإعادة الاستخدام مرة واحدة، ثم أرفقها بأي وكيل من صفحة الشخصية الخاصة به. تعديلها هنا يُحدّث كل وكيل يستخدمها.",
+                "edit_title": "تعديل الموجّه",
+                "create_title": "إضافة موجّه",
+                "description": "اكتب موجّه نظام قابلاً لإعادة الاستخدام مرة واحدة، ثم أرفقه بأي وكيل من صفحة الشخصية الخاصة به. تعديله هنا يُحدّث كل وكيل يستخدمه.",
                 "id_label": "المعرّف",
-                "copy_id_title": "انسخ معرّف المطالبة — مرّره كـ prompt_id عند إنشاء أو تحديث وكيل عبر API"
+                "copy_id_title": "انسخ معرّف الموجّه — مرّره كـ prompt_id عند إنشاء أو تحديث وكيل عبر API"
             },
             "form": {
                 "name": "الاسم",
                 "name_placeholder": "شخصية وكيل الدعم",
-                "prompt": "المطالبة",
+                "prompt": "الموجّه",
                 "prompt_placeholder": "أنت مساعد مفيد متخصص في...",
-                "prompt_hint": "يدعم Markdown. يصبح هذا مطالبة نظام الوكيل عند إرفاقه."
+                "prompt_hint": "يدعم Markdown. يصبح هذا موجّه نظام الوكيل عند إرفاقه."
             }
         },
         "functions": {
@@ -265,7 +268,7 @@
                 "display_name": "الاسم المعروض",
                 "optional": "(اختياري)",
                 "display_name_placeholder": "الحصول على حالة الطلب",
-                "display_name_hint": "اسم ودّي يُعرض للمستخدمين في المحادثة. يعود إلى الاسم أعلاه.",
+                "display_name_hint": "اسم مبسّط يُعرض للمستخدمين في المحادثة. يعود إلى الاسم أعلاه عند تركه فارغاً.",
                 "description": "الوصف",
                 "description_placeholder": "ابحث عن الحالة الحالية لطلب العميل عبر المعرّف.",
                 "parameters": "المعاملات (مخطط JSON)",
@@ -396,7 +399,7 @@
                     "flows": "التدفقات",
                     "invocable_actions": "الإجراءات القابلة للاستدعاء",
                     "data_360": "Data 360",
-                    "prompt_builder": "قوالب المطالبات",
+                    "prompt_builder": "قوالب الموجّهات",
                     "tableau_next": "Tableau Next"
                 }
             },
@@ -410,13 +413,13 @@
             }
         },
         "members": {
-            "breadcrumb": "الأعضاء",
-            "title": "الأعضاء",
-            "description": "كل من منحته صلاحية الدردشة مع وكلائك. أرسل رابط إعادة تعيين كلمة المرور أو أزل عضواً نهائياً.",
-            "search_placeholder": "ابحث في الأعضاء...",
-            "count": "{shown} من أصل {total} عضو | {shown} من أصل {total} أعضاء",
-            "invite": "دعوة عضو",
-            "invite_disabled_hint": "أنشئ وكيلاً محمياً أولاً — لا يمكن دعوة الأعضاء إلا إلى الوكلاء المحميين.",
+            "breadcrumb": "المحادثون",
+            "title": "المحادثون",
+            "description": "كل من منحته صلاحية الدردشة مع وكلائك. أرسل رابط إعادة تعيين كلمة المرور أو أزل محادثاً نهائياً.",
+            "search_placeholder": "ابحث في المحادثين...",
+            "count": "{shown} من أصل {total} محادث | {shown} من أصل {total} محادثين",
+            "invite": "دعوة محادث",
+            "invite_disabled_hint": "أنشئ وكيلاً محمياً أولاً — لا يمكن دعوة المحادثين إلا إلى الوكلاء المحميين.",
             "no_email": "لا يوجد بريد إلكتروني",
             "reset_title": "إرسال رابط إعادة تعيين كلمة المرور إلى {name}",
             "remove_title": "إزالة {name}",
@@ -435,20 +438,20 @@
                 "active": "نشط"
             },
             "empty": {
-                "title": "لا يوجد أعضاء بعد.",
-                "description": "ادعُ شخصاً أدناه، أو من تبويب الأعضاء لأي وكيل — وسيظهرون هنا.",
-                "invite_first": "ادعُ أول عضو لك"
+                "title": "لا يوجد محادثون بعد.",
+                "description": "ادعُ شخصاً أدناه، أو من تبويب المحادثين لأي وكيل — وسيظهرون هنا.",
+                "invite_first": "ادعُ أول محادث لك"
             },
             "no_results": {
-                "title": "لا يوجد أعضاء يطابقون بحثك.",
+                "title": "لا يوجد محادثون يطابقون بحثك.",
                 "description": "حاول تعديل كلمات البحث."
             },
             "invite_dialog": {
-                "title": "دعوة عضو",
+                "title": "دعوة محادث",
                 "description": "سنرسل رابط تسجيل عبر البريد الإلكتروني إلى هذا العنوان. اختر الوكلاء الذين يمكنه الدردشة معهم — مطلوب وكيل واحد على الأقل.",
                 "email": "عنوان البريد الإلكتروني",
                 "agents": "الوكلاء",
-                "agents_hint": "يمكن للعضو الدردشة فقط مع الوكلاء الذين تختارهم.",
+                "agents_hint": "يمكن للمحادث الدردشة فقط مع الوكلاء الذين تختارهم.",
                 "send": "إرسال الدعوة",
                 "emailed_to": "تم إرسال الدعوة عبر البريد الإلكتروني إلى {email}. يمكنك أيضاً نسخ الرابط أدناه.",
                 "signup_link": "رابط التسجيل",
@@ -462,19 +465,19 @@
                 "confirm": "إرسال الرابط"
             },
             "delete_dialog": {
-                "title": "إزالة عضو",
+                "title": "إزالة محادث",
                 "description": "سيتم حذف {name} نهائياً مع صلاحية وصوله إلى كل وكيل في مساحة عملك. لا يمكن التراجع عن هذا.",
                 "confirm": "إزالة"
             },
             "toast": {
-                "load_failed": "فشل تحميل الأعضاء",
+                "load_failed": "فشل تحميل المحادثين",
                 "invite_sent_to": "تم إرسال الدعوة إلى {email}",
                 "invite_sent": "تم إرسال الدعوة",
                 "invite_failed": "تعذّر إرسال الدعوة",
                 "reset_sent": "تم إرسال رابط إعادة تعيين كلمة المرور إلى {email}",
                 "reset_failed": "تعذّر إرسال رابط إعادة التعيين",
                 "removed": "تمت إزالة {name}",
-                "remove_failed": "تعذّر إزالة هذا العضو"
+                "remove_failed": "تعذّر إزالة هذا المحادث"
             }
         },
         "governance": {
@@ -493,7 +496,8 @@
         "uploading": "جارٍ الرفع…",
         "upload_failed": "فشل الرفع",
         "delete_failed": "تعذّرت إزالة المرفق",
-        "upload_limit_reached": "يمكنك إرفاق {count} ملف | يمكنك إرفاق {count} ملفات"
+        "upload_limit_reached": "يمكنك إرفاق {count} ملف | يمكنك إرفاق {count} ملفات",
+        "pdf_pages": "{count} صفحة | {count} صفحات"
     },
     "header": {
         "toggle_sidebar": "إظهار/إخفاء الشريط الجانبي",
@@ -537,7 +541,12 @@
         "loading_agents": "جارٍ تحميل الوكلاء...",
         "no_agents": "لا توجد وكلاء.",
         "switching_agent": "جارٍ التبديل...",
-        "switch_to_agent": "التبديل إلى {name}"
+        "switch_to_agent": "التبديل إلى {name}",
+        "change_photo": "تغيير الصورة",
+        "remove_photo": "إزالة الصورة",
+        "remove_photo_description": "ستعود صورتك إلى الأحرف الأولى من اسمك. يمكنك رفع صورة جديدة في أي وقت.",
+        "remove_photo_title": "إزالة صورة الملف الشخصي",
+        "upload_photo": "رفع صورة"
     },
     "chat": {
         "message_limit_reached": "لقد وصلت إلى الحد الأقصى للرسائل",
@@ -570,7 +579,8 @@
         "connection_lost": "فُقد الاتصال",
         "unexpected_response": "استجابة غير متوقعة",
         "something_went_wrong": "حدث خطأ ما",
-        "try_again": "حاول مرة أخرى"
+        "try_again": "حاول مرة أخرى",
+        "token_limit_reached": "تم بلوغ حدّ استخدام التوكنات"
     },
     "sources": {
         "title": "مصادر المعرفة",
@@ -594,9 +604,9 @@
                 "permission_denied": "تم رفض الإذن",
                 "permission_denied_description": "ليس لديك إذن لحذف المصادر.",
                 "remove_from_agent": "إزالة من الوكيل",
-                "used_in_agents": "(مُستخدَم في {count} وكلاء)",
+                "used_in_agents": "(مُستخدَم في {count} وكيل)",
                 "delete_from_knowledge_base": "حذف من قاعدة المعرفة",
-                "agents_count": "{count} وكلاء"
+                "agents_count": "{count} وكيل"
             },
             "page_title": {
                 "sources": "المصادر",
@@ -677,7 +687,7 @@
                 "upload_title_default": "رفع مستندات جديدة",
                 "quota_minutes": "دقائق",
                 "quota_pages": "صفحات",
-                "uploads_disabled": "رفع الملفات معطّل أثناء جريان التدريب",
+                "uploads_disabled": "رفع الملفات معطّل أثناء سير التدريب",
                 "ready_to_train": "جاهز للتدريب",
                 "uploaded_ready": "تم رفع {count} ملف وهو جاهز للتدريب | تم رفع {count} ملفات وهي جاهزة للتدريب",
                 "exceeds_quota": "يتجاوز الحصة",
@@ -690,7 +700,7 @@
                 "trained_description": "ملفات مُدرَّبة ومتاحة لوكيلك. {count} ملف إجمالاً. | ملفات مُدرَّبة ومتاحة لوكيلك. {count} ملفات إجمالاً.",
                 "choose_trained": "اختر من الملفات المُدرَّبة مسبقاً",
                 "loading": "جارٍ تحميل الملفات...",
-                "empty": "لا توjد ملفات في قاعدة المعرفة بعد",
+                "empty": "لا توجد ملفات في قاعدة المعرفة بعد",
                 "status_processing": "جارٍ المعالجة... سيكون هذا الملف جاهزاً قريباً",
                 "status_ready": "جاهز للمحادثة",
                 "status_failed": "فشلت المعالجة. يُرجى التواصل مع الدعم.",
@@ -732,7 +742,7 @@
                 "processing_started": "بدأت المعالجة",
                 "processing_started_description": "تتم معالجة مُدخَلك النصي...",
                 "processing_success": "تم بنجاح!",
-                "processing_success_description": "تمت إضافة المُدخَل النصي بنجاح إلى قاعdة معرفتك.",
+                "processing_success_description": "تمت إضافة المُدخَل النصي بنجاح إلى قاعدة معرفتك.",
                 "processing_failed": "فشلت المعالجة",
                 "processing_failed_description": "حدث خطأ أثناء معالجة مُدخَلك النصي.",
                 "status": {
@@ -806,7 +816,7 @@
                 "question_prefix": "س{number}:",
                 "edit_action": "تعديل",
                 "created_at": "أُنشئ في {date}",
-                "used_by_agents": "مُستخدَم من قِبل {count} وكلاء",
+                "used_by_agents": "مُستخدَم لدى {count} وكيل",
                 "delete_title": "حذف مُدخَل سؤال وجواب",
                 "delete_description": "هل أنت متأكد من رغبتك في حذف مُدخَل سؤال وجواب هذا؟ لا يمكن التراجع عن هذا الإجراء."
             },
@@ -844,7 +854,7 @@
                 "attach_failed": "فشل الربط",
                 "detach_failed": "فشل إلغاء الربط",
                 "title": "الموصِّلات",
-                "description_prefix": "اربط الموصِّلات على مستوى الحساب بهذا الوكيل. اتصل بموصِّلات جديدة أو أضفها في",
+                "description_prefix": "اربط الموصِّلات على مستوى الحساب بهذا الوكيل. وصِّل موصِّلات جديدة أو أضفها من",
                 "settings_link": "الإعدادات ← الموصِّلات",
                 "search_placeholder": "ابحث في الموصِّلات",
                 "loading": "جارٍ تحميل الموصِّلات",
@@ -854,7 +864,7 @@
                 "column_enabled": "مُفعَّل",
                 "no_match": "لا توجد موصِّلات مطابقة.",
                 "soon": "قريباً",
-                "connect_first": "اتصل بهذا الـ MCP في الإعدادات أولاً"
+                "connect_first": "وصِّل هذا الـ MCP في الإعدادات أولاً"
             },
             "functions": {
                 "load_failed": "فشل تحميل الدوال",
@@ -970,7 +980,7 @@
                 "no_websites_selected": "لم يتم تحديد مواقع إلكترونية",
                 "train": "تدريب",
                 "train_exceeds_quota": "تتجاوز الروابط المحددة ({selected}) حصتك المتبقية ({remaining})",
-                "links_badge": "{count} روابط",
+                "links_badge": "{count} رابط",
                 "badge_upgrade_required": "الترقية مطلوبة",
                 "badge_exceeds_quota": "يتجاوز الحصة",
                 "no_links_remaining_plan": "لا توجد لديك روابط متبقية في باقتك. يُرجى الترقية لتدريب هذا الموقع الإلكتروني.",
@@ -1037,7 +1047,7 @@
             "table": {
                 "name": "الاسم",
                 "messages": "الرسائل",
-                "members": "الأعضاء",
+                "members": "المحادثون",
                 "created": "تاريخ الإنشاء"
             }
         },
@@ -1053,7 +1063,137 @@
             "connect": "اتصال",
             "connected": "متصل",
             "disconnect": "قطع الاتصال",
-            "setup": "إعداد",
+            "setup": {
+                "names": {
+                    "telegram": "Telegram",
+                    "slack": "Slack",
+                    "messenger": "Messenger",
+                    "whatsapp": "WhatsApp",
+                    "msteams": "Microsoft Teams",
+                    "instagram": "Instagram"
+                },
+                "public_only": "{channel} متاح للوكلاء العامين فقط. اجعل هذا الوكيل عاماً من صفحة {security}، ثم اربطه هنا.",
+                "labels": {
+                    "bot_token": "رمز البوت",
+                    "signing_secret": "سر التوقيع",
+                    "request_url": "رابط الطلب",
+                    "callback_url": "رابط الاستدعاء",
+                    "verify_token": "رمز التحقق",
+                    "page_access_token": "رمز وصول الصفحة",
+                    "app_secret": "سر التطبيق",
+                    "access_token": "رمز الوصول",
+                    "phone_number_id": "معرّف رقم الهاتف",
+                    "waba_id": "معرّف حساب WhatsApp Business",
+                    "microsoft_app_id": "معرّف تطبيق Microsoft",
+                    "client_secret": "سر العميل",
+                    "tenant_id": "معرّف المستأجر",
+                    "messaging_endpoint": "نقطة نهاية المراسلة"
+                },
+                "hints": {
+                    "tenant_single_only": "(لبوتات المستأجر الواحد فقط)"
+                },
+                "placeholders": {
+                    "telegram_bot_token": "123456789:ABCdef…",
+                    "slack_bot_token": "xoxb-…",
+                    "meta_token": "EAAG…",
+                    "phone_number_id": "123456789012345",
+                    "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
+                    "tenant_id": "اتركه فارغاً للمستأجر المتعدد",
+                    "instagram_token": "IGAA…"
+                },
+                "guide": {
+                    "need_detail_before": "تحتاج مزيداً من التفاصيل؟ اتبع",
+                    "step_by_step_guide": "الدليل خطوة بخطوة",
+                    "need_detail_after": "مع لقطات الشاشة."
+                },
+                "shared": {
+                    "subscribe_webhook": "اشترك بـ webhook في حقل {field}",
+                    "messages_field": "messages",
+                    "create_meta_app_at": "أنشئ تطبيقاً على {link}",
+                    "copy_app_secret_both": "انسخ سر التطبيق من {section} والصقهما أدناه",
+                    "copy_app_secret_all": "انسخ سر التطبيق من {section} والصق كل شيء أدناه",
+                    "copy_app_secret_same_page": "انسخ سر التطبيق من نفس الصفحة والصقهما أدناه",
+                    "reply_streams_live": "— يتدفق الرد مباشرة"
+                },
+                "telegram": {
+                    "connected_description": "يمكن للأشخاص مراسلة بوتك على Telegram وسيرد وكيلك تلقائياً — تُطبَّق الفوترة والسجل وضوابط الأمان.",
+                    "steps": {
+                        "connect_1": "افتح {botfather} في Telegram",
+                        "connect_2": "أرسل {command} واتبع التعليمات",
+                        "connect_3": "الصق الرمز أدناه — نربطه تلقائياً"
+                    },
+                    "botfather": "{'@'}BotFather"
+                },
+                "slack": {
+                    "steps": {
+                        "connected_1": "في {link}، افتح {event_subscriptions}، فعّله، والصق رابط الطلب أعلاه",
+                        "connected_2": "اشترك في أحداث البوت {mention} و {im}، ثم احفظ",
+                        "connected_3": "ادعُ البوت إلى قناة باستخدام {invite} واذكره بـ @@ {live}",
+                        "connect_1": "أنشئ تطبيقاً على {link} في مساحة عملك",
+                        "connect_2": "تحت {oauth}، أضف نطاقات البوت {scope1} و {scope2} و {scope3}، ثم ثبّت التطبيق وانسخ رمز البوت",
+                        "connect_3": "انسخ سر التوقيع من {basic_info} والصقهما أدناه"
+                    },
+                    "your_slack_app": "تطبيق Slack الخاص بك",
+                    "event_subscriptions": "Event Subscriptions",
+                    "oauth_permissions": "OAuth & Permissions",
+                    "basic_information": "Basic Information"
+                },
+                "messenger": {
+                    "steps": {
+                        "connected_1": "في {link}، افتح {webhooks} والصق رابط الاستدعاء + رمز التحقق أعلاه",
+                        "connected_3": "راسل صفحتك على Messenger — سيرد وكيلك تلقائياً",
+                        "connect_1": "أنشئ تطبيقاً على {link} وأضف منتج {product}",
+                        "connect_2": "تحت {api_settings}، اربط صفحة Facebook الخاصة بك وأنشئ رمز وصول للصفحة"
+                    },
+                    "your_meta_app": "تطبيق Meta الخاص بك",
+                    "webhooks_path": "Messenger → Settings → Webhooks",
+                    "api_settings_path": "Messenger → API settings",
+                    "app_settings_basic": "App settings → Basic",
+                    "product": "Messenger"
+                },
+                "whatsapp": {
+                    "steps": {
+                        "connected_1": "في {link}، افتح {configuration} والصق رابط الاستدعاء + رمز التحقق أعلاه",
+                        "connected_3": "راسل رقمك على WhatsApp — سيرد وكيلك تلقائياً",
+                        "connect_1": "أنشئ تطبيقاً على {link} بحالة استخدام {use_case}",
+                        "connect_2": "أكمل {basic_setup}، ثم انسخ معرّف رقم الهاتف ومعرّف حساب WhatsApp Business ورمز وصول"
+                    },
+                    "configuration_path": "WhatsApp → Configuration",
+                    "use_case": "Connect with customers through WhatsApp",
+                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                },
+                "msteams": {
+                    "app_id_label": "التطبيق {id}",
+                    "steps": {
+                        "connected_1": "في {link}، افتح صفحة {configuration} لبوتك والصق نقطة نهاية المراسلة أعلاه",
+                        "connected_2": "تحت {channels}، أضف {teams}",
+                        "connected_3": "{open_chat} {live}",
+                        "connect_1": "أنشئ مورداً {azure_bot} على {link} (Multi Tenant أو Single Tenant)",
+                        "connect_2": "انسخ {app_id} من Configuration، ثم أنشئ سر عميل تحت {secrets}",
+                        "connect_3": "الصقهما أدناه — لبوت Single Tenant أضف أيضاً {tenant_id}"
+                    },
+                    "azure_portal": "بوابة Azure",
+                    "configuration": "Configuration",
+                    "channels": "Channels",
+                    "azure_bot": "Azure Bot",
+                    "microsoft_app_id": "Microsoft App ID",
+                    "manage_password": "Manage password → Certificates & secrets",
+                    "directory_tenant_id": "Directory (tenant) ID",
+                    "open_chat_in_teams": "افتح محادثة مع بوتك في Teams"
+                },
+                "instagram": {
+                    "steps": {
+                        "connected_1": "في {link}، افتح {webhooks} والصق رابط الاستدعاء + رمز التحقق أعلاه",
+                        "connected_3": "في تطبيق Instagram، اسمح بالوصول إلى الرسائل تحت {message_controls}، ثم أرسل رسالة خاصة لحسابك",
+                        "connect_1": "أنشئ تطبيقاً على {link} وأضف منتج {product} — يجب أن يكون حساب Instagram الخاص بك حساباً مهنياً (تجاري أو منشئ محتوى)",
+                        "connect_2": "تحت {api_setup}، أنشئ رمز وصول لحسابك"
+                    },
+                    "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
+                    "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
+                    "api_setup_path": "Instagram → API setup with Instagram login",
+                    "product": "Instagram"
+                }
+            },
             "security": "الأمان",
             "no_permission": "ليس لديك إذن لإدارة القنوات.",
             "private_title": "للوكلاء العامين فقط",
@@ -1097,7 +1237,8 @@
                 "tagline": "ربط حساب Instagram",
                 "tagline_connected": "{'@'}{username}",
                 "connected_toast": "تم ربط Instagram"
-            }
+            },
+            "setup_tab": "إعداد"
         },
         "chatlog": {
             "title": "سجل المحادثات",
@@ -1130,9 +1271,9 @@
                 "satisfied": "راضٍ"
             },
             "source": {
-                "hosted_chat": "دردشة مستضافة",
-                "widget": "الأداة المدمجة",
-                "bar": "شريط البحث",
+                "hosted_chat": "المحادثة المُستضافة",
+                "widget": "ودجت المحادثة",
+                "bar": "شريط الأوامر",
                 "telegram": "Telegram",
                 "slack": "Slack",
                 "messenger": "Messenger",
@@ -1275,7 +1416,7 @@
                 "typing": "يكتب…",
                 "live_chat_active": "الدردشة المباشرة نشطة",
                 "ai_mode": "وضع الذكاء الاصطناعي",
-                "take_over": "تولّى المحادثة",
+                "take_over": "تولَّ المحادثة",
                 "return_to_ai": "العودة إلى الذكاء الاصطناعي",
                 "user_offline": "الزائر غير متصل",
                 "ai_handling_title": "الذكاء الاصطناعي يتولى هذه المحادثة",
@@ -1371,7 +1512,17 @@
             "snippet": "مقتطف",
             "detail": "التفاصيل",
             "by_user": "بواسطة {name}",
-            "conversation_trace": "المحادثة {conversation} · التتبع {trace}"
+            "conversation_trace": "المحادثة {conversation} · التتبع {trace}",
+            "injection_label": "كشف حقن الموجّهات",
+            "injection_help": "اكتشف واحظر محاولات تجاوز تعليمات الوكيل أو استخراج موجّهه النظامي.",
+            "toxicity_label": "تصفية المحتوى المسيء",
+            "toxicity_help": "اكتشف واحظر اللغة المسيئة أو الكارهة أو المؤذية في الرسائل.",
+            "guard_labels": {
+                "prompt_injection": "حقن الموجّهات",
+                "pii": "معلومات تعريف شخصية",
+                "blocked_topic": "موضوع محظور",
+                "toxicity": "محتوى مسيء"
+            }
         },
         "persona": {
             "title": "الشخصية",
@@ -1407,6 +1558,11 @@
                 "desktop": "سطح المكتب",
                 "tablet": "جهاز لوحي",
                 "mobile": "جوال"
+            },
+            "tabs": {
+                "chat": "المحادثة المُستضافة",
+                "widget": "ودجت المحادثة",
+                "bar": "شريط الأوامر"
             }
         },
         "evals": {
@@ -1454,7 +1610,7 @@
             "index": {
                 "title": "التقييمات",
                 "head_title": "التقييمات — {name}",
-                "description": "مجموعات اختبار تقيّم إجابات هذا الوكيل الفعلية — نفس المعرفة والأدوات والنموذج كما في الإنتاج. شغّل المجموعة وتتبع ما إذا كانت التغييرات تحسّن الوكيل أم تسوءه.",
+                "description": "مجموعات اختبار تقيّم إجابات هذا الوكيل الفعلية — نفس المعرفة والأدوات والنموذج كما في الإنتاج. شغّل المجموعة وتتبّع ما إذا كانت التغييرات تجعل الوكيل أفضل أم أسوأ.",
                 "run_suite": "تشغيل المجموعة",
                 "cases_heading": "الحالات",
                 "cases_summary": "{total} إجمالي · {active} نشط",
@@ -1522,7 +1678,7 @@
                 "clear_all": "مسح الكل",
                 "scorers": {
                     "contains": {
-                        "label": "يحتوي نصاً",
+                        "label": "يحتوي على نص",
                         "help": "ينجح إذا احتوت الإجابة على نص فرعي."
                     },
                     "regex": {
@@ -1538,7 +1694,7 @@
                         "help": "ينجح إذا كانت الإجابة JSON صالحاً بالمفاتيح المطلوبة."
                     },
                     "llm_judge": {
-                        "label": "حكم ذكاء اصطناعي",
+                        "label": "حَكَم ذكاء اصطناعي",
                         "help": "نموذج مفتوح الوزن يقيّم الإجابة مقابل معاييرك."
                     }
                 },
@@ -1552,6 +1708,13 @@
                     "run_deleted": "تم حذف التشغيل",
                     "history_cleared": "تم مسح سجل التشغيلات"
                 }
+            },
+            "scorers": {
+                "contains": "يحتوي على",
+                "regex": "تعبير نمطي",
+                "exact": "تطابق تام",
+                "json_schema": "مخطط JSON",
+                "llm_judge": "تقييم بنموذج لغوي"
             }
         },
         "identity_verification": {
@@ -1792,11 +1955,11 @@
         "nav": {
             "default_title": "إعدادات الوكيل",
             "playground": "ساحة التجربة",
-            "playground_tooltip": "معاينة وكيلك على كل سطح",
+            "playground_tooltip": "معاينة وكيلك على جميع المنصات",
             "setup": "الإعداد",
-            "setup_tooltip": "تهيئة وكيلك — ينطبق على كل الأسطح",
+            "setup_tooltip": "تهيئة وكيلك — تنطبق على جميع المنصات",
             "channels": "القنوات",
-            "channels_tooltip": "نشر وكيلك — الموقع والأداة وتيليجرام",
+            "channels_tooltip": "نشر وكيلك — الموقع وأداة الدردشة وTelegram",
             "groups": {
                 "insights": "الرؤى",
                 "training": "التدريب",
@@ -1818,7 +1981,7 @@
             "evals": "التقييمات",
             "evals_tooltip": "مجموعات اختبار تقيّم إجابات هذا الوكيل",
             "guardrails": "الحواجز",
-            "guardrails_tooltip": "حماية الذكاء الاصطناعي: PII وحقن المطالبات والمواضيع والسمية",
+            "guardrails_tooltip": "حماية الذكاء الاصطناعي: PII وحقن الموجّهات والمواضيع والمحتوى الضار",
             "leads": "العملاء المحتملون",
             "leads_tooltip": "إدارة العملاء المحتملين الذين يجمعهم وكيلك",
             "knowledge_sources": "المصادر",
@@ -1827,10 +1990,10 @@
             "functions_tooltip": "إدارة الوظائف المخصصة التي يمكن للوكيل استدعاؤها",
             "connectors": "الموصّلات",
             "connectors_tooltip": "إرفاق موصّلات ليستخدم وكيلك أدوات خارجية",
-            "members": "الأعضاء",
-            "members_tooltip": "الأشخاص المصرّح لهم بالمحادثة مع هذا الوكيل",
+            "members": "المحادثون",
+            "members_tooltip": "المحادثون المصرّح لهم بالمحادثة مع هذا الوكيل",
             "security": "الأمان",
-            "security_tooltip": "التحكم في الوصول والسرّ وتقييد المعدّل لهذا الوكيل",
+            "security_tooltip": "التحكم في الوصول وسرّ التوقيع وحدود المعدّل لهذا الوكيل",
             "identity": "الهوية",
             "rate_limiting": "تقييد المعدّل",
             "rename": "إعادة التسمية",
@@ -1858,7 +2021,9 @@
                 "subdomain_placeholder": "نطاقك-الفرعي",
                 "subdomain_hint": "يُسمح فقط بالأحرف الصغيرة والأرقام والشرطات.",
                 "save": "حفظ"
-            }
+            },
+            "deploy": "النشر",
+            "deploy_tooltip": "ضمّن وكيلك — ودجت المحادثة أو محادثة مُستضافة أو شريط أوامر"
         },
         "create_modal": {
             "title": "إنشاء وكيل",
@@ -1881,7 +2046,7 @@
             "total_messages": "إجمالي الرسائل",
             "thumbs_up": "رسائل الإعجاب",
             "thumbs_down": "رسائل عدم الإعجاب",
-            "conversations_started": "المحادثات المبدوءة",
+            "conversations_started": "المحادثات التي بدأت",
             "daily_view": "عرض يومي",
             "hourly_view": "عرض بالساعة",
             "no_conversation_data": "لا توجد بيانات محادثات",
@@ -1929,13 +2094,13 @@
             "not_found_hint": "تحقق من الرابط أو تواصل مع المسؤول إذا كنت تعتقد أن هذا الوكيل يجب أن يكون متاحاً."
         },
         "members": {
-            "title": "الأعضاء",
-            "description": "جميع أعضاء مساحة عملك. يظهر الأعضاء الذين لديهم وصول إلى هذا الوكيل أولاً؛ يمكنك منح أي عضو آخر وصولاً بنقرة واحدة.",
+            "title": "المحادثون",
+            "description": "محادثوك. يظهر من لديهم وصول إلى هذا الوكيل أولاً؛ يمكنك منح أي محادث آخر وصولاً بنقرة واحدة.",
             "public_title": "هذا الوكيل عام",
-            "public_description": "يمكن لأي شخص لديه الرابط الدردشة مع هذا الوكيل، لذا لا تنطبق منح العضوية. لاستخدام الأعضاء، اجعل الوكيل محمياً من تبويب الإعداد.",
-            "search_placeholder": "البحث عن الأعضاء...",
-            "count": "{filtered} من {total} عضو | {filtered} من {total} أعضاء",
-            "invite_member": "دعوة عضو",
+            "public_description": "يمكن لأي شخص لديه الرابط أن يدردش مع هذا الوكيل، لذا لا تنطبق منح المحادثين. لاستخدام المحادثين، اجعل الوكيل محمياً من تبويب الإعداد.",
+            "search_placeholder": "البحث عن المحادثين...",
+            "count": "{filtered} من {total} محادث | {filtered} من {total} محادثين",
+            "invite_member": "دعوة محادث",
             "table": {
                 "name": "الاسم",
                 "email": "البريد الإلكتروني",
@@ -1949,17 +2114,17 @@
             },
             "access": {
                 "granted": "ممنوح",
-                "no_access": "لا وصول"
+                "no_access": "بدون وصول"
             },
-            "no_email": "لا بريد إلكتروني",
-            "empty_title": "لا يوجد أعضاء في مساحة عملك بعد.",
+            "no_email": "بدون بريد إلكتروني",
+            "empty_title": "لا يوجد محادثون بعد.",
             "empty_description": "ادعُ شخصاً للبدء — سيظهر هنا.",
-            "no_results_title": "لم يُعثر على أعضاء يطابقون بحثك.",
+            "no_results_title": "لم يُعثر على محادثين يطابقون بحثك.",
             "no_results_description": "جرّب تعديل مصطلحات البحث.",
             "grant": "منح",
             "grant_title": "منح {name} وصولاً إلى هذا الوكيل",
             "revoke_title": "إلغاء وصول {name}",
-            "invite_dialog_title": "دعوة عضو",
+            "invite_dialog_title": "دعوة محادث",
             "invite_dialog_description": "سنرسل رابط تسجيل إلى هذا العنوان. يمكنهم تعيين كلمة مرور أو تسجيل الدخول عبر Google أو Slack.",
             "email_label": "عنوان البريد الإلكتروني",
             "email_placeholder": "person{'@'}example.com",
@@ -1969,23 +2134,23 @@
             "expires": "تنتهي في {date}.",
             "invite_another": "دعوة أخرى",
             "done": "تم",
-            "sheet_description": "تفاصيل العضو والوصول لهذا الوكيل.",
+            "sheet_description": "تفاصيل المحادث والوصول لهذا الوكيل.",
             "member_id": "المعرّف",
-            "copy_member_id": "نسخ معرّف العضو",
+            "copy_member_id": "نسخ معرّف المحادث",
             "joined": "انضم في {date}",
             "invitation_pending": "الدعوة قيد الانتظار",
-            "invitation_pending_hint": "لم يقبل هذا العضو بعد. شارك رابط التسجيل الشخصي أدناه.",
+            "invitation_pending_hint": "لم يقبل هذا المحادث بعد. شارك رابط التسجيل الشخصي أدناه.",
             "link_expired": "انتهت صلاحية رابط الدعوة أو لم يعد متاحاً. أنشئ رابطاً جديداً أدناه.",
             "resend_invitation": "إعادة إرسال الدعوة",
             "generate_link": "إنشاء رابط جديد",
-            "manage_hint": "لإدارة هذا العضو، انتقل إلى {link}.",
-            "members_page": "صفحة الأعضاء",
+            "manage_hint": "لإدارة هذا المحادث، انتقل إلى {link}.",
+            "members_page": "صفحة المحادثين",
             "revoke_access": "إلغاء الوصول",
             "grant_access": "منح الوصول",
             "revoke_dialog_title": "إلغاء الوصول",
             "revoke_dialog_description": "سيفقد {name} الوصول إلى هذا الوكيل فوراً. يبقى في مساحة عملك ويمكنك منحه الوصول مرة أخرى في أي وقت.",
             "revoke": "إلغاء",
-            "load_error": "تعذّر تحميل الأعضاء",
+            "load_error": "تعذّر تحميل المحادثين",
             "invitation_sent": "تم إرسال الدعوة",
             "invitation_sent_to": "تم إرسال الدعوة إلى {email}",
             "access_revoked": "لم يعد لدى {name} وصول إلى هذا الوكيل",
@@ -1998,9 +2163,9 @@
         "setup": {
             "title": "الإعداد",
             "surfaces": {
-                "chat": "الدردشة",
-                "widget": "الأداة",
-                "bar": "الشريط"
+                "chat": "المحادثة المُستضافة",
+                "widget": "ودجت المحادثة",
+                "bar": "شريط الأوامر"
             },
             "menu": {
                 "info": "المعلومات",
@@ -2043,8 +2208,8 @@
                 "logo_removed": "تمت إزالة الشعار",
                 "remove_error": "تعذّر إزالة {key}",
                 "hosted_saved": "تم حفظ سلوك الدردشة المستضافة",
-                "widget_saved": "تم حفظ سلوك الأداة",
-                "bar_saved": "تم حفظ سلوك الشريط",
+                "widget_saved": "تم حفظ سلوك ودجت المحادثة",
+                "bar_saved": "تم حفظ سلوك شريط الأوامر",
                 "behaviour_error": "تعذّر حفظ السلوك",
                 "bubbles_saved": "تم حفظ الفقاعات",
                 "bubbles_error": "تعذّر حفظ الفقاعات",
@@ -2107,9 +2272,9 @@
             "behavior": {
                 "hosted_title": "سلوك الدردشة المستضافة",
                 "hosted_description": "خيارات iframe لسطح الدردشة المستضافة المضمّن.",
-                "widget_title": "سلوك الأداة",
+                "widget_title": "سلوك ودجت المحادثة",
                 "widget_description": "الموضع والحجم والسمة والمواقع المسموح بها للأداة العائمة.",
-                "bar_title": "سلوك الشريط",
+                "bar_title": "سلوك شريط الأوامر",
                 "bar_description": "مفتاح الاختصار وموضع المُطلِق على الصفحة.",
                 "default_theme": "السمة الافتراضية",
                 "language": "اللغة",
@@ -2121,7 +2286,7 @@
                 "window_size": "حجم النافذة",
                 "theme": "السمة",
                 "live_chat": "الدردشة المباشرة",
-                "live_chat_hint": "اسمح للزوار بالتحويل إلى إنسان. يعمل على أداة الموقع فقط.",
+                "live_chat_hint": "اسمح للزوار بالتحويل إلى موظف بشري. يعمل على أداة الموقع فقط.",
                 "open_on_load": "الفتح تلقائياً عند تحميل الصفحة",
                 "delay_ms": "التأخير (مللي ثانية)",
                 "allowed_sites": "المواقع المسموح بها",
@@ -2160,7 +2325,7 @@
                 "title": "نطاق مخصص",
                 "description": "قدّم الدردشة المستضافة لهذا الوكيل من نطاقك بدلاً من {target}.",
                 "no_quota_title": "النطاقات المخصصة غير مشمولة في خطتك الحالية",
-                "no_quota_description": "رقِّ إلى Pro أو اشترِ إضافة النطاق المخصص من {link} لإضافة اسم مضيف خاص بك.",
+                "no_quota_description": "قم بالترقية إلى Pro أو اشترِ إضافة النطاق المخصص من {link} لإضافة اسم مضيف خاص بك.",
                 "billing": "الفوترة",
                 "quota": "استخدام {used} من {total} نطاق مخصص | استخدام {used} من {total} نطاقات مخصصة",
                 "add_more": "إضافة المزيد",
@@ -2202,7 +2367,8 @@
                     "destroy": "يدمّر الأداة وينظّف",
                     "on": "الاشتراك في الأحداث (open, close, ready)",
                     "off": "إلغاء الاشتراك من الأحداث"
-                }
+                },
+                "code_language": "JavaScript"
             },
             "options": {
                 "theme_auto": "تلقائي",
@@ -2280,7 +2446,7 @@
                 "models_hint": "اختر النموذج الذي تريد استخدامه",
                 "models_select_one": "اختر نموذجاً...",
                 "models_select_many": "اختر النماذج...",
-                "models_selected": "{count} نماذج محددة",
+                "models_selected": "تم تحديد {count} نموذج",
                 "models_search": "البحث عن النماذج...",
                 "models_not_found": "لم يُعثر على نماذج",
                 "models_credits": "تكلفة الرصيد:",
@@ -2306,7 +2472,7 @@
             "filter_placeholder": "تصفية حسب الوصول",
             "filter_all": "جميع الأعضاء",
             "filter_has_access": "لديه وصول",
-            "filter_no_access": "لا وصول",
+            "filter_no_access": "بدون وصول",
             "invite_member": "دعوة عضو",
             "collaboration_unavailable": "تعاون الفريق غير متاح في خطتك الحالية",
             "limit_reached_tooltip": "لقد وصلت إلى حد {limit} مستخدمي مساحة العمل (أعضاء الفريق + المحادثون معاً)",
@@ -2318,7 +2484,7 @@
             "status_active": "نشط",
             "status_pending": "قيد الانتظار",
             "has_access": "لديه وصول",
-            "no_access": "لا وصول",
+            "no_access": "بدون وصول",
             "view_agent_access": "عرض وصول الوكيل",
             "revoke": "إلغاء",
             "grant_access": "منح الوصول",
@@ -2356,7 +2522,7 @@
         "topics_index": {
             "title": "المواضيع",
             "description": "تحليل مواضيع المحادثات واتجاهاتها",
-            "locked_description": "رقِّ خطتك للوصول إلى تحليل المواضيع واكتشافها وتصنيفها تلقائياً.",
+            "locked_description": "قم بترقية خطتك للوصول إلى تحليل المواضيع واكتشاف مواضيع المحادثات وتصنيفها تلقائياً.",
             "disabled_title": "تحليل المواضيع",
             "disabled_description": "فعّله لاكتشاف وتجميع ما يسأل عنه زوارك عبر المحادثات تلقائياً.",
             "blocked_reason": "سجل الدردشة معطّل، فلا يوجد ما يُحلَّل. فعّله في الإعداد → الإعدادات لبدء جمع المواضيع.",
@@ -2459,6 +2625,45 @@
                 "months_ago": "منذ شهر | منذ {count} أشهر",
                 "years_ago": "منذ سنة | منذ {count} سنوات"
             }
+        },
+        "deploy": {
+            "title": "النشر",
+            "subtitle": "ضع وكيلك أمام الناس — اختر واجهة وانسخ الكود.",
+            "head_title": "النشر — {name}",
+            "copy": "نسخ",
+            "copied": "تم النسخ!",
+            "copy_failed": "فشل النسخ",
+            "customize": "تخصيص المظهر",
+            "install_label": "أضف هذا إلى موقعك",
+            "protected_title": "هذا الوكيل محمي",
+            "protected_description": "يتطلّب التضمين رمزًا موقّعًا، وإلا سيرى كل من لديه الكود شاشة مقفلة. اجعله عامًا أو اضبط المصادقة في",
+            "open_security": "إعدادات الأمان",
+            "widget": {
+                "title": "ودجت المحادثة",
+                "description": "فقاعة محادثة عائمة في ركن أي صفحة — المساعد الكلاسيكي."
+            },
+            "chat": {
+                "title": "المحادثة المُستضافة",
+                "description": "صفحة محادثة كاملة على رابطك الخاص. شاركها مباشرة، أو ضمّنها في صفحة.",
+                "url_label": "رابط الوكيل",
+                "open": "فتح",
+                "embed_label": "التضمين في صفحة",
+                "iframe_title": "محادثة مع {name}",
+                "width": "العرض",
+                "height": "الارتفاع",
+                "preset_full": "كامل",
+                "preset_large": "كبير",
+                "preset_medium": "متوسط",
+                "preset_small": "صغير"
+            },
+            "bar": {
+                "title": "شريط الأوامر",
+                "description": "تراكب لوحة أوامر ⌘K. مثالي للوثائق ولوحات التحكم والتطبيقات."
+            },
+            "save": "حفظ",
+            "sites_saved": "تم تحديث المواقع المسموح بها",
+            "sites_error": "تعذّر الحفظ — حاول مرة أخرى",
+            "api_docs": "واجهة JavaScript البرمجية"
         }
     },
     "auth": {
@@ -2559,7 +2764,9 @@
             "verify": "تحقّق",
             "verifying": "جارٍ التحقّق...",
             "use_recovery_code": "استخدام رمز الاسترداد",
-            "use_authenticator_code": "استخدام رمز المصادقة"
+            "use_authenticator_code": "استخدام رمز المصادقة",
+            "code_placeholder": "123456",
+            "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
         "set_password": {
             "title": "اختر كلمة المرور",
@@ -2669,6 +2876,13 @@
             "card_title": "انتهت صلاحية الدعوة",
             "contact_owner": "يرجى التواصل مع مالك الفريق لطلب دعوة جديدة.",
             "go_to_login": "الانتقال إلى تسجيل الدخول"
+        },
+        "split": {
+            "headline": "أنشئ {brand} الخاص بك في دقائق",
+            "subheadline": "أنشئ مساعدين بالذكاء الاصطناعي يتعلّمون من {data} ومعرفتك",
+            "your_data": "بياناتك",
+            "secure_data": "معالجة آمنة للبيانات",
+            "custom_gpt": "GPT مخصّص"
         }
     },
     "billing": {
@@ -2807,7 +3021,7 @@
                 "select_plan": "اختيار الباقة"
             },
             "discount": {
-                "banner": "خصم {percent}% عرض لفترة محدودة!",
+                "banner": "خصم {percent}% — عرض لفترة محدودة!",
                 "ends": "ينتهي العرض في {date} - لا تفوّت الفرصة!",
                 "limited": "خصم لفترة محدودة على جميع الباقات المدفوعة!",
                 "off": "خصم {percent}%"
@@ -2840,16 +3054,16 @@
                 "title": "إعادة الشحن التلقائية",
                 "on": "مفعّل",
                 "off": "معطّل",
-                "summary": "شراء {amount} رصيد تلقائيًا عندما ينخفض الرصيد عن {threshold}.",
+                "summary": "شراء {amount} رصيد تلقائيًا عند انخفاض الرصيد دون {threshold}.",
                 "manage": "إدارة",
                 "enable": "تفعيل",
                 "dialog_title": "إعدادات إعادة الشحن التلقائية",
                 "dialog_description": "عندما ينخفض رصيدك المتبقي إلى الحد الأدنى أو أقل، سنقوم تلقائيًا بخصم المبلغ من طريقة الدفع الافتراضية وإعادة شحن رصيدك.",
                 "enable_label": "تفعيل إعادة الشحن التلقائية",
                 "enable_hint": "الخصم تلقائيًا عند انخفاض الرصيد",
-                "threshold_label": "الحد الأدنى (رصيد)",
+                "threshold_label": "حد الرصيد (رصيد)",
                 "threshold_hint": "يتم تشغيل إعادة الشحن عندما ينخفض رصيدك إلى هذا المقدار أو أقل.",
-                "amount_label": "مبلغ إعادة الشحن (رصيد)",
+                "amount_label": "كمية إعادة الشحن (رصيد)",
                 "each_recharge": "كل إعادة شحن:",
                 "charged_note": "يُخصم فورًا من طريقة الدفع الافتراضية عند التشغيل.",
                 "save": "حفظ الإعدادات"
@@ -2863,7 +3077,7 @@
                 "quantity_label": "الكمية (1,000 رسالة لكل حزمة)",
                 "total_messages": "إجمالي الرسائل:",
                 "total_price": "السعر الإجمالي:",
-                "purchase_for": "اشترِ مقابل ${amount}"
+                "purchase_for": "اشترِ مقابل €{amount}"
             },
             "extra_agents": {
                 "title": "وكلاء إضافيون",
@@ -2872,7 +3086,7 @@
                 "cancel_description": "ستتم إزالة حصة الوكلاء الإضافيين فورًا ولن تتم محاسبتك مرة أخرى.",
                 "change_title": "تغيير الوكلاء الإضافيين",
                 "subscribe_title": "الاشتراك في الوكلاء الإضافيين",
-                "dialog_description": "أضف وكلاء ذكاء اصطناعي إضافيين إلى جانب باقتك. تُفوتر شهريًا بسعر 5$ لكل وكيل.",
+                "dialog_description": "أضف وكلاء ذكاء اصطناعي إضافيين إلى جانب باقتك. تُفوتر شهريًا بسعر 5€ لكل وكيل.",
                 "quantity_label": "عدد الوكلاء الإضافيين"
             },
             "custom_domains": {
@@ -2882,7 +3096,7 @@
                 "cancel_description": "ستتم إزالة حصة النطاق المخصص فورًا ولن تتم محاسبتك مرة أخرى.",
                 "change_title": "تغيير النطاقات المخصصة",
                 "subscribe_title": "الاشتراك في النطاق المخصص",
-                "dialog_description": "استخدم نطاقك الخاص لوكلاء الذكاء الاصطناعي. يُفوتر شهريًا بسعر 29$ لكل نطاق.",
+                "dialog_description": "استخدم نطاقك الخاص لوكلاء الذكاء الاصطناعي. يُفوتر شهريًا بسعر 29€ لكل نطاق.",
                 "quantity_label": "عدد النطاقات"
             },
             "remove_branding": {
@@ -2899,7 +3113,7 @@
                 "cancel_description": "ستتم إزالة مقاعد الأعضاء الإضافية فورًا ولن تتم محاسبتك مرة أخرى.",
                 "change_title": "تغيير الأعضاء",
                 "subscribe_title": "الاشتراك في الأعضاء",
-                "dialog_description": "أضف أعضاء فريق إضافيين إلى مساحة عملك. تُفوتر شهريًا بسعر 9$ لكل عضو.",
+                "dialog_description": "أضف أعضاء فريق إضافيين إلى مساحة عملك. تُفوتر شهريًا بسعر 9€ لكل عضو.",
                 "quantity_label": "عدد الأعضاء"
             }
         },
@@ -2914,7 +3128,7 @@
             "access_ends": "ينتهي الوصول",
             "plan_features": "ميزات الباقة",
             "show_less": "عرض أقل",
-            "show_more": "عرض {count} أكثر",
+            "show_more": "عرض {count} إضافية",
             "per_year": "سنة",
             "per_month": "شهر",
             "status": {
@@ -2983,6 +3197,183 @@
                 "minutes": "الدقائق",
                 "remaining": "{count} متبقٍ",
                 "load_error": "تعذّر تحميل بيانات الاستخدام"
+            }
+        },
+        "catalog": {
+            "packages": {
+                "starter": {
+                    "name": "الأساسية",
+                    "description": "للشركات الصغيرة التي تبدأ للتو.",
+                    "features": {
+                        "monthly": {
+                            "messages": "6,000 رسالة شهريًا",
+                            "agents": "5 وكلاء ذكاء اصطناعي",
+                            "pages": "2,000 صفحة (PDF وWord ونص)",
+                            "links": "2,000 رابط موقع",
+                            "minutes": "500 دقيقة صوت/فيديو",
+                            "teams": "فريق واحد",
+                            "members": "5 أعضاء (أعضاء الفريق + المحادثون)",
+                            "mcp": "MCP",
+                            "function_calling": "استدعاء الدوال",
+                            "retention": "90 يومًا من سجل المحادثات"
+                        },
+                        "yearly": {
+                            "messages": "78,000 رسالة سنويًا",
+                            "agents": "5 وكلاء ذكاء اصطناعي",
+                            "pages": "2,000 صفحة (PDF وWord ونص)",
+                            "links": "2,000 رابط موقع",
+                            "minutes": "500 دقيقة صوت/فيديو",
+                            "teams": "فريق واحد",
+                            "members": "5 أعضاء (أعضاء الفريق + المحادثون)",
+                            "mcp": "MCP",
+                            "function_calling": "استدعاء الدوال",
+                            "retention": "90 يومًا من سجل المحادثات"
+                        }
+                    }
+                },
+                "standard": {
+                    "name": "القياسية",
+                    "description": "للفرق والشركات المتنامية.",
+                    "features": {
+                        "monthly": {
+                            "messages": "15,000 رسالة شهريًا",
+                            "agents": "10 وكلاء ذكاء اصطناعي",
+                            "pages": "5,000 صفحة (PDF وWord ونص)",
+                            "links": "5,000 رابط موقع",
+                            "minutes": "2,000 دقيقة صوت/فيديو",
+                            "sentiment": "تحليل المشاعر",
+                            "handoff": "التحويل إلى موظف",
+                            "api": "الوصول إلى الـ API",
+                            "teams": "5 فِرق",
+                            "members": "20 عضوًا (أعضاء الفريق + المحادثون)",
+                            "mcp": "MCP",
+                            "function_calling": "استدعاء الدوال",
+                            "retention": "180 يومًا من سجل المحادثات"
+                        },
+                        "yearly": {
+                            "messages": "192,000 رسالة سنويًا",
+                            "agents": "10 وكلاء ذكاء اصطناعي",
+                            "pages": "5,000 صفحة (PDF وWord ونص)",
+                            "links": "5,000 رابط موقع",
+                            "minutes": "2,000 دقيقة صوت/فيديو",
+                            "sentiment": "تحليل المشاعر",
+                            "handoff": "التحويل إلى موظف",
+                            "api": "الوصول إلى الـ API",
+                            "teams": "5 فِرق",
+                            "members": "20 عضوًا (أعضاء الفريق + المحادثون)",
+                            "mcp": "MCP",
+                            "function_calling": "استدعاء الدوال",
+                            "retention": "180 يومًا من سجل المحادثات"
+                        }
+                    }
+                },
+                "pro": {
+                    "name": "الاحترافية",
+                    "description": "للمؤسسات التي تحتاج كل شيء.",
+                    "features": {
+                        "monthly": {
+                            "messages": "50,000 رسالة شهريًا",
+                            "agents": "20 وكيل ذكاء اصطناعي",
+                            "pages": "10,000 صفحة (PDF وWord ونص)",
+                            "links": "10,000 رابط موقع",
+                            "minutes": "10,000 دقيقة صوت/فيديو",
+                            "sentiment": "تحليل المشاعر",
+                            "tone": "تحليل النبرة",
+                            "topics": "تحليل المواضيع",
+                            "pulse": "نبض المحادثة",
+                            "handoff": "التحويل إلى موظف",
+                            "mcp": "MCP",
+                            "function_calling": "استدعاء الدوال",
+                            "api": "الوصول إلى الـ API",
+                            "integrations": "تكاملات مخصّصة",
+                            "branding": "علامة بيضاء (إزالة علامة Chatvia)",
+                            "teams": "10 فِرق",
+                            "members": "100 عضو (أعضاء الفريق + المحادثون)",
+                            "retention": "366 يومًا من سجل المحادثات"
+                        },
+                        "yearly": {
+                            "messages": "648,000 رسالة سنويًا",
+                            "agents": "20 وكيل ذكاء اصطناعي",
+                            "pages": "10,000 صفحة (PDF وWord ونص)",
+                            "links": "10,000 رابط موقع",
+                            "minutes": "10,000 دقيقة صوت/فيديو",
+                            "sentiment": "تحليل المشاعر",
+                            "tone": "تحليل النبرة",
+                            "topics": "تحليل المواضيع",
+                            "pulse": "نبض المحادثة",
+                            "handoff": "التحويل إلى موظف",
+                            "mcp": "MCP",
+                            "function_calling": "استدعاء الدوال",
+                            "api": "الوصول إلى الـ API",
+                            "integrations": "تكاملات مخصّصة",
+                            "branding": "علامة بيضاء (إزالة علامة Chatvia)",
+                            "teams": "10 فِرق",
+                            "members": "100 عضو (أعضاء الفريق + المحادثون)",
+                            "retention": "366 يومًا من سجل المحادثات"
+                        }
+                    }
+                },
+                "enterprise": {
+                    "name": "المؤسسات",
+                    "description": "للمؤسسات ذات متطلبات الأمان والامتثال والتوسّع.",
+                    "features": {
+                        "monthly": {
+                            "messages": "حجم رسائل مخصّص",
+                            "agents": "وكلاء ذكاء اصطناعي غير محدودين",
+                            "pages": "قاعدة معرفة مخصّصة",
+                            "links": "روابط مواقع مخصّصة",
+                            "minutes": "صوت/فيديو مخصّص",
+                            "sentiment": "تحليل المشاعر",
+                            "tone": "تحليل النبرة",
+                            "topics": "تحليل المواضيع",
+                            "pulse": "نبض المحادثة",
+                            "handoff": "التحويل إلى موظف",
+                            "mcp": "MCP",
+                            "function_calling": "استدعاء الدوال",
+                            "api": "الوصول إلى الـ API",
+                            "integrations": "تكاملات مخصّصة",
+                            "branding": "علامة بيضاء (إزالة علامة Chatvia)",
+                            "residency": "استضافة البيانات في الاتحاد الأوروبي",
+                            "sso": "الدخول الموحّد SSO / SAML",
+                            "sla": "اتفاقية مستوى خدمة للتوافر",
+                            "support": "دعم مخصّص",
+                            "dpa": "عقد واتفاقية معالجة بيانات مخصّصان",
+                            "teams": "فرق غير محدودة",
+                            "members": "أعضاء غير محدودين",
+                            "retention": "احتفاظ مخصّص بالبيانات"
+                        },
+                        "yearly": {
+                            "messages": "حجم رسائل مخصّص",
+                            "agents": "وكلاء ذكاء اصطناعي غير محدودين",
+                            "pages": "قاعدة معرفة مخصّصة",
+                            "links": "روابط مواقع مخصّصة",
+                            "minutes": "صوت/فيديو مخصّص",
+                            "sentiment": "تحليل المشاعر",
+                            "tone": "تحليل النبرة",
+                            "topics": "تحليل المواضيع",
+                            "pulse": "نبض المحادثة",
+                            "handoff": "التحويل إلى موظف",
+                            "mcp": "MCP",
+                            "function_calling": "استدعاء الدوال",
+                            "api": "الوصول إلى الـ API",
+                            "integrations": "تكاملات مخصّصة",
+                            "branding": "علامة بيضاء (إزالة علامة Chatvia)",
+                            "residency": "استضافة البيانات في الاتحاد الأوروبي",
+                            "sso": "الدخول الموحّد SSO / SAML",
+                            "sla": "اتفاقية مستوى خدمة للتوافر",
+                            "support": "دعم مخصّص",
+                            "dpa": "عقد واتفاقية معالجة بيانات مخصّصان",
+                            "teams": "فرق غير محدودة",
+                            "members": "أعضاء غير محدودين",
+                            "retention": "احتفاظ مخصّص بالبيانات"
+                        }
+                    }
+                }
+            },
+            "ui": {
+                "yearly_savings_text": "وفّر 20%",
+                "popular_badge_text": "الأكثر شيوعًا",
+                "current_plan_text": "الباقة الحالية"
             }
         }
     },
@@ -3121,6 +3512,234 @@
                 "subtitle_middle": "للفريق",
                 "save": "حفظ"
             }
+        },
+        "permissions_meta": {
+            "scopes": {
+                "agent": {
+                    "label": "صلاحيات الوكيل",
+                    "description": "ما يمكن لهذا الدور فعله داخل كل وكيل يملك صلاحية الوصول إليه. تُطبَّق هذه الإجراءات لكل وكيل — حسب قائمة وصول الوكيل أعلاه."
+                },
+                "account": {
+                    "label": "صلاحيات الحساب",
+                    "description": "أدوات وإعدادات مشتركة على مستوى الحساب. تُطبَّق مرة واحدة على كل الوكلاء وتُدار من قائمة الإعدادات."
+                }
+            },
+            "groups": {
+                "setup": {
+                    "label": "الإعداد",
+                    "description": "تعديل الوكيل نفسه — الشخصية، النماذج، أداة الدردشة، التضمين."
+                },
+                "sources": {
+                    "label": "المصادر",
+                    "description": "إدارة بيانات التدريب التي يتعلم منها الوكيل."
+                },
+                "chat": {
+                    "label": "المحادثة",
+                    "description": "قراءة المحادثات الحية، الاستلام، التصدير، أو الحذف."
+                },
+                "audit": {
+                    "label": "التدقيق",
+                    "description": "عرض سجل تدقيق استدعاءات الأدوات (الأدوات، الموصلات، الموافقات)."
+                },
+                "evals": {
+                    "label": "التقييمات",
+                    "description": "اختبار الوكيل مقابل مجموعة اختبارات وتتبع نسبة النجاح بمرور الوقت."
+                },
+                "guardrails": {
+                    "label": "الحواجز",
+                    "description": "حماية الذكاء الاصطناعي: البيانات الشخصية، حقن الموجّهات، المواضيع المحظورة، اللغة المسيئة."
+                },
+                "analytics": {
+                    "label": "التحليلات",
+                    "description": "مراجعة الاستخدام، المشاعر، النبرة، المواضيع، وأداء المصادر."
+                },
+                "topics": {
+                    "label": "المواضيع",
+                    "description": "تنظيم المواضيع التي تُجمَّع تحتها المحادثات."
+                },
+                "leads": {
+                    "label": "العملاء المحتملون",
+                    "description": "عرض وتكوين وتصدير العملاء المحتملين الذين يلتقطهم الوكيل."
+                },
+                "administration": {
+                    "label": "الإدارة",
+                    "description": "مهام على مستوى الوكيل بصلاحيات المالك — المحادثون ومفتاح التوقيع السري."
+                },
+                "security": {
+                    "label": "الأمان",
+                    "description": "بيانات الاعتماد الشخصية لاستدعاء واجهة برمجة التطبيقات العامة."
+                },
+                "integrations": {
+                    "label": "التكاملات",
+                    "description": "ربط خدمات الطرف الثالث ودوال webhook المخصصة، ثم إرفاقها بأي وكيل."
+                },
+                "library": {
+                    "label": "المكتبة",
+                    "description": "موجّهات قابلة لإعادة الاستخدام مشتركة عبر الحساب."
+                },
+                "people": {
+                    "label": "الأشخاص",
+                    "description": "إدارة المحادثين الممنوحين صلاحية الوصول إلى وكلائك."
+                },
+                "governance": {
+                    "label": "الحوكمة",
+                    "description": "تدقيق ومراقبة كل إجراء يتخذه وكلاؤك عبر الأدوات والموصلات."
+                }
+            },
+            "codes": {
+                "agents_access_all": {
+                    "label": "الوصول إلى كل الوكلاء",
+                    "description": "منح الوصول إلى كل الوكلاء الحاليين والمستقبليين في الفريق"
+                },
+                "agent_setup": {
+                    "label": "إعداد الوكيل",
+                    "description": "تعديل إعدادات الوكيل وشخصيته وسلوكه"
+                },
+                "agent_sources_train_files": {
+                    "label": "تدريب الملفات",
+                    "description": "رفع ومعالجة المستندات (PDF، Word، إلخ)"
+                },
+                "agent_sources_train_text": {
+                    "label": "تدريب النص",
+                    "description": "رفع ومعالجة ملفات النص العادي"
+                },
+                "agent_sources_train_qa": {
+                    "label": "تدريب الأسئلة والأجوبة",
+                    "description": "إضافة أزواج من الأسئلة والأجوبة"
+                },
+                "agent_sources_train_web": {
+                    "label": "تدريب الويب",
+                    "description": "زحف ومعالجة محتوى المواقع"
+                },
+                "agent_sources_train_audio": {
+                    "label": "تدريب الصوت",
+                    "description": "رفع ونسخ الملفات الصوتية"
+                },
+                "agent_sources_train_video": {
+                    "label": "تدريب الفيديو",
+                    "description": "رفع ونسخ ملفات الفيديو"
+                },
+                "agent_sources_train_functions": {
+                    "label": "إدارة الدوال",
+                    "description": "تعريف استدعاءات أدوات LLM التي تصل إلى نقاط webhook الخاصة بك"
+                },
+                "agent_sources_train_connectors": {
+                    "label": "إدارة الموصلات",
+                    "description": "ربط خدمات الطرف الثالث (Stripe، GitHub، Notion، …) كمصادر بيانات حية"
+                },
+                "agent_sources_delete": {
+                    "label": "حذف المصادر",
+                    "description": "إزالة مصادر التدريب من الوكيل"
+                },
+                "agent_chat_view": {
+                    "label": "عرض المحادثات",
+                    "description": "قراءة سجل المحادثات وسجلاتها"
+                },
+                "agent_chat_pulse": {
+                    "label": "نبض المحادثة",
+                    "description": "عرض مقاييس صحة المحادثة في الوقت الفعلي وتتبع المشاعر"
+                },
+                "agent_chat_takeover": {
+                    "label": "الاستلام",
+                    "description": "التحكم في محادثة حية من الذكاء الاصطناعي"
+                },
+                "agent_chat_delete": {
+                    "label": "حذف المحادثات",
+                    "description": "حذف سجل المحادثات نهائياً"
+                },
+                "agent_chat_export": {
+                    "label": "تصدير المحادثات",
+                    "description": "تصدير سجل المحادثات إلى CSV أو صيغ أخرى"
+                },
+                "agent_audit_view": {
+                    "label": "عرض سجل التدقيق",
+                    "description": "عرض سجل تدقيق استدعاءات الأدوات لهذا الوكيل"
+                },
+                "agent_evals_view": {
+                    "label": "عرض التقييمات",
+                    "description": "عرض مجموعات تقييم الوكيل وسجل التشغيل"
+                },
+                "agent_evals_manage": {
+                    "label": "إدارة التقييمات",
+                    "description": "إنشاء حالات اختبار وتشغيل مجموعات التقييم"
+                },
+                "agent_guardrails_view": {
+                    "label": "عرض الحواجز",
+                    "description": "عرض إعدادات أمان الذكاء الاصطناعي وسجل التفعيل لهذا الوكيل"
+                },
+                "agent_guardrails_manage": {
+                    "label": "إدارة الحواجز",
+                    "description": "تكوين حماية البيانات الشخصية وحقن الموجّهات والمواضيع واللغة المسيئة"
+                },
+                "agent_analytics_chats": {
+                    "label": "تحليلات المحادثة",
+                    "description": "عرض حجم المحادثات واتجاهاتها"
+                },
+                "agent_analytics_sentiment": {
+                    "label": "المشاعر",
+                    "description": "عرض تحليل مشاعر المحادثات"
+                },
+                "agent_analytics_tone": {
+                    "label": "النبرات",
+                    "description": "عرض تحليل نبرة المحادثات"
+                },
+                "agent_analytics_topics": {
+                    "label": "المواضيع",
+                    "description": "عرض المواضيع وإدارتها"
+                },
+                "agent_analytics_sources": {
+                    "label": "المصادر",
+                    "description": "عرض المصادر المستخدمة في الردود"
+                },
+                "agent_topics_manage": {
+                    "label": "إدارة المواضيع",
+                    "description": "إنشاء المواضيع وتعديلها وحذفها"
+                },
+                "agent_leads_view": {
+                    "label": "عرض العملاء المحتملين",
+                    "description": "عرض معلومات العملاء المحتملين الملتقطة"
+                },
+                "agent_leads_settings": {
+                    "label": "إعدادات العملاء المحتملين",
+                    "description": "تكوين نماذج وقواعد التقاط العملاء المحتملين"
+                },
+                "agent_leads_export": {
+                    "label": "تصدير العملاء المحتملين",
+                    "description": "تنزيل العملاء المحتملين كـ CSV أو التكامل مع CRM"
+                },
+                "agent_members_manage": {
+                    "label": "محادثو الوكيل",
+                    "description": "دعوة وعرض وإزالة المحادثين الممنوحين صلاحية الوصول إلى هذا الوكيل"
+                },
+                "agent_identity_manage": {
+                    "label": "التحقق من هوية الوكيل",
+                    "description": "عرض واستخدام مفتاح التوقيع السري الخاص بكل وكيل لرموز تسجيل الدخول"
+                },
+                "account_api_keys": {
+                    "label": "مفاتيح API",
+                    "description": "إنشاء وإلغاء رموز API الشخصية"
+                },
+                "account_connectors": {
+                    "label": "الموصلات",
+                    "description": "إدارة موصلات الطرف الثالث على مستوى الحساب (خوادم MCP)"
+                },
+                "account_functions": {
+                    "label": "الدوال",
+                    "description": "تعريف دوال webhook التي يمكن للوكلاء استدعاؤها"
+                },
+                "account_prompts": {
+                    "label": "الموجّهات",
+                    "description": "إدارة مكتبة الموجّهات المشتركة"
+                },
+                "account_members_manage": {
+                    "label": "المحادثون",
+                    "description": "عرض وإعادة تعيين كلمة المرور وإزالة المحادثين عبر مساحة العمل"
+                },
+                "account_governance": {
+                    "label": "الحوكمة",
+                    "description": "عرض سجل تدقيق استدعاءات الأدوات وضوابط الوصول"
+                }
+            }
         }
     },
     "dashboard": {
@@ -3256,7 +3875,7 @@
         "load_error": "تعذّر تحميل بيانات الاستخدام."
     },
     "analytics_chat": {
-        "title": "اسأل بياناتك",
+        "title": "اسأل عن بياناتك",
         "starter_messages": "كم عدد الرسائل التي تلقّيتها في هذه الدورة؟",
         "starter_active_user": "من هو المستخدم الأكثر نشاطًا لديّ؟",
         "starter_busiest_channel": "ما هي القناة الأكثر ازدحامًا؟",
@@ -3265,63 +3884,6 @@
         "subtitle": "اسأل عن حسابك بلغة بسيطة — الرسائل، المستخدمون، القنوات، العملاء المحتملون، والمزيد. تُعرض الرسوم البيانية ضمن المحادثة.",
         "composer_placeholder": "اسأل عن حسابك…",
         "disclaimer": "تأتي الإجابات من تحليلاتك المباشرة. لا يتم حفظ هذه المحادثة."
-    },
-    "consent": {
-        "head_title": "موافقة معالجة البيانات - ChatVia",
-        "header_subtitle": "موافقة معالجة البيانات",
-        "page_title": "موافقة معالجة البيانات",
-        "intro": "قبل أن تبدأ باستخدام ChatVia، نحتاج إلى معرفة الطريقة التي تريد بها معالجة بياناتك. ستساعدك هذه الصفحة على فهم حقوقك وخياراتك.",
-        "intro_note": "يرجى ملاحظة أن هذه الصفحة تصف معالجة البيانات، وهي مرحلة تمهيدية لتجهيز بياناتك لوكيلك.",
-        "how_it_works_title": "كيف يعمل ChatVia",
-        "how_it_works_intro": "عند إنشاء وكيل قائم على التدريب، سيرسل ChatVia بياناتك إلى مزوّدين مختلفين لمعالجتها. إليك النقاط الأساسية حول معالجتنا للبيانات:",
-        "infra_label": "البنية التحتية لمعالجة البيانات:",
-        "infra_text_before": "نستخدم Cohere (",
-        "privacy_policy_link": "سياسة الخصوصية",
-        "infra_text_after": ")، وMistral لمستخدمي الاتحاد الأوروبي، وGoogle/OpenAI لمستخدمي الولايات المتحدة.",
-        "storage_label": "تخزين البيانات:",
-        "storage_text": "سيتم تخزين بياناتك وتشفيرها محليًا في الاتحاد الأوروبي (ألمانيا/فنلندا).",
-        "no_training_label": "بدون تدريب:",
-        "no_training_text": "نحن لا ندرّب النماذج على بياناتك. بدلاً من ذلك، نستخدم تقنية RAG (التوليد المعزّز بالاسترجاع) وGraphRAG للعثور على المعلومات ذات الصلة وإرسالها إلى النموذج الذي تختاره للمعالجة.",
-        "control_label": "التحكم في البيانات:",
-        "control_text": "يمكنك حذف بياناتك بسهولة في أي وقت من خلال إعدادات حسابك.",
-        "region_title": "اختر منطقة تخزين بياناتك",
-        "region_description": "اختر المكان الذي ترغب في تخزين بياناتك ومعالجتها فيه. يؤثر هذا الاختيار على قوانين حماية البيانات التي تنطبق على معلوماتك.",
-        "eu_title": "الاتحاد الأوروبي (EU)",
-        "eu_description": "سيتم تخزين بياناتك ومعالجتها داخل الاتحاد الأوروبي، مما يضمن الامتثال الكامل للائحة العامة لحماية البيانات (GDPR) وأقصى درجات حماية الخصوصية.",
-        "eu_feature_1": "حماية كاملة وفق اللائحة العامة لحماية البيانات",
-        "eu_feature_2": "تبقى البيانات داخل حدود الاتحاد الأوروبي",
-        "eu_feature_3": "المعالجة باستخدام Mistral AI",
-        "us_title": "الولايات المتحدة (US)",
-        "us_description": "سيتم تخزين بياناتك ومعالجتها في الولايات المتحدة، مع حماية قوية للخصوصية ووصول إلى أحدث بنية تحتية للذكاء الاصطناعي. توفّر هذه المنطقة وصولاً مباشرًا إلى أبرز مزوّدي الذكاء الاصطناعي.",
-        "us_feature_1": "الوصول إلى OpenAI وGoogle AI",
-        "us_feature_2": "أداء وسرعة مُحسَّنان",
-        "us_feature_3": "معايير قوية لحماية البيانات",
-        "preferences_title": "تفضيلات إضافية",
-        "marketing_label": "الرسائل التسويقية",
-        "marketing_description": "احصل على تحديثات حول الميزات الجديدة والنصائح والعروض الخاصة. يمكنك إلغاء الاشتراك في أي وقت.",
-        "analytics_label": "التحليلات والأداء",
-        "analytics_description": "ساعدنا في تحسين ChatVia بالسماح بتحليلات الاستخدام المجهولة ومراقبة الأداء.",
-        "gdpr_title": "حقوقك بموجب اللائحة العامة لحماية البيانات",
-        "gdpr_intro": "بغضّ النظر عن المنطقة التي تختارها، إذا كنت مقيمًا في الاتحاد الأوروبي، فلديك الحقوق التالية بموجب اللائحة العامة لحماية البيانات:",
-        "right_access_label": "حق الوصول:",
-        "right_access_text": "طلب نسخة من بياناتك الشخصية",
-        "right_rectification_label": "حق التصحيح:",
-        "right_rectification_text": "تصحيح البيانات غير الدقيقة أو غير المكتملة",
-        "right_erasure_label": "حق المحو:",
-        "right_erasure_text": "طلب حذف بياناتك الشخصية",
-        "right_portability_label": "حق نقل البيانات:",
-        "right_portability_text": "نقل بياناتك إلى خدمة أخرى",
-        "right_object_label": "حق الاعتراض:",
-        "right_object_text": "الاعتراض على معالجة بياناتك الشخصية",
-        "important_label": "هام:",
-        "important_text": "عند استخدام نماذج الذكاء الاصطناعي من مزوّدين خارجيين (مثل OpenAI أو Google أو Mistral)، قد تخضع تفاعلاتك في المحادثة لسياسات الخصوصية وممارسات معالجة البيانات الخاصة بهم. نوصي بمراجعة سياسات الخصوصية الخاصة بهم لتحقيق الشفافية الكاملة.",
-        "contact_text": "لممارسة هذه الحقوق أو لأي أسئلة تتعلق بالخصوصية، تواصل معنا عبر",
-        "saving": "جارٍ الحفظ...",
-        "save_preferences": "حفظ التفضيلات",
-        "footer_before": "بالنقر على \"حفظ التفضيلات\"، فإنك تقرّ بأنك قرأت وفهمت",
-        "footer_privacy": "سياسة الخصوصية",
-        "footer_and": "و",
-        "footer_terms": "شروط الخدمة"
     },
     "app": {
         "header": {
@@ -3359,5 +3921,535 @@
         "error": "تعذّر تأكيد كلمة المرور. يرجى المحاولة مرة أخرى.",
         "cancel": "إلغاء",
         "confirm": "تأكيد"
+    },
+    "shared": {
+        "message_card": {
+            "cancel": "إلغاء",
+            "send": "إرسال",
+            "copy_aria": "نسخ الرسالة",
+            "copy_tooltip": "نسخ",
+            "thumbs_up_aria": "إعجاب",
+            "helpful_tooltip": "مفيد",
+            "thumbs_down_aria": "عدم إعجاب",
+            "not_helpful_tooltip": "غير مفيد",
+            "delete_title": "حذف هذه الرسالة؟",
+            "delete_description": "لا يمكن التراجع عن هذا الإجراء.",
+            "delete_confirm": "نعم، احذف",
+            "delete_cancel": "لا، احتفظ بها",
+            "delete_aria": "حذف الرسالة",
+            "delete_tooltip": "حذف الرد الحالي",
+            "export_aria": "تصدير الرسالة",
+            "export_tooltip": "تصدير",
+            "export_as": "تصدير بصيغة",
+            "export_pdf": "PDF",
+            "export_markdown": "Markdown",
+            "export_text": "نص",
+            "generated_by": "تم إنشاؤه بواسطة {model}"
+        },
+        "image_upload": {
+            "upload": "رفع",
+            "remove": "إزالة"
+        },
+        "color_picker": {
+            "color_intensity": "شدة اللون",
+            "light": "فاتح",
+            "dark": "داكن"
+        },
+        "color_theme_picker": {
+            "title": "اختر سمة اللون",
+            "description": "اختر لوناً ودرجة لونية لسمة الوكيل الأساسية",
+            "apply": "تطبيق"
+        },
+        "icon_picker": {
+            "search_placeholder": "البحث في الأيقونات...",
+            "choose_icon": "اختر أيقونة",
+            "choose_icon_title": "اختر أيقونة",
+            "no_icon": "بدون أيقونة",
+            "icon_aria": "أيقونة: {name}",
+            "no_results": "لا توجد أيقونات تطابق بحثك."
+        },
+        "error": "خطأ",
+        "saved_successfully": "تم الحفظ بنجاح",
+        "settings_saved_successfully": "تم حفظ الإعدادات بنجاح",
+        "fix_errors_below": "يرجى تصحيح الأخطاء أدناه",
+        "chat_log_off": "سجل المحادثات متوقف",
+        "feature_turned_off": "{title} متوقف",
+        "enable_feature": "تفعيل {title}",
+        "enabling": "جارٍ التفعيل…",
+        "enable_now": "فعّل الآن",
+        "upgrade_now": "ترقية الآن",
+        "desktop": "سطح المكتب",
+        "tablet": "جهاز لوحي",
+        "mobile": "جوال",
+        "close_preview": "إغلاق المعاينة",
+        "widget_preview": "معاينة الأداة",
+        "preview": "معاينة",
+        "composer_placeholder": "اسأل أي شيء...",
+        "chat_title_fallback": "محادثة",
+        "more_options": "المزيد من الخيارات",
+        "delete_confirmation_title": "تأكيد الحذف",
+        "delete_confirmation_description": "لا يمكن التراجع عن هذا الإجراء.",
+        "yes_delete": "نعم، احذف",
+        "no_keep": "لا، احتفظ به",
+        "information": "معلومات",
+        "dismiss_banner": "إغلاق الشريط",
+        "training_in_progress": "جارٍ التدريب",
+        "unknown": "غير معروف",
+        "chats": "محادثات",
+        "file_uploader": {
+            "title_default": "رفع الملفات",
+            "description_default": "أضف ملفات للتحليل",
+            "quota_label_default": "صفحات",
+            "disabled_message_default": "الرفع معطّل",
+            "file_count": "{current} / {max} ملفات",
+            "quota_limit_reached_alert": "لقد وصلت إلى حد {quotaLabel} البالغ {quotaLimit} {quotaLabel}. يرجى ترقية خطتك لمعالجة المزيد من المستندات.",
+            "drop_zone_file_limit_reached": "تم الوصول إلى حد الملفات",
+            "drop_zone_quota_limit_reached": "تم الوصول إلى حد {quotaLabel}",
+            "drop_zone_select_files": "اختر الملفات",
+            "drop_zone_max_files_hint": "الحد الأقصى {max} ملفات. أزل بعض الملفات لإضافة المزيد.",
+            "drop_zone_quota_exhausted_hint": "لقد استخدمت كل {quotaLimit} {quotaLabel}. رقِّ خطتك للمتابعة.",
+            "drop_zone_unavailable": "الرفع غير متاح",
+            "drop_zone_default_hint": "اسحب وأفلت أو انقر لاختيار الملفات",
+            "total_quota": "إجمالي {count} {label}",
+            "exceeds_quota": "يتجاوز الحصة بمقدار {amount} {quotaLabel}",
+            "clear_failed": "مسح الفاشلة",
+            "clear_all": "مسح الكل",
+            "badge_analyzed": "تم التحليل",
+            "badge_analyzing": "جارٍ التحليل",
+            "badge_failed": "فشل",
+            "progress_analyzed": "تم تحليل {progress}%",
+            "remove_file": "إزالة الملف",
+            "minute_length": "دقيقة واحدة | {count} دقائق",
+            "page_length": "صفحة واحدة | {count} صفحات",
+            "toast_max_files_title": "تم بلوغ الحد الأقصى للملفات",
+            "toast_max_files_description": "يمكنك رفع {max} ملفات كحد أقصى فقط.",
+            "toast_file_size_title": "تجاوز حد حجم الملف",
+            "toast_file_size_description": "الملفات التالية تتجاوز حد {maxSize} ميغابايت: {fileList}"
+        },
+        "voice_recorder": {
+            "title_default": "تسجيل ملاحظة صوتية",
+            "description_default": "سجّل الصوت مباشرة من الميكروفون",
+            "not_supported": "متصفحك لا يدعم التسجيل الصوتي. يرجى استخدام متصفح حديث مثل Chrome أو Firefox أو Safari.",
+            "recording": "جارٍ التسجيل",
+            "remaining_time": "متبقٍ {time}",
+            "start_recording": "بدء التسجيل",
+            "stop": "إيقاف",
+            "recorded": "تم التسجيل",
+            "recording_name_label": "اسم التسجيل",
+            "recording_name_placeholder": "أدخل اسماً لتسجيلك",
+            "discard": "تجاهل",
+            "save_recording": "حفظ التسجيل",
+            "tips_heading": "نصائح:",
+            "tip_speak_clearly": "تحدث بوضوح وبوتيرة ثابتة",
+            "tip_quiet_environment": "استخدم بيئة هادئة للحصول على أفضل النتائج",
+            "tip_max_duration": "الحد الأقصى لطول التسجيل: دقيقة واحدة | الحد الأقصى لطول التسجيل: {minutes} دقائق"
+        },
+        "date_range": {
+            "pick_range": "اختر نطاقاً زمنياً",
+            "select_placeholder": "اختر النطاق الزمني",
+            "preset_today": "اليوم",
+            "preset_yesterday": "أمس",
+            "preset_last_7_days": "آخر 7 أيام",
+            "preset_last_30_days": "آخر 30 يوماً",
+            "preset_this_month": "هذا الشهر",
+            "preset_last_month": "الشهر الماضي",
+            "preset_last_3_months": "آخر 3 أشهر",
+            "preset_last_12_months": "آخر 12 شهراً",
+            "preset_custom": "نطاق مخصص"
+        },
+        "response_settings": {
+            "title": "إعدادات الرد",
+            "description_widget": "تحكم في كيفية استجابة وكيل الذكاء الاصطناعي. ستُطبَّق هذه الإعدادات على النموذج المحدد وتؤثر على أسلوب وإبداع جميع الردود.",
+            "description_default": "تحكم في كيفية استجابة وكيل الذكاء الاصطناعي. ستُطبَّق هذه الإعدادات على جميع النماذج المحددة وتؤثر على أسلوب وإبداع جميع الردود.",
+            "parameters_heading": "معاملات الرد",
+            "temperature": {
+                "label": "مستوى الإبداع",
+                "param": "Temperature",
+                "help": "منخفض = ردود متوقعة ومتسقة. مرتفع = إجابات أكثر إبداعاً وتنوعاً.",
+                "scale_focused": "مركّز",
+                "scale_balanced": "متوازن",
+                "scale_creative": "إبداعي",
+                "badge_conservative": "محافظ",
+                "badge_balanced": "متوازن",
+                "badge_creative": "إبداعي"
+            },
+            "top_k": {
+                "label": "تنوع اختيار الكلمات",
+                "param": "Top-K",
+                "help": "0 = معطّل. أقل = يستخدم كلمات أكثر شيوعاً. أعلى = يأخذ في الاعتبار خيارات كلمات أكثر.",
+                "scale_disabled": "معطّل",
+                "scale_focused": "مركّز",
+                "scale_balanced": "متوازن",
+                "scale_diverse": "متنوع",
+                "badge_disabled": "معطّل",
+                "badge_focused": "مركّز",
+                "badge_balanced": "متوازن",
+                "badge_diverse": "متنوع"
+            },
+            "top_p": {
+                "label": "تركيز الرد",
+                "param": "Top-P",
+                "help": "أقل = ردود أكثر تركيزاً. أعلى = ردود أوسع وأكثر تنوعاً.",
+                "scale_focused": "مركّز",
+                "scale_balanced": "متوازن",
+                "scale_broad": "واسع",
+                "badge_focused": "مركّز",
+                "badge_balanced": "متوازن",
+                "badge_broad": "واسع"
+            },
+            "presence_penalty": {
+                "label": "تجنّب تكرار المواضيع",
+                "param": "Presence Penalty",
+                "help": "القيم الأعلى تثبط تكرار نفس المواضيع أو الأفكار.",
+                "scale_repetitive": "متكرر",
+                "scale_neutral": "محايد",
+                "scale_diverse": "متنوع",
+                "badge_repetitive": "متكرر",
+                "badge_neutral": "محايد",
+                "badge_diverse": "متنوع"
+            },
+            "frequency_penalty": {
+                "label": "تجنّب تكرار الكلمات",
+                "param": "Frequency Penalty",
+                "help": "القيم الأعلى تثبط استخدام نفس الكلمات مراراً.",
+                "scale_repetitive": "متكرر",
+                "scale_neutral": "محايد",
+                "scale_varied": "متنوع",
+                "badge_repetitive": "متكرر",
+                "badge_neutral": "محايد",
+                "badge_varied": "متنوع"
+            }
+        },
+        "persona_editor": {
+            "label": "التعليمات (موجه النظام)",
+            "description": "حدّد كيف يجب أن يتصرف وكيل الذكاء الاصطناعي ويرد على المستخدمين",
+            "select_placeholder": "اختر قالباً...",
+            "saved_prompts": "موجهات محفوظة",
+            "default_group": "افتراضي",
+            "base_instructions": "التعليمات الأساسية",
+            "reset_title": "إعادة التعيين إلى المحفوظ",
+            "library_hint": "استخدام الموجه المحفوظ {name} (للقراءة فقط). أدِره من الإعدادات ← الموجهات، أو انتقل إلى {base} لتحرير نسخة لهذا الوكيل فقط.",
+            "textarea_placeholder": "أدخل تعليماتك...",
+            "save": "حفظ",
+            "save_success": "تم حفظ التعليمات بنجاح",
+            "save_error": "فشل حفظ التعليمات"
+        },
+        "connector_sheet": {
+            "default_description": "خادم MCP مخصص أُضيف مباشرة عبر الرابط.",
+            "status_not_connected": "غير متصل",
+            "status_connected": "متصل",
+            "disconnect_description_settings": "لن تتمكن المحادثة بعد الآن من استدعاء أدوات هذا الموصل. يمكنك إعادة الاتصال في أي وقت.",
+            "disconnect_description_agent_specific": "هذا الموصل موجود فقط داخل هذا الوكيل ولا يمكن استعادته.",
+            "disconnect_description_agent_generic": "سيفقد هذا الوكيل الوصول. يبقى تعريف الموصل متاحًا في الإعدادات ← الموصلات.",
+            "tab_overview": "نظرة عامة",
+            "tab_tools": "الأدوات",
+            "tab_agents": "الوكلاء",
+            "coming_soon": "هذا الموصل قادم قريبًا.",
+            "sign_in_with": "تسجيل الدخول عبر {name}",
+            "connect_name": "ربط {name}",
+            "server_id": "معرّف الخادم",
+            "copy_server_id_title": "نسخ معرّف الخادم — مرّره كـ mcp_id عند الإرفاق عبر واجهة API",
+            "endpoint": "نقطة النهاية",
+            "auth": "المصادقة",
+            "scope": "النطاق",
+            "scope_agent_specific": "خاص بالوكيل",
+            "scope_generic_shared": "عام (مشترك)",
+            "tools_count": "الأدوات",
+            "calls": "الاستدعاءات",
+            "last_call": "آخر استدعاء",
+            "last_error": "آخر خطأ",
+            "enabled_here": "مفعّل هنا",
+            "enabled": "مفعّل",
+            "on": "تشغيل",
+            "off": "إيقاف",
+            "disconnect": "قطع الاتصال",
+            "disconnect_title": "قطع اتصال {name}؟",
+            "keep": "إبقاء",
+            "refresh_tools": "تحديث الأدوات",
+            "loading_tools": "جارٍ تحميل الأدوات",
+            "no_tools_advertised": "لا توجد أدوات يعلن عنها هذا الخادم.",
+            "search_tools_placeholder": "البحث في الأدوات",
+            "no_tools_match_search": "لا توجد أدوات تطابق بحثك.",
+            "section_read_only": "أدوات للقراءة فقط",
+            "section_write_delete": "أدوات الكتابة/الحذف",
+            "section_none": "لا شيء.",
+            "permission_always_allow": "السماح دائمًا",
+            "permission_needs_approval": "يتطلب موافقة",
+            "permission_blocked": "محظور",
+            "view_details": "عرض التفاصيل",
+            "function": "الدالة",
+            "description": "الوصف",
+            "input_schema": "مخطط الإدخال",
+            "agents_toggle_description": "حدّد أي وكلائك يمكنهم استخدام هذا الموصل.",
+            "loading_agents": "جارٍ تحميل الوكلاء",
+            "no_agents_yet": "ليس لديك وكلاء بعد.",
+            "toast_load_tools_failed": "فشل تحميل الأدوات",
+            "toast_refresh_success": "{name}: {count} أدوات",
+            "toast_refresh_failed": "فشل تحديث الأدوات",
+            "toast_toggle_failed": "فشل التبديل",
+            "toast_permission_failed": "فشل تحديث صلاحية الأداة",
+            "toast_disconnected": "تم قطع اتصال {name}",
+            "toast_disconnect_failed": "فشل"
+        },
+        "member_sheet": {
+            "sr_description": "إدارة حدود هذا المحادث ووصوله إلى الوكلاء وحالته.",
+            "status_pending": "قيد الانتظار",
+            "status_active": "نشط",
+            "no_email": "لا يوجد بريد إلكتروني",
+            "id_label": "المعرّف",
+            "copy_id_title": "نسخ معرّف المحادث",
+            "joined": "انضم في {date}",
+            "tab_limits": "الحدود",
+            "tab_agents": "الوكلاء",
+            "tab_status": "الحالة",
+            "tab_actions": "الإجراءات",
+            "monthly_limit_title": "حد الرسائل الشهري",
+            "monthly_limit_description": "حدّد عدد الرسائل التي يمكن لهذا المحادث إرسالها شهريًا. اتركه فارغًا لعدم وجود حد.",
+            "no_limit_placeholder": "بدون حد",
+            "remove_limit": "إزالة الحد",
+            "usage_this_month": "{used} من {limit} مستخدمة هذا الشهر.",
+            "agents_toggle_description": "حدّد أي وكلائك يمكن لهذا المحادث المحادثة معهم.",
+            "loading_agents": "جارٍ تحميل الوكلاء",
+            "no_agents_in_workspace": "ليس لديك وكلاء في مساحة العمل هذه بعد.",
+            "deactivate_title": "إلغاء تفعيل المحادث",
+            "deactivate_description": "لا يمكن للمحادث المُعطَّل تسجيل الدخول أو إرسال الرسائل.",
+            "deactivation_reason_placeholder": "السبب (اختياري) — مرئي لفريقك فقط",
+            "save_changes": "حفظ التغييرات",
+            "send_password_reset": "إرسال رابط إعادة تعيين كلمة المرور",
+            "remove_member": "إزالة المحادث",
+            "toast_updated": "تم تحديث {name}",
+            "toast_update_failed": "تعذّر تحديث هذا المحادث",
+            "toast_limit_removed": "تمت إزالة الحد لـ {name}",
+            "toast_limit_remove_failed": "تعذّرت إزالة الحد"
+        },
+        "audit_table": {
+            "filter_outcome": "النتيجة",
+            "filter_connector": "الموصل",
+            "filter_agent": "الوكيل",
+            "all_outcomes": "جميع النتائج",
+            "all_connectors": "جميع الموصلات",
+            "all_agents": "جميع الوكلاء",
+            "col_by": "بواسطة",
+            "col_agent": "الوكيل",
+            "col_tool": "الأداة",
+            "col_connector": "الموصل",
+            "col_outcome": "النتيجة",
+            "col_latency": "زمن الاستجابة",
+            "visitor": "زائر",
+            "error_suffix": "خطأ",
+            "gated": "مقيّد",
+            "latency_ms": "{ms} مللي ثانية",
+            "empty": "لم يُسجَّل أي استدعاء أداة بعد.",
+            "previous": "السابق",
+            "next": "التالي",
+            "tab_preview": "معاينة",
+            "tab_markdown": "Markdown",
+            "detail_arguments": "المعاملات",
+            "detail_result": "النتيجة",
+            "detail_conversation": "المحادثة:",
+            "detail_trace": "التتبع:",
+            "outcome_auto": "تلقائي",
+            "outcome_approved": "موافق عليه",
+            "outcome_denied": "مرفوض",
+            "outcome_rate_limited": "تجاوز الحد"
+        },
+        "attach_file": {
+            "title": "اختر من الملفات المدربة مسبقًا",
+            "description": "اختر ملفًا من مكتبتك تم تدريبه مسبقًا لإضافته إلى هذا الوكيل.",
+            "filter_type_suffix": " عرض ملفات {type} فقط.",
+            "search_placeholder": "البحث في الملفات...",
+            "loading": "جارٍ تحميل الملفات...",
+            "empty_title": "لا توجد ملفات مدربة متاحة.",
+            "empty_description": "يجب أن يكتمل تدريب الملفات قبل مشاركتها بين الوكلاء.",
+            "no_search_results": "لا توجد ملفات تطابق بحثك.",
+            "type_pdf": "PDF",
+            "type_word": "Word",
+            "type_audio": "صوت",
+            "type_video": "فيديو",
+            "minute_length": "{count} دقيقة | {count} دقائق",
+            "page_length": "{count} صفحة | {count} صفحات",
+            "agents_count": "{count} وكيل | {count} وكلاء",
+            "used_in": "مستخدم في:",
+            "add": "إضافة",
+            "added": "تمت الإضافة",
+            "toast_load_failed": "فشل تحميل الملفات المتاحة.",
+            "toast_success": "تمت إضافة {filename} إلى الوكيل بنجاح!",
+            "toast_failed": "فشلت إضافة الملف إلى الوكيل."
+        },
+        "attach_text": {
+            "title": "اختر من النصوص المدربة مسبقًا",
+            "description": "اختر نصًا من مكتبتك تم تدريبه مسبقًا لإضافته إلى هذا الوكيل.",
+            "search_placeholder": "البحث في النصوص...",
+            "loading": "جارٍ تحميل النصوص...",
+            "empty_title": "لا توجد نصوص مدربة متاحة.",
+            "empty_description": "يجب أن يكتمل تدريب النصوص قبل مشاركتها بين الوكلاء.",
+            "no_search_results": "لا توجد نصوص تطابق بحثك.",
+            "word_count": "{count} كلمة",
+            "agents_count": "{count} وكيل | {count} وكلاء",
+            "used_in": "مستخدم في:",
+            "add": "إضافة",
+            "added": "تمت الإضافة",
+            "toast_load_failed": "فشل تحميل النصوص المتاحة.",
+            "toast_success": "تمت إضافة النص إلى الوكيل بنجاح!",
+            "toast_failed": "فشلت إضافة النص إلى الوكيل."
+        },
+        "attach_website": {
+            "title": "إرفاق موقع مدرب",
+            "description": "اختر موقعًا تم تدريبه مسبقًا لإرفاقه بهذا الوكيل.",
+            "search_placeholder": "البحث في المواقع بالرابط...",
+            "empty_title": "لا توجد مواقع مدربة متاحة للإرفاق.",
+            "empty_description": "درّب موقعًا أولًا، ثم يمكنك إرفاقه بعدة وكلاء.",
+            "no_search_results": "لا توجد مواقع تطابق بحثك.",
+            "pages_count": "{count} صفحة",
+            "used_in_agents": "مستخدم في الوكلاء:",
+            "adding": "جارٍ الإضافة...",
+            "add": "إضافة",
+            "added": "تمت الإضافة",
+            "footer_added": "تمت إضافة {count} موقع | تمت إضافة {count} مواقع",
+            "footer_hint": "اختر المواقع لإضافتها إلى هذا الوكيل",
+            "toast_load_failed": "فشل تحميل المواقع المتاحة.",
+            "toast_success": "تمت إضافة الموقع إلى الوكيل بنجاح!",
+            "toast_failed": "فشلت إضافة الموقع إلى الوكيل."
+        },
+        "chat_volume": "حجم المحادثات",
+        "accessibility": {
+            "close": "إغلاق",
+            "more": "المزيد",
+            "toggle_sidebar": "تبديل الشريط الجانبي",
+            "sidebar": "الشريط الجانبي",
+            "sidebar_description": "يعرض الشريط الجانبي على الجوال."
+        }
+    },
+    "connectors": {
+        "categories": {
+            "utilities": "أدوات مساعدة",
+            "sales": "المبيعات",
+            "payments": "المدفوعات",
+            "developer_tools": "أدوات المطوّرين",
+            "productivity": "الإنتاجية",
+            "communication": "التواصل",
+            "automation": "الأتمتة",
+            "analytics": "التحليلات"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "ابحث في الويب مباشرةً عبر Perplexity Sonar — الأخبار والأسعار والأحداث الأخيرة — مع ذكر المصادر.",
+                "token_label": "مفتاح Perplexity API",
+                "token_placeholder": "مفتاح Perplexity API الخاص بك"
+            },
+            "weather": {
+                "name": "الطقس",
+                "description": "حالة الطقس المباشرة (درجة الحرارة والأحوال الجوية والرطوبة والرياح) لأي مدينة، بدعمٍ من OpenWeatherMap.",
+                "token_label": "مفتاح OpenWeatherMap API",
+                "token_placeholder": "مفتاح OpenWeatherMap API الخاص بك"
+            },
+            "currency": {
+                "name": "محوّل العملات",
+                "description": "حوّل المبالغ بين أي عملتين باستخدام أسعار الصرف الحالية (exchangerate-api).",
+                "token_label": "مفتاح ExchangeRate-API",
+                "token_placeholder": "مفتاح ExchangeRate-API الخاص بك"
+            },
+            "charts": {
+                "name": "الرسوم البيانية التفاعلية",
+                "description": "اعرض رسومًا بيانية تفاعلية داخل المحادثة — أعمدة وخطوط ودوائر ومبعثر ورادار وعدّاد وخريطة حرارية وغير ذلك."
+            },
+            "leads": {
+                "name": "العملاء المحتملون",
+                "description": "اجمع بيانات تواصل الزوّار (الاسم والبريد الإلكتروني والهاتف وغير ذلك)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "ابحث في المعاملات والعملاء والمنتجات والمدفوعات في حساب Stripe الخاص بك."
+            },
+            "github": {
+                "name": "GitHub",
+                "description": "اقرأ المستودعات والمشكلات وطلبات السحب والشيفرة من أي حساب لديك صلاحية الوصول إليه."
+            },
+            "notion": {
+                "name": "Notion",
+                "description": "اقرأ الصفحات وقواعد البيانات والتعليقات من مساحة عمل Notion الخاصة بك."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "ابحث في المشكلات والمشاريع والدورات عبر مساحة عمل Linear الخاصة بك."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "مشكلات Jira وصفحات Confluence وسير العمل من مواقع Atlassian الخاصة بك."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "ابحث في الرسائل واقرأ المحادثات وصُغ الردود من صندوق وارد Gmail الخاص بك."
+            },
+            "google-calendar": {
+                "name": "Google Calendar",
+                "description": "اقرأ وأنشئ الأحداث عبر تقاويم Google الخاصة بك."
+            },
+            "google-drive": {
+                "name": "Google Drive",
+                "description": "اقرأ الملفات والمجلدات من Google Drive الخاص بك."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "ابحث في الرسائل وانشر الردود واقرأ سجل القنوات عبر مساحة عمل Slack الخاصة بك."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "اسمح للزوّار بحجز الاجتماعات عبر Calendly الخاص بك، ودع الوكلاء يقرؤون أحداثك المجدولة."
+            },
+            "todoist": {
+                "name": "Todoist",
+                "description": "أدِر المهام والمشاريع والتصنيفات عبر حساب Todoist الخاص بك."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "شغّل إجراءات Zapier عبر أكثر من 9,000 تطبيق متصل."
+            },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "اقرأ التذاكر والمستخدمين ومقالات مركز المساعدة من حساب Zendesk Support الخاص بك.",
+                "token_label": "رمز Zendesk API",
+                "token_placeholder": "رمز Zendesk API الخاص بك"
+            },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "اقرأ وحدّث جهات الاتصال والشركات والصفقات والتذاكر في نظام HubSpot CRM الخاص بك."
+            },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "اقرأ وحدّث الحسابات وجهات الاتصال والفرص والحالات من مؤسسة Salesforce الخاصة بك."
+            },
+            "box": {
+                "name": "Box",
+                "description": "ابحث واقرأ الملفات والمجلدات والبيانات الوصفية من حساب Box الخاص بك."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "اقرأ وحدّث المهام والمشاريع والمحافظ عبر مساحة عمل Asana الخاصة بك."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "اقرأ المشكلات والأخطاء والإصدارات من مشاريع Sentry الخاصة بك."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "ابحث في محاضر الاجتماعات والملخّصات وبنود الإجراءات من Fireflies.ai."
+            },
+            "amplitude": {
+                "name": "Amplitude",
+                "description": "استعلم عن تحليلات المنتج — الأحداث والرسوم البيانية والمجموعات — من مشروع Amplitude الخاص بك."
+            }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "تحليلات الحساب",
+                "description": "أجب عن أسئلة مالك مساحة العمل حول حسابه بالأرقام — الرسائل والمحادثات والمستخدمون والقنوات والعملاء المحتملون ورضا العملاء وزمن الاستجابة والمواضيع والتحويلات."
+            },
+            "charts": {
+                "name": "الرسوم البيانية التفاعلية",
+                "description": "اعرض رسومًا بيانية تفاعلية (أعمدة وخطوط ودوائر وعدّاد ومبعثر ورادار وخريطة حرارية، …) داخل المحادثة."
+            }
+        }
     }
 }

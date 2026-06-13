@@ -6,7 +6,8 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import { vOnClickOutside } from '@vueuse/components';
 import axios from 'axios';
 import isMobile from 'is-mobile';
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
     appearance: {
@@ -39,7 +40,11 @@ const props = defineProps({
     },
 });
 
+const { t } = useI18n();
+
 const isMobileDevice = isMobile();
+
+const pageTitle = computed(() => props.appearance?.chat_window_title || t('shared.chat_title_fallback'));
 
 const isSidebarOpen = ref(false);
 
@@ -112,7 +117,7 @@ const handleToggleIncognito = (value: boolean) => {
 </script>
 
 <template>
-    <Head :title="props.appearance?.chat_window_title || 'Chat'" />
+    <Head :title="pageTitle" />
 
     <!-- Toast outlet for the chat pages (upload errors, limits, etc.). Without
          this, every toast.* call from ChatComposer/ChatSidebar renders nowhere. -->

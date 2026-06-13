@@ -105,7 +105,7 @@
             "removes_agents": "Your agents and their settings",
             "removes_conversations": "All conversations and messages",
             "removes_knowledge": "Knowledge sources, documents, and uploaded files",
-            "removes_team": "Your team, members, API keys, and connectors",
+            "removes_team": "Your team, chatters, API keys, and connectors",
             "agents_will_delete": "{count} agent will be permanently deleted: | {count} agents will be permanently deleted:",
             "subscription_cancel": "Your active subscription will be canceled and you won't be billed again.",
             "email_confirmed": "Email confirmed. This is your last step — there's no going back after this.",

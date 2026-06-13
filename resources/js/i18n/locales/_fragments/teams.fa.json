@@ -1,0 +1,118 @@
+{
+    "teams": {
+        "breadcrumb": "تیم‌ها",
+        "common": { "cancel": "لغو", "create_role": "ایجاد نقش" },
+        "index": {
+            "title": "تیم‌ها",
+            "heading": "تیم‌ها",
+            "subtitle": "تیم‌های خود را مدیریت کنید و با دیگران همکاری کنید.",
+            "create_team": "ایجاد تیم",
+            "search_placeholder": "جستجوی تیم‌ها",
+            "empty_title": "هنوز تیمی وجود ندارد",
+            "empty_description": "اولین تیم خود را ایجاد کنید تا همکاری با دیگران را شروع کنید",
+            "no_results": "هیچ تیمی مطابق با \"{query}\" یافت نشد.",
+            "clear_search": "پاک کردن جستجو",
+            "primary": "اصلی",
+            "open_menu": "باز کردن منو",
+            "manage": "مدیریت",
+            "leave": "خروج",
+            "delete": "حذف",
+            "table": { "name": "نام تیم", "agents": "عاملان", "members": "اعضا", "created": "ایجاد شده" },
+            "leave_dialog": { "title": "خروج از تیم", "description": "آیا مطمئن هستید که می‌خواهید از \"{name}\" خارج شوید؟" },
+            "delete_dialog": { "title": "حذف تیم", "description": "آیا مطمئن هستید که می‌خواهید \"{name}\" را حذف کنید؟ این عمل قابل بازگشت نیست." },
+            "create_dialog": {
+                "title": "ایجاد تیم جدید",
+                "description": "یک تیم برای همکاری با دیگران ایجاد کنید.",
+                "name_label": "نام تیم",
+                "name_placeholder": "نام تیم را وارد کنید"
+            }
+        },
+        "show": {
+            "title": "تیم: {name}",
+            "back": "بازگشت به تیم‌ها",
+            "copied": "کپی شد!",
+            "copy_team_id": "کپی شناسه تیم",
+            "add_member": "افزودن عضو",
+            "view_members": "مشاهده اعضا ({count})",
+            "role": "نقش",
+            "actions": "اقدامات",
+            "roles": {
+                "title": "نقش‌ها و دسترسی‌ها",
+                "description": "نقش‌ها و دسترسی‌های آن‌ها را برای اعضای تیم تعریف کنید.",
+                "empty": "هنوز نقش سفارشی‌ای وجود ندارد. برای اختصاص دسترسی‌های خاص به اعضای تیم یک نقش ایجاد کنید.",
+                "copy_role_id": "کپی شناسه نقش",
+                "edit_role": "ویرایش نقش",
+                "delete_role": "حذف نقش",
+                "agent_access_label": "دسترسی عامل:",
+                "all_agents": "همه عاملان",
+                "no_agents_assigned": "هیچ عاملی اختصاص نیافته",
+                "agent_count": "{count} عامل | {count} عامل",
+                "delete_description": "آیا مطمئن هستید که می‌خواهید نقش \"{name}\" را حذف کنید؟ این عمل قابل بازگشت نیست."
+            },
+            "members": {
+                "title": "اعضای تیم",
+                "description": "اعضایی که به این تیم دسترسی دارند.",
+                "you": "شما",
+                "change_role": "تغییر نقش",
+                "change_role_title": "تغییر نقش عضو",
+                "update_role_description": "نقش {name} را به‌روز کنید.",
+                "select_role_placeholder": "انتخاب نقش",
+                "update_role": "به‌روزرسانی نقش",
+                "remove": "حذف",
+                "remove_title": "حذف عضو از تیم",
+                "remove_description": "آیا مطمئن هستید که می‌خواهید {name} را از این تیم حذف کنید؟ دسترسی آن‌ها به تمام منابع تیم از بین خواهد رفت.",
+                "remove_confirm": "حذف عضو",
+                "table": { "member": "عضو" }
+            },
+            "invitations": {
+                "title": "دعوت‌نامه‌های در انتظار",
+                "description": "این دعوت‌نامه‌ها منتظر پذیرش هستند.",
+                "table": { "email": "ایمیل", "sent": "ارسال شده" }
+            },
+            "invite": {
+                "title": "افزودن عضو به تیم",
+                "description": "یک کاربر موجود را انتخاب کنید یا شخص جدیدی را برای پیوستن به این تیم دعوت کنید.",
+                "select_existing": "انتخاب از موجودین",
+                "invite_by_email": "دعوت از طریق ایمیل",
+                "select_user_label": "انتخاب کاربر",
+                "select_user_placeholder": "یک کاربر را انتخاب کنید...",
+                "email_label": "آدرس ایمیل",
+                "email_placeholder": "colleague{'@'}example.com",
+                "send_invitation": "ارسال دعوت‌نامه"
+            },
+            "role_members": {
+                "title": "اعضای {name}",
+                "description": "اعضایی که این نقش را دارند. می‌توانید دسترسی آن‌ها به این تیم را حذف کنید.",
+                "empty": "هنوز هیچ عضوی با این نقش وجود ندارد.",
+                "close": "بستن"
+            }
+        },
+        "roles": {
+            "details": "جزئیات نقش",
+            "role_name_label": "نام نقش",
+            "role_name_placeholder": "مثلاً، عامل پشتیبانی، ویرایشگر محتوا",
+            "agent_access": "دسترسی عامل",
+            "agent_access_description": "انتخاب کنید این نقش به کدام عاملان می‌تواند مشاهده و تعامل داشته باشد.",
+            "all_agents": "همه عاملان",
+            "all_agents_description": "دسترسی به تمام عاملان فعلی و آینده",
+            "select_specific": "انتخاب عاملان خاص:",
+            "select_agents": "انتخاب عاملان...",
+            "agents_more": "{names} و {count} مورد دیگر",
+            "no_agents_available": "هیچ عاملی در دسترس نیست",
+            "permissions": {
+                "title": "دسترسی‌ها",
+                "description": "انتخاب کنید کاربران با این نقش چه اقداماتی می‌توانند انجام دهند.",
+                "requires": "نیاز دارد به:"
+            },
+            "create": { "subtitle": "تعریف یک نقش جدید برای" },
+            "edit": {
+                "title": "ویرایش نقش: {name}",
+                "breadcrumb": "ویرایش: {name}",
+                "heading": "ویرایش نقش",
+                "subtitle_prefix": "به‌روزرسانی",
+                "subtitle_middle": "نقش برای",
+                "save": "ذخیره"
+            }
+        }
+    }
+}

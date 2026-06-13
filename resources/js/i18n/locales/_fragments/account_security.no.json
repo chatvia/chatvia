@@ -1,0 +1,59 @@
+{
+    "account": {
+        "passkeys": {
+            "name_required": "Gi passøkkelen et navn først.",
+            "register_error": "Kunne ikke registrere passøkkel.",
+            "never": "Aldri",
+            "delete_aria": "Slett passøkkel",
+            "name_placeholder": "MacBook Pro, iPhone, YubiKey…",
+            "heading": "Passøkler",
+            "description": "Logg inn med fingeravtrykk, ansikt eller sikkerhetsnøkkel – ingen passord nødvendig.",
+            "add_passkey": "Legg til passøkkel",
+            "no_passkeys": "Ingen passøkler ennå",
+            "no_passkeys_hint": "Legg til en passøkkel for raskere innlogging på denne enheten.",
+            "last_used": "Sist brukt",
+            "created": "Opprettet",
+            "dialog_title": "Gi passøkkelen et navn",
+            "dialog_description": "Velg et navn så du kan skille passøklene dine fra hverandre senere.",
+            "register": "Registrer passøkkel",
+            "delete_title": "Slette denne passøkkelen?",
+            "delete_description": "{name} vil ikke lenger kunne brukes til å logge inn. Dette kan ikke angres."
+        },
+        "two_factor": {
+            "heading": "Tofaktorautentisering",
+            "description": "Krev en 6-sifret kode fra en autentiseringsapp ved innlogging, i tillegg til passordet ditt.",
+            "disable_title": "Deaktivere tofaktorautentisering?",
+            "disable_description": "Kontoen din vil bare være beskyttet av passordet ditt. Du kan slå på 2FA igjen når som helst.",
+            "status": "Status",
+            "enabled": "Aktivert",
+            "disabled": "Deaktivert",
+            "off_title": "Tofaktorautentisering er av",
+            "off_description": "Slå den på for å kreve en 6-sifret kode ved innlogging.",
+            "enable": "Aktiver tofaktor",
+            "finish_setup_title": "Fullfør oppsett",
+            "finish_setup_description": "Skann QR-koden med autentiseringsappen din, og skriv deretter inn den 6-sifrede koden for å bekrefte.",
+            "loading_qr": "Laster QR-kode…",
+            "secret_manual": "Eller skriv inn denne hemmeligheten manuelt",
+            "confirmation_code": "Bekreftelseskode",
+            "confirm": "Bekreft",
+            "cancel_setup": "Avbryt oppsett",
+            "recovery_title": "Gjenopprettingskoder",
+            "recovery_description": "Lagre disse engangskodene et trygt sted. Hver kode kan låse opp kontoen din hvis du mister autentiseringsappen.",
+            "loading_codes": "Laster gjenopprettingskoder…",
+            "show_codes": "Vis gjenopprettingskoder",
+            "regenerate_codes": "Regenerer koder",
+            "disable": "Deaktiver tofaktor"
+        },
+        "social": {
+            "heading": "Sosiale kontoer",
+            "description": "Koble til Google, Microsoft eller Slack for å logge inn med ett klikk og holde kontoene dine synkronisert.",
+            "connected_since": "Tilkoblet siden {date}",
+            "connected": "Tilkoblet",
+            "not_connected": "Ikke tilkoblet",
+            "disconnect": "Koble fra",
+            "connect": "Koble til",
+            "disconnect_title": "Koble fra {provider}?",
+            "disconnect_description": "Du vil ikke kunne logge inn med {provider} før du kobler til igjen."
+        }
+    }
+}

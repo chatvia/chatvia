@@ -21,7 +21,7 @@ defineProps<{
     <CardContent class="p-3 min-w-[180px] flex flex-col gap-1">
       <div v-for="(item, key) in data" :key="key" class="flex justify-between">
         <div class="flex items-center">
-          <span class="w-2.5 h-2.5 mr-2">
+          <span class="w-2.5 h-2.5 me-2">
             <svg width="100%" height="100%" viewBox="0 0 30 30">
               <path
                 d=" M 15 15 m -14, 0 a 14,14 0 1,1 28,0 a 14,14 0 1,1 -28,0"
@@ -33,7 +33,7 @@ defineProps<{
           </span>
           <span>{{ item.name }}</span>
         </div>
-        <span class="font-semibold ml-4">{{ item.value }}</span>
+        <span class="font-semibold ms-4">{{ item.value }}</span>
       </div>
     </CardContent>
   </Card>

@@ -1,0 +1,59 @@
+{
+    "account": {
+        "passkeys": {
+            "name_required": "Giv din adgangsnøgle et navn først.",
+            "register_error": "Kunne ikke registrere adgangsnøgle.",
+            "never": "Aldrig",
+            "delete_aria": "Slet adgangsnøgle",
+            "name_placeholder": "MacBook Pro, iPhone, YubiKey…",
+            "heading": "Adgangsnøgler",
+            "description": "Log ind med dit fingeraftryk, dit ansigt eller en sikkerhedsnøgle — ingen adgangskode nødvendig.",
+            "add_passkey": "Tilføj adgangsnøgle",
+            "no_passkeys": "Ingen adgangsnøgler endnu",
+            "no_passkeys_hint": "Tilføj en adgangsnøgle for at logge hurtigere ind på denne enhed.",
+            "last_used": "Sidst brugt",
+            "created": "Oprettet",
+            "dialog_title": "Navngiv din adgangsnøgle",
+            "dialog_description": "Vælg et navn, så du kan skelne dine adgangsnøgler fra hinanden senere.",
+            "register": "Registrer adgangsnøgle",
+            "delete_title": "Slet denne adgangsnøgle?",
+            "delete_description": "{name} vil ikke længere kunne bruges til at logge ind. Dette kan ikke fortrydes."
+        },
+        "two_factor": {
+            "heading": "To-faktor-godkendelse",
+            "description": "Kræv en 6-cifret kode fra en godkendelsesapp ved login ud over din adgangskode.",
+            "disable_title": "Deaktiver to-faktor-godkendelse?",
+            "disable_description": "Din konto vil kun være beskyttet af din adgangskode. Du kan slå 2FA til igen når som helst.",
+            "status": "Status",
+            "enabled": "Aktiveret",
+            "disabled": "Deaktiveret",
+            "off_title": "To-faktor-godkendelse er slået fra",
+            "off_description": "Slå den til for at kræve en 6-cifret kode ved login.",
+            "enable": "Aktiver to-faktor",
+            "finish_setup_title": "Afslut opsætning",
+            "finish_setup_description": "Scan QR-koden med din godkendelsesapp, og indtast derefter den 6-cifrede kode for at bekræfte.",
+            "loading_qr": "Indlæser QR-kode…",
+            "secret_manual": "Eller indtast denne hemmelighed manuelt",
+            "confirmation_code": "Bekræftelseskode",
+            "confirm": "Bekræft",
+            "cancel_setup": "Annuller opsætning",
+            "recovery_title": "Gendannelseskoder",
+            "recovery_description": "Gem disse engangskoder et sikkert sted. Hver kode kan låse din konto op, hvis du mister din godkendelsesapp.",
+            "loading_codes": "Indlæser gendannelseskoder…",
+            "show_codes": "Vis gendannelseskoder",
+            "regenerate_codes": "Regenerer koder",
+            "disable": "Deaktiver to-faktor"
+        },
+        "social": {
+            "heading": "Sociale konti",
+            "description": "Tilslut Google, Microsoft eller Slack for at logge ind med ét klik og holde dine konti synkroniserede.",
+            "connected_since": "Tilsluttet siden {date}",
+            "connected": "Tilsluttet",
+            "not_connected": "Ikke tilsluttet",
+            "disconnect": "Afbryd forbindelse",
+            "connect": "Tilslut",
+            "disconnect_title": "Afbryd forbindelsen til {provider}?",
+            "disconnect_description": "Du kan ikke logge ind med {provider}, før du tilslutter det igen."
+        }
+    }
+}

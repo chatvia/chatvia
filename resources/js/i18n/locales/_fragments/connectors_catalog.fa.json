@@ -1,0 +1,134 @@
+{
+    "connectors": {
+        "categories": {
+            "utilities": "ابزارهای کاربردی",
+            "sales": "فروش",
+            "payments": "پرداخت‌ها",
+            "developer_tools": "ابزارهای توسعه‌دهنده",
+            "productivity": "بهره‌وری",
+            "communication": "ارتباطات",
+            "automation": "اتوماسیون",
+            "analytics": "تحلیل‌ها"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "جستجوی وب زنده با Perplexity Sonar — اخبار، قیمت‌ها، رویدادهای اخیر — با منابع ارجاع‌داده‌شده.",
+                "token_label": "کلید API پرپلکسیتی",
+                "token_placeholder": "کلید API پرپلکسیتی شما"
+            },
+            "weather": {
+                "name": "آب‌وهوا",
+                "description": "آب‌وهوای زنده (دما، شرایط جوی، رطوبت، باد) برای هر شهری، با استفاده از OpenWeatherMap.",
+                "token_label": "کلید API اوپن‌ودرمپ",
+                "token_placeholder": "کلید API OpenWeatherMap شما"
+            },
+            "currency": {
+                "name": "مبدل ارز",
+                "description": "تبدیل مبالغ بین هر دو ارز با استفاده از نرخ‌های تبادل جاری (exchangerate-api).",
+                "token_label": "کلید ExchangeRate-API",
+                "token_placeholder": "کلید ExchangeRate-API شما"
+            },
+            "charts": {
+                "name": "نمودارهای تعاملی",
+                "description": "نمایش نمودارهای تعاملی به‌صورت درون‌خطی در چت — میله‌ای، خطی، دایره‌ای، پراکندگی، رادار، گیج، نقشه حرارتی و موارد بیشتر."
+            },
+            "leads": {
+                "name": "سرنخ‌ها",
+                "description": "ثبت اطلاعات تماس بازدیدکننده (نام، ایمیل، تلفن و موارد دیگر)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "جستجوی تراکنش‌ها، مشتریان، محصولات و پرداخت‌ها در حساب Stripe شما."
+            },
+            "github": {
+                "name": "GitHub",
+                "description": "مشاهده مخازن، مشکلات، درخواست‌های pull و کد از هر حسابی که به آن دسترسی دارید."
+            },
+            "notion": {
+                "name": "Notion",
+                "description": "مشاهده صفحات، پایگاه‌های داده و نظرات از فضای کاری Notion شما."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "جستجوی مشکلات، پروژه‌ها و چرخه‌ها در سراسر فضای کاری Linear شما."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "مشکلات Jira، صفحات Confluence و گردش‌کارها از سایت‌های Atlassian شما."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "جستجوی پیام‌ها، مشاهده رشته‌های گفتگو و نوشتن پاسخ از صندوق ورودی Gmail شما."
+            },
+            "google-calendar": {
+                "name": "Google Calendar",
+                "description": "مشاهده و ایجاد رویدادها در تقویم‌های Google شما."
+            },
+            "google-drive": {
+                "name": "Google Drive",
+                "description": "مشاهده فایل‌ها و پوشه‌ها از Google Drive شما."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "جستجوی پیام‌ها، ارسال پاسخ و مشاهده تاریخچه کانال در سراسر فضای کاری Slack شما."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "امکان رزرو جلسه توسط بازدیدکنندگان در Calendly شما و مشاهده رویدادهای برنامه‌ریزی‌شده توسط عامل‌ها."
+            },
+            "todoist": {
+                "name": "Todoist",
+                "description": "مدیریت وظایف، پروژه‌ها و برچسب‌ها در حساب Todoist شما."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "فعال‌سازی اقدامات Zapier در بیش از ۹٬۰۰۰ برنامه متصل."
+            },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "مشاهده تیکت‌ها، کاربران و مقالات مرکز راهنمایی از حساب Zendesk Support شما.",
+                "token_label": "توکن API زندسک",
+                "token_placeholder": "توکن API Zendesk شما"
+            },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "مشاهده و به‌روزرسانی مخاطبین، شرکت‌ها، معاملات و تیکت‌ها در CRM HubSpot شما."
+            },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "مشاهده و به‌روزرسانی حساب‌ها، مخاطبین، فرصت‌ها و پرونده‌ها از سازمان Salesforce شما."
+            },
+            "box": {
+                "name": "Box",
+                "description": "جستجو و مشاهده فایل‌ها، پوشه‌ها و متادیتا از حساب Box شما."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "مشاهده و به‌روزرسانی وظایف، پروژه‌ها و پورتفولیوها در سراسر فضای کاری Asana شما."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "مشاهده مشکلات، خطاها و نسخه‌ها از پروژه‌های Sentry شما."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "جستجوی رونوشت جلسات، خلاصه‌ها و اقدامات لازم از Fireflies.ai."
+            },
+            "amplitude": {
+                "name": "Amplitude",
+                "description": "پرس‌وجوی تحلیل‌های محصول — رویدادها، نمودارها و کوهورت‌ها — از پروژه Amplitude شما."
+            }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "تحلیل‌های حساب",
+                "description": "پاسخ به سوالات عددی صاحب فضای کاری درباره حساب خود — پیام‌ها، مکالمات، کاربران، کانال‌ها، سرنخ‌ها، رضایت‌مندی، زمان پاسخ، موضوعات و تحویل‌ها."
+            },
+            "charts": {
+                "name": "نمودارهای تعاملی",
+                "description": "نمایش نمودارهای تعاملی (میله‌ای، خطی، دایره‌ای، گیج، پراکندگی، رادار، نقشه حرارتی، …) به‌صورت درون‌خطی در چت."
+            }
+        }
+    }
+}

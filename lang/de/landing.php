@@ -1,0 +1,344 @@
+<?php
+
+// Public marketing homepage (resources/views/landing/*). English is the source of
+// truth and the default locale, so this file mirrors the copy shown on the site —
+// keep it in sync with lang/ar/landing.php (same keys).
+
+return [
+
+    'meta' => [
+        'title' => 'ChatVia — GDPR-native KI-Agenten, in der EU gehostet | Keine US-Datenverarbeitung',
+        'description' => 'Erstellen Sie No-Code-KI-Agenten, trainiert auf Ihren Daten, die in Ihren Tools handeln — vollständig in der EU gehostet, GDPR-konform, ohne US-Datenverarbeitung und ohne US-Unterauftragsverarbeiter. Jetzt kostenlos starten.',
+        'og_title' => 'ChatVia — GDPR-native KI-Agenten, in der EU gehostet',
+        'og_description' => 'No-Code-KI-Agenten, trainiert auf Ihren Daten, die Meetings buchen, Workflows auslösen und in Ihren Tools handeln — gehostet in der EU (Deutschland & Frankreich), GDPR ab Werk, mit DPA in jedem Tarif.',
+    ],
+
+    'nav' => [
+        'home' => 'Startseite',
+        'features' => 'Funktionen',
+        'pricing' => 'Preise',
+        'mission' => 'Mission',
+        'security' => 'Sicherheit',
+        'dpa' => 'DPA',
+        'dashboard' => 'Dashboard',
+        'logout' => 'Abmelden',
+        'login' => 'Anmelden',
+        'get_started' => 'Jetzt starten',
+        'menu' => 'Menü',
+        'language' => 'Sprache',
+    ],
+
+    'hero' => [
+        'badges' => [
+            'gdpr' => 'GDPR',
+            'eu_hosted' => 'EU-gehostet',
+            'encrypted' => 'Verschlüsselte Daten',
+        ],
+        'title_line1' => 'KI-Agenten,',
+        'title_make' => 'die nie die EU',
+        'title_minutes' => 'verlassen',
+        'subtitle' => 'KI-Agenten, trainiert auf Ihren Daten, die Meetings buchen, Workflows auslösen und in Ihren Tools handeln — vollständig in Europa gehostet, ohne dass Ihre Daten je den Atlantik überqueren.',
+        'no_code' => 'Kein Code, keine Entwickler.',
+        'eu_hosting' => 'In der EU gehostet · GDPR ab Werk · Keine US-Unterauftragsverarbeiter · DPA inklusive',
+        'gdpr_alt' => 'GDPR-konform',
+        'region' => 'Gespeichert & verarbeitet in der EU — Deutschland & Frankreich',
+        'cta' => 'Kostenlose Testversion starten',
+        'cta_secondary' => '15-Minuten-Demo buchen',
+        'cta_note' => 'Keine Kreditkarte erforderlich.',
+    ],
+
+    'trust' => [
+        'section_title' => 'Ihre Daten verlassen Europa nie',
+        'section_subtitle' => 'US-gehostete KI-Tools leiten die Daten Ihrer Kunden über amerikanische Infrastruktur — und setzen sie dem US CLOUD Act aus. ChatVia läuft vollständig in der EU und tut das nie.',
+        'eu_title' => 'Ihre Daten verlassen die EU nie',
+        'eu_desc' => 'EU-basierte Infrastruktur, mit Verarbeitung und Speicherung ausschließlich innerhalb der Grenzen der Europäischen Union — Deutschland und Frankreich.',
+        'eu_badge_gdpr' => 'GDPR-konform',
+        'eu_badge_union' => 'Europäische Union',
+        'oss_title' => 'Modernste Open-Source-Modelle',
+        'oss_desc' => 'Angetrieben von führenden Open-Weight-Modellen auf EU-Infrastruktur. Kein Vendor-Lock-in, keine US-Modellanbieter.',
+        'oss_badge' => 'Open Source',
+        'bullet_residency_title' => 'EU-Datenresidenz',
+        'bullet_residency_desc' => 'Speicherung und Verarbeitung bleiben in Deutschland und Frankreich. Keine transatlantischen Übertragungen.',
+        'bullet_subprocessors_title' => 'Keine US-Unterauftragsverarbeiter',
+        'bullet_subprocessors_desc' => 'Ihre Daten werden niemals an einen US-Cloud-Anbieter weitergegeben.',
+        'bullet_dpa_title' => 'DPA in jedem Tarif',
+        'bullet_dpa_desc' => 'In Minuten unterzeichnet und Ihrem Datenschutzbeauftragten übergeben.',
+        'link_security' => 'Unsere Sicherheitsübersicht lesen',
+        'link_dpa' => 'DPA ansehen',
+    ],
+
+    'comparison' => [
+        'eyebrow' => 'Datensouveränität',
+        'title' => 'ChatVia vs. US-gehostete KI',
+        'subtitle' => 'Dieselben agentischen Fähigkeiten. Eine grundlegend andere Antwort auf die eine Frage, die Ihren Datenschutzbeauftragten interessiert: Wohin gehen die Daten?',
+        'col_chatvia' => 'ChatVia',
+        'col_us' => 'Typisches US-gehostetes KI-Tool',
+        'rows' => [
+            'residency' => ['label' => 'Datenresidenz', 'ours' => 'Deutschland & Frankreich', 'theirs' => 'USA / global'],
+            'cloud_act' => ['label' => 'US-CLOUD-Act-Risiko', 'ours' => 'Keines', 'theirs' => 'Ja'],
+            'dpa' => ['label' => 'DPA', 'ours' => 'Enterprise-Tarif', 'theirs' => 'Zusatz oder nur Enterprise'],
+            'subprocessors' => ['label' => 'US-Unterauftragsverarbeiter', 'ours' => 'Keine', 'theirs' => 'Üblich'],
+            'ai_models' => ['label' => 'KI-Modelle', 'ours' => 'EU-gehostet', 'theirs' => 'US-gehostet'],
+            'agentic' => ['label' => 'Agentische Aktionen (MCP, Tools)', 'ours' => 'Ja', 'theirs' => 'Manchmal'],
+            'governance' => ['label' => 'Governance (Audit, Evals, Guardrails)', 'ours' => 'Standardmäßig integriert', 'theirs' => 'Oft nur Enterprise'],
+        ],
+    ],
+
+    'integrations' => [
+        'eyebrow' => 'Erweitern Sie Ihren Agenten',
+        'title' => 'Direkte Integrationen mit',
+        'title_highlight' => 'Ihren bevorzugten Tools',
+        'subtitle' => 'Verbinden Sie Ihren Agenten mit Slack, HubSpot, Salesforce und über 20 weiteren Tools über MCP und benutzerdefinierte Funktionen',
+    ],
+
+    'channels' => [
+        'eyebrow' => 'Überall präsent',
+        'title' => 'Ein Agent, alle Kanäle',
+        'subtitle' => 'Stellen Sie denselben Agenten auf Telegram, WhatsApp, Slack, Messenger, Microsoft Teams und Instagram bereit.',
+    ],
+
+    'features_bar' => [
+        'train_on_data' => 'Mit Ihren Daten trainieren',
+        'live_in_minutes' => 'In Minuten live',
+        'tool_calling' => 'Tool-Calling',
+        'chat_with_data' => 'Mit Ihren Daten chatten',
+        'white_label' => 'White-Label',
+        'deploy_anywhere' => 'Überall deployen',
+        'custom_functions' => 'Eigene Funktionen',
+        'mcp_servers' => 'MCP-Server',
+        'prev' => 'Vorherige Funktionen',
+        'next' => 'Nächste Funktionen',
+    ],
+
+    'cards' => [
+        'header_title' => 'Ihre Daten. Ihre Tools. Ihre Agenten.',
+        'header_subtitle' => 'Trainieren Sie ihn auf Ihren Daten, verbinden Sie ihn mit Ihren Tools und sehen Sie genau, was in jedem Gespräch passiert — mit Ihrem Team und Ihren Kunden.',
+        'card1_title' => 'Auf eigenen Daten trainieren',
+        'card1_desc' => 'Laden Sie Dateien hoch, crawlen Sie Ihre Website oder fügen Sie Q&A-Paare und Videos hinzu. Ihr Agent antwortet aus Ihren Inhalten und bleibt aktuell, wenn sich diese ändern.',
+        'card2_title' => 'Handelt in Ihren Tools',
+        'card2_desc' => 'Ihr Agent antwortet nicht nur — er bucht Meetings, prüft Lagerbestände und erstellt Tickets, indem er Ihre Tools und APIs über MCP-Server und benutzerdefinierte Funktionen aufruft.',
+        'card3_title' => 'Umfassendes Reporting',
+        'card3_desc' => 'Themen, Stimmung und Nutzung über alle Gespräche hinweg. Sehen Sie, was die Nutzer fragen, wie der Agent antwortet und wo Verbesserungspotenzial besteht.',
+        'sources' => 'Quellen',
+        'add_source' => '+ Quelle hinzufügen',
+        'trained' => 'Trainiert',
+        'training' => 'Training läuft',
+        'done' => 'Fertig',
+        'online' => 'Online',
+        'demo_pages' => '12 Seiten · synchronisiert vor 2 Std.',
+        'demo_crawled' => '128 Seiten gecrawlt',
+        'demo_product_faq' => 'Produkt-FAQ',
+        'demo_book' => 'Buchen Sie mir eine Demo für Dienstagnachmittag.',
+        'demo_booking' => 'Demo wird gebucht · Di 15:00 Uhr',
+        'demo_booked' => 'Fertig — Sie sind für Dienstag um 15:00 Uhr gebucht.',
+        'demo_topics' => 'Themen',
+        'last_7_days' => 'Letzte 7 Tage',
+        'demo_account_setup' => 'Kontoeinrichtung',
+        'demo_positive' => '94 % Positiv',
+        'demo_negative' => '4 % Negativ',
+    ],
+
+    'showcase' => [
+        'title' => 'Erleben Sie es in Aktion',
+        'subtitle' => 'Echte Screenshots aus dem Produkt — vom ersten Einbinden bis zum Audit-Trail.',
+        'tabs' => [
+            'widget' => [
+                'tab_name' => 'Chat-Widget',
+                'title' => 'Deployen Sie Ihren Agenten überall',
+                'description' => 'Binden Sie ihn als Widget ein, teilen Sie ihn als vollständig gehosteten Chat, integrieren Sie eine ⌘K-Befehlsleiste oder erreichen Sie Nutzer auf Telegram und Slack. Derselbe Agent überall — antwortet aus Ihren Daten und Ihren Tools, hier mit Live-Nachrichten aus dem Web mitten im Gespräch.',
+            ],
+            'connectors' => [
+                'tab_name' => 'Konnektoren',
+                'title' => 'Verbinden Sie Ihren Agenten mit Ihren Tools',
+                'description' => 'Ein Klick verbindet Perplexity-Websuche, Slack, Gmail, Stripe und über 25 weitere Tools per MCP. Ihr Agent hört auf zu antworten und fängt an zu handeln.',
+            ],
+            'control_panel' => [
+                'tab_name' => 'Kontrollzentrum',
+                'title' => 'Alle Agenten an einem Ort verwalten',
+                'description' => 'Erstellen und betreiben Sie alle Ihre KI-Agenten über ein einziges Dashboard. Konfigurieren Sie das Verhalten, verbinden Sie Tools, wählen Sie Modelle und kontrollieren Sie jeden Agenten in Ihrem Workspace.',
+            ],
+            'inbox' => [
+                'tab_name' => 'Posteingang',
+                'title' => 'Vollständiger Gesprächsverlauf',
+                'description' => 'Prüfen Sie jedes Gespräch mit Stimmung, Thema und Herkunftsland auf einen Blick. Entdecken Sie Lücken in Ihren Daten, greifen Sie per Live-Handoff ein und verbessern Sie Ihren Agenten dort, wo es darauf ankommt.',
+            ],
+            'pulse' => [
+                'tab_name' => 'Pulse',
+                'title' => 'Den Puls jedes Gesprächs spüren',
+                'description' => 'Jedes Gespräch erhält einen Pulse — wie es begann, wie es endete und wo der Höhepunkt lag. Erkennen Sie frustrierte Nutzer, bevor sie aufgeben — nicht danach.',
+            ],
+            'analytics' => [
+                'tab_name' => 'Analytics',
+                'title' => 'Analytics & Einblicke',
+                'description' => 'Verfolgen Sie Nutzung, Stimmung, Tonalität und Themen in allen Gesprächen. Sehen Sie genau, wie Ihre Agenten performen, und treffen Sie datengestützte Entscheidungen zur Verbesserung.',
+            ],
+            'governance' => [
+                'tab_name' => 'Governance',
+                'title' => 'Jeder Tool-Aufruf, lückenlos dokumentiert',
+                'description' => 'Ein unveränderliches Audit-Log jeder Aktion Ihrer Agenten — welches Tool, welche Argumente, welches Ergebnis, wie schnell. Standardmäßig compliance-bereit.',
+            ],
+            'leads' => [
+                'tab_name' => 'Leads',
+                'title' => 'Leads im Gespräch erfassen',
+                'description' => 'Lassen Sie Ihren Agenten Leads mitten im Gespräch erfassen und qualifizieren, und übertragen Sie sie dann über einen MCP-Server oder eine benutzerdefinierte Funktion in Ihr CRM.',
+            ],
+        ],
+    ],
+
+    'steps' => [
+        'title' => 'Von der Idee zum Live-Agenten in Minuten',
+        'create_title' => 'Erstellen',
+        'create_desc' => 'Erstellen Sie einen Agenten per Klick — geben Sie ihm einen Namen, wählen Sie ein Modell und legen Sie die Deployment-Art fest.',
+        'train_title' => 'Trainieren & verbinden',
+        'train_desc' => 'Trainieren Sie ihn auf Ihren Daten — laden Sie Dokumente hoch, crawlen Sie Ihre Website und verbinden Sie MCP-Server und benutzerdefinierte Funktionen, damit er in Ihren Tools handeln kann.',
+        'deploy_title' => 'Deployen',
+        'deploy_desc' => 'Deployen Sie überall — binden Sie ihn ein, teilen Sie einen gehosteten Link oder rufen Sie ihn aus Ihrer App auf. Ihr Agent ist live und arbeitet in Ihren bestehenden Tools.',
+    ],
+
+    'pricing' => [
+        'heading' => 'Preise',
+        'residency_note' => 'Jeder Tarif: EU-gehostet · GDPR ab Werk · keine US-Datenverarbeitung',
+        'regulated_teams' => 'Für regulierte Teams',
+        'pay_monthly' => 'Monatlich zahlen',
+        'pay_yearly' => 'Jährlich zahlen',
+        'per_month' => '/Monat',
+        'billed_yearly_at' => 'Jährlich abgerechnet zu',
+        'custom' => 'Individuell',
+        'unlimited' => 'Unbegrenzt',
+        'lets_talk' => 'Sprechen wir',
+        'contact_sales' => 'Vertrieb kontaktieren',
+        'start_free_trial' => 'Kostenlose Testversion starten',
+        'comparison_caption' => 'Vergleich der Preispläne',
+        'price_sr' => 'Preis',
+        'days' => 'Tage',
+        'included_in' => 'Enthalten in :plan',
+        'not_included_in' => 'Nicht enthalten in :plan',
+        'what_is' => 'Was ist :label?',
+        'groups' => [
+            'usage' => 'Nutzung',
+            'features' => 'Funktionen',
+            'security_support' => 'Sicherheit & Support',
+        ],
+        'rows' => [
+            'messages' => 'Nachrichten / Monat',
+            'agents' => 'KI-Agenten',
+            'pages' => 'Wissensseiten',
+            'links' => 'Website-Links',
+            'minutes' => 'Audio-/Videominuten',
+            'team_members' => 'Teammitglieder',
+            'teams' => 'Teams',
+            'chat_history' => 'Gesprächsverlauf',
+            'sentiment' => 'Stimmungsanalyse',
+            'tone' => 'Tonalitätsanalyse',
+            'topics' => 'Themenanalyse',
+            'pulse' => 'Conversation Pulse',
+            'handoff' => 'Übergabe an Menschen',
+            'api' => 'API-Zugang',
+            'mcp' => 'MCP',
+            'function_calling' => 'Function Calling',
+            'integrations' => 'Individuelle Integrationen',
+            'white_label' => 'White-Label (Branding entfernen)',
+            'sso' => 'SSO / SAML',
+            'sla' => 'Verfügbarkeits-SLA',
+            'support' => 'Dedizierter Support',
+            'dpa' => 'Individueller Vertrag & DPA',
+        ],
+        'tips' => [
+            'chat_history' => 'Wie lange jedes Gespräch gespeichert wird, bevor es automatisch gelöscht wird.',
+            'sentiment' => 'Erkennt automatisch, ob ein Gespräch positiv, neutral oder negativ verlaufen ist.',
+            'tone' => 'Liest die emotionale Tonalität eines Chats, damit Ihre Antworten stets markenkonform bleiben.',
+            'topics' => 'Gruppiert Gespräche nach Themen, damit Sie sehen, worüber die Nutzer am häufigsten sprechen.',
+            'pulse' => 'Ein Live-Gesundheitsscore für jedes Gespräch, der Stimmung und Tonalität kombiniert, um Chats zu markieren, die Aufmerksamkeit benötigen.',
+            'handoff' => 'Ermöglicht es einem menschlichen Agenten, während eines Live-Chats einzuspringen und die KI zu übernehmen.',
+            'api' => 'Verbinden Sie Chatvia über unsere API mit Ihren eigenen Apps und Workflows.',
+            'mcp' => 'Verbinden Sie externe Tools und Daten über das Model Context Protocol mit Ihrem Agenten.',
+            'function_calling' => 'Lassen Sie Ihren Agenten eigene Funktionen und Webhooks aufrufen, um während eines Chats Aktionen auszuführen.',
+            'integrations' => 'Binden Sie Ihre eigenen Tools und Dienste ein, um die Möglichkeiten Ihrer Agenten zu erweitern.',
+            'white_label' => 'Blenden Sie den "Powered by Chatvia"-Badge in Ihrem Widget und auf Chat-Seiten aus.',
+            'sso' => 'Ermöglichen Sie Ihrem Team die Anmeldung über Ihren Unternehmens-Identitätsanbieter, z. B. Okta oder Azure AD.',
+            'sla' => 'Eine schriftliche Garantie für die Verfügbarkeit des Dienstes.',
+            'support' => 'Ein fester Ansprechpartner und schnellere Reaktionszeiten für Ihr Team.',
+            'dpa' => 'Ein maßgeschneiderter Vertrag und Datenverarbeitungsbedingungen für Ihre Rechtsabteilung.',
+        ],
+    ],
+
+    'faqs' => [
+        'heading' => 'Häufig gestellte Fragen',
+        'subtitle' => 'Alles, was Sie über den Aufbau von KI-Agenten mit Chatvia wissen müssen.',
+        'still_questions' => 'Noch Fragen?',
+        'talk_to_ai' => 'Mit unserer KI sprechen',
+        'items' => [
+            'what' => [
+                'question' => 'Was ist Chatvia?',
+                'answer' => 'Chatvia ist eine B2B-Plattform zum Aufbau und Training eigener KI-Agenten auf Ihren Daten. Ihre Agenten antworten aus Ihrem Wissen und handeln in Ihren Tools — verbinden Sie MCP-Server, rufen Sie Ihre APIs mit eigenen Funktionen auf und deployen Sie überall.',
+            ],
+            'support_bot' => [
+                'question' => 'Ist Chatvia nur ein Support-Chatbot?',
+                'answer' => 'Nein. Chatvia dient dem Aufbau von KI-Agenten für jeden Workflow — interne Wissensassistenten, Recherche-Tools, Datenlookups, Buchungs- und Bestellprozesse und mehr. Kundensupport ist ein Anwendungsfall, den Sie abbilden können — nicht das gesamte Produkt.',
+            ],
+            'apis' => [
+                'question' => 'Können meine Agenten unsere APIs und Tools aufrufen?',
+                'answer' => 'Ja. Definieren Sie benutzerdefinierte Funktionen (Webhooks), damit ein Agent jeden HTTP-Endpunkt aufrufen kann, und verbinden Sie MCP-Server, um ihm ganze Toolsets auf einmal bereitzustellen. Der Agent entscheidet während eines Gesprächs selbst, wann er sie aufruft, um Daten abzurufen oder Aktionen auszuführen.',
+            ],
+            'mcp' => [
+                'question' => 'Was ist MCP und kann ich eigene Server verbinden?',
+                'answer' => 'MCP (Model Context Protocol) ist ein offener Standard, um Agenten mit Tools auszustatten. Sie können jeden Remote-MCP-Server in Sekunden verbinden und festlegen, welche Tools jeder Agent verwenden darf — einschließlich Ihrer eigenen internen Server.',
+            ],
+            'training' => [
+                'question' => 'Was bedeutet Training?',
+                'answer' => 'Training leitet Ihre Daten durch eine Retrieval-Pipeline (RAG), damit der Agent sie versteht und aus Ihren echten Inhalten antwortet, anstatt zu raten. Wir trainieren niemals Drittanbieter-Modelle auf Ihren Daten, sodass diese privat bleiben.',
+            ],
+            'sources' => [
+                'question' => 'Kann ich auf meiner Website, Dokumenten, Audio und Video trainieren?',
+                'answer' => 'Ja. Laden Sie Dokumente hoch (PDF, Word, Text), crawlen Sie Ihre Website oder verbinden Sie Datenquellen — Audio und Video werden automatisch transkribiert. Ihr Agent lernt aus Ihren Inhalten und bleibt aktuell, wenn sich diese ändern.',
+            ],
+            'models' => [
+                'question' => 'Welche KI-Modelle verwendet Chatvia?',
+                'answer' => 'Sie können für jeden Agenten das beste Modell wählen und jederzeit wechseln.',
+            ],
+            'agent_count' => [
+                'question' => 'Wie viele KI-Agenten kann ich erstellen?',
+                'answer' => 'Das hängt von Ihrem Tarif ab. Im Preisbereich finden Sie die Anzahl der in jedem Tarif enthaltenen Agenten.',
+            ],
+            'white_label' => [
+                'question' => 'Kann ich meine Agenten anpassen und white-labeln?',
+                'answer' => 'Ja. Passen Sie Namen, Persona, Branding und Logo jedes Agenten an und stellen Sie ihn auf Ihrer eigenen Domain für ein vollständiges White-Label-Erlebnis bereit.',
+            ],
+            'security' => [
+                'question' => 'Sind meine Daten sicher und privat?',
+                'answer' => 'Chatvia ist GDPR-konform, in der EU gehostet und verwendet Sicherheit auf Enterprise-Niveau. Wir trainieren niemals Drittanbieter-Modelle auf Ihren Daten, und Ihre Dokumente und Gespräche bleiben privat und verschlüsselt.',
+            ],
+            'team' => [
+                'question' => 'Bieten Sie Teamzusammenarbeit an?',
+                'answer' => 'Ja. Alle Tarife beinhalten Teamzusammenarbeit — laden Sie Teammitglieder ein und teilen Sie Agenten im gesamten Team.',
+            ],
+            'payment' => [
+                'question' => 'Welche Zahlungsmethoden akzeptieren Sie?',
+                'answer' => 'Wir akzeptieren alle gängigen Kreditkarten (Visa, MasterCard, American Express) und PayPal, sicher verarbeitet über Stripe. Upgrade, Downgrade oder Kündigung jederzeit möglich.',
+            ],
+        ],
+    ],
+
+    'cta' => [
+        'headline_pre' => 'Starten Sie Ihren ersten KI-Agenten in',
+        'headline_highlight' => 'Minuten',
+        'description' => 'Erstellen Sie Agenten, die auf Ihren Daten trainiert sind, MCP-Server verbinden, Ihre APIs aufrufen und in Ihren bestehenden Tools handeln — kein Code, keine Entwickler.',
+        'button' => 'Kostenlose Testversion starten',
+        'talk_to_ai' => 'Mit unserer KI sprechen',
+    ],
+
+    'footer' => [
+        'terms' => 'Nutzungsbedingungen',
+        'privacy' => 'Datenschutz',
+        'refund' => 'Rückerstattungsrichtlinie',
+        'subprocessors' => 'Unterauftragsverarbeiter',
+        'made_with_love' => 'Made with ❤️ in Denmark',
+    ],
+
+    'cookie_banner' => [
+        'message' => 'Wir verwenden ausschließlich notwendige Cookies, damit die Website funktioniert. Keine Tracking-Cookies.',
+        'accept' => 'Verstanden',
+        'privacy' => 'Datenschutzrichtlinie',
+    ],
+
+];

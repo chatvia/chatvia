@@ -1,0 +1,232 @@
+{
+    "teams": {
+        "permissions_meta": {
+            "scopes": {
+                "agent": {
+                    "label": "Agentin oikeudet",
+                    "description": "Mitä tämä rooli voi tehdä kussakin agentissa, johon sillä on pääsy. Nämä toiminnot koskevat yksittäistä agenttia — valittu yllä olevasta Agentin käyttöoikeuslistasta."
+                },
+                "account": {
+                    "label": "Tilin oikeudet",
+                    "description": "Jaetut, koko tiliä koskevat työkalut ja asetukset. Nämä koskevat kaikkia agentteja kerralla ja niitä hallitaan Asetukset-valikosta."
+                }
+            },
+            "groups": {
+                "setup": {
+                    "label": "Asetukset",
+                    "description": "Muokkaa agenttia itse — persoonallisuus, mallit, widget, upotus."
+                },
+                "sources": {
+                    "label": "Lähteet",
+                    "description": "Hallitse koulutusaineistoa, josta agentti oppii."
+                },
+                "chat": {
+                    "label": "Chat",
+                    "description": "Lue, ota haltuun, vie tai poista aktiivisia keskusteluja."
+                },
+                "audit": {
+                    "label": "Tarkistus",
+                    "description": "Tarkastele työkalukutsujen tarkistuslokia (työkalut, yhdistimet, hyväksynnät)."
+                },
+                "evals": {
+                    "label": "Arvioinnit",
+                    "description": "Testaa agentti testipaketissa ja seuraa läpäisyprosenttia ajan mittaan."
+                },
+                "guardrails": {
+                    "label": "Turvarajat",
+                    "description": "Tekoälyturvallisuuden suojat: henkilötiedot, kehotteen injektio, estetyt aiheet, toksisuus."
+                },
+                "analytics": {
+                    "label": "Analytiikka",
+                    "description": "Tarkastele käyttöä, tunnelmaa, sävyä, aiheita ja lähteen suorituskykyä."
+                },
+                "topics": {
+                    "label": "Aiheet",
+                    "description": "Hallinnoi aiheita, joiden alle keskustelut ryhmitellään."
+                },
+                "leads": {
+                    "label": "Liidit",
+                    "description": "Tarkastele, määritä ja vie agentin keräämät liidit."
+                },
+                "administration": {
+                    "label": "Hallinto",
+                    "description": "Omistajan tasoiset agenttikohtaiset tehtävät — chatterit ja allekirjoitussalaisuus."
+                },
+                "security": {
+                    "label": "Tietoturva",
+                    "description": "Henkilökohtaiset tunnistetiedot julkisen API:n kutsumiseen."
+                },
+                "integrations": {
+                    "label": "Integraatiot",
+                    "description": "Yhdistä kolmannen osapuolen palvelut ja mukautetut webhook-funktiot, ja liitä ne mihin tahansa agenttiin."
+                },
+                "library": {
+                    "label": "Kirjasto",
+                    "description": "Koko tilissä jaetut uudelleenkäytettävät kehotteet."
+                },
+                "people": {
+                    "label": "Henkilöt",
+                    "description": "Hallinnoi chattereita, joille on myönnetty pääsy agentteihin."
+                },
+                "governance": {
+                    "label": "Hallintomalli",
+                    "description": "Tarkasta ja hallitse kaikkia toimia, joita agentit suorittavat työkalujen ja yhdistimien kautta."
+                }
+            },
+            "codes": {
+                "agents_access_all": {
+                    "label": "Pääsy kaikkiin agentteihin",
+                    "description": "Myönnä pääsy kaikkiin nykyisiin ja tuleviin tiimin agentteihin"
+                },
+                "agent_setup": {
+                    "label": "Agentin asetukset",
+                    "description": "Muokkaa agentin asetuksia, persoonallisuutta ja käyttäytymistä"
+                },
+                "agent_sources_train_files": {
+                    "label": "Kouluta tiedostoilla",
+                    "description": "Lataa ja käsittele asiakirjoja (PDF, Word jne.)"
+                },
+                "agent_sources_train_text": {
+                    "label": "Kouluta tekstillä",
+                    "description": "Lataa ja käsittele pelkkää tekstiä sisältäviä tiedostoja"
+                },
+                "agent_sources_train_qa": {
+                    "label": "Kouluta Q&A-pareilla",
+                    "description": "Lisää kysymys- ja vastauspareja"
+                },
+                "agent_sources_train_web": {
+                    "label": "Kouluta verkkosisällöllä",
+                    "description": "Indeksoi ja käsittele verkkosivuston sisältöä"
+                },
+                "agent_sources_train_audio": {
+                    "label": "Kouluta äänellä",
+                    "description": "Lataa ja litteroi äänitiedostoja"
+                },
+                "agent_sources_train_video": {
+                    "label": "Kouluta videolla",
+                    "description": "Lataa ja litteroi videotiedostoja"
+                },
+                "agent_sources_train_functions": {
+                    "label": "Hallinnoi funktioita",
+                    "description": "Määrittele LLM-työkalukutsut, jotka osuvat omiin webhook-päätepisteisiisi"
+                },
+                "agent_sources_train_connectors": {
+                    "label": "Hallinnoi yhdistimiä",
+                    "description": "Yhdistä kolmannen osapuolen palvelut (Stripe, GitHub, Notion, ...) reaaliaikaisiksi tietolähteiksi"
+                },
+                "agent_sources_delete": {
+                    "label": "Poista lähteet",
+                    "description": "Poista koulutuslähteet agentilta"
+                },
+                "agent_chat_view": {
+                    "label": "Tarkastele keskusteluja",
+                    "description": "Lue chat-historia ja keskusteluloki"
+                },
+                "agent_chat_pulse": {
+                    "label": "Keskustelun pulssi",
+                    "description": "Tarkastele reaaliaikaisia keskustelun terveysmittareita ja tunneurantaa"
+                },
+                "agent_chat_takeover": {
+                    "label": "Ota haltuun",
+                    "description": "Ota aktiivinen keskustelu haltuun tekoälyltä"
+                },
+                "agent_chat_delete": {
+                    "label": "Poista keskustelut",
+                    "description": "Poista keskusteluhistoria pysyvästi"
+                },
+                "agent_chat_export": {
+                    "label": "Vie keskustelut",
+                    "description": "Vie chat-historia CSV-muotoon tai muihin formaatteihin"
+                },
+                "agent_audit_view": {
+                    "label": "Tarkastele tarkistuslokia",
+                    "description": "Katso tämän agentin työkalukutsujen tarkistusloki"
+                },
+                "agent_evals_view": {
+                    "label": "Tarkastele arviointeja",
+                    "description": "Katso agentin arviointipaketit ja ajohistoria"
+                },
+                "agent_evals_manage": {
+                    "label": "Hallinnoi arviointeja",
+                    "description": "Luo testitapauksia ja aja arviointipaketteja"
+                },
+                "agent_guardrails_view": {
+                    "label": "Tarkastele turvarajoja",
+                    "description": "Katso tämän agentin tekoälyturvallisuusasetukset ja laukaisuloki"
+                },
+                "agent_guardrails_manage": {
+                    "label": "Hallinnoi turvarajoja",
+                    "description": "Määritä henkilötietojen, kehoteinjektioiden, aihe- ja toksisuussuojat"
+                },
+                "agent_analytics_chats": {
+                    "label": "Chat-analytiikka",
+                    "description": "Tarkastele keskustelumäärää ja trendejä"
+                },
+                "agent_analytics_sentiment": {
+                    "label": "Tunnelma",
+                    "description": "Tarkastele keskustelujen tunnelma-analyysia"
+                },
+                "agent_analytics_tone": {
+                    "label": "Sävyt",
+                    "description": "Tarkastele keskustelujen sävy-analyysia"
+                },
+                "agent_analytics_topics": {
+                    "label": "Aiheet",
+                    "description": "Tarkastele ja hallinnoi aiheita"
+                },
+                "agent_analytics_sources": {
+                    "label": "Lähteet",
+                    "description": "Tarkastele, mitkä lähteet esiintyvät vastauksissa"
+                },
+                "agent_topics_manage": {
+                    "label": "Hallinnoi aiheita",
+                    "description": "Luo, muokkaa ja poista keskusteluaiheita"
+                },
+                "agent_leads_view": {
+                    "label": "Tarkastele liidejä",
+                    "description": "Katso kerätyt liidien tiedot"
+                },
+                "agent_leads_settings": {
+                    "label": "Liidien asetukset",
+                    "description": "Määritä liidinkeräyslomakkeet ja -säännöt"
+                },
+                "agent_leads_export": {
+                    "label": "Vie liidit",
+                    "description": "Lataa liidit CSV-muodossa tai integroi CRM-järjestelmään"
+                },
+                "agent_members_manage": {
+                    "label": "Agentin chatterit",
+                    "description": "Kutsu, tarkastele ja poista chattereita, joille on myönnetty pääsy tähän agenttiin"
+                },
+                "agent_identity_manage": {
+                    "label": "Agentin henkilöllisyyden varmennus",
+                    "description": "Tarkastele ja käytä agenttikohtaista allekirjoitussalaisuutta kirjautumistunnuksia varten"
+                },
+                "account_api_keys": {
+                    "label": "API-avaimet",
+                    "description": "Luo ja peruuta henkilökohtaiset API-tunnukset"
+                },
+                "account_connectors": {
+                    "label": "Yhdistimet",
+                    "description": "Hallinnoi tilin tason kolmannen osapuolen yhdistimiä (MCP-palvelimet)"
+                },
+                "account_functions": {
+                    "label": "Funktiot",
+                    "description": "Määrittele webhook-funktiot, joita agentit voivat kutsua"
+                },
+                "account_prompts": {
+                    "label": "Kehotteet",
+                    "description": "Hallinnoi jaettua kehotekirjastoa"
+                },
+                "account_members_manage": {
+                    "label": "Chatterit",
+                    "description": "Tarkastele, nollaa salasana ja poista chattereita työtilassa"
+                },
+                "account_governance": {
+                    "label": "Hallintomalli",
+                    "description": "Tarkastele työkalukutsujen tarkistuslokia ja käyttöoikeuksien hallintaa"
+                }
+            }
+        }
+    }
+}

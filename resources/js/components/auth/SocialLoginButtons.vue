@@ -39,7 +39,7 @@ const go = (url: string) => {
 <template>
     <div class="grid grid-cols-2 gap-3">
         <Button type="button" variant="outline" class="h-12 w-full text-base font-medium" @click="go(googleHref)">
-            <svg class="mr-2 h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg class="me-2 h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                     fill="#4285F4"
@@ -61,7 +61,7 @@ const go = (url: string) => {
         </Button>
 
         <Button type="button" variant="outline" class="h-12 w-full text-base font-medium" @click="go(slackHref)">
-            <svg class="mr-2 h-5 w-5" viewBox="0 0 127 127" xmlns="http://www.w3.org/2000/svg">
+            <svg class="me-2 h-5 w-5" viewBox="0 0 127 127" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M27.2 80c0 7.3-5.9 13.2-13.2 13.2C6.7 93.2.8 87.3.8 80c0-7.3 5.9-13.2 13.2-13.2h13.2V80zm6.6 0c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2v33c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V80z"
                     fill="#E01E5A"
@@ -83,7 +83,7 @@ const go = (url: string) => {
         </Button>
 
         <Button v-if="showMicrosoft" type="button" variant="outline" class="h-12 w-full text-base font-medium" @click="go(microsoftHref)">
-            <svg class="mr-2 h-5 w-5" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+            <svg class="me-2 h-5 w-5" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
                 <path fill="#f25022" d="M1 1h10v10H1z" />
                 <path fill="#7fba00" d="M12 1h10v10H12z" />
                 <path fill="#00a4ef" d="M1 12h10v10H1z" />
@@ -93,7 +93,7 @@ const go = (url: string) => {
         </Button>
 
         <Button v-if="showGithub" type="button" variant="outline" class="h-12 w-full text-base font-medium" @click="go(githubHref)">
-            <svg class="mr-2 h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+            <svg class="me-2 h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
                 <path
                     fill-rule="evenodd"
                     clip-rule="evenodd"

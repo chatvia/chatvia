@@ -127,7 +127,7 @@ async function copyId(): Promise<void> {
                 <div class="grid gap-2">
                     <Label for="name">{{ t('workspace.prompts.form.name') }}</Label>
                     <div class="relative">
-                        <Hash class="text-muted-foreground pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2" />
+                        <Hash class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                         <Input id="name" v-model="form.name" :placeholder="t('workspace.prompts.form.name_placeholder')" class="ps-9" required />
                     </div>
                     <InputError :message="form.errors.name" />

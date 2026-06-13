@@ -1,0 +1,91 @@
+{
+    "app": {
+        "header": {
+            "dashboard": "Dashboard",
+            "agents": "Agenten",
+            "usage": "Nutzung",
+            "ask_your_data": "Daten abfragen",
+            "billing": "Abrechnung",
+            "support": "Support",
+            "teams": "Teams",
+            "documentation": "Dokumentation",
+            "api": "API",
+            "nav_menu_sr": "Navigationsmenü",
+            "upgrade": "Upgrade",
+            "subscribed": "Sie haben ein aktives Abonnement"
+        }
+    },
+    "agents": {
+        "nav": {
+            "default_title": "Agenteneinstellungen",
+            "playground": "Playground",
+            "playground_tooltip": "Ihren Agenten auf allen Oberflächen in der Vorschau anzeigen",
+            "setup": "Einrichtung",
+            "setup_tooltip": "Ihren Agenten konfigurieren – gilt für alle Oberflächen",
+            "channels": "Kanäle",
+            "channels_tooltip": "Ihren Agenten bereitstellen – Website, Widget und Telegram",
+            "groups": {
+                "insights": "Einblicke",
+                "training": "Training",
+                "access": "Zugriff",
+                "settings": "Einstellungen",
+                "danger_zone": "Gefahrenbereich"
+            },
+            "analytics": "Analysen",
+            "analytics_tooltip": "Nutzungsanalysen und Einblicke anzeigen",
+            "chats": "Chats",
+            "sentiment": "Stimmung",
+            "tone": "Tonalität",
+            "topics": "Themen",
+            "sources": "Quellen",
+            "chat": "Chat",
+            "chat_tooltip": "Rohe Chat-Nachrichten nach Sitzung einsehen",
+            "audit": "Protokoll",
+            "audit_tooltip": "Tool-Aufruf-Protokoll für diesen Agenten",
+            "evals": "Auswertungen",
+            "evals_tooltip": "Testsuiten zur Bewertung der Antworten dieses Agenten",
+            "guardrails": "Guardrails",
+            "guardrails_tooltip": "KI-Sicherheitsmaßnahmen: PII, Prompt-Injection, Themen, Toxizität",
+            "leads": "Leads",
+            "leads_tooltip": "Von Ihrem Agenten erfasste Leads verwalten",
+            "knowledge_sources": "Quellen",
+            "knowledge_sources_tooltip": "Agentenwissen und Trainingsdaten verwalten",
+            "functions": "Funktionen",
+            "functions_tooltip": "Benutzerdefinierte Funktionen verwalten, die Ihr Agent aufrufen kann",
+            "connectors": "Konnektoren",
+            "connectors_tooltip": "Konnektoren hinzufügen, damit Ihr Agent externe Tools nutzen kann",
+            "members": "Chatter",
+            "members_tooltip": "Chatter mit Zugriff, um mit diesem Agenten zu chatten",
+            "security": "Sicherheit",
+            "security_tooltip": "Zugriffssteuerung, Signierungsgeheimnis und Ratenlimits für diesen Agenten",
+            "identity": "Identität",
+            "rate_limiting": "Ratenlimitierung",
+            "rename": "Umbenennen",
+            "rename_tooltip": "Diesen Agenten umbenennen",
+            "delete_agent": "Agenten löschen",
+            "delete_agent_tooltip": "Diesen Agenten dauerhaft löschen",
+            "expand_sidebar": "Seitenleiste erweitern",
+            "delete_dialog": {
+                "title": "Agenten löschen",
+                "description": "Diese Aktion kann nicht rückgängig gemacht werden. Der Agent {name} und alle zugehörigen Daten werden dauerhaft gelöscht.",
+                "confirm_label": "Bitte geben Sie {name} zur Bestätigung ein",
+                "confirm_placeholder": "Agentennamen zur Bestätigung eingeben",
+                "name_mismatch": "Agentenname stimmt nicht überein",
+                "submit": "Agenten löschen",
+                "deleted_toast": "Agent erfolgreich gelöscht",
+                "delete_error_toast": "Agent konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+            },
+            "rename_dialog": {
+                "title": "Agenten umbenennen",
+                "description": "Geben Sie einen neuen Namen für Ihren Agenten {name} ein.",
+                "name_label": "Agentenname",
+                "name_placeholder": "Neuen Agentennamen eingeben",
+                "subdomain_label": "Subdomain",
+                "subdomain_placeholder": "ihre-subdomain",
+                "subdomain_hint": "Nur Kleinbuchstaben, Ziffern und Bindestriche erlaubt.",
+                "save": "Speichern",
+                "updated_toast": "Agent erfolgreich aktualisiert"
+            }
+        }
+    }
+}

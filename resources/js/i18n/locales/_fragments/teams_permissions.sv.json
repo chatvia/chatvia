@@ -1,0 +1,232 @@
+{
+    "teams": {
+        "permissions_meta": {
+            "scopes": {
+                "agent": {
+                    "label": "Agentbehörigheter",
+                    "description": "Vad den här rollen kan göra i varje agent den har tillgång till. Dessa åtgärder gäller per agent – valda från listan Agentåtkomst ovan."
+                },
+                "account": {
+                    "label": "Kontobehörigheter",
+                    "description": "Delade verktyg och inställningar för hela kontot. Dessa gäller en gång för varje agent och hanteras från inställningsmenyn."
+                }
+            },
+            "groups": {
+                "setup": {
+                    "label": "Konfiguration",
+                    "description": "Redigera agenten själv – personlighet, modeller, widget, inbäddning."
+                },
+                "sources": {
+                    "label": "Källor",
+                    "description": "Hantera träningsdata som agenten lär sig av."
+                },
+                "chat": {
+                    "label": "Chatt",
+                    "description": "Läs, ta över, exportera eller radera aktiva konversationer."
+                },
+                "audit": {
+                    "label": "Granskning",
+                    "description": "Visa granskningsloggen för verktygsanrop (verktyg, anslutningar, godkännanden)."
+                },
+                "evals": {
+                    "label": "Utvärderingar",
+                    "description": "Testa agenten mot en svit och följ godkännandefrekvensen över tid."
+                },
+                "guardrails": {
+                    "label": "Säkerhetsskydd",
+                    "description": "AI-säkerhetsskydd: PII, prompt-injektion, blockerade ämnen, toxicitet."
+                },
+                "analytics": {
+                    "label": "Analys",
+                    "description": "Granska användning, sentiment, ton, ämnen och källprestanda."
+                },
+                "topics": {
+                    "label": "Ämnen",
+                    "description": "Kurera de ämnen som konversationer grupperas under."
+                },
+                "leads": {
+                    "label": "Leads",
+                    "description": "Visa, konfigurera och exportera leads som agenten har samlat in."
+                },
+                "administration": {
+                    "label": "Administration",
+                    "description": "Ägarliknande uppgifter per agent – chatters och signeringsnyckel."
+                },
+                "security": {
+                    "label": "Säkerhet",
+                    "description": "Personliga autentiseringsuppgifter som används för att anropa det publika API:et."
+                },
+                "integrations": {
+                    "label": "Integrationer",
+                    "description": "Anslut tredjepartstjänster och anpassade webhook-funktioner, och koppla dem sedan till valfri agent."
+                },
+                "library": {
+                    "label": "Bibliotek",
+                    "description": "Återanvändbara promptar som delas över hela kontot."
+                },
+                "people": {
+                    "label": "Personer",
+                    "description": "Hantera chatters som beviljats åtkomst till dina agenter."
+                },
+                "governance": {
+                    "label": "Styrning",
+                    "description": "Granska och kontrollera varje åtgärd dina agenter vidtar via verktyg och anslutningar."
+                }
+            },
+            "codes": {
+                "agents_access_all": {
+                    "label": "Åtkomst till alla agenter",
+                    "description": "Bevilja åtkomst till alla nuvarande och framtida agenter i teamet"
+                },
+                "agent_setup": {
+                    "label": "Konfigurera agent",
+                    "description": "Ändra agentinställningar, personlighet och beteende"
+                },
+                "agent_sources_train_files": {
+                    "label": "Träna med filer",
+                    "description": "Ladda upp och bearbeta dokument (PDF, Word, osv.)"
+                },
+                "agent_sources_train_text": {
+                    "label": "Träna med text",
+                    "description": "Ladda upp och bearbeta rena textfiler"
+                },
+                "agent_sources_train_qa": {
+                    "label": "Träna med frågor och svar",
+                    "description": "Lägg till fråge- och svarspar"
+                },
+                "agent_sources_train_web": {
+                    "label": "Träna med webb",
+                    "description": "Crawla och bearbeta webbplatsinnehåll"
+                },
+                "agent_sources_train_audio": {
+                    "label": "Träna med ljud",
+                    "description": "Ladda upp och transkribera ljudfiler"
+                },
+                "agent_sources_train_video": {
+                    "label": "Träna med video",
+                    "description": "Ladda upp och transkribera videofiler"
+                },
+                "agent_sources_train_functions": {
+                    "label": "Hantera funktioner",
+                    "description": "Definiera LLM-verktygsanrop som träffar dina egna webhook-endpoints"
+                },
+                "agent_sources_train_connectors": {
+                    "label": "Hantera anslutningar",
+                    "description": "Anslut tredjepartstjänster (Stripe, GitHub, Notion, …) som live-datakällor"
+                },
+                "agent_sources_delete": {
+                    "label": "Ta bort källor",
+                    "description": "Ta bort träningskällor från agenten"
+                },
+                "agent_chat_view": {
+                    "label": "Visa konversationer",
+                    "description": "Läs chatthistorik och konversationsloggar"
+                },
+                "agent_chat_pulse": {
+                    "label": "Konversationspuls",
+                    "description": "Visa realtidsmätvärden för konversationshälsa och sentimentspårning"
+                },
+                "agent_chat_takeover": {
+                    "label": "Ta över",
+                    "description": "Ta kontroll över en aktiv konversation från AI:n"
+                },
+                "agent_chat_delete": {
+                    "label": "Radera konversationer",
+                    "description": "Radera konversationshistorik permanent"
+                },
+                "agent_chat_export": {
+                    "label": "Exportera konversationer",
+                    "description": "Exportera chatthistorik till CSV eller andra format"
+                },
+                "agent_audit_view": {
+                    "label": "Visa granskningslogg",
+                    "description": "Se granskningsloggen för verktygsanrop för den här agenten"
+                },
+                "agent_evals_view": {
+                    "label": "Visa utvärderingar",
+                    "description": "Se agentens utvärderingssviter och körningshistorik"
+                },
+                "agent_evals_manage": {
+                    "label": "Hantera utvärderingar",
+                    "description": "Skapa testfall och kör utvärderingssviter"
+                },
+                "agent_guardrails_view": {
+                    "label": "Visa säkerhetsskydd",
+                    "description": "Se AI-säkerhetsinställningar och utlösarloggen för den här agenten"
+                },
+                "agent_guardrails_manage": {
+                    "label": "Hantera säkerhetsskydd",
+                    "description": "Konfigurera PII-, prompt-injektions-, ämnes- och toxicitetsskydd"
+                },
+                "agent_analytics_chats": {
+                    "label": "Chattanalys",
+                    "description": "Visa konversationsvolym och trender"
+                },
+                "agent_analytics_sentiment": {
+                    "label": "Sentiment",
+                    "description": "Visa sentimentanalys av konversationer"
+                },
+                "agent_analytics_tone": {
+                    "label": "Toner",
+                    "description": "Visa tonanalys av konversationer"
+                },
+                "agent_analytics_topics": {
+                    "label": "Ämnen",
+                    "description": "Visa och hantera ämnen"
+                },
+                "agent_analytics_sources": {
+                    "label": "Källor",
+                    "description": "Visa vilka källor som används i svar"
+                },
+                "agent_topics_manage": {
+                    "label": "Hantera ämnen",
+                    "description": "Skapa, redigera och radera konversationsämnen"
+                },
+                "agent_leads_view": {
+                    "label": "Visa leads",
+                    "description": "Se insamlad leadinformation"
+                },
+                "agent_leads_settings": {
+                    "label": "Leadinställningar",
+                    "description": "Konfigurera formulär och regler för leadinsamling"
+                },
+                "agent_leads_export": {
+                    "label": "Exportera leads",
+                    "description": "Ladda ned leads som CSV eller integrera med CRM"
+                },
+                "agent_members_manage": {
+                    "label": "Agent-chatters",
+                    "description": "Bjud in, visa och ta bort chatters som beviljats åtkomst till den här agenten"
+                },
+                "agent_identity_manage": {
+                    "label": "Agentidentitetsverifiering",
+                    "description": "Visa och använd den agentspecifika signeringsnyckeln för inloggningstokens"
+                },
+                "account_api_keys": {
+                    "label": "API-nycklar",
+                    "description": "Skapa och återkalla personliga API-tokens"
+                },
+                "account_connectors": {
+                    "label": "Anslutningar",
+                    "description": "Hantera tredjepartsanslutningar på kontonivå (MCP-servrar)"
+                },
+                "account_functions": {
+                    "label": "Funktioner",
+                    "description": "Definiera webhook-funktioner som agenter kan anropa"
+                },
+                "account_prompts": {
+                    "label": "Promptar",
+                    "description": "Hantera det delade promptbiblioteket"
+                },
+                "account_members_manage": {
+                    "label": "Chatters",
+                    "description": "Visa, återställ lösenord och ta bort chatters i hela arbetsytan"
+                },
+                "account_governance": {
+                    "label": "Styrning",
+                    "description": "Visa granskningsloggen för verktygsanrop och åtkomstkontroller"
+                }
+            }
+        }
+    }
+}

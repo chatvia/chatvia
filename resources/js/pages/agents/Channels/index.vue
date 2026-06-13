@@ -59,7 +59,7 @@ interface ChannelItem {
 const items = computed<ChannelItem[]>(() => [
     {
         kind: 'telegram',
-        name: 'Telegram',
+        name: t('agents.channels.setup.names.telegram'),
         tagline: props.telegram.connected
             ? t('agents.channels.telegram.tagline_connected', { username: props.telegram.bot_username })
             : t('agents.channels.telegram.tagline'),
@@ -68,7 +68,7 @@ const items = computed<ChannelItem[]>(() => [
     },
     {
         kind: 'slack',
-        name: 'Slack',
+        name: t('agents.channels.setup.names.slack'),
         tagline: props.slack.connected
             ? t('agents.channels.slack.tagline_connected', { team: props.slack.team_name })
             : t('agents.channels.slack.tagline'),
@@ -77,7 +77,7 @@ const items = computed<ChannelItem[]>(() => [
     },
     {
         kind: 'messenger',
-        name: 'Messenger',
+        name: t('agents.channels.setup.names.messenger'),
         tagline: props.messenger.connected
             ? t('agents.channels.messenger.tagline_connected', { page: props.messenger.page_name })
             : t('agents.channels.messenger.tagline'),
@@ -86,7 +86,7 @@ const items = computed<ChannelItem[]>(() => [
     },
     {
         kind: 'whatsapp',
-        name: 'WhatsApp',
+        name: t('agents.channels.setup.names.whatsapp'),
         tagline: props.whatsapp.connected
             ? t('agents.channels.whatsapp.tagline_connected', { name: props.whatsapp.verified_name ?? props.whatsapp.display_phone_number })
             : t('agents.channels.whatsapp.tagline'),
@@ -95,14 +95,14 @@ const items = computed<ChannelItem[]>(() => [
     },
     {
         kind: 'msteams',
-        name: 'Microsoft Teams',
+        name: t('agents.channels.setup.names.msteams'),
         tagline: props.msteams.connected ? t('agents.channels.msteams.tagline_connected') : t('agents.channels.msteams.tagline'),
         logo: '/images/logos/channels/msteams.svg',
         badge: props.msteams.connected ? { label: t('agents.channels.connected'), variant: 'default' } : undefined,
     },
     {
         kind: 'instagram',
-        name: 'Instagram',
+        name: t('agents.channels.setup.names.instagram'),
         tagline: props.instagram.connected
             ? t('agents.channels.instagram.tagline_connected', { username: props.instagram.username })
             : t('agents.channels.instagram.tagline'),
@@ -251,7 +251,7 @@ const disconnect = () => {
                         :key="item.kind"
                         class="bg-card hover:border-foreground/20 relative flex flex-col rounded-xl border p-5 transition hover:shadow-sm sm:aspect-square"
                     >
-                        <Badge v-if="item.badge" :variant="item.badge.variant" class="absolute top-3 end-3">{{ item.badge.label }}</Badge>
+                        <Badge v-if="item.badge" :variant="item.badge.variant" class="absolute end-3 top-3">{{ item.badge.label }}</Badge>
                         <div class="flex flex-1 flex-col items-center justify-center gap-3 text-center">
                             <img :src="item.logo" :alt="item.name" class="size-14" />
                             <p class="font-medium">{{ item.name }}</p>
@@ -259,7 +259,7 @@ const disconnect = () => {
                         </div>
                         <Button variant="outline" class="mt-4 w-full" @click="openChannel(item)">
                             <Settings2 class="me-2 size-4" />
-                            {{ t('agents.channels.setup') }}
+                            {{ t('agents.channels.setup_tab') }}
                         </Button>
                     </div>
                 </div>
@@ -293,14 +293,13 @@ const disconnect = () => {
                                     </div>
                                 </div>
                                 <p class="text-muted-foreground text-sm">
-                                    People can message your bot on Telegram and your agent replies automatically — billing, history, and guardrails
-                                    all apply.
+                                    {{ t('agents.channels.setup.telegram.connected_description') }}
                                 </p>
                                 <div
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    {{ t('agents.channels.private_banner', { channel: 'Telegram' }) }}
+                                    {{ t('agents.channels.private_banner', { channel: t('agents.channels.setup.names.telegram') }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
@@ -315,8 +314,8 @@ const disconnect = () => {
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
                                     <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
-                                        <i18n-t keypath="agents.channels.public_only" tag="span" scope="global">
-                                            <template #channel>Telegram</template>
+                                        <i18n-t keypath="agents.channels.setup.public_only" tag="span" scope="global">
+                                            <template #channel>{{ t('agents.channels.setup.names.telegram') }}</template>
                                             <template #security>
                                                 <Link
                                                     :href="route('agents.identity', props.agent.external_id)"
@@ -337,29 +336,41 @@ const disconnect = () => {
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >1</span
                                         >
-                                        <span>Open <span class="text-foreground font-medium">@BotFather</span> in Telegram</span>
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.telegram.steps.connect_1" tag="span">
+                                                <template #botfather>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.telegram.botfather')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >2</span
                                         >
-                                        <span>Send <span class="text-foreground font-mono">/newbot</span> and follow the prompts</span>
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.telegram.steps.connect_2" tag="span">
+                                                <template #command><span class="text-foreground font-mono">/newbot</span></template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >3</span
                                         >
-                                        <span>Paste the token below — we connect it automatically</span>
+                                        <span>{{ t('agents.channels.setup.telegram.steps.connect_3') }}</span>
                                     </li>
                                 </ol>
                                 <CredentialInput
                                     id="bot-token"
                                     v-model="telegramForm.bot_token"
-                                    label="Bot token"
+                                    :label="t('agents.channels.setup.labels.bot_token')"
                                     :icon="KeyRound"
-                                    placeholder="123456789:ABCdef…"
+                                    :placeholder="t('agents.channels.setup.placeholders.telegram_bot_token')"
                                     :error="telegramForm.errors.bot_token"
                                     @enter="connectTelegram"
                                 />
@@ -391,7 +402,12 @@ const disconnect = () => {
                                     </div>
                                 </div>
 
-                                <CopyField id="slack-webhook-url" label="Request URL" :icon="Link2" :value="props.slack.webhook_url" />
+                                <CopyField
+                                    id="slack-webhook-url"
+                                    :label="t('agents.channels.setup.labels.request_url')"
+                                    :icon="Link2"
+                                    :value="props.slack.webhook_url"
+                                />
 
                                 <ol class="text-muted-foreground space-y-2 text-xs">
                                     <li class="flex items-center gap-2.5">
@@ -400,15 +416,22 @@ const disconnect = () => {
                                             >1</span
                                         >
                                         <span>
-                                            In
-                                            <a
-                                                href="https://api.slack.com/apps"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                >your Slack app</a
-                                            >, open <span class="text-foreground font-medium">Event Subscriptions</span>, enable it, and paste the
-                                            Request URL above
+                                            <i18n-t keypath="agents.channels.setup.slack.steps.connected_1" tag="span">
+                                                <template #link>
+                                                    <a
+                                                        href="https://api.slack.com/apps"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                        >{{ t('agents.channels.setup.slack.your_slack_app') }}</a
+                                                    >
+                                                </template>
+                                                <template #event_subscriptions>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.slack.event_subscriptions')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
                                         </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
@@ -416,20 +439,24 @@ const disconnect = () => {
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >2</span
                                         >
-                                        <span
-                                            >Subscribe to the bot events <span class="text-foreground font-mono">app_mention</span> and
-                                            <span class="text-foreground font-mono">message.im</span>, then save</span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.slack.steps.connected_2" tag="span">
+                                                <template #mention><span class="text-foreground font-mono">app_mention</span></template>
+                                                <template #im><span class="text-foreground font-mono">message.im</span></template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >3</span
                                         >
-                                        <span
-                                            >Invite the bot to a channel with <span class="text-foreground font-mono">/invite</span> and @mention it —
-                                            the reply streams in live</span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.slack.steps.connected_3" tag="span">
+                                                <template #invite><span class="text-foreground font-mono">/invite</span></template>
+                                                <template #live>{{ t('agents.channels.setup.shared.reply_streams_live') }}</template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                 </ol>
 
@@ -437,7 +464,7 @@ const disconnect = () => {
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    {{ t('agents.channels.private_banner', { channel: 'Slack' }) }}
+                                    {{ t('agents.channels.private_banner', { channel: t('agents.channels.setup.names.slack') }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
@@ -452,13 +479,16 @@ const disconnect = () => {
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
                                     <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
-                                        Slack is available for public agents only. Make this agent public on its
-                                        <Link
-                                            :href="route('agents.identity', props.agent.external_id)"
-                                            class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                            >Security</Link
-                                        >
-                                        page, then connect it here.
+                                        <i18n-t keypath="agents.channels.setup.public_only" tag="span" scope="global">
+                                            <template #channel>{{ t('agents.channels.setup.names.slack') }}</template>
+                                            <template #security>
+                                                <Link
+                                                    :href="route('agents.identity', props.agent.external_id)"
+                                                    class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                    >{{ t('agents.channels.security') }}</Link
+                                                >
+                                            </template>
+                                        </i18n-t>
                                     </p>
                                 </div>
                             </template>
@@ -472,15 +502,17 @@ const disconnect = () => {
                                             >1</span
                                         >
                                         <span>
-                                            Create an app at
-                                            <a
-                                                href="https://api.slack.com/apps"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                >api.slack.com/apps</a
-                                            >
-                                            in your workspace
+                                            <i18n-t keypath="agents.channels.setup.slack.steps.connect_1" tag="span">
+                                                <template #link>
+                                                    <a
+                                                        href="https://api.slack.com/apps"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                        >api.slack.com/apps</a
+                                                    >
+                                                </template>
+                                            </i18n-t>
                                         </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
@@ -488,37 +520,47 @@ const disconnect = () => {
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >2</span
                                         >
-                                        <span
-                                            >Under <span class="text-foreground font-medium">OAuth &amp; Permissions</span>, add the bot scopes
-                                            <span class="text-foreground font-mono">app_mentions:read</span>,
-                                            <span class="text-foreground font-mono">chat:write</span>,
-                                            <span class="text-foreground font-mono">im:history</span>, then install the app and copy the bot
-                                            token</span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.slack.steps.connect_2" tag="span">
+                                                <template #oauth>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.slack.oauth_permissions')
+                                                    }}</span>
+                                                </template>
+                                                <template #scope1><span class="text-foreground font-mono">app_mentions:read</span></template>
+                                                <template #scope2><span class="text-foreground font-mono">chat:write</span></template>
+                                                <template #scope3><span class="text-foreground font-mono">im:history</span></template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >3</span
                                         >
-                                        <span
-                                            >Copy the signing secret from <span class="text-foreground font-medium">Basic Information</span> and paste
-                                            both below</span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.slack.steps.connect_3" tag="span">
+                                                <template #basic_info>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.slack.basic_information')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                 </ol>
                                 <CredentialInput
                                     id="slack-bot-token"
                                     v-model="slackForm.bot_token"
-                                    label="Bot token"
+                                    :label="t('agents.channels.setup.labels.bot_token')"
                                     :icon="KeyRound"
-                                    placeholder="xoxb-…"
+                                    :placeholder="t('agents.channels.setup.placeholders.slack_bot_token')"
                                     :error="slackForm.errors.bot_token"
                                 />
                                 <CredentialInput
                                     id="slack-signing-secret"
                                     v-model="slackForm.signing_secret"
-                                    label="Signing secret"
+                                    :label="t('agents.channels.setup.labels.signing_secret')"
                                     :icon="Lock"
                                     secret
                                     :error="slackForm.errors.signing_secret"
@@ -556,10 +598,15 @@ const disconnect = () => {
                                     </div>
                                 </div>
 
-                                <CopyField id="messenger-webhook-url" label="Callback URL" :icon="Link2" :value="props.messenger.webhook_url" />
+                                <CopyField
+                                    id="messenger-webhook-url"
+                                    :label="t('agents.channels.setup.labels.callback_url')"
+                                    :icon="Link2"
+                                    :value="props.messenger.webhook_url"
+                                />
                                 <CopyField
                                     id="messenger-verify-token"
-                                    label="Verify token"
+                                    :label="t('agents.channels.setup.labels.verify_token')"
                                     :icon="ShieldCheck"
                                     :value="props.messenger.verify_token"
                                 />
@@ -571,15 +618,22 @@ const disconnect = () => {
                                             >1</span
                                         >
                                         <span>
-                                            In
-                                            <a
-                                                href="https://developers.facebook.com/apps"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                >your Meta app</a
-                                            >, open <span class="text-foreground font-medium">Messenger → Settings → Webhooks</span> and paste the
-                                            Callback URL + verify token above
+                                            <i18n-t keypath="agents.channels.setup.messenger.steps.connected_1" tag="span">
+                                                <template #link>
+                                                    <a
+                                                        href="https://developers.facebook.com/apps"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                        >{{ t('agents.channels.setup.messenger.your_meta_app') }}</a
+                                                    >
+                                                </template>
+                                                <template #webhooks>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.messenger.webhooks_path')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
                                         </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
@@ -587,14 +641,22 @@ const disconnect = () => {
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >2</span
                                         >
-                                        <span>Subscribe the webhook to the <span class="text-foreground font-mono">messages</span> field</span>
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.shared.subscribe_webhook" tag="span">
+                                                <template #field>
+                                                    <span class="text-foreground font-mono">{{
+                                                        t('agents.channels.setup.shared.messages_field')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >3</span
                                         >
-                                        <span>Message your page on Messenger — your agent replies automatically</span>
+                                        <span>{{ t('agents.channels.setup.messenger.steps.connected_3') }}</span>
                                     </li>
                                 </ol>
 
@@ -602,7 +664,7 @@ const disconnect = () => {
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    {{ t('agents.channels.private_banner', { channel: 'Messenger' }) }}
+                                    {{ t('agents.channels.private_banner', { channel: t('agents.channels.setup.names.messenger') }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
@@ -617,13 +679,16 @@ const disconnect = () => {
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
                                     <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
-                                        Messenger is available for public agents only. Make this agent public on its
-                                        <Link
-                                            :href="route('agents.identity', props.agent.external_id)"
-                                            class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                            >Security</Link
-                                        >
-                                        page, then connect it here.
+                                        <i18n-t keypath="agents.channels.setup.public_only" tag="span" scope="global">
+                                            <template #channel>{{ t('agents.channels.setup.names.messenger') }}</template>
+                                            <template #security>
+                                                <Link
+                                                    :href="route('agents.identity', props.agent.external_id)"
+                                                    class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                    >{{ t('agents.channels.security') }}</Link
+                                                >
+                                            </template>
+                                        </i18n-t>
                                     </p>
                                 </div>
                             </template>
@@ -637,15 +702,22 @@ const disconnect = () => {
                                             >1</span
                                         >
                                         <span>
-                                            Create an app at
-                                            <a
-                                                href="https://developers.facebook.com/apps"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                >developers.facebook.com</a
-                                            >
-                                            and add the <span class="text-foreground font-medium">Messenger</span> product
+                                            <i18n-t keypath="agents.channels.setup.messenger.steps.connect_1" tag="span">
+                                                <template #link>
+                                                    <a
+                                                        href="https://developers.facebook.com/apps"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                        >developers.facebook.com</a
+                                                    >
+                                                </template>
+                                                <template #product>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.messenger.product')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
                                         </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
@@ -653,34 +725,44 @@ const disconnect = () => {
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >2</span
                                         >
-                                        <span
-                                            >Under <span class="text-foreground font-medium">Messenger → API settings</span>, connect your Facebook
-                                            Page and generate a page access token</span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.messenger.steps.connect_2" tag="span">
+                                                <template #api_settings>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.messenger.api_settings_path')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >3</span
                                         >
-                                        <span
-                                            >Copy the app secret from <span class="text-foreground font-medium">App settings → Basic</span> and paste
-                                            both below</span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.shared.copy_app_secret_both" tag="span">
+                                                <template #section>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.messenger.app_settings_basic')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                 </ol>
                                 <CredentialInput
                                     id="messenger-page-token"
                                     v-model="messengerForm.page_access_token"
-                                    label="Page access token"
+                                    :label="t('agents.channels.setup.labels.page_access_token')"
                                     :icon="KeyRound"
-                                    placeholder="EAAG…"
+                                    :placeholder="t('agents.channels.setup.placeholders.meta_token')"
                                     :error="messengerForm.errors.page_access_token"
                                 />
                                 <CredentialInput
                                     id="messenger-app-secret"
                                     v-model="messengerForm.app_secret"
-                                    label="App secret"
+                                    :label="t('agents.channels.setup.labels.app_secret')"
                                     :icon="Lock"
                                     secret
                                     :error="messengerForm.errors.app_secret"
@@ -723,8 +805,18 @@ const disconnect = () => {
                                     </div>
                                 </div>
 
-                                <CopyField id="whatsapp-webhook-url" label="Callback URL" :icon="Link2" :value="props.whatsapp.webhook_url" />
-                                <CopyField id="whatsapp-verify-token" label="Verify token" :icon="ShieldCheck" :value="props.whatsapp.verify_token" />
+                                <CopyField
+                                    id="whatsapp-webhook-url"
+                                    :label="t('agents.channels.setup.labels.callback_url')"
+                                    :icon="Link2"
+                                    :value="props.whatsapp.webhook_url"
+                                />
+                                <CopyField
+                                    id="whatsapp-verify-token"
+                                    :label="t('agents.channels.setup.labels.verify_token')"
+                                    :icon="ShieldCheck"
+                                    :value="props.whatsapp.verify_token"
+                                />
 
                                 <ol class="text-muted-foreground space-y-2 text-xs">
                                     <li class="flex items-center gap-2.5">
@@ -733,15 +825,22 @@ const disconnect = () => {
                                             >1</span
                                         >
                                         <span>
-                                            In
-                                            <a
-                                                href="https://developers.facebook.com/apps"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                >your Meta app</a
-                                            >, open <span class="text-foreground font-medium">WhatsApp → Configuration</span> and paste the Callback
-                                            URL + verify token above
+                                            <i18n-t keypath="agents.channels.setup.whatsapp.steps.connected_1" tag="span">
+                                                <template #link>
+                                                    <a
+                                                        href="https://developers.facebook.com/apps"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                        >{{ t('agents.channels.setup.messenger.your_meta_app') }}</a
+                                                    >
+                                                </template>
+                                                <template #configuration>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.whatsapp.configuration_path')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
                                         </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
@@ -749,33 +848,41 @@ const disconnect = () => {
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >2</span
                                         >
-                                        <span>Subscribe the webhook to the <span class="text-foreground font-mono">messages</span> field</span>
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.shared.subscribe_webhook" tag="span">
+                                                <template #field>
+                                                    <span class="text-foreground font-mono">{{
+                                                        t('agents.channels.setup.shared.messages_field')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >3</span
                                         >
-                                        <span>Message your number on WhatsApp — your agent replies automatically</span>
+                                        <span>{{ t('agents.channels.setup.whatsapp.steps.connected_3') }}</span>
                                     </li>
                                 </ol>
                                 <p class="text-muted-foreground text-xs">
-                                    Need more detail? Follow the
+                                    {{ t('agents.channels.setup.guide.need_detail_before') }}
                                     <a
                                         href="https://docs.chatvia.ai/guide/channels/whatsapp"
                                         target="_blank"
                                         rel="noopener"
                                         class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                        >step-by-step guide</a
+                                        >{{ t('agents.channels.setup.guide.step_by_step_guide') }}</a
                                     >
-                                    with screenshots.
+                                    {{ t('agents.channels.setup.guide.need_detail_after') }}
                                 </p>
 
                                 <div
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    {{ t('agents.channels.private_banner', { channel: 'WhatsApp' }) }}
+                                    {{ t('agents.channels.private_banner', { channel: t('agents.channels.setup.names.whatsapp') }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
@@ -790,13 +897,16 @@ const disconnect = () => {
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
                                     <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
-                                        WhatsApp is available for public agents only. Make this agent public on its
-                                        <Link
-                                            :href="route('agents.identity', props.agent.external_id)"
-                                            class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                            >Security</Link
-                                        >
-                                        page, then connect it here.
+                                        <i18n-t keypath="agents.channels.setup.public_only" tag="span" scope="global">
+                                            <template #channel>{{ t('agents.channels.setup.names.whatsapp') }}</template>
+                                            <template #security>
+                                                <Link
+                                                    :href="route('agents.identity', props.agent.external_id)"
+                                                    class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                    >{{ t('agents.channels.security') }}</Link
+                                                >
+                                            </template>
+                                        </i18n-t>
                                     </p>
                                 </div>
                             </template>
@@ -810,15 +920,22 @@ const disconnect = () => {
                                             >1</span
                                         >
                                         <span>
-                                            Create an app at
-                                            <a
-                                                href="https://developers.facebook.com/apps"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                >developers.facebook.com</a
-                                            >
-                                            with the <span class="text-foreground font-medium">Connect with customers through WhatsApp</span> use case
+                                            <i18n-t keypath="agents.channels.setup.whatsapp.steps.connect_1" tag="span">
+                                                <template #link>
+                                                    <a
+                                                        href="https://developers.facebook.com/apps"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                        >developers.facebook.com</a
+                                                    >
+                                                </template>
+                                                <template #use_case>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.whatsapp.use_case')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
                                         </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
@@ -826,61 +943,71 @@ const disconnect = () => {
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >2</span
                                         >
-                                        <span
-                                            >Complete <span class="text-foreground font-medium">Use cases → Customize → Basic setup</span>, then copy
-                                            the phone number ID, WhatsApp Business Account ID, and an access token</span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.whatsapp.steps.connect_2" tag="span">
+                                                <template #basic_setup>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.whatsapp.basic_setup_path')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >3</span
                                         >
-                                        <span
-                                            >Copy the app secret from <span class="text-foreground font-medium">App settings → Basic</span> and paste
-                                            everything below</span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.shared.copy_app_secret_all" tag="span">
+                                                <template #section>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.messenger.app_settings_basic')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                 </ol>
                                 <p class="text-muted-foreground text-xs">
-                                    Need more detail? Follow the
+                                    {{ t('agents.channels.setup.guide.need_detail_before') }}
                                     <a
                                         href="https://docs.chatvia.ai/guide/channels/whatsapp"
                                         target="_blank"
                                         rel="noopener"
                                         class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                        >step-by-step guide</a
+                                        >{{ t('agents.channels.setup.guide.step_by_step_guide') }}</a
                                     >
-                                    with screenshots.
+                                    {{ t('agents.channels.setup.guide.need_detail_after') }}
                                 </p>
                                 <CredentialInput
                                     id="whatsapp-phone-number-id"
                                     v-model="whatsappForm.phone_number_id"
-                                    label="Phone number ID"
+                                    :label="t('agents.channels.setup.labels.phone_number_id')"
                                     :icon="Hash"
-                                    placeholder="123456789012345"
+                                    :placeholder="t('agents.channels.setup.placeholders.phone_number_id')"
                                     :error="whatsappForm.errors.phone_number_id"
                                 />
                                 <CredentialInput
                                     id="whatsapp-waba-id"
                                     v-model="whatsappForm.waba_id"
-                                    label="WhatsApp Business Account ID"
+                                    :label="t('agents.channels.setup.labels.waba_id')"
                                     :icon="Building2"
-                                    placeholder="123456789012345"
+                                    :placeholder="t('agents.channels.setup.placeholders.phone_number_id')"
                                     :error="whatsappForm.errors.waba_id"
                                 />
                                 <CredentialInput
                                     id="whatsapp-access-token"
                                     v-model="whatsappForm.access_token"
-                                    label="Access token"
+                                    :label="t('agents.channels.setup.labels.access_token')"
                                     :icon="KeyRound"
-                                    placeholder="EAAG…"
+                                    :placeholder="t('agents.channels.setup.placeholders.meta_token')"
                                     :error="whatsappForm.errors.access_token"
                                 />
                                 <CredentialInput
                                     id="whatsapp-app-secret"
                                     v-model="whatsappForm.app_secret"
-                                    label="App secret"
+                                    :label="t('agents.channels.setup.labels.app_secret')"
                                     :icon="Lock"
                                     secret
                                     :error="whatsappForm.errors.app_secret"
@@ -920,11 +1047,18 @@ const disconnect = () => {
                                     </div>
                                     <div class="min-w-0">
                                         <p class="text-sm font-medium">{{ t('agents.channels.connected') }}</p>
-                                        <p class="text-muted-foreground truncate text-sm">App {{ props.msteams.app_id }}</p>
+                                        <p class="text-muted-foreground truncate text-sm">
+                                            {{ t('agents.channels.setup.msteams.app_id_label', { id: props.msteams.app_id }) }}
+                                        </p>
                                     </div>
                                 </div>
 
-                                <CopyField id="msteams-webhook-url" label="Messaging endpoint" :icon="Link2" :value="props.msteams.webhook_url" />
+                                <CopyField
+                                    id="msteams-webhook-url"
+                                    :label="t('agents.channels.setup.labels.messaging_endpoint')"
+                                    :icon="Link2"
+                                    :value="props.msteams.webhook_url"
+                                />
 
                                 <ol class="text-muted-foreground space-y-2 text-xs">
                                     <li class="flex items-center gap-2.5">
@@ -933,15 +1067,22 @@ const disconnect = () => {
                                             >1</span
                                         >
                                         <span>
-                                            In
-                                            <a
-                                                href="https://portal.azure.com"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                >the Azure portal</a
-                                            >, open your bot's <span class="text-foreground font-medium">Configuration</span> page and paste the
-                                            messaging endpoint above
+                                            <i18n-t keypath="agents.channels.setup.msteams.steps.connected_1" tag="span">
+                                                <template #link>
+                                                    <a
+                                                        href="https://portal.azure.com"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                        >{{ t('agents.channels.setup.msteams.azure_portal') }}</a
+                                                    >
+                                                </template>
+                                                <template #configuration>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.msteams.configuration')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
                                         </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
@@ -949,10 +1090,16 @@ const disconnect = () => {
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >2</span
                                         >
-                                        <span
-                                            >Under <span class="text-foreground font-medium">Channels</span>, add
-                                            <span class="text-foreground font-medium">Microsoft Teams</span></span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.msteams.steps.connected_2" tag="span">
+                                                <template #channels>
+                                                    <span class="text-foreground font-medium">{{ t('agents.channels.setup.msteams.channels') }}</span>
+                                                </template>
+                                                <template #teams>
+                                                    <span class="text-foreground font-medium">{{ t('agents.channels.setup.names.msteams') }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
@@ -960,14 +1107,18 @@ const disconnect = () => {
                                             >3</span
                                         >
                                         <span>
-                                            <a
-                                                :href="`https://teams.microsoft.com/l/chat/0/0?users=28:${props.msteams.app_id}`"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                >Open a chat with your bot in Teams</a
-                                            >
-                                            — the reply streams in live
+                                            <i18n-t keypath="agents.channels.setup.msteams.steps.connected_3" tag="span">
+                                                <template #open_chat>
+                                                    <a
+                                                        :href="`https://teams.microsoft.com/l/chat/0/0?users=28:${props.msteams.app_id}`"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                        >{{ t('agents.channels.setup.msteams.open_chat_in_teams') }}</a
+                                                    >
+                                                </template>
+                                                <template #live>{{ t('agents.channels.setup.shared.reply_streams_live') }}</template>
+                                            </i18n-t>
                                         </span>
                                     </li>
                                 </ol>
@@ -976,7 +1127,7 @@ const disconnect = () => {
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    {{ t('agents.channels.private_banner', { channel: 'Microsoft Teams' }) }}
+                                    {{ t('agents.channels.private_banner', { channel: t('agents.channels.setup.names.msteams') }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
@@ -991,13 +1142,16 @@ const disconnect = () => {
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
                                     <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
-                                        Microsoft Teams is available for public agents only. Make this agent public on its
-                                        <Link
-                                            :href="route('agents.identity', props.agent.external_id)"
-                                            class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                            >Security</Link
-                                        >
-                                        page, then connect it here.
+                                        <i18n-t keypath="agents.channels.setup.public_only" tag="span" scope="global">
+                                            <template #channel>{{ t('agents.channels.setup.names.msteams') }}</template>
+                                            <template #security>
+                                                <Link
+                                                    :href="route('agents.identity', props.agent.external_id)"
+                                                    class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                    >{{ t('agents.channels.security') }}</Link
+                                                >
+                                            </template>
+                                        </i18n-t>
                                     </p>
                                 </div>
                             </template>
@@ -1011,15 +1165,22 @@ const disconnect = () => {
                                             >1</span
                                         >
                                         <span>
-                                            Create an <span class="text-foreground font-medium">Azure Bot</span> resource at
-                                            <a
-                                                href="https://portal.azure.com"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                >portal.azure.com</a
-                                            >
-                                            (Multi Tenant or Single Tenant)
+                                            <i18n-t keypath="agents.channels.setup.msteams.steps.connect_1" tag="span">
+                                                <template #azure_bot>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.msteams.azure_bot')
+                                                    }}</span>
+                                                </template>
+                                                <template #link>
+                                                    <a
+                                                        href="https://portal.azure.com"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                        >portal.azure.com</a
+                                                    >
+                                                </template>
+                                            </i18n-t>
                                         </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
@@ -1027,35 +1188,49 @@ const disconnect = () => {
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >2</span
                                         >
-                                        <span
-                                            >Copy the <span class="text-foreground font-medium">Microsoft App ID</span> from Configuration, then
-                                            create a client secret under
-                                            <span class="text-foreground font-medium">Manage password → Certificates &amp; secrets</span></span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.msteams.steps.connect_2" tag="span">
+                                                <template #app_id>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.msteams.microsoft_app_id')
+                                                    }}</span>
+                                                </template>
+                                                <template #secrets>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.msteams.manage_password')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >3</span
                                         >
-                                        <span
-                                            >Paste both below — for a Single Tenant bot also add your
-                                            <span class="text-foreground font-medium">Directory (tenant) ID</span></span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.msteams.steps.connect_3" tag="span">
+                                                <template #tenant_id>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.msteams.directory_tenant_id')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                 </ol>
                                 <CredentialInput
                                     id="msteams-app-id"
                                     v-model="msteamsForm.app_id"
-                                    label="Microsoft App ID"
+                                    :label="t('agents.channels.setup.labels.microsoft_app_id')"
                                     :icon="Fingerprint"
-                                    placeholder="00000000-0000-0000-0000-000000000000"
+                                    :placeholder="t('agents.channels.setup.placeholders.microsoft_app_id')"
                                     :error="msteamsForm.errors.app_id"
                                 />
                                 <CredentialInput
                                     id="msteams-app-secret"
                                     v-model="msteamsForm.app_secret"
-                                    label="Client secret"
+                                    :label="t('agents.channels.setup.labels.client_secret')"
                                     :icon="Lock"
                                     secret
                                     :error="msteamsForm.errors.app_secret"
@@ -1063,10 +1238,10 @@ const disconnect = () => {
                                 <CredentialInput
                                     id="msteams-tenant-id"
                                     v-model="msteamsForm.tenant_id"
-                                    label="Tenant ID"
-                                    hint="(Single Tenant bots only)"
+                                    :label="t('agents.channels.setup.labels.tenant_id')"
+                                    :hint="t('agents.channels.setup.hints.tenant_single_only')"
                                     :icon="Building2"
-                                    placeholder="Leave empty for Multi Tenant"
+                                    :placeholder="t('agents.channels.setup.placeholders.tenant_id')"
                                     :error="msteamsForm.errors.tenant_id"
                                     @enter="connectMsteams"
                                 />
@@ -1102,10 +1277,15 @@ const disconnect = () => {
                                     </div>
                                 </div>
 
-                                <CopyField id="instagram-webhook-url" label="Callback URL" :icon="Link2" :value="props.instagram.webhook_url" />
+                                <CopyField
+                                    id="instagram-webhook-url"
+                                    :label="t('agents.channels.setup.labels.callback_url')"
+                                    :icon="Link2"
+                                    :value="props.instagram.webhook_url"
+                                />
                                 <CopyField
                                     id="instagram-verify-token"
-                                    label="Verify token"
+                                    :label="t('agents.channels.setup.labels.verify_token')"
                                     :icon="ShieldCheck"
                                     :value="props.instagram.verify_token"
                                 />
@@ -1117,18 +1297,22 @@ const disconnect = () => {
                                             >1</span
                                         >
                                         <span>
-                                            In
-                                            <a
-                                                href="https://developers.facebook.com/apps"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                >your Meta app</a
-                                            >, open
-                                            <span class="text-foreground font-medium"
-                                                >Instagram → API setup with Instagram login → Configure webhooks</span
-                                            >
-                                            and paste the Callback URL + verify token above
+                                            <i18n-t keypath="agents.channels.setup.instagram.steps.connected_1" tag="span">
+                                                <template #link>
+                                                    <a
+                                                        href="https://developers.facebook.com/apps"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                        >{{ t('agents.channels.setup.messenger.your_meta_app') }}</a
+                                                    >
+                                                </template>
+                                                <template #webhooks>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.instagram.webhooks_path')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
                                         </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
@@ -1136,19 +1320,30 @@ const disconnect = () => {
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >2</span
                                         >
-                                        <span>Subscribe the webhook to the <span class="text-foreground font-mono">messages</span> field</span>
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.shared.subscribe_webhook" tag="span">
+                                                <template #field>
+                                                    <span class="text-foreground font-mono">{{
+                                                        t('agents.channels.setup.shared.messages_field')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >3</span
                                         >
-                                        <span
-                                            >In the Instagram app, allow message access under
-                                            <span class="text-foreground font-medium"
-                                                >Settings → Messages and story replies → Message controls → Connected tools</span
-                                            >, then DM your account</span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.instagram.steps.connected_3" tag="span">
+                                                <template #message_controls>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.instagram.message_controls_path')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                 </ol>
 
@@ -1156,7 +1351,7 @@ const disconnect = () => {
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
                                 >
-                                    {{ t('agents.channels.private_banner', { channel: 'Instagram' }) }}
+                                    {{ t('agents.channels.private_banner', { channel: t('agents.channels.setup.names.instagram') }) }}
                                 </div>
                                 <div v-if="canManage" class="border-t pt-5">
                                     <Button variant="outline" class="text-destructive hover:text-destructive w-full" @click="disconnectOpen = true">
@@ -1171,13 +1366,16 @@ const disconnect = () => {
                                 <div class="bg-muted/40 rounded-lg border border-dashed p-5 text-center">
                                     <p class="text-sm font-medium">{{ t('agents.channels.private_title') }}</p>
                                     <p class="text-muted-foreground mt-1 text-sm">
-                                        Instagram is available for public agents only. Make this agent public on its
-                                        <Link
-                                            :href="route('agents.identity', props.agent.external_id)"
-                                            class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                            >Security</Link
-                                        >
-                                        page, then connect it here.
+                                        <i18n-t keypath="agents.channels.setup.public_only" tag="span" scope="global">
+                                            <template #channel>{{ t('agents.channels.setup.names.instagram') }}</template>
+                                            <template #security>
+                                                <Link
+                                                    :href="route('agents.identity', props.agent.external_id)"
+                                                    class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                    >{{ t('agents.channels.security') }}</Link
+                                                >
+                                            </template>
+                                        </i18n-t>
                                     </p>
                                 </div>
                             </template>
@@ -1191,16 +1389,22 @@ const disconnect = () => {
                                             >1</span
                                         >
                                         <span>
-                                            Create an app at
-                                            <a
-                                                href="https://developers.facebook.com/apps"
-                                                target="_blank"
-                                                rel="noopener"
-                                                class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                >developers.facebook.com</a
-                                            >
-                                            and add the <span class="text-foreground font-medium">Instagram</span> product — your Instagram account
-                                            must be a professional (business or creator) account
+                                            <i18n-t keypath="agents.channels.setup.instagram.steps.connect_1" tag="span">
+                                                <template #link>
+                                                    <a
+                                                        href="https://developers.facebook.com/apps"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
+                                                        >developers.facebook.com</a
+                                                    >
+                                                </template>
+                                                <template #product>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.instagram.product')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
                                         </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
@@ -1208,31 +1412,36 @@ const disconnect = () => {
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >2</span
                                         >
-                                        <span
-                                            >Under <span class="text-foreground font-medium">Instagram → API setup with Instagram login</span>,
-                                            generate an access token for your account</span
-                                        >
+                                        <span>
+                                            <i18n-t keypath="agents.channels.setup.instagram.steps.connect_2" tag="span">
+                                                <template #api_setup>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.instagram.api_setup_path')
+                                                    }}</span>
+                                                </template>
+                                            </i18n-t>
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
                                             >3</span
                                         >
-                                        <span>Copy the app secret from the same page and paste both below</span>
+                                        <span>{{ t('agents.channels.setup.shared.copy_app_secret_same_page') }}</span>
                                     </li>
                                 </ol>
                                 <CredentialInput
                                     id="instagram-access-token"
                                     v-model="instagramForm.access_token"
-                                    label="Access token"
+                                    :label="t('agents.channels.setup.labels.access_token')"
                                     :icon="KeyRound"
-                                    placeholder="IGAA…"
+                                    :placeholder="t('agents.channels.setup.placeholders.instagram_token')"
                                     :error="instagramForm.errors.access_token"
                                 />
                                 <CredentialInput
                                     id="instagram-app-secret"
                                     v-model="instagramForm.app_secret"
-                                    label="App secret"
+                                    :label="t('agents.channels.setup.labels.app_secret')"
                                     :icon="Lock"
                                     secret
                                     :error="instagramForm.errors.app_secret"

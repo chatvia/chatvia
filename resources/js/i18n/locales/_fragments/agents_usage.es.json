@@ -1,0 +1,42 @@
+{
+    "agents": {
+        "usage": {
+            "title": "Estadísticas de uso",
+            "description": "Consulta qué fuentes, funciones y servidores MCP usa realmente este agente",
+            "load_error": "No se pudo cargar el uso",
+            "try_again": "Intentar de nuevo",
+            "tabs": {
+                "knowledge": "Conocimiento",
+                "functions": "Funciones",
+                "mcp": "MCP"
+            },
+            "knowledge_empty": "Aún no se han recuperado fuentes de conocimiento",
+            "knowledge_empty_hint": "Los archivos, sitios web, fragmentos de texto y videos de YouTube aparecerán aquí una vez que el agente los utilice.",
+            "functions_empty": "Aún no hay llamadas a funciones",
+            "functions_empty_hint": "Las funciones de webhook aparecerán aquí una vez que el agente las invoque.",
+            "mcp_empty": "Aún no hay llamadas a herramientas MCP",
+            "mcp_empty_hint": "Las herramientas individuales de los servidores MCP conectados aparecerán aquí una vez que el agente las invoque.",
+            "retrievals": "{count} recuperación | {count} recuperaciones",
+            "calls": "{count} llamada | {count} llamadas",
+            "last_used": "Último uso {time}",
+            "last_called": "Última llamada {time}",
+            "via_server": "a través de {name}",
+            "sub_kind": {
+                "source_file": "Archivo",
+                "source_website": "Sitio web",
+                "source_text": "Texto",
+                "source_youtube_video": "YouTube",
+                "agent_website_url": "Página web"
+            },
+            "relative": {
+                "just_now": "justo ahora",
+                "minutes_ago": "hace {count} minuto | hace {count} minutos",
+                "hours_ago": "hace {count} hora | hace {count} horas",
+                "days_ago": "hace {count} día | hace {count} días",
+                "weeks_ago": "hace {count} semana | hace {count} semanas",
+                "months_ago": "hace {count} mes | hace {count} meses",
+                "years_ago": "hace {count} año | hace {count} años"
+            }
+        }
+    }
+}

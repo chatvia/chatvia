@@ -1,0 +1,232 @@
+{
+    "teams": {
+        "permissions_meta": {
+            "scopes": {
+                "agent": {
+                    "label": "صلاحيات الوكيل",
+                    "description": "ما يمكن لهذا الدور فعله داخل كل وكيل يملك صلاحية الوصول إليه. تُطبَّق هذه الإجراءات لكل وكيل — حسب قائمة وصول الوكيل أعلاه."
+                },
+                "account": {
+                    "label": "صلاحيات الحساب",
+                    "description": "أدوات وإعدادات مشتركة على مستوى الحساب. تُطبَّق مرة واحدة على كل الوكلاء وتُدار من قائمة الإعدادات."
+                }
+            },
+            "groups": {
+                "setup": {
+                    "label": "الإعداد",
+                    "description": "تعديل الوكيل نفسه — الشخصية، النماذج، أداة الدردشة، التضمين."
+                },
+                "sources": {
+                    "label": "المصادر",
+                    "description": "إدارة بيانات التدريب التي يتعلم منها الوكيل."
+                },
+                "chat": {
+                    "label": "المحادثة",
+                    "description": "قراءة المحادثات الحية، الاستلام، التصدير، أو الحذف."
+                },
+                "audit": {
+                    "label": "التدقيق",
+                    "description": "عرض سجل تدقيق استدعاءات الأدوات (الأدوات، الموصلات، الموافقات)."
+                },
+                "evals": {
+                    "label": "التقييمات",
+                    "description": "اختبار الوكيل مقابل مجموعة اختبارات وتتبع نسبة النجاح بمرور الوقت."
+                },
+                "guardrails": {
+                    "label": "الحواجز",
+                    "description": "حماية الذكاء الاصطناعي: البيانات الشخصية، حقن الموجّهات، المواضيع المحظورة، اللغة المسيئة."
+                },
+                "analytics": {
+                    "label": "التحليلات",
+                    "description": "مراجعة الاستخدام، المشاعر، النبرة، المواضيع، وأداء المصادر."
+                },
+                "topics": {
+                    "label": "المواضيع",
+                    "description": "تنظيم المواضيع التي تُجمَّع تحتها المحادثات."
+                },
+                "leads": {
+                    "label": "العملاء المحتملون",
+                    "description": "عرض وتكوين وتصدير العملاء المحتملين الذين يلتقطهم الوكيل."
+                },
+                "administration": {
+                    "label": "الإدارة",
+                    "description": "مهام على مستوى الوكيل بصلاحيات المالك — المحادثون ومفتاح التوقيع السري."
+                },
+                "security": {
+                    "label": "الأمان",
+                    "description": "بيانات الاعتماد الشخصية لاستدعاء واجهة برمجة التطبيقات العامة."
+                },
+                "integrations": {
+                    "label": "التكاملات",
+                    "description": "ربط خدمات الطرف الثالث ودوال webhook المخصصة، ثم إرفاقها بأي وكيل."
+                },
+                "library": {
+                    "label": "المكتبة",
+                    "description": "موجّهات قابلة لإعادة الاستخدام مشتركة عبر الحساب."
+                },
+                "people": {
+                    "label": "الأشخاص",
+                    "description": "إدارة المحادثين الممنوحين صلاحية الوصول إلى وكلائك."
+                },
+                "governance": {
+                    "label": "الحوكمة",
+                    "description": "تدقيق ومراقبة كل إجراء يتخذه وكلاؤك عبر الأدوات والموصلات."
+                }
+            },
+            "codes": {
+                "agents_access_all": {
+                    "label": "الوصول إلى كل الوكلاء",
+                    "description": "منح الوصول إلى كل الوكلاء الحاليين والمستقبليين في الفريق"
+                },
+                "agent_setup": {
+                    "label": "إعداد الوكيل",
+                    "description": "تعديل إعدادات الوكيل وشخصيته وسلوكه"
+                },
+                "agent_sources_train_files": {
+                    "label": "تدريب الملفات",
+                    "description": "رفع ومعالجة المستندات (PDF، Word، إلخ)"
+                },
+                "agent_sources_train_text": {
+                    "label": "تدريب النص",
+                    "description": "رفع ومعالجة ملفات النص العادي"
+                },
+                "agent_sources_train_qa": {
+                    "label": "تدريب الأسئلة والأجوبة",
+                    "description": "إضافة أزواج من الأسئلة والأجوبة"
+                },
+                "agent_sources_train_web": {
+                    "label": "تدريب الويب",
+                    "description": "زحف ومعالجة محتوى المواقع"
+                },
+                "agent_sources_train_audio": {
+                    "label": "تدريب الصوت",
+                    "description": "رفع ونسخ الملفات الصوتية"
+                },
+                "agent_sources_train_video": {
+                    "label": "تدريب الفيديو",
+                    "description": "رفع ونسخ ملفات الفيديو"
+                },
+                "agent_sources_train_functions": {
+                    "label": "إدارة الدوال",
+                    "description": "تعريف استدعاءات أدوات LLM التي تصل إلى نقاط webhook الخاصة بك"
+                },
+                "agent_sources_train_connectors": {
+                    "label": "إدارة الموصلات",
+                    "description": "ربط خدمات الطرف الثالث (Stripe، GitHub، Notion، …) كمصادر بيانات حية"
+                },
+                "agent_sources_delete": {
+                    "label": "حذف المصادر",
+                    "description": "إزالة مصادر التدريب من الوكيل"
+                },
+                "agent_chat_view": {
+                    "label": "عرض المحادثات",
+                    "description": "قراءة سجل المحادثات وسجلاتها"
+                },
+                "agent_chat_pulse": {
+                    "label": "نبض المحادثة",
+                    "description": "عرض مقاييس صحة المحادثة في الوقت الفعلي وتتبع المشاعر"
+                },
+                "agent_chat_takeover": {
+                    "label": "الاستلام",
+                    "description": "التحكم في محادثة حية من الذكاء الاصطناعي"
+                },
+                "agent_chat_delete": {
+                    "label": "حذف المحادثات",
+                    "description": "حذف سجل المحادثات نهائياً"
+                },
+                "agent_chat_export": {
+                    "label": "تصدير المحادثات",
+                    "description": "تصدير سجل المحادثات إلى CSV أو صيغ أخرى"
+                },
+                "agent_audit_view": {
+                    "label": "عرض سجل التدقيق",
+                    "description": "عرض سجل تدقيق استدعاءات الأدوات لهذا الوكيل"
+                },
+                "agent_evals_view": {
+                    "label": "عرض التقييمات",
+                    "description": "عرض مجموعات تقييم الوكيل وسجل التشغيل"
+                },
+                "agent_evals_manage": {
+                    "label": "إدارة التقييمات",
+                    "description": "إنشاء حالات اختبار وتشغيل مجموعات التقييم"
+                },
+                "agent_guardrails_view": {
+                    "label": "عرض الحواجز",
+                    "description": "عرض إعدادات أمان الذكاء الاصطناعي وسجل التفعيل لهذا الوكيل"
+                },
+                "agent_guardrails_manage": {
+                    "label": "إدارة الحواجز",
+                    "description": "تكوين حماية البيانات الشخصية وحقن الموجّهات والمواضيع واللغة المسيئة"
+                },
+                "agent_analytics_chats": {
+                    "label": "تحليلات المحادثة",
+                    "description": "عرض حجم المحادثات واتجاهاتها"
+                },
+                "agent_analytics_sentiment": {
+                    "label": "المشاعر",
+                    "description": "عرض تحليل مشاعر المحادثات"
+                },
+                "agent_analytics_tone": {
+                    "label": "النبرات",
+                    "description": "عرض تحليل نبرة المحادثات"
+                },
+                "agent_analytics_topics": {
+                    "label": "المواضيع",
+                    "description": "عرض المواضيع وإدارتها"
+                },
+                "agent_analytics_sources": {
+                    "label": "المصادر",
+                    "description": "عرض المصادر المستخدمة في الردود"
+                },
+                "agent_topics_manage": {
+                    "label": "إدارة المواضيع",
+                    "description": "إنشاء المواضيع وتعديلها وحذفها"
+                },
+                "agent_leads_view": {
+                    "label": "عرض العملاء المحتملين",
+                    "description": "عرض معلومات العملاء المحتملين الملتقطة"
+                },
+                "agent_leads_settings": {
+                    "label": "إعدادات العملاء المحتملين",
+                    "description": "تكوين نماذج وقواعد التقاط العملاء المحتملين"
+                },
+                "agent_leads_export": {
+                    "label": "تصدير العملاء المحتملين",
+                    "description": "تنزيل العملاء المحتملين كـ CSV أو التكامل مع CRM"
+                },
+                "agent_members_manage": {
+                    "label": "محادثو الوكيل",
+                    "description": "دعوة وعرض وإزالة المحادثين الممنوحين صلاحية الوصول إلى هذا الوكيل"
+                },
+                "agent_identity_manage": {
+                    "label": "التحقق من هوية الوكيل",
+                    "description": "عرض واستخدام مفتاح التوقيع السري الخاص بكل وكيل لرموز تسجيل الدخول"
+                },
+                "account_api_keys": {
+                    "label": "مفاتيح API",
+                    "description": "إنشاء وإلغاء رموز API الشخصية"
+                },
+                "account_connectors": {
+                    "label": "الموصلات",
+                    "description": "إدارة موصلات الطرف الثالث على مستوى الحساب (خوادم MCP)"
+                },
+                "account_functions": {
+                    "label": "الدوال",
+                    "description": "تعريف دوال webhook التي يمكن للوكلاء استدعاؤها"
+                },
+                "account_prompts": {
+                    "label": "الموجّهات",
+                    "description": "إدارة مكتبة الموجّهات المشتركة"
+                },
+                "account_members_manage": {
+                    "label": "المحادثون",
+                    "description": "عرض وإعادة تعيين كلمة المرور وإزالة المحادثين عبر مساحة العمل"
+                },
+                "account_governance": {
+                    "label": "الحوكمة",
+                    "description": "عرض سجل تدقيق استدعاءات الأدوات وضوابط الوصول"
+                }
+            }
+        }
+    }
+}

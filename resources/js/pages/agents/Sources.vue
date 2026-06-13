@@ -137,7 +137,9 @@ onMounted(() => {
                         <CardContent class="pt-6">
                             <div class="space-y-2 text-center">
                                 <p class="text-destructive font-medium">{{ error }}</p>
-                                <button @click="fetchData" class="text-muted-foreground hover:text-foreground text-sm underline">{{ t('agents.usage.try_again') }}</button>
+                                <button @click="fetchData" class="text-muted-foreground hover:text-foreground text-sm underline">
+                                    {{ t('agents.usage.try_again') }}
+                                </button>
                             </div>
                         </CardContent>
                     </Card>
@@ -276,7 +278,9 @@ onMounted(() => {
                                                     <Plug class="text-muted-foreground mt-0.5 h-4 w-4 flex-shrink-0" />
                                                     <p class="truncate font-mono text-base font-semibold">{{ item.tool_name }}</p>
                                                 </div>
-                                                <p class="text-muted-foreground mt-0.5 text-sm">{{ t('agents.usage.via_server', { name: item.server_name }) }}</p>
+                                                <p class="text-muted-foreground mt-0.5 text-sm">
+                                                    {{ t('agents.usage.via_server', { name: item.server_name }) }}
+                                                </p>
                                                 <div class="mt-1.5 flex flex-wrap items-center gap-2">
                                                     <Badge v-if="item.connector_slug" variant="secondary">{{ item.connector_slug }}</Badge>
                                                     <span class="text-foreground text-sm font-medium">

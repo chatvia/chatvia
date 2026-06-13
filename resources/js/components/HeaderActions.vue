@@ -1,11 +1,11 @@
 <template>
     <div class="flex items-center gap-2">
         <!-- Success ChatMessage -->
-        <FormSuccessMessage v-if="showSuccessMessage" :show="showSuccessMessage" :message="successMessage" class="mr-2" />
+        <FormSuccessMessage v-if="showSuccessMessage" :show="showSuccessMessage" :message="displaySuccessMessage" class="me-2" />
 
         <!-- Error ChatMessage -->
-        <div v-if="showErrorMessage && !showSuccessMessage" class="text-destructive mr-2 text-xs">
-            {{ errorMessage }}
+        <div v-if="showErrorMessage && !showSuccessMessage" class="text-destructive me-2 text-xs">
+            {{ displayErrorMessage }}
         </div>
 
         <!-- Secondary Actions (like Restore Defaults) -->
@@ -21,14 +21,11 @@
             <Button :disabled="isSubmitting" size="sm" type="submit" :form="formId" class="min-w-[100px] gap-2">
                 <component :is="saveIcon" v-if="!isSubmitting && saveIcon" class="h-4 w-4" />
                 <div v-else-if="isSubmitting" class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                {{ isSubmitting ? 'Saving...' : saveLabel }}
+                {{ isSubmitting ? t('common.saving') : displaySaveLabel }}
             </Button>
 
             <!-- Pulse Badge Circle -->
-            <div
-                v-if="hasUnsavedChanges && !isSubmitting"
-                class="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-orange-500 shadow-lg"
-            >
+            <div v-if="hasUnsavedChanges && !isSubmitting" class="absolute -end-1 -top-1 h-3 w-3 animate-pulse rounded-full bg-orange-500 shadow-lg">
                 <div class="absolute inset-0 h-3 w-3 animate-ping rounded-full bg-orange-500 opacity-75"></div>
             </div>
         </div>
@@ -38,6 +35,8 @@
 <script setup lang="ts">
 import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
 import { Button } from '@/components/ui/button';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface SecondaryAction {
     id: string;
@@ -65,16 +64,19 @@ interface Props {
     secondaryActions?: SecondaryAction[];
 }
 
-const _props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
     isSubmitting: false,
     hasUnsavedChanges: false,
-    saveLabel: 'Save',
     saveIcon: undefined,
     formId: undefined,
     showSuccessMessage: false,
-    successMessage: 'Settings saved successfully',
     showErrorMessage: false,
-    errorMessage: 'Please fix errors below',
     secondaryActions: () => [],
 });
+
+const { t } = useI18n();
+
+const displaySaveLabel = computed(() => props.saveLabel ?? t('common.save'));
+const displaySuccessMessage = computed(() => props.successMessage ?? t('shared.settings_saved_successfully'));
+const displayErrorMessage = computed(() => props.errorMessage ?? t('shared.fix_errors_below'));
 </script>

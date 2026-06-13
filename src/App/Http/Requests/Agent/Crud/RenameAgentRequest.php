@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Agent\Crud;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Account\RenameAgentData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
@@ -12,17 +11,11 @@ class RenameAgentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        /** @var User|null $user */
-        $user = $this->user();
-        /** @var Agent $agent */
-        $agent = $this->route('agent');
-        $team = current_team();
-
-        if ($user === null || $team === null || ! $user->ownsTeam($team)) {
-            return false;
-        }
-
-        return $user->can('update', $agent) && $agent->team_id === $team->id;
+        // Authorization is enforced by route middleware: `can.access.agent`
+        // (tenant + per-agent access) and `agent.permission:agent.setup`
+        // (renaming is part of agent setup). Owners pass both; a teammate needs
+        // the agent.setup grant for an agent their role can access.
+        return true;
     }
 
     /**
@@ -36,9 +29,12 @@ class RenameAgentRequest extends FormRequest
         return [
             'name' => [
                 'required', 'string', 'max:255',
+                // Scope uniqueness to the agent's OWNER (agents belong to the
+                // workspace owner), not the acting user — a teammate renaming on
+                // the owner's behalf must still collide-check against the owner.
                 Rule::unique('agents', 'name')
                     ->ignore($agent->id)
-                    ->where('user_id', $this->user()->id),
+                    ->where('user_id', $agent->user_id),
             ],
             'sub_domain' => [
                 'required', 'string', 'min:3', 'max:63',

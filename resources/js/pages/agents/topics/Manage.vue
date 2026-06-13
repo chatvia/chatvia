@@ -13,8 +13,8 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import axios from 'axios';
 import { LoaderCircle, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 
@@ -196,7 +196,7 @@ onMounted(() => {
             <!-- Search and Add -->
             <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div class="relative w-full sm:w-96">
-                    <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2 transform" />
+                    <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
                     <Input v-model="searchQuery" :placeholder="t('agents.topics.manage.search_placeholder')" class="ps-9" />
                 </div>
                 <Button @click="openAddDialog">
@@ -268,7 +268,12 @@ onMounted(() => {
                 <div class="space-y-4">
                     <div>
                         <Label for="add-topic">{{ t('agents.topics.manage.topic_name') }}</Label>
-                        <Input id="add-topic" v-model="form.topic" :placeholder="t('agents.topics.manage.topic_name_placeholder')" @keydown.enter="handleAdd" />
+                        <Input
+                            id="add-topic"
+                            v-model="form.topic"
+                            :placeholder="t('agents.topics.manage.topic_name_placeholder')"
+                            @keydown.enter="handleAdd"
+                        />
                     </div>
                     <div>
                         <Label for="add-description">{{ t('agents.topics.manage.description_label') }}</Label>
@@ -281,7 +286,9 @@ onMounted(() => {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" @click="isAddDialogOpen = false" :disabled="isSubmitting"> {{ t('agents.topics.manage.cancel') }} </Button>
+                    <Button variant="outline" @click="isAddDialogOpen = false" :disabled="isSubmitting">
+                        {{ t('agents.topics.manage.cancel') }}
+                    </Button>
                     <Button @click="handleAdd" :disabled="isSubmitting">
                         <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
                         {{ t('agents.topics.manage.add_topic_button') }}
@@ -300,7 +307,12 @@ onMounted(() => {
                 <div class="space-y-4">
                     <div>
                         <Label for="edit-topic">{{ t('agents.topics.manage.topic_name') }}</Label>
-                        <Input id="edit-topic" v-model="form.topic" :placeholder="t('agents.topics.manage.topic_name_placeholder')" @keydown.enter="handleEdit" />
+                        <Input
+                            id="edit-topic"
+                            v-model="form.topic"
+                            :placeholder="t('agents.topics.manage.topic_name_placeholder')"
+                            @keydown.enter="handleEdit"
+                        />
                     </div>
                     <div>
                         <Label for="edit-description">{{ t('agents.topics.manage.description_label') }}</Label>
@@ -313,7 +325,9 @@ onMounted(() => {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" @click="isEditDialogOpen = false" :disabled="isSubmitting"> {{ t('agents.topics.manage.cancel') }} </Button>
+                    <Button variant="outline" @click="isEditDialogOpen = false" :disabled="isSubmitting">
+                        {{ t('agents.topics.manage.cancel') }}
+                    </Button>
                     <Button @click="handleEdit" :disabled="isSubmitting">
                         <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
                         {{ t('agents.topics.manage.save') }}
@@ -332,7 +346,9 @@ onMounted(() => {
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" @click="isDeleteDialogOpen = false" :disabled="isSubmitting"> {{ t('agents.topics.manage.cancel') }} </Button>
+                    <Button variant="outline" @click="isDeleteDialogOpen = false" :disabled="isSubmitting">
+                        {{ t('agents.topics.manage.cancel') }}
+                    </Button>
                     <Button variant="destructive" @click="handleDelete" :disabled="isSubmitting">
                         <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
                         {{ t('agents.topics.manage.delete') }}

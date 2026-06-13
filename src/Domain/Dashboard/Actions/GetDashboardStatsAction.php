@@ -216,7 +216,7 @@ class GetDashboardStatsAction
     }
 
     /**
-     * @return array<int, array{label: string, value: int}>
+     * @return array<int, array{date: string, label: string, value: int}>
      */
     private function getDailyMessagesVolume(int $userId, int $days, string $labelFormat): array
     {
@@ -241,6 +241,7 @@ class GetDashboardStatsAction
             $dateKey = $date->format('Y-m-d');
 
             $data[] = [
+                'date' => $dateKey,
                 'label' => $date->format($labelFormat),
                 'value' => (int) ($dailyMessages[$dateKey] ?? 0),
             ];

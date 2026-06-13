@@ -1,0 +1,232 @@
+{
+    "teams": {
+        "permissions_meta": {
+            "scopes": {
+                "agent": {
+                    "label": "Agent permissions",
+                    "description": "What this role can do inside each agent it has access to. These actions apply per agent — picked from the Agent Access list above."
+                },
+                "account": {
+                    "label": "Account permissions",
+                    "description": "Shared, account-wide tools and settings. These apply once across every agent and are managed from the Settings menu."
+                }
+            },
+            "groups": {
+                "setup": {
+                    "label": "Setup",
+                    "description": "Edit the agent itself — personality, models, widget, embed."
+                },
+                "sources": {
+                    "label": "Sources",
+                    "description": "Manage the training data the agent learns from."
+                },
+                "chat": {
+                    "label": "Chat",
+                    "description": "Read, take over, export, or delete live conversations."
+                },
+                "audit": {
+                    "label": "Audit",
+                    "description": "View the tool-call audit log (tools, connectors, approvals)."
+                },
+                "evals": {
+                    "label": "Evals",
+                    "description": "Test the agent against a suite and track pass-rate over time."
+                },
+                "guardrails": {
+                    "label": "Guardrails",
+                    "description": "AI-safety guards: PII, prompt-injection, blocked topics, toxicity."
+                },
+                "analytics": {
+                    "label": "Analytics",
+                    "description": "Inspect usage, sentiment, tone, topics, and source performance."
+                },
+                "topics": {
+                    "label": "Topics",
+                    "description": "Curate the topics conversations are grouped under."
+                },
+                "leads": {
+                    "label": "Leads",
+                    "description": "See, configure, and export leads captured by the agent."
+                },
+                "administration": {
+                    "label": "Administration",
+                    "description": "Owner-style per-agent tasks — chatters and signing secret."
+                },
+                "security": {
+                    "label": "Security",
+                    "description": "Personal credentials used to call the public API."
+                },
+                "integrations": {
+                    "label": "Integrations",
+                    "description": "Connect third-party services and custom webhook functions, then attach them to any agent."
+                },
+                "library": {
+                    "label": "Library",
+                    "description": "Reusable prompts shared across the account."
+                },
+                "people": {
+                    "label": "People",
+                    "description": "Manage the chatters granted access to your agents."
+                },
+                "governance": {
+                    "label": "Governance",
+                    "description": "Audit and control every action your agents take through tools and connectors."
+                }
+            },
+            "codes": {
+                "agents_access_all": {
+                    "label": "Access all agents",
+                    "description": "Grant access to all current and future agents in the team"
+                },
+                "agent_setup": {
+                    "label": "Setup agent",
+                    "description": "Modify agent settings, personality, and behavior"
+                },
+                "agent_sources_train_files": {
+                    "label": "Train Files",
+                    "description": "Upload and process documents (PDF, Word, etc.)"
+                },
+                "agent_sources_train_text": {
+                    "label": "Train Text",
+                    "description": "Upload and process plain text files"
+                },
+                "agent_sources_train_qa": {
+                    "label": "Train Q&A",
+                    "description": "Add question and answer pairs"
+                },
+                "agent_sources_train_web": {
+                    "label": "Train Web",
+                    "description": "Crawl and process website content"
+                },
+                "agent_sources_train_audio": {
+                    "label": "Train Audio",
+                    "description": "Upload and transcribe audio files"
+                },
+                "agent_sources_train_video": {
+                    "label": "Train Video",
+                    "description": "Upload and transcribe video files"
+                },
+                "agent_sources_train_functions": {
+                    "label": "Manage Functions",
+                    "description": "Define LLM tool calls that hit your own webhook endpoints"
+                },
+                "agent_sources_train_connectors": {
+                    "label": "Manage Connectors",
+                    "description": "Connect third-party services (Stripe, GitHub, Notion, …) as live data sources"
+                },
+                "agent_sources_delete": {
+                    "label": "Delete sources",
+                    "description": "Remove training sources from the agent"
+                },
+                "agent_chat_view": {
+                    "label": "View conversations",
+                    "description": "Read chat history and conversation logs"
+                },
+                "agent_chat_pulse": {
+                    "label": "Conversation Pulse",
+                    "description": "View real-time conversation health metrics and sentiment tracking"
+                },
+                "agent_chat_takeover": {
+                    "label": "Take over",
+                    "description": "Take control of a live conversation from the AI"
+                },
+                "agent_chat_delete": {
+                    "label": "Delete conversations",
+                    "description": "Permanently delete conversation history"
+                },
+                "agent_chat_export": {
+                    "label": "Export conversations",
+                    "description": "Export chat history to CSV or other formats"
+                },
+                "agent_audit_view": {
+                    "label": "View audit log",
+                    "description": "See the tool-call audit log for this agent"
+                },
+                "agent_evals_view": {
+                    "label": "View evals",
+                    "description": "See agent eval suites and run history"
+                },
+                "agent_evals_manage": {
+                    "label": "Manage evals",
+                    "description": "Create test cases and run eval suites"
+                },
+                "agent_guardrails_view": {
+                    "label": "View guardrails",
+                    "description": "See the AI-safety settings and trigger log for this agent"
+                },
+                "agent_guardrails_manage": {
+                    "label": "Manage guardrails",
+                    "description": "Configure PII, prompt-injection, topic and toxicity guards"
+                },
+                "agent_analytics_chats": {
+                    "label": "Chat analytics",
+                    "description": "View conversation volume and trends"
+                },
+                "agent_analytics_sentiment": {
+                    "label": "Sentiment",
+                    "description": "View sentiment analysis of conversations"
+                },
+                "agent_analytics_tone": {
+                    "label": "Tones",
+                    "description": "View tone analysis of conversations"
+                },
+                "agent_analytics_topics": {
+                    "label": "Topics",
+                    "description": "View and manage topics"
+                },
+                "agent_analytics_sources": {
+                    "label": "Sources",
+                    "description": "View which sources are being used in responses"
+                },
+                "agent_topics_manage": {
+                    "label": "Manage topics",
+                    "description": "Create, edit, and delete conversation topics"
+                },
+                "agent_leads_view": {
+                    "label": "View leads",
+                    "description": "See captured lead information"
+                },
+                "agent_leads_settings": {
+                    "label": "Lead settings",
+                    "description": "Configure lead capture forms and rules"
+                },
+                "agent_leads_export": {
+                    "label": "Export leads",
+                    "description": "Download leads as CSV or integrate with CRM"
+                },
+                "agent_members_manage": {
+                    "label": "Agent Chatters",
+                    "description": "Invite, view, and remove chatters granted access to this agent"
+                },
+                "agent_identity_manage": {
+                    "label": "Agent Identity Verification",
+                    "description": "View and use the per-agent signing secret for sign-in tokens"
+                },
+                "account_api_keys": {
+                    "label": "API keys",
+                    "description": "Create and revoke personal API tokens"
+                },
+                "account_connectors": {
+                    "label": "Connectors",
+                    "description": "Manage account-level third-party connectors (MCP servers)"
+                },
+                "account_functions": {
+                    "label": "Functions",
+                    "description": "Define webhook functions agents can call"
+                },
+                "account_prompts": {
+                    "label": "Prompts",
+                    "description": "Manage the shared prompts library"
+                },
+                "account_members_manage": {
+                    "label": "Chatters",
+                    "description": "View, reset password, and remove chatters across the workspace"
+                },
+                "account_governance": {
+                    "label": "Governance",
+                    "description": "View the tool-call audit log and access controls"
+                }
+            }
+        }
+    }
+}

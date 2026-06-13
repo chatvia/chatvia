@@ -123,7 +123,7 @@ function toggleChatExpand() {
             <div class="flex items-center gap-1">
                 <!-- Incognito mode indicator -->
                 <Transition name="slide-fade">
-                    <div v-if="isIncognitoMode" class="mr-2 flex items-center gap-1.5 rounded-full bg-purple-500/10 px-2.5 py-1">
+                    <div v-if="isIncognitoMode" class="me-2 flex items-center gap-1.5 rounded-full bg-purple-500/10 px-2.5 py-1">
                         <div class="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-500"></div>
                         <span class="text-[11px] font-medium text-purple-600 dark:text-purple-400">{{ t('header.incognito_mode') }}</span>
                     </div>

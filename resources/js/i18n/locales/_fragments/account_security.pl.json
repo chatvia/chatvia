@@ -1,0 +1,59 @@
+{
+    "account": {
+        "passkeys": {
+            "name_required": "Najpierw nadaj nazwę swojemu kluczowi dostępu.",
+            "register_error": "Nie udało się zarejestrować klucza dostępu.",
+            "never": "Nigdy",
+            "delete_aria": "Usuń klucz dostępu",
+            "name_placeholder": "MacBook Pro, iPhone, YubiKey…",
+            "heading": "Klucze dostępu",
+            "description": "Zaloguj się odciskiem palca, twarzą lub kluczem bezpieczeństwa — bez hasła.",
+            "add_passkey": "Dodaj klucz dostępu",
+            "no_passkeys": "Brak kluczy dostępu",
+            "no_passkeys_hint": "Dodaj klucz dostępu, aby szybciej logować się na tym urządzeniu.",
+            "last_used": "Ostatnio użyty",
+            "created": "Utworzono",
+            "dialog_title": "Nazwij swój klucz dostępu",
+            "dialog_description": "Wybierz nazwę, aby móc odróżnić swoje klucze dostępu w przyszłości.",
+            "register": "Zarejestruj klucz dostępu",
+            "delete_title": "Usunąć ten klucz dostępu?",
+            "delete_description": "{name} nie będzie już mógł być używany do logowania. Tej operacji nie można cofnąć."
+        },
+        "two_factor": {
+            "heading": "Uwierzytelnianie dwuskładnikowe",
+            "description": "Wymagaj 6-cyfrowego kodu z aplikacji uwierzytelniającej przy logowaniu, oprócz hasła.",
+            "disable_title": "Wyłączyć uwierzytelnianie dwuskładnikowe?",
+            "disable_description": "Twoje konto będzie chronione wyłącznie hasłem. Możesz ponownie włączyć 2FA w dowolnym momencie.",
+            "status": "Status",
+            "enabled": "Włączone",
+            "disabled": "Wyłączone",
+            "off_title": "Uwierzytelnianie dwuskładnikowe jest wyłączone",
+            "off_description": "Włącz je, aby wymagać 6-cyfrowego kodu przy logowaniu.",
+            "enable": "Włącz uwierzytelnianie dwuskładnikowe",
+            "finish_setup_title": "Zakończ konfigurację",
+            "finish_setup_description": "Zeskanuj kod QR aplikacją uwierzytelniającą, a następnie wprowadź 6-cyfrowy kod, aby potwierdzić.",
+            "loading_qr": "Ładowanie kodu QR…",
+            "secret_manual": "Lub wprowadź ten sekret ręcznie",
+            "confirmation_code": "Kod potwierdzający",
+            "confirm": "Potwierdź",
+            "cancel_setup": "Anuluj konfigurację",
+            "recovery_title": "Kody odzyskiwania",
+            "recovery_description": "Zapisz te jednorazowe kody w bezpiecznym miejscu. Każdy z nich umożliwia odblokowanie konta w przypadku utraty dostępu do aplikacji uwierzytelniającej.",
+            "loading_codes": "Ładowanie kodów odzyskiwania…",
+            "show_codes": "Pokaż kody odzyskiwania",
+            "regenerate_codes": "Wygeneruj nowe kody",
+            "disable": "Wyłącz uwierzytelnianie dwuskładnikowe"
+        },
+        "social": {
+            "heading": "Konta społecznościowe",
+            "description": "Połącz konto Google, Microsoft lub Slack, aby logować się jednym kliknięciem i synchronizować swoje konta.",
+            "connected_since": "Połączono od {date}",
+            "connected": "Połączono",
+            "not_connected": "Niepołączono",
+            "disconnect": "Rozłącz",
+            "connect": "Połącz",
+            "disconnect_title": "Rozłączyć {provider}?",
+            "disconnect_description": "Nie będziesz mógł logować się za pomocą {provider}, dopóki ponownie go nie połączysz."
+        }
+    }
+}

@@ -1,0 +1,43 @@
+{
+    "agents": {
+        "deploy": {
+            "title": "Julkaise",
+            "subtitle": "Aseta agentti käyttäjien saataville — valitse alusta ja kopioi koodi.",
+            "head_title": "Julkaise — {name}",
+            "copy": "Kopioi",
+            "copied": "Kopioitu!",
+            "copy_failed": "Kopiointi epäonnistui",
+            "customize": "Mukauta ulkoasua",
+            "install_label": "Lisää tämä sivustollesi",
+            "protected_title": "Tämä agentti on suojattu",
+            "protected_description": "Upotukset edellyttävät allekirjoitettua tunnusta, muuten kaikki, joilla on koodinpätkä, näkevät lukitun näytön. Tee se julkiseksi tai määritä todennus",
+            "open_security": "Suojausasetukset",
+            "widget": {
+                "title": "Chat-widget",
+                "description": "Kelluva chat-painike sivun kulmassa — klassinen assistentti."
+            },
+            "chat": {
+                "title": "Isännöity chat",
+                "description": "Koko sivun chat omalla linkillä. Jaa se suoraan tai upota se sivulle.",
+                "url_label": "Agentin URL",
+                "open": "Avaa",
+                "embed_label": "Upota sivulle",
+                "iframe_title": "Keskustele kohteen {name} kanssa",
+                "width": "Leveys",
+                "height": "Korkeus",
+                "preset_full": "Täysi",
+                "preset_large": "Suuri",
+                "preset_medium": "Keskikokoinen",
+                "preset_small": "Pieni"
+            },
+            "bar": {
+                "title": "Komentopalkki",
+                "description": "⌘K-komentopaletin peitto. Täydellinen dokumentaatioon, hallintapaneeleihin ja sovelluksiin."
+            },
+            "save": "Tallenna",
+            "sites_saved": "Sallitut sivustot päivitetty",
+            "sites_error": "Tallennus epäonnistui — yritä uudelleen",
+            "api_docs": "JavaScript API"
+        }
+    }
+}

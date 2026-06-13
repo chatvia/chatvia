@@ -55,7 +55,7 @@ function collectUnescapedAt(obj, prefix = '') {
         const key = prefix ? `${prefix}.${k}` : k;
         if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
             warnings.push(...collectUnescapedAt(v, key));
-        } else if (typeof v === 'string' && /(?<!@)@(?!@)/.test(v)) {
+        } else if (typeof v === 'string' && /(?<!@)@(?!@|\{)/.test(v) && !v.includes("{'@'}")) {
             warnings.push({ key, value: v });
         }
     }

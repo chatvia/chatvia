@@ -2,9 +2,12 @@
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Image as ImageIcon, Trash2, Upload, User } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-withDefaults(
+const { t } = useI18n();
+
+const props = withDefaults(
     defineProps<{
         label: string;
         description?: string;
@@ -15,8 +18,10 @@ withDefaults(
         disabled?: boolean;
         error?: string;
     }>(),
-    { description: '', uploadLabel: 'Upload', preview: null, icon: 'image', accept: 'image/*', disabled: false },
+    { description: '', preview: null, icon: 'image', accept: 'image/*', disabled: false },
 );
+
+const displayUploadLabel = computed(() => props.uploadLabel ?? t('shared.image_upload.upload'));
 
 const emit = defineEmits<{
     select: [file: File];
@@ -51,8 +56,8 @@ function onChange(event: Event): void {
             <div class="flex flex-col gap-2">
                 <input ref="fileInput" :accept="accept" class="hidden" type="file" @change="onChange" />
                 <Button type="button" variant="outline" size="sm" :disabled="disabled" @click="trigger">
-                    <Upload class="mr-2 h-4 w-4" />
-                    {{ uploadLabel }}
+                    <Upload class="me-2 h-4 w-4" />
+                    {{ displayUploadLabel }}
                 </Button>
                 <Button
                     v-if="preview && !disabled"
@@ -62,8 +67,8 @@ function onChange(event: Event): void {
                     variant="ghost"
                     @click="emit('remove')"
                 >
-                    <Trash2 class="mr-2 h-4 w-4" />
-                    Remove
+                    <Trash2 class="me-2 h-4 w-4" />
+                    {{ t('shared.image_upload.remove') }}
                 </Button>
             </div>
         </div>

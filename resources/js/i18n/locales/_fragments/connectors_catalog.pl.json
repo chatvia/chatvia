@@ -1,0 +1,86 @@
+{
+    "connectors": {
+        "categories": {
+            "utilities": "Narzędzia",
+            "sales": "Sprzedaż",
+            "payments": "Płatności",
+            "developer_tools": "Narzędzia deweloperskie",
+            "productivity": "Produktywność",
+            "communication": "Komunikacja",
+            "automation": "Automatyzacja",
+            "analytics": "Analityka"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "Przeszukuj internet w czasie rzeczywistym za pomocą Perplexity Sonar — wiadomości, ceny, bieżące wydarzenia — z podaniem źródeł.",
+                "token_label": "Klucz API Perplexity",
+                "token_placeholder": "Twój klucz API Perplexity"
+            },
+            "weather": {
+                "name": "Pogoda",
+                "description": "Aktualna pogoda (temperatura, warunki atmosferyczne, wilgotność, wiatr) dla dowolnego miasta, obsługiwana przez OpenWeatherMap.",
+                "token_label": "Klucz API OpenWeatherMap",
+                "token_placeholder": "Twój klucz API OpenWeatherMap"
+            },
+            "currency": {
+                "name": "Przelicznik walut",
+                "description": "Przeliczaj kwoty między dowolnymi dwiema walutami przy użyciu aktualnych kursów wymiany (exchangerate-api).",
+                "token_label": "Klucz API ExchangeRate-API",
+                "token_placeholder": "Twój klucz API ExchangeRate-API"
+            },
+            "charts": {
+                "name": "Interaktywne wykresy",
+                "description": "Renderuj interaktywne wykresy bezpośrednio w czacie — słupkowe, liniowe, kołowe, punktowe, radarowe, wskaźnikowe, mapy ciepła i inne."
+            },
+            "leads": {
+                "name": "Potencjalni klienci",
+                "description": "Zbieraj dane kontaktowe odwiedzających (imię i nazwisko, adres e-mail, telefon i inne)."
+            },
+            "stripe": { "name": "Stripe", "description": "Przeszukuj transakcje, klientów, produkty i płatności na swoim koncie Stripe." },
+            "github": { "name": "GitHub", "description": "Odczytuj repozytoria, zgłoszenia, PR-y i kod z dowolnego konta, do którego masz dostęp." },
+            "notion": { "name": "Notion", "description": "Odczytuj strony, bazy danych i komentarze z obszaru roboczego Notion." },
+            "linear": { "name": "Linear", "description": "Przeszukuj zgłoszenia, projekty i cykle w obszarze roboczym Linear." },
+            "atlassian": { "name": "Atlassian", "description": "Zgłoszenia Jira, strony Confluence i przepływy pracy z Twoich witryn Atlassian." },
+            "gmail": { "name": "Gmail", "description": "Przeszukuj wiadomości, czytaj wątki i redaguj odpowiedzi w skrzynce odbiorczej Gmail." },
+            "google-calendar": { "name": "Kalendarz Google", "description": "Odczytuj i twórz wydarzenia w swoich Kalendarzach Google." },
+            "google-drive": { "name": "Dysk Google", "description": "Odczytuj pliki i foldery z Dysku Google." },
+            "slack": {
+                "name": "Slack",
+                "description": "Przeszukuj wiadomości, publikuj odpowiedzi i czytaj historię kanałów w obszarze roboczym Slack."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "Pozwól odwiedzającym umawiać spotkania w Calendly i umożliw agentom odczytywanie zaplanowanych wydarzeń."
+            },
+            "todoist": { "name": "Todoist", "description": "Zarządzaj zadaniami, projektami i etykietami na koncie Todoist." },
+            "zapier": { "name": "Zapier", "description": "Wyzwalaj akcje Zapier w ponad 9000 połączonych aplikacjach." },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "Odczytuj zgłoszenia, użytkowników i artykuły centrum pomocy z konta Zendesk Support.",
+                "token_label": "Token API Zendesk",
+                "token_placeholder": "Twój token API Zendesk"
+            },
+            "hubspot": { "name": "HubSpot", "description": "Odczytuj i aktualizuj kontakty, firmy, transakcje i zgłoszenia w HubSpot CRM." },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "Odczytuj i aktualizuj konta, kontakty, możliwości sprzedaży i sprawy w swojej organizacji Salesforce."
+            },
+            "box": { "name": "Box", "description": "Przeszukuj i odczytuj pliki, foldery i metadane na koncie Box." },
+            "asana": { "name": "Asana", "description": "Odczytuj i aktualizuj zadania, projekty i portfele w obszarze roboczym Asana." },
+            "sentry": { "name": "Sentry", "description": "Odczytuj zgłoszenia, błędy i wydania z projektów Sentry." },
+            "fireflies": { "name": "Fireflies", "description": "Przeszukuj transkrypcje spotkań, podsumowania i elementy działań z Fireflies.ai." },
+            "amplitude": { "name": "Amplitude", "description": "Pobieraj analizy produktowe — zdarzenia, wykresy i kohorty — z projektu Amplitude." }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "Analityka konta",
+                "description": "Odpowiada na pytania właściciela obszaru roboczego dotyczące jego własnego konta w liczbach — wiadomości, rozmowy, użytkownicy, kanały, potencjalni klienci, satysfakcja, czas odpowiedzi, tematy i przekazania."
+            },
+            "charts": {
+                "name": "Interaktywne wykresy",
+                "description": "Renderuj interaktywne wykresy (słupkowe, liniowe, kołowe, wskaźnikowe, punktowe, radarowe, mapy ciepła…) bezpośrednio w czacie."
+            }
+        }
+    }
+}

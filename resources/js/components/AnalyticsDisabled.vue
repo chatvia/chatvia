@@ -2,6 +2,8 @@
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Zap } from 'lucide-vue-next';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     // The feature name, e.g. "Sentiment analysis".
@@ -25,6 +27,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{ enable: [] }>();
 
+const { t } = useI18n();
+
+const enableAriaLabel = computed(() => t('shared.enable_feature', { title: props.title }));
+const heading = computed(() => (props.canEnable ? t('shared.feature_turned_off', { title: props.title }) : t('shared.chat_log_off')));
+
 const onToggle = () => {
     if (props.canEnable && !props.enabling) {
         emit('enable');
@@ -42,7 +49,7 @@ const onToggle = () => {
                 <Switch
                     :model-value="enabling"
                     :disabled="enabling || !canEnable"
-                    :aria-label="`Enable ${title}`"
+                    :aria-label="enableAriaLabel"
                     class="scale-[2.4]"
                     @update:model-value="onToggle"
                 />
@@ -50,7 +57,7 @@ const onToggle = () => {
 
             <div class="space-y-3">
                 <h2 class="text-foreground text-xl font-semibold">
-                    {{ canEnable ? `${title} is turned off` : 'Chat log is off' }}
+                    {{ heading }}
                 </h2>
                 <p class="text-muted-foreground">{{ canEnable ? description : blockedReason }}</p>
             </div>
@@ -63,7 +70,7 @@ const onToggle = () => {
                 @click="emit('enable')"
             >
                 <Zap class="h-5 w-5" />
-                {{ enabling ? 'Enabling…' : 'Enable now' }}
+                {{ enabling ? t('shared.enabling') : t('shared.enable_now') }}
             </Button>
         </div>
     </div>

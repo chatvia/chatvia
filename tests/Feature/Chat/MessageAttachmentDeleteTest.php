@@ -132,7 +132,7 @@ it('refuses on a private agent when the requester does not own the conversation'
     $intruder = User::factory()->create();
 
     $conversation = messageConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, $owner->id);
+    ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());
     $message = Message::create([
         'chat_conversation_id' => $conversation->id,
         'role' => 'user',
@@ -153,7 +153,7 @@ it('lets the rightful owner delete on a private agent', function (): void {
     $owner = User::factory()->create();
 
     $conversation = messageConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, $owner->id);
+    ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());
     $message = Message::create([
         'chat_conversation_id' => $conversation->id,
         'role' => 'user',

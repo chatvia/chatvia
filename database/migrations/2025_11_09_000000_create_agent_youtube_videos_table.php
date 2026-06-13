@@ -3,7 +3,6 @@
 use App\Identity\Workspace\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -12,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('source_youtube_videos', function (Blueprint $table) {
             $table->id();
-            $table->uuid('external_id')->nullable();
+            $table->uuid('external_id')->unique();
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('language')->nullable();
             $table->string('document_classification')->nullable();
@@ -38,8 +37,6 @@ return new class extends Migration
             $table->unique(['user_id', 'checksum']);
             $table->index(['user_id', 'status']);
         });
-
-        DB::statement('CREATE UNIQUE INDEX source_youtube_videos_external_id_unique ON source_youtube_videos (external_id) WHERE external_id IS NOT NULL');
     }
 
     public function down(): void

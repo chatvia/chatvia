@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('verified_name')->nullable();
             $table->string('webhook_secret', 64)->unique();
             $table->boolean('enabled')->default(true);
-            $table->timestampsTz();
+            $table->timestamps();
 
             $table->index('phone_number_id');
         });

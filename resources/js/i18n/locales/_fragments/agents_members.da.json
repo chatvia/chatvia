@@ -1,0 +1,71 @@
+{
+    "agents": {
+        "members": {
+            "title": "Chattere",
+            "description": "Dine chattere. Chattere med adgang til denne agent vises først; giv en anden chatter adgang med ét klik.",
+            "public_title": "Denne agent er offentlig",
+            "public_description": "Alle med linket kan chatte med denne agent, så chatter-tilladelser gælder ikke. For at bruge chattere skal du gøre agenten beskyttet fra fanen Opsætning.",
+            "search_placeholder": "Søg efter chattere...",
+            "count": "{filtered} af {total} chatter | {filtered} af {total} chattere",
+            "invite_member": "Inviter chatter",
+            "table": {
+                "name": "Navn",
+                "email": "E-mail",
+                "status": "Status",
+                "access": "Adgang",
+                "actions": "Handlinger"
+            },
+            "status": {
+                "pending": "Afventer",
+                "active": "Aktiv"
+            },
+            "access": {
+                "granted": "Tildelt",
+                "no_access": "Ingen adgang"
+            },
+            "no_email": "Ingen e-mail",
+            "empty_title": "Ingen chattere endnu.",
+            "empty_description": "Inviter nogen for at komme i gang — de dukker op her.",
+            "no_results_title": "Ingen chattere fundet, der matcher din søgning.",
+            "no_results_description": "Prøv at justere dine søgeord.",
+            "grant": "Giv adgang",
+            "grant_title": "Giv {name} adgang til denne agent",
+            "revoke_title": "Fjern adgang for {name}",
+            "invite_dialog_title": "Inviter en chatter",
+            "invite_dialog_description": "Vi sender et tilmeldingslink til denne adresse. De kan oprette en adgangskode eller logge ind med Google eller Slack.",
+            "email_label": "E-mailadresse",
+            "email_placeholder": "person{'@'}example.com",
+            "send_invite": "Send invitation",
+            "invitation_emailed": "Invitation sendt til {email}. Du kan også kopiere linket nedenfor.",
+            "signup_link": "Tilmeldingslink",
+            "expires": "Udløber {date}.",
+            "invite_another": "Inviter endnu en",
+            "done": "Færdig",
+            "sheet_description": "Chatter-oplysninger og adgang til denne agent.",
+            "member_id": "ID",
+            "copy_member_id": "Kopier chatter-ID",
+            "joined": "Tilmeldt {date}",
+            "invitation_pending": "Invitation afventer",
+            "invitation_pending_hint": "Denne chatter har ikke accepteret endnu. Del deres personlige tilmeldingslink nedenfor.",
+            "link_expired": "Invitationslinket er udløbet eller er ikke længere tilgængeligt. Generer et nyt nedenfor.",
+            "resend_invitation": "Gensend invitation",
+            "generate_link": "Generer nyt link",
+            "manage_hint": "For at administrere denne chatter skal du gå til {link}.",
+            "members_page": "chatter-siden",
+            "revoke_access": "Fjern adgang",
+            "grant_access": "Giv adgang",
+            "revoke_dialog_title": "Fjern adgang",
+            "revoke_dialog_description": "{name} mister straks adgangen til denne agent. De forbliver i dit arbejdsområde, og du kan give adgang igen når som helst.",
+            "revoke": "Fjern",
+            "load_error": "Kunne ikke indlæse chattere",
+            "invitation_sent": "Invitation sendt",
+            "invitation_sent_to": "Invitation sendt til {email}",
+            "access_revoked": "{name} har ikke længere adgang til denne agent",
+            "revoke_error": "Kunne ikke fjerne adgang",
+            "access_granted": "{name} har nu adgang til denne agent",
+            "grant_error": "Kunne ikke give adgang",
+            "fresh_link": "Nyt invitationslink genereret til {name}",
+            "link_error": "Kunne ikke generere et invitationslink"
+        }
+    }
+}

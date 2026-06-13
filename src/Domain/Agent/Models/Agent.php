@@ -159,6 +159,9 @@ class Agent extends Model
         HasSettings::settings as protected baseSettings;
     }
 
+    /** Per-instance memo for {@see self::workspaceExternalId()}. */
+    protected ?string $resolvedWorkspaceExternalId = null;
+
     protected function casts(): array
     {
         return [
@@ -605,6 +608,22 @@ class Agent extends Model
     public function getUserId()
     {
         return $this->user_id;
+    }
+
+    /**
+     * The owning workspace's external id (uuid7) — used as the chat-memory
+     * cache tag so a whole workspace's Redis entries can be flushed at once
+     * (see {@see ChatCache::workspaceTag()}).
+     *
+     * Resolved with an explicit relation query rather than `$this->user->external_id`:
+     * the `user` relation is rarely eager-loaded on the chat path, and
+     * `Model::shouldBeStrict()` turns a lazy load into an exception outside
+     * production. Memoized per instance because {@see ChatCache::tagsFor()}
+     * calls this on every cache operation and must not re-query.
+     */
+    public function workspaceExternalId(): string
+    {
+        return $this->resolvedWorkspaceExternalId ??= $this->user()->value('external_id');
     }
 
     /**

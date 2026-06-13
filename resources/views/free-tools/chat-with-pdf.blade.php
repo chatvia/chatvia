@@ -32,7 +32,7 @@
                     <div
                         class="max-w-xl mx-auto md:max-w-none flex flex-col items-center justify-center text-center md:space-y-16 space-y-16">
 
-                        <div class="text-center" data-aos="fade-right">
+                        <div class="text-center">
                             <p class="text-xl text-slate-400">
                                 Free AI-Powered Tool
                             </p>
@@ -126,7 +126,7 @@
                 <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3 items-start">
                     
                     <!-- Feature 1 -->
-                    <div class="text-center" data-aos="fade-up">
+                    <div class="text-center">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
                             <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -141,7 +141,7 @@
                     </div>
 
                     <!-- Feature 2 -->
-                    <div class="text-center" data-aos="fade-up" data-aos-delay="100">
+                    <div class="text-center">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
                             <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -156,7 +156,7 @@
                     </div>
 
                     <!-- Feature 3 -->
-                    <div class="text-center" data-aos="fade-up" data-aos-delay="200">
+                    <div class="text-center">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
                             <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -171,7 +171,7 @@
                     </div>
 
                     <!-- Feature 4 -->
-                    <div class="text-center" data-aos="fade-up" data-aos-delay="300">
+                    <div class="text-center">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-4">
                             <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
@@ -186,7 +186,7 @@
                     </div>
 
                     <!-- Feature 5 -->
-                    <div class="text-center" data-aos="fade-up" data-aos-delay="400">
+                    <div class="text-center">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
                             <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -201,7 +201,7 @@
                     </div>
 
                     <!-- Feature 6 -->
-                    <div class="text-center" data-aos="fade-up" data-aos-delay="500">
+                    <div class="text-center">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-4">
                             <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
@@ -237,7 +237,7 @@
                 <div class="grid gap-8 md:grid-cols-3 items-start">
                     
                     <!-- Step 1 -->
-                    <div class="text-center" data-aos="fade-up">
+                    <div class="text-center">
                         <div class="relative mb-6">
                             <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full text-2xl font-bold">
                                 1
@@ -252,7 +252,7 @@
                     </div>
 
                     <!-- Step 2 -->
-                    <div class="text-center" data-aos="fade-up" data-aos-delay="100">
+                    <div class="text-center">
                         <div class="relative mb-6">
                             <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full text-2xl font-bold">
                                 2
@@ -267,7 +267,7 @@
                     </div>
 
                     <!-- Step 3 -->
-                    <div class="text-center" data-aos="fade-up" data-aos-delay="200">
+                    <div class="text-center">
                         <div class="relative mb-6">
                             <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full text-2xl font-bold">
                                 3

@@ -7,8 +7,8 @@ import { Switch } from '@/components/ui/switch';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { useForm } from '@inertiajs/vue3';
 import { Gauge } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 

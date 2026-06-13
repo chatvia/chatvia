@@ -1,0 +1,131 @@
+{
+    "common": {
+        "saved": "Gespeichert",
+        "remove": "Entfernen",
+        "preview": "Vorschau",
+        "upload": "Hochladen",
+        "cancel": "Abbrechen",
+        "save": "Speichern",
+        "confirm": "Bestätigen",
+        "deleting": "Wird gelöscht..."
+    },
+    "nav": {
+        "account": "Konto",
+        "workspace": "Workspace",
+        "logout": "Abmelden",
+        "language": "Sprache"
+    },
+    "account": {
+        "layout": {
+            "heading": "Konto",
+            "description": "Verwalten Sie Ihr persönliches Profil, Ihre Sicherheitseinstellungen und Daten"
+        },
+        "nav": {
+            "profile": "Profil",
+            "password": "Passwort",
+            "two_factor": "Zwei-Faktor",
+            "passkeys": "Passkeys",
+            "social": "Soziale Konten",
+            "data_export": "Meine Daten herunterladen",
+            "delete": "Konto löschen"
+        },
+        "profile": {
+            "title": "Profileinstellungen",
+            "change_photo": "Profilfoto ändern",
+            "upload_photo": "Profilfoto hochladen",
+            "managed_by": "Verwaltet von {name}",
+            "copy_account_id": "Konto-ID kopieren",
+            "copied": "Kopiert!",
+            "remove_photo": "Foto entfernen",
+            "remove_photo_title": "Profilfoto entfernen",
+            "remove_photo_description": "Ihr Avatar wird auf Ihre Initialen zurückgesetzt. Sie können jederzeit ein neues Foto hochladen.",
+            "info_title": "Profilinformationen",
+            "info_description": "Aktualisieren Sie die Profilinformationen und E-Mail-Adresse Ihres Kontos.",
+            "name": "Name",
+            "name_placeholder": "Vollständiger Name",
+            "email": "E-Mail-Adresse",
+            "email_placeholder": "E-Mail-Adresse",
+            "email_unverified": "Ihre E-Mail-Adresse ist nicht verifiziert.",
+            "resend_verification": "Klicken Sie hier, um die Bestätigungs-E-Mail erneut zu senden.",
+            "verification_sent": "Ein neuer Bestätigungslink wurde an Ihre E-Mail-Adresse gesendet.",
+            "updated": "Profil erfolgreich aktualisiert",
+            "datetime_title": "Datum & Uhrzeit",
+            "datetime_description": "Legen Sie fest, wie Datumsangaben in Ihrem Dashboard angezeigt werden.",
+            "date_format": "Datumsformat",
+            "date_format_placeholder": "Datumsformat auswählen"
+        },
+        "password": {
+            "title": "Passworteinstellungen",
+            "heading": "Passwortsicherheit",
+            "subtitle": "Verwalten Sie das Passwort Ihres Kontos.",
+            "update_title": "Passwort ändern",
+            "update_description": "Stellen Sie sicher, dass Ihr Konto mit einem starken, sicheren Passwort geschützt ist.",
+            "current": "Aktuelles Passwort",
+            "current_placeholder": "Aktuelles Passwort eingeben",
+            "new": "Neues Passwort",
+            "new_placeholder": "Neues Passwort eingeben",
+            "confirm": "Passwort bestätigen",
+            "confirm_placeholder": "Neues Passwort bestätigen",
+            "submit": "Passwort aktualisieren",
+            "updated": "Passwort erfolgreich aktualisiert"
+        },
+        "two_factor": {
+            "title": "Zwei-Faktor-Authentifizierung"
+        },
+        "passkeys": {
+            "title": "Passkeys"
+        },
+        "social": {
+            "title": "Soziale Konten"
+        },
+        "data_export": {
+            "title": "Meine Daten herunterladen",
+            "heading": "Eine Kopie meiner Daten herunterladen",
+            "description": "Erhalten Sie ein ZIP-Archiv mit allen personenbezogenen Daten, die wir über Sie gespeichert haben – Ihre Agenten, Konversationen, Nachrichten, Wissensquellen und hochgeladene Dateien. Erstellt gemäß DSGVO Artikel 15 und 20.",
+            "idle_title": "Ihre Daten, in Ihren Händen.",
+            "idle_description": "Die Erstellung des Archivs läuft im Hintergrund – wir benachrichtigen Sie per E-Mail, sobald es fertig ist. Der Download ist 24 Stunden lang verfügbar, danach wird er von unseren Servern gelöscht.",
+            "request_button": "Kopie meiner Daten anfordern",
+            "processing_title": "Ihr Export wird vorbereitet…",
+            "processing_description": "Wir packen Ihre Daten in eine ZIP-Datei. Dies dauert in der Regel einige Minuten – wir senden Ihnen eine E-Mail, sobald sie bereit ist, und diese Seite aktualisiert sich automatisch.",
+            "check_status": "Status prüfen",
+            "ready_title": "Ihr Datenexport ist bereit.",
+            "available_for": "Verfügbar für {time}",
+            "download_zip": "ZIP herunterladen",
+            "failed_title": "Wir konnten Ihren Export nicht vorbereiten.",
+            "try_again": "Erneut versuchen"
+        },
+        "delete": {
+            "title": "Konto löschen",
+            "subtitle": "Ihr Konto und alle darin enthaltenen Daten dauerhaft löschen.",
+            "data_export_title": "Möchten Sie zuerst eine Kopie Ihrer Daten?",
+            "data_export_description": "Sobald Ihr Konto gelöscht ist, sind auch Ihre Daten weg. Sie können {link} aller über Sie gespeicherten Daten herunterladen, bevor Sie Ihr Konto löschen.",
+            "data_export_link": "ein Archiv herunterladen",
+            "cannot_undo": "Dies kann nicht rückgängig gemacht werden",
+            "removes_intro": "Durch das Löschen Ihres Kontos werden alle darin enthaltenen Daten dauerhaft entfernt, einschließlich:",
+            "removes_agents": "Ihre Agenten und deren Einstellungen",
+            "removes_conversations": "Alle Konversationen und Nachrichten",
+            "removes_knowledge": "Wissensquellen, Dokumente und hochgeladene Dateien",
+            "removes_team": "Ihr Team, Chatter, API-Schlüssel und Konnektoren",
+            "agents_will_delete": "{count} Agent wird dauerhaft gelöscht: | {count} Agenten werden dauerhaft gelöscht:",
+            "subscription_cancel": "Ihr aktives Abonnement wird gekündigt und es werden keine weiteren Beträge abgebucht.",
+            "email_confirmed": "E-Mail bestätigt. Dies ist Ihr letzter Schritt – danach gibt es kein Zurück mehr.",
+            "delete_button": "Mein Konto dauerhaft löschen",
+            "final_dialog_title": "Ihr Konto dauerhaft löschen?",
+            "final_dialog_description": "Dadurch werden Ihr Konto und alle zugehörigen Daten dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
+            "final_dialog_subscription": "Ihr Abonnement wird ebenfalls gekündigt.",
+            "final_confirm": "Ja, alles löschen",
+            "check_email": "Überprüfen Sie Ihre E-Mails – wir haben Ihnen einen Bestätigungslink gesendet, um das Löschen Ihres Kontos abzuschließen. Der Link läuft in 30 Minuten ab. Öffnen Sie den Link, um fortzufahren.",
+            "resend_link": "Link erneut senden",
+            "password_dialog_title": "Passwort bestätigen",
+            "password_dialog_description": "Geben Sie Ihr Passwort ein, um fortzufahren. Wir senden Ihnen einen Bestätigungslink per E-Mail, um das Löschen Ihres Kontos abzuschließen.",
+            "password_placeholder": "Passwort",
+            "send_confirmation": "Bestätigungs-E-Mail senden"
+        }
+    },
+    "workspace": {
+        "layout": {
+            "heading": "Workspace",
+            "description": "Integrationen, Personen und Governance verwalten"
+        }
+    }
+}

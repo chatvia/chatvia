@@ -1,0 +1,42 @@
+{
+    "agents": {
+        "usage": {
+            "title": "Brugsstatistik",
+            "description": "Se hvilke kilder, funktioner og MCP-servere denne agent faktisk bruger",
+            "load_error": "Kunne ikke indlæse brugsdata",
+            "try_again": "Prøv igen",
+            "tabs": {
+                "knowledge": "Vidensbase",
+                "functions": "Funktioner",
+                "mcp": "MCP"
+            },
+            "knowledge_empty": "Ingen videnskilder er hentet endnu",
+            "knowledge_empty_hint": "Filer, hjemmesider, tekstuddrag og YouTube-videoer vises her, når agenten bruger dem.",
+            "functions_empty": "Ingen funktionskald endnu",
+            "functions_empty_hint": "Webhook-funktioner vises her, når agenten kalder dem.",
+            "mcp_empty": "Ingen MCP-værktøjskald endnu",
+            "mcp_empty_hint": "Individuelle værktøjer fra tilknyttede MCP-servere vises her, når agenten kalder dem.",
+            "retrievals": "{count} opslag | {count} opslag",
+            "calls": "{count} kald | {count} kald",
+            "last_used": "Sidst brugt {time}",
+            "last_called": "Sidst kaldt {time}",
+            "via_server": "via {name}",
+            "sub_kind": {
+                "source_file": "Fil",
+                "source_website": "Hjemmeside",
+                "source_text": "Tekst",
+                "source_youtube_video": "YouTube",
+                "agent_website_url": "Webside"
+            },
+            "relative": {
+                "just_now": "lige nu",
+                "minutes_ago": "{count} minut siden | {count} minutter siden",
+                "hours_ago": "{count} time siden | {count} timer siden",
+                "days_ago": "{count} dag siden | {count} dage siden",
+                "weeks_ago": "{count} uge siden | {count} uger siden",
+                "months_ago": "{count} måned siden | {count} måneder siden",
+                "years_ago": "{count} år siden | {count} år siden"
+            }
+        }
+    }
+}

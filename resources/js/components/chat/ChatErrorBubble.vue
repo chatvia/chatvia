@@ -109,7 +109,7 @@ const iconClass = computed(() => {
                     <Button size="sm" variant="default">{{ t(treatment.cta.labelKey) }}</Button>
                 </a>
                 <Button v-if="message.errorRetryable" size="sm" variant="outline" @click="emit('retry')">
-                    <RefreshCw class="mr-1.5 h-3.5 w-3.5" />
+                    <RefreshCw class="me-1.5 h-3.5 w-3.5" />
                     {{ t('errors.try_again') }}
                 </Button>
             </div>

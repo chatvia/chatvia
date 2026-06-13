@@ -25,7 +25,7 @@ function cccBuildOrphanAttachment(int $count, ?Agent $agent = null): array
 
     // Create the rows with NO conversation binding so they remain orphans
     // that claimAttachments() can claim.
-    // external_id is auto-generated on create (SupportsExternalId) and is not
+    // external_id is auto-generated on create (HasExternalId) and is not
     // fillable, so we read it back rather than passing it in.
     $ids = [];
     for ($i = 0; $i < $count; $i++) {

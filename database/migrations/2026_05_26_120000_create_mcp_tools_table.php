@@ -35,7 +35,7 @@ return new class extends Migration
             $table->enum('scope', ['read', 'write'])->default('write');
 
             // The permission a freshly-connected workspace inherits for this tool:
-            //   internal-URL builtin + read → allow, else → approval.
+            //   read → allow, write → approval (set explicitly on every sync).
             // Seed only — the live, user-toggleable value lives on mcp_server_tool.
             $table->enum('default_permission', ['allow', 'approval', 'blocked'])
                 ->default('approval');

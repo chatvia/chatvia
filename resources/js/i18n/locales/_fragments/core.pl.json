@@ -1,0 +1,131 @@
+{
+    "common": {
+        "saved": "Zapisano",
+        "remove": "Usuń",
+        "preview": "Podgląd",
+        "upload": "Prześlij",
+        "cancel": "Anuluj",
+        "save": "Zapisz",
+        "confirm": "Potwierdź",
+        "deleting": "Usuwanie..."
+    },
+    "nav": {
+        "account": "Konto",
+        "workspace": "Przestrzeń robocza",
+        "logout": "Wyloguj się",
+        "language": "Język"
+    },
+    "account": {
+        "layout": {
+            "heading": "Konto",
+            "description": "Zarządzaj swoim profilem osobistym, bezpieczeństwem i danymi"
+        },
+        "nav": {
+            "profile": "Profil",
+            "password": "Hasło",
+            "two_factor": "Weryfikacja dwuetapowa",
+            "passkeys": "Klucze dostępu",
+            "social": "Konta społecznościowe",
+            "data_export": "Pobierz moje dane",
+            "delete": "Usuń konto"
+        },
+        "profile": {
+            "title": "Ustawienia profilu",
+            "change_photo": "Zmień zdjęcie profilowe",
+            "upload_photo": "Prześlij zdjęcie profilowe",
+            "managed_by": "Zarządzane przez {name}",
+            "copy_account_id": "Skopiuj identyfikator konta",
+            "copied": "Skopiowano!",
+            "remove_photo": "Usuń zdjęcie",
+            "remove_photo_title": "Usuń zdjęcie profilowe",
+            "remove_photo_description": "Twój awatar powróci do inicjałów. W każdej chwili możesz przesłać nowe zdjęcie.",
+            "info_title": "Informacje profilowe",
+            "info_description": "Zaktualizuj informacje profilowe i adres e-mail swojego konta.",
+            "name": "Imię i nazwisko",
+            "name_placeholder": "Pełne imię i nazwisko",
+            "email": "Adres e-mail",
+            "email_placeholder": "Adres e-mail",
+            "email_unverified": "Twój adres e-mail nie został zweryfikowany.",
+            "resend_verification": "Kliknij tutaj, aby ponownie wysłać wiadomość weryfikacyjną.",
+            "verification_sent": "Nowy link weryfikacyjny został wysłany na Twój adres e-mail.",
+            "updated": "Profil został pomyślnie zaktualizowany",
+            "datetime_title": "Data i godzina",
+            "datetime_description": "Wybierz sposób wyświetlania dat w panelu.",
+            "date_format": "Format daty",
+            "date_format_placeholder": "Wybierz format daty"
+        },
+        "password": {
+            "title": "Ustawienia hasła",
+            "heading": "Bezpieczeństwo hasła",
+            "subtitle": "Zarządzaj hasłem do swojego konta.",
+            "update_title": "Zmień hasło",
+            "update_description": "Upewnij się, że Twoje konto używa silnego, bezpiecznego hasła.",
+            "current": "Aktualne hasło",
+            "current_placeholder": "Wprowadź aktualne hasło",
+            "new": "Nowe hasło",
+            "new_placeholder": "Wprowadź nowe hasło",
+            "confirm": "Potwierdź hasło",
+            "confirm_placeholder": "Potwierdź nowe hasło",
+            "submit": "Zaktualizuj hasło",
+            "updated": "Hasło zostało pomyślnie zaktualizowane"
+        },
+        "two_factor": {
+            "title": "Weryfikacja dwuetapowa"
+        },
+        "passkeys": {
+            "title": "Klucze dostępu"
+        },
+        "social": {
+            "title": "Konta społecznościowe"
+        },
+        "data_export": {
+            "title": "Pobierz moje dane",
+            "heading": "Pobierz kopię moich danych",
+            "description": "Otrzymaj archiwum ZIP zawierające wszystkie dane osobowe, które przechowujemy na Twój temat — Twoi agenci, rozmowy, wiadomości, źródła wiedzy i przesłane pliki. Przygotowane zgodnie z art. 15 i 20 RODO.",
+            "idle_title": "Twoje dane, w Twoich rękach.",
+            "idle_description": "Tworzenie archiwum odbywa się w tle — wyślemy Ci e-mail, gdy będzie gotowe. Plik do pobrania będzie dostępny przez 24 godziny, po czym zostanie usunięty z naszych serwerów.",
+            "request_button": "Zażądaj kopii moich danych",
+            "processing_title": "Przygotowujemy Twój eksport…",
+            "processing_description": "Pakujemy Twoje dane do pliku ZIP. Zazwyczaj trwa to kilka minut — wyślemy Ci e-mail, gdy będzie gotowe, a ta strona odświeży się automatycznie.",
+            "check_status": "Sprawdź status",
+            "ready_title": "Twój eksport danych jest gotowy.",
+            "available_for": "Dostępny przez {time}",
+            "download_zip": "Pobierz ZIP",
+            "failed_title": "Nie udało się przygotować eksportu.",
+            "try_again": "Spróbuj ponownie"
+        },
+        "delete": {
+            "title": "Usuń konto",
+            "subtitle": "Trwale usuń swoje konto wraz z całą jego zawartością.",
+            "data_export_title": "Chcesz najpierw pobrać kopię swoich danych?",
+            "data_export_description": "Gdy Twoje konto zostanie usunięte, Twoje dane znikną razem z nim. Możesz {link} wszystkiego, co przechowujemy na Twój temat, przed usunięciem.",
+            "data_export_link": "pobrać archiwum",
+            "cannot_undo": "Tej operacji nie można cofnąć",
+            "removes_intro": "Usunięcie konta trwale usuwa wszystko, co się w nim znajduje, w tym:",
+            "removes_agents": "Twoich agentów i ich ustawienia",
+            "removes_conversations": "Wszystkie rozmowy i wiadomości",
+            "removes_knowledge": "Źródła wiedzy, dokumenty i przesłane pliki",
+            "removes_team": "Twój zespół, czatowiczów, klucze API i konektory",
+            "agents_will_delete": "{count} agent zostanie trwale usunięty | {count} agentów zostanie trwale usuniętych",
+            "subscription_cancel": "Twoja aktywna subskrypcja zostanie anulowana i nie będziesz już obciążany opłatami.",
+            "email_confirmed": "E-mail potwierdzony. To Twój ostatni krok — po tym nie będzie odwrotu.",
+            "delete_button": "Trwale usuń moje konto",
+            "final_dialog_title": "Trwale usunąć Twoje konto?",
+            "final_dialog_description": "Spowoduje to trwałe usunięcie Twojego konta i wszystkich jego danych. Tej operacji nie można cofnąć.",
+            "final_dialog_subscription": "Twoja subskrypcja zostanie również anulowana.",
+            "final_confirm": "Tak, usuń wszystko",
+            "check_email": "Sprawdź swoją skrzynkę e-mail — wysłaliśmy link potwierdzający, aby dokończyć usuwanie konta. Wygasa za 30 minut. Otwórz link, aby kontynuować.",
+            "resend_link": "Wyślij link ponownie",
+            "password_dialog_title": "Potwierdź swoje hasło",
+            "password_dialog_description": "Wprowadź hasło, aby kontynuować. Wyślemy Ci e-mail z linkiem potwierdzającym, aby dokończyć usuwanie konta.",
+            "password_placeholder": "Hasło",
+            "send_confirmation": "Wyślij e-mail potwierdzający"
+        }
+    },
+    "workspace": {
+        "layout": {
+            "heading": "Przestrzeń robocza",
+            "description": "Zarządzaj integracjami, zespołem i zarządzaniem"
+        }
+    }
+}

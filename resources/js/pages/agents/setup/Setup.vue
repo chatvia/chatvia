@@ -26,7 +26,6 @@ import {
     Check,
     CircleHelp,
     Clock,
-    Code,
     Copy,
     ExternalLink,
     Eye,
@@ -157,7 +156,7 @@ const menuItems = computed(() => {
         { value: 'branding', label: t('agents.setup.menu.branding'), icon: ImageIcon },
         { value: 'behavior', label: t('agents.setup.menu.behavior'), icon: Settings },
         { value: 'settings', label: t('agents.setup.menu.settings'), icon: SlidersHorizontal },
-        { value: 'embed', label: t('agents.setup.menu.embed'), icon: Code },
+        // Embed/install moved to its own top-level "Deploy" page (agents.deploy).
     ];
 
     if (previewSurface.value === 'hosted_chat') {
@@ -335,12 +334,8 @@ const saveDomain = () => {
     isSavingDomain.value = true;
     domainForm.patch(route('agents.domain.update', { agent: props.agent.external_id }), {
         preserveScroll: true,
-        onSuccess: () =>
-            toast.success(domainForm.domain ? t('agents.setup.toasts.domain_saved') : t('agents.setup.toasts.domain_removed')),
-        onError: () =>
-            toast.error(
-                typeof domainForm.errors.domain === 'string' ? domainForm.errors.domain : t('agents.setup.toasts.domain_error'),
-            ),
+        onSuccess: () => toast.success(domainForm.domain ? t('agents.setup.toasts.domain_saved') : t('agents.setup.toasts.domain_removed')),
+        onError: () => toast.error(typeof domainForm.errors.domain === 'string' ? domainForm.errors.domain : t('agents.setup.toasts.domain_error')),
         onFinish: () => (isSavingDomain.value = false),
     });
 };
@@ -767,7 +762,7 @@ const copyApiCode = async (code: string) => {
                     >
                         <component :is="tab.icon" class="h-4 w-4" />
                         <span>{{ tab.label }}</span>
-                        <span v-if="previewSurface === tab.value" class="bg-foreground absolute right-0 -bottom-px left-0 h-0.5"></span>
+                        <span v-if="previewSurface === tab.value" class="bg-foreground absolute start-0 end-0 -bottom-px h-0.5"></span>
                     </button>
                 </nav>
             </div>
@@ -777,7 +772,7 @@ const copyApiCode = async (code: string) => {
                 <ResizablePanel :default-size="62" :min-size="35">
                     <div class="flex h-full min-h-0">
                         <!-- Left sidebar -->
-                        <div class="bg-muted/30 flex h-full w-[180px] flex-shrink-0 flex-col border-r">
+                        <div class="bg-muted/30 flex h-full w-[180px] flex-shrink-0 flex-col border-e">
                             <nav class="flex flex-col gap-0.5 p-2">
                                 <button
                                     v-for="item in menuItems"
@@ -841,9 +836,9 @@ const copyApiCode = async (code: string) => {
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
-                                                        <Label for="allow-file-uploads" class="cursor-pointer text-sm font-medium"
-                                                            >{{ t('agents.setup.settings.file_uploads_label') }}</Label
-                                                        >
+                                                        <Label for="allow-file-uploads" class="cursor-pointer text-sm font-medium">{{
+                                                            t('agents.setup.settings.file_uploads_label')
+                                                        }}</Label>
                                                         <Popover>
                                                             <PopoverTrigger as-child>
                                                                 <button
@@ -855,7 +850,9 @@ const copyApiCode = async (code: string) => {
                                                                 </button>
                                                             </PopoverTrigger>
                                                             <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
-                                                                <p class="text-foreground font-medium">{{ t('agents.setup.settings.file_uploads_help_title') }}</p>
+                                                                <p class="text-foreground font-medium">
+                                                                    {{ t('agents.setup.settings.file_uploads_help_title') }}
+                                                                </p>
                                                                 <p class="text-muted-foreground mt-1.5">
                                                                     {{ t('agents.setup.settings.file_uploads_help_1') }}
                                                                 </p>
@@ -873,9 +870,9 @@ const copyApiCode = async (code: string) => {
                                             </div>
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
-                                                    <Label for="allow-voice-input" class="cursor-pointer text-sm font-medium"
-                                                        >{{ t('agents.setup.settings.voice_input_label') }}</Label
-                                                    >
+                                                    <Label for="allow-voice-input" class="cursor-pointer text-sm font-medium">{{
+                                                        t('agents.setup.settings.voice_input_label')
+                                                    }}</Label>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
                                                         {{ t('agents.setup.settings.voice_input_hint') }}
                                                     </p>
@@ -906,9 +903,9 @@ const copyApiCode = async (code: string) => {
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
-                                                        <Label for="chatlog-enabled" class="cursor-pointer text-sm font-medium"
-                                                            >{{ t('agents.setup.settings.store_conversations_label') }}</Label
-                                                        >
+                                                        <Label for="chatlog-enabled" class="cursor-pointer text-sm font-medium">{{
+                                                            t('agents.setup.settings.store_conversations_label')
+                                                        }}</Label>
                                                         <Popover>
                                                             <PopoverTrigger as-child>
                                                                 <button
@@ -920,7 +917,9 @@ const copyApiCode = async (code: string) => {
                                                                 </button>
                                                             </PopoverTrigger>
                                                             <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
-                                                                <p class="text-foreground font-medium">{{ t('agents.setup.settings.store_conversations_help_title') }}</p>
+                                                                <p class="text-foreground font-medium">
+                                                                    {{ t('agents.setup.settings.store_conversations_help_title') }}
+                                                                </p>
                                                                 <p class="text-muted-foreground mt-1.5">
                                                                     {{ t('agents.setup.settings.store_conversations_help_1') }}
                                                                 </p>
@@ -960,7 +959,9 @@ const copyApiCode = async (code: string) => {
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
-                                                        <Label for="analytics-sentiment" class="cursor-pointer text-sm font-medium">{{ t('agents.setup.settings.sentiment_label') }}</Label>
+                                                        <Label for="analytics-sentiment" class="cursor-pointer text-sm font-medium">{{
+                                                            t('agents.setup.settings.sentiment_label')
+                                                        }}</Label>
                                                         <Popover>
                                                             <PopoverTrigger as-child>
                                                                 <button
@@ -972,7 +973,9 @@ const copyApiCode = async (code: string) => {
                                                                 </button>
                                                             </PopoverTrigger>
                                                             <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
-                                                                <p class="text-foreground font-medium">{{ t('agents.setup.settings.sentiment_help_title') }}</p>
+                                                                <p class="text-foreground font-medium">
+                                                                    {{ t('agents.setup.settings.sentiment_help_title') }}
+                                                                </p>
                                                                 <p class="text-muted-foreground mt-1.5">
                                                                     {{ t('agents.setup.settings.sentiment_help_1') }}
                                                                 </p>
@@ -995,7 +998,9 @@ const copyApiCode = async (code: string) => {
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
-                                                        <Label for="analytics-tone" class="cursor-pointer text-sm font-medium">{{ t('agents.setup.settings.tone_label') }}</Label>
+                                                        <Label for="analytics-tone" class="cursor-pointer text-sm font-medium">{{
+                                                            t('agents.setup.settings.tone_label')
+                                                        }}</Label>
                                                         <Popover>
                                                             <PopoverTrigger as-child>
                                                                 <button
@@ -1007,7 +1012,9 @@ const copyApiCode = async (code: string) => {
                                                                 </button>
                                                             </PopoverTrigger>
                                                             <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
-                                                                <p class="text-foreground font-medium">{{ t('agents.setup.settings.tone_help_title') }}</p>
+                                                                <p class="text-foreground font-medium">
+                                                                    {{ t('agents.setup.settings.tone_help_title') }}
+                                                                </p>
                                                                 <p class="text-muted-foreground mt-1.5">
                                                                     {{ t('agents.setup.settings.tone_help_1') }}
                                                                 </p>
@@ -1026,7 +1033,9 @@ const copyApiCode = async (code: string) => {
                                             <div class="flex items-center justify-between gap-3 px-4 py-3">
                                                 <div>
                                                     <div class="flex items-center gap-1.5">
-                                                        <Label for="analytics-topics" class="cursor-pointer text-sm font-medium">{{ t('agents.setup.settings.topics_label') }}</Label>
+                                                        <Label for="analytics-topics" class="cursor-pointer text-sm font-medium">{{
+                                                            t('agents.setup.settings.topics_label')
+                                                        }}</Label>
                                                         <Popover>
                                                             <PopoverTrigger as-child>
                                                                 <button
@@ -1038,7 +1047,9 @@ const copyApiCode = async (code: string) => {
                                                                 </button>
                                                             </PopoverTrigger>
                                                             <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
-                                                                <p class="text-foreground font-medium">{{ t('agents.setup.settings.topics_help_title') }}</p>
+                                                                <p class="text-foreground font-medium">
+                                                                    {{ t('agents.setup.settings.topics_help_title') }}
+                                                                </p>
                                                                 <p class="text-muted-foreground mt-1.5">
                                                                     {{ t('agents.setup.settings.topics_help_1') }}
                                                                 </p>
@@ -1193,15 +1204,17 @@ const copyApiCode = async (code: string) => {
                                         <div class="max-w-3xl space-y-5">
                                             <div class="grid gap-x-6 gap-y-5 sm:grid-cols-2">
                                                 <div class="space-y-1.5">
-                                                    <Label for="hosted-default-theme" class="text-sm font-medium">{{ t('agents.setup.behavior.default_theme') }}</Label>
+                                                    <Label for="hosted-default-theme" class="text-sm font-medium">{{
+                                                        t('agents.setup.behavior.default_theme')
+                                                    }}</Label>
                                                     <div class="relative">
                                                         <div
-                                                            class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
+                                                            class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 z-10 flex items-center ps-3"
                                                         >
                                                             <Palette class="h-4 w-4" />
                                                         </div>
                                                         <Select v-model="hostedBehaviorForm.default_theme" :disabled="locked">
-                                                            <SelectTrigger id="hosted-default-theme" class="h-10 w-full pl-9">
+                                                            <SelectTrigger id="hosted-default-theme" class="h-10 w-full ps-9">
                                                                 <SelectValue />
                                                             </SelectTrigger>
                                                             <SelectContent>
@@ -1213,15 +1226,17 @@ const copyApiCode = async (code: string) => {
                                                     </div>
                                                 </div>
                                                 <div class="space-y-1.5">
-                                                    <Label for="hosted-language" class="text-sm font-medium">{{ t('agents.setup.behavior.language') }}</Label>
+                                                    <Label for="hosted-language" class="text-sm font-medium">{{
+                                                        t('agents.setup.behavior.language')
+                                                    }}</Label>
                                                     <div class="relative">
                                                         <div
-                                                            class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
+                                                            class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 z-10 flex items-center ps-3"
                                                         >
                                                             <Languages class="h-4 w-4" />
                                                         </div>
                                                         <Select v-model="hostedBehaviorForm.language" :disabled="locked">
-                                                            <SelectTrigger id="hosted-language" class="h-10 w-full pl-9"
+                                                            <SelectTrigger id="hosted-language" class="h-10 w-full ps-9"
                                                                 ><SelectValue
                                                             /></SelectTrigger>
                                                             <SelectContent>
@@ -1235,9 +1250,9 @@ const copyApiCode = async (code: string) => {
                                             </div>
                                             <div class="divide-y rounded-md border">
                                                 <div class="flex items-center justify-between gap-3 px-4 py-3">
-                                                    <Label for="hosted-remove-sidebar" class="cursor-pointer text-sm font-medium"
-                                                        >{{ t('agents.setup.behavior.remove_sidebar') }}</Label
-                                                    >
+                                                    <Label for="hosted-remove-sidebar" class="cursor-pointer text-sm font-medium">{{
+                                                        t('agents.setup.behavior.remove_sidebar')
+                                                    }}</Label>
                                                     <Switch
                                                         id="hosted-remove-sidebar"
                                                         v-model="hostedBehaviorForm.remove_sidebar"
@@ -1245,9 +1260,9 @@ const copyApiCode = async (code: string) => {
                                                     />
                                                 </div>
                                                 <div class="flex items-center justify-between gap-3 px-4 py-3">
-                                                    <Label for="hosted-hide-sidebar" class="cursor-pointer text-sm font-medium"
-                                                        >{{ t('agents.setup.behavior.hide_sidebar') }}</Label
-                                                    >
+                                                    <Label for="hosted-hide-sidebar" class="cursor-pointer text-sm font-medium">{{
+                                                        t('agents.setup.behavior.hide_sidebar')
+                                                    }}</Label>
                                                     <Switch
                                                         id="hosted-hide-sidebar"
                                                         v-model="hostedBehaviorForm.hide_sidebar_on_page_load"
@@ -1255,9 +1270,9 @@ const copyApiCode = async (code: string) => {
                                                     />
                                                 </div>
                                                 <div class="flex items-center justify-between gap-3 px-4 py-3">
-                                                    <Label for="hosted-theme-switcher" class="cursor-pointer text-sm font-medium"
-                                                        >{{ t('agents.setup.behavior.theme_switcher') }}</Label
-                                                    >
+                                                    <Label for="hosted-theme-switcher" class="cursor-pointer text-sm font-medium">{{
+                                                        t('agents.setup.behavior.theme_switcher')
+                                                    }}</Label>
                                                     <Switch
                                                         id="hosted-theme-switcher"
                                                         v-model="hostedBehaviorForm.enable_theme_switcher"
@@ -1265,9 +1280,9 @@ const copyApiCode = async (code: string) => {
                                                     />
                                                 </div>
                                                 <div class="flex items-center justify-between gap-3 px-4 py-3">
-                                                    <Label for="hosted-chat-expand" class="cursor-pointer text-sm font-medium"
-                                                        >{{ t('agents.setup.behavior.chat_expand') }}</Label
-                                                    >
+                                                    <Label for="hosted-chat-expand" class="cursor-pointer text-sm font-medium">{{
+                                                        t('agents.setup.behavior.chat_expand')
+                                                    }}</Label>
                                                     <Switch
                                                         id="hosted-chat-expand"
                                                         v-model="hostedBehaviorForm.enable_chat_expand"
@@ -1299,15 +1314,17 @@ const copyApiCode = async (code: string) => {
                                         </div>
                                         <div class="grid max-w-3xl gap-x-6 gap-y-5 sm:grid-cols-2">
                                             <div class="space-y-1.5">
-                                                <Label for="widget-position" class="text-sm font-medium">{{ t('agents.setup.behavior.position') }}</Label>
+                                                <Label for="widget-position" class="text-sm font-medium">{{
+                                                    t('agents.setup.behavior.position')
+                                                }}</Label>
                                                 <div class="relative">
                                                     <div
-                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
+                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 z-10 flex items-center ps-3"
                                                     >
                                                         <MapPin class="h-4 w-4" />
                                                     </div>
                                                     <Select v-model="widgetBehaviorForm.position" :disabled="locked">
-                                                        <SelectTrigger id="widget-position" class="h-10 w-full pl-9"><SelectValue /></SelectTrigger>
+                                                        <SelectTrigger id="widget-position" class="h-10 w-full ps-9"><SelectValue /></SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem v-for="p in positionOptions" :key="p.value" :value="p.value">{{
                                                                 p.label
@@ -1317,15 +1334,17 @@ const copyApiCode = async (code: string) => {
                                                 </div>
                                             </div>
                                             <div class="space-y-1.5">
-                                                <Label for="widget-size" class="text-sm font-medium">{{ t('agents.setup.behavior.window_size') }}</Label>
+                                                <Label for="widget-size" class="text-sm font-medium">{{
+                                                    t('agents.setup.behavior.window_size')
+                                                }}</Label>
                                                 <div class="relative">
                                                     <div
-                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
+                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 z-10 flex items-center ps-3"
                                                     >
                                                         <Maximize2 class="h-4 w-4" />
                                                     </div>
                                                     <Select v-model="widgetBehaviorForm.window_size" :disabled="locked">
-                                                        <SelectTrigger id="widget-size" class="h-10 w-full pl-9"><SelectValue /></SelectTrigger>
+                                                        <SelectTrigger id="widget-size" class="h-10 w-full ps-9"><SelectValue /></SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem v-for="s in windowSizeOptions" :key="s.value" :value="s.value">{{
                                                                 s.label
@@ -1338,12 +1357,12 @@ const copyApiCode = async (code: string) => {
                                                 <Label for="widget-theme" class="text-sm font-medium">{{ t('agents.setup.behavior.theme') }}</Label>
                                                 <div class="relative">
                                                     <div
-                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
+                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 z-10 flex items-center ps-3"
                                                     >
                                                         <Palette class="h-4 w-4" />
                                                     </div>
                                                     <Select v-model="widgetBehaviorForm.theme" :disabled="locked">
-                                                        <SelectTrigger id="widget-theme" class="h-10 w-full pl-9"><SelectValue /></SelectTrigger>
+                                                        <SelectTrigger id="widget-theme" class="h-10 w-full ps-9"><SelectValue /></SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem v-for="t in themeOptions" :key="t.value" :value="t.value">{{
                                                                 t.label
@@ -1353,15 +1372,17 @@ const copyApiCode = async (code: string) => {
                                                 </div>
                                             </div>
                                             <div class="space-y-1.5">
-                                                <Label for="widget-language" class="text-sm font-medium">{{ t('agents.setup.behavior.language') }}</Label>
+                                                <Label for="widget-language" class="text-sm font-medium">{{
+                                                    t('agents.setup.behavior.language')
+                                                }}</Label>
                                                 <div class="relative">
                                                     <div
-                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
+                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 z-10 flex items-center ps-3"
                                                     >
                                                         <Languages class="h-4 w-4" />
                                                     </div>
                                                     <Select v-model="widgetBehaviorForm.language" :disabled="locked">
-                                                        <SelectTrigger id="widget-language" class="h-10 w-full pl-9"><SelectValue /></SelectTrigger>
+                                                        <SelectTrigger id="widget-language" class="h-10 w-full ps-9"><SelectValue /></SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem v-for="(label, code) in availableLanguages" :key="code" :value="code">{{
                                                                 label
@@ -1375,7 +1396,9 @@ const copyApiCode = async (code: string) => {
                                                 class="bg-muted/40 flex items-center justify-between gap-3 rounded-md border px-4 py-3 sm:col-span-2"
                                             >
                                                 <div>
-                                                    <Label for="widget-handoff" class="cursor-pointer text-sm font-medium">{{ t('agents.setup.behavior.live_chat') }}</Label>
+                                                    <Label for="widget-handoff" class="cursor-pointer text-sm font-medium">{{
+                                                        t('agents.setup.behavior.live_chat')
+                                                    }}</Label>
                                                     <p class="text-muted-foreground mt-0.5 text-xs">
                                                         {{ t('agents.setup.behavior.live_chat_hint') }}
                                                     </p>
@@ -1385,16 +1408,18 @@ const copyApiCode = async (code: string) => {
                                             <div
                                                 class="bg-muted/40 flex items-center justify-between gap-3 rounded-md border px-4 py-3 sm:col-span-2"
                                             >
-                                                <Label for="widget-show-on-load" class="cursor-pointer text-sm font-medium"
-                                                    >{{ t('agents.setup.behavior.open_on_load') }}</Label
-                                                >
+                                                <Label for="widget-show-on-load" class="cursor-pointer text-sm font-medium">{{
+                                                    t('agents.setup.behavior.open_on_load')
+                                                }}</Label>
                                                 <Switch id="widget-show-on-load" v-model="widgetBehaviorForm.show_on_load" :disabled="locked" />
                                             </div>
                                             <div v-if="widgetBehaviorForm.show_on_load" class="space-y-1.5 sm:col-span-2">
-                                                <Label for="widget-delay" class="text-sm font-medium">{{ t('agents.setup.behavior.delay_ms') }}</Label>
+                                                <Label for="widget-delay" class="text-sm font-medium">{{
+                                                    t('agents.setup.behavior.delay_ms')
+                                                }}</Label>
                                                 <div class="relative">
                                                     <div
-                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3"
                                                     >
                                                         <Clock class="h-4 w-4" />
                                                     </div>
@@ -1404,18 +1429,20 @@ const copyApiCode = async (code: string) => {
                                                         min="0"
                                                         v-model="widgetBehaviorForm.show_on_load_delay"
                                                         :disabled="locked"
-                                                        class="h-10 pl-9"
+                                                        class="h-10 ps-9"
                                                     />
                                                 </div>
                                             </div>
                                             <div class="space-y-1.5 sm:col-span-2">
                                                 <Label for="widget-sites" class="text-sm font-medium"
                                                     >{{ t('agents.setup.behavior.allowed_sites') }}
-                                                    <span class="text-muted-foreground font-normal">{{ t('agents.setup.behavior.allowed_sites_hint') }}</span></Label
+                                                    <span class="text-muted-foreground font-normal">{{
+                                                        t('agents.setup.behavior.allowed_sites_hint')
+                                                    }}</span></Label
                                                 >
                                                 <div class="relative">
                                                     <div
-                                                        class="text-muted-foreground pointer-events-none absolute top-0 left-0 flex items-center pt-2.5 pl-3"
+                                                        class="text-muted-foreground pointer-events-none absolute start-0 top-0 flex items-center ps-3 pt-2.5"
                                                     >
                                                         <Globe class="h-4 w-4" />
                                                     </div>
@@ -1424,7 +1451,7 @@ const copyApiCode = async (code: string) => {
                                                         v-model="sitesText"
                                                         rows="4"
                                                         :disabled="locked"
-                                                        class="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border py-2 pr-3 pl-9 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                                        class="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border py-2 ps-9 pe-3 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                                         :placeholder="t('agents.setup.behavior.allowed_sites_placeholder')"
                                                     />
                                                 </div>
@@ -1452,15 +1479,17 @@ const copyApiCode = async (code: string) => {
                                         </div>
                                         <div class="grid max-w-3xl gap-x-6 gap-y-5 sm:grid-cols-2">
                                             <div class="space-y-1.5">
-                                                <Label for="bar-trigger" class="text-sm font-medium">{{ t('agents.setup.behavior.keyboard_trigger') }}</Label>
+                                                <Label for="bar-trigger" class="text-sm font-medium">{{
+                                                    t('agents.setup.behavior.keyboard_trigger')
+                                                }}</Label>
                                                 <div class="relative">
                                                     <div
-                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
+                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 z-10 flex items-center ps-3"
                                                     >
                                                         <Keyboard class="h-4 w-4" />
                                                     </div>
                                                     <Select v-model="barBehaviorForm.trigger" :disabled="locked">
-                                                        <SelectTrigger id="bar-trigger" class="h-10 w-full pl-9"><SelectValue /></SelectTrigger>
+                                                        <SelectTrigger id="bar-trigger" class="h-10 w-full ps-9"><SelectValue /></SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem v-for="t in triggerOptions" :key="t.value" :value="t.value">{{
                                                                 t.label
@@ -1470,15 +1499,17 @@ const copyApiCode = async (code: string) => {
                                                 </div>
                                             </div>
                                             <div class="space-y-1.5">
-                                                <Label for="bar-placement" class="text-sm font-medium">{{ t('agents.setup.behavior.placement') }}</Label>
+                                                <Label for="bar-placement" class="text-sm font-medium">{{
+                                                    t('agents.setup.behavior.placement')
+                                                }}</Label>
                                                 <div class="relative">
                                                     <div
-                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3"
+                                                        class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 z-10 flex items-center ps-3"
                                                     >
                                                         <LayoutGrid class="h-4 w-4" />
                                                     </div>
                                                     <Select v-model="barBehaviorForm.placement" :disabled="locked">
-                                                        <SelectTrigger id="bar-placement" class="h-10 w-full pl-9"><SelectValue /></SelectTrigger>
+                                                        <SelectTrigger id="bar-placement" class="h-10 w-full ps-9"><SelectValue /></SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem v-for="p in placementOptions" :key="p.value" :value="p.value">{{
                                                                 p.label
@@ -1534,7 +1565,7 @@ const copyApiCode = async (code: string) => {
                                                     <Label for="iframe-width" class="text-xs">{{ t('agents.setup.embed.width') }}</Label>
                                                     <div class="relative">
                                                         <div
-                                                            class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5"
+                                                            class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-2.5"
                                                         >
                                                             <MoveHorizontal class="h-3.5 w-3.5" />
                                                         </div>
@@ -1543,7 +1574,7 @@ const copyApiCode = async (code: string) => {
                                                             v-model="iframeOptions.width"
                                                             type="text"
                                                             :placeholder="t('agents.setup.embed.width_placeholder')"
-                                                            class="pl-8 text-sm"
+                                                            class="ps-8 text-sm"
                                                         />
                                                     </div>
                                                 </div>
@@ -1551,7 +1582,7 @@ const copyApiCode = async (code: string) => {
                                                     <Label for="iframe-height" class="text-xs">{{ t('agents.setup.embed.height') }}</Label>
                                                     <div class="relative">
                                                         <div
-                                                            class="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5"
+                                                            class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-2.5"
                                                         >
                                                             <MoveVertical class="h-3.5 w-3.5" />
                                                         </div>
@@ -1560,24 +1591,29 @@ const copyApiCode = async (code: string) => {
                                                             v-model="iframeOptions.height"
                                                             type="text"
                                                             :placeholder="t('agents.setup.embed.height_placeholder')"
-                                                            class="pl-8 text-sm"
+                                                            class="ps-8 text-sm"
                                                         />
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="grid grid-cols-4 gap-2">
-                                                <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('full')"
-                                                    >{{ t('agents.setup.embed.preset_full') }}</Button
-                                                >
-                                                <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('large')"
-                                                    >{{ t('agents.setup.embed.preset_large') }}</Button
-                                                >
-                                                <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('medium')"
+                                                <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('full')">{{
+                                                    t('agents.setup.embed.preset_full')
+                                                }}</Button>
+                                                <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('large')">{{
+                                                    t('agents.setup.embed.preset_large')
+                                                }}</Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    class="text-xs"
+                                                    @click="setIframePreset('medium')"
                                                     >{{ t('agents.setup.embed.preset_medium') }}</Button
                                                 >
-                                                <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('small')"
-                                                    >{{ t('agents.setup.embed.preset_small') }}</Button
-                                                >
+                                                <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('small')">{{
+                                                    t('agents.setup.embed.preset_small')
+                                                }}</Button>
                                             </div>
                                         </div>
 
@@ -1660,10 +1696,7 @@ const copyApiCode = async (code: string) => {
                                         <AlertDescription>
                                             <i18n-t keypath="agents.setup.domain.no_quota_description" tag="span" scope="global">
                                                 <template #link>
-                                                    <Link
-                                                        :href="route('billing.index')"
-                                                        class="text-primary font-medium hover:underline"
-                                                    >
+                                                    <Link :href="route('billing.index')" class="text-primary font-medium hover:underline">
                                                         {{ t('agents.setup.domain.billing') }}
                                                     </Link>
                                                 </template>
@@ -1696,8 +1729,10 @@ const copyApiCode = async (code: string) => {
                                         <Label class="text-xs">{{ t('agents.setup.domain.step1') }}</Label>
                                         <div class="bg-muted overflow-x-auto rounded-lg border p-4 font-mono text-xs">
                                             <div class="grid grid-cols-[80px_1fr] gap-x-4 gap-y-1">
-                                                <span class="text-muted-foreground">{{ t('agents.setup.domain.type') }}</span><span class="font-semibold">CNAME</span>
-                                                <span class="text-muted-foreground">{{ t('agents.setup.domain.name') }}</span><span>{{ t('agents.setup.domain.cname_name') }}</span>
+                                                <span class="text-muted-foreground">{{ t('agents.setup.domain.type') }}</span
+                                                ><span class="font-semibold">CNAME</span>
+                                                <span class="text-muted-foreground">{{ t('agents.setup.domain.name') }}</span
+                                                ><span>{{ t('agents.setup.domain.cname_name') }}</span>
                                                 <span class="text-muted-foreground">{{ t('agents.setup.domain.value') }}</span>
                                                 <span class="flex items-center gap-2">
                                                     <code class="font-semibold">{{ domain.cname_target }}</code>
@@ -1765,7 +1800,7 @@ const copyApiCode = async (code: string) => {
 
                 <!-- Right column - Live Preview -->
                 <ResizablePanel :default-size="38" :min-size="25">
-                    <div class="bg-muted/40 flex h-full flex-col border-l">
+                    <div class="bg-muted/40 flex h-full flex-col border-s">
                         <div class="border-border flex flex-shrink-0 items-center justify-between border-b px-4 py-2">
                             <div class="text-foreground text-sm font-medium">{{ t('agents.setup.preview.title') }}</div>
                             <TooltipProvider :delay-duration="0">
@@ -1797,7 +1832,9 @@ const copyApiCode = async (code: string) => {
                                             </button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>{{ isExternalIdCopied ? t('agents.setup.preview.copied') : t('agents.setup.preview.copy_agent_id') }}</p>
+                                            <p>
+                                                {{ isExternalIdCopied ? t('agents.setup.preview.copied') : t('agents.setup.preview.copy_agent_id') }}
+                                            </p>
                                         </TooltipContent>
                                     </Tooltip>
                                     <Tooltip>
@@ -1871,7 +1908,9 @@ const copyApiCode = async (code: string) => {
                                 <thead class="bg-muted/50">
                                     <tr>
                                         <th class="text-muted-foreground px-3 py-2 text-start font-medium">{{ t('agents.setup.api.method_col') }}</th>
-                                        <th class="text-muted-foreground px-3 py-2 text-start font-medium">{{ t('agents.setup.api.description_col') }}</th>
+                                        <th class="text-muted-foreground px-3 py-2 text-start font-medium">
+                                            {{ t('agents.setup.api.description_col') }}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y">
@@ -1898,7 +1937,7 @@ const copyApiCode = async (code: string) => {
                         <div class="relative">
                             <div class="border-border bg-muted/40 overflow-hidden rounded-lg border">
                                 <div class="border-border bg-muted text-muted-foreground flex items-center justify-between border-b px-4 py-2">
-                                    <span class="text-xs font-medium">JavaScript</span>
+                                    <span class="text-xs font-medium">{{ t('agents.setup.api.code_language') }}</span>
                                     <Button
                                         type="button"
                                         variant="ghost"

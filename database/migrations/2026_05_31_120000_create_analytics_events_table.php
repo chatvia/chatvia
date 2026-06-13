@@ -36,8 +36,8 @@ return new class extends Migration
             $table->uuid('conversation_external_id')->nullable();
             $table->uuid('message_external_id')->nullable();
             $table->uuid('session_external_id')->nullable();
-            $table->timestampTz('occurred_at');
-            $table->timestampTz('inserted_at')->useCurrent();
+            $table->timestamp('occurred_at');
+            $table->timestamp('inserted_at')->useCurrent();
 
             $table->index(['agent_id', 'occurred_at']);
             $table->index(['agent_id', 'event_type', 'occurred_at']);

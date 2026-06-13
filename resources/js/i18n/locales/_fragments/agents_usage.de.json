@@ -1,0 +1,42 @@
+{
+    "agents": {
+        "usage": {
+            "title": "Nutzungsübersicht",
+            "description": "Sehen Sie, welche Quellen, Funktionen und MCP-Server dieser Agent tatsächlich verwendet",
+            "load_error": "Nutzungsdaten konnten nicht geladen werden",
+            "try_again": "Erneut versuchen",
+            "tabs": {
+                "knowledge": "Wissen",
+                "functions": "Funktionen",
+                "mcp": "MCP"
+            },
+            "knowledge_empty": "Noch keine Wissensquellen abgerufen",
+            "knowledge_empty_hint": "Dateien, Websites, Textausschnitte und YouTube-Videos werden hier angezeigt, sobald der Agent sie verwendet.",
+            "functions_empty": "Noch keine Funktionsaufrufe",
+            "functions_empty_hint": "Webhook-Funktionen werden hier angezeigt, sobald der Agent sie aufruft.",
+            "mcp_empty": "Noch keine MCP-Tool-Aufrufe",
+            "mcp_empty_hint": "Einzelne Tools von verbundenen MCP-Servern werden hier angezeigt, sobald der Agent sie aufruft.",
+            "retrievals": "{count} Abruf | {count} Abrufe",
+            "calls": "{count} Aufruf | {count} Aufrufe",
+            "last_used": "Zuletzt verwendet {time}",
+            "last_called": "Zuletzt aufgerufen {time}",
+            "via_server": "über {name}",
+            "sub_kind": {
+                "source_file": "Datei",
+                "source_website": "Website",
+                "source_text": "Text",
+                "source_youtube_video": "YouTube",
+                "agent_website_url": "Webseite"
+            },
+            "relative": {
+                "just_now": "gerade eben",
+                "minutes_ago": "vor {count} Minute | vor {count} Minuten",
+                "hours_ago": "vor {count} Stunde | vor {count} Stunden",
+                "days_ago": "vor {count} Tag | vor {count} Tagen",
+                "weeks_ago": "vor {count} Woche | vor {count} Wochen",
+                "months_ago": "vor {count} Monat | vor {count} Monaten",
+                "years_ago": "vor {count} Jahr | vor {count} Jahren"
+            }
+        }
+    }
+}

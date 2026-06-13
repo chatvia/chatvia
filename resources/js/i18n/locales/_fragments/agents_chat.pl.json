@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chat_errors": {
+            "disabled_title": "Agent wyłączony",
+            "disabled_description": "Ten agent jest obecnie niedostępny",
+            "disabled_heading": "Agent wyłączony",
+            "disabled_message": "Ten agent został wyłączony. Skontaktuj się z administratorem, aby uzyskać pomoc.",
+            "disabled_hint": "Jeśli uważasz, że to błąd lub potrzebujesz natychmiastowej pomocy, skontaktuj się z administratorem.",
+            "contact_admin": "Skontaktuj się z administratorem",
+            "return_dashboard": "Wróć do pulpitu",
+            "no_messages_title": "Brak pozostałych wiadomości",
+            "no_messages_description": "Osiągnięto limit wiadomości",
+            "not_found_title": "Nie znaleziono agenta",
+            "not_found_description": "Szukany agent nie istnieje",
+            "not_found_heading": "Nie znaleziono agenta",
+            "not_found_message": "Agent, do którego próbujesz uzyskać dostęp, nie istnieje lub mógł zostać usunięty.",
+            "not_found_hint": "Sprawdź adres URL lub skontaktuj się z administratorem, jeśli uważasz, że ten agent powinien być dostępny."
+        }
+    }
+}

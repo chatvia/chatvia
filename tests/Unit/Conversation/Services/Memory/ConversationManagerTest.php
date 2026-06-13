@@ -72,7 +72,11 @@ it('reprimes the cache after rebuilding from DB', function (): void {
 
     // ChatCache encrypts every value at rest (CacheCipher), so the raw store
     // holds a ciphertext string — decrypt before asserting the structure.
-    $raw = Cache::driver('chat')->tags($session->external_id)->get($session->external_id);
+    // Reads must carry the same [workspace, agent, session] tag set the writes
+    // use (see ChatCache::sessionTags) or the namespace diverges and this misses.
+    $raw = Cache::driver('chat')
+        ->tags(ChatCache::sessionTags($agent->workspaceExternalId(), $agent->external_id, $session->external_id))
+        ->get($session->external_id);
     expect($raw)->toBeString();
 
     $cached = CacheCipher::decrypt($raw);
@@ -99,8 +103,10 @@ it('preserves history when a new conversation is created with a cold cache', fun
 
     $manager = makeConversationManager($session, $agent);
 
-    // Cold cache: simulate by ensuring no key is set under sessionId.
-    Cache::driver('chat')->tags($session->external_id)->forget($session->external_id);
+    // Cold cache: simulate by ensuring no key is set under [workspace, agent, session].
+    Cache::driver('chat')
+        ->tags(ChatCache::sessionTags($agent->workspaceExternalId(), $agent->external_id, $session->external_id))
+        ->forget($session->external_id);
 
     $newId = $manager->createConversation('New Chat', ConversationSource::HostedChat);
 
@@ -130,10 +136,12 @@ it('falls back to DB when the cache is stamped with a different user_id', functi
         'is_visible' => true,
     ]);
 
-    Cache::driver('chat')->tags($session->external_id)->forever(
-        $session->external_id,
-        ['user_id' => $userA->id, 'conversations' => []]
-    );
+    Cache::driver('chat')
+        ->tags(ChatCache::sessionTags($agent->workspaceExternalId(), $agent->external_id, $session->external_id))
+        ->forever(
+            $session->external_id,
+            ['user_id' => $userA->id, 'conversations' => []]
+        );
 
     Auth::guard('web')->login($userB);
 

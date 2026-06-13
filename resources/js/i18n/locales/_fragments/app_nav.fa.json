@@ -1,0 +1,93 @@
+{
+    "app": {
+        "header": {
+            "dashboard": "داشبورد",
+            "agents": "عامل‌ها",
+            "usage": "مصرف",
+            "ask_your_data": "از داده‌هایتان بپرسید",
+            "billing": "صورتحساب",
+            "support": "پشتیبانی",
+            "teams": "تیم‌ها",
+            "documentation": "مستندات",
+            "api": "API",
+            "nav_menu_sr": "منوی ناوبری",
+            "upgrade": "ارتقا",
+            "subscribed": "شما مشترک هستید"
+        }
+    },
+    "agents": {
+        "nav": {
+            "default_title": "تنظیمات عامل",
+            "playground": "محیط آزمایش",
+            "playground_tooltip": "پیش‌نمایش عامل خود در هر بستری",
+            "setup": "راه‌اندازی",
+            "setup_tooltip": "پیکربندی عامل خود — در تمام بسترها اعمال می‌شود",
+            "channels": "کانال‌ها",
+            "channels_tooltip": "استقرار عامل — وب‌سایت، ویجت و Telegram",
+            "groups": {
+                "insights": "بینش‌ها",
+                "training": "آموزش",
+                "access": "دسترسی",
+                "settings": "تنظیمات",
+                "danger_zone": "منطقه خطر"
+            },
+            "analytics": "تحلیل‌ها",
+            "analytics_tooltip": "مشاهده تحلیل‌های استفاده و بینش‌ها",
+            "chats": "گفتگوها",
+            "sentiment": "احساسات",
+            "tone": "لحن",
+            "topics": "موضوعات",
+            "sources": "منابع",
+            "chat": "گفتگو",
+            "chat_tooltip": "بررسی پیام‌های خام بر اساس نشست",
+            "audit": "حسابرسی",
+            "audit_tooltip": "گزارش حسابرسی فراخوانی ابزار برای این عامل",
+            "evals": "ارزیابی‌ها",
+            "evals_tooltip": "مجموعه آزمون‌هایی که پاسخ‌های این عامل را درجه‌بندی می‌کنند",
+            "guardrails": "حفاظ‌ها",
+            "guardrails_tooltip": "محافظت‌های ایمنی هوش مصنوعی: اطلاعات شخصی، تزریق پرامپت، موضوعات، سمیت",
+            "leads": "سرنخ‌ها",
+            "leads_tooltip": "مدیریت سرنخ‌های ثبت‌شده توسط عامل",
+            "knowledge_sources": "منابع",
+            "knowledge_sources_tooltip": "مدیریت دانش و داده‌های آموزشی عامل",
+            "functions": "توابع",
+            "functions_tooltip": "مدیریت توابع سفارشی قابل فراخوانی توسط عامل",
+            "connectors": "اتصال‌دهنده‌ها",
+            "connectors_tooltip": "اتصال اتصال‌دهنده‌ها تا عامل بتواند از ابزارهای خارجی استفاده کند",
+            "members": "چت‌کنندگان",
+            "members_tooltip": "چت‌کنندگانی که دسترسی به گفتگو با این عامل دارند",
+            "security": "امنیت",
+            "security_tooltip": "کنترل دسترسی، کلید امضا و محدودیت نرخ برای این عامل",
+            "identity": "هویت",
+            "rate_limiting": "محدودیت نرخ",
+            "rename": "تغییر نام",
+            "rename_tooltip": "تغییر نام این عامل",
+            "delete_agent": "حذف عامل",
+            "delete_agent_tooltip": "حذف دائمی این عامل",
+            "expand_sidebar": "گسترش نوار کناری",
+            "delete_dialog": {
+                "title": "حذف عامل",
+                "description": "این عمل قابل بازگشت نیست. این کار عامل {name} و تمام داده‌های آن را به‌طور دائم حذف می‌کند.",
+                "confirm_label": "لطفاً {name} را برای تأیید تایپ کنید",
+                "confirm_placeholder": "نام عامل را برای تأیید وارد کنید",
+                "name_mismatch": "نام عامل مطابقت ندارد",
+                "submit": "حذف عامل",
+                "deleted_toast": "عامل با موفقیت حذف شد",
+                "delete_error_toast": "حذف عامل ناموفق بود. لطفاً دوباره تلاش کنید."
+            },
+            "rename_dialog": {
+                "title": "تغییر نام عامل",
+                "description": "یک نام جدید برای عامل {name} وارد کنید.",
+                "name_label": "نام عامل",
+                "name_placeholder": "نام جدید عامل را وارد کنید",
+                "subdomain_label": "زیردامنه",
+                "subdomain_placeholder": "your-subdomain",
+                "subdomain_hint": "فقط حروف کوچک انگلیسی، اعداد و خط تیره مجاز است.",
+                "save": "ذخیره",
+                "updated_toast": "عامل با موفقیت به‌روزرسانی شد"
+            },
+            "deploy": "استقرار",
+            "deploy_tooltip": "تعبیه عامل — ویجت گفتگو، گفتگوی میزبانی‌شده یا نوار فرمان"
+        }
+    }
+}

@@ -1,0 +1,137 @@
+{
+    "agents": {
+        "channels": {
+            "setup": {
+                "names": {
+                    "telegram": "Telegram",
+                    "slack": "Slack",
+                    "messenger": "Messenger",
+                    "whatsapp": "WhatsApp",
+                    "msteams": "Microsoft Teams",
+                    "instagram": "Instagram"
+                },
+                "public_only": "{channel} er bare tilgjengelig for offentlige agenter. Gjør denne agenten offentlig på {security}-siden, og koble den til her.",
+                "labels": {
+                    "bot_token": "Bot-token",
+                    "signing_secret": "Signeringshemmelighet",
+                    "request_url": "Forespørsels-URL",
+                    "callback_url": "Tilbakeringing-URL",
+                    "verify_token": "Verifiseringstoken",
+                    "page_access_token": "Sidetilgangstoken",
+                    "app_secret": "App-hemmelighet",
+                    "access_token": "Tilgangstoken",
+                    "phone_number_id": "Telefonnummer-ID",
+                    "waba_id": "WhatsApp Business-konto-ID",
+                    "microsoft_app_id": "Microsoft App-ID",
+                    "client_secret": "Klienthemmelighet",
+                    "tenant_id": "Leietaker-ID",
+                    "messaging_endpoint": "Meldingsendepunkt"
+                },
+                "hints": {
+                    "tenant_single_only": "(Kun for Single Tenant-boter)"
+                },
+                "placeholders": {
+                    "telegram_bot_token": "123456789:ABCdef…",
+                    "slack_bot_token": "xoxb-…",
+                    "meta_token": "EAAG…",
+                    "phone_number_id": "123456789012345",
+                    "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
+                    "tenant_id": "La stå tom for Multi Tenant",
+                    "instagram_token": "IGAA…"
+                },
+                "guide": {
+                    "need_detail_before": "Trenger du mer detaljer? Følg",
+                    "step_by_step_guide": "trinn-for-trinn-guiden",
+                    "need_detail_after": "med skjermbilder."
+                },
+                "shared": {
+                    "subscribe_webhook": "Abonner på webhook for feltet {field}",
+                    "messages_field": "meldinger",
+                    "create_meta_app_at": "Opprett en app på {link}",
+                    "copy_app_secret_both": "Kopier app-hemmeligheten fra {section} og lim inn begge nedenfor",
+                    "copy_app_secret_all": "Kopier app-hemmeligheten fra {section} og lim inn alt nedenfor",
+                    "copy_app_secret_same_page": "Kopier app-hemmeligheten fra samme side og lim inn begge nedenfor",
+                    "reply_streams_live": "— svaret strømmer inn direkte"
+                },
+                "telegram": {
+                    "connected_description": "Folk kan sende meldinger til boten din på Telegram og agenten din svarer automatisk — fakturering, historikk og sikkerhetstiltak gjelder.",
+                    "steps": {
+                        "connect_1": "Åpne {botfather} i Telegram",
+                        "connect_2": "Send {command} og følg instruksjonene",
+                        "connect_3": "Lim inn tokenet nedenfor — vi kobler det til automatisk"
+                    },
+                    "botfather": "{'@'}BotFather"
+                },
+                "slack": {
+                    "steps": {
+                        "connected_1": "I {link}, åpne {event_subscriptions}, aktiver det, og lim inn forespørsels-URL-en ovenfor",
+                        "connected_2": "Abonner på bot-hendelsene {mention} og {im}, og lagre",
+                        "connected_3": "Inviter boten til en kanal med {invite} og @@nevn den {live}",
+                        "connect_1": "Opprett en app på {link} i arbeidsområdet ditt",
+                        "connect_2": "Under {oauth}, legg til bot-omfangene {scope1}, {scope2}, {scope3}, installer appen og kopier bot-tokenet",
+                        "connect_3": "Kopier signeringshemmeligheten fra {basic_info} og lim inn begge nedenfor"
+                    },
+                    "your_slack_app": "Slack-appen din",
+                    "event_subscriptions": "Event Subscriptions",
+                    "oauth_permissions": "OAuth & Permissions",
+                    "basic_information": "Basic Information"
+                },
+                "messenger": {
+                    "steps": {
+                        "connected_1": "I {link}, åpne {webhooks} og lim inn tilbakeringing-URL-en + verifiseringstokenet ovenfor",
+                        "connected_3": "Send en melding til siden din på Messenger — agenten din svarer automatisk",
+                        "connect_1": "Opprett en app på {link} og legg til produktet {product}",
+                        "connect_2": "Under {api_settings}, koble til Facebook-siden din og generer et sidetilgangstoken"
+                    },
+                    "your_meta_app": "Meta-appen din",
+                    "webhooks_path": "Messenger → Settings → Webhooks",
+                    "api_settings_path": "Messenger → API settings",
+                    "app_settings_basic": "App settings → Basic",
+                    "product": "Messenger"
+                },
+                "whatsapp": {
+                    "steps": {
+                        "connected_1": "I {link}, åpne {configuration} og lim inn tilbakeringing-URL-en + verifiseringstokenet ovenfor",
+                        "connected_3": "Send en melding til nummeret ditt på WhatsApp — agenten din svarer automatisk",
+                        "connect_1": "Opprett en app på {link} med brukstilfellet {use_case}",
+                        "connect_2": "Fullfør {basic_setup}, og kopier deretter telefonnummer-ID, WhatsApp Business-konto-ID og et tilgangstoken"
+                    },
+                    "configuration_path": "WhatsApp → Configuration",
+                    "use_case": "Kommuniser med kunder via WhatsApp",
+                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                },
+                "msteams": {
+                    "app_id_label": "App-{id}",
+                    "steps": {
+                        "connected_1": "I {link}, åpne {configuration}-siden for boten din og lim inn meldingsendepunktet ovenfor",
+                        "connected_2": "Under {channels}, legg til {teams}",
+                        "connected_3": "{open_chat} {live}",
+                        "connect_1": "Opprett en {azure_bot}-ressurs på {link} (Multi Tenant eller Single Tenant)",
+                        "connect_2": "Kopier {app_id} fra Configuration, og opprett deretter en klienthemmelighet under {secrets}",
+                        "connect_3": "Lim inn begge nedenfor — for en Single Tenant-bot legger du også til {tenant_id}"
+                    },
+                    "azure_portal": "Azure-portalen",
+                    "configuration": "Configuration",
+                    "channels": "Channels",
+                    "azure_bot": "Azure Bot",
+                    "microsoft_app_id": "Microsoft App-ID",
+                    "manage_password": "Manage password → Certificates & secrets",
+                    "directory_tenant_id": "Directory (tenant) ID",
+                    "open_chat_in_teams": "Åpne en chat med boten din i Teams"
+                },
+                "instagram": {
+                    "steps": {
+                        "connected_1": "I {link}, åpne {webhooks} og lim inn tilbakeringing-URL-en + verifiseringstokenet ovenfor",
+                        "connected_3": "I Instagram-appen, tillat meldingstilgang under {message_controls}, og send deretter en DM til kontoen din",
+                        "connect_1": "Opprett en app på {link} og legg til produktet {product} — Instagram-kontoen din må være en profesjonell konto (bedrift eller innholdsskaper)",
+                        "connect_2": "Under {api_setup}, generer et tilgangstoken for kontoen din"
+                    },
+                    "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
+                    "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
+                    "api_setup_path": "Instagram → API setup with Instagram login",
+                    "product": "Instagram"
+                }
+            }
+        }
+    }
+}

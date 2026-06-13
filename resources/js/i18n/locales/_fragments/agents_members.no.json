@@ -1,0 +1,71 @@
+{
+    "agents": {
+        "members": {
+            "title": "Chattere",
+            "description": "Dine chattere. De med tilgang til denne agenten vises først. Du kan gi andre chattere tilgang med ett klikk.",
+            "public_title": "Denne agenten er offentlig",
+            "public_description": "Alle med lenken kan chatte med denne agenten, så chatter-tilganger gjelder ikke. For å bruke chattere, gjør agenten beskyttet fra Oppsett-fanen.",
+            "search_placeholder": "Søk etter chattere...",
+            "count": "{filtered} av {total} chatter | {filtered} av {total} chattere",
+            "invite_member": "Inviter chatter",
+            "table": {
+                "name": "Navn",
+                "email": "E-post",
+                "status": "Status",
+                "access": "Tilgang",
+                "actions": "Handlinger"
+            },
+            "status": {
+                "pending": "Venter",
+                "active": "Aktiv"
+            },
+            "access": {
+                "granted": "Gitt",
+                "no_access": "Ingen tilgang"
+            },
+            "no_email": "Ingen e-post",
+            "empty_title": "Ingen chattere ennå.",
+            "empty_description": "Inviter noen for å komme i gang – de vises her.",
+            "no_results_title": "Ingen chattere funnet som samsvarer med søket ditt.",
+            "no_results_description": "Prøv å justere søkeordene dine.",
+            "grant": "Gi tilgang",
+            "grant_title": "Gi {name} tilgang til denne agenten",
+            "revoke_title": "Tilbakekall tilgang for {name}",
+            "invite_dialog_title": "Inviter en chatter",
+            "invite_dialog_description": "Vi sender en registreringslenke til denne adressen. De kan sette et passord eller logge inn med Google eller Slack.",
+            "email_label": "E-postadresse",
+            "email_placeholder": "person{'@'}eksempel.no",
+            "send_invite": "Send invitasjon",
+            "invitation_emailed": "Invitasjon sendt til {email}. Du kan også kopiere lenken nedenfor.",
+            "signup_link": "Registreringslenke",
+            "expires": "Utløper {date}.",
+            "invite_another": "Inviter en til",
+            "done": "Ferdig",
+            "sheet_description": "Chatter-detaljer og tilgang for denne agenten.",
+            "member_id": "ID",
+            "copy_member_id": "Kopier chatter-ID",
+            "joined": "Ble med {date}",
+            "invitation_pending": "Invitasjon venter",
+            "invitation_pending_hint": "Denne chatteren har ikke akseptert ennå. Del deres personlige registreringslenke nedenfor.",
+            "link_expired": "Invitasjonslenken har utløpt eller er ikke lenger tilgjengelig. Generer en ny nedenfor.",
+            "resend_invitation": "Send invitasjon på nytt",
+            "generate_link": "Generer ny lenke",
+            "manage_hint": "For å administrere denne chatteren, gå til {link}.",
+            "members_page": "chatter-siden",
+            "revoke_access": "Tilbakekall tilgang",
+            "grant_access": "Gi tilgang",
+            "revoke_dialog_title": "Tilbakekall tilgang",
+            "revoke_dialog_description": "{name} mister tilgang til denne agenten umiddelbart. De forblir i arbeidsområdet ditt, og du kan gi tilgang igjen når som helst.",
+            "revoke": "Tilbakekall",
+            "load_error": "Kunne ikke laste inn chattere",
+            "invitation_sent": "Invitasjon sendt",
+            "invitation_sent_to": "Invitasjon sendt til {email}",
+            "access_revoked": "{name} har ikke lenger tilgang til denne agenten",
+            "revoke_error": "Kunne ikke tilbakekalle tilgang",
+            "access_granted": "{name} har nå tilgang til denne agenten",
+            "grant_error": "Kunne ikke gi tilgang",
+            "fresh_link": "Ny invitasjonslenke generert for {name}",
+            "link_error": "Kunne ikke generere en invitasjonslenke"
+        }
+    }
+}

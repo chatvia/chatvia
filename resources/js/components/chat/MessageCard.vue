@@ -6,6 +6,9 @@ import type { ToolArtifact } from '@/types/stream';
 import { usePage } from '@inertiajs/vue3';
 import { vOnClickOutside } from '@vueuse/components';
 import { nextTick, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // MessageCard is used by the chat log and handoff panel; both pass a
 // ChatLogMessageData row. Define the minimum shape we read so the prop
@@ -183,13 +186,13 @@ const exportAsText = (_id: string | number) => {};
                             class="cursor-pointer rounded-md bg-gray-700 px-3 py-1 text-xs text-white transition-colors hover:bg-gray-600"
                             @click="cancelEditing"
                         >
-                            Cancel
+                            {{ t('shared.message_card.cancel') }}
                         </button>
                         <button
                             class="cursor-pointer rounded-md bg-indigo-600 px-3 py-1 text-xs text-white transition-colors hover:bg-indigo-500"
                             @click="saveEditedMessage"
                         >
-                            Send
+                            {{ t('shared.message_card.send') }}
                         </button>
                     </div>
                 </div>
@@ -204,7 +207,7 @@ const exportAsText = (_id: string | number) => {};
                 >
                     <div class="flex items-center space-x-1.5">
                         <button
-                            aria-label="Copy message"
+                            :aria-label="t('shared.message_card.copy_aria')"
                             class="group relative cursor-pointer rounded-full p-1.5 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                             @click="copyMessageToClipboard(message.content, message.id)"
                         >
@@ -238,7 +241,7 @@ const exportAsText = (_id: string | number) => {};
                             <div
                                 class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
                             >
-                                Copy
+                                {{ t('shared.message_card.copy_tooltip') }}
                             </div>
                         </button>
 
@@ -248,7 +251,7 @@ const exportAsText = (_id: string | number) => {};
                                     ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
                                     : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
                             ]"
-                            aria-label="Thumbs up"
+                            :aria-label="t('shared.message_card.thumbs_up_aria')"
                             class="group relative cursor-pointer rounded-full p-1.5 transition-colors"
                             @click="provideFeedback(message.id, 'thumbs-up')"
                         >
@@ -270,7 +273,7 @@ const exportAsText = (_id: string | number) => {};
                             <div
                                 class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
                             >
-                                Helpful
+                                {{ t('shared.message_card.helpful_tooltip') }}
                             </div>
                         </button>
 
@@ -280,7 +283,7 @@ const exportAsText = (_id: string | number) => {};
                                     ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
                                     : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
                             ]"
-                            aria-label="Thumbs down"
+                            :aria-label="t('shared.message_card.thumbs_down_aria')"
                             class="group relative cursor-pointer rounded-full p-1.5 transition-colors"
                             @click="provideFeedback(message.id, 'thumbs-down')"
                         >
@@ -302,22 +305,22 @@ const exportAsText = (_id: string | number) => {};
                             <div
                                 class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
                             >
-                                Not helpful
+                                {{ t('shared.message_card.not_helpful_tooltip') }}
                             </div>
                         </button>
 
                         <!-- Delete message button -->
                         <ConfirmationDialog
-                            cancelText="No, keep it"
-                            confirmText="Yes, delete"
-                            description="This action cannot be undone."
-                            title="Delete this message?"
+                            :cancel-text="t('shared.message_card.delete_cancel')"
+                            :confirm-text="t('shared.message_card.delete_confirm')"
+                            :description="t('shared.message_card.delete_description')"
+                            :title="t('shared.message_card.delete_title')"
                             @cancel="() => {}"
                             @confirm="deleteMessage(message.id)"
                         >
                             <template #trigger>
                                 <button
-                                    aria-label="Delete message"
+                                    :aria-label="t('shared.message_card.delete_aria')"
                                     class="group relative cursor-pointer rounded-full p-1.5 text-gray-500 transition-colors hover:bg-red-100 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/30 dark:hover:text-red-400"
                                 >
                                     <svg
@@ -338,7 +341,7 @@ const exportAsText = (_id: string | number) => {};
                                     <div
                                         class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
                                     >
-                                        Delete the current response
+                                        {{ t('shared.message_card.delete_tooltip') }}
                                     </div>
                                 </button>
                             </template>
@@ -346,7 +349,7 @@ const exportAsText = (_id: string | number) => {};
 
                         <div v-on-click-outside="closeExportAsMenu" class="dropdown-export-container relative">
                             <button
-                                aria-label="Export message"
+                                :aria-label="t('shared.message_card.export_aria')"
                                 class="group relative rounded-full p-1.5 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                                 @click="toggleExportDropdown(message.id, $event)"
                             >
@@ -368,29 +371,29 @@ const exportAsText = (_id: string | number) => {};
                                 <div
                                     class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
                                 >
-                                    Export
+                                    {{ t('shared.message_card.export_tooltip') }}
                                 </div>
                             </button>
 
                             <!-- Export Dropdown Menu -->
                             <div
                                 v-if="isExportDropdownOpen[message.id]"
-                                class="absolute bottom-full left-0 z-50 mb-2 w-40 cursor-pointer rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                                class="absolute start-0 bottom-full z-50 mb-2 w-40 cursor-pointer rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
                                 style="transform-origin: bottom left"
                             >
                                 <!-- Dropdown arrow -->
                                 <div
-                                    class="absolute -bottom-2 left-4 h-4 w-4 rotate-45 transform border-r border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
+                                    class="absolute start-4 -bottom-2 h-4 w-4 rotate-45 transform border-e border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
                                 ></div>
 
                                 <div
                                     class="cursor-pointer border-b border-gray-100 px-3 py-2 text-xs font-medium text-gray-400 dark:border-gray-800 dark:text-gray-500"
                                 >
-                                    Export as
+                                    {{ t('shared.message_card.export_as') }}
                                 </div>
 
                                 <button
-                                    class="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-gray-700 transition-all duration-200 hover:translate-x-0.5 hover:scale-[1.02] hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30"
+                                    class="flex w-full items-center gap-3 px-3 py-2 text-start text-sm text-gray-700 transition-all duration-200 hover:translate-x-0.5 hover:scale-[1.02] hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30"
                                     @click="exportAsPdf(message.id)"
                                 >
                                     <svg
@@ -407,11 +410,11 @@ const exportAsText = (_id: string | number) => {};
                                         <line x1="16" x2="8" y1="17" y2="17"></line>
                                         <polyline points="10 9 9 9 8 9"></polyline>
                                     </svg>
-                                    <span>PDF</span>
+                                    <span>{{ t('shared.message_card.export_pdf') }}</span>
                                 </button>
 
                                 <button
-                                    class="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-gray-700 transition-all duration-200 hover:translate-x-0.5 hover:scale-[1.02] hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30"
+                                    class="flex w-full items-center gap-3 px-3 py-2 text-start text-sm text-gray-700 transition-all duration-200 hover:translate-x-0.5 hover:scale-[1.02] hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30"
                                     @click="exportAsMarkdown(message.id)"
                                 >
                                     <svg
@@ -427,11 +430,11 @@ const exportAsText = (_id: string | number) => {};
                                         <line x1="15" x2="15" y1="10" y2="16"></line>
                                         <line x1="9" x2="15" y1="13" y2="13"></line>
                                     </svg>
-                                    <span>Markdown</span>
+                                    <span>{{ t('shared.message_card.export_markdown') }}</span>
                                 </button>
 
                                 <button
-                                    class="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-gray-700 transition-all duration-200 hover:translate-x-0.5 hover:scale-[1.02] hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30"
+                                    class="flex w-full items-center gap-3 px-3 py-2 text-start text-sm text-gray-700 transition-all duration-200 hover:translate-x-0.5 hover:scale-[1.02] hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30"
                                     @click="exportAsText(message.id)"
                                 >
                                     <svg
@@ -444,7 +447,7 @@ const exportAsText = (_id: string | number) => {};
                                     >
                                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                                     </svg>
-                                    <span>Text</span>
+                                    <span>{{ t('shared.message_card.export_text') }}</span>
                                 </button>
                             </div>
                         </div>
@@ -454,9 +457,9 @@ const exportAsText = (_id: string | number) => {};
                         <div class="group relative">
                             <img :alt="findModelIdx(message.model).name" :src="'/images/llms/' + findModelIdx(message.model).icon" class="h-5 w-5" />
                             <div
-                                class="pointer-events-none absolute right-0 bottom-full mb-1 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
+                                class="pointer-events-none absolute end-0 bottom-full mb-1 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
                             >
-                                Generated by {{ findModelIdx(message.model).name }}
+                                {{ t('shared.message_card.generated_by', { model: findModelIdx(message.model).name }) }}
                             </div>
                         </div>
                     </div>
@@ -469,7 +472,7 @@ const exportAsText = (_id: string | number) => {};
         <div class="mx-auto mt-2 flex max-w-3xl items-start justify-end gap-4 sm:gap-6">
             <div class="flex items-center space-x-1.5">
                 <button
-                    aria-label="Copy message"
+                    :aria-label="t('shared.message_card.copy_aria')"
                     class="group relative cursor-pointer rounded-full p-1.5 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                     @click="copyMessageToClipboard(message.content, message.id)"
                 >
@@ -503,7 +506,7 @@ const exportAsText = (_id: string | number) => {};
                     <div
                         class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
                     >
-                        Copy
+                        {{ t('shared.message_card.copy_tooltip') }}
                     </div>
                 </button>
             </div>

@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('tool_name');
             $table->unsignedInteger('invocation_count')->default(0);
             // Denormalised labels captured at invocation time.
-            $table->string('tool_description', 1024)->nullable();
+            $table->text('tool_description')->nullable();
             $table->string('server_name')->nullable();
             $table->string('connector_slug')->nullable();
 

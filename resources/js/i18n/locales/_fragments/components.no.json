@@ -1,0 +1,39 @@
+{
+    "nav": {
+        "platform": "Plattform"
+    },
+    "theme": {
+        "toggle": "Bytt tema",
+        "light": "Lys",
+        "dark": "Mørk",
+        "system": "System"
+    },
+    "team_switcher": {
+        "select_team": "Velg team",
+        "no_teams": "Ingen team tilgjengelig",
+        "manage_teams": "Administrer team"
+    },
+    "agents": {
+        "create_modal": {
+            "title": "Opprett agent",
+            "limit_title": "Agentgrense nådd",
+            "limit_description": "Du har nådd grensen for antall agenter.",
+            "upgrade_plan": "Oppgrader abonnement",
+            "name_label": "Agentnavn",
+            "name_placeholder": "F.eks. Kundeservice",
+            "load_error": "Kunne ikke laste bruksinformasjon",
+            "limit_toast_title": "Agentgrense nådd",
+            "limit_toast_description": "Du har nådd grensen for antall agenter."
+        }
+    },
+    "confirm_password": {
+        "title": "Bekreft passordet ditt",
+        "description": "For sikkerhets skyld, vennligst bekreft passordet ditt før du endrer sikkerhetsinnstillingene.",
+        "password_label": "Passord",
+        "password_required": "Passord er påkrevd.",
+        "incorrect": "Feil passord.",
+        "error": "Kunne ikke bekrefte passordet. Prøv igjen.",
+        "cancel": "Avbryt",
+        "confirm": "Bekreft"
+    }
+}

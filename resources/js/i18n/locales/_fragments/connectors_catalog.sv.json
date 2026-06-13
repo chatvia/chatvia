@@ -1,0 +1,134 @@
+{
+    "connectors": {
+        "categories": {
+            "utilities": "Verktyg",
+            "sales": "Försäljning",
+            "payments": "Betalningar",
+            "developer_tools": "Utvecklarverktyg",
+            "productivity": "Produktivitet",
+            "communication": "Kommunikation",
+            "automation": "Automatisering",
+            "analytics": "Analys"
+        },
+        "catalog": {
+            "perplexity": {
+                "name": "Perplexity",
+                "description": "Sök på den levande webben med Perplexity Sonar — nyheter, priser, aktuella händelser — med citerade källor.",
+                "token_label": "Perplexity API-nyckel",
+                "token_placeholder": "Din Perplexity API-nyckel"
+            },
+            "weather": {
+                "name": "Väder",
+                "description": "Realtidsväder (temperatur, förhållanden, luftfuktighet, vind) för valfri stad, via OpenWeatherMap.",
+                "token_label": "OpenWeatherMap API-nyckel",
+                "token_placeholder": "Din OpenWeatherMap API-nyckel"
+            },
+            "currency": {
+                "name": "Valutaomvandlare",
+                "description": "Omvandla belopp mellan valfria valutor med aktuella växelkurser (exchangerate-api).",
+                "token_label": "ExchangeRate-API-nyckel",
+                "token_placeholder": "Din ExchangeRate-API-nyckel"
+            },
+            "charts": {
+                "name": "Interaktiva diagram",
+                "description": "Rendera interaktiva diagram direkt i chatten — stapel, linje, cirkel, scatter, radar, mätare, värmekarta och mer."
+            },
+            "leads": {
+                "name": "Leads",
+                "description": "Samla in besökares kontaktuppgifter (namn, e-post, telefon och mer)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "Sök transaktioner, kunder, produkter och betalningar i ditt Stripe-konto."
+            },
+            "github": {
+                "name": "GitHub",
+                "description": "Läs repos, ärenden, pull requests och kod från valfritt konto du har tillgång till."
+            },
+            "notion": {
+                "name": "Notion",
+                "description": "Läs sidor, databaser och kommentarer från din Notion-arbetsyta."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "Sök ärenden, projekt och cyklar i din Linear-arbetsyta."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "Jira-ärenden, Confluence-sidor och arbetsflöden från dina Atlassian-sajter."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "Sök meddelanden, läs trådar och skriv svar i din Gmail-inkorg."
+            },
+            "google-calendar": {
+                "name": "Google Kalender",
+                "description": "Läs och skapa händelser i dina Google Kalendrar."
+            },
+            "google-drive": {
+                "name": "Google Drive",
+                "description": "Läs filer och mappar från din Google Drive."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "Sök meddelanden, posta svar och läs kanalhistorik i din Slack-arbetsyta."
+            },
+            "calendly": {
+                "name": "Calendly",
+                "description": "Låt besökare boka möten via din Calendly, och låt agenter läsa dina schemalagda händelser."
+            },
+            "todoist": {
+                "name": "Todoist",
+                "description": "Hantera uppgifter, projekt och etiketter i ditt Todoist-konto."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "Utlös Zapier-åtgärder i mer än 9 000 anslutna appar."
+            },
+            "zendesk": {
+                "name": "Zendesk",
+                "description": "Läs ärenden, användare och hjälpcenterartiklar från ditt Zendesk Support-konto.",
+                "token_label": "Zendesk API-token",
+                "token_placeholder": "Din Zendesk API-token"
+            },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "Läs och uppdatera kontakter, företag, affärer och ärenden i ditt HubSpot CRM."
+            },
+            "salesforce": {
+                "name": "Salesforce",
+                "description": "Läs och uppdatera konton, kontakter, affärsmöjligheter och ärenden från din Salesforce-org."
+            },
+            "box": {
+                "name": "Box",
+                "description": "Sök och läs filer, mappar och metadata i ditt Box-konto."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "Läs och uppdatera uppgifter, projekt och portföljer i din Asana-arbetsyta."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "Läs ärenden, fel och releaser från dina Sentry-projekt."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "Sök mötesutskrifter, sammanfattningar och åtgärdspunkter från Fireflies.ai."
+            },
+            "amplitude": {
+                "name": "Amplitude",
+                "description": "Hämta produktanalys — händelser, diagram och kohorter — från ditt Amplitude-projekt."
+            }
+        },
+        "mcp": {
+            "account-analytics": {
+                "name": "Kontoanalys",
+                "description": "Svara på arbetsytans ägares frågor om sitt eget konto i siffror — meddelanden, konversationer, användare, kanaler, leads, nöjdhet, svarstid, ämnen och överlämningar."
+            },
+            "charts": {
+                "name": "Interaktiva diagram",
+                "description": "Rendera interaktiva diagram (stapel, linje, cirkel, mätare, scatter, radar, värmekarta, …) direkt i chatten."
+            }
+        }
+    }
+}

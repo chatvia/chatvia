@@ -1,0 +1,39 @@
+{
+    "nav": {
+        "platform": "Plataforma"
+    },
+    "theme": {
+        "toggle": "Alternar tema",
+        "light": "Claro",
+        "dark": "Escuro",
+        "system": "Sistema"
+    },
+    "team_switcher": {
+        "select_team": "Selecionar Equipa",
+        "no_teams": "Nenhuma equipa disponível",
+        "manage_teams": "Gerir Equipas"
+    },
+    "agents": {
+        "create_modal": {
+            "title": "Criar Agente",
+            "limit_title": "Limite de Agentes Atingido",
+            "limit_description": "Atingiu o limite de agentes.",
+            "upgrade_plan": "Melhorar Plano",
+            "name_label": "Nome do Agente",
+            "name_placeholder": "Ex.: Suporte ao Cliente",
+            "load_error": "Falha ao carregar informações de utilização",
+            "limit_toast_title": "Limite de agentes atingido",
+            "limit_toast_description": "Atingiu o limite de agentes."
+        }
+    },
+    "confirm_password": {
+        "title": "Confirme a sua palavra-passe",
+        "description": "Por razões de segurança, confirme a sua palavra-passe antes de alterar as definições de segurança.",
+        "password_label": "Palavra-passe",
+        "password_required": "A palavra-passe é obrigatória.",
+        "incorrect": "Palavra-passe incorreta.",
+        "error": "Não foi possível confirmar a palavra-passe. Tente novamente.",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar"
+    }
+}

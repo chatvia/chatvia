@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Support\Casts\EncryptedTolerant;
 use Support\Localization\Language\Models\Language;
-use Support\Traits\SupportsExternalId;
+use Support\Concerns\HasExternalId;
 
 /**
  * @property int $id
@@ -120,7 +120,7 @@ use Support\Traits\SupportsExternalId;
 #[Table(name: 'chat_conversations')]
 class Conversation extends Model
 {
-    use HasFactory, SoftDeletes, SupportsExternalId;
+    use HasExternalId, HasFactory, SoftDeletes;
 
     /** Placeholder title every conversation is created with until it's named. */
     public const string DEFAULT_TITLE = 'New Chat';

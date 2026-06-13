@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { Label } from '@/components/ui/label';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const THEMES = [
     'black',
@@ -82,7 +85,7 @@ function onShadeInput(event: Event): void {
         </div>
 
         <div class="space-y-2">
-            <Label class="text-sm">Color Intensity</Label>
+            <Label class="text-sm">{{ t('shared.color_picker.color_intensity') }}</Label>
             <div class="px-1">
                 <input
                     type="range"
@@ -97,9 +100,9 @@ function onShadeInput(event: Event): void {
                 />
             </div>
             <div class="text-muted-foreground flex justify-between text-xs">
-                <span>Light</span>
+                <span>{{ t('shared.color_picker.light') }}</span>
                 <span class="font-medium">{{ props.shade }}</span>
-                <span>Dark</span>
+                <span>{{ t('shared.color_picker.dark') }}</span>
             </div>
         </div>
     </div>

@@ -28,12 +28,12 @@ const copy = async () => {
         <Label :for="id">{{ label }}</Label>
         <div class="flex gap-2">
             <div class="relative min-w-0 flex-1">
-                <component :is="icon" class="text-muted-foreground/70 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                <component :is="icon" class="text-muted-foreground/70 pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
                 <Input
                     :id="id"
                     :model-value="value ?? ''"
                     readonly
-                    class="pl-9 font-mono text-xs"
+                    class="ps-9 font-mono text-xs"
                     data-1p-ignore
                     data-lpignore="true"
                     data-bwignore

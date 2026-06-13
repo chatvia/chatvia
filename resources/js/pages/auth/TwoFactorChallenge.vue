@@ -56,7 +56,7 @@ const switchTo = async (next: Mode) => {
                         required
                         autofocus
                         v-model="form.code"
-                        placeholder="123456"
+                        :placeholder="t('auth.two_factor.code_placeholder')"
                         class="h-12 ps-10 text-base tracking-widest"
                     />
                 </div>
@@ -76,7 +76,7 @@ const switchTo = async (next: Mode) => {
                         autocomplete="one-time-code"
                         required
                         v-model="form.recovery_code"
-                        placeholder="xxxxxxxx-xxxxxxxx"
+                        :placeholder="t('auth.two_factor.recovery_code_placeholder')"
                         class="h-12 ps-10 text-base"
                     />
                 </div>

@@ -186,7 +186,7 @@ it('refuses to delete on a private agent when the auth user does not own the con
     $intruder = app(CreateChatterAction::class)->execute($agent->user, $agent, 'Intruder')->refresh();
 
     $conversation = makeConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, $owner->id);
+    ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());
 
     $attachment = makeAttachment($agent, $conversation);
 
@@ -208,7 +208,7 @@ it('lets the rightful owner delete on a private agent', function (): void {
     $owner = app(CreateChatterAction::class)->execute($agent->user, $agent, 'Owner')->refresh();
 
     $conversation = makeConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, $owner->id);
+    ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());
 
     $attachment = makeAttachment($agent, $conversation);
 

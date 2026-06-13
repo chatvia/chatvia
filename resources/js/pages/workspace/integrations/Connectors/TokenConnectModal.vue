@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useConnectorText } from '@/composables/useConnectorText';
 import type { AgentMcpServer, Connector } from '@/types/connector';
 import axios from 'axios';
 import { ExternalLink, LoaderCircle } from 'lucide-vue-next';
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const { connectorName, connectorDescription, connectorTokenLabel, connectorTokenPlaceholder } = useConnectorText();
 
 const token = ref('');
 const serverUrl = ref('');
@@ -61,7 +63,7 @@ async function submit(): Promise<void> {
         const response = await axios.post(route('integrations.connectors.connect', { slug: props.connector.slug }), payload);
         emit('connected', response.data.data, response.data.tools_count);
         emit('update:open', false);
-        toast.success(t('workspace.connectors.toast.connected', { name: props.connector.name }));
+        toast.success(t('workspace.connectors.toast.connected', { name: connectorName(props.connector) }));
     } catch (e: unknown) {
         const axiosErr = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
         const errors = axiosErr.response?.data?.errors;
@@ -84,10 +86,10 @@ async function submit(): Promise<void> {
                             class="h-5 w-5"
                         />
                     </div>
-                    <DialogTitle>{{ t('workspace.connectors.connect_title', { name: connector.name }) }}</DialogTitle>
+                    <DialogTitle>{{ t('workspace.connectors.connect_title', { name: connectorName(connector) }) }}</DialogTitle>
                 </div>
                 <DialogDescription>
-                    {{ connector.description }}
+                    {{ connectorDescription(connector) }}
                 </DialogDescription>
             </DialogHeader>
 
@@ -104,23 +106,25 @@ async function submit(): Promise<void> {
                         required
                     />
                     <p class="text-muted-foreground text-xs">
-                        {{ t('workspace.connectors.token_modal.server_url_hint', { name: connector.name }) }}
+                        {{ t('workspace.connectors.token_modal.server_url_hint', { name: connectorName(connector) }) }}
                     </p>
                 </div>
 
                 <div class="space-y-1.5">
-                    <Label for="token">{{ connector.tokenLabel ?? t('workspace.connectors.token_modal.token') }}</Label>
+                    <Label for="token">{{ connectorTokenLabel(connector) ?? t('workspace.connectors.token_modal.token') }}</Label>
                     <Input
                         id="token"
                         v-model="token"
                         type="password"
                         autocomplete="off"
-                        :placeholder="connector.tokenPlaceholder ?? ''"
+                        :placeholder="connectorTokenPlaceholder(connector) ?? ''"
                         :disabled="saving"
                         required
                     />
                     <p v-if="connector.tokenHelpUrl" class="text-muted-foreground flex items-center gap-1 text-xs">
-                        <a :href="connector.tokenHelpUrl" target="_blank" class="hover:underline">{{ t('workspace.connectors.token_modal.help_link') }}</a>
+                        <a :href="connector.tokenHelpUrl" target="_blank" class="hover:underline">{{
+                            t('workspace.connectors.token_modal.help_link')
+                        }}</a>
                         <ExternalLink class="h-3 w-3" />
                     </p>
                     <p v-if="token && !formatValid" class="text-xs text-amber-600">
@@ -133,7 +137,9 @@ async function submit(): Promise<void> {
                 </p>
 
                 <DialogFooter>
-                    <Button type="button" variant="ghost" :disabled="saving" @click="emit('update:open', false)">{{ t('workspace.common.cancel') }}</Button>
+                    <Button type="button" variant="ghost" :disabled="saving" @click="emit('update:open', false)">{{
+                        t('workspace.common.cancel')
+                    }}</Button>
                     <Button type="submit" :disabled="saving || !token || (requiresUrl && !serverUrl)">
                         <LoaderCircle v-if="saving" class="me-1 h-4 w-4 animate-spin" />
                         {{ t('workspace.common.connect') }}

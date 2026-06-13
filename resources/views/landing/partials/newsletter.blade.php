@@ -3,7 +3,7 @@
         <div class="pb-12 md:pb-20 border-b border-slate-200">
 
             <!-- CTA box -->
-            <div class="max-w-3xl mx-auto bg-slate-900 rounded-xs p-8" data-aos="fade-up">
+            <div class="max-w-3xl mx-auto bg-slate-900 rounded-xs p-8">
 
                 <div class="flex flex-col justify-between items-center">
 

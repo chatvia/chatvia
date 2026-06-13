@@ -1,0 +1,139 @@
+{
+    "teams": {
+        "breadcrumb": "Team",
+        "common": {
+            "cancel": "Avbryt",
+            "create_role": "Skapa roll"
+        },
+        "index": {
+            "title": "Team",
+            "heading": "Team",
+            "subtitle": "Hantera dina team och samarbeta med andra.",
+            "create_team": "Skapa team",
+            "search_placeholder": "Sök team",
+            "empty_title": "Inga team ännu",
+            "empty_description": "Skapa ditt första team för att börja samarbeta med andra",
+            "no_results": "Inga team hittades för \"{query}\".",
+            "clear_search": "Rensa sökning",
+            "primary": "Primärt",
+            "open_menu": "Öppna meny",
+            "manage": "Hantera",
+            "leave": "Lämna",
+            "delete": "Ta bort",
+            "table": {
+                "name": "Teamnamn",
+                "agents": "Agenter",
+                "members": "Medlemmar",
+                "created": "Skapad"
+            },
+            "leave_dialog": {
+                "title": "Lämna team",
+                "description": "Är du säker på att du vill lämna \"{name}\"?"
+            },
+            "delete_dialog": {
+                "title": "Ta bort team",
+                "description": "Är du säker på att du vill ta bort \"{name}\"? Det går inte att ångra."
+            },
+            "create_dialog": {
+                "title": "Skapa nytt team",
+                "description": "Skapa ett team för att samarbeta med andra.",
+                "name_label": "Teamnamn",
+                "name_placeholder": "Ange teamnamn"
+            }
+        },
+        "show": {
+            "title": "Team: {name}",
+            "back": "Tillbaka till team",
+            "copied": "Kopierat!",
+            "copy_team_id": "Kopiera team-ID",
+            "add_member": "Lägg till medlem",
+            "view_members": "Visa medlemmar ({count})",
+            "role": "Roll",
+            "actions": "Åtgärder",
+            "roles": {
+                "title": "Roller och behörigheter",
+                "description": "Definiera roller och deras behörigheter för teammedlemmar.",
+                "empty": "Inga anpassade roller ännu. Skapa en roll för att tilldela specifika behörigheter till teammedlemmar.",
+                "copy_role_id": "Kopiera roll-ID",
+                "edit_role": "Redigera roll",
+                "delete_role": "Ta bort roll",
+                "agent_access_label": "Agentåtkomst:",
+                "all_agents": "Alla agenter",
+                "no_agents_assigned": "Inga agenter tilldelade",
+                "agent_count": "{count} agent | {count} agenter",
+                "delete_description": "Är du säker på att du vill ta bort rollen \"{name}\"? Det går inte att ångra."
+            },
+            "members": {
+                "title": "Teammedlemmar",
+                "description": "Medlemmar som har åtkomst till det här teamet.",
+                "you": "Du",
+                "change_role": "Byt roll",
+                "change_role_title": "Byt medlemsroll",
+                "update_role_description": "Uppdatera rollen för {name}.",
+                "select_role_placeholder": "Välj en roll",
+                "update_role": "Uppdatera roll",
+                "remove": "Ta bort",
+                "remove_title": "Ta bort teammedlem",
+                "remove_description": "Är du säker på att du vill ta bort {name} från det här teamet? De förlorar åtkomst till alla teamresurser.",
+                "remove_confirm": "Ta bort medlem",
+                "table": {
+                    "member": "Medlem"
+                }
+            },
+            "invitations": {
+                "title": "Väntande inbjudningar",
+                "description": "Dessa inbjudningar väntar på att accepteras.",
+                "table": {
+                    "email": "E-post",
+                    "sent": "Skickad"
+                }
+            },
+            "invite": {
+                "title": "Lägg till teammedlem",
+                "description": "Lägg till en befintlig användare eller bjud in någon ny att gå med i det här teamet.",
+                "select_existing": "Välj befintlig",
+                "invite_by_email": "Bjud in via e-post",
+                "select_user_label": "Välj användare",
+                "select_user_placeholder": "Välj en användare...",
+                "email_label": "E-postadress",
+                "email_placeholder": "kollega{'@'}example.com",
+                "send_invitation": "Skicka inbjudan"
+            },
+            "role_members": {
+                "title": "{name} – medlemmar",
+                "description": "Medlemmar med den här rollen. Du kan ta bort deras åtkomst till det här teamet.",
+                "empty": "Inga medlemmar med den här rollen ännu.",
+                "close": "Stäng"
+            }
+        },
+        "roles": {
+            "details": "Rolldetaljer",
+            "role_name_label": "Rollnamn",
+            "role_name_placeholder": "t.ex. Supportagent, Innehållsredaktör",
+            "agent_access": "Agentåtkomst",
+            "agent_access_description": "Välj vilka agenter den här rollen kan se och interagera med.",
+            "all_agents": "Alla agenter",
+            "all_agents_description": "Åtkomst till alla nuvarande och framtida agenter",
+            "select_specific": "Välj specifika agenter:",
+            "select_agents": "Välj agenter...",
+            "agents_more": "{names} +{count} till",
+            "no_agents_available": "Inga agenter tillgängliga",
+            "permissions": {
+                "title": "Behörigheter",
+                "description": "Välj vilka åtgärder användare med den här rollen kan utföra.",
+                "requires": "Kräver:"
+            },
+            "create": {
+                "subtitle": "Definiera en ny roll för"
+            },
+            "edit": {
+                "title": "Redigera roll: {name}",
+                "breadcrumb": "Redigera: {name}",
+                "heading": "Redigera roll",
+                "subtitle_prefix": "Uppdatera",
+                "subtitle_middle": "rollen för",
+                "save": "Spara"
+            }
+        }
+    }
+}

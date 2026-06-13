@@ -1,0 +1,115 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "title": "Évaluations",
+                "head_title": "Évaluations — {name}",
+                "description": "Suites de tests qui évaluent les réponses réelles de cet agent — mêmes connaissances, outils et modèle qu'en production. Lancez la suite et suivez si vos modifications améliorent ou dégradent l'agent.",
+                "run_suite": "Lancer la suite",
+                "cases_heading": "Cas",
+                "cases_summary": "{total} au total · {active} actifs",
+                "from_knowledge": "Depuis les connaissances",
+                "add_case": "Ajouter un cas",
+                "table": {
+                    "case": "Cas",
+                    "scorer": "Évaluateur",
+                    "status": "Statut",
+                    "actions": "Actions",
+                    "by": "Par",
+                    "pass_rate": "Taux de réussite",
+                    "passed_failed": "Réussis / Échoués",
+                    "avg_score": "Score moyen",
+                    "when": "Quand"
+                },
+                "status_active": "Actif",
+                "status_inactive": "Inactif",
+                "empty_cases": "Aucun cas d'évaluation pour l'instant. Ajoutez-en un pour commencer à mesurer la qualité des réponses.",
+                "recent_runs": "Exécutions récentes",
+                "recent_runs_description": "Chaque exécution est évaluée par rapport aux cas actifs à ce moment-là.",
+                "clear": "Effacer",
+                "empty_runs": "Aucune exécution pour l'instant. Cliquez sur « Lancer la suite » pour évaluer les cas actifs.",
+                "case_dialog": {
+                    "edit_title": "Modifier le cas",
+                    "add_title": "Ajouter un cas",
+                    "description": "L'entrée est envoyée à l'agent exactement comme un visiteur la poserait.",
+                    "name_label": "Nom",
+                    "name_placeholder": "ex. La politique de remboursement est exacte",
+                    "input_label": "Invite d'entrée",
+                    "input_placeholder": "Quelle est votre politique de remboursement ?",
+                    "scorer_label": "Évaluateur",
+                    "scorer_placeholder": "Choisir un évaluateur",
+                    "expected_substring": "Sous-chaîne attendue",
+                    "expected_substring_placeholder": "ex. 30 jours",
+                    "case_sensitive": "Sensible à la casse",
+                    "pattern_label": "Motif",
+                    "pattern_placeholder": "/\\b30 days\\b/i",
+                    "required_keys": "Clés requises",
+                    "required_keys_placeholder": "clés,séparées,par,virgule",
+                    "required_keys_hint": "La réponse doit être un JSON valide contenant chaque clé.",
+                    "grading_criteria": "Critères d'évaluation",
+                    "grading_criteria_placeholder": "La réponse doit indiquer que les remboursements sont disponibles dans les 30 jours suivant l'achat.",
+                    "expected_answer": "Réponse attendue",
+                    "reference_answer": "Réponse de référence (facultatif)",
+                    "active_label": "Actif (inclus dans les exécutions)",
+                    "save": "Enregistrer"
+                },
+                "knowledge_dialog": {
+                    "title": "Ajouter des cas depuis les connaissances",
+                    "description": "Sélectionnez des questions dans la base de connaissances de cet agent. Chacune devient un cas évalué par le juge IA par rapport à son texte source.",
+                    "search_placeholder": "Rechercher des questions...",
+                    "added_badge": "Ajouté",
+                    "no_search_results": "Aucune question ne correspond à votre recherche.",
+                    "no_questions": "Aucune question trouvée dans la base de connaissances de cet agent pour l'instant.",
+                    "add_cases": "Ajouter des cas",
+                    "add_count": "Ajouter {count} cas | Ajouter {count} cas"
+                },
+                "delete_case_title": "Supprimer le cas",
+                "delete_case_description": "Supprimer « {name} » ? Les résultats des exécutions passées conservent leur copie de ce cas — seules les exécutions futures sont affectées.",
+                "delete_run_title": "Supprimer l'exécution",
+                "delete_run_description": "Supprimer cette exécution et ses résultats par cas ? Cette action est irréversible. Les cas ne sont pas affectés.",
+                "clear_runs_title": "Effacer l'historique des exécutions",
+                "clear_runs_description": "Supprimer les {count} exécution de cet agent et leurs résultats ? Cette action est irréversible. Les cas ne sont pas affectés. | Supprimer les {count} exécutions de cet agent et leurs résultats ? Cette action est irréversible. Les cas ne sont pas affectés.",
+                "clear_all": "Tout effacer",
+                "scorers": {
+                    "contains": {
+                        "label": "Contient le texte",
+                        "help": "Réussi si la réponse contient une sous-chaîne."
+                    },
+                    "regex": {
+                        "label": "Correspondance regex",
+                        "help": "Réussi si la réponse correspond à une expression régulière."
+                    },
+                    "exact": {
+                        "label": "Correspondance exacte",
+                        "help": "Réussi uniquement si la réponse est identique à la réponse de référence."
+                    },
+                    "json_schema": {
+                        "label": "Structure JSON",
+                        "help": "Réussi si la réponse est un JSON valide contenant les clés requises."
+                    },
+                    "llm_judge": {
+                        "label": "Juge IA",
+                        "help": "Un modèle open-weight évalue la réponse par rapport à vos critères."
+                    }
+                },
+                "toasts": {
+                    "case_updated": "Cas mis à jour",
+                    "case_added": "Cas ajouté",
+                    "cases_added": "{count} cas ajouté | {count} cas ajoutés",
+                    "case_deleted": "Cas supprimé",
+                    "run_started": "Exécution de l'évaluation démarrée",
+                    "run_start_error": "Impossible de démarrer l'exécution",
+                    "run_deleted": "Exécution supprimée",
+                    "history_cleared": "Historique des exécutions effacé"
+                }
+            },
+            "scorers": {
+                "contains": "Contient",
+                "regex": "Regex",
+                "exact": "Correspondance exacte",
+                "json_schema": "Schéma JSON",
+                "llm_judge": "Juge LLM"
+            }
+        }
+    }
+}

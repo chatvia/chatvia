@@ -23,7 +23,7 @@ return new class extends Migration
             // call) so usage insights survive function deletion — no FK to the
             // functions table, which may live on a separate database.
             $table->string('function_name')->nullable();
-            $table->string('function_description', 1024)->nullable();
+            $table->text('function_description')->nullable();
 
             $table->primary(['agent_id', 'bucket_day', 'function_id']);
             $table->index(['workspace_id', 'bucket_day']);

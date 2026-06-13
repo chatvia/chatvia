@@ -1073,7 +1073,7 @@ const handleScrollToBottomClick = () => {
                 </div>
 
                 <!-- Scroll to bottom button -->
-                <div class="pointer-events-none absolute right-0 bottom-32 left-0 z-10 flex justify-center">
+                <div class="pointer-events-none absolute start-0 end-0 bottom-32 z-10 flex justify-center">
                     <Transition name="scale-fade">
                         <button
                             v-if="showScrollToBottom && messages.length > 0"

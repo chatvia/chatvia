@@ -76,7 +76,7 @@ it('stores one shared catalog row per (connector_slug, name) regardless of how m
         ->and(McpServerTool::where('mcp_server_id', $b->id)->count())->toBe(2);
 });
 
-it('seeds membership permission from the catalog default — internal URL auto-Allows read tools, gates writes', function (): void {
+it('seeds membership permission from the catalog default — read tools Allow, writes gate', function (): void {
     Queue::fake();
     $this->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(presetTools()));
 

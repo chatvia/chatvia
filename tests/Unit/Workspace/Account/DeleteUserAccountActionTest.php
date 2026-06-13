@@ -2,9 +2,17 @@
 
 use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
+use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Attachment;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Session as ChatSession;
+use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 it('hard-deletes the user row', function (): void {
     $user = User::factory()->create();
@@ -115,4 +123,63 @@ it('leaves other workspaces untouched while tearing one down', function (): void
 
     expect(User::whereKey($otherOwner->id)->exists())->toBeTrue()
         ->and(User::whereKey($otherEmployee->id)->exists())->toBeTrue();
+});
+
+it('wipes conversation attachment files that the FK cascade would otherwise orphan on S3', function (): void {
+    // chat_attachments.chat_conversation_id / .chat_message_id are both
+    // cascadeOnDelete, so the message batch-delete + user cascade drop the
+    // rows WITHOUT firing the Attachment deleting-observer that wipes S3.
+    // The teardown must delete them through Eloquent first.
+    Storage::fake('public');
+
+    $agent = Agent::factory()->create();
+    $workspace = User::findOrFail($agent->getUserId());
+
+    $session = ChatSession::create(['agent_id' => $agent->id]);
+    $conversation = Conversation::create([
+        'chat_session_id' => $session->id,
+        'agent_id' => $agent->id,
+        'source' => ConversationSource::HostedChat,
+        'title' => 'With attachment',
+    ]);
+
+    $filepath = "chat-uploads/agent-{$agent->id}/doc.pdf";
+    Storage::disk('public')->put($filepath, 'data');
+    $attachment = Attachment::create([
+        'chat_conversation_id' => $conversation->id,
+        'filepath' => $filepath,
+        'filename' => 'doc.pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 4,
+    ]);
+
+    Storage::disk('public')->assertExists($filepath);
+
+    app(DeleteUserAccountAction::class)->execute($workspace);
+
+    Storage::disk('public')->assertMissing($filepath);
+    expect(Attachment::whereKey($attachment->id)->exists())->toBeFalse();
+});
+
+it('flushes the deleted workspace chat memory cache and leaves other workspaces intact', function (): void {
+    // The chat cache is Redis in config; point it at the array driver so the
+    // tagged flush is exercised without a live Redis (mirrors the memory unit
+    // tests). Every chat-memory entry carries ChatCache::workspaceTag(), so a
+    // single tag flush must clear the deleted workspace and nothing else.
+    config(['cache.stores.chat' => ['driver' => 'array']]);
+
+    $agent = Agent::factory()->create();
+    $workspace = User::findOrFail($agent->getUserId());
+    $workspaceTag = ChatCache::workspaceTag($workspace->external_id);
+
+    $survivor = User::factory()->create();
+    $survivorTag = ChatCache::workspaceTag($survivor->external_id);
+
+    Cache::driver('chat')->tags([$workspaceTag, 'session-a'])->forever('session-a', ['conversations' => []]);
+    Cache::driver('chat')->tags([$survivorTag, 'session-b'])->forever('session-b', ['conversations' => []]);
+
+    app(DeleteUserAccountAction::class)->execute($workspace);
+
+    expect(Cache::driver('chat')->tags([$workspaceTag, 'session-a'])->has('session-a'))->toBeFalse()
+        ->and(Cache::driver('chat')->tags([$survivorTag, 'session-b'])->has('session-b'))->toBeTrue();
 });

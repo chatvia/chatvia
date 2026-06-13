@@ -201,7 +201,7 @@ function handleStarterClick(text) {
                                 v-for="(starter, index) in starters"
                                 :key="index"
                                 @click="handleStarterClick(starter.text)"
-                                class="group border-border bg-card hover:bg-muted flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-2.5 text-left transition-colors duration-150"
+                                class="group border-border bg-card hover:bg-muted flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-2.5 text-start transition-colors duration-150"
                             >
                                 <HeroIcon
                                     v-if="starter.icon"

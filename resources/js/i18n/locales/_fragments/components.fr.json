@@ -1,0 +1,39 @@
+{
+    "nav": {
+        "platform": "Plateforme"
+    },
+    "theme": {
+        "toggle": "Changer le thème",
+        "light": "Clair",
+        "dark": "Sombre",
+        "system": "Système"
+    },
+    "team_switcher": {
+        "select_team": "Sélectionner une équipe",
+        "no_teams": "Aucune équipe disponible",
+        "manage_teams": "Gérer les équipes"
+    },
+    "agents": {
+        "create_modal": {
+            "title": "Créer un agent",
+            "limit_title": "Limite d'agents atteinte",
+            "limit_description": "Vous avez atteint votre limite d'agents.",
+            "upgrade_plan": "Mettre à niveau le forfait",
+            "name_label": "Nom de l'agent",
+            "name_placeholder": "Ex. : Support client",
+            "load_error": "Échec du chargement des informations d'utilisation",
+            "limit_toast_title": "Limite d'agents atteinte",
+            "limit_toast_description": "Vous avez atteint votre limite d'agents."
+        }
+    },
+    "confirm_password": {
+        "title": "Confirmez votre mot de passe",
+        "description": "Pour votre sécurité, veuillez confirmer votre mot de passe avant de modifier les paramètres de sécurité.",
+        "password_label": "Mot de passe",
+        "password_required": "Le mot de passe est obligatoire.",
+        "incorrect": "Mot de passe incorrect.",
+        "error": "Impossible de confirmer le mot de passe. Veuillez réessayer.",
+        "cancel": "Annuler",
+        "confirm": "Confirmer"
+    }
+}

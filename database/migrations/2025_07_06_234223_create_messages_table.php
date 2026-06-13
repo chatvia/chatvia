@@ -109,7 +109,7 @@ return new class extends Migration
 
             $table->unsignedTinyInteger('message_credits')->default(1);
 
-            $table->string('source')->nullable();
+            $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram'])->nullable();
 
             $table->text('content')->nullable();
             $table->jsonb('metadata')->nullable();

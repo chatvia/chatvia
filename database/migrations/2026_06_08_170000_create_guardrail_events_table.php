@@ -39,7 +39,7 @@ return new class extends Migration
             $table->text('snippet')->nullable();   // redacted + size-capped excerpt
             $table->string('snippet_sha256', 64)->nullable(); // hash of the ORIGINAL text (integrity)
 
-            $table->timestampTz('created_at')->useCurrent(); // immutable; no updated_at
+            $table->timestamp('created_at')->useCurrent(); // immutable; no updated_at
 
             $table->index('user_id');
             $table->index(['workspace_id', 'created_at']);

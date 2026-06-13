@@ -160,7 +160,7 @@ onMounted(() => {
             <!-- Search and filters -->
             <div class="mb-6 flex items-center">
                 <div class="relative flex-1">
-                    <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                    <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                     <Input v-model="searchQuery" class="ps-10" :placeholder="t('knowledge_base.search_placeholder')" />
                 </div>
             </div>

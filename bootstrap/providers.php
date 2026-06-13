@@ -1,5 +1,6 @@
 <?php
 
+use App\Admin\AdminPanelProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\DatabaseServiceProvider;
 use App\Providers\DomainServiceProvider;
@@ -9,8 +10,9 @@ use App\Providers\TelescopeServiceProvider;
 
 return [
     AppServiceProvider::class,
-    DomainServiceProvider::class,
     DatabaseServiceProvider::class,
+    DomainServiceProvider::class,
+    AdminPanelProvider::class,
     FortifyServiceProvider::class,
     HorizonServiceProvider::class,
     TelescopeServiceProvider::class,

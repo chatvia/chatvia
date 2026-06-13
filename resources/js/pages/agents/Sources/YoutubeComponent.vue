@@ -238,7 +238,7 @@ onMounted(() => {
                     </div>
 
                     <!-- Videos List -->
-                    <ScrollArea v-else class="h-[500px] pr-4">
+                    <ScrollArea v-else class="h-[500px] pe-4">
                         <div class="space-y-4">
                             <div v-for="video in youtubeVideos" :key="video.id" class="hover:bg-accent/50 rounded-lg border p-4 transition-colors">
                                 <div class="flex items-start gap-4">
@@ -276,7 +276,9 @@ onMounted(() => {
                                             </Badge>
                                         </div>
 
-                                        <div class="text-muted-foreground mb-3 text-xs">{{ t('agents.sources.youtube.added_at', { date: formatDate(video.created_at) }) }}</div>
+                                        <div class="text-muted-foreground mb-3 text-xs">
+                                            {{ t('agents.sources.youtube.added_at', { date: formatDate(video.created_at) }) }}
+                                        </div>
 
                                         <!-- Error Message -->
                                         <Alert v-if="video.status === 'failed' && video.error_message" variant="destructive" class="mb-3">

@@ -133,7 +133,9 @@ watch(dialogOpen, (open) => {
                 <Input
                     :model-value="starter.text"
                     :disabled="disabled"
-                    :placeholder="index === 0 ? t('agents.setup.sections.starters_placeholder_first') : t('agents.setup.sections.starters_placeholder_more')"
+                    :placeholder="
+                        index === 0 ? t('agents.setup.sections.starters_placeholder_first') : t('agents.setup.sections.starters_placeholder_more')
+                    "
                     class="flex-1"
                     @update:model-value="updateText(index, String($event ?? ''))"
                     @keydown.enter.prevent="addRow"
@@ -176,7 +178,7 @@ watch(dialogOpen, (open) => {
                 </DialogHeader>
 
                 <div class="relative">
-                    <Search class="text-muted-foreground absolute top-1/2 start-3 h-4 w-4 -translate-y-1/2" />
+                    <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                     <Input v-model="search" :placeholder="t('agents.setup.sections.starters_search')" class="ps-9" />
                 </div>
 
@@ -187,7 +189,7 @@ watch(dialogOpen, (open) => {
                             :key="index"
                             role="button"
                             :aria-disabled="isAdded(q)"
-                            class="hover:bg-muted/50 flex w-full cursor-pointer items-start gap-3 rounded-md border p-3 text-left text-sm transition-colors"
+                            class="hover:bg-muted/50 flex w-full cursor-pointer items-start gap-3 rounded-md border p-3 text-start text-sm transition-colors"
                             :class="[
                                 isSelected(q) ? 'border-primary bg-primary/5' : 'border-transparent',
                                 isAdded(q) ? 'cursor-not-allowed opacity-60 hover:bg-transparent' : '',

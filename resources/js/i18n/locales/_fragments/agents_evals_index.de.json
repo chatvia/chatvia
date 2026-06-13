@@ -1,0 +1,115 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "title": "Evals",
+                "head_title": "Evals — {name}",
+                "description": "Testsuiten, die die echten Antworten dieses Agenten bewerten – mit denselben Wissensinhalten, Tools und Modellen wie in der Produktion. Führen Sie die Suite aus und verfolgen Sie, ob Änderungen den Agenten verbessern oder verschlechtern.",
+                "run_suite": "Suite ausführen",
+                "cases_heading": "Testfälle",
+                "cases_summary": "{total} gesamt · {active} aktiv",
+                "from_knowledge": "Aus Wissensbasis",
+                "add_case": "Testfall hinzufügen",
+                "table": {
+                    "case": "Testfall",
+                    "scorer": "Bewerter",
+                    "status": "Status",
+                    "actions": "Aktionen",
+                    "by": "Von",
+                    "pass_rate": "Bestehensquote",
+                    "passed_failed": "Bestanden / Nicht bestanden",
+                    "avg_score": "Durchschn. Bewertung",
+                    "when": "Zeitpunkt"
+                },
+                "status_active": "Aktiv",
+                "status_inactive": "Inaktiv",
+                "empty_cases": "Noch keine Testfälle vorhanden. Fügen Sie einen hinzu, um die Antwortqualität zu messen.",
+                "recent_runs": "Letzte Ausführungen",
+                "recent_runs_description": "Jede Ausführung wird anhand der zu diesem Zeitpunkt aktiven Testfälle bewertet.",
+                "clear": "Löschen",
+                "empty_runs": "Noch keine Ausführungen. Klicken Sie auf „Suite ausführen“, um die aktiven Testfälle zu bewerten.",
+                "case_dialog": {
+                    "edit_title": "Testfall bearbeiten",
+                    "add_title": "Testfall hinzufügen",
+                    "description": "Die Eingabe wird genau so an den Agenten gesendet, wie ein Besucher sie stellen würde.",
+                    "name_label": "Name",
+                    "name_placeholder": "z. B. Rückgaberichtlinie ist korrekt",
+                    "input_label": "Eingabe-Prompt",
+                    "input_placeholder": "Wie lautet Ihre Rückgaberichtlinie?",
+                    "scorer_label": "Bewerter",
+                    "scorer_placeholder": "Bewerter auswählen",
+                    "expected_substring": "Erwarteter Teilstring",
+                    "expected_substring_placeholder": "z. B. 30 Tage",
+                    "case_sensitive": "Groß-/Kleinschreibung beachten",
+                    "pattern_label": "Muster",
+                    "pattern_placeholder": "/\\b30 days\\b/i",
+                    "required_keys": "Erforderliche Schlüssel",
+                    "required_keys_placeholder": "komma,getrennte,schlüssel",
+                    "required_keys_hint": "Die Antwort muss gültiges JSON sein, das jeden Schlüssel enthält.",
+                    "grading_criteria": "Bewertungskriterien",
+                    "grading_criteria_placeholder": "Die Antwort muss angeben, dass Rückgaben innerhalb von 30 Tagen nach dem Kauf möglich sind.",
+                    "expected_answer": "Erwartete Antwort",
+                    "reference_answer": "Referenzantwort (optional)",
+                    "active_label": "Aktiv (in Ausführungen eingeschlossen)",
+                    "save": "Speichern"
+                },
+                "knowledge_dialog": {
+                    "title": "Testfälle aus Wissensbasis hinzufügen",
+                    "description": "Wählen Sie Fragen aus der Wissensbasis dieses Agenten aus. Jede wird zu einem Testfall, der vom KI-Richter anhand des Quelltextes bewertet wird.",
+                    "search_placeholder": "Fragen suchen...",
+                    "added_badge": "Hinzugefügt",
+                    "no_search_results": "Keine Fragen entsprechen Ihrer Suche.",
+                    "no_questions": "In der Wissensbasis dieses Agenten wurden noch keine Fragen gefunden.",
+                    "add_cases": "Testfälle hinzufügen",
+                    "add_count": "{count} Testfall hinzufügen | {count} Testfälle hinzufügen"
+                },
+                "delete_case_title": "Testfall löschen",
+                "delete_case_description": "„{name}“ löschen? Vergangene Ausführungsergebnisse behalten ihre Kopie dieses Testfalls – nur zukünftige Ausführungen sind betroffen.",
+                "delete_run_title": "Ausführung löschen",
+                "delete_run_description": "Diese Ausführung und ihre testfallbezogenen Ergebnisse löschen? Dieser Vorgang kann nicht rückgängig gemacht werden. Testfälle sind nicht betroffen.",
+                "clear_runs_title": "Ausführungsverlauf löschen",
+                "clear_runs_description": "Alle {count} Ausführung für diesen Agenten und ihre Ergebnisse löschen? Dieser Vorgang kann nicht rückgängig gemacht werden. Testfälle sind nicht betroffen. | Alle {count} Ausführungen für diesen Agenten und ihre Ergebnisse löschen? Dieser Vorgang kann nicht rückgängig gemacht werden. Testfälle sind nicht betroffen.",
+                "clear_all": "Alle löschen",
+                "scorers": {
+                    "contains": {
+                        "label": "Enthält Text",
+                        "help": "Bestanden, wenn die Antwort einen Teilstring enthält."
+                    },
+                    "regex": {
+                        "label": "Regex-Treffer",
+                        "help": "Bestanden, wenn die Antwort einem regulären Ausdruck entspricht."
+                    },
+                    "exact": {
+                        "label": "Exakte Übereinstimmung",
+                        "help": "Nur bestanden, wenn die Antwort exakt mit der Referenzantwort übereinstimmt."
+                    },
+                    "json_schema": {
+                        "label": "JSON-Struktur",
+                        "help": "Bestanden, wenn die Antwort gültiges JSON mit den erforderlichen Schlüsseln ist."
+                    },
+                    "llm_judge": {
+                        "label": "KI-Richter",
+                        "help": "Ein Open-Weight-Modell bewertet die Antwort anhand Ihrer Kriterien."
+                    }
+                },
+                "toasts": {
+                    "case_updated": "Testfall aktualisiert",
+                    "case_added": "Testfall hinzugefügt",
+                    "cases_added": "{count} Testfall hinzugefügt | {count} Testfälle hinzugefügt",
+                    "case_deleted": "Testfall gelöscht",
+                    "run_started": "Eval-Ausführung gestartet",
+                    "run_start_error": "Ausführung konnte nicht gestartet werden",
+                    "run_deleted": "Ausführung gelöscht",
+                    "history_cleared": "Ausführungsverlauf gelöscht"
+                }
+            },
+            "scorers": {
+                "contains": "Enthält",
+                "regex": "Regex",
+                "exact": "Exakte Übereinstimmung",
+                "json_schema": "JSON-Schema",
+                "llm_judge": "LLM-Richter"
+            }
+        }
+    }
+}

@@ -107,9 +107,9 @@ const confirmDelete = async () => {
         <AlertDialog :open="passkeyToDelete !== null" @update:open="(v) => !v && (passkeyToDelete = null)">
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Delete this passkey?</AlertDialogTitle>
+                    <AlertDialogTitle>{{ t('account.passkeys.delete_title') }}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        <span class="font-medium">{{ passkeyToDelete?.name }}</span> will no longer be able to sign in. This can't be undone.
+                        {{ t('account.passkeys.delete_description', { name: passkeyToDelete?.name ?? '' }) }}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -159,7 +159,7 @@ const confirmDelete = async () => {
                                 <TableHead class="h-11 ps-5">{{ t('account.profile.name') }}</TableHead>
                                 <TableHead class="h-11 w-48">{{ t('account.passkeys.last_used') }}</TableHead>
                                 <TableHead class="h-11 w-40">{{ t('account.passkeys.created') }}</TableHead>
-                                <TableHead class="h-11 w-16 pe-5 text-right">{{ t('common.remove') }}</TableHead>
+                                <TableHead class="h-11 w-16 pe-5 text-end">{{ t('common.remove') }}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -178,8 +178,13 @@ const confirmDelete = async () => {
                                 <TableCell class="text-muted-foreground py-4 text-sm">
                                     {{ new Date(passkey.created_at).toLocaleDateString() }}
                                 </TableCell>
-                                <TableCell class="py-4 pe-5 text-right">
-                                    <Button variant="ghost" size="icon" @click="deletePasskey(passkey)" :aria-label="t('account.passkeys.delete_aria')">
+                                <TableCell class="py-4 pe-5 text-end">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        @click="deletePasskey(passkey)"
+                                        :aria-label="t('account.passkeys.delete_aria')"
+                                    >
                                         <Trash2 class="size-4 text-red-600" />
                                     </Button>
                                 </TableCell>

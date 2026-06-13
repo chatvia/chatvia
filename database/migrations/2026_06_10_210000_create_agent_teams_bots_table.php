@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('tenant_id')->nullable(); // single-tenant bots only; null = multi-tenant
             $table->string('webhook_secret', 64)->unique();
             $table->boolean('enabled')->default(true);
-            $table->timestampsTz();
+            $table->timestamps();
         });
     }
 

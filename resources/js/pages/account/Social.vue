@@ -111,7 +111,7 @@ const providerSvg = (provider: SocialAccount['provider']): string => {
                                     <span v-if="account.connected && account.connected_at">
                                         {{ t('account.social.connected_since', { date: new Date(account.connected_at).toLocaleDateString() }) }}
                                     </span>
-                                    <span v-else-if="account.connected">Connected</span>
+                                    <span v-else-if="account.connected">{{ t('account.social.connected') }}</span>
                                     <span v-else>{{ t('account.social.not_connected') }}</span>
                                 </p>
                             </div>

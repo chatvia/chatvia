@@ -1,0 +1,118 @@
+{
+    "teams": {
+        "breadcrumb": "Tiimit",
+        "common": { "cancel": "Peruuta", "create_role": "Luo rooli" },
+        "index": {
+            "title": "Tiimit",
+            "heading": "Tiimit",
+            "subtitle": "Hallinnoi tiimejäsi ja tee yhteistyötä muiden kanssa.",
+            "create_team": "Luo tiimi",
+            "search_placeholder": "Etsi tiimejä",
+            "empty_title": "Ei tiimejä vielä",
+            "empty_description": "Luo ensimmäinen tiimisi aloittaaksesi yhteistyön muiden kanssa",
+            "no_results": "Hakua \"{query}\" vastaavia tiimejä ei löydy.",
+            "clear_search": "Tyhjennä haku",
+            "primary": "Ensisijainen",
+            "open_menu": "Avaa valikko",
+            "manage": "Hallinnoi",
+            "leave": "Poistu",
+            "delete": "Poista",
+            "table": { "name": "Tiimin nimi", "agents": "Agentit", "members": "Jäsenet", "created": "Luotu" },
+            "leave_dialog": { "title": "Poistu tiimistä", "description": "Haluatko varmasti poistua tiimistä \"{name}\"?" },
+            "delete_dialog": { "title": "Poista tiimi", "description": "Haluatko varmasti poistaa tiimin \"{name}\"? Tätä toimintoa ei voi kumota." },
+            "create_dialog": {
+                "title": "Luo uusi tiimi",
+                "description": "Luo tiimi tehdäksesi yhteistyötä muiden kanssa.",
+                "name_label": "Tiimin nimi",
+                "name_placeholder": "Syötä tiimin nimi"
+            }
+        },
+        "show": {
+            "title": "Tiimi: {name}",
+            "back": "Takaisin tiimeihin",
+            "copied": "Kopioitu!",
+            "copy_team_id": "Kopioi tiimin tunnus",
+            "add_member": "Lisää jäsen",
+            "view_members": "Näytä jäsenet ({count})",
+            "role": "Rooli",
+            "actions": "Toiminnot",
+            "roles": {
+                "title": "Roolit ja käyttöoikeudet",
+                "description": "Määritä roolit ja niiden käyttöoikeudet tiimin jäsenille.",
+                "empty": "Ei mukautettuja rooleja vielä. Luo rooli määrittääksesi tiimin jäsenille erityiset käyttöoikeudet.",
+                "copy_role_id": "Kopioi roolin tunnus",
+                "edit_role": "Muokkaa roolia",
+                "delete_role": "Poista rooli",
+                "agent_access_label": "Agenttien käyttöoikeus:",
+                "all_agents": "Kaikki agentit",
+                "no_agents_assigned": "Ei määritettyjä agentteja",
+                "agent_count": "{count} agentti | {count} agentit",
+                "delete_description": "Haluatko varmasti poistaa roolin \"{name}\"? Tätä toimintoa ei voi kumota."
+            },
+            "members": {
+                "title": "Tiimin jäsenet",
+                "description": "Jäsenet, joilla on pääsy tähän tiimiin.",
+                "you": "Sinä",
+                "change_role": "Vaihda rooli",
+                "change_role_title": "Vaihda jäsenen rooli",
+                "update_role_description": "Päivitä käyttäjän {name} rooli.",
+                "select_role_placeholder": "Valitse rooli",
+                "update_role": "Päivitä rooli",
+                "remove": "Poista",
+                "remove_title": "Poista tiimin jäsen",
+                "remove_description": "Haluatko varmasti poistaa käyttäjän {name} tästä tiimistä? Hän menettää pääsyn kaikkiin tiimin resursseihin.",
+                "remove_confirm": "Poista jäsen",
+                "table": { "member": "Jäsen" }
+            },
+            "invitations": {
+                "title": "Odottavat kutsut",
+                "description": "Nämä kutsut odottavat hyväksymistä.",
+                "table": { "email": "Sähköpostiosoite", "sent": "Lähetetty" }
+            },
+            "invite": {
+                "title": "Lisää tiimin jäsen",
+                "description": "Lisää olemassa oleva käyttäjä tai kutsu uusi henkilö liittymään tähän tiimiin.",
+                "select_existing": "Valitse olemassa oleva",
+                "invite_by_email": "Kutsu sähköpostitse",
+                "select_user_label": "Valitse käyttäjä",
+                "select_user_placeholder": "Valitse käyttäjä...",
+                "email_label": "Sähköpostiosoite",
+                "email_placeholder": "kollega{'@'}esimerkki.com",
+                "send_invitation": "Lähetä kutsu"
+            },
+            "role_members": {
+                "title": "{name} jäsenet",
+                "description": "Jäsenet, joilla on tämä rooli. Voit poistaa heidän pääsynsä tähän tiimiin.",
+                "empty": "Ei vielä jäseniä tällä roolilla.",
+                "close": "Sulje"
+            }
+        },
+        "roles": {
+            "details": "Roolin tiedot",
+            "role_name_label": "Roolin nimi",
+            "role_name_placeholder": "esim. Tukiagentti, Sisällöntoimittaja",
+            "agent_access": "Agenttien käyttöoikeus",
+            "agent_access_description": "Valitse, mihin agentteihin tällä roolilla on näkymis- ja käyttöoikeus.",
+            "all_agents": "Kaikki agentit",
+            "all_agents_description": "Pääsy kaikkiin nykyisiin ja tuleviin agentteihin",
+            "select_specific": "Valitse tietyt agentit:",
+            "select_agents": "Valitse agentit...",
+            "agents_more": "{names} +{count} lisää",
+            "no_agents_available": "Agentteja ei ole saatavilla",
+            "permissions": {
+                "title": "Käyttöoikeudet",
+                "description": "Valitse, mitä toimintoja tämän roolin käyttäjät voivat suorittaa.",
+                "requires": "Vaatii:"
+            },
+            "create": { "subtitle": "Määritä uusi rooli kohteelle" },
+            "edit": {
+                "title": "Muokkaa roolia: {name}",
+                "breadcrumb": "Muokkaa: {name}",
+                "heading": "Muokkaa roolia",
+                "subtitle_prefix": "Päivitä",
+                "subtitle_middle": "rooli kohteelle",
+                "save": "Tallenna"
+            }
+        }
+    }
+}

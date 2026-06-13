@@ -1,0 +1,115 @@
+{
+    "agents": {
+        "evals": {
+            "index": {
+                "title": "Arvioinnit",
+                "head_title": "Arvioinnit — {name}",
+                "description": "Testisarjat, jotka arvioivat tämän agentin todellisia vastauksia — samat tiedot, työkalut ja malli kuin tuotannossa. Suorita sarja ja seuraa, parantavatko vai heikentävätkö muutokset agentin toimintaa.",
+                "run_suite": "Suorita sarja",
+                "cases_heading": "Tapaukset",
+                "cases_summary": "{total} yhteensä · {active} aktiivista",
+                "from_knowledge": "Tietämyskannasta",
+                "add_case": "Lisää tapaus",
+                "table": {
+                    "case": "Tapaus",
+                    "scorer": "Arvioija",
+                    "status": "Tila",
+                    "actions": "Toiminnot",
+                    "by": "Tekijä",
+                    "pass_rate": "Läpäisyaste",
+                    "passed_failed": "Läpäissyt / Hylätty",
+                    "avg_score": "Keskipistemäärä",
+                    "when": "Milloin"
+                },
+                "status_active": "Aktiivinen",
+                "status_inactive": "Ei aktiivinen",
+                "empty_cases": "Ei arviointitapauksia vielä. Lisää yksi aloittaaksesi vastausten laadun mittaamisen.",
+                "recent_runs": "Viimeisimmät suoritukset",
+                "recent_runs_description": "Jokainen suoritus arvioidaan kyseisellä hetkellä aktiivisten tapausten perusteella.",
+                "clear": "Tyhjennä",
+                "empty_runs": "Ei suorituksia vielä. Napsauta \"Suorita sarja\" arvioidaksesi aktiiviset tapaukset.",
+                "case_dialog": {
+                    "edit_title": "Muokkaa tapausta",
+                    "add_title": "Lisää tapaus",
+                    "description": "Syöte lähetetään agentille täsmälleen sellaisena kuin vierailija sen kysyisi.",
+                    "name_label": "Nimi",
+                    "name_placeholder": "esim. Palautuskäytäntö on tarkka",
+                    "input_label": "Syötekehote",
+                    "input_placeholder": "Mikä on palautuskäytäntönne?",
+                    "scorer_label": "Arvioija",
+                    "scorer_placeholder": "Valitse arvioija",
+                    "expected_substring": "Odotettu osajono",
+                    "expected_substring_placeholder": "esim. 30 päivää",
+                    "case_sensitive": "Kirjainkoko merkitsee",
+                    "pattern_label": "Malli",
+                    "pattern_placeholder": "/\\b30 päivää\\b/i",
+                    "required_keys": "Vaaditut avaimet",
+                    "required_keys_placeholder": "pilkulla,erotetut,avaimet",
+                    "required_keys_hint": "Vastauksen on oltava kelvollista JSON-muotoa, joka sisältää jokaisen avaimen.",
+                    "grading_criteria": "Arviointiperusteet",
+                    "grading_criteria_placeholder": "Vastauksen on todettava, että palautukset ovat mahdollisia 30 päivän kuluessa ostosta.",
+                    "expected_answer": "Odotettu vastaus",
+                    "reference_answer": "Referenssivastaus (valinnainen)",
+                    "active_label": "Aktiivinen (sisällytetään suorituksiin)",
+                    "save": "Tallenna"
+                },
+                "knowledge_dialog": {
+                    "title": "Lisää tapauksia tietämyskannasta",
+                    "description": "Valitse kysymyksiä tämän agentin tietämyskannasta. Kustakin tulee tapaus, jonka tekoälytuomari arvioi lähdetekstiä vasten.",
+                    "search_placeholder": "Hae kysymyksiä...",
+                    "added_badge": "Lisätty",
+                    "no_search_results": "Mikään kysymys ei vastaa hakuasi.",
+                    "no_questions": "Tämän agentin tietämyskannasta ei löydy vielä kysymyksiä.",
+                    "add_cases": "Lisää tapaukset",
+                    "add_count": "Lisää {count} tapaus | Lisää {count} tapausta"
+                },
+                "delete_case_title": "Poista tapaus",
+                "delete_case_description": "Poistetaanko \"{name}\"? Aiempien suoritusten tulokset säilyttävät oman kopionsa tästä tapauksesta — vain tulevat suoritukset vaikuttuvat.",
+                "delete_run_title": "Poista suoritus",
+                "delete_run_description": "Poistetaanko tämä suoritus ja sen tapauskohtaiset tulokset? Tätä ei voi kumota. Tapaukset eivät vaikutu.",
+                "clear_runs_title": "Tyhjennä suoritushistoria",
+                "clear_runs_description": "Poistetaanko kaikki {count} suoritus tälle agentille ja niiden tulokset? Tätä ei voi kumota. Tapaukset eivät vaikutu. | Poistetaanko kaikki {count} suoritusta tälle agentille ja niiden tulokset? Tätä ei voi kumota. Tapaukset eivät vaikutu.",
+                "clear_all": "Tyhjennä kaikki",
+                "scorers": {
+                    "contains": {
+                        "label": "Sisältää tekstin",
+                        "help": "Läpäisee, jos vastaus sisältää osajonon."
+                    },
+                    "regex": {
+                        "label": "Säännöllinen lauseke",
+                        "help": "Läpäisee, jos vastaus täsmää säännölliseen lausekkeeseen."
+                    },
+                    "exact": {
+                        "label": "Tarkka vastaavuus",
+                        "help": "Läpäisee vain, jos vastaus vastaa referenssivastausta täsmälleen."
+                    },
+                    "json_schema": {
+                        "label": "JSON-rakenne",
+                        "help": "Läpäisee, jos vastaus on kelvollista JSON-muotoa vaadittuine avaimineen."
+                    },
+                    "llm_judge": {
+                        "label": "Tekoälytuomari",
+                        "help": "Avoimen lähdekoodin malli arvioi vastauksen kriteeriesi perusteella."
+                    }
+                },
+                "toasts": {
+                    "case_updated": "Tapaus päivitetty",
+                    "case_added": "Tapaus lisätty",
+                    "cases_added": "{count} tapaus lisätty | {count} tapausta lisätty",
+                    "case_deleted": "Tapaus poistettu",
+                    "run_started": "Arviointisuoritus käynnistetty",
+                    "run_start_error": "Suorituksen käynnistäminen epäonnistui",
+                    "run_deleted": "Suoritus poistettu",
+                    "history_cleared": "Suoritushistoria tyhjennetty"
+                }
+            },
+            "scorers": {
+                "contains": "Sisältää",
+                "regex": "Säännöllinen lauseke",
+                "exact": "Tarkka vastaavuus",
+                "json_schema": "JSON-skeema",
+                "llm_judge": "LLM-tuomari"
+            }
+        }
+    }
+}

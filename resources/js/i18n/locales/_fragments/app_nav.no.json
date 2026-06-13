@@ -1,0 +1,91 @@
+{
+    "app": {
+        "header": {
+            "dashboard": "Dashbord",
+            "agents": "Agenter",
+            "usage": "Bruk",
+            "ask_your_data": "Spør om dataene dine",
+            "billing": "Fakturering",
+            "support": "Support",
+            "teams": "Team",
+            "documentation": "Dokumentasjon",
+            "api": "API",
+            "nav_menu_sr": "Navigasjonsmeny",
+            "upgrade": "Oppgrader",
+            "subscribed": "Du er abonnent"
+        }
+    },
+    "agents": {
+        "nav": {
+            "default_title": "Agentinnstillinger",
+            "playground": "Lekeplass",
+            "playground_tooltip": "Forhåndsvis agenten din på alle flater",
+            "setup": "Oppsett",
+            "setup_tooltip": "Konfigurer agenten din — gjelder på tvers av alle flater",
+            "channels": "Kanaler",
+            "channels_tooltip": "Distribuer agenten din — nettsted, widget og Telegram",
+            "groups": {
+                "insights": "Innsikt",
+                "training": "Opplæring",
+                "access": "Tilgang",
+                "settings": "Innstillinger",
+                "danger_zone": "Faresone"
+            },
+            "analytics": "Analyse",
+            "analytics_tooltip": "Se bruksanalyse og innsikt",
+            "chats": "Samtaler",
+            "sentiment": "Stemning",
+            "tone": "Tone",
+            "topics": "Emner",
+            "sources": "Kilder",
+            "chat": "Chat",
+            "chat_tooltip": "Inspiser råmeldinger per økt",
+            "audit": "Revisjon",
+            "audit_tooltip": "Revisjonslogg for verktøykall for denne agenten",
+            "evals": "Evalueringer",
+            "evals_tooltip": "Testsuiter som vurderer agentens svar",
+            "guardrails": "Sikkerhetssperre",
+            "guardrails_tooltip": "AI-sikkerhetsvakter: PII, prompt-injeksjon, emner, toksisitet",
+            "leads": "Leads",
+            "leads_tooltip": "Administrer leads fanget opp av agenten din",
+            "knowledge_sources": "Kilder",
+            "knowledge_sources_tooltip": "Administrer agentens kunnskap og treningsdata",
+            "functions": "Funksjoner",
+            "functions_tooltip": "Administrer egendefinerte funksjoner agenten kan kalle",
+            "connectors": "Koblinger",
+            "connectors_tooltip": "Knytt til koblinger slik at agenten kan bruke eksterne verktøy",
+            "members": "Chattere",
+            "members_tooltip": "Chattere som har fått tilgang til å chatte med denne agenten",
+            "security": "Sikkerhet",
+            "security_tooltip": "Tilgangskontroll, signeringshemmelighet og hastighetsbegrensninger for denne agenten",
+            "identity": "Identitet",
+            "rate_limiting": "Hastighetsbegrensning",
+            "rename": "Gi nytt navn",
+            "rename_tooltip": "Gi denne agenten et nytt navn",
+            "delete_agent": "Slett agent",
+            "delete_agent_tooltip": "Slett denne agenten permanent",
+            "expand_sidebar": "Utvid sidefelt",
+            "delete_dialog": {
+                "title": "Slett agent",
+                "description": "Denne handlingen kan ikke angres. Dette vil permanent slette agenten {name} og alle tilhørende data.",
+                "confirm_label": "Skriv inn {name} for å bekrefte",
+                "confirm_placeholder": "Skriv inn agentnavnet for å bekrefte",
+                "name_mismatch": "Agentnavnet stemmer ikke",
+                "submit": "Slett agent",
+                "deleted_toast": "Agenten ble slettet",
+                "delete_error_toast": "Kunne ikke slette agenten. Prøv igjen."
+            },
+            "rename_dialog": {
+                "title": "Gi agenten nytt navn",
+                "description": "Skriv inn et nytt navn for agenten {name}.",
+                "name_label": "Agentnavn",
+                "name_placeholder": "Skriv inn nytt agentnavn",
+                "subdomain_label": "Underdomene",
+                "subdomain_placeholder": "ditt-underdomene",
+                "subdomain_hint": "Bare små bokstaver, tall og bindestreker er tillatt.",
+                "save": "Lagre",
+                "updated_toast": "Agenten ble oppdatert"
+            }
+        }
+    }
+}

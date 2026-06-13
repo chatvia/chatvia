@@ -1,0 +1,71 @@
+{
+    "agents": {
+        "members": {
+            "title": "Chatters",
+            "description": "Tus chatters. Los chatters con acceso a este agente aparecen primero; otorga acceso a cualquier otro chatter con un solo clic.",
+            "public_title": "Este agente es público",
+            "public_description": "Cualquier persona con el enlace puede chatear con este agente, por lo que los permisos de chatters no aplican. Para usar chatters, configura el agente como protegido desde su pestaña de Configuración.",
+            "search_placeholder": "Buscar chatters...",
+            "count": "{filtered} de {total} chatter | {filtered} de {total} chatters",
+            "invite_member": "Invitar chatter",
+            "table": {
+                "name": "Nombre",
+                "email": "Correo electrónico",
+                "status": "Estado",
+                "access": "Acceso",
+                "actions": "Acciones"
+            },
+            "status": {
+                "pending": "Pendiente",
+                "active": "Activo"
+            },
+            "access": {
+                "granted": "Otorgado",
+                "no_access": "Sin acceso"
+            },
+            "no_email": "Sin correo electrónico",
+            "empty_title": "Aún no hay chatters.",
+            "empty_description": "Invita a alguien para empezar — aparecerán aquí.",
+            "no_results_title": "No se encontraron chatters que coincidan con tu búsqueda.",
+            "no_results_description": "Intenta ajustar los términos de búsqueda.",
+            "grant": "Otorgar",
+            "grant_title": "Otorgar acceso a {name} a este agente",
+            "revoke_title": "Revocar acceso de {name}",
+            "invite_dialog_title": "Invitar a un chatter",
+            "invite_dialog_description": "Enviaremos un enlace de registro a esta dirección. Podrán establecer una contraseña o iniciar sesión con Google o Slack.",
+            "email_label": "Correo electrónico",
+            "email_placeholder": "persona{'@'}ejemplo.com",
+            "send_invite": "Enviar invitación",
+            "invitation_emailed": "Invitación enviada por correo a {email}. También puedes copiar el enlace a continuación.",
+            "signup_link": "Enlace de registro",
+            "expires": "Vence el {date}.",
+            "invite_another": "Invitar a otro",
+            "done": "Listo",
+            "sheet_description": "Detalles del chatter y acceso a este agente.",
+            "member_id": "ID",
+            "copy_member_id": "Copiar ID de chatter",
+            "joined": "Se unió el {date}",
+            "invitation_pending": "Invitación pendiente",
+            "invitation_pending_hint": "Este chatter aún no ha aceptado. Comparte su enlace de registro personal a continuación.",
+            "link_expired": "El enlace de invitación ha vencido o ya no está disponible. Genera uno nuevo a continuación.",
+            "resend_invitation": "Reenviar invitación",
+            "generate_link": "Generar nuevo enlace",
+            "manage_hint": "Para gestionar este chatter, ve a la {link}.",
+            "members_page": "página de chatters",
+            "revoke_access": "Revocar acceso",
+            "grant_access": "Otorgar acceso",
+            "revoke_dialog_title": "Revocar acceso",
+            "revoke_dialog_description": "{name} perderá el acceso a este agente de inmediato. Seguirá en tu espacio de trabajo y podrás otorgarle acceso nuevamente en cualquier momento.",
+            "revoke": "Revocar",
+            "load_error": "Error al cargar los chatters",
+            "invitation_sent": "Invitación enviada",
+            "invitation_sent_to": "Invitación enviada a {email}",
+            "access_revoked": "{name} ya no tiene acceso a este agente",
+            "revoke_error": "No se pudo revocar el acceso",
+            "access_granted": "{name} ahora tiene acceso a este agente",
+            "grant_error": "No se pudo otorgar el acceso",
+            "fresh_link": "Nuevo enlace de invitación generado para {name}",
+            "link_error": "No se pudo generar un enlace de invitación"
+        }
+    }
+}

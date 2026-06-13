@@ -35,7 +35,7 @@ const submit = () => {
     <AuthLayout :title="t('auth.set_password.title')" :description="t('auth.set_password.description')">
         <Head :title="t('auth.set_password.head')" />
 
-        <div class="absolute top-4 end-4">
+        <div class="absolute end-4 top-4">
             <ThemeSwitcher />
         </div>
 

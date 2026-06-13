@@ -1,0 +1,88 @@
+{
+    "approval": {
+        "badge": "Odottaa hyväksyntää",
+        "prompt": "Haluatko jatkaa?",
+        "mcp_tool": "MCP tool",
+        "function": "Funktio",
+        "approve": "Hyväksy",
+        "deny": "Hylkää"
+    },
+    "header": {
+        "toggle_sidebar": "Näytä tai piilota sivupalkki",
+        "toggle_expand": "Näytä tai piilota koko näyttö",
+        "incognito_mode": "Incognito",
+        "delete_conversation": "Poista keskustelu",
+        "delete_dialog_title": "Poistetaanko keskustelu?",
+        "delete_dialog_description": "Tätä toimintoa ei voi peruuttaa."
+    },
+    "sidebar": {
+        "open_sidebar": "Avaa sivupalkki",
+        "new_chat": "Uusi keskustelu",
+        "your_chats": "Omat keskustelut",
+        "loading": "Ladataan...",
+        "no_conversations": "Ei keskusteluja vielä",
+        "rename_conversation": "Nimeä uudelleen",
+        "clear_all_chats": "Tyhjennä kaikki keskustelut",
+        "delete_all_title": "Poistetaanko kaikki keskustelut?",
+        "delete_all_description": "Tätä toimintoa ei voi peruuttaa. Kaikki keskustelusi poistetaan pysyvästi.",
+        "delete_all_confirm": "Poista kaikki",
+        "profile": "Profiili",
+        "my_agents": "Omat agentit",
+        "logout": "Kirjaudu ulos",
+        "delete_conversation_title": "Poista keskustelu",
+        "delete_conversation_description": "Haluatko varmasti poistaa tämän keskustelun? Tätä toimintoa ei voi peruuttaa.",
+        "profile_settings_title": "Profiiliasetukset",
+        "profile_settings_description": "Päivitä käyttäjätilisi tiedot ja salasana.",
+        "profile_name": "Nimi",
+        "name_input_placeholder": "Syötä nimesi",
+        "profile_email": "Sähköposti",
+        "email_input_placeholder": "Syötä sähköpostiosoitteesi",
+        "current_password": "Nykyinen salasana",
+        "current_password_placeholder": "Syötä nykyinen salasana",
+        "new_password": "Uusi salasana",
+        "new_password_placeholder": "Syötä uusi salasana",
+        "confirm_password": "Vahvista salasana",
+        "confirm_password_placeholder": "Vahvista uusi salasana",
+        "save_changes": "Tallenna muutokset",
+        "upload_photo": "Lataa kuva",
+        "change_photo": "Vaihda kuva",
+        "remove_photo": "Poista kuva",
+        "remove_photo_title": "Poistetaanko profiilikuva?",
+        "remove_photo_description": "Kuvasi muuttuu nimikirjaimiksi. Voit ladata uuden kuvan milloin tahansa.",
+        "agents_dialog_title": "Omat agentit",
+        "agents_dialog_description": "Avaa tekoälyagenttisi",
+        "loading_agents": "Ladataan agentteja...",
+        "no_agents": "Agentteja ei löydy.",
+        "switching_agent": "Vaihdetaan...",
+        "switch_to_agent": "Vaihda agenttiin {name}"
+    },
+    "chat": {
+        "message_limit_reached": "Viestiraja on saavutettu",
+        "upgrade_prompt": "Päivitä tilaussuunnitelmasi jatkaaksesi keskustelua",
+        "regenerate_failed": "Vastausta ei voitu luoda uudelleen. Yritä uudelleen.",
+        "loading_conversation": "Ladataan keskustelua"
+    },
+    "errors": {
+        "subscription_expired": "Tilaus on vanhentunut",
+        "renew_subscription": "Uudista tilaus",
+        "message_limit_reached": "Viestiraja saavutettu",
+        "token_limit_reached": "Tokeni-käyttöraja saavutettu",
+        "upgrade_plan": "Päivitä suunnitelma",
+        "model_unavailable": "Malli ei ole käytettävissä",
+        "too_many_requests": "Liian monta pyyntöä",
+        "connection_lost": "Yhteys katkesi",
+        "unexpected_response": "Odottamaton vastaus",
+        "something_went_wrong": "Jokin meni pieleen",
+        "try_again": "Yritä uudelleen"
+    },
+    "sources": {
+        "title": "Tietolähteet",
+        "source_count": "{count} lähde | {count} lähdettä",
+        "description": "{count} lähde käytetty tämän vastauksen muodostamiseen | {count} lähdettä käytetty tämän vastauksen muodostamiseen",
+        "page_label": "Sivu {page}"
+    },
+    "home": {
+        "logo_alt": "Logo",
+        "welcome_message": "Kuinka voin auttaa sinua tänään?"
+    }
+}

@@ -1,0 +1,81 @@
+{
+    "shared": {
+        "response_settings": {
+            "title": "Paramètres de réponse",
+            "description_widget": "Contrôlez comment votre agent IA répond. Ces paramètres seront appliqués au modèle sélectionné et influencent le style et la créativité de toutes les réponses.",
+            "description_default": "Contrôlez comment votre agent IA répond. Ces paramètres seront appliqués à tous les modèles sélectionnés et influencent le style et la créativité de toutes les réponses.",
+            "parameters_heading": "Paramètres de réponse",
+            "temperature": {
+                "label": "Niveau de créativité",
+                "param": "Température",
+                "help": "Bas = réponses prévisibles et cohérentes. Élevé = réponses plus créatives et variées.",
+                "scale_focused": "Concentré",
+                "scale_balanced": "Équilibré",
+                "scale_creative": "Créatif",
+                "badge_conservative": "Conservateur",
+                "badge_balanced": "Équilibré",
+                "badge_creative": "Créatif"
+            },
+            "top_k": {
+                "label": "Variété du vocabulaire",
+                "param": "Top-K",
+                "help": "0 = désactivé. Bas = utilise des mots plus courants. Élevé = considère davantage d'options de mots.",
+                "scale_disabled": "Désactivé",
+                "scale_focused": "Concentré",
+                "scale_balanced": "Équilibré",
+                "scale_diverse": "Diversifié",
+                "badge_disabled": "Désactivé",
+                "badge_focused": "Concentré",
+                "badge_balanced": "Équilibré",
+                "badge_diverse": "Diversifié"
+            },
+            "top_p": {
+                "label": "Focalisation des réponses",
+                "param": "Top-P",
+                "help": "Bas = réponses plus ciblées. Élevé = réponses plus larges et diversifiées.",
+                "scale_focused": "Concentré",
+                "scale_balanced": "Équilibré",
+                "scale_broad": "Large",
+                "badge_focused": "Concentré",
+                "badge_balanced": "Équilibré",
+                "badge_broad": "Large"
+            },
+            "presence_penalty": {
+                "label": "Éviter la répétition des sujets",
+                "param": "Pénalité de présence",
+                "help": "Des valeurs élevées découragent la répétition des mêmes sujets ou idées.",
+                "scale_repetitive": "Répétitif",
+                "scale_neutral": "Neutre",
+                "scale_diverse": "Diversifié",
+                "badge_repetitive": "Répétitif",
+                "badge_neutral": "Neutre",
+                "badge_diverse": "Diversifié"
+            },
+            "frequency_penalty": {
+                "label": "Éviter la répétition des mots",
+                "param": "Pénalité de fréquence",
+                "help": "Des valeurs élevées découragent l'utilisation répétée des mêmes mots.",
+                "scale_repetitive": "Répétitif",
+                "scale_neutral": "Neutre",
+                "scale_varied": "Varié",
+                "badge_repetitive": "Répétitif",
+                "badge_neutral": "Neutre",
+                "badge_varied": "Varié"
+            }
+        },
+        "persona_editor": {
+            "label": "Instructions (Invite système)",
+            "description": "Définissez comment votre agent IA doit se comporter et répondre aux utilisateurs",
+            "select_placeholder": "Sélectionner un modèle...",
+            "saved_prompts": "Invites sauvegardées",
+            "default_group": "Par défaut",
+            "base_instructions": "Instructions de base",
+            "reset_title": "Rétablir la version sauvegardée",
+            "library_hint": "Utilisation de l'invite sauvegardée {name} (lecture seule). Gérez-la dans Paramètres → Invites, ou passez à {base} pour modifier une copie réservée à cet agent.",
+            "textarea_placeholder": "Saisissez vos instructions...",
+            "save": "Enregistrer",
+            "save_success": "Instructions enregistrées avec succès",
+            "save_error": "Échec de l'enregistrement des instructions"
+        }
+    }
+}

@@ -13,7 +13,7 @@ const props = defineProps<{
     data-slot="breadcrumb-separator"
     role="presentation"
     aria-hidden="true"
-    :class="cn('[&>svg]:size-3.5', props.class)"
+    :class="cn('[&>svg]:size-3.5 rtl:[&>svg]:rotate-180', props.class)"
   >
     <slot>
       <ChevronRight />

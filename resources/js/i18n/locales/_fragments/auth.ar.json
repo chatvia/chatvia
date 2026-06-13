@@ -92,7 +92,9 @@
             "description": "أدخل الرمز من تطبيق المصادقة للمتابعة.",
             "head": "تحدّي المصادقة الثنائية",
             "code_label": "رمز المصادقة",
+            "code_placeholder": "123456",
             "recovery_code_label": "رمز الاسترداد",
+            "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx",
             "verify": "تحقّق",
             "verifying": "جارٍ التحقّق...",
             "use_recovery_code": "استخدام رمز الاسترداد",
@@ -206,6 +208,13 @@
             "card_title": "انتهت صلاحية الدعوة",
             "contact_owner": "يرجى التواصل مع مالك الفريق لطلب دعوة جديدة.",
             "go_to_login": "الانتقال إلى تسجيل الدخول"
+        },
+        "split": {
+            "headline": "أنشئ {brand} الخاص بك في دقائق",
+            "subheadline": "أنشئ مساعدين بالذكاء الاصطناعي يتعلّمون من {data} ومعرفتك",
+            "your_data": "بياناتك",
+            "secure_data": "معالجة آمنة للبيانات",
+            "custom_gpt": "GPT مخصّص"
         }
     }
 }

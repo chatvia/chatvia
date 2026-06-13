@@ -1,0 +1,39 @@
+{
+    "agents": {
+        "deploy": {
+            "title": "Déployer",
+            "subtitle": "Mettez votre agent devant vos utilisateurs — choisissez une surface et copiez le code.",
+            "head_title": "Déployer — {name}",
+            "copy": "Copier",
+            "copied": "Copié !",
+            "copy_failed": "Échec de la copie",
+            "customize": "Personnaliser l'apparence",
+            "install_label": "Ajoutez ceci à votre site",
+            "protected_title": "Cet agent est protégé",
+            "protected_description": "Les intégrations nécessitent un token signé, sinon toute personne ayant le snippet verra un écran verrouillé. Rendez-le public ou configurez l'authentification dans",
+            "open_security": "Paramètres de sécurité",
+            "widget": {
+                "title": "Widget de chat",
+                "description": "Une bulle de chat flottante dans le coin de n'importe quelle page — l'assistant classique."
+            },
+            "chat": {
+                "title": "Chat hébergé",
+                "description": "Un chat pleine page à votre propre lien. Partagez-le directement ou intégrez-le dans une page.",
+                "url_label": "URL de l'agent",
+                "open": "Ouvrir",
+                "embed_label": "Intégrer dans une page",
+                "iframe_title": "Chat avec {name}",
+                "width": "Largeur",
+                "height": "Hauteur",
+                "preset_full": "Plein",
+                "preset_large": "Grand",
+                "preset_medium": "Moyen",
+                "preset_small": "Petit"
+            },
+            "bar": {
+                "title": "Barre de commandes",
+                "description": "Un overlay de palette de commandes ⌘K. Parfait pour la documentation, les tableaux de bord et les applications."
+            }
+        }
+    }
+}

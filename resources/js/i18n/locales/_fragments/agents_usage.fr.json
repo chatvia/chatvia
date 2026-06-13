@@ -1,0 +1,42 @@
+{
+    "agents": {
+        "usage": {
+            "title": "Statistiques d'utilisation",
+            "description": "Voyez quelles sources, fonctions et serveurs MCP cet agent utilise réellement",
+            "load_error": "Échec du chargement des statistiques",
+            "try_again": "Réessayer",
+            "tabs": {
+                "knowledge": "Connaissances",
+                "functions": "Fonctions",
+                "mcp": "MCP"
+            },
+            "knowledge_empty": "Aucune source de connaissances récupérée pour l'instant",
+            "knowledge_empty_hint": "Les fichiers, sites web, extraits de texte et vidéos YouTube apparaissent ici dès que l'agent les utilise.",
+            "functions_empty": "Aucun appel de fonction pour l'instant",
+            "functions_empty_hint": "Les fonctions webhook apparaissent ici dès que l'agent les invoque.",
+            "mcp_empty": "Aucun appel d'outil MCP pour l'instant",
+            "mcp_empty_hint": "Les outils individuels des serveurs MCP connectés apparaissent ici dès que l'agent les invoque.",
+            "retrievals": "{count} récupération | {count} récupérations",
+            "calls": "{count} appel | {count} appels",
+            "last_used": "Dernière utilisation {time}",
+            "last_called": "Dernier appel {time}",
+            "via_server": "via {name}",
+            "sub_kind": {
+                "source_file": "Fichier",
+                "source_website": "Site web",
+                "source_text": "Texte",
+                "source_youtube_video": "YouTube",
+                "agent_website_url": "Page web"
+            },
+            "relative": {
+                "just_now": "à l'instant",
+                "minutes_ago": "il y a {count} minute | il y a {count} minutes",
+                "hours_ago": "il y a {count} heure | il y a {count} heures",
+                "days_ago": "il y a {count} jour | il y a {count} jours",
+                "weeks_ago": "il y a {count} semaine | il y a {count} semaines",
+                "months_ago": "il y a {count} mois | il y a {count} mois",
+                "years_ago": "il y a {count} an | il y a {count} ans"
+            }
+        }
+    }
+}

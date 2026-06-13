@@ -24,7 +24,7 @@ const Component = computed(() => isRangeCalendar || props.isRange ? RangeCalenda
     "
   >
     <slot>
-      <ChevronRight class="h-4 w-4" />
+      <ChevronRight class="h-4 w-4 rtl:rotate-180" />
     </slot>
   </component>
 </template>

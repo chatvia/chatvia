@@ -54,7 +54,7 @@ const formatSourceSubtitle = (source: Source) => {
     <Dialog>
         <DialogTrigger asChild>
             <Button variant="outline" size="sm" class="h-7 px-2 text-xs" :disabled="sourcesCount === 0">
-                <FileText class="mr-1 h-3 w-3" />
+                <FileText class="me-1 h-3 w-3" />
                 {{ t('sources.source_count', { count: sourcesCount }, { plural: sourcesCount }) }}
             </Button>
         </DialogTrigger>
@@ -67,7 +67,7 @@ const formatSourceSubtitle = (source: Source) => {
                 <DialogDescription>{{ t('sources.description', { count: sourcesCount }, { plural: sourcesCount }) }}</DialogDescription>
             </DialogHeader>
 
-            <ScrollArea class="max-h-[60vh] pr-4">
+            <ScrollArea class="max-h-[60vh] pe-4">
                 <div class="space-y-4">
                     <div v-for="(source, index) in sources" :key="index" class="space-y-3 rounded-lg border p-4">
                         <div class="flex items-start justify-between gap-3">
@@ -84,7 +84,7 @@ const formatSourceSubtitle = (source: Source) => {
                             </Badge>
                         </div>
 
-                        <div class="text-muted-foreground bg-muted/30 border-primary/20 rounded border-l-2 p-3 text-sm">
+                        <div class="text-muted-foreground bg-muted/30 border-primary/20 rounded border-s-2 p-3 text-sm">
                             <p class="whitespace-pre-wrap">{{ source.content }}</p>
                         </div>
 

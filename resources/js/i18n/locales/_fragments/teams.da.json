@@ -1,0 +1,139 @@
+{
+    "teams": {
+        "breadcrumb": "Teams",
+        "common": {
+            "cancel": "Annuller",
+            "create_role": "Opret rolle"
+        },
+        "index": {
+            "title": "Teams",
+            "heading": "Teams",
+            "subtitle": "Administrer dine teams og samarbejd med andre.",
+            "create_team": "Opret team",
+            "search_placeholder": "Søg i teams",
+            "empty_title": "Ingen teams endnu",
+            "empty_description": "Opret dit første team for at begynde at samarbejde med andre",
+            "no_results": "Ingen teams fundet der matcher \"{query}\".",
+            "clear_search": "Ryd søgning",
+            "primary": "Primær",
+            "open_menu": "Åbn menu",
+            "manage": "Administrer",
+            "leave": "Forlad",
+            "delete": "Slet",
+            "table": {
+                "name": "Teamnavn",
+                "agents": "Agenter",
+                "members": "Medlemmer",
+                "created": "Oprettet"
+            },
+            "leave_dialog": {
+                "title": "Forlad team",
+                "description": "Er du sikker på, at du vil forlade \"{name}\"?"
+            },
+            "delete_dialog": {
+                "title": "Slet team",
+                "description": "Er du sikker på, at du vil slette \"{name}\"? Dette kan ikke fortrydes."
+            },
+            "create_dialog": {
+                "title": "Opret nyt team",
+                "description": "Opret et team for at samarbejde med andre.",
+                "name_label": "Teamnavn",
+                "name_placeholder": "Indtast teamnavn"
+            }
+        },
+        "show": {
+            "title": "Team: {name}",
+            "back": "Tilbage til teams",
+            "copied": "Kopieret!",
+            "copy_team_id": "Kopiér team-id",
+            "add_member": "Tilføj medlem",
+            "view_members": "Se medlemmer ({count})",
+            "role": "Rolle",
+            "actions": "Handlinger",
+            "roles": {
+                "title": "Roller og tilladelser",
+                "description": "Definer roller og deres tilladelser for teammedlemmer.",
+                "empty": "Ingen brugerdefinerede roller endnu. Opret en rolle for at tildele specifikke tilladelser til teammedlemmer.",
+                "copy_role_id": "Kopiér rolle-id",
+                "edit_role": "Rediger rolle",
+                "delete_role": "Slet rolle",
+                "agent_access_label": "Agentadgang:",
+                "all_agents": "Alle agenter",
+                "no_agents_assigned": "Ingen agenter tildelt",
+                "agent_count": "{count} agent | {count} agenter",
+                "delete_description": "Er du sikker på, at du vil slette rollen \"{name}\"? Denne handling kan ikke fortrydes."
+            },
+            "members": {
+                "title": "Teammedlemmer",
+                "description": "Medlemmer der har adgang til dette team.",
+                "you": "Dig",
+                "change_role": "Skift rolle",
+                "change_role_title": "Skift medlemsrolle",
+                "update_role_description": "Opdater rollen for {name}.",
+                "select_role_placeholder": "Vælg en rolle",
+                "update_role": "Opdater rolle",
+                "remove": "Fjern",
+                "remove_title": "Fjern teammedlem",
+                "remove_description": "Er du sikker på, at du vil fjerne {name} fra dette team? De mister adgangen til alle teamressourcer.",
+                "remove_confirm": "Fjern medlem",
+                "table": {
+                    "member": "Medlem"
+                }
+            },
+            "invitations": {
+                "title": "Afventende invitationer",
+                "description": "Disse invitationer venter på at blive accepteret.",
+                "table": {
+                    "email": "E-mail",
+                    "sent": "Sendt"
+                }
+            },
+            "invite": {
+                "title": "Tilføj teammedlem",
+                "description": "Tilføj en eksisterende bruger eller inviter en ny til at deltage i dette team.",
+                "select_existing": "Vælg eksisterende",
+                "invite_by_email": "Inviter via e-mail",
+                "select_user_label": "Vælg bruger",
+                "select_user_placeholder": "Vælg en bruger...",
+                "email_label": "E-mailadresse",
+                "email_placeholder": "kollega{'@'}eksempel.dk",
+                "send_invitation": "Send invitation"
+            },
+            "role_members": {
+                "title": "{name} medlemmer",
+                "description": "Medlemmer med denne rolle. Du kan fjerne deres adgang til dette team.",
+                "empty": "Ingen medlemmer med denne rolle endnu.",
+                "close": "Luk"
+            }
+        },
+        "roles": {
+            "details": "Rolledetaljer",
+            "role_name_label": "Rollenavn",
+            "role_name_placeholder": "f.eks. Supportagent, Indholdredaktør",
+            "agent_access": "Agentadgang",
+            "agent_access_description": "Vælg hvilke agenter denne rolle kan se og interagere med.",
+            "all_agents": "Alle agenter",
+            "all_agents_description": "Adgang til alle nuværende og fremtidige agenter",
+            "select_specific": "Vælg specifikke agenter:",
+            "select_agents": "Vælg agenter...",
+            "agents_more": "{names} +{count} mere",
+            "no_agents_available": "Ingen agenter tilgængelige",
+            "permissions": {
+                "title": "Tilladelser",
+                "description": "Vælg hvilke handlinger brugere med denne rolle kan udføre.",
+                "requires": "Kræver:"
+            },
+            "create": {
+                "subtitle": "Definer en ny rolle for"
+            },
+            "edit": {
+                "title": "Rediger rolle: {name}",
+                "breadcrumb": "Rediger: {name}",
+                "heading": "Rediger rolle",
+                "subtitle_prefix": "Opdater",
+                "subtitle_middle": "rollen for",
+                "save": "Gem"
+            }
+        }
+    }
+}

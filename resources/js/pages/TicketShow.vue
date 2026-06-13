@@ -181,7 +181,9 @@ const submitPriority = () => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div v-if="!ticket.replies || ticket.replies.length === 0" class="text-muted-foreground py-8 text-center">{{ t('ticket.no_replies') }}</div>
+                    <div v-if="!ticket.replies || ticket.replies.length === 0" class="text-muted-foreground py-8 text-center">
+                        {{ t('ticket.no_replies') }}
+                    </div>
                     <div v-else class="space-y-4">
                         <div
                             v-for="reply in ticket.replies"

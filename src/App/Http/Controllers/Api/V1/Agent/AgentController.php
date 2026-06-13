@@ -10,6 +10,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Actions\Account\CreateApiAgentAction;
 use Domain\Agent\Actions\Account\UpdateApiAgentAction;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -25,16 +26,27 @@ class AgentController
      *
      * @return array{data: list<AgentData>}
      */
-    public function index(Request $request): array
+    public function index(Request $request, TeamService $teamService): array
     {
         /** @var User $user */
         $user = $request->user();
         $owner = $user->workspace();
 
-        $query = Agent::query()
-            ->whereIn('team_id', $owner->ownedTeams()->select('id'))
-            ->with(['team', 'agentPrompt'])
-            ->latest();
+        // Owners (and admins) see every agent across their owned teams; a
+        // teammate sees only the agents their role grants in the team they
+        // belong to — the same scoping the dashboard's AgentController::index
+        // applies, so a member token never lists agents it can't access.
+        if ($user->isWorkspace()) {
+            $query = Agent::query()->whereIn('team_id', $owner->ownedTeams()->select('id'));
+        } else {
+            $team = current_team();
+            $accessibleIds = $team
+                ? $teamService->accessibleAgents($user, $team)->pluck('id')
+                : collect();
+            $query = Agent::query()->whereIn('id', $accessibleIds);
+        }
+
+        $query->with(['team', 'agentPrompt'])->latest();
 
         if ($request->filled('team_id')) {
             $team = $owner->ownedTeams()->where('external_id', $request->query('team_id'))->first();

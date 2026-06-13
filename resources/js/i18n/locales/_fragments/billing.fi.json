@@ -1,0 +1,317 @@
+{
+    "billing": {
+        "common": {
+            "billing": "Laskutus",
+            "back_to_billing": "Takaisin laskutukseen",
+            "view_plans": "Katso suunnitelmat",
+            "cancel": "Peruuta",
+            "processing": "Käsitellään...",
+            "not_available": "Ei saatavilla"
+        },
+        "payment_success": {
+            "page_title": "Maksu onnistui",
+            "heading": "Maksu vastaanotettu",
+            "description": "Kiitos! Maksusi on käsitelty onnistuneesti. Aktivoimme tilauksesi nyt.",
+            "redirecting_prefix": "Ohjataan",
+            "redirecting_suffix": "sekunnin kuluttua...",
+            "go_to_billing": "Siirry laskutukseen nyt"
+        },
+        "invoices": {
+            "breadcrumb": "Laskut",
+            "page_title": "Laskut",
+            "heading": "Laskut",
+            "subheading": "Tarkastele ja lataa laskutushistoriasi ja laskusi",
+            "history_title": "Laskutushistoria",
+            "history_description": "Lataa kuitit ja laskut tilausmaksuistasi",
+            "invoice_number": "Lasku #{number}",
+            "status": {
+                "paid": "Maksettu",
+                "pending": "Odottaa",
+                "failed": "Epäonnistui"
+            },
+            "download_pdf": "Lataa PDF",
+            "view_online": "Tarkastele verkossa",
+            "empty_title": "Ei laskuja vielä",
+            "empty_description": "Laskutushistoriasi ja laskusi näkyvät tässä, kun olet aloittanut tilauksen.",
+            "total_invoices": "Laskuja yhteensä",
+            "total_spent": "Yhteensä käytetty",
+            "since": "Alkaen",
+            "help_title": "Tarvitsetko apua laskutuksessa?",
+            "help_description": "Jos sinulla on kysyttävää laskuistasi tai tarvitset apua laskutuksessa, tukitiimimme on käytettävissäsi.",
+            "contact_support": "Ota yhteyttä tukeen"
+        },
+        "payment_methods": {
+            "breadcrumb": "Maksutavat",
+            "page_title": "Maksutavat",
+            "heading": "Maksutavat",
+            "subheading": "Hallinnoi maksutapojasi ja laskutustietojasi",
+            "add_method": "Lisää maksutapa",
+            "saved_title": "Tallennetut maksutavat",
+            "saved_description": "Hallinnoi tallennettuja maksutapojasi. Voit asettaa oletusmaksutavan automaattista laskutusta varten.",
+            "default": "Oletus",
+            "expires": "Vanhenee {date}",
+            "set_default": "Aseta oletukseksi",
+            "empty_title": "Ei maksutapoja",
+            "empty_description": "Lisää maksutapa hallitaksesi tilauksiasi ja suorittaaksesi maksuja.",
+            "add_first": "Lisää ensimmäinen maksutapasi",
+            "info_title": "Laskutustiedot",
+            "info_description": "Päivitä laskutusosoitteesi ja yhteystietosi",
+            "not_set": "Ei asetettu",
+            "update_info": "Päivitä laskutustiedot",
+            "secure_title": "Turvallinen maksunkäsittely",
+            "secure_description": "Maksutietosi salataan ja käsitellään turvallisesti Stripe-palvelussa. Emme koskaan tallenna täydellisiä korttitietojasi palvelimillemme.",
+            "updating": "Päivitetään...",
+            "update_information": "Päivitä tiedot",
+            "card_information": "Korttitiedot",
+            "remove_dialog": {
+                "title": "Poista maksutapa",
+                "description": "Haluatko varmasti poistaa tämän maksutavan? Tätä toimintoa ei voi kumota.",
+                "confirm": "Kyllä, poista"
+            },
+            "fields": {
+                "name": "Nimi",
+                "email": "Sähköpostiosoite",
+                "address": "Osoite",
+                "city_state_country": "Kaupunki, osavaltio ja maa",
+                "billing_address": "Laskutusosoite",
+                "line1": "Osoiterivi 1",
+                "line2": "Osoiterivi 2 (valinnainen)",
+                "city": "Kaupunki",
+                "state": "Osavaltio",
+                "postal_code": "Postinumero",
+                "country": "Maa"
+            },
+            "placeholders": {
+                "name": "Matti Meikäläinen",
+                "email": "matti{'@'}esimerkki.fi",
+                "line1": "Esimerkkikatu 123",
+                "line2": "Huoneisto, toimisto jne.",
+                "city": "Helsinki",
+                "state": "Uusimaa",
+                "postal_code": "00100",
+                "country": "Valitse maa..."
+            },
+            "info_dialog": {
+                "title": "Päivitä laskutustiedot",
+                "description": "Päivitä laskutusosoitteesi ja yhteystietosi laskutusta ja maksunkäsittelyä varten."
+            },
+            "add_dialog": {
+                "description": "Lisää uusi maksutapa tilillesi. Korttitietosi ovat suojattuja ja salattuja.",
+                "success_title": "Maksutapa lisätty!",
+                "success_description": "Maksutapasi on lisätty onnistuneesti tilillesi.",
+                "secure_note": "Maksutietosi salataan ja käsitellään turvallisesti Stripe-palvelussa. Emme koskaan tallenna täydellisiä korttitietojasi."
+            },
+            "errors": {
+                "init_failed": "Maksujärjestelmän alustaminen epäonnistui",
+                "not_ready": "Maksujärjestelmä ei ole valmis",
+                "add_failed": "Maksutavan lisäämisen aikana tapahtui virhe"
+            },
+            "toast": {
+                "added": "Maksutapa lisätty onnistuneesti!",
+                "info_updated": "Laskutustiedot päivitetty onnistuneesti!",
+                "info_failed": "Laskutustietojen päivittäminen epäonnistui"
+            }
+        },
+        "plans": {
+            "breadcrumb": "Valitse suunnitelma",
+            "page_title": "Valitse suunnitelmasi",
+            "heading": "Valitse suunnitelmasi",
+            "subheading": "Valitse tarpeisiisi sopiva suunnitelma. Voit vaihtaa tai peruuttaa milloin tahansa.",
+            "monthly": "Kuukausittain",
+            "yearly": "Vuosittain",
+            "custom": "Mukautettu",
+            "per_month": "/kk",
+            "save_percent": "Säästä {percent}%",
+            "billed_yearly": "Laskutetaan vuosittain {amount}",
+            "features_included": "Sisältyvät ominaisuudet:",
+            "everything_in": "Kaikki {plan}-suunnitelman ominaisuudet +",
+            "actions": {
+                "contact_sales": "Ota yhteyttä myyntiin",
+                "upgrade": "Päivitä",
+                "upgrade_plan": "Päivitä suunnitelma",
+                "downgrade_to_free": "Siirry ilmaiseen",
+                "downgrade_plan": "Alenna suunnitelma",
+                "switch_plan": "Vaihda suunnitelma",
+                "select_plan": "Valitse suunnitelma"
+            },
+            "discount": {
+                "banner": "{percent}% ALENNUS – Rajoitetun ajan tarjous!",
+                "ends": "Tarjous päättyy {date} – älä missaa!",
+                "limited": "Rajoitetun ajan alennus kaikista maksullisista suunnitelmista!",
+                "off": "{percent}% ALENNUS"
+            },
+            "llms": {
+                "title": "Saatavilla olevat tekoälymallit",
+                "description": "Valitse kattavasta valikoimastamme huippuluokan kielimalleja",
+                "empty": "Ei saatavilla olevia malleja"
+            }
+        },
+        "addons": {
+            "title": "Lisäosat",
+            "description": "Lisäkredittejä, agentteja ja verkkotunnuksia suunnitelmasi päälle",
+            "per_agent": " / agentti",
+            "per_domain": " / verkkotunnus",
+            "per_member": " / jäsen",
+            "per_month": " / kk",
+            "requires_subscription": "Lisäagentit, mukautettu verkkotunnus, brändäyksen poisto ja jäsenet edellyttävät voimassa olevaa päätilauksen.",
+            "common": {
+                "none": "Ei mitään",
+                "subscribe": "Tilaa",
+                "change": "Muuta",
+                "update_quantity": "Päivitä määrä",
+                "monthly_cost": "Kuukausikustannus:",
+                "keep_subscription": "Pidä tilaus",
+                "yes_cancel": "Kyllä, peruuta",
+                "ends": "Päättyy {date}"
+            },
+            "auto_recharge": {
+                "title": "Automaattinen täyttö",
+                "on": "Päällä",
+                "off": "Pois päältä",
+                "summary": "Ostetaan automaattisesti {amount} kredittiä, kun saldo laskee alle {threshold}.",
+                "manage": "Hallinnoi",
+                "enable": "Ota käyttöön",
+                "dialog_title": "Automaattisen täytön asetukset",
+                "dialog_description": "Kun jäljellä olevat kredittisi laskevat kynnysarvoon tai sen alle, veloitamme automaattisesti oletuksena olevaa maksutapaasi ja täydennämme saldosi.",
+                "enable_label": "Ota automaattinen täyttö käyttöön",
+                "enable_hint": "Veloita automaattisesti, kun kredittejä on vähän",
+                "threshold_label": "Kynnysarvo (kredittejä)",
+                "threshold_hint": "Täyttö käynnistyy, kun saldosi laskee tähän määrään tai sen alle.",
+                "amount_label": "Täyttömäärä (kredittejä)",
+                "each_recharge": "Jokainen täyttö:",
+                "charged_note": "Veloitetaan välittömästi oletuksena olevalta maksutavaltasi käynnistymisen yhteydessä.",
+                "save": "Tallenna asetukset"
+            },
+            "extra_credits": {
+                "title": "Lisäkreditit",
+                "summary": "Kertaostos. Jokainen paketti lisää 1 000 viestiä, jotka vanhenevat 30 päivässä.",
+                "buy": "Osta kredittejä",
+                "dialog_title": "Osta viestikredittejä",
+                "dialog_description": "Jokainen paketti sisältää 1 000 viestiä, jotka on käytettävä yhden kuukauden kuluessa ostosta.",
+                "quantity_label": "Määrä (1 000 viestiä per paketti)",
+                "total_messages": "Viestejä yhteensä:",
+                "total_price": "Kokonaishinta:",
+                "purchase_for": "Osta hintaan ${amount}"
+            },
+            "extra_agents": {
+                "title": "Lisäagentit",
+                "summary": "Lisää enemmän tekoälyagentteja suunnitelmasi rajan yli.",
+                "cancel_title": "Peruuta lisäagenttien tilaus?",
+                "cancel_description": "Lisäagenttikiintiösi poistetaan välittömästi, eikä sinua veloiteta enää.",
+                "change_title": "Muuta lisäagentteja",
+                "subscribe_title": "Tilaa lisäagentteja",
+                "dialog_description": "Lisää ylimääräisiä tekoälyagentteja suunnitelmasi päälle. Laskutetaan kuukausittain 5 $ per agentti.",
+                "quantity_label": "Lisäagenttien määrä"
+            },
+            "custom_domains": {
+                "title": "Mukautettu verkkotunnus",
+                "summary": "Käytä omaa verkkotunnustasi tekoälyagenteille.",
+                "cancel_title": "Peruuta mukautetun verkkotunnuksen tilaus?",
+                "cancel_description": "Mukautetun verkkotunnuksen kiintiösi poistetaan välittömästi, eikä sinua veloiteta enää.",
+                "change_title": "Muuta mukautettuja verkkotunnuksia",
+                "subscribe_title": "Tilaa mukautettu verkkotunnus",
+                "dialog_description": "Käytä omaa verkkotunnustasi tekoälyagenteille. Laskutetaan kuukausittain 29 $ per verkkotunnus.",
+                "quantity_label": "Verkkotunnusten määrä"
+            },
+            "remove_branding": {
+                "title": "Poista brändäys",
+                "active": "Aktiivinen",
+                "summary": "Piilota \"Powered by Chatvia\" -merkki widgetistäsi ja isännöidystä chatistasi.",
+                "cancel_title": "Peruuta brändäyksen poiston tilaus?",
+                "cancel_description": "\"Powered by Chatvia\" -merkki ilmestyy uudelleen widgetiisi ja isännöityyn chatiisi välittömästi, eikä sinua veloiteta enää."
+            },
+            "members": {
+                "title": "Jäsenet",
+                "summary": "Lisää enemmän tiimin jäseniä työtilaan.",
+                "cancel_title": "Peruuta jäsenten tilaus?",
+                "cancel_description": "Lisäjäsenpaikkasi poistetaan välittömästi, eikä sinua veloiteta enää.",
+                "change_title": "Muuta jäseniä",
+                "subscribe_title": "Tilaa jäseniä",
+                "dialog_description": "Lisää ylimääräisiä tiimin jäseniä työtilaan. Laskutetaan kuukausittain 9 $ per jäsen.",
+                "quantity_label": "Jäsenten määrä"
+            }
+        },
+        "index": {
+            "page_title": "Laskutus",
+            "heading": "Laskutus",
+            "subheading": "Hallinnoi tilaustasi, laskutustietojasi ja käyttörajoituksiasi",
+            "stripe_notice": "Maksut käsittelee turvallisesti",
+            "status_label": "Tila",
+            "trial_ends": "Kokeilujakso päättyy",
+            "next_billing": "Seuraava laskutus",
+            "access_ends": "Käyttöoikeus päättyy",
+            "plan_features": "Suunnitelman ominaisuudet",
+            "show_less": "Näytä vähemmän",
+            "show_more": "Näytä {count} lisää",
+            "per_year": "Vuosi",
+            "per_month": "Kuukausi",
+            "status": {
+                "active": "Aktiivinen",
+                "trial": "Kokeilujakso",
+                "cancelled": "Peruutettu",
+                "incomplete": "Keskeneräinen",
+                "past_due": "Erääntynyt"
+            },
+            "trial": {
+                "heading": "🎉 Olet ilmaisella kokeilujaksolla!",
+                "ends_on": "{plan}-kokeilujaksosi päättyy",
+                "auto_start": "Maksullinen tilauksesi alkaa automaattisesti {date}",
+                "badge": "Kokeilujakso aktiivinen"
+            },
+            "upgrade": {
+                "heading": "Päivitä Premium-versioon",
+                "description": "Käytä edistyneitä tekoälymalleja, korkeampia viestirajoituksia ja prioriteettitukea"
+            },
+            "current_plan": {
+                "title": "Nykyinen suunnitelma",
+                "description": "Aktiivinen tilaussuunnitelmasi ja käyttötiedot"
+            },
+            "pending_change": {
+                "heading": "Suunnitelman vaihto ajastettu",
+                "change_from": "Suunnitelmasi vaihtuu",
+                "to": "suunnitelmaan",
+                "cycle_yearly": "(Vuosittain)",
+                "cycle_monthly": "(Kuukausittain)",
+                "on_date": "{date}.",
+                "scheduled_for": "Sinulla on suunnitelman vaihto ajastettuna {date}.",
+                "access_note": "Sinulla on pääsy nykyisen suunnitelmasi ominaisuuksiin siihen asti.",
+                "cancel_schedule": "Peruuta ajastus",
+                "cancel_dialog": {
+                    "title": "Peruuta ajastettu suunnitelman vaihto",
+                    "description": "Haluatko varmasti peruuttaa ajastetun suunnitelman vaihdon? Pysyt nykyisessä suunnitelmassasi.",
+                    "confirm": "Kyllä, peruuta ajastus",
+                    "cancel": "Pidä ajastus"
+                }
+            },
+            "cancelled": {
+                "title": "Tilaus peruutettu",
+                "description": "Tilauksesi päättyy {date}. Voit jatkaa tilaustasi milloin tahansa ennen tätä päivämäärää.",
+                "resume": "Jatka tilausta"
+            },
+            "management": {
+                "title": "Hallinta",
+                "manage_payment_methods": "Hallinnoi maksutapoja",
+                "view_invoices": "Tarkastele laskuja",
+                "go_to_stripe": "Siirry Stripeen",
+                "change_plan": "Vaihda suunnitelma",
+                "cancel_subscription": "Peruuta tilaus"
+            },
+            "cancel_dialog": {
+                "title": "Peruuta tilaus",
+                "description": "Haluatko varmasti peruuttaa tilauksesi? Sinulla on pääsy palveluun laskutuskauden loppuun asti.",
+                "confirm": "Kyllä, peruuta",
+                "cancel": "Pidä tilaus"
+            },
+            "usage": {
+                "title": "Käyttö",
+                "messages": "Viestit",
+                "pages": "Sivut",
+                "agents": "Agentit",
+                "links": "Linkit",
+                "minutes": "Minuutit",
+                "remaining": "{count} jäljellä",
+                "load_error": "Käyttötietojen lataaminen epäonnistui"
+            }
+        }
+    }
+}

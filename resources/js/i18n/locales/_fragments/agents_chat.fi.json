@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "chat_errors": {
+            "disabled_title": "Agentti poistettu käytöstä",
+            "disabled_description": "Tämä agentti ei ole tällä hetkellä käytettävissä",
+            "disabled_heading": "Agentti poistettu käytöstä",
+            "disabled_message": "Tämä agentti on poistettu käytöstä. Ota yhteyttä järjestelmänvalvojaan saadaksesi apua.",
+            "disabled_hint": "Jos uskot, että kyseessä on virhe tai tarvitset välitöntä apua, ota yhteyttä järjestelmänvalvojaasi.",
+            "contact_admin": "Ota yhteyttä järjestelmänvalvojaan",
+            "return_dashboard": "Palaa kojelautaan",
+            "no_messages_title": "Ei viestejä jäljellä",
+            "no_messages_description": "Olet saavuttanut viestirajoituksesi",
+            "not_found_title": "Agenttia ei löydy",
+            "not_found_description": "Etsimääsi agenttia ei ole olemassa",
+            "not_found_heading": "Agenttia ei löydy",
+            "not_found_message": "Agenttiа, johon yrität päästä, ei ole olemassa tai se on saatettu poistaa.",
+            "not_found_hint": "Tarkista URL-osoite tai ota yhteyttä järjestelmänvalvojaasi, jos uskot, että tämän agentin pitäisi olla käytettävissä."
+        }
+    }
+}

@@ -53,7 +53,7 @@ function isActive(name: string): boolean {
     <div class="px-4 py-6">
         <Heading :title="t('account.layout.heading')" :description="t('account.layout.description')" />
 
-        <div class="flex flex-col items-start space-y-8 md:space-y-0 lg:flex-row lg:space-y-0 lg:gap-12">
+        <div class="flex flex-col items-start space-y-8 md:space-y-0 lg:flex-row lg:gap-12 lg:space-y-0">
             <aside class="w-full lg:sticky lg:top-32 lg:w-56">
                 <nav class="flex flex-col gap-1">
                     <Link

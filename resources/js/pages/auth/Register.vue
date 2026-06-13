@@ -40,7 +40,7 @@ const loginWithSlack = () => {
     <AuthBase :title="t('auth.register.title')" :description="t('auth.register.description')">
         <Head :title="t('auth.register.head')" />
 
-        <div class="absolute top-4 end-4">
+        <div class="absolute end-4 top-4">
             <ThemeSwitcher />
         </div>
 
@@ -148,9 +148,9 @@ const loginWithSlack = () => {
                         <div class="text-sm">
                             <label for="policy" class="text-muted-foreground">
                                 {{ t('auth.register.agree_to') }}
-                                <a href="/privacy-policy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer"
-                                    >{{ t('auth.register.privacy_policy') }}</a
-                                >
+                                <a href="/privacy-policy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{{
+                                    t('auth.register.privacy_policy')
+                                }}</a>
                             </label>
                             <InputError :message="form.errors.policy" />
                         </div>
@@ -169,9 +169,9 @@ const loginWithSlack = () => {
                         <div class="text-sm">
                             <label for="terms" class="text-muted-foreground">
                                 {{ t('auth.register.agree_to') }}
-                                <a href="/terms-of-service" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer"
-                                    >{{ t('auth.register.terms_of_service') }}</a
-                                >
+                                <a href="/terms-of-service" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{{
+                                    t('auth.register.terms_of_service')
+                                }}</a>
                             </label>
                             <InputError :message="form.errors.terms" />
                         </div>
@@ -251,7 +251,9 @@ const loginWithSlack = () => {
             <div class="pt-4 text-center">
                 <p class="text-muted-foreground text-base">
                     {{ t('auth.register.have_account') }}
-                    <TextLink :href="route('login')" :tabindex="8" class="text-primary hover:text-primary/80 ms-1 font-semibold"> {{ t('auth.register.log_in') }} </TextLink>
+                    <TextLink :href="route('login')" :tabindex="8" class="text-primary hover:text-primary/80 ms-1 font-semibold">
+                        {{ t('auth.register.log_in') }}
+                    </TextLink>
                 </p>
             </div>
         </div>

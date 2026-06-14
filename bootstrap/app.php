@@ -19,7 +19,7 @@ use App\Http\Middleware\Chat\EnsureChatIsAccessible;
 use App\Http\Middleware\Chat\RedirectToAgent;
 use App\Http\Middleware\Chat\ResolveAgentFromSubdomain;
 use App\Http\Middleware\Web\ContentSecurityPolicy;
-use App\Http\Middleware\Web\ForceWww;
+use App\Http\Middleware\Web\ForceApex;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use App\Http\Middleware\Web\SetLocale;
@@ -79,7 +79,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             //            ContentSecurityPolicy::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
-            ForceWww::class,
+            ForceApex::class,
         ]);
 
         $middleware->group('chat', [

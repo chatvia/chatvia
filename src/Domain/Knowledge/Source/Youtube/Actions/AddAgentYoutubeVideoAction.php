@@ -29,7 +29,9 @@ class AddAgentYoutubeVideoAction
 
         /** @var SourceYoutubeVideo $video */
         $video = SourceYoutubeVideo::create([
-            'user_id' => $user->id,
+            // Knowledge belongs to the workspace, not whoever added it — key to
+            // the agent's owner so an employee's deletion can't cascade it away.
+            'user_id' => $agent->user_id,
             'url' => $url,
             'length' => 0,
             'status' => SourceStatus::Pending->value,

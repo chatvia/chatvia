@@ -17,11 +17,14 @@ use Throwable;
  * teams, and (by FK cascade) every agent, conversation, knowledge source,
  * credit, billing row, etc. that hangs off them.
  *
- * Two things the FK cascade can't do, handled explicitly here: attachment
- * files on S3 (the cascade drops the rows but never fires the Eloquent
- * `deleting` event that wipes the object — see {@see self::deleteAttachmentFiles()})
- * and the workspace's Redis chat memory (cache, not DB — see
- * {@see self::flushChatMemoryCache()}).
+ * What the FK cascade can't do, handled explicitly here:
+ *  - Attachment files on S3 — the cascade drops the rows but never fires the
+ *    Eloquent `deleting` event that wipes the object ({@see self::deleteAttachmentFiles()}).
+ *  - The workspace's Redis chat memory — cache, not DB ({@see self::flushChatMemoryCache()}).
+ *  - Captured leads — `leads.agent_id` / `chat_conversation_id` only SET NULL on
+ *    the cascade, so the rows (which hold visitor PII) would survive; deleted by agent.
+ *  - Sanctum tokens (`personal_access_tokens`, polymorphic — no FK) and HTTP
+ *    `sessions` rows (no FK) for the owner and every sub-user.
  *
  * Only a workspace owner reaches here. Employees and chatters can't own teams,
  * so the teardown never recurses through sub-user-owned teams.
@@ -59,11 +62,19 @@ class DeleteUserAccountAction
             [$user->id],
         );
 
+        // Leads hold the visitor's PII and only SET NULL on the agents →
+        // conversations cascade, so delete the workspace's leads (keyed by its
+        // agents) before the owner — and their agents — are torn down.
+        DB::table('leads')
+            ->whereIn('agent_id', fn ($query) => $query->select('id')->from('agents')->where('user_id', $user->id))
+            ->delete();
+
         DB::transaction(function () use ($user): void {
             $ownedTeamIds = $user->ownedTeams()->pluck('id')->all();
 
-            // Employees + chatters belonging to this workspace.
+            // Employees + chatters belonging to this workspace, plus the owner.
             $subUserIds = $user->users()->pluck('id')->all();
+            $allUserIds = [...$subUserIds, $user->id];
 
             // Clear team membership first: team_user.team_id, .user_id and
             // .role_id are all RESTRICT, so the pivot blocks both deleting the
@@ -71,8 +82,17 @@ class DeleteUserAccountAction
             // trip team_user.role_id) until these rows are gone.
             DB::table('team_user')
                 ->whereIn('team_id', $ownedTeamIds)
-                ->orWhereIn('user_id', [...$subUserIds, $user->id])
+                ->orWhereIn('user_id', $allUserIds)
                 ->delete();
+
+            // Nothing cascades these, so the deleted users would orphan them:
+            // Sanctum tokens are polymorphic (no FK) and the sessions table
+            // carries no FK to users either.
+            DB::table('personal_access_tokens')
+                ->where('tokenable_type', $user->getMorphClass())
+                ->whereIn('tokenable_id', $allUserIds)
+                ->delete();
+            DB::table('sessions')->whereIn('user_id', $allUserIds)->delete();
 
             // Workspace sub-users — their owned data cascades on delete. Model
             // delete (not a bulk query) so UserObserver/HasRoles cleanup fires;

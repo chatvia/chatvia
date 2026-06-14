@@ -106,18 +106,29 @@ if (! function_exists('current_agent')) {
     /**
      * Memoised per-request. Chat/widget controllers call this 2–3× per page;
      * each call previously re-issued the sub_domain/external_id lookup.
+     *
+     * The memo lives on the current Request instance, NOT a function `static`:
+     * Octane keeps a worker alive across requests, so a static would persist the
+     * resolved Agent and serve a stale, cross-request model. Octane swaps the
+     * Request each request, so its attribute bag is the correct request-scoped
+     * cache (and on PHP-FPM it is per-request all the same).
      */
     function current_agent(): ?AgentModel
     {
-        static $cache = [];
-
         $slug = request()->agentSlug();
 
         if ($slug === null) {
             return null;
         }
 
-        return $cache[$slug] ??= AgentLocator::resolveAgentFromSubdomain($slug);
+        $cache = request()->attributes->get('current_agent_memo', []);
+
+        if (! array_key_exists($slug, $cache)) {
+            $cache[$slug] = AgentLocator::resolveAgentFromSubdomain($slug);
+            request()->attributes->set('current_agent_memo', $cache);
+        }
+
+        return $cache[$slug];
     }
 }
 

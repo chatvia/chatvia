@@ -18,13 +18,18 @@ class ProvisionCustomMcpServerAction
 
     public function execute(ProvisionCustomMcpServerData $data): ProvisionedMcpServerData
     {
+        // An MCP server is a workspace resource — own it by the workspace, not
+        // the acting employee (whose deletion would SET NULL user_id and silently
+        // promote a private server to a global built-in).
+        $owner = $data->user->workspace();
+
         // refresh() is remote HTTP — never hold a transaction across it; compensate on failure.
         $server = AgentMcpServer::create([
-            'user_id' => $data->user->id,
+            'user_id' => $owner->id,
             'category' => McpServerCategory::Custom,
             'connector_slug' => null,
             'name' => $data->name,
-            'slug' => $this->uniqueCustomSlug($data->user, $data->name),
+            'slug' => $this->uniqueCustomSlug($owner, $data->name),
             'url' => $data->url,
             'transport' => 'streamable_http',
             'auth_type' => $data->strategy === 'token' ? 'bearer' : 'none',

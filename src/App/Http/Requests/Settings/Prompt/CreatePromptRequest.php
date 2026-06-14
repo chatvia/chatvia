@@ -25,7 +25,7 @@ class CreatePromptRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('agent_prompts', 'name')
-                    ->where('user_id', $this->user()->id),
+                    ->where('user_id', $this->user()->workspace()->id),
             ],
             'prompt' => ['required', 'string', 'max:10000'],
         ];

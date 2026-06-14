@@ -30,7 +30,9 @@ class CreateAgentSourceTextAction
 
         /** @var SourceText $agentText */
         $agentText = SourceText::create([
-            'user_id' => $user->id,
+            // Knowledge belongs to the workspace, not whoever uploaded it — key
+            // to the agent's owner so an employee's deletion can't cascade it away.
+            'user_id' => $agent->user_id,
             'filepath' => $filepath,
             'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
             'length' => $numberOfPages,

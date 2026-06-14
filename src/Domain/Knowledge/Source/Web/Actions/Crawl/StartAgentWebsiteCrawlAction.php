@@ -47,7 +47,9 @@ class StartAgentWebsiteCrawlAction
 
         $website = SourceWebsite::create([
             'url' => $data->url,
-            'user_id' => $user->id,
+            // Knowledge belongs to the workspace, not whoever crawled it — key to
+            // the agent's owner so an employee's deletion can't cascade it away.
+            'user_id' => $agent->user_id,
             'status' => 'crawling',
             'options' => $data->exclude('url')->toArray(),
         ]);

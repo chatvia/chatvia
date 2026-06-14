@@ -49,6 +49,7 @@ import {
     UserCog,
     UserPlus,
     Users,
+    UserX,
     X,
 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -231,6 +232,22 @@ const removeMember = () => {
     removeMemberForm.delete(route('teams.remove-member', { team: props.team.external_id, member: memberToRemove.value.id }), {
         onSuccess: () => {
             memberToRemove.value = null;
+        },
+    });
+};
+
+// Remove from workspace — permanently delete the teammate's account and all
+// their data (distinct from removeMember above, which only detaches the team
+// pivot). Workspace-level, so it is not scoped to this team.
+const removeFromWorkspaceForm = useForm({});
+const memberToDeleteFromWorkspace = ref<TeamMemberData | null>(null);
+
+const removeFromWorkspace = () => {
+    if (!memberToDeleteFromWorkspace.value) return;
+
+    removeFromWorkspaceForm.delete(route('teammates.remove', { member: memberToDeleteFromWorkspace.value.id }), {
+        onSuccess: () => {
+            memberToDeleteFromWorkspace.value = null;
         },
     });
 };
@@ -630,6 +647,13 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                                     <Trash2 class="me-2 size-4" />
                                                     {{ t('teams.show.members.remove') }}
                                                 </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    class="text-destructive focus:text-destructive"
+                                                    @click="memberToDeleteFromWorkspace = member"
+                                                >
+                                                    <UserX class="me-2 size-4" />
+                                                    {{ t('teams.show.members.delete_from_workspace') }}
+                                                </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -890,6 +914,25 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                         <Button variant="destructive" @click="removeMember" :disabled="removeMemberForm.processing">
                             <Loader2 v-if="removeMemberForm.processing" class="me-2 size-4 animate-spin" />
                             {{ t('teams.show.members.remove_confirm') }}
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <!-- Delete Teammate From Workspace Confirmation -->
+            <AlertDialog :open="!!memberToDeleteFromWorkspace" @update:open="(open) => !open && (memberToDeleteFromWorkspace = null)">
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{{ t('teams.show.members.delete_from_workspace_title') }}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {{ t('teams.show.members.delete_from_workspace_description', { name: memberToDeleteFromWorkspace?.name }) }}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{{ t('teams.common.cancel') }}</AlertDialogCancel>
+                        <Button variant="destructive" @click="removeFromWorkspace" :disabled="removeFromWorkspaceForm.processing">
+                            <Loader2 v-if="removeFromWorkspaceForm.processing" class="me-2 size-4 animate-spin" />
+                            {{ t('teams.show.members.delete_from_workspace_confirm') }}
                         </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>

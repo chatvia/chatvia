@@ -29,7 +29,7 @@ class CreateAgentFunctionRequest extends FormRequest
                 'max:64',
                 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/',
                 Rule::unique('functions', 'internal_name')
-                    ->where('user_id', $this->user()->id),
+                    ->where('user_id', $this->user()->workspace()->id),
             ],
             'display_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:1024'],

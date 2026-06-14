@@ -76,6 +76,10 @@
                 "remove_title": "Teammitglied entfernen",
                 "remove_description": "Möchten Sie {name} wirklich aus diesem Team entfernen? Diese Person verliert den Zugriff auf alle Teamressourcen.",
                 "remove_confirm": "Mitglied entfernen",
+                "delete_from_workspace": "Aus Workspace entfernen",
+                "delete_from_workspace_title": "Teammitglied-Konto löschen",
+                "delete_from_workspace_description": "Das Konto von {name} und alle persönlichen Daten dauerhaft löschen — Anmeldesitzungen, API-Tokens, Geräte und Anmeldemethoden. Alles, was diese Person für den Workspace erstellt hat (Agenten, Wissen, Tools), bleibt erhalten. Dies kann nicht rückgängig gemacht werden.",
+                "delete_from_workspace_confirm": "Konto löschen",
                 "table": {
                     "member": "Mitglied"
                 }

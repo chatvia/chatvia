@@ -33,15 +33,20 @@ class TokenConnectorAuthorizer
      */
     public function connect(User $user, ConnectorData $connector, ?string $token = null, ?string $url = null): array
     {
+        // A connector is a workspace resource ("one connector_slug per customer")
+        // — own it by the workspace, not the acting employee, whose deletion
+        // would SET NULL user_id and orphan/globalise the server.
+        $owner = $user->workspace();
+
         $existing = AgentMcpServer::query()
-            ->where('user_id', $user->id)
+            ->where('user_id', $owner->id)
             ->where('connector_slug', $connector->slug)
             ->first();
 
         $noAuth = $connector->authStrategy === 'none';
 
         $attrs = [
-            'user_id' => $user->id,
+            'user_id' => $owner->id,
             'category' => $connector->serverCategory(),
             'connector_slug' => $connector->slug,
             'name' => $connector->name,

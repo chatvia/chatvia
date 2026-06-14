@@ -8,6 +8,7 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session as ChatSession;
 use Domain\Conversation\Services\Memory\ChatCache;
+use Domain\Lead\Models\Lead;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
@@ -99,4 +100,37 @@ it('wipes the deleted chatter conversation attachment files on S3', function ():
 
     Storage::disk('public')->assertMissing($filepath);
     expect(Attachment::whereKey($attachment->id)->exists())->toBeFalse();
+});
+
+it('deletes leads captured from the chatter conversations and leaves other chatters leads intact', function (): void {
+    config(['cache.stores.chat' => ['driver' => 'array']]);
+
+    $workspace = User::factory()->workspace()->create();
+    $chatter = User::factory()->chatter($workspace)->create();
+    $sibling = User::factory()->chatter($workspace)->create();
+    $agent = Agent::factory()->create(['user_id' => $workspace->id]);
+
+    $session = ChatSession::create(['agent_id' => $agent->id, 'user_id' => $chatter->id]);
+    $conversation = Conversation::create([
+        'chat_session_id' => $session->id,
+        'agent_id' => $agent->id,
+        'source' => ConversationSource::HostedChat,
+        'title' => 'Lead chat',
+    ]);
+    $lead = Lead::factory()->forAgent($agent)->withConversation($conversation)->create();
+
+    // A sibling chatter's lead on a different conversation must survive.
+    $siblingSession = ChatSession::create(['agent_id' => $agent->id, 'user_id' => $sibling->id]);
+    $siblingConversation = Conversation::create([
+        'chat_session_id' => $siblingSession->id,
+        'agent_id' => $agent->id,
+        'source' => ConversationSource::HostedChat,
+        'title' => 'Sibling chat',
+    ]);
+    $siblingLead = Lead::factory()->forAgent($agent)->withConversation($siblingConversation)->create();
+
+    app(DeleteChatterAction::class)->execute($chatter);
+
+    expect(Lead::whereKey($lead->id)->exists())->toBeFalse()
+        ->and(Lead::whereKey($siblingLead->id)->exists())->toBeTrue();
 });

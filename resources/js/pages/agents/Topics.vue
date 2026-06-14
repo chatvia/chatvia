@@ -628,7 +628,7 @@ onMounted(() => {
                                     </div>
                                     <div v-else class="flex-1 space-y-3 overflow-y-auto">
                                         <div
-                                            v-for="(topic, index) in topicsData.total_topics"
+                                            v-for="(topic, index) in topicsData.total_topics as Domain.Conversation.Topic.Data.TopicSummaryData[]"
                                             :key="topic.id"
                                             class="flex items-center justify-between"
                                         >

@@ -15,8 +15,11 @@ class CreateAgentTopicAction
      */
     public function execute(Agent $agent, User $user, string $topic, string $description): Topic
     {
+        // Topics are a workspace resource (attached to the workspace's agents),
+        // so scope uniqueness and ownership to the agent's owner — not the
+        // acting employee, whose deletion would otherwise cascade the topic away.
         $exists = Topic::query()
-            ->where('user_id', $user->id)
+            ->where('user_id', $agent->user_id)
             ->where('topic', $topic)
             ->exists();
 
@@ -24,9 +27,9 @@ class CreateAgentTopicAction
             throw new DomainValidationException('topic', 'You already have a topic with this name');
         }
 
-        return DB::transaction(function () use ($agent, $user, $topic, $description): Topic {
+        return DB::transaction(function () use ($agent, $topic, $description): Topic {
             $newTopic = Topic::create([
-                'user_id' => $user->id,
+                'user_id' => $agent->user_id,
                 'topic' => $topic,
                 'description' => $description,
             ]);

@@ -18,8 +18,6 @@ class AgentTelegramChannelController
 {
     public function connect(ConnectTelegramRequest $request, Agent $agent, ConnectTelegramBotAction $action): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         // Telegram (and messaging channels generally) is for public agents only —
         // a Telegram sender is anonymous and can't satisfy a protected agent's
         // access model. Refuse to connect a protected agent.
@@ -42,8 +40,6 @@ class AgentTelegramChannelController
 
     public function disconnect(Request $request, Agent $agent, TelegramClient $client): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $bot = $agent->telegramBot;
 
         if ($bot !== null) {

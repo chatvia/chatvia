@@ -19,8 +19,6 @@ class AgentSlackChannelController
 {
     public function connect(ConnectSlackRequest $request, Agent $agent, ConnectSlackAppAction $action): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         // Slack (and messaging channels generally) is for public agents only —
         // a Slack sender is anonymous to Chatvia and can't satisfy a protected
         // agent's access model. Refuse to connect a protected agent.
@@ -43,8 +41,6 @@ class AgentSlackChannelController
 
     public function disconnect(Request $request, Agent $agent): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $agent->slackApp?->delete();
 
         return back();

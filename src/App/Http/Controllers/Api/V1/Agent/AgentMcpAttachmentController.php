@@ -13,17 +13,25 @@ use Illuminate\Http\Request;
 /**
  * Attach / detach MCP servers to a specific agent.
  */
-#[Group(name: 'MCP Servers', weight: 50)]
+#[Group(name: 'Connectors', weight: 50)]
 class AgentMcpAttachmentController
 {
-    /** @return array{data: list<McpServerData>} */
+    /**
+     * List an agent's connectors
+     *
+     * @return array{data: list<McpServerData>}
+     */
     public function index(Request $request, Agent $agent): array
     {
         return ['data' => $agent->mcpServers()->get()
             ->map(fn (AgentMcpServer $s): McpServerData => McpServerData::fromModel($s))->all()];
     }
 
-    /** @return array{data: McpServerData} */
+    /**
+     * Attach connector to agent
+     *
+     * @return array{data: McpServerData}
+     */
     public function store(AttachAgentMcpRequest $request, Agent $agent): array
     {
         $data = $request->toData($agent);
@@ -34,6 +42,9 @@ class AgentMcpAttachmentController
         return ['data' => McpServerData::fromModel($server->fresh())];
     }
 
+    /**
+     * Detach connector from agent
+     */
     public function destroy(Request $request, Agent $agent, string $mcp): JsonResponse
     {
         $agent->detachConnector($this->resolveServer($agent, $mcp));

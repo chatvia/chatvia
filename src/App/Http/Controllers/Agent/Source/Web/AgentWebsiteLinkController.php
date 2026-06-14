@@ -13,8 +13,6 @@ class AgentWebsiteLinkController
 {
     public function index(Request $request, Agent $agent, SourceWebsite $website): Paginator
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         // {website} binds globally by id — confirm it belongs to this agent so
         // a caller can't list another tenant's crawled URLs.
         abort_if(! $agent->websites()->whereKey($website->id)->exists(), 404);

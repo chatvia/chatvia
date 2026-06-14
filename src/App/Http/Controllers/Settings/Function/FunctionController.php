@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Settings\Function;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Function\CreateAgentFunctionRequest;
 use App\Http\Requests\Settings\Function\UpdateAgentFunctionRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Function\Actions\CreateAgentFunctionAction;
-use Domain\Integration\Function\Actions\DeleteAgentFunctionAction;
 use Domain\Integration\Function\Actions\UpdateAgentFunctionAction;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\RedirectResponse;
@@ -18,12 +16,10 @@ use Inertia\Response;
 /**
  * Account-level webhook functions dashboard page. Mirrors `/api/v1/functions`.
  */
-class FunctionController extends Controller
+class FunctionController
 {
     public function edit(Request $request): Response
     {
-        abort_unless(has_team_permission('account.functions'), 404);
-
         $functions = $request->user()->functions()
             ->withCount('agents')
             ->latest()
@@ -52,8 +48,6 @@ class FunctionController extends Controller
 
     public function store(CreateAgentFunctionRequest $request, CreateAgentFunctionAction $createFunction): RedirectResponse
     {
-        abort_unless(has_team_permission('account.functions'), 404);
-
         $createFunction->execute($request->toData());
 
         return back();
@@ -61,8 +55,6 @@ class FunctionController extends Controller
 
     public function update(UpdateAgentFunctionRequest $request, string $external_id, UpdateAgentFunctionAction $updateFunction): RedirectResponse
     {
-        abort_unless(has_team_permission('account.functions'), 404);
-
         /** @var User $user */
         $user = $request->user();
 
@@ -71,14 +63,12 @@ class FunctionController extends Controller
         return back();
     }
 
-    public function destroy(Request $request, string $external_id, DeleteAgentFunctionAction $deleteFunction): RedirectResponse
+    public function destroy(Request $request, string $external_id): RedirectResponse
     {
-        abort_unless(has_team_permission('account.functions'), 404);
-
         /** @var User $user */
         $user = $request->user();
 
-        $deleteFunction->execute($user, $external_id);
+        $user->functions()->where('external_id', $external_id)->delete();
 
         return back();
     }

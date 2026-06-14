@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Landing\Marketing;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
-class DocController extends Controller
+class DocController
 {
     /**
      * Handle the incoming request.

@@ -7,26 +7,25 @@ use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Workspace\Data\Account\CreateUserPayloadData;
 use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Your end-users (chatters). Create one here for a specific agent (with an
+ * Your end-users (chatters). Create one here for one or more agents (with an
  * `email` + `password`), then either hand them a chat sign-in link via
  * `POST /api/v1/chatters/sign` or let them sign in directly. Chatters never
  * reach the dashboard — they can only chat with the agent(s) you've granted
  * them.
  */
-#[Group('Chatters', weight: 30)]
+#[Group('Chatters', weight: 90)]
 class ExternalChatterController
 {
     /**
      * Create chatter
      *
      * Provisions an end-user (chatter) under your account, granted access to
-     * the agent named by `agent_id`. Returns the chatter's `id` — pass it when
-     * minting a sign-in link.
+     * the agents named by `agent_ids`. Returns the chatter's `id` — pass it
+     * when minting a sign-in link.
      *
      * @return array{data: UserData}
      */
@@ -36,16 +35,23 @@ class ExternalChatterController
         $account = $request->user();
         $owner = $account->workspace();
 
-        $agent = $owner->agents()->where('external_id', $payload->agent_id)->first();
+        // Scope the requested agents to the caller's workspace — a chatter can
+        // only be granted agents the workspace owns. Any id that doesn't resolve
+        // to an owned agent fails validation, so a foreign id can't slip through.
+        $agents = $owner->agents()->whereIn('external_id', $payload->agent_ids)->get();
 
-        if (! $agent instanceof Agent) {
+        $missing = array_values(
+            array_diff(array_unique($payload->agent_ids), $agents->pluck('external_id')->all())
+        );
+
+        if ($missing !== []) {
             throw ValidationException::withMessages([
-                'agent_id' => 'Unknown agent.',
+                'agent_ids' => 'Unknown agent(s): '.implode(', ', $missing).'.',
             ]);
         }
 
         return ['data' => UserData::fromModel(
-            $action->execute($owner, $agent, $payload->name, $payload->email, $payload->password)
+            $action->execute($owner, $agents, $payload->name, $payload->email, $payload->password)
         )];
     }
 }

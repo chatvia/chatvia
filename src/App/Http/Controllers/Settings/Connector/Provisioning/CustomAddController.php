@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Connector\AddCustomConnectorRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
@@ -20,7 +19,7 @@ use Throwable;
  * returns `{ redirect_url }` so the UI can navigate; for token / no-auth, provisions
  * immediately via the Action.
  */
-class CustomAddController extends Controller
+class CustomAddController
 {
     public function __construct(
         private readonly McpOAuthFlow $oauthFlow,
@@ -30,8 +29,6 @@ class CustomAddController extends Controller
         AddCustomConnectorRequest $request,
         ProvisionCustomMcpServerAction $provision,
     ): JsonResponse {
-        abort_unless(has_team_permission('account.connectors'), 404);
-
         $data = $request->toData();
 
         if ($data->auth_strategy === 'oauth') {

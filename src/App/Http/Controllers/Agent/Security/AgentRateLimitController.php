@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Agent\Security;
 
-use App\Http\Controllers\Controller;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,7 +12,7 @@ use Inertia\Response;
  * minute across all visitors, with an optional owner email when it trips. The
  * write endpoint is {@see UpdateAgentSecuritySettingsController}.
  */
-class AgentRateLimitController extends Controller
+class AgentRateLimitController
 {
     public function __invoke(Request $request, Agent $agent): Response
     {

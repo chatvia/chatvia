@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property int|null $retention_analytics_days
  * @property int|null $anonymize_after_days
  * @property string $ip_allowlist_mode
+ * @property array<int, string>|null $ip_allowlist
  * @property string $geo_mode
  * @property array<int, string>|null $geo_countries
  * @property string|null $webhook_url
@@ -40,21 +41,25 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class WorkspaceSecurityPolicy extends Model
 {
-    protected $casts = [
-        'retention_conversations_days' => 'integer',
-        'retention_leads_days' => 'integer',
-        'retention_audit_days' => 'integer',
-        'retention_analytics_days' => 'integer',
-        'anonymize_after_days' => 'integer',
-        'geo_countries' => 'array',
-        'webhook_secret' => 'encrypted',
-        'webhook_enabled' => 'boolean',
-        'webhook_events' => 'array',
-        'webhook_failures' => 'integer',
-        'webhook_last_delivered_at' => 'datetime',
-        'scim_enabled' => 'boolean',
-        'security_override' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'retention_conversations_days' => 'integer',
+            'retention_leads_days' => 'integer',
+            'retention_audit_days' => 'integer',
+            'retention_analytics_days' => 'integer',
+            'anonymize_after_days' => 'integer',
+            'ip_allowlist' => 'array',
+            'geo_countries' => 'array',
+            'webhook_secret' => 'encrypted',
+            'webhook_enabled' => 'boolean',
+            'webhook_events' => 'array',
+            'webhook_failures' => 'integer',
+            'webhook_last_delivered_at' => 'datetime',
+            'scim_enabled' => 'boolean',
+            'security_override' => 'boolean',
+        ];
+    }
 
     /**
      * The single resolution path — guarantees a row exists for the workspace so

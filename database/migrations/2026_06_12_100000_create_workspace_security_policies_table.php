@@ -28,8 +28,11 @@ return new class extends Migration
             $table->unsignedInteger('retention_analytics_days')->nullable();
             $table->unsignedInteger('anonymize_after_days')->nullable();
 
-            // Network access control.
+            // Network access control. `ip_allowlist_mode` is the master scope for
+            // the whole network gate (IP allowlist + geo): off applies nothing,
+            // dashboard guards the web app, dashboard_api also guards the API.
             $table->string('ip_allowlist_mode')->default('off'); // off | dashboard | dashboard_api
+            $table->jsonb('ip_allowlist')->nullable();           // allowed IPs / CIDRs; empty = no IP restriction
             $table->string('geo_mode')->default('off');          // off | allow | deny
             $table->jsonb('geo_countries')->nullable();          // ISO-3166 alpha-2 codes
 

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Agent\Chatter;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Agent\Chatter\InviteAgentChatterRequest;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
@@ -28,7 +27,7 @@ use Spatie\LaravelData\DataCollection;
  *   grant    — give an existing chatter access to this agent.
  *   destroy  — revoke this agent's grant (user stays).
  */
-class AgentChatterController extends Controller
+class AgentChatterController
 {
     /**
      * @return Response|array{data: DataCollection<int, AgentChatterRowData>}

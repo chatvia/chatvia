@@ -19,8 +19,6 @@ class AgentMessengerChannelController
 {
     public function connect(ConnectMessengerRequest $request, Agent $agent, ConnectMessengerPageAction $action): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         // Messenger (and messaging channels generally) is for public agents
         // only — a Messenger sender is anonymous to Chatvia and can't satisfy
         // a protected agent's access model. Refuse to connect a protected agent.
@@ -43,8 +41,6 @@ class AgentMessengerChannelController
 
     public function disconnect(Request $request, Agent $agent): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $agent->messengerPage?->delete();
 
         return back();

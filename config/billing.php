@@ -166,7 +166,7 @@ return [
         |----------------------------------------------------------------------
         */
         'pro' => [
-            'name' => 'Pro',
+            'name' => 'Ultra',
             'description' => 'For organizations that need it all.',
             'features' => [
                 'monthly' => [
@@ -185,6 +185,8 @@ return [
                     'api' => 'API access',
                     'integrations' => 'Custom integrations',
                     'branding' => 'White-label (remove Chatvia branding)',
+                    'access_control' => 'Network access control (IP & geo)',
+                    'siem' => 'SIEM webhook (real-time security events)',
                     'teams' => '10 team',
                     'members' => '100 members (team members + chatters)',
                     'retention' => '366 days of chat history',
@@ -205,6 +207,8 @@ return [
                     'api' => 'API access',
                     'integrations' => 'Custom integrations',
                     'branding' => 'White-label (remove Chatvia branding)',
+                    'access_control' => 'Network access control (IP & geo)',
+                    'siem' => 'SIEM webhook (real-time security events)',
                     'teams' => '10 team',
                     'members' => '100 members (team members + chatters)',
                     'retention' => '366 days of chat history',

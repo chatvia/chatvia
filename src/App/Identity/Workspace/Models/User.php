@@ -2,6 +2,8 @@
 
 namespace App\Identity\Workspace\Models;
 
+use App\Identity\Workspace\Concerns\InteractsWithWorkspaceQuotas;
+use App\Identity\Workspace\Concerns\ResolvesTeamMembership;
 use App\Identity\Workspace\Services\MessageCredits;
 use App\Identity\Workspace\Services\WorkspaceConsumption;
 use Database\Factories\UserFactory;
@@ -27,7 +29,6 @@ use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamRoleResolver;
 use Domain\Membership\Team\Services\TeamService;
 use Domain\Prompt\Models\AgentPrompt;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
@@ -185,7 +186,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     private array $memo = [];
 
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, InteractsWithWorkspaceQuotas, Notifiable, PasskeyAuthenticatable, ResolvesTeamMembership, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.
@@ -420,11 +421,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return $this->capabilities->{$capability->value} === true;
     }
 
-    public function cancelSubscription(): void
-    {
-        $this->workspace()->billing?->subscription()?->cancel();
-    }
-
     /**
      * Workspace-scoped knowledge consumption queries (pages, minutes, links)
      * and the matching upload-quota check. Lives on a small dedicated service
@@ -559,13 +555,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return $this->hasOne(UserCredit::class, 'user_id')->latestOfMany('ends_at');
     }
 
-    public function addCredit($quota, Carbon $endsAt): UserCredit
-    {
-        $workspace = $this->workspace();
-
-        return $workspace->creditSystem()->addCredit($quota, $endsAt);
-    }
-
     public function getUserId()
     {
         return $this->id;
@@ -645,55 +634,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public function belongsToTeam(Team $team): bool
     {
         return $this->ownsTeam($team) || $this->memberTeams->contains($team);
-    }
-
-    /**
-     * Get the user's role in a specific team. Thin wrapper around
-     * {@see TeamRoleResolver::roleFor}; new code should inject the resolver
-     * directly and skip this shim.
-     */
-    public function teamRole(Team $team): ?Role
-    {
-        return $this->remember(
-            "teamRole:{$team->id}",
-            fn (): ?Role => app(TeamRoleResolver::class)->roleFor($this, $team),
-        );
-    }
-
-    /** @see TeamRoleResolver::hasPermission — via the memoized teamRole(). */
-    public function hasTeamPermission(Team $team, string $permission): bool
-    {
-        $role = $this->teamRole($team);
-
-        return $role !== null && $role->hasPermissionTo($permission);
-    }
-
-    /**
-     * @see TeamRoleResolver::permissions
-     *
-     * @return list<string>
-     */
-    public function teamPermissions(Team $team): array
-    {
-        return app(TeamRoleResolver::class)->permissions($this, $team);
-    }
-
-    /**
-     * Get the user's primary team (first owned team created at registration).
-     */
-    public function primaryTeam(): ?Team
-    {
-        return $this->remember('primaryTeam', fn (): ?Team => $this->ownedTeams()->oldest()->first());
-    }
-
-    /**
-     * Check if a team is the user's primary team.
-     */
-    public function isPrimaryTeam($team): bool
-    {
-        $primaryTeam = $this->primaryTeam();
-
-        return $primaryTeam && $primaryTeam->id === $team->id;
     }
 
     /**
@@ -901,103 +841,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         }
 
         return app(TeamService::class)->accessibleAgents($this, $team);
-    }
-
-    // =========================================================================
-    // Team & Workspace-User Quota Methods
-    // =========================================================================
-
-    /**
-     * Get the number of teams the user has created (owns).
-     */
-    public function teamsCreatedCount(): int
-    {
-        return $this->ownedTeams()->count();
-    }
-
-    /**
-     * Number of team members (employees) the user has invited.
-     * Informational only — the quota gate uses workspaceUsersCount().
-     */
-    public function teamMembersCount(): int
-    {
-        return $this->managedUsers()->count();
-    }
-
-    /**
-     * Number of chatters provisioned via the API. Informational only —
-     * the quota gate uses workspaceUsersCount().
-     */
-    public function chattersCount(): int
-    {
-        return $this->chatters()->count();
-    }
-
-    /**
-     * Total users belonging to this workspace — employees + chatters
-     * combined. This is the figure the per-plan quota gates against.
-     */
-    public function workspaceUsersCount(): int
-    {
-        return $this->users()->count();
-    }
-
-    /**
-     * Get remaining teams the user can create.
-     */
-    public function remainingTeamsQuota(): int
-    {
-        return max(0, $this->fixedQuotaLimit('teams_limit') - $this->teamsCreatedCount());
-    }
-
-    /**
-     * Get remaining workspace users (employees + chatters combined)
-     * the user can add under their plan's `workspace_users_limit`.
-     */
-    public function remainingWorkspaceUsersQuota(): int
-    {
-        return max(0, $this->totalWorkspaceUsersLimit() - $this->workspaceUsersCount());
-    }
-
-    /**
-     * Check if the user can create more teams.
-     */
-    public function canCreateTeam(): bool
-    {
-        return $this->teamsCreatedCount() < $this->fixedQuotaLimit('teams_limit');
-    }
-
-    /**
-     * Whether this workspace can add another user — employee or chatter.
-     * Both types draw from the same `workspace_users_limit` bucket.
-     */
-    public function canAddWorkspaceUser(): bool
-    {
-        return $this->workspaceUsersCount() < $this->totalWorkspaceUsersLimit();
-    }
-
-    /**
-     * Effective seat limit — the plan's `workspace_users_limit` (with the
-     * default-package fallback for accounts that have no `user_quotas` row yet)
-     * plus any active Members add-on quantity mirrored onto `extra_members_limit`.
-     * Both team-member invites and chatter creation gate against this.
-     */
-    public function totalWorkspaceUsersLimit(): int
-    {
-        return $this->fixedQuotaLimit('workspace_users_limit') + (int) ($this->quota?->extra_members_limit ?? 0);
-    }
-
-    /**
-     * This account's fixed quota limit for $key, falling back to the default
-     * package's limit when no `user_quotas` row exists yet (fresh signup before
-     * the first plan/webhook lands one). Centralises the null-quota handling
-     * that every quota gate needs — without it `canAddWorkspaceUser()` and the
-     * `remaining*` helpers would fatal on a brand-new account. The default-
-     * package shape is owned by the Billing service, not this model.
-     */
-    private function fixedQuotaLimit(string $key): int
-    {
-        return (int) ($this->quota?->{$key} ?? app(Billing::class)->defaultFixedLimit($key));
     }
 
     /**

@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Billing\Trials;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Billing\StartTrialCheckoutRequest;
 use Domain\Billing\Actions\Trials\StartTrialCheckoutAction;
 use Illuminate\Http\RedirectResponse;
 use InvalidArgumentException;
 use Throwable;
 
-class TrialCheckoutController extends Controller
+class TrialCheckoutController
 {
     public function __invoke(StartTrialCheckoutRequest $request, StartTrialCheckoutAction $startTrial): RedirectResponse
     {

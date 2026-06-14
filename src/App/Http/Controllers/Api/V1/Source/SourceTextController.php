@@ -18,7 +18,7 @@ use Illuminate\Http\Request;
  * the source via `GET /sources` to track the `status` field through the
  * pipeline (`pending` → `processing` → `trained`).
  */
-#[Group(name: 'Knowledge Sources', weight: 70)]
+#[Group(name: 'Sources', weight: 70)]
 class SourceTextController
 {
     /**

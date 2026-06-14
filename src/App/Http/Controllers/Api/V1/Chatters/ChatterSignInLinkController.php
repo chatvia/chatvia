@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * `POST /api/v1/chatters`. The link is valid until it expires (default 1 hour)
  * and can be opened more than once within that window.
  */
-#[Group('Chatters', weight: 30)]
+#[Group('Chatters', weight: 90)]
 class ChatterSignInLinkController
 {
     use ResolvesAccountAgent;

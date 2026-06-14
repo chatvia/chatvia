@@ -16,10 +16,14 @@ use RuntimeException;
 /**
  * Upload a file (PDF / Word / audio / video) as a knowledge source.
  */
-#[Group(name: 'Knowledge Sources', weight: 70)]
+#[Group(name: 'Sources', weight: 70)]
 class SourceFileController
 {
-    /** @return JsonResponse|array{data: UploadedSourceFileData} */
+    /**
+     * Add file source
+     *
+     * @return JsonResponse|array{data: UploadedSourceFileData}
+     */
     public function store(UploadSourceFileRequest $request, Agent $agent, UploadKnowledgeSourceFileAction $upload): JsonResponse|array
     {
         try {
@@ -31,6 +35,9 @@ class SourceFileController
         return ['data' => UploadedSourceFileData::fromModel($sourceFile)];
     }
 
+    /**
+     * Delete file source
+     */
     public function destroy(Request $request, Agent $agent, int $source, DeleteSourceFileFromAgentAction $deleteFile): JsonResponse
     {
         /** @var SourceFile $file */

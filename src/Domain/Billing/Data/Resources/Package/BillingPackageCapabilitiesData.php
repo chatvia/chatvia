@@ -23,10 +23,14 @@ class BillingPackageCapabilitiesData extends Data
         public bool $api = false,
         public bool $pulse = false,
         public bool $removeBranding = false,
-        // The Enterprise Security & Compliance suite (RBAC gating, security
-        // audit log, Compliance API, IP allowlisting, configurable retention,
-        // SCIM). Single umbrella flag — Enterprise tier only.
+        // The Security & Compliance suite (network access control, configurable
+        // retention, security audit log). Single umbrella flag — Ultra and
+        // Enterprise tiers.
         public bool $security = false,
+        // SIEM webhook delivery — its own capability, decoupled from the
+        // `security` flag so it can be granted independently. Ultra (and
+        // Enterprise, which is Ultra + manual grants).
+        public bool $siemWebhook = false,
         // Days a conversation (and its cached memory) lives before the
         // scheduled prune deletes it. Set per plan in the factory methods
         // below; ChatCache reads it for the Redis TTL and the conversation
@@ -67,6 +71,8 @@ class BillingPackageCapabilitiesData extends Data
             api: true,
             pulse: true,
             removeBranding: true,
+            security: true,
+            siemWebhook: true,
             retentionDays: 366,
         );
     }
@@ -82,6 +88,7 @@ class BillingPackageCapabilitiesData extends Data
             pulse: true,
             removeBranding: true,
             security: true,
+            siemWebhook: true,
             retentionDays: 366,
         );
     }
@@ -114,6 +121,7 @@ class BillingPackageCapabilitiesData extends Data
             pulse: $capabilities['pulse'] ?? false,
             removeBranding: $capabilities['removeBranding'] ?? false,
             security: $capabilities['security'] ?? false,
+            siemWebhook: $capabilities['siemWebhook'] ?? false,
             retentionDays: $capabilities['retentionDays'] ?? self::DEFAULT_RETENTION_DAYS,
         );
     }

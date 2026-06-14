@@ -11,8 +11,6 @@ class AgentConnectorsListController
 {
     public function __invoke(Request $request, Agent $agent, ListAgentConnectorsAction $list): AgentConnectorsResourceData
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         return $list->execute($agent);
     }
 }

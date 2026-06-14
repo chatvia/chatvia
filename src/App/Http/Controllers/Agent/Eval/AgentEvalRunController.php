@@ -23,7 +23,6 @@ class AgentEvalRunController
 {
     public function show(Request $request, Agent $agent, EvalRun $run): Response
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
         abort_if($run->agent_id !== $agent->id, 404);
 
         $results = $run->results()->orderBy('id')->get();
@@ -37,7 +36,6 @@ class AgentEvalRunController
 
     public function destroy(Request $request, Agent $agent, EvalRun $run): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
         abort_if($run->agent_id !== $agent->id, 404);
 
         $run->delete();
@@ -47,8 +45,6 @@ class AgentEvalRunController
 
     public function clear(Request $request, Agent $agent): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         EvalRun::query()->forAgent($agent->id)->delete();
 
         return to_route('agents.evals', $agent);

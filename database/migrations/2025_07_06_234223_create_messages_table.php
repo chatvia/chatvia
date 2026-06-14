@@ -94,6 +94,11 @@ return new class extends Migration
 
             $table->index(['chat_session_id', 'created_at']);
             $table->index(['chat_session_id', 'updated_at']);
+            // Full (non-partial) agent_id index. The conversations_agent_visible_idx
+            // below is partial (is_visible + not-deleted), so it can't serve the
+            // agent_id FK cascade delete or agent-scoped scans that include hidden /
+            // trashed rows — those would otherwise seq-scan. Mirrors chat_sessions.
+            $table->index(['agent_id', 'created_at']);
         });
 
         Schema::create('chat_messages', function (Blueprint $table) {

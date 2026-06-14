@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Actions\Conversations;
 
 use Domain\Agent\Models\Agent;
+use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Conversation\Data\Conversations\ConversationSummaryData;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -18,11 +19,18 @@ class ListAgentConversationsAction
      */
     public function execute(Agent $agent, int $perPage): LengthAwarePaginator
     {
+        // Every conversation in the page belongs to this one agent, so the
+        // plan-gated sentiment/tone flags are constant across the page. Resolve
+        // them once here instead of lazy-loading agent->team for every row.
+        $team = $agent->team;
+        $sentimentEnabled = $team?->hasCapability(CapabilityEnum::SENTIMENT) ?? false;
+        $toneEnabled = $team?->hasCapability(CapabilityEnum::TONE) ?? false;
+
         return Conversation::query()
             ->forAgent($agent->id)
             ->onlyVisible()
             ->orderByLatestActivity()
             ->paginate($perPage)
-            ->through(fn (Conversation $c): ConversationSummaryData => ConversationSummaryData::fromModel($c));
+            ->through(fn (Conversation $c): ConversationSummaryData => ConversationSummaryData::fromModel($c, $sentimentEnabled, $toneEnabled));
     }
 }

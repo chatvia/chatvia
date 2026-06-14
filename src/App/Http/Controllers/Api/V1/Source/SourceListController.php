@@ -8,14 +8,17 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * @tags Knowledge Sources
+ * @tags Sources
  *
  * Lists all knowledge sources attached to an agent, regardless of type.
  * Each entry includes ingestion status so customers can poll for completion.
  */
-#[Group(name: 'Knowledge Sources', weight: 70)]
+#[Group(name: 'Sources', weight: 70)]
 class SourceListController
 {
+    /**
+     * List sources
+     */
     public function __invoke(Request $request, Agent $agent): JsonResponse
     {
         $files = $agent->files()

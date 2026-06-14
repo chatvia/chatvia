@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Agent\Invitations;
 
-use App\Http\Controllers\Controller;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,7 +12,7 @@ use Inertia\Response;
  * onboarding page with the carried (agent, email). Expired / unknown tokens
  * 404 — the page handles the "no longer valid" copy.
  */
-class AgentInvitationController extends Controller
+class AgentInvitationController
 {
     public function __invoke(string $token): Response
     {

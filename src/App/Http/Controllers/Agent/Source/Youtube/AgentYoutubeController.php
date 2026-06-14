@@ -20,8 +20,6 @@ class AgentYoutubeController
     public function index(Request $request, Agent $agent): Response|Collection
     {
         if ($request->wantsJson()) {
-            abort_if($request->user()->cannot('view', $agent), 404);
-
             return $agent
                 ->youtubeVideos()
                 ->select('source_youtube_videos.id', 'url', 'title', 'status', 'failure_reason', 'source_youtube_videos.created_at')

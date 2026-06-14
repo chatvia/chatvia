@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
-use App\Http\Controllers\Controller;
-use App\Identity\Workspace\Actions\Social\UnlinkSocialAccountAction;
 use App\Identity\Workspace\Models\UserSocial;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,7 +9,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Support\Enums\User\SocialProvider;
 
-class SocialController extends Controller
+class SocialController
 {
     /**
      * Providers we have OAuth callbacks configured for. LinkedIn / X exist in
@@ -58,11 +56,11 @@ class SocialController extends Controller
         return redirect()->route("auth.{$provider}");
     }
 
-    public function disconnect(string $provider, UnlinkSocialAccountAction $unlink, Request $request): RedirectResponse
+    public function disconnect(string $provider, Request $request): RedirectResponse
     {
         $providerEnum = $this->resolveProvider($provider);
 
-        $unlink->execute($request->user(), $providerEnum);
+        $request->user()->socials()->where('provider', $providerEnum)->delete();
 
         return to_route('account.social.edit')
             ->with('success', ucfirst($providerEnum->value).' disconnected.');

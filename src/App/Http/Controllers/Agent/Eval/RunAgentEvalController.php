@@ -21,8 +21,6 @@ class RunAgentEvalController
 
     public function __invoke(Request $request, Agent $agent): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         /** @var User $user */
         $user = $request->user();
 

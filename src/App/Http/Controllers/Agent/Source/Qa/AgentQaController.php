@@ -21,8 +21,6 @@ class AgentQaController
 {
     public function index(Request $request, Agent $agent): Response|JsonResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         if ($request->wantsJson()) {
             return response()->json(['data' => $this->buildQaList($agent)]);
         }
@@ -34,8 +32,6 @@ class AgentQaController
 
     public function show(Request $request, Agent $agent, int $id): JsonResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $qa = AgentQuestionAnswer::query()
             ->where('agent_id', $agent->id)
             ->findOrFail($id);

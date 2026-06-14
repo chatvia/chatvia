@@ -18,8 +18,6 @@ class AgentChatLogController
 {
     public function index(Request $request, Agent $agent): Response
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         return Inertia::render('agents/ChatLog/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'current_conversation_id' => $request->query('conversation_id'),

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Account\CreateApiKeyRequest;
 use App\Identity\ApiKey\Actions\CreateApiKeyAction;
 use App\Identity\ApiKey\Actions\DeleteApiKeyAction;
@@ -12,12 +11,10 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ApiKeyController extends Controller
+class ApiKeyController
 {
     public function edit(Request $request): Response
     {
-        abort_unless(has_team_permission('account.api_keys'), 404);
-
         $tokens = $request->user()->tokens()
             ->latest()
             ->get(['id', 'name', 'abilities', 'last_used_at', 'created_at'])
@@ -38,8 +35,6 @@ class ApiKeyController extends Controller
 
     public function store(CreateApiKeyRequest $request, CreateApiKeyAction $createApiKey): RedirectResponse
     {
-        abort_unless(has_team_permission('account.api_keys'), 404);
-
         $token = $createApiKey->execute($request->toData());
 
         return back()->with('created_token', [
@@ -51,8 +46,6 @@ class ApiKeyController extends Controller
 
     public function destroy(Request $request, int $tokenId, DeleteApiKeyAction $deleteApiKey): RedirectResponse
     {
-        abort_unless(has_team_permission('account.api_keys'), 404);
-
         /** @var User $user */
         $user = $request->user();
 

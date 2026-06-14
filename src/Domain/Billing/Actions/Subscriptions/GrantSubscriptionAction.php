@@ -53,7 +53,7 @@ class GrantSubscriptionAction
             ]);
 
             // Add message credits for the billing period.
-            $user->addCredit($quotaLimit, $endsAt);
+            $user->creditSystem()->addCredit($quotaLimit, $endsAt);
         });
 
         $user->refresh();

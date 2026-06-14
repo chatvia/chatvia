@@ -16,7 +16,6 @@ class DetachAgentQaController
 {
     public function __invoke(Request $request, Agent $agent, int $id): JsonResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
         abort_if($request->user()->cannot('update', $agent), 404);
 
         return response()->json(['message' => 'Q&A entry unlinked successfully']);

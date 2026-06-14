@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Connector\Catalog;
 
-use App\Http\Controllers\Controller;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
@@ -16,7 +15,7 @@ use Illuminate\Http\Request;
  * Provisions a token / no-auth catalog connector at the account level.
  * OAuth connectors go through `ConnectorOAuthStartController` instead.
  */
-class ConnectController extends Controller
+class ConnectController
 {
     public function __construct(
         private readonly ConnectorCatalog $catalog,
@@ -25,8 +24,6 @@ class ConnectController extends Controller
 
     public function __invoke(Request $request, string $slug): JsonResponse
     {
-        abort_unless(has_team_permission('account.connectors'), 404);
-
         $connector = $this->catalog->findTokenConnector($slug);
         abort_unless($connector !== null, 404, 'Connector not available');
 

@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Account\UpdatePreferencesRequest;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Support\Enums\User\DateFormat;
 
-class PreferencesController extends Controller
+class PreferencesController
 {
     /**
      * Trivial single-column preference write — a model `update()` with no rule,

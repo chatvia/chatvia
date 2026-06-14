@@ -41,6 +41,11 @@ return new class extends Migration
                 ->default('approval');
 
             // Shared embeddings — computed ONCE per (connector_slug, name).
+            // Deliberately full fp32 vector (not halfvec like chunks): these tool
+            // catalogs are tiny (tens of rows), so the storage win doesn't matter,
+            // and ToolHybridSearch hard-codes `<-> ?::vector(1024)` with a
+            // vector_l2_ops vchordrq index — keeping fp32 avoids a type/ops-class
+            // mismatch that would silently drop the index.
             $table->vector('embedding', 1024)->nullable();
             $table->bm25vector('embedding_bm25')->nullable();
 
@@ -81,6 +86,9 @@ return new class extends Migration
             $table->enum('permission', ['allow', 'approval', 'blocked'])
                 ->default('approval');
 
+            // Full fp32 vector (not halfvec) — see the note on connector_tools
+            // above: small catalog + ToolHybridSearch's hard-coded
+            // `<-> ?::vector(1024)` / vector_l2_ops index require fp32.
             $table->vector('embedding', 1024)->nullable();
             $table->bm25vector('embedding_bm25')->nullable();
 

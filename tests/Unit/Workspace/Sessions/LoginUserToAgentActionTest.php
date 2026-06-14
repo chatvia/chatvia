@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Actions\Sessions\LoginUserToAgentAction;
 use App\Identity\Workspace\Data\Sessions\LoginData;
 use App\Identity\Workspace\Models\User;
@@ -46,7 +47,7 @@ it('returns null and does not log in when the password is wrong', function (): v
 });
 
 it('returns null when the user is deactivated, even with valid credentials', function (): void {
-    app(\App\Identity\Workspace\Actions\Account\DeactivateAccountAction::class)->execute($this->owner, 'blocked by admin');
+    app(DeactivateAccountAction::class)->execute($this->owner, 'blocked by admin');
 
     $result = app(LoginUserToAgentAction::class)->execute(
         new LoginData(email: 'owner@example.test', password: 'correct-password', remember: false),

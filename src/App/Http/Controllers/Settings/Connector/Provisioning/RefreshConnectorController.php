@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
-use App\Http\Controllers\Controller;
 use Domain\Integration\Mcp\Data\Resources\AgentMcpServerData;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpCatalog;
@@ -14,7 +13,7 @@ use Throwable;
 /**
  * Re-fetch the tool catalog for an account-level MCP/connector.
  */
-class RefreshConnectorController extends Controller
+class RefreshConnectorController
 {
     public function __construct(
         private readonly McpCatalog $catalog,
@@ -22,8 +21,6 @@ class RefreshConnectorController extends Controller
 
     public function __invoke(Request $request, string $slug): JsonResponse
     {
-        abort_unless(has_team_permission('account.connectors'), 404);
-
         $server = AgentMcpServer::forSlugScoped($slug, $request->user());
 
         try {

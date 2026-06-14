@@ -19,8 +19,6 @@ class CreateEvalCasesFromKnowledgeController
 
     public function __invoke(CreateEvalCasesFromKnowledgeRequest $request, Agent $agent): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $this->createEvalCases->execute($request->toData(), $agent);
 
         return back();

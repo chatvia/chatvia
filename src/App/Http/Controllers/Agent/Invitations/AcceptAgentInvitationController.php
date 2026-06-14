@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Agent\Invitations;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Agent\Chatter\AcceptAgentInvitationRequest;
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
@@ -24,7 +23,7 @@ use Symfony\Component\HttpFoundation\Response;
  * `redirect()->away()` would be swallowed by the Inertia client. The 409 +
  * `X-Inertia-Location` response triggers a full-page navigation instead.
  */
-class AcceptAgentInvitationController extends Controller
+class AcceptAgentInvitationController
 {
     public function __invoke(
         AcceptAgentInvitationRequest $request,

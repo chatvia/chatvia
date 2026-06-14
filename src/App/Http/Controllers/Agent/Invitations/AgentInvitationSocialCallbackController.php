@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Agent\Invitations;
 
-use App\Http\Controllers\Controller;
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
 use Domain\Membership\Agent\Data\AcceptAgentInvitationData;
@@ -24,7 +23,7 @@ use Throwable;
  * agent's subdomain with an `auth_token` (the bare callback host can't share
  * a session with the subdomain).
  */
-class AgentInvitationSocialCallbackController extends Controller
+class AgentInvitationSocialCallbackController
 {
     public function __invoke(
         Request $request,

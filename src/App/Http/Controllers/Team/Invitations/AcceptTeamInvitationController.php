@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Team\Invitations;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Team\AcceptInvitationRequest;
 use Domain\Membership\Team\Actions\Invitations\AcceptTeamInvitationAction;
 use Domain\Membership\Team\Data\AcceptInvitationData;
@@ -15,7 +14,7 @@ use Support\Exceptions\DomainValidationException;
  * Accept a pending team invitation: creates (or attaches) the invited user as a
  * team member, logs them in, and pivots them onto the invitation's team.
  */
-class AcceptTeamInvitationController extends Controller
+class AcceptTeamInvitationController
 {
     public function __invoke(
         AcceptInvitationRequest $request,

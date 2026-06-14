@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Slack\Models;
 
+use Domain\Channel\Contracts\ChannelConversationMapping;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -22,7 +23,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $last_message_at
  */
 #[Guarded(['id'])]
-class SlackChannel extends Model
+class SlackChannel extends Model implements ChannelConversationMapping
 {
     protected $casts = [
         'last_message_at' => 'datetime',

@@ -38,7 +38,7 @@
             "tone": "Tone",
             "topics": "Topics",
             "sources": "Sources",
-            "chat": "Chat",
+            "chat": "Chatlog",
             "chat_tooltip": "Inspect raw chat messages by session",
             "audit": "Audit",
             "audit_tooltip": "Tool-call audit log for this agent",

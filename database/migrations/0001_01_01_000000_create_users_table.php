@@ -26,7 +26,7 @@ return new class extends Migration
             $table->text('app_authentication_secret')->nullable();
             $table->text('app_authentication_recovery_codes')->nullable();
             $table->enum('type', ['admin', 'workspace', 'employee', 'chatter'])->default('workspace')->index();
-            $table->enum('source', ['dashboard', 'api'])->default('dashboard')->index();
+            $table->enum('source', ['dashboard', 'api'])->default('dashboard'); // two-value enum — never filtered, so no index
             $table->rememberToken();
 
             $table->foreignId('workspace_id')->nullable()->constrained('users')->nullOnDelete();
@@ -54,6 +54,10 @@ return new class extends Migration
             // (Settings → Date & time). Null falls back to the ISO default —
             // see Support\Enums\User\DateFormat.
             $table->string('date_format')->nullable();
+
+            // Preferred UI locale (e.g. `en`, `de`, `fr`); null falls back to the
+            // app default. Shared to the SPA via auth.user.
+            $table->string('locale', 5)->nullable();
 
             $table->timestamps();
         });

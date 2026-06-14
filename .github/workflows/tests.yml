@@ -27,12 +27,12 @@ jobs:
         image: tensorchord/vchord-suite:pg18-latest
         env:
           POSTGRES_DB: testing
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: chatvia
+          POSTGRES_PASSWORD: password
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U postgres"
+          --health-cmd="pg_isready -U chatvia"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -83,6 +83,8 @@ jobs:
         run: cp .env.testing .env
 
       - name: Install Composer dependencies
+        env:
+          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
         run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
       - name: Setup Node.js
@@ -106,4 +108,4 @@ jobs:
         run: php artisan migrate --force --env=testing
 
       - name: Run Tests
-        run: php artisan test --parallel
+        run: php artisan test

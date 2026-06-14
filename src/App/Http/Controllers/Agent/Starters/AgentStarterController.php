@@ -10,8 +10,6 @@ class AgentStarterController
 {
     public function update(Request $request, Agent $agent, SetAgentStartersAction $setStarters): void
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $validated = $request->validate([
             'starters' => ['array'],
             'starters.*.text' => ['required', 'string', 'max:255'],

@@ -81,6 +81,34 @@
                     </span>
                 </p>
 
+                <!-- Product surfaces: one agent, three places it can live -->
+                <div class="mb-8 sm:mb-10">
+                    <p class="text-sm font-medium text-slate-500 mb-3">{{ __('landing.hero.surfaces.lead') }}</p>
+                    <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+                        <!-- ChatGPT-style chat -->
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white/80 border border-slate-200 rounded-full text-xs sm:text-sm font-medium text-slate-700 shadow-sm">
+                            <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z" />
+                            </svg>
+                            {{ __('landing.hero.surfaces.chat') }}
+                        </span>
+                        <!-- Embeddable widget -->
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white/80 border border-slate-200 rounded-full text-xs sm:text-sm font-medium text-slate-700 shadow-sm">
+                            <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+                            </svg>
+                            {{ __('landing.hero.surfaces.widget') }}
+                        </span>
+                        <!-- Command bar -->
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white/80 border border-slate-200 rounded-full text-xs sm:text-sm font-medium text-slate-700 shadow-sm">
+                            <svg class="w-4 h-4 text-purple-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z" />
+                            </svg>
+                            {{ __('landing.hero.surfaces.bar') }}
+                        </span>
+                    </div>
+                </div>
+
                 <!-- EU hosting proof: GDPR seal + the countries we run in -->
                 <div class="flex items-center justify-center gap-4 mb-8 sm:mb-10">
                     <img src="{{ asset('images/gdpr-compliant.svg') }}" alt="{{ __('landing.hero.gdpr_alt') }}" class="h-12 sm:h-14 w-auto" />

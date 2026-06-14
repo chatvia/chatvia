@@ -27,8 +27,6 @@ class AgentEvalController
         Agent $agent,
         ListKnowledgeQuestionCandidatesAction $knowledgeQuestions,
     ): Response {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $cases = EvalCase::query()->forAgent($agent->id)->orderByDesc('id')->get();
         $runs = EvalRun::query()->forAgent($agent->id)->orderByDesc('id')->limit(20)->get();
 

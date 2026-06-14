@@ -57,6 +57,18 @@ return new class extends Migration
         DB::connection($this->getConnection())->statement(
             "CREATE UNIQUE INDEX analytics_events_message_sent_unique ON analytics_events (message_external_id) WHERE event_type = 'message_sent'"
         );
+
+        // Append-only telemetry, pruned by app:prune-analytics-events on a time
+        // window (WHERE occurred_at < cutoff). BRIN — not btree — because rows
+        // insert in occurred_at order, so a few block ranges cover the whole
+        // retention horizon at a fraction of a btree's size and write cost. None
+        // of the (agent_id|workspace_id|chatter_user_id, occurred_at) composites
+        // lead with occurred_at, so the prune would otherwise seq-scan the
+        // largest table. Matches the created_at BRIN on the other append-only
+        // logs (agent_activity, guardrail_events, security_audit_log).
+        DB::connection($this->getConnection())->statement(
+            'CREATE INDEX analytics_events_occurred_at_brin ON analytics_events USING brin (occurred_at)'
+        );
     }
 
     public function down(): void

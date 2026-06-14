@@ -74,7 +74,7 @@ use Support\Traits\HasStorageFile;
 #[Guarded(['id'])]
 class SourceText extends Model implements ChunkableContract
 {
-    use Chunkable, HasStorageFile, HasExternalId;
+    use Chunkable, HasExternalId, HasStorageFile;
 
     /**
      * @return MorphToMany<Agent, $this, AgentSource>

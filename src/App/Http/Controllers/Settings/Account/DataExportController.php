@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Account\RequestDataExportRequest;
 use App\Identity\Workspace\Actions\DataExport\RequestDataExportAction;
 use App\Identity\Workspace\Enums\DataExportStatus;
@@ -18,7 +17,7 @@ use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
-class DataExportController extends Controller
+class DataExportController
 {
     public function edit(Request $request): Response
     {

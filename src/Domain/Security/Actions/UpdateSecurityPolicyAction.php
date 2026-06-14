@@ -39,7 +39,7 @@ class UpdateSecurityPolicyAction
     ];
 
     /** @var array<int, string> */
-    private const NETWORK_FIELDS = ['ip_allowlist_mode', 'geo_mode', 'geo_countries'];
+    private const NETWORK_FIELDS = ['ip_allowlist_mode', 'ip_allowlist', 'geo_mode', 'geo_countries'];
 
     public function execute(User $workspace, WorkspaceSecurityPolicyData $data, SecurityActorData $actor): WorkspaceSecurityPolicy
     {
@@ -55,6 +55,7 @@ class UpdateSecurityPolicyAction
             'retention_analytics_days' => $data->retention_analytics_days,
             'anonymize_after_days' => $data->anonymize_after_days,
             'ip_allowlist_mode' => $data->ip_allowlist_mode,
+            'ip_allowlist' => $data->ip_allowlist,
             'geo_mode' => $data->geo_mode,
             'geo_countries' => $data->geo_countries,
             'webhook_url' => $data->webhook_url,

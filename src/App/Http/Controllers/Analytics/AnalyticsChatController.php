@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Analytics;
 
-use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -11,7 +10,7 @@ use Inertia\Response;
  * holds the (ephemeral) transcript and streams turns from
  * {@see AnalyticsChatStreamController}.
  */
-class AnalyticsChatController extends Controller
+class AnalyticsChatController
 {
     public function __invoke(): Response
     {

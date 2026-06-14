@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Chat\Messages;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Chat\RegenerateMessageRequest;
 use Domain\Conversation\Actions\Messages\RegenerateMessageAction;
 use Illuminate\Http\JsonResponse;
 
-class MessageRegenerateController extends Controller
+class MessageRegenerateController
 {
     public function __invoke(
         RegenerateMessageRequest $request,

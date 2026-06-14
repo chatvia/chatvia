@@ -55,6 +55,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['conversation_external_id', 'status']);
+            $table->index('agent_id'); // covers the agent_id FK cascade delete
         });
     }
 

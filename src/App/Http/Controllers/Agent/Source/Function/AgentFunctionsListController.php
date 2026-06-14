@@ -11,8 +11,6 @@ class AgentFunctionsListController
 {
     public function __invoke(Request $request, Agent $agent, ListAgentFunctionsAction $list): AgentFunctionsListResourceData
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         return $list->execute($request->user(), $agent);
     }
 }

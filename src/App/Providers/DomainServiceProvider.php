@@ -68,6 +68,7 @@ use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Listeners\SendTeamInvitationEmail;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Listeners\RecordSecurityEvent;
+use Domain\Security\Listeners\SendSecurityEventToSiem;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
@@ -166,6 +167,9 @@ class DomainServiceProvider extends ServiceProvider
         // thread to capture live IP/UA (NOT queued); they denormalize that onto
         // the event so the downstream recorder can run on a worker.
         Event::listen(SecurityEventOccurred::class, RecordSecurityEvent::class);
+        // Enterprise SIEM fan-out — same event, delivered (HMAC-signed) to the
+        // workspace's webhook by a second queued listener; no-ops unless enabled.
+        Event::listen(SecurityEventOccurred::class, SendSecurityEventToSiem::class);
         Event::listen(Login::class, RecordLoginSecurityEvent::class);
         Event::listen(Failed::class, RecordFailedLoginSecurityEvent::class);
         Event::listen(Logout::class, RecordLogoutSecurityEvent::class);

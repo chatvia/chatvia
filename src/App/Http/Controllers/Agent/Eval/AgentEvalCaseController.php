@@ -18,8 +18,6 @@ class AgentEvalCaseController
 {
     public function store(SaveEvalCaseRequest $request, Agent $agent): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $data = $request->toData();
 
         EvalCase::create([
@@ -39,7 +37,6 @@ class AgentEvalCaseController
 
     public function update(SaveEvalCaseRequest $request, Agent $agent, EvalCase $case): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
         abort_if($case->agent_id !== $agent->id, 404);
 
         $data = $request->toData();
@@ -58,7 +55,6 @@ class AgentEvalCaseController
 
     public function destroy(Request $request, Agent $agent, EvalCase $case): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
         abort_if($case->agent_id !== $agent->id, 404);
 
         $case->delete();

@@ -4,7 +4,6 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
-use Domain\Lead\Actions\BulkDeleteAgentLeadsAction;
 use Domain\Lead\Actions\ExportAgentLeadsToCsvAction;
 use Domain\Lead\Models\Lead;
 use Domain\Membership\Team\Services\TeamService;
@@ -14,14 +13,17 @@ use Support\Exceptions\DomainValidationException;
 /**
  * Behavioural coverage for the Lead actions. The Leads domain shipped with
  * ZERO tests despite being a named critical flow and revenue-adjacent (captured
- * contact info). The two stakes worth pinning:
+ * contact info). The stake worth pinning here:
  *   - the CSV export's column order, fputcsv escaping, and cross-tenancy guard
- *   - bulk delete's relation-scoped tenancy (you can't delete another agent's leads)
  *
  * The cross-tenancy assertion is the one that matters: a bug where exports leak
  * another account's leads is the kind of thing that ends up in a security
  * advisory. The action's `$leads->count() !== count($leadIds)` check is the
  * structural guard — these tests pin it.
+ *
+ * Bulk delete is now an inline relation-scoped `$agent->leads()->whereIn(...)->delete()`
+ * in AgentLeadController (no Action — single Eloquent call); its permission gate
+ * and validation are covered at the HTTP level by AgentPermissionRouteTest.
  */
 function leadAgent(string $name = 'Lead Bot'): Agent
 {
@@ -140,35 +142,5 @@ describe('ExportAgentLeadsToCsvAction', function (): void {
         // empty cells (",,,,,") followed by the created_at timestamp.
         expect($csv)->toContain('spartan@test.test,,,,,,')
             ->and($csv)->not->toContain(',null,');
-    });
-});
-
-describe('BulkDeleteAgentLeadsAction', function (): void {
-    it('deletes the requested leads and returns the row count', function (): void {
-        $agent = leadAgent();
-        $leadIds = collect([
-            leadForAgent($agent),
-            leadForAgent($agent),
-            leadForAgent($agent),
-        ])->pluck('id')->all();
-
-        $count = app(BulkDeleteAgentLeadsAction::class)->execute($agent, $leadIds);
-
-        expect($count)->toBe(3)
-            ->and(Lead::whereIn('id', $leadIds)->count())->toBe(0);
-    });
-
-    it('does not delete another agent\'s leads even when their ids are passed in (relation-scoped)', function (): void {
-        $mine = leadAgent('Mine');
-        $myLead = leadForAgent($mine);
-
-        $other = leadAgent('Other');
-        $otherLead = leadForAgent($other);
-
-        $count = app(BulkDeleteAgentLeadsAction::class)->execute($mine, [$myLead->id, $otherLead->id]);
-
-        expect($count)->toBe(1)
-            ->and(Lead::find($myLead->id))->toBeNull()
-            ->and(Lead::find($otherLead->id))->not->toBeNull();
     });
 });

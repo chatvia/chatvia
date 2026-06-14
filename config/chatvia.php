@@ -315,6 +315,39 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Data retention (Enterprise Security & Compliance)
+    |--------------------------------------------------------------------------
+    |
+    | The plan's capabilities->retentionDays is the conversation-history CEILING.
+    | An Enterprise workspace may SHORTEN it via
+    | WorkspaceSecurityPolicy.retention_conversations_days (never exceed the plan)
+    | but not below this floor; the daily app:prune-expired-conversations sweep
+    | enforces the override. Audit-log retention lives under `security_audit`.
+    |
+    */
+
+    'retention' => [
+        'conversations_floor_days' => (int) env('CONVERSATION_RETENTION_FLOOR_DAYS', 1),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | SIEM webhook (Enterprise — advanced compliance)
+    |--------------------------------------------------------------------------
+    |
+    | Best-effort fan-out of the security-audit stream to a workspace's SIEM
+    | endpoint. Delivered (HMAC-signed) by the queued SendSecurityEventToSiem
+    | listener; after `max_failures` consecutive failures the webhook auto-
+    | disables so a dead endpoint stops generating retried jobs.
+    |
+    */
+
+    'siem' => [
+        'max_failures' => (int) env('SIEM_WEBHOOK_MAX_FAILURES', 15),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Agent evaluation (#9 Agent Governance + Evals)
     |--------------------------------------------------------------------------
     |

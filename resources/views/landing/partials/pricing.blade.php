@@ -72,6 +72,8 @@
                             ['label' => __('landing.pricing.rows.white_label'), 'value' => fn ($p) => $cap($p, 'removeBranding'), 'tooltip' => __('landing.pricing.tips.white_label')],
                         ],
                         __('landing.pricing.groups.security_support') => [
+                            ['label' => __('landing.pricing.rows.access_control'), 'value' => fn ($p) => $cap($p, 'security'), 'tooltip' => __('landing.pricing.tips.access_control')],
+                            ['label' => __('landing.pricing.rows.siem'), 'value' => fn ($p) => $cap($p, 'siemWebhook'), 'tooltip' => __('landing.pricing.tips.siem')],
                             ['label' => __('landing.pricing.rows.sso'), 'value' => fn ($p) => $has($p, 'sso'), 'tooltip' => __('landing.pricing.tips.sso')],
                             ['label' => __('landing.pricing.rows.sla'), 'value' => fn ($p) => $has($p, 'sla'), 'tooltip' => __('landing.pricing.tips.sla')],
                             ['label' => __('landing.pricing.rows.support'), 'value' => fn ($p) => $has($p, 'support'), 'tooltip' => __('landing.pricing.tips.support')],
@@ -130,7 +132,7 @@
 
                                 @if ($isCs($package))
                                     <a href="{{ route('contact') }}"
-                                        class="mt-8 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700">
+                                        class="mt-8 block w-full cursor-pointer rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700">
                                         {{ __('landing.pricing.contact_sales') }}
                                     </a>
                                 @else
@@ -139,7 +141,7 @@
                                         <input type="hidden" name="package" value="{{ $packageKey }}">
                                         <input type="hidden" name="yearly" class="yearly-input" value="0">
                                         <button type="submit"
-                                            class="mt-8 block w-full rounded-md px-3 py-2 text-center text-sm font-semibold {{ $pop ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-blue-600 ring-1 ring-inset ring-blue-200 hover:ring-blue-300' }}"
+                                            class="mt-8 block w-full cursor-pointer rounded-md px-3 py-2 text-center text-sm font-semibold {{ $pop ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-blue-600 ring-1 ring-inset ring-blue-200 hover:ring-blue-300' }}"
                                             onclick="this.form.querySelector('.yearly-input').value = document.getElementById('toggle').checked ? '1' : '0'">
                                             {{ __('landing.pricing.start_free_trial') }}
                                         </button>
@@ -212,7 +214,7 @@
                                                     </div>
                                                     <div class="mt-1 h-5 text-xs text-slate-500">{{ __('landing.pricing.lets_talk') }}</div>
                                                     <a href="{{ route('contact') }}"
-                                                        class="mt-8 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700">
+                                                        class="mt-8 block w-full cursor-pointer rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700">
                                                         {{ __('landing.pricing.contact_sales') }}
                                                     </a>
                                                 @else
@@ -229,7 +231,7 @@
                                                         <input type="hidden" name="package" value="{{ $packageKey }}">
                                                         <input type="hidden" name="yearly" class="yearly-input" value="0">
                                                         <button type="submit"
-                                                            class="mt-8 block w-full rounded-md px-3 py-2 text-center text-sm font-semibold {{ $pop ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-blue-600 ring-1 ring-inset ring-blue-200 hover:ring-blue-300' }}"
+                                                            class="mt-8 block w-full cursor-pointer rounded-md px-3 py-2 text-center text-sm font-semibold {{ $pop ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-blue-600 ring-1 ring-inset ring-blue-200 hover:ring-blue-300' }}"
                                                             onclick="this.form.querySelector('.yearly-input').value = document.getElementById('toggle').checked ? '1' : '0'">
                                                             {{ __('landing.pricing.start_free_trial') }}
                                                         </button>

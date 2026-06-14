@@ -3,6 +3,7 @@
 namespace Domain\Membership\Team\Actions\Members;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Actions\Invitations\CreateTeamInvitationAction;
 use Domain\Membership\Team\Data\InviteTeamMemberData;
 use Domain\Membership\Team\Services\TeamService;
 use Support\Exceptions\DomainValidationException;
@@ -11,6 +12,7 @@ class InviteTeamMemberAction
 {
     public function __construct(
         private readonly TeamService $teamService,
+        private readonly CreateTeamInvitationAction $createTeamInvitation,
     ) {}
 
     /**
@@ -48,6 +50,6 @@ class InviteTeamMemberAction
             return;
         }
 
-        $this->teamService->inviteUser($team, $data->email, $data->role);
+        $this->createTeamInvitation->execute($team, $data->email, $data->role);
     }
 }

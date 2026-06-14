@@ -24,7 +24,7 @@ return new class extends Migration
             $table->foreignId('llm_id')->nullable()->index()->constrained('llms')->nullOnDelete();
             $table->boolean('is_public')->default(false);
             $table->jsonb('metadata')->nullable();
-            $table->enum('source', ['dashboard', 'api'])->default('dashboard')->index();
+            $table->enum('source', ['dashboard', 'api'])->default('dashboard'); // two-value enum — never filtered, so no index
 
             $table->text('auth_secret')->nullable();
 

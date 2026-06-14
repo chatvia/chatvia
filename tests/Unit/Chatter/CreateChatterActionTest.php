@@ -4,6 +4,7 @@ use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Exceptions\ChatterQuotaExceededException;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserQuota;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
 use Support\Enums\User\UserSource;
 use Support\Enums\User\UserType;
@@ -20,7 +21,7 @@ beforeEach(function (): void {
 it('creates a chatter with email + password and grants agent access', function (): void {
     $chatter = app(CreateChatterAction::class)->execute(
         owner: $this->owner,
-        agent: $this->agent,
+        agents: $this->agent,
         name: 'Chatty',
         email: 'chatty@example.test',
         password: 'pass-1234',
@@ -40,7 +41,7 @@ it('creates a chatter with email + password and grants agent access', function (
 it('creates a token-only chatter when no email is supplied', function (): void {
     $chatter = app(CreateChatterAction::class)->execute(
         owner: $this->owner,
-        agent: $this->agent,
+        agents: $this->agent,
         name: 'Anon',
     );
 
@@ -57,7 +58,24 @@ it('throws ChatterQuotaExceededException when the workspace has hit its workspac
 
     app(CreateChatterAction::class)->execute(
         owner: $this->owner,
-        agent: $this->agent,
+        agents: $this->agent,
         name: 'Overflow',
     );
 })->throws(ChatterQuotaExceededException::class);
+
+it('grants the chatter access to every agent supplied as a collection', function (): void {
+    $second = createAgent($this->owner);
+
+    $chatter = app(CreateChatterAction::class)->execute(
+        owner: $this->owner,
+        agents: new Collection([$this->agent, $second]),
+        name: 'Multi',
+        email: 'multi@example.test',
+        password: 'pass-1234',
+    );
+
+    expect($chatter->accessibleAgents()->pluck('agents.id')->all())
+        ->toHaveCount(2)
+        ->toContain($this->agent->id)
+        ->toContain($second->id);
+});

@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class TwoFactorController extends Controller
+class TwoFactorController
 {
     public function edit(Request $request): Response
     {

@@ -20,7 +20,6 @@ class ConversationMessageController
         Conversation $conversation,
         ListConversationMessagesAction $list,
     ): ChatLogMessagesResourceData {
-        abort_if($request->user()->cannot('view', $agent), 404);
         abort_if($conversation->session->agent_id !== $agent->id, 404);
 
         return $list->execute($agent, $conversation, $request->integer('page', 1));

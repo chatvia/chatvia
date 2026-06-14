@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Agent\Security;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Agent\Security\SaveAgentSecuritySettingsRequest;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\RedirectResponse;
@@ -12,7 +11,7 @@ use Illuminate\Http\RedirectResponse;
  * the agent's Security page. Mirrors the guardrails save flow — a single thin
  * write that loops the validated DTO into Agent::setSetting.
  */
-class UpdateAgentSecuritySettingsController extends Controller
+class UpdateAgentSecuritySettingsController
 {
     public function __invoke(SaveAgentSecuritySettingsRequest $request, Agent $agent): RedirectResponse
     {

@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Models;
 
+use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\MessageQueryBuilder;
 use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
 use Domain\Lead\Models\Lead;
@@ -43,7 +44,7 @@ use Support\Concerns\HasExternalId;
  * @property Carbon|null $updated_at
  * @property Carbon|null $read_at
  * @property-read Conversation|null $conversation
- * @property-read Lead|null $lead
+ * @property-read Lead|null $conversationLead
  * @property-read Llm|null $llm
  * @property-read AgentQuestionAnswer|null $questionAnswer
  *
@@ -109,7 +110,7 @@ use Support\Concerns\HasExternalId;
 #[Table(name: 'chat_messages')]
 class Message extends Model
 {
-    use HasExternalId, HasFactory;
+    use CascadesAttachmentDeletes, HasExternalId, HasFactory;
 
     protected function casts(): array
     {
@@ -131,16 +132,17 @@ class Message extends Model
 
     /**
      * Cascade attachment deletes (and their S3 objects) when the message
-     * is deleted via Eloquent — mirrors {@see Conversation::booted}.
+     * is deleted via Eloquent — mirrors {@see Conversation::booted}. Shares
+     * the {@see CascadesAttachmentDeletes::cascadeAttachmentDeletes()} body.
      *
-     * Any model owning attachments MUST repeat this hook, or S3 objects
-     * will leak when rows are deleted — deliberately duplicated, not
-     * extracted to a trait.
+     * Any model owning attachments MUST repeat this hook: the registration
+     * stays explicit per model on purpose — only the shared body lives in the
+     * trait, not the hook itself.
      */
     protected static function booted(): void
     {
         static::deleting(static function (Message $message): void {
-            $message->attachments()->each(static fn (Attachment $a) => $a->delete());
+            $message->cascadeAttachmentDeletes();
         });
     }
 
@@ -166,10 +168,15 @@ class Message extends Model
     }
 
     /**
-     * Associated lead captured in the same conversation & agent.
-     * Matched via conversation_id + agent_id.
+     * The lead for this message's CONVERSATION — shared across every message
+     * in the conversation, NOT a message-owned lead. It joins on
+     * `chat_conversation_id` (the conversation FK), so every message in the
+     * same conversation returns the same row; the name avoids the
+     * ownership-implying `lead()`. Prefer `$message->conversation->lead`.
+     *
+     * @return HasOne<Lead, $this>
      */
-    public function lead(): HasOne
+    public function conversationLead(): HasOne
     {
         return $this->hasOne(Lead::class, 'chat_conversation_id', 'chat_conversation_id');
     }

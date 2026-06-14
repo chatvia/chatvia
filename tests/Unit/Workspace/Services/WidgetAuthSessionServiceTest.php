@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WidgetAuthSessionService;
 use Domain\Membership\Team\Services\TeamService;
@@ -48,7 +49,7 @@ it('rejects a still-cached token the moment the user is deactivated', function (
     // Resolves fine while active.
     expect($this->service->resolve($session['token'], $this->agent, $this->request)?->id)->toBe($this->owner->id);
 
-    app(\App\Identity\Workspace\Actions\Account\DeactivateAccountAction::class)->execute($this->owner, 'blocked by admin');
+    app(DeactivateAccountAction::class)->execute($this->owner, 'blocked by admin');
 
     // Same token, now rejected per-request (no need to wait for the TTL).
     expect($this->service->resolve($session['token'], $this->agent, $this->request))->toBeNull();

@@ -12,8 +12,6 @@ class AgentFunctionController
 {
     public function __invoke(Request $request, Agent $agent): Response
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         return Inertia::render('agents/Sources/Functions/index', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);

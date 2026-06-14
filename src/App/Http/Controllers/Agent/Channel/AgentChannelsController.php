@@ -16,8 +16,6 @@ class AgentChannelsController
 {
     public function __invoke(Request $request, Agent $agent): Response
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $bot = $agent->telegramBot;
         $slack = $agent->slackApp;
         $messenger = $agent->messengerPage;

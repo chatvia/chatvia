@@ -1,0 +1,68 @@
+<?php
+
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Services\TeamService;
+use Domain\Security\Enums\SecurityAuditAction;
+use Domain\Security\Models\SecurityAuditLog;
+use Domain\Security\Models\WorkspaceSecurityPolicy;
+use Inertia\Testing\AssertableInertia;
+
+/*
+|--------------------------------------------------------------------------
+| Security audit log viewer
+|--------------------------------------------------------------------------
+|
+| Read-only view of the immutable security_audit_log. Part of the suite (Pro+):
+| entitled workspaces see the rows, everyone else gets the upsell. Gated by the
+| account.security team permission (proven in SecurityPolicyTest).
+*/
+
+beforeEach(function (): void {
+    $this->owner = User::factory()->create();
+    app(TeamService::class)->createDefaultTeam($this->owner);
+});
+
+it('shows the audit log to an entitled workspace', function (): void {
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update(['security_override' => true]);
+
+    SecurityAuditLog::create([
+        'workspace_id' => $this->owner->id,
+        'action' => SecurityAuditAction::AuthLogin->value,
+        'outcome' => 'success',
+        'user_name' => 'Ahmad',
+        'ip' => '203.0.113.7',
+    ]);
+
+    $this->actingAs($this->owner)
+        ->get(route('security.audit'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+            ->component('workspace/security/SecurityAudit')
+            ->where('entitled', true)
+            ->has('rows.data', 1)
+            ->where('rows.data.0.action_label', SecurityAuditAction::AuthLogin->label()));
+});
+
+it('filters the audit log by category', function (): void {
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update(['security_override' => true]);
+
+    SecurityAuditLog::create(['workspace_id' => $this->owner->id, 'action' => SecurityAuditAction::AuthLogin->value, 'outcome' => 'success']);
+    SecurityAuditLog::create(['workspace_id' => $this->owner->id, 'action' => SecurityAuditAction::PolicyChanged->value, 'outcome' => 'success']);
+
+    $this->actingAs($this->owner)
+        ->get(route('security.audit', ['category' => 'auth']))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->has('rows.data', 1));
+});
+
+it('shows the upsell teaser to a non-entitled workspace', function (): void {
+    SecurityAuditLog::create(['workspace_id' => $this->owner->id, 'action' => SecurityAuditAction::AuthLogin->value, 'outcome' => 'success']);
+
+    $this->actingAs($this->owner)
+        ->get(route('security.audit'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+            ->component('workspace/security/SecurityAudit')
+            ->where('entitled', false)
+            ->has('rows.data', 0)); // no rows leaked to a non-entitled workspace
+});

@@ -20,7 +20,11 @@ use Illuminate\Http\Request;
 #[Group(name: 'Functions', weight: 60)]
 class FunctionController
 {
-    /** @return array{data: list<FunctionData>} */
+    /**
+     * List functions
+     *
+     * @return array{data: list<FunctionData>}
+     */
     public function index(Request $request): array
     {
         /** @var User $user */
@@ -31,7 +35,11 @@ class FunctionController
             ->map(fn (AgentFunction $f): FunctionData => FunctionData::fromModel($f))->all()];
     }
 
-    /** @return array{data: FunctionData} */
+    /**
+     * Create function
+     *
+     * @return array{data: FunctionData}
+     */
     public function store(StoreApiFunctionRequest $request, CreateApiFunctionAction $createFunction): array
     {
         /** @var User $user */
@@ -41,7 +49,11 @@ class FunctionController
         return ['data' => FunctionData::fromModel($createFunction->execute($owner, $request->toData()))];
     }
 
-    /** @return array{data: FunctionData} */
+    /**
+     * Get function
+     *
+     * @return array{data: FunctionData}
+     */
     public function show(Request $request, AgentFunction $function): array
     {
         $this->assertOwnership($request, $function);
@@ -49,7 +61,11 @@ class FunctionController
         return ['data' => FunctionData::fromModel($function)];
     }
 
-    /** @return array{data: FunctionData} */
+    /**
+     * Update function
+     *
+     * @return array{data: FunctionData}
+     */
     public function update(UpdateApiFunctionRequest $request, AgentFunction $function, UpdateApiFunctionAction $updateFunction): array
     {
         $this->assertOwnership($request, $function);
@@ -57,6 +73,9 @@ class FunctionController
         return ['data' => FunctionData::fromModel($updateFunction->execute($function, $request->toData()))];
     }
 
+    /**
+     * Delete function
+     */
     public function destroy(Request $request, AgentFunction $function): JsonResponse
     {
         $this->assertOwnership($request, $function);

@@ -12,6 +12,7 @@ use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Events\SessionLocationUnknown;
+use Domain\Conversation\Jobs\GenerateConversationTitleJob;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -90,7 +91,49 @@ class StoreMessageAction
             $completionTokens,
         );
 
+        $this->maybeGenerateTitle($agent, $conversation, $payload, $isUserMessage);
+
         return $message;
+    }
+
+    /**
+     * Auto-name a conversation from its messages once the first assistant turn
+     * lands. Applies to every surface (widget, command bar, and the messaging
+     * channels) with ONE exception: Hosted Chat already self-titles from its own
+     * client (POST /conversations/{id}/title) for instant sidebar feedback, so
+     * dispatching here too would mean a duplicate LLM call (and a title flicker)
+     * on its first turn.
+     *
+     * Gated on a non-user turn (so there's a user→assistant pair to summarise)
+     * and on needsTitle() (still carrying the "New Chat" placeholder), which
+     * makes this fire once and never clobber an already-named conversation. The
+     * job is queued; it loads the last messages, generates a title, and writes
+     * it through to both the DB and the session cache the widget reads.
+     */
+    private function maybeGenerateTitle(
+        Agent $agent,
+        Conversation $conversation,
+        ChatInputPayload|ChatOutputPayload $payload,
+        bool $isUserMessage,
+    ): void {
+        if ($isUserMessage) {
+            return;
+        }
+
+        // Hosted Chat titles itself client-side — skip to avoid a double call.
+        if ($conversation->source === ConversationSource::HostedChat) {
+            return;
+        }
+
+        if (! $conversation->needsTitle()) {
+            return;
+        }
+
+        GenerateConversationTitleJob::dispatch(
+            $agent,
+            (string) $payload->external_session_id,
+            (string) $payload->external_conversation_id,
+        );
     }
 
     private function resolveSession(Agent $agent, ChatInputPayload|ChatOutputPayload $payload, bool $isUserMessage): Session

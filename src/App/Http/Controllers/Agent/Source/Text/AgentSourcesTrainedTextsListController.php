@@ -15,8 +15,6 @@ class AgentSourcesTrainedTextsListController
      */
     public function __invoke(Request $request, Agent $agent, ListAttachableTextsForAgentAction $list): Collection
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         return $list->execute($request->user(), $agent);
     }
 }

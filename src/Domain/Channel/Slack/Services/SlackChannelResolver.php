@@ -2,11 +2,12 @@
 
 namespace Domain\Channel\Slack\Services;
 
+use Domain\Channel\Services\ChannelConversationResolver;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Models\SlackChannel;
 use Domain\Conversation\Enums\ConversationSource;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatMemory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Resolves the Chatvia Session + Conversation that back a Slack channel,
@@ -14,67 +15,52 @@ use Domain\Conversation\Services\Memory\ChatMemory;
  * channel (or DM) keeps one ongoing conversation (and its history) across
  * messages. The channel name is looked up once at creation (best-effort) to
  * give the chat-log a readable title.
+ *
+ * @extends ChannelConversationResolver<SlackChannel>
  */
-class SlackChannelResolver
+class SlackChannelResolver extends ChannelConversationResolver
 {
     public function __construct(
-        private readonly ChatMemory $memory,
+        ChatMemory $memory,
         private readonly SlackClient $client,
-    ) {}
+    ) {
+        parent::__construct($memory);
+    }
 
     public function resolve(AgentSlackApp $app, string $channelId): SlackChannel
     {
-        $existing = SlackChannel::query()
-            ->where('agent_slack_app_id', $app->id)
-            ->where('channel_id', $channelId)
-            ->first();
+        return $this->resolveMapping(
+            lookup: SlackChannel::query()
+                ->where('agent_slack_app_id', $app->id)
+                ->where('channel_id', $channelId),
+            agent: $app->agent,
+            identity: [
+                'agent_slack_app_id' => $app->id,
+                'channel_id' => $channelId,
+            ],
+            source: ConversationSource::Slack,
+            context: function () use ($app, $channelId): array {
+                $info = $this->client->channelInfo($app->bot_token, $channelId);
+                $name = $info['name'] ?? null;
 
-        if ($existing !== null) {
-            // conversation() excludes soft-deleted rows, so a retention-pruned
-            // conversation reads as missing here.
-            if ($existing->conversation()->exists()) {
-                return $existing;
-            }
+                return [
+                    'name' => $name !== null ? "#{$name}" : null,
+                    'title' => match (true) {
+                        $name !== null => "Slack · #{$name}",
+                        (bool) ($info['is_im'] ?? false) => 'Slack · DM',
+                        default => 'Slack',
+                    },
+                    'attributes' => ['channel_name' => $name],
+                ];
+            },
+        );
+    }
 
-            // Conversation was retention-pruned — drop the stale mapping and
-            // mint a fresh session + conversation below.
-            $existing->delete();
-        }
-
-        $agent = $app->agent;
-        $info = $this->client->channelInfo($app->bot_token, $channelId);
-        $name = $info['name'] ?? null;
-
-        $title = match (true) {
-            $name !== null => "Slack · #{$name}",
-            (bool) ($info['is_im'] ?? false) => 'Slack · DM',
-            default => 'Slack',
-        };
-
-        $session = Session::create([
-            'agent_id' => $agent->id,
-            'user_id' => null,
-            'name' => $name !== null ? "#{$name}" : null,
-        ]);
-
-        $this->memory
-            ->withContext($agent, $session->external_id)
-            ->createConversation(
-                title: $title,
-                source: ConversationSource::Slack,
-            );
-
-        // The freshly-created session has exactly one conversation — the one
-        // createConversation() just made for it.
-        $conversation = $session->conversations()->latest('id')->firstOrFail();
-
-        return SlackChannel::create([
-            'agent_slack_app_id' => $app->id,
-            'channel_id' => $channelId,
-            'chat_session_id' => $session->id,
-            'chat_conversation_id' => $conversation->id,
-            'channel_name' => $name,
-            'last_message_at' => now(),
-        ]);
+    /**
+     * @return SlackChannel
+     */
+    protected function createMapping(array $attributes): Model
+    {
+        return SlackChannel::create($attributes);
     }
 }

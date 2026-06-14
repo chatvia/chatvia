@@ -390,7 +390,7 @@
                     "steps": {
                         "connected_1": "Dans {link}, ouvrez {event_subscriptions}, activez-le et collez l'URL de requête ci-dessus",
                         "connected_2": "Abonnez-vous aux événements bot {mention} et {im}, puis enregistrez",
-                        "connected_3": "Invitez le bot dans un canal avec {invite} et @@mentionnez-le {live}",
+                        "connected_3": "Invitez le bot dans un canal avec {invite} et {'@'}mentionnez-le {live}",
                         "connect_1": "Créez une application sur {link} dans votre espace de travail",
                         "connect_2": "Sous {oauth}, ajoutez les portées bot {scope1}, {scope2}, {scope3}, installez l'application et copiez le token du bot",
                         "connect_3": "Copiez le secret de signature depuis {basic_info} et collez les deux ci-dessous"

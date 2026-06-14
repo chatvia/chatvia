@@ -223,7 +223,7 @@
                     "steps": {
                         "connected_1": "In {link}, open {event_subscriptions}, enable it, and paste the Request URL above",
                         "connected_2": "Subscribe to the bot events {mention} and {im}, then save",
-                        "connected_3": "Invite the bot to a channel with {invite} and @@mention it {live}",
+                        "connected_3": "Invite the bot to a channel with {invite} and {'@'}mention it {live}",
                         "connect_1": "Create an app at {link} in your workspace",
                         "connect_2": "Under {oauth}, add the bot scopes {scope1}, {scope2}, {scope3}, then install the app and copy the bot token",
                         "connect_3": "Copy the signing secret from {basic_info} and paste both below"

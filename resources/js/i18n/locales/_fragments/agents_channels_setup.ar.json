@@ -66,7 +66,7 @@
                     "steps": {
                         "connected_1": "في {link}، افتح {event_subscriptions}، فعّله، والصق رابط الطلب أعلاه",
                         "connected_2": "اشترك في أحداث البوت {mention} و {im}، ثم احفظ",
-                        "connected_3": "ادعُ البوت إلى قناة باستخدام {invite} واذكره بـ @@ {live}",
+                        "connected_3": "ادعُ البوت إلى قناة باستخدام {invite} واذكره بـ {'@'} {live}",
                         "connect_1": "أنشئ تطبيقاً على {link} في مساحة عملك",
                         "connect_2": "تحت {oauth}، أضف نطاقات البوت {scope1} و {scope2} و {scope3}، ثم ثبّت التطبيق وانسخ رمز البوت",
                         "connect_3": "انسخ سر التوقيع من {basic_info} والصقهما أدناه"

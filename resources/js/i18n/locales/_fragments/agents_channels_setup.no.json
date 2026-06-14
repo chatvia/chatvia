@@ -66,7 +66,7 @@
                     "steps": {
                         "connected_1": "I {link}, åpne {event_subscriptions}, aktiver det, og lim inn forespørsels-URL-en ovenfor",
                         "connected_2": "Abonner på bot-hendelsene {mention} og {im}, og lagre",
-                        "connected_3": "Inviter boten til en kanal med {invite} og @@nevn den {live}",
+                        "connected_3": "Inviter boten til en kanal med {invite} og {'@'}nevn den {live}",
                         "connect_1": "Opprett en app på {link} i arbeidsområdet ditt",
                         "connect_2": "Under {oauth}, legg til bot-omfangene {scope1}, {scope2}, {scope3}, installer appen og kopier bot-tokenet",
                         "connect_3": "Kopier signeringshemmeligheten fra {basic_info} og lim inn begge nedenfor"

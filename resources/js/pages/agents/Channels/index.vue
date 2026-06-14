@@ -726,6 +726,24 @@ const disconnect = () => {
                                             >2</span
                                         >
                                         <span>
+                                            <i18n-t keypath="agents.channels.setup.messenger.steps.connect_perms" tag="span">
+                                                <template #permissions>
+                                                    <span class="text-foreground font-medium">{{
+                                                        t('agents.channels.setup.messenger.permissions_path')
+                                                    }}</span>
+                                                </template>
+                                                <template #perm1><span class="text-foreground font-mono">pages_messaging</span></template>
+                                                <template #perm2><span class="text-foreground font-mono">pages_read_engagement</span></template>
+                                                <template #perm3><span class="text-foreground font-mono">pages_manage_metadata</span></template>
+                                            </i18n-t>
+                                        </span>
+                                    </li>
+                                    <li class="flex items-center gap-2.5">
+                                        <span
+                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
+                                            >3</span
+                                        >
+                                        <span>
                                             <i18n-t keypath="agents.channels.setup.messenger.steps.connect_2" tag="span">
                                                 <template #api_settings>
                                                     <span class="text-foreground font-medium">{{
@@ -738,7 +756,7 @@ const disconnect = () => {
                                     <li class="flex items-center gap-2.5">
                                         <span
                                             class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >3</span
+                                            >4</span
                                         >
                                         <span>
                                             <i18n-t keypath="agents.channels.setup.shared.copy_app_secret_both" tag="span">

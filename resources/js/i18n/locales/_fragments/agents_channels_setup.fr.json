@@ -80,14 +80,16 @@
                     "steps": {
                         "connected_1": "Dans {link}, ouvrez {webhooks} et collez l'URL de rappel + le token de vérification ci-dessus",
                         "connected_3": "Envoyez un message à votre page sur Messenger — votre agent répond automatiquement",
-                        "connect_1": "Créez une application sur {link} et ajoutez le produit {product}",
-                        "connect_2": "Sous {api_settings}, connectez votre page Facebook et générez un token d'accès à la page"
+                        "connect_1": "Créez une application sur {link}, puis ajoutez le cas d'usage {product} — recherchez-le s'il n'apparaît pas",
+                        "connect_2": "Sous {api_settings}, connectez votre page Facebook et générez un token d'accès à la page",
+                        "connect_perms": "Dans {permissions}, ajoutez {perm1}, {perm2} et {perm3}"
                     },
                     "your_meta_app": "votre application Meta",
-                    "webhooks_path": "Messenger → Paramètres → Webhooks",
-                    "api_settings_path": "Messenger → Paramètres API",
+                    "webhooks_path": "Cas d'usage → Personnaliser → Paramètres de l'API Messenger",
+                    "api_settings_path": "Cas d'usage → Personnaliser → Paramètres de l'API Messenger",
+                    "permissions_path": "Cas d'usage → Personnaliser → Autorisations et fonctionnalités",
                     "app_settings_basic": "Paramètres de l'application → Général",
-                    "product": "Messenger"
+                    "product": "Engage with customers on Messenger"
                 },
                 "whatsapp": {
                     "steps": {

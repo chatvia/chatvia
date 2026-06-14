@@ -394,14 +394,16 @@
                     "steps": {
                         "connected_1": "در {link}، بخش {webhooks} را باز کرده و Callback URL و توکن تأیید بالا را پیست کنید",
                         "connected_3": "با صفحه خود در Messenger پیام بفرستید — عامل شما به صورت خودکار پاسخ می‌دهد",
-                        "connect_1": "یک برنامه در {link} ایجاد کرده و محصول {product} را اضافه کنید",
-                        "connect_2": "در بخش {api_settings}، صفحه Facebook خود را متصل کرده و یک توکن دسترسی صفحه تولید کنید"
+                        "connect_1": "یک برنامه در {link} ایجاد کنید، سپس حالت استفاده {product} را اضافه کنید — اگر نمایش داده نشد، آن را جستجو کنید",
+                        "connect_2": "در بخش {api_settings}، صفحه Facebook خود را متصل کرده و یک توکن دسترسی صفحه تولید کنید",
+                        "connect_perms": "در {permissions}، {perm1}، {perm2} و {perm3} را اضافه کنید"
                     },
                     "your_meta_app": "برنامه Meta شما",
-                    "webhooks_path": "Messenger → Settings → Webhooks",
-                    "api_settings_path": "Messenger → API settings",
+                    "webhooks_path": "Use cases → Customize → Messenger API Settings",
+                    "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Messenger"
+                    "product": "Engage with customers on Messenger",
+                    "permissions_path": "Use cases → Customize → Permissions and features"
                 },
                 "whatsapp": {
                     "steps": {

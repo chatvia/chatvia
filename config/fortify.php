@@ -146,8 +146,16 @@ return [
     */
 
     'passkeys' => [
+        // RP ID is the apex host (chatvia.ai). A credential bound to it is spec-valid
+        // from the www.chatvia.ai origin too, so one passkey works on both hosts.
         'relying_party_id' => parse_url(config('app.url'), PHP_URL_HOST),
-        'allowed_origins' => [config('app.url')],
+        // Both the apex and www serve the app (no host redirect), so accept both
+        // origins. The WebAuthn check matches the full origin exactly before any
+        // subdomain rule, so listing www here is enough — no allow-subdomains flag.
+        'allowed_origins' => [
+            config('app.url'),
+            'https://www.chatvia.ai',
+        ],
         'timeout' => 60000,
     ],
 

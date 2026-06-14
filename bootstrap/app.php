@@ -19,7 +19,7 @@ use App\Http\Middleware\Chat\EnsureChatIsAccessible;
 use App\Http\Middleware\Chat\RedirectToAgent;
 use App\Http\Middleware\Chat\ResolveAgentFromSubdomain;
 use App\Http\Middleware\Web\ContentSecurityPolicy;
-use App\Http\Middleware\Web\ForceApex;
+use App\Http\Middleware\Web\ForceWww;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use App\Http\Middleware\Web\SetLocale;
@@ -79,7 +79,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             //            ContentSecurityPolicy::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
-            ForceApex::class,
+            ForceWww::class,
         ]);
 
         $middleware->group('chat', [
@@ -127,18 +127,15 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // NB: app()->environment() is not resolvable this early in bootstrap,
         // so read APP_ENV via the env() helper directly.
         $trustedProxies = trim((string) env('TRUSTED_PROXIES', ''));
-        $isLocal = env('APP_ENV') === 'local';
+        $isLocal = app()->isLocal();
 
         $middleware->trustProxies(at: match (true) {
-            $trustedProxies === '*' => $isLocal ? '*' : [],
-            $trustedProxies === '' => $isLocal ? '*' : [],
+            $trustedProxies === '*', $trustedProxies === '' => $isLocal ? '*' : [],
             default => array_values(array_filter(array_map('trim', explode(',', $trustedProxies)))),
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        if (app()->isProduction()) {
-            Flare::handles($exceptions);
-        }
+        Flare::handles($exceptions);
 
         // Canonical HTTP translation for the domain's field-keyed rejection
         // exception: render it as a 422 validation error — JSON gets

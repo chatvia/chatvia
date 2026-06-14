@@ -38,7 +38,7 @@ return [
     'packages' => [
         /*
         |----------------------------------------------------------------------
-        | Starter Plan - €99/month
+        | Starter Plan - €49/month
         |----------------------------------------------------------------------
         */
         'starter' => [
@@ -72,8 +72,8 @@ return [
             ],
             'stripe_monthly_price_id' => env('STRIPE_STARTER_MONTHLY_PRICE_ID'),
             'stripe_yearly_price_id' => env('STRIPE_STARTER_YEARLY_PRICE_ID'),
-            'monthly_price' => 9900,
-            'yearly_price' => 94800,
+            'monthly_price' => 4900,
+            'yearly_price' => 46800,
             'is_popular' => false,
 
             'quota_limits' => [

@@ -16,7 +16,7 @@
                         Start free trial <span class="tracking-normal text-blue-300 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1"></span>
                     </a>
                 </div>
-                <div class="text-sm italic text-slate-500">7-day free trial. No credit card required!</div>
+                <div class="text-sm italic text-slate-500">{{ config('billing.trial.days') }}-day free trial. No credit card required!</div>
             </div>
 
         </div>

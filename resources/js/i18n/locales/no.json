@@ -2906,8 +2906,8 @@
                     "description": "For små bedrifter som er i gang.",
                     "features": {
                         "monthly": {
-                            "messages": "6 000 meldinger per måned",
-                            "agents": "5 AI-agenter",
+                            "messages": "3 000 meldinger per måned",
+                            "agents": "2 AI-agenter",
                             "pages": "2 000 sider (PDF, Word, tekst)",
                             "links": "2 000 nettsidelenker",
                             "minutes": "500 minutter lyd/video",
@@ -2918,8 +2918,8 @@
                             "retention": "90 dagers chathistorikk"
                         },
                         "yearly": {
-                            "messages": "78 000 meldinger per år",
-                            "agents": "5 AI-agenter",
+                            "messages": "39 000 meldinger per år",
+                            "agents": "2 AI-agenter",
                             "pages": "2 000 sider (PDF, Word, tekst)",
                             "links": "2 000 nettsidelenker",
                             "minutes": "500 minutter lyd/video",
@@ -2968,7 +2968,7 @@
                     }
                 },
                 "pro": {
-                    "name": "Ultra",
+                    "name": "Pro",
                     "description": "For organisasjoner som trenger alt.",
                     "features": {
                         "monthly": {

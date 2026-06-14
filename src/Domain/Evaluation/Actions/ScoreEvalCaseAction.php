@@ -44,7 +44,7 @@ class ScoreEvalCaseAction
 
         // Credits can run dry mid-suite (each case consumes one message), so
         // re-check the same gate live chat uses before spending an LLM call.
-        if (! $this->creditSystem->setUserId($agent->user_id)->canSendMessages()) {
+        if (! $this->creditSystem->forWorkspace($agent->user_id)->canSendMessages()) {
             return $this->record(
                 $run,
                 $case,

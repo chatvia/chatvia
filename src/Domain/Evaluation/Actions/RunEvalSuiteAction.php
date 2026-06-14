@@ -28,7 +28,7 @@ class RunEvalSuiteAction
     {
         // Evals bill like live chat — one message per scored case — so a
         // workspace that can't send messages can't start a suite either.
-        if (! $this->creditSystem->setUserId($agent->user_id)->canSendMessages()) {
+        if (! $this->creditSystem->forWorkspace($agent->user_id)->canSendMessages()) {
             throw ValidationException::withMessages([
                 'run' => 'No message credits left — every eval case costs one message. Top up or upgrade to run the suite.',
             ]);

@@ -30,27 +30,19 @@ return [
 
     'hero' => [
         'badges' => [
-            'gdpr' => 'GDPR',
-            'eu_hosted' => 'EU Hosted',
-            'encrypted' => 'Encrypted Data',
+            'main' => 'Privacy-first, fully EU-hosted AI agents',
         ],
-        'title_line1' => 'AI agents that',
-        'title_make' => 'never leave the',
+        'title_line1' => 'AI agents that keep',
+        'title_make' => 'your data in the',
         'title_minutes' => 'EU',
-        'subtitle' => 'AI agents trained on your data that book meetings, trigger workflows, and act in your tools — fully hosted in Europe, with your data never crossing the Atlantic.',
+        'subtitle' => 'Built and hosted in Europe on open, European-owned infrastructure. Your data never leaves — and never trains anyone else\'s model. 🇪🇺',
         'no_code' => 'No code, no engineers.',
-        'surfaces' => [
-            'lead' => 'One agent. Three ways to deploy.',
-            'chat' => 'ChatGPT-style chat',
-            'widget' => 'Embeddable widget',
-            'bar' => 'Command bar',
-        ],
         'eu_hosting' => 'Hosted in the EU · GDPR by default · No US sub-processors · DPA included',
         'gdpr_alt' => 'GDPR Compliant',
         'region' => 'Stored & processed in the EU — Germany & France',
         'cta' => 'Start free trial',
         'cta_secondary' => 'Book a 15-min demo',
-        'cta_note' => ':days-day free trial · No credit card required.',
+        'cta_note' => ':days-day free trial · Cancel anytime.',
     ],
 
     'trust' => [

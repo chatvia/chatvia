@@ -49,7 +49,7 @@ function attachmentDeleteAgent(bool $isPublic = true): Agent
         'is_public' => $isPublic,
     ]);
 
-    app(UserCreditSystem::class)->setUserId($agent->user_id)->setCanSendMessages(true);
+    app(UserCreditSystem::class)->forWorkspace($agent->user_id)->setCanSendMessages(true);
 
     return $agent;
 }

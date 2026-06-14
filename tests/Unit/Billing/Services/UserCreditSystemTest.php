@@ -175,10 +175,10 @@ it('canSendMessages returns false and caches the gate flag when there is no acti
     expect($system->canSendMessages())->toBeFalse()
         // the gate is cached (not recomputed every call) — this is the separate
         // key that can disagree with the live consumableMessages calculation.
-        ->and(Cache::get('user:'.$user->id.':can-send-messages'))->toBeFalse();
+        ->and(Cache::get('workspace:'.$user->id.':can-send-messages'))->toBeFalse();
 });
 
-it('canSendMessages returns true when an active credit has remaining messages', function (): void {
+it('canSendMessages returns true when an active credit has remaining messages and the workspace is subscribed', function (): void {
     $user = User::factory()->create();
 
     UserCredit::factory()->create([
@@ -188,7 +188,28 @@ it('canSendMessages returns true when an active credit has remaining messages', 
         'ends_at' => now()->addDays(20),
     ]);
 
+    // The gate is two-factor (capacity AND active billing) — seed a live trial.
+    $user->billing()->create(['trial_ends_at' => now()->addDays(7)]);
+
     expect($user->creditSystem()->canSendMessages())->toBeTrue();
+});
+
+it('canSendMessages returns false when there is capacity but no active subscription', function (): void {
+    $user = User::factory()->create();
+
+    // Plenty of remaining capacity…
+    UserCredit::factory()->create([
+        'user_id' => $user->id,
+        'messages' => 100,
+        'started_at' => now()->subDay(),
+        'ends_at' => now()->addDays(20),
+    ]);
+
+    // …but with no subscription or trial the workspace cannot send. The pure
+    // capacity figure is unaffected — subscription gates the send flag, not the
+    // available-messages number.
+    expect($user->creditSystem()->canSendMessages())->toBeFalse()
+        ->and($user->creditSystem()->consumableMessages(refresh: true))->toBe(100);
 });
 
 it('refreshCanSendMessages flips the gate to false once usage exhausts the active credit', function (): void {
@@ -206,7 +227,7 @@ it('refreshCanSendMessages flips the gate to false once usage exhausts the activ
 
     expect($system->refreshCanSendMessages())->toBeFalse()
         ->and($system->canSendMessages())->toBeFalse()
-        ->and(Cache::get('user:'.$user->id.':can-send-messages'))->toBeFalse();
+        ->and(Cache::get('workspace:'.$user->id.':can-send-messages'))->toBeFalse();
 });
 
 it('trusts the cached gate even when it disagrees with live availability, until refreshed', function (): void {
@@ -258,7 +279,7 @@ it('getTotalSentMessages falls back to the DB usage row on a cache miss and re-c
     // Cache is empty (flushed in beforeEach) — without the DB fallback this
     // showed 0 sent on the usage dashboard until the next billing cycle.
     expect($user->creditSystem()->getTotalSentMessages())->toBe(30)
-        ->and(Cache::get('user:'.$user->id.':credit:messages:sent'))->toBe(30);
+        ->and(Cache::get('workspace:'.$user->id.':credit:messages:sent'))->toBe(30);
 });
 
 it('getTotalSentMessages prefers the cached counter over the DB row', function (): void {
@@ -274,7 +295,7 @@ it('getTotalSentMessages prefers the cached counter over the DB row', function (
 
     // Steady state: consumption jobs increment the cache directly; reads must
     // not bypass it for a DB query.
-    Cache::put('user:'.$user->id.':credit:messages:sent', 7, now()->addDay());
+    Cache::put('workspace:'.$user->id.':credit:messages:sent', 7, now()->addDay());
 
     expect($user->creditSystem()->getTotalSentMessages())->toBe(7);
 });

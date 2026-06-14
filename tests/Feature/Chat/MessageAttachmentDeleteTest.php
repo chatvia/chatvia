@@ -48,7 +48,7 @@ function messageAgent(bool $isPublic = true): Agent
         'sub_domain' => Str::lower(Str::random(12)),
         'is_public' => $isPublic,
     ]);
-    app(UserCreditSystem::class)->setUserId($agent->user_id)->setCanSendMessages(true);
+    app(UserCreditSystem::class)->forWorkspace($agent->user_id)->setCanSendMessages(true);
 
     return $agent;
 }

@@ -32,28 +32,13 @@
             <!-- Hero content -->
             <div class="text-center max-w-6xl mx-auto">
 
-                <!-- Trust badges -->
-                <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-6">
-                    <!-- GDPR -->
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-xs sm:text-sm font-semibold text-indigo-700 uppercase tracking-wide shadow-sm">
+                <!-- Trust badge -->
+                <div class="flex items-center justify-center mb-6">
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-full text-xs sm:text-sm font-semibold text-indigo-700 shadow-sm">
                         <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
                         </svg>
-                        {{ __('landing.hero.badges.gdpr') }}
-                    </span>
-                    <!-- EU Hosted -->
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-full text-xs sm:text-sm font-semibold text-blue-700 uppercase tracking-wide shadow-sm">
-                        <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.75 17.25v-.228a4.5 4.5 0 0 0-.12-1.03l-2.268-9.64a3.375 3.375 0 0 0-3.285-2.602H7.923a3.375 3.375 0 0 0-3.285 2.602l-2.268 9.64a4.5 4.5 0 0 0-.12 1.03v.228m19.5 0a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3m19.5 0a3 3 0 0 0-3-3H5.25a3 3 0 0 0-3 3m16.5 0h.008v.008h-.008v-.008Zm-3 0h.008v.008h-.008v-.008Z" />
-                        </svg>
-                        {{ __('landing.hero.badges.eu_hosted') }}
-                    </span>
-                    <!-- Encrypted Data -->
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full text-xs sm:text-sm font-semibold text-emerald-700 uppercase tracking-wide shadow-sm">
-                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                        </svg>
-                        {{ __('landing.hero.badges.encrypted') }}
+                        {{ __('landing.hero.badges.main') }}
                     </span>
                 </div>
 
@@ -80,34 +65,6 @@
                         </span>
                     </span>
                 </p>
-
-                <!-- Product surfaces: one agent, three places it can live -->
-                <div class="mb-8 sm:mb-10">
-                    <p class="text-sm font-medium text-slate-500 mb-3">{{ __('landing.hero.surfaces.lead') }}</p>
-                    <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
-                        <!-- ChatGPT-style chat -->
-                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white/80 border border-slate-200 rounded-full text-xs sm:text-sm font-medium text-slate-700 shadow-sm">
-                            <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z" />
-                            </svg>
-                            {{ __('landing.hero.surfaces.chat') }}
-                        </span>
-                        <!-- Embeddable widget -->
-                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white/80 border border-slate-200 rounded-full text-xs sm:text-sm font-medium text-slate-700 shadow-sm">
-                            <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
-                            </svg>
-                            {{ __('landing.hero.surfaces.widget') }}
-                        </span>
-                        <!-- Command bar -->
-                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white/80 border border-slate-200 rounded-full text-xs sm:text-sm font-medium text-slate-700 shadow-sm">
-                            <svg class="w-4 h-4 text-purple-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z" />
-                            </svg>
-                            {{ __('landing.hero.surfaces.bar') }}
-                        </span>
-                    </div>
-                </div>
 
                 <!-- EU hosting proof: GDPR seal + the countries we run in -->
                 <div class="flex items-center justify-center gap-4 mb-8 sm:mb-10">

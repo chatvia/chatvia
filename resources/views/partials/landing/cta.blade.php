@@ -14,7 +14,7 @@
                     </em>
                 </h2>
                 <p class="text-lg text-zinc-500 mb-8">
-                    {{ config('billing.trial.days') }}-day free trial - No credit card required
+                    {{ config('billing.trial.days') }}-day free trial - Cancel anytime
                 </p>
                 <div class="max-w-xs mx-auto sm:max-w-none sm:inline-flex sm:justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                     <div>

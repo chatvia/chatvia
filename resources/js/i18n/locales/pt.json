@@ -2906,8 +2906,8 @@
                     "description": "Para pequenas empresas que estão a começar.",
                     "features": {
                         "monthly": {
-                            "messages": "6.000 mensagens por mês",
-                            "agents": "5 agentes de IA",
+                            "messages": "3.000 mensagens por mês",
+                            "agents": "2 agentes de IA",
                             "pages": "2.000 páginas (PDF, Word, Texto)",
                             "links": "2.000 links de website",
                             "minutes": "500 minutos de áudio/vídeo",
@@ -2918,8 +2918,8 @@
                             "retention": "90 dias de histórico de conversas"
                         },
                         "yearly": {
-                            "messages": "78.000 mensagens por ano",
-                            "agents": "5 agentes de IA",
+                            "messages": "39.000 mensagens por ano",
+                            "agents": "2 agentes de IA",
                             "pages": "2.000 páginas (PDF, Word, Texto)",
                             "links": "2.000 links de website",
                             "minutes": "500 minutos de áudio/vídeo",
@@ -2968,7 +2968,7 @@
                     }
                 },
                 "pro": {
-                    "name": "Ultra",
+                    "name": "Pro",
                     "description": "Para organizações que necessitam de tudo.",
                     "features": {
                         "monthly": {

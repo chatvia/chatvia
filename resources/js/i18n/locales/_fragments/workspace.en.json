@@ -302,11 +302,11 @@
             "done": "Done",
             "teaser": {
                 "title": "Security & Compliance",
-                "description": "Lock your workspace down to trusted networks and meet your compliance needs. Available on the Ultra plan.",
+                "description": "Lock your workspace down to trusted networks and meet your compliance needs. Available on the Pro plan.",
                 "ip": "IP allowlist — only approved addresses can sign in",
                 "geo": "Country rules — allow or block access by country",
                 "more": "Plus data retention, SIEM webhooks, SSO / SCIM and more",
-                "cta": "Upgrade to Ultra"
+                "cta": "Upgrade to Pro"
             },
             "network": {
                 "title": "Network access control",
@@ -373,8 +373,8 @@
             "integrity": "Integrity hash recorded",
             "teaser": {
                 "title": "Security audit log",
-                "description": "See every sign-in, role change, and security setting change — tamper-evident and exportable. Available on the Ultra plan.",
-                "cta": "Upgrade to Ultra"
+                "description": "See every sign-in, role change, and security setting change — tamper-evident and exportable. Available on the Pro plan.",
+                "cta": "Upgrade to Pro"
             },
             "table": {
                 "actor": "Actor",

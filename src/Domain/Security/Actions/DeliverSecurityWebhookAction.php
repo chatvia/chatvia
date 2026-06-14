@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Http;
 /**
  * Delivers a {@see SecurityEventOccurred} to the workspace's configured SIEM
  * endpoint — an HMAC-SHA256-signed JSON POST. Requires the `siemWebhook`
- * capability (Ultra / Enterprise), re-checked here so a stale webhook left on a
+ * capability (Pro / Enterprise), re-checked here so a stale webhook left on a
  * since-downgraded workspace stops delivering even if `webhook_enabled` is set.
  *
  * On a non-2xx response or transport error it throws, so the queued

@@ -2906,8 +2906,8 @@
                     "description": "För småföretag som precis kommit igång.",
                     "features": {
                         "monthly": {
-                            "messages": "6 000 meddelanden per månad",
-                            "agents": "5 AI-agenter",
+                            "messages": "3 000 meddelanden per månad",
+                            "agents": "2 AI-agenter",
                             "pages": "2 000 sidor (PDF, Word, Text)",
                             "links": "2 000 webbplatslänkar",
                             "minutes": "500 minuter ljud/video",
@@ -2918,8 +2918,8 @@
                             "retention": "90 dagars chatthistorik"
                         },
                         "yearly": {
-                            "messages": "78 000 meddelanden per år",
-                            "agents": "5 AI-agenter",
+                            "messages": "39 000 meddelanden per år",
+                            "agents": "2 AI-agenter",
                             "pages": "2 000 sidor (PDF, Word, Text)",
                             "links": "2 000 webbplatslänkar",
                             "minutes": "500 minuter ljud/video",
@@ -2968,7 +2968,7 @@
                     }
                 },
                 "pro": {
-                    "name": "Ultra",
+                    "name": "Pro",
                     "description": "För organisationer som behöver allt.",
                     "features": {
                         "monthly": {

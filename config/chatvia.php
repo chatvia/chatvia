@@ -17,6 +17,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Founder
+    |--------------------------------------------------------------------------
+    |
+    | Identity used for the personal welcome note sent to new trial sign-ups.
+    | The email is set as the message Reply-To so replies land in the founder's
+    | inbox — override it via env if the address changes.
+    |
+    */
+
+    'founder' => [
+        'name' => env('FOUNDER_NAME', 'Ahmad Mayahi'),
+        'email' => env('FOUNDER_EMAIL', 'info@chatvia.ai'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Languages (shared)
     |--------------------------------------------------------------------------
     |

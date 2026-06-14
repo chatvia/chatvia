@@ -50,7 +50,7 @@ return [
         'region' => 'Gespeichert & verarbeitet in der EU — Deutschland & Frankreich',
         'cta' => 'Kostenlose Testversion starten',
         'cta_secondary' => '15-Minuten-Demo buchen',
-        'cta_note' => 'Keine Kreditkarte erforderlich.',
+        'cta_note' => ':days-tägige kostenlose Testversion · Keine Kreditkarte erforderlich.',
     ],
 
     'trust' => [

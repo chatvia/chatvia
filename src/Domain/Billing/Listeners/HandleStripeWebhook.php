@@ -7,6 +7,7 @@ use App\Identity\Workspace\Services\PasswordSetup;
 use Domain\Billing\Actions\Subscriptions\GrantSubscriptionAction;
 use Domain\Billing\Enums\Addon;
 use Domain\Billing\Models\UserBilling;
+use Domain\Billing\Notifications\FounderWelcomeNotification;
 use Domain\Billing\Notifications\TrialWelcomeNotification;
 use Domain\Membership\Team\Services\TeamService;
 use Exception;
@@ -285,6 +286,10 @@ class HandleStripeWebhook
             // doesn't exist.
             $package = $metadata['package'] ?? 'starter';
             $user->notify(new TrialWelcomeNotification($package));
+
+            // A personal note from the founder, sent only to brand-new accounts
+            // (this branch) — returning customers above don't get it again.
+            $user->notify(new FounderWelcomeNotification);
 
             return $user;
         } catch (Exception $e) {

@@ -50,7 +50,7 @@ return [
         'region' => 'Stockées et traitées en UE — Allemagne et France',
         'cta' => 'Démarrer l\'essai gratuit',
         'cta_secondary' => 'Réserver une démo de 15 min',
-        'cta_note' => 'Aucune carte bancaire requise.',
+        'cta_note' => ':days jours d\'essai gratuit · Aucune carte bancaire requise.',
     ],
 
     'trust' => [

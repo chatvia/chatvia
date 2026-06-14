@@ -7,6 +7,7 @@ use Domain\Billing\Listeners\HandleStripeWebhook;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserCredit;
 use Domain\Billing\Models\UserQuota;
+use Domain\Billing\Notifications\FounderWelcomeNotification;
 use Domain\Billing\Notifications\TrialWelcomeNotification;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
@@ -325,6 +326,20 @@ it('provisions a user when Stripe POSTs a trial checkout.session.completed to th
         return str_contains($body, 'we never send passwords by email')
             && str_contains($body, 'magic link')
             && ! str_contains($body, 'Password:');
+    });
+
+    // The founder's personal note goes out alongside the transactional email:
+    // greeted by first name, covering the thanks / EU-AI / use-case beats, with
+    // replies routed to the founder's own inbox.
+    Notification::assertSentTo($user, FounderWelcomeNotification::class, function (FounderWelcomeNotification $notification) use ($user): bool {
+        $mail = $notification->toMail($user);
+        $body = collect($mail->introLines)->merge($mail->outroLines)->implode(' ');
+
+        return $mail->greeting === 'Hi New,'
+            && str_contains($body, 'Thank you for starting your Chatvia trial')
+            && str_contains($body, 'EU-based AI')
+            && str_contains($body, 'use case')
+            && $mail->replyTo[0][0] === config('chatvia.founder.email');
     });
 });
 

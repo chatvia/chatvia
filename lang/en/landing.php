@@ -50,7 +50,7 @@ return [
         'region' => 'Stored & processed in the EU — Germany & France',
         'cta' => 'Start free trial',
         'cta_secondary' => 'Book a 15-min demo',
-        'cta_note' => 'No credit card needed.',
+        'cta_note' => ':days-day free trial · No credit card required.',
     ],
 
     'trust' => [

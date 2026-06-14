@@ -139,6 +139,11 @@
                     </a>
                 </div>
 
+                <!-- Trial note — duration driven by config/billing.php (STRIPE_TRIAL_DAYS) so the copy can't drift from the real trial length -->
+                <p class="mt-5 text-sm text-slate-500">
+                    {{ __('landing.hero.cta_note', ['days' => config('billing.trial.days')]) }}
+                </p>
+
             </div>
 
             <!-- Hero Image -->

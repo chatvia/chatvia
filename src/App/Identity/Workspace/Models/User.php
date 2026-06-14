@@ -537,7 +537,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     {
         $workspaceId = $this->workspace()->id;
 
-        return app(UserCreditSystem::class)->setUserId($workspaceId);
+        return app(UserCreditSystem::class)->forWorkspace($workspaceId);
     }
 
     /**

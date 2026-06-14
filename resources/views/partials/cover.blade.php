@@ -12,7 +12,7 @@
 <link rel="dns-prefetch" href="//fonts.googleapis.com" />
 
 <!-- SEO Meta Tags -->
-<meta name="description" content="@yield('description', 'Create AI Agents similar to ChatGPT but with your own data. Upload PDFs, Word docs, and any files. Launch in minutes with different data sources and deployment options. No credit card required.')" />
+<meta name="description" content="@yield('description', 'Create AI Agents similar to ChatGPT but with your own data. Upload PDFs, Word docs, and any files. Launch in minutes with different data sources and deployment options.')" />
 <meta name="keywords" content="@yield('keywords', 'AI agents, ChatGPT alternative, RAG, document processing, PDF analysis, AI chatbot, custom AI, knowledge base, document upload, AI training')" />
 <meta name="author" content="ChatVIA" />
 <meta name="robots" content="index, follow" />
@@ -56,7 +56,7 @@
     "@type": "Offer",
     "price": "0",
     "priceCurrency": "USD",
-    "description": "Free plan available, no credit card required"
+    "description": "Free trial available"
   },
   "aggregateRating": {
     "@type": "AggregateRating",

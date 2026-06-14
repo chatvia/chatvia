@@ -28,7 +28,7 @@ class ConsumeMessageCreditsAction
 
     public function execute(int $userId, int $modelId, int $additionalMessages = 0): void
     {
-        $this->creditSystem->setUserId($userId);
+        $this->creditSystem->forWorkspace($userId);
 
         DB::transaction(function () use ($userId, $modelId, $additionalMessages): void {
             /** @var User|null $user */

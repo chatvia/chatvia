@@ -38,7 +38,7 @@ class SecurityPolicyController
 
         return Inertia::render('workspace/security/Security', [
             'entitled' => $entitled,
-            // SIEM is its own capability (Ultra+); the card shows only with it.
+            // SIEM is its own capability (Pro+); the card shows only with it.
             'siem' => (bool) $workspace->capabilities->siemWebhook,
             'policy' => $policy ? WorkspaceSecurityPolicyData::fromModel($policy) : new WorkspaceSecurityPolicyData,
             // Country picker options for the geo rules — only needed when the form

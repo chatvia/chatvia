@@ -2906,8 +2906,8 @@
                     "description": "Für kleine Unternehmen, die gerade starten.",
                     "features": {
                         "monthly": {
-                            "messages": "6.000 Nachrichten pro Monat",
-                            "agents": "5 KI-Agenten",
+                            "messages": "3.000 Nachrichten pro Monat",
+                            "agents": "2 KI-Agenten",
                             "pages": "2.000 Seiten (PDF, Word, Text)",
                             "links": "2.000 Website-Links",
                             "minutes": "500 Minuten Audio/Video",
@@ -2918,8 +2918,8 @@
                             "retention": "90 Tage Chatverlauf"
                         },
                         "yearly": {
-                            "messages": "78.000 Nachrichten pro Jahr",
-                            "agents": "5 KI-Agenten",
+                            "messages": "39.000 Nachrichten pro Jahr",
+                            "agents": "2 KI-Agenten",
                             "pages": "2.000 Seiten (PDF, Word, Text)",
                             "links": "2.000 Website-Links",
                             "minutes": "500 Minuten Audio/Video",
@@ -2968,7 +2968,7 @@
                     }
                 },
                 "pro": {
-                    "name": "Ultra",
+                    "name": "Pro",
                     "description": "Für Organisationen, die alles brauchen.",
                     "features": {
                         "monthly": {

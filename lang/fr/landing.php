@@ -30,27 +30,19 @@ return [
 
     'hero' => [
         'badges' => [
-            'gdpr' => 'RGPD',
-            'eu_hosted' => 'Hébergé en UE',
-            'encrypted' => 'Données chiffrées',
+            'main' => 'Des agents IA axés sur la confidentialité, entièrement hébergés dans l\'UE',
         ],
-        'title_line1' => 'Des agents IA',
-        'title_make' => 'qui ne quittent jamais',
+        'title_line1' => 'Des agents IA qui gardent',
+        'title_make' => 'vos données dans',
         'title_minutes' => 'l\'UE',
-        'subtitle' => 'Des agents IA entraînés sur vos données qui réservent des réunions, déclenchent des workflows et agissent dans vos outils — entièrement hébergés en Europe, sans que vos données ne traversent jamais l\'Atlantique.',
+        'subtitle' => 'Conçus et hébergés en Europe, sur une infrastructure ouverte et détenue par des Européens. Vos données ne quittent jamais l\'Europe — et n\'entraînent jamais les modèles de tiers. 🇪🇺',
         'no_code' => 'Sans code, sans développeurs.',
-        'surfaces' => [
-            'lead' => 'Un agent. Trois façons de le déployer.',
-            'chat' => 'Chat de style ChatGPT',
-            'widget' => 'Widget intégrable',
-            'bar' => 'Barre de commande',
-        ],
         'eu_hosting' => 'Hébergé en UE · RGPD par défaut · Aucun sous-traitant américain · DPA inclus',
         'gdpr_alt' => 'Conforme au RGPD',
         'region' => 'Stockées et traitées en UE — Allemagne et France',
         'cta' => 'Démarrer l\'essai gratuit',
         'cta_secondary' => 'Réserver une démo de 15 min',
-        'cta_note' => ':days jours d\'essai gratuit · Aucune carte bancaire requise.',
+        'cta_note' => ':days jours d\'essai gratuit · Annulable à tout moment.',
     ],
 
     'trust' => [

@@ -299,7 +299,7 @@ class StoreMessageAction
         // Workspace owner's billing pool (the real prompt+completion count).
         // The per-member budget is charged separately at a flat rate on the
         // user turn (see ChatterMessageAllowance::recordMessage).
-        $this->creditSystem->setUserId($agent->user_id)->recordTokenUsage($tokens);
+        $this->creditSystem->forWorkspace($agent->user_id)->recordTokenUsage($tokens);
     }
 
     private function buildMessageAttributes(

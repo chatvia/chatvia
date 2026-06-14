@@ -327,7 +327,7 @@ const applyCountries = () => {
                     </CardContent>
                 </Card>
 
-                <!-- SIEM webhook — its own capability (Ultra / Enterprise) -->
+                <!-- SIEM webhook — its own capability (Pro / Enterprise) -->
                 <Card v-if="siem">
                     <CardContent class="space-y-6">
                         <div

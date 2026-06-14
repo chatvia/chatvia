@@ -7,8 +7,8 @@
                     "description": "For small businesses getting started.",
                     "features": {
                         "monthly": {
-                            "messages": "6,000 messages per month",
-                            "agents": "5 AI agents",
+                            "messages": "3,000 messages per month",
+                            "agents": "2 AI agents",
                             "pages": "2,000 pages (PDF, Word, Text)",
                             "links": "2,000 website links",
                             "minutes": "500 minutes audio/video",
@@ -19,8 +19,8 @@
                             "retention": "90 days of chat history"
                         },
                         "yearly": {
-                            "messages": "78,000 messages per year",
-                            "agents": "5 AI agents",
+                            "messages": "39,000 messages per year",
+                            "agents": "2 AI agents",
                             "pages": "2,000 pages (PDF, Word, Text)",
                             "links": "2,000 website links",
                             "minutes": "500 minutes audio/video",
@@ -69,7 +69,7 @@
                     }
                 },
                 "pro": {
-                    "name": "Ultra",
+                    "name": "Pro",
                     "description": "For organizations that need it all.",
                     "features": {
                         "monthly": {

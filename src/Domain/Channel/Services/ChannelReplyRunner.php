@@ -123,6 +123,6 @@ class ChannelReplyRunner
         $billing = $owner->billing;
         $subscribed = (bool) ($billing?->subscribed() || $billing?->onTrial());
 
-        return $subscribed && $this->creditSystem->setUserId($owner->id)->canSendMessages();
+        return $subscribed && $this->creditSystem->forWorkspace($owner->id)->canSendMessages();
     }
 }

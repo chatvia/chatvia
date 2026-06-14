@@ -245,7 +245,7 @@ readonly class ChatStreamService
 
     private function userCanSendMessages(int $userId): bool
     {
-        return $this->creditSystem->setUserId($userId)->canSendMessages();
+        return $this->creditSystem->forWorkspace($userId)->canSendMessages();
     }
 
     private function chatterLimitReached(int $chatterUserId): bool

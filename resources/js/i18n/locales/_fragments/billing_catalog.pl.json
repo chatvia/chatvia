@@ -7,8 +7,8 @@
                     "description": "Dla małych firm, które dopiero zaczynają.",
                     "features": {
                         "monthly": {
-                            "messages": "6 000 wiadomości miesięcznie",
-                            "agents": "5 agentów AI",
+                            "messages": "3 000 wiadomości miesięcznie",
+                            "agents": "2 agentów AI",
                             "pages": "2 000 stron (PDF, Word, tekst)",
                             "links": "2 000 linków do stron internetowych",
                             "minutes": "500 minut audio/wideo",
@@ -19,8 +19,8 @@
                             "retention": "90 dni historii czatu"
                         },
                         "yearly": {
-                            "messages": "78 000 wiadomości rocznie",
-                            "agents": "5 agentów AI",
+                            "messages": "39 000 wiadomości rocznie",
+                            "agents": "2 agentów AI",
                             "pages": "2 000 stron (PDF, Word, tekst)",
                             "links": "2 000 linków do stron internetowych",
                             "minutes": "500 minut audio/wideo",
@@ -69,7 +69,7 @@
                     }
                 },
                 "pro": {
-                    "name": "Ultra",
+                    "name": "Pro",
                     "description": "Dla organizacji, które potrzebują wszystkiego.",
                     "features": {
                         "monthly": {

@@ -21,7 +21,7 @@ class FlushTokenUsageBuffer extends Command
             // hdel before writing: concurrent increments land in a fresh entry for the next flush.
             Redis::hdel(RecordLlmTokenUsage::BUFFER_KEY, (string) $workspaceId);
 
-            $creditSystem->setUserId((int) $workspaceId)->recordTokenUsage((int) $tokens);
+            $creditSystem->forWorkspace((int) $workspaceId)->recordTokenUsage((int) $tokens);
         }
 
         $this->info('Flushed token usage for '.count($buffered).' workspace(s).');

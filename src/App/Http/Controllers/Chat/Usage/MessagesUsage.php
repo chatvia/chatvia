@@ -11,7 +11,7 @@ class MessagesUsage
     {
         return [
             'can_send_messages' => app(UserCreditSystem::class)
-                ->setUserId($request->attributes->get('agent_user_id'))
+                ->forWorkspace($request->attributes->get('agent_user_id'))
                 ->canSendMessages(),
         ];
     }

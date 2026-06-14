@@ -163,7 +163,7 @@ it('applies starter-plan quota limits and message credits on subscription_cycle'
     $quota = $user->fresh()->quota;
 
     // From config/billing.php → packages.starter.quota_limits.fixed
-    expect($quota->agents_limit)->toBe(5)
+    expect($quota->agents_limit)->toBe(2)
         ->and($quota->pages_limit)->toBe(2000)
         ->and($quota->minutes_limit)->toBe(500)
         ->and($quota->links_limit)->toBe(2000)
@@ -174,7 +174,7 @@ it('applies starter-plan quota limits and message credits on subscription_cycle'
     // From config/billing.php → packages.starter.quota_limits.monthly.messages_limit
     $credit = UserCredit::where('user_id', $user->id)->latest('id')->first();
     expect($credit)->not->toBeNull()
-        ->and($credit->messages)->toBe(6000);
+        ->and($credit->messages)->toBe(3000);
 });
 
 it('records a UserAddon for an extra_message_credits checkout', function (): void {

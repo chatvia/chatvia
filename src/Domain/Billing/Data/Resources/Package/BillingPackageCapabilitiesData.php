@@ -24,12 +24,12 @@ class BillingPackageCapabilitiesData extends Data
         public bool $pulse = false,
         public bool $removeBranding = false,
         // The Security & Compliance suite (network access control, configurable
-        // retention, security audit log). Single umbrella flag — Ultra and
+        // retention, security audit log). Single umbrella flag — Pro and
         // Enterprise tiers.
         public bool $security = false,
         // SIEM webhook delivery — its own capability, decoupled from the
-        // `security` flag so it can be granted independently. Ultra (and
-        // Enterprise, which is Ultra + manual grants).
+        // `security` flag so it can be granted independently. Pro (and
+        // Enterprise, which is Pro + manual grants).
         public bool $siemWebhook = false,
         // Days a conversation (and its cached memory) lives before the
         // scheduled prune deletes it. Set per plan in the factory methods

@@ -46,8 +46,8 @@ return [
             'description' => 'For small businesses getting started.',
             'features' => [
                 'monthly' => [
-                    'messages' => '6,000 messages per month',
-                    'agents' => '5 AI agents',
+                    'messages' => '3,000 messages per month',
+                    'agents' => '2 AI agents',
                     'pages' => '2,000 pages (PDF, Word, Text)',
                     'links' => '2,000 website links',
                     'minutes' => '500 minutes audio/video',
@@ -58,8 +58,8 @@ return [
                     'retention' => '90 days of chat history',
                 ],
                 'yearly' => [
-                    'messages' => '78,000 messages per year',
-                    'agents' => '5 AI agents',
+                    'messages' => '39,000 messages per year',
+                    'agents' => '2 AI agents',
                     'pages' => '2,000 pages (PDF, Word, Text)',
                     'links' => '2,000 website links',
                     'minutes' => '500 minutes audio/video',
@@ -78,13 +78,13 @@ return [
 
             'quota_limits' => [
                 'monthly' => [
-                    'messages_limit' => 6000,
+                    'messages_limit' => 3000,
                 ],
                 'yearly' => [
-                    'messages_limit' => 78000,
+                    'messages_limit' => 39000,
                 ],
                 'fixed' => [
-                    'agents_limit' => 5,
+                    'agents_limit' => 2,
                     'pages_limit' => 2000,
                     'minutes_limit' => 500,
                     'links_limit' => 2000,
@@ -166,7 +166,7 @@ return [
         |----------------------------------------------------------------------
         */
         'pro' => [
-            'name' => 'Ultra',
+            'name' => 'Pro',
             'description' => 'For organizations that need it all.',
             'features' => [
                 'monthly' => [

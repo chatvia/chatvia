@@ -106,7 +106,7 @@ function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
 function fakeMessageCreditGate(bool $canSend = true): void
 {
     $mock = Mockery::mock(UserCreditSystem::class);
-    $mock->shouldReceive('setUserId')->andReturnSelf();
+    $mock->shouldReceive('forWorkspace')->andReturnSelf();
     $mock->shouldReceive('canSendMessages')->andReturn($canSend);
 
     app()->instance(UserCreditSystem::class, $mock);

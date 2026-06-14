@@ -30,27 +30,19 @@ return [
 
     'hero' => [
         'badges' => [
-            'gdpr' => 'GDPR',
-            'eu_hosted' => 'EU-gehostet',
-            'encrypted' => 'Verschlüsselte Daten',
+            'main' => 'Datenschutzorientierte KI-Agenten, vollständig in der EU gehostet',
         ],
-        'title_line1' => 'KI-Agenten,',
-        'title_make' => 'die nie die EU',
-        'title_minutes' => 'verlassen',
-        'subtitle' => 'KI-Agenten, trainiert auf Ihren Daten, die Meetings buchen, Workflows auslösen und in Ihren Tools handeln — vollständig in Europa gehostet, ohne dass Ihre Daten je den Atlantik überqueren.',
+        'title_line1' => 'KI-Agenten, die Ihre Daten',
+        'title_make' => 'in der EU',
+        'title_minutes' => 'behalten',
+        'subtitle' => 'In Europa entwickelt und gehostet, auf offener Infrastruktur in europäischem Besitz. Ihre Daten verlassen Europa nie — und trainieren niemals fremde Modelle. 🇪🇺',
         'no_code' => 'Kein Code, keine Entwickler.',
-        'surfaces' => [
-            'lead' => 'Ein Agent. Drei Einsatzmöglichkeiten.',
-            'chat' => 'ChatGPT-ähnlicher Chat',
-            'widget' => 'Einbettbares Widget',
-            'bar' => 'Befehlsleiste',
-        ],
         'eu_hosting' => 'In der EU gehostet · GDPR ab Werk · Keine US-Unterauftragsverarbeiter · DPA inklusive',
         'gdpr_alt' => 'GDPR-konform',
         'region' => 'Gespeichert & verarbeitet in der EU — Deutschland & Frankreich',
         'cta' => 'Kostenlose Testversion starten',
         'cta_secondary' => '15-Minuten-Demo buchen',
-        'cta_note' => ':days-tägige kostenlose Testversion · Keine Kreditkarte erforderlich.',
+        'cta_note' => ':days-tägige kostenlose Testversion · Jederzeit kündbar.',
     ],
 
     'trust' => [

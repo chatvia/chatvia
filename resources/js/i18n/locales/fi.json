@@ -2800,8 +2800,8 @@
                     "description": "Pienyrityksille, jotka aloittavat toimintansa.",
                     "features": {
                         "monthly": {
-                            "messages": "6 000 viestiä kuukaudessa",
-                            "agents": "5 tekoälyagenttia",
+                            "messages": "3 000 viestiä kuukaudessa",
+                            "agents": "2 tekoälyagenttia",
                             "pages": "2 000 sivua (PDF, Word, teksti)",
                             "links": "2 000 verkkosivulinkkiä",
                             "minutes": "500 minuuttia ääntä/videota",
@@ -2812,8 +2812,8 @@
                             "retention": "90 päivän chat-historia"
                         },
                         "yearly": {
-                            "messages": "78 000 viestiä vuodessa",
-                            "agents": "5 tekoälyagenttia",
+                            "messages": "39 000 viestiä vuodessa",
+                            "agents": "2 tekoälyagenttia",
                             "pages": "2 000 sivua (PDF, Word, teksti)",
                             "links": "2 000 verkkosivulinkkiä",
                             "minutes": "500 minuuttia ääntä/videota",
@@ -2862,7 +2862,7 @@
                     }
                 },
                 "pro": {
-                    "name": "Ultra",
+                    "name": "Pro",
                     "description": "Organisaatioille, jotka tarvitsevat kaiken.",
                     "features": {
                         "monthly": {

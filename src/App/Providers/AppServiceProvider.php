@@ -73,6 +73,10 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiters();
         $this->configureScramble();
         $this->registerBunnyCdnDriver();
+
+        Gate::define('viewSpectra', function ($user = null) {
+            return (bool) $user?->isAdmin();
+        });
     }
 
     /**

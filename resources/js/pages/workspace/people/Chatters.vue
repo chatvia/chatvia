@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { getInitials } from '@/composables/useInitials';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
@@ -250,12 +251,24 @@ const formatDate = (iso: string) => {
                         <div v-if="members.length > 0" class="text-muted-foreground text-sm">
                             {{ t('workspace.members.count', { shown: filteredMembers.length, total: members.length }, members.length) }}
                         </div>
-                        <Button
-                            size="sm"
-                            :disabled="!hasInvitableAgents"
-                            :title="hasInvitableAgents ? undefined : t('workspace.members.invite_disabled_hint')"
-                            @click="openInvite"
-                        >
+                        <TooltipProvider v-if="!hasInvitableAgents" :delay-duration="0">
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <!-- A disabled button suppresses pointer events, so the tooltip
+                                         hangs off a focusable span wrapper instead. -->
+                                    <span tabindex="0" class="inline-flex">
+                                        <Button size="sm" disabled>
+                                            <UserPlus class="me-2 h-4 w-4" />
+                                            {{ t('workspace.members.invite') }}
+                                        </Button>
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{{ t('workspace.members.invite_disabled_hint') }}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        <Button v-else size="sm" @click="openInvite">
                             <UserPlus class="me-2 h-4 w-4" />
                             {{ t('workspace.members.invite') }}
                         </Button>

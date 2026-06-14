@@ -127,7 +127,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // NB: app()->environment() is not resolvable this early in bootstrap,
         // so read APP_ENV via the env() helper directly.
         $trustedProxies = trim((string) env('TRUSTED_PROXIES', ''));
-        $isLocal = app()->isLocal();
+        $isLocal = env('APP_ENV') === 'local';
 
         $middleware->trustProxies(at: match (true) {
             $trustedProxies === '*', $trustedProxies === '' => $isLocal ? '*' : [],

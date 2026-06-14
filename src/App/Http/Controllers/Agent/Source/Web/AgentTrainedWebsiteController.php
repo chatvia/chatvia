@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Agent\Source\Web;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Actions\Source\AttachWebsiteToAgentAction;
-use Domain\Knowledge\Source\Web\Actions\Source\DetachWebsiteFromAgentAction;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,8 +13,6 @@ class AgentTrainedWebsiteController
 {
     public function index(Request $request, Agent $agent): JsonResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $currentIds = $agent->websites()->pluck('source_websites.id')->toArray();
 
         $websites = SourceWebsite::query()
@@ -41,8 +38,6 @@ class AgentTrainedWebsiteController
 
     public function store(Request $request, Agent $agent, int $websiteId, AttachWebsiteToAgentAction $attach): JsonResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $request->validate(['website_id' => ['required', 'exists:source_websites,id']]);
 
         /** @var SourceWebsite $website */
@@ -57,7 +52,7 @@ class AgentTrainedWebsiteController
         return response()->json(['message' => 'Website successfully attached to agent.']);
     }
 
-    public function destroy(Request $request, Agent $agent, int $websiteId, DetachWebsiteFromAgentAction $detach): JsonResponse
+    public function destroy(Request $request, Agent $agent, int $websiteId): JsonResponse
     {
         abort_if($request->user()->cannot('update', $agent), 404);
 
@@ -66,7 +61,7 @@ class AgentTrainedWebsiteController
             ->where('source_websites.id', $websiteId)
             ->firstOrFail();
 
-        $detach->execute($agent, $website);
+        $agent->websites()->detach($website->id);
 
         return response()->json(['message' => 'Website unlinked from agent successfully.']);
     }

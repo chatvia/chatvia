@@ -8,6 +8,7 @@ use App\Http\Middleware\Access\EnsureTeamPermission;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
 use App\Http\Middleware\Access\EnsureUserHasCapability;
 use App\Http\Middleware\Access\EnsureUserHasSubscription;
+use App\Http\Middleware\Access\EnsureWorkspaceNetworkAllowed;
 use App\Http\Middleware\Auth\AuthenticateChatter;
 use App\Http\Middleware\Auth\AuthenticateChatterUsingToken;
 use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
@@ -74,6 +75,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             SetLocale::class,
             RequirePasswordSetup::class,
+            EnsureWorkspaceNetworkAllowed::class,
             //            ContentSecurityPolicy::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

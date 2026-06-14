@@ -20,8 +20,6 @@ class AgentWhatsappChannelController
 {
     public function connect(ConnectWhatsappRequest $request, Agent $agent, ConnectWhatsappNumberAction $action): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         // WhatsApp (and messaging channels generally) is for public agents
         // only — a WhatsApp sender is anonymous to Chatvia and can't satisfy
         // a protected agent's access model. Refuse to connect a protected agent.
@@ -50,8 +48,6 @@ class AgentWhatsappChannelController
 
     public function disconnect(Request $request, Agent $agent): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $agent->whatsappNumber?->delete();
 
         return back();

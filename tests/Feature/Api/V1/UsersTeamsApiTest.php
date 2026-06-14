@@ -1,11 +1,13 @@
 <?php
 
+use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserQuota;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Database\Eloquent\Collection;
 
 beforeEach(function (): void {
     // Registration is trial-checkout-only now (the Stripe webhook provisions
@@ -34,7 +36,7 @@ describe('POST /api/v1/chatters', function (): void {
         $body = $this->withHeaders(apiHeaders($this->token))
             ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
-                'agent_id' => $this->agent->external_id,
+                'agent_ids' => [$this->agent->external_id],
                 'email' => 'jane@example.test',
                 'password' => 'super-secret-pw',
             ])
@@ -54,25 +56,46 @@ describe('POST /api/v1/chatters', function (): void {
             ->and($created->accessibleAgents()->whereKey($this->agent->id)->exists())->toBeTrue();
     });
 
+    it('grants the chatter access to every agent supplied', function (): void {
+        $second = createAgent($this->user);
+
+        $body = $this->withHeaders(apiHeaders($this->token))
+            ->postJson('/api/v1/chatters', [
+                'name' => 'Multi',
+                'agent_ids' => [$this->agent->external_id, $second->external_id],
+                'email' => 'multi@example.test',
+                'password' => 'super-secret-pw',
+            ])
+            ->assertOk()
+            ->json('data');
+
+        $created = User::where('external_id', $body['id'])->firstOrFail();
+
+        expect($created->accessibleAgents()->pluck('agents.id')->all())
+            ->toHaveCount(2)
+            ->toContain($this->agent->id)
+            ->toContain($second->id);
+    });
+
     it('requires a name', function (): void {
         $this->withHeaders(apiHeaders($this->token))
-            ->postJson('/api/v1/chatters', ['agent_id' => $this->agent->external_id])
+            ->postJson('/api/v1/chatters', ['agent_ids' => [$this->agent->external_id]])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['name']);
     });
 
-    it('requires an agent_id', function (): void {
+    it('requires at least one agent id', function (): void {
         $this->withHeaders(apiHeaders($this->token))
             ->postJson('/api/v1/chatters', ['name' => 'Jane'])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['agent_id']);
+            ->assertJsonValidationErrors(['agent_ids']);
     });
 
     it('requires email and password (end-users are credentialed now)', function (): void {
         $this->withHeaders(apiHeaders($this->token))
             ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
-                'agent_id' => $this->agent->external_id,
+                'agent_ids' => [$this->agent->external_id],
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['email', 'password']);
@@ -85,12 +108,108 @@ describe('POST /api/v1/chatters', function (): void {
         $this->withHeaders(apiHeaders($this->token))
             ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
-                'agent_id' => $otherAgent->external_id,
+                'agent_ids' => [$otherAgent->external_id],
                 'email' => 'jane@example.test',
                 'password' => 'super-secret-pw',
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['agent_id']);
+            ->assertJsonValidationErrors(['agent_ids']);
+    });
+
+    it('rejects the whole request when any agent is foreign and creates no chatter', function (): void {
+        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        $foreignAgent = createAgent($other);
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->postJson('/api/v1/chatters', [
+                'name' => 'Jane',
+                'agent_ids' => [$this->agent->external_id, $foreignAgent->external_id],
+                'email' => 'jane@example.test',
+                'password' => 'super-secret-pw',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['agent_ids']);
+
+        expect(User::where('email', 'jane@example.test')->exists())->toBeFalse();
+    });
+});
+
+describe('DELETE /api/v1/chatters/{chatter}', function (): void {
+
+    it('deletes a chatter in the workspace', function (): void {
+        $chatter = app(CreateChatterAction::class)->execute($this->user, $this->agent, 'Jane');
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->deleteJson('/api/v1/chatters/'.$chatter->external_id)
+            ->assertNoContent();
+
+        expect(User::whereKey($chatter->id)->exists())->toBeFalse();
+    });
+
+    it('404s for a chatter owned by another account and leaves it intact', function (): void {
+        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        $foreign = app(CreateChatterAction::class)->execute($other, createAgent($other), 'Stranger');
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->deleteJson('/api/v1/chatters/'.$foreign->external_id)
+            ->assertNotFound();
+
+        expect(User::whereKey($foreign->id)->exists())->toBeTrue();
+    });
+});
+
+describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
+
+    it('revokes access to the named agents and keeps the rest', function (): void {
+        $second = createAgent($this->user);
+        $chatter = app(CreateChatterAction::class)->execute(
+            $this->user,
+            new Collection([$this->agent, $second]),
+            'Jane',
+        );
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', [
+                'agent_ids' => [$this->agent->external_id],
+            ])
+            ->assertNoContent();
+
+        expect($chatter->accessibleAgents()->pluck('agents.id')->all())->toEqual([$second->id]);
+    });
+
+    it('requires at least one agent id', function (): void {
+        $chatter = app(CreateChatterAction::class)->execute($this->user, $this->agent, 'Jane');
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['agent_ids']);
+    });
+
+    it('rejects an agent owned by another account and keeps the grant', function (): void {
+        $chatter = app(CreateChatterAction::class)->execute($this->user, $this->agent, 'Jane');
+        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        $foreignAgent = createAgent($other);
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', [
+                'agent_ids' => [$foreignAgent->external_id],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['agent_ids']);
+
+        expect($chatter->accessibleAgents()->whereKey($this->agent->id)->exists())->toBeTrue();
+    });
+
+    it('404s for a chatter owned by another account', function (): void {
+        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        $foreign = app(CreateChatterAction::class)->execute($other, createAgent($other), 'Stranger');
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->deleteJson('/api/v1/chatters/'.$foreign->external_id.'/agents', [
+                'agent_ids' => [$this->agent->external_id],
+            ])
+            ->assertNotFound();
     });
 });
 

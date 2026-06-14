@@ -2,23 +2,22 @@
 
 namespace Domain\Channel\Instagram\Services;
 
+use Domain\Channel\Services\MetaGraphClient;
 use Domain\Channel\Services\PlainTextFormatter;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 /**
  * Thin wrapper over the Instagram Messaging API (Instagram Login flavour —
  * `graph.instagram.com`, no Facebook Page; plain HTTP, no SDK), called per
  * account access token (Chatvia is multi-account — one Instagram professional
  * account per agent). Every call is best-effort: a Meta outage logs and
- * returns a safe value rather than throwing into the webhook/job path.
+ * returns a safe value rather than throwing into the webhook/job path (see
+ * {@see MetaGraphClient}).
  *
  * Instagram messages can't be edited, so replies don't stream — the adapter
  * keeps the typing indicator alive during generation and sends the full
  * reply at the end (chunked at Instagram's 1000-char limit).
  */
-class InstagramClient
+class InstagramClient extends MetaGraphClient
 {
     private const GRAPH = 'https://graph.instagram.com/v23.0';
 
@@ -111,47 +110,18 @@ class InstagramClient
         ]);
     }
 
-    /**
-     * Call a Graph API endpoint; null on transport failure or a Graph error.
-     *
-     * @return array<string, mixed>|null
-     */
-    protected function call(string $token, string $method, string $path, array $params = []): ?array
+    protected function graphBaseUrl(): string
     {
-        try {
-            $pending = Http::withToken($token);
-
-            $response = $method === 'get'
-                ? $pending->get(self::GRAPH.$path, $params)
-                : $pending->asJson()->post(self::GRAPH.$path, $params);
-
-            $json = $response->json();
-
-            if (! $response->successful() || ! is_array($json) || isset($json['error'])) {
-                Log::warning("Instagram {$path} returned an error", ['error' => $json['error']['message'] ?? 'malformed response']);
-
-                return null;
-            }
-
-            return $json;
-        } catch (Throwable $e) {
-            Log::warning("Instagram {$path} failed", ['error' => $e->getMessage()]);
-
-            return null;
-        }
+        return self::GRAPH;
     }
 
-    /**
-     * @return list<string>
-     */
-    private function chunk(string $text): array
+    protected function messageLimit(): int
     {
-        $text = trim($text);
+        return self::MESSAGE_LIMIT;
+    }
 
-        if ($text === '') {
-            return [];
-        }
-
-        return mb_strlen($text) <= self::MESSAGE_LIMIT ? [$text] : mb_str_split($text, self::MESSAGE_LIMIT);
+    protected function logLabel(): string
+    {
+        return 'Instagram';
     }
 }

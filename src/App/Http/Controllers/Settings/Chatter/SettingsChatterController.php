@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Chatter;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Chatter\InviteWorkspaceChatterRequest;
 use App\Http\Requests\Settings\Chatter\UpdateChatterRequest;
 use App\Identity\Chatter\Actions\DeleteChatterAction;
@@ -31,7 +30,7 @@ use Spatie\LaravelData\DataCollection;
  * the workspace boundary so an employee can never reach a chatter from a
  * different owner, and never grants access to an agent outside the workspace.
  */
-class SettingsChatterController extends Controller
+class SettingsChatterController
 {
     /**
      * @return Response|array{data: DataCollection<int, WorkspaceChatterRowData>}

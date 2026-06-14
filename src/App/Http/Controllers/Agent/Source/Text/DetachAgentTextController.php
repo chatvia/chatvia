@@ -15,8 +15,6 @@ class DetachAgentTextController
 {
     public function __invoke(Request $request, Agent $agent, int $id): JsonResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         /** @var SourceText $text */
         $text = $agent->texts()->where('source_texts.id', $id)->firstOrFail();
 

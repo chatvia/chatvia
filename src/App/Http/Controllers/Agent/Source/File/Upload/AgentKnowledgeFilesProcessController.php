@@ -10,8 +10,6 @@ class AgentKnowledgeFilesProcessController
 {
     public function __invoke(Request $request, Agent $agent, ProcessAgentUploadedFilesAction $process): void
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $process->execute($agent);
     }
 }

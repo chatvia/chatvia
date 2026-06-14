@@ -22,8 +22,6 @@ class AgentTopicController
 {
     public function index(Request $request, Agent $agent): Response|JsonResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         if ($request->wantsJson()) {
             $search = $request->input('search');
 

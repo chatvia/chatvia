@@ -25,7 +25,10 @@ return new class extends Migration
             $table->unique(['chat_conversation_id', 'topic_id']);
             $table->unique(['chat_conversation_id', 'suggested_label']);
             $table->index('topic_id');
-            $table->index('suggested_label');
+            // No standalone suggested_label index: every read scopes by the
+            // conversation (whereHas conversation.session) and the
+            // (chat_conversation_id, suggested_label) unique above already covers
+            // the label lookup — suggested_label is never a leading access path.
         });
     }
 

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Account\DeleteAccountRequest;
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Actions\Account\RequestAccountDeletionAction;
@@ -16,7 +15,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
-class DeleteAccountController extends Controller
+class DeleteAccountController
 {
     /**
      * Session key holding the unix timestamp at which the email confirmation

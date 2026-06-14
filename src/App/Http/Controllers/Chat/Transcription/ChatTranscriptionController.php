@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Chat\Transcription;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Chat\TranscribeAudioRequest;
 use Domain\Conversation\Actions\Messages\TranscribeAudioAction;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
-class ChatTranscriptionController extends Controller
+class ChatTranscriptionController
 {
     public function __invoke(
         TranscribeAudioRequest $request,

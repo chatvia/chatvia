@@ -20,8 +20,6 @@ class AgentTeamsChannelController
 {
     public function connect(ConnectTeamsRequest $request, Agent $agent, ConnectTeamsBotAction $action): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         // Teams (and messaging channels generally) is for public agents only —
         // a Teams sender is anonymous to Chatvia and can't satisfy a protected
         // agent's access model. Refuse to connect a protected agent.
@@ -44,8 +42,6 @@ class AgentTeamsChannelController
 
     public function disconnect(Request $request, Agent $agent): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $agent->teamsBot?->delete();
 
         return back();

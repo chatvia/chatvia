@@ -41,6 +41,10 @@ return new class extends Migration
 
             $table->boolean('is_enabled')->default(true);
 
+            // Full fp32 vector (not halfvec like chunks) — see connector_tools:
+            // tiny catalog, and ToolHybridSearch hard-codes `<-> ?::vector(1024)`
+            // against a vector_l2_ops vchordrq index, so fp32 is required here to
+            // avoid a type/ops-class mismatch that would drop the index.
             $table->vector('embedding', 1024)->nullable();
             $table->bm25vector('embedding_bm25')->nullable();
 

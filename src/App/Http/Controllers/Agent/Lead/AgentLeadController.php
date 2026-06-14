@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Agent\Lead;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Lead\Actions\BulkDeleteAgentLeadsAction;
 use Domain\Lead\Data\Resources\LeadResourceData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -16,8 +15,6 @@ class AgentLeadController
 {
     public function index(Request $request, Agent $agent): Response|JsonResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         if ($request->wantsJson()) {
             $perPage = (int) min((int) $request->integer('per_page', 50), 200);
 
@@ -45,7 +42,7 @@ class AgentLeadController
         ]);
     }
 
-    public function destroy(Request $request, Agent $agent, BulkDeleteAgentLeadsAction $bulkDelete): RedirectResponse|JsonResponse
+    public function destroy(Request $request, Agent $agent): RedirectResponse|JsonResponse
     {
         abort_if($request->user()->cannot('delete', $agent), 404);
 
@@ -54,7 +51,7 @@ class AgentLeadController
             'lead_ids.*' => ['integer', 'exists:leads,id'],
         ]);
 
-        $bulkDelete->execute($agent, $request->input('lead_ids'));
+        $agent->leads()->whereIn('id', $request->input('lead_ids'))->delete();
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true]);

@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Agent\Source\File\Pages;
 
-use App\Http\Controllers\Controller;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class AgentKnowledgeWebController extends Controller
+class AgentKnowledgeWebController
 {
     public function __invoke(Request $request, Agent $agent)
     {

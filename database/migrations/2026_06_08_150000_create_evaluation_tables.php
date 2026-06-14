@@ -33,7 +33,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('agent_id');
-            $table->index('workspace_id');
+            // workspace_id is kept as an FK/attribution column only — every read
+            // path queries by agent (forAgent), so it carries no standalone index.
         });
 
         // One execution of an agent's whole suite.
@@ -57,7 +58,8 @@ return new class extends Migration
             $table->timestamp('finished_at')->nullable();
             $table->timestamps();
 
-            $table->index('workspace_id');
+            // workspace_id is kept as an FK/attribution column only — every read
+            // path queries by agent (forAgent), so it carries no standalone index.
             $table->index(['agent_id', 'id']); // previous-run lookup (order by id desc)
         });
 
@@ -83,6 +85,7 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent(); // immutable; no updated_at
 
             $table->index(['run_id', 'pass']); // also serves bare run_id (FK)
+            $table->index('case_id'); // case_id FK SET-NULL scan on case delete + per-case result history
         });
     }
 

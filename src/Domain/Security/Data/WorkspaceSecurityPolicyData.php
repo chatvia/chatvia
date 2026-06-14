@@ -25,6 +25,8 @@ class WorkspaceSecurityPolicyData extends Data
         public ?int $retention_analytics_days = null,
         public ?int $anonymize_after_days = null,
         public string $ip_allowlist_mode = 'off',
+        /** @var array<int, string> */
+        public array $ip_allowlist = [],
         public string $geo_mode = 'off',
         /** @var array<int, string> */
         public array $geo_countries = [],
@@ -45,6 +47,7 @@ class WorkspaceSecurityPolicyData extends Data
             retention_analytics_days: $policy->retention_analytics_days,
             anonymize_after_days: $policy->anonymize_after_days,
             ip_allowlist_mode: $policy->ip_allowlist_mode,
+            ip_allowlist: $policy->ip_allowlist ?? [],
             geo_mode: $policy->geo_mode,
             geo_countries: $policy->geo_countries ?? [],
             webhook_url: $policy->webhook_url,

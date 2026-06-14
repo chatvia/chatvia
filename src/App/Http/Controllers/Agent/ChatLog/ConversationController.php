@@ -18,8 +18,6 @@ class ConversationController
 {
     public function index(Request $request, Agent $agent): ChatLogConversationsResourceData
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         return ChatLogConversationsResourceData::fromAgent(
             agent: $agent,
             page: $request->integer('page', 1),
@@ -42,8 +40,6 @@ class ConversationController
         string $conversationId,
         AdminDeleteConversationAction $deleteConversation,
     ): JsonResponse {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $conversation = Conversation::query()
             ->forAgent($agent->id)
             ->where('external_id', $conversationId)

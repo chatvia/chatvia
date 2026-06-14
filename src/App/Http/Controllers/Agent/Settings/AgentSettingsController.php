@@ -12,8 +12,6 @@ class AgentSettingsController
         Agent $agent,
         string $group,
     ): void {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $this->assertGroup($group);
 
         $request->validate(config('model-settings.validation.'.$group));
@@ -35,8 +33,6 @@ class AgentSettingsController
         Agent $agent,
         string $group,
     ): void {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $this->assertGroup($group);
 
         $key = $request->input('key');

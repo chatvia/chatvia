@@ -11,8 +11,6 @@ class AgentSourceFileDeleteController
 {
     public function __invoke(Request $request, Agent $agent, SourceFile $file, DeleteSourceFileFromAgentAction $delete): void
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $delete->execute($agent, $file);
     }
 }

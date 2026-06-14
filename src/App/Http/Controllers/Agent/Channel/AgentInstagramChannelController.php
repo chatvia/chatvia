@@ -20,8 +20,6 @@ class AgentInstagramChannelController
 {
     public function connect(ConnectInstagramRequest $request, Agent $agent, ConnectInstagramAccountAction $action): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         // Instagram (and messaging channels generally) is for public agents
         // only — an Instagram sender is anonymous to Chatvia and can't satisfy
         // a protected agent's access model. Refuse to connect a protected agent.
@@ -44,8 +42,6 @@ class AgentInstagramChannelController
 
     public function disconnect(Request $request, Agent $agent): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $agent->instagramAccount?->delete();
 
         return back();

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Prompt;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Prompt\CreatePromptRequest;
 use App\Http\Requests\Settings\Prompt\UpdatePromptRequest;
 use App\Identity\Workspace\Models\User;
@@ -22,7 +21,7 @@ use Spatie\LaravelData\DataCollection;
  * Account-level reusable prompts dashboard page. The user authors a prompt
  * once here, then attaches it to any agent from the agent's Persona page.
  */
-class PromptController extends Controller
+class PromptController
 {
     /**
      * JSON list of the user's prompts — consumed by the agent Persona editor's
@@ -30,8 +29,6 @@ class PromptController extends Controller
      */
     public function index(Request $request): AgentPromptPickerListData
     {
-        abort_unless(has_team_permission('account.prompts'), 404);
-
         $prompts = $request->user()->prompts()
             ->latest()
             ->get()
@@ -48,8 +45,6 @@ class PromptController extends Controller
      */
     public function edit(Request $request): Response
     {
-        abort_unless(has_team_permission('account.prompts'), 404);
-
         return Inertia::render('workspace/library/Prompts', [
             'prompts' => $request->user()->prompts()
                 ->withCount('agents')
@@ -61,8 +56,6 @@ class PromptController extends Controller
 
     public function store(CreatePromptRequest $request, CreatePromptAction $createPrompt): RedirectResponse
     {
-        abort_unless(has_team_permission('account.prompts'), 404);
-
         $createPrompt->execute($request->toData());
 
         return back();
@@ -70,8 +63,6 @@ class PromptController extends Controller
 
     public function update(UpdatePromptRequest $request, string $external_id, UpdatePromptAction $updatePrompt): RedirectResponse
     {
-        abort_unless(has_team_permission('account.prompts'), 404);
-
         /** @var User $user */
         $user = $request->user();
 
@@ -82,8 +73,6 @@ class PromptController extends Controller
 
     public function destroy(Request $request, string $external_id): RedirectResponse
     {
-        abort_unless(has_team_permission('account.prompts'), 404);
-
         /** @var User $user */
         $user = $request->user();
 

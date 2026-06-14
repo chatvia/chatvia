@@ -15,11 +15,11 @@ use Illuminate\Http\Request;
  * `POST /api/v1/agents/{id}/mcps`. Built-in catalog connectors are never
  * exposed here — only your custom entries. Auth secrets are never returned.
  */
-#[Group(name: 'MCP Servers', weight: 50)]
+#[Group(name: 'Connectors', weight: 50)]
 class McpServerController
 {
     /**
-     * List MCP servers
+     * List connectors
      *
      * @return array{data: list<McpServerData>}
      */
@@ -38,7 +38,7 @@ class McpServerController
     }
 
     /**
-     * Get MCP server
+     * Get connector
      *
      * @return array{data: McpServerData}
      */
@@ -48,7 +48,7 @@ class McpServerController
     }
 
     /**
-     * Delete MCP server
+     * Delete connector
      *
      * Also removes it from every agent it's attached to.
      */

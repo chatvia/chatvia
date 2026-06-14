@@ -2,7 +2,6 @@
 
 namespace Domain\Conversation\Data\Conversations;
 
-use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Conversation\Models\Conversation;
 use Spatie\LaravelData\Data;
 
@@ -24,13 +23,16 @@ class ConversationSummaryData extends Data
         public ?string $created_at,
     ) {}
 
-    public static function fromModel(Conversation $conversation): self
+    public static function fromModel(Conversation $conversation, bool $sentimentEnabled, bool $toneEnabled): self
     {
         return new self(
             id: $conversation->external_id,
             title: $conversation->title,
-            sentiment: $conversation->agent?->team?->hasCapability(CapabilityEnum::SENTIMENT) ? $conversation->sentiment : null,
-            tone: $conversation->agent?->team?->hasCapability(CapabilityEnum::TONE) ? $conversation->tone : null,
+            // Plan-gated. The caller resolves the two capability flags ONCE per
+            // agent (every row in a list shares the same agent) rather than
+            // walking $conversation->agent->team per row (an N+1 over the page).
+            sentiment: $sentimentEnabled ? $conversation->sentiment : null,
+            tone: $toneEnabled ? $conversation->tone : null,
             handoff_status: $conversation->handoff_status,
             last_activity_at: $conversation->last_activity_at?->toIso8601String(),
             created_at: $conversation->created_at?->toIso8601String(),

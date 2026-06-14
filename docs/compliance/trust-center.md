@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | **Owner** | Founder / Security Lead |
-| **Version** | 1.0 |
-| **Effective date** | 2026-06-09 |
+| **Version** | 1.1 |
+| **Effective date** | 2026-06-14 |
 | **Review cadence** | Annual (or on material change) |
 | **Classification** | Internal |
 
@@ -22,11 +22,13 @@ Security is built into how Chatvia is engineered and operated.
 
 **Encryption**
 - **In transit:** all traffic is served over TLS. Database connections are encrypted with TLS in production. We send HSTS headers so browsers stay on HTTPS.
-- **At rest:** session payloads are encrypted, application-level secrets are encrypted with AES-256, and passwords are hashed with a strong one-way algorithm. Attachments and exports are stored in EU object storage.
+- **At rest:** message content, conversation titles, and captured lead details (name, email, phone, and other contact fields) are encrypted with AES-256. Session payloads are encrypted, application-level secrets are encrypted with AES-256, and passwords are hashed with a strong one-way algorithm. Attachments and exports are stored in EU object storage.
 
 **Authentication & access control**
 - Multi-factor authentication is available to every account — TOTP authenticator apps and **passkeys** (WebAuthn).
 - Access is least-privilege by design: every account carries a role, and access to each resource is checked against per-resource authorization policies and team-membership grants.
+- **Network access control** (Ultra and Enterprise): a workspace can restrict dashboard access to trusted IP ranges and approved countries, so sign-in is only possible from networks you allow.
+- **Single sign-on (SAML/OIDC)** and **SCIM user provisioning** are on our roadmap for Enterprise. They are not available yet, and we will not list them as live until they are.
 - Internal staff access to the admin surface will require enforced 2FA.
 
 **Change management & secure development**
@@ -41,6 +43,8 @@ Security is built into how Chatvia is engineered and operated.
 **Monitoring**
 - Application errors, performance, and runtime health are monitored continuously.
 - Sensitive AI tool-call activity is recorded to an immutable audit log.
+- Security-relevant events — sign-ins, membership and role changes, security-setting changes, and data exports — are recorded to a separate, tamper-evident security audit log that account admins can review in the dashboard.
+- Ultra and Enterprise workspaces can stream these security events to their own SIEM in real time over a signed (HMAC) webhook.
 
 ## Data privacy & GDPR
 
@@ -52,7 +56,7 @@ Chatvia is **GDPR-ready today**.
 
 **Data-subject rights.** Chatvia supports the rights of your end users — access, rectification, erasure, and portability. Conversation transcripts and captured contacts ("Leads") can be exported through our data-export tooling and deleted on request, so you can answer data-subject requests promptly.
 
-**Retention & erasure.** Data is retained according to configurable retention windows tied to your plan (for example 90, 180, or 366 days), after which scheduled jobs automatically prune expired records. You can also request earlier deletion.
+**Retention & erasure.** Data is retained according to configurable retention windows tied to your plan (for example 90, 180, or 366 days), after which scheduled jobs automatically prune expired records. On Ultra and Enterprise, admins can shorten conversation and audit-log retention below the plan default to meet stricter internal policies. You can also request earlier deletion.
 
 ## Data residency
 
@@ -91,8 +95,7 @@ We are deliberate about what we claim.
 
 ## Contact
 
-- Privacy questions and data-subject requests: **info@chatvia.ai**
-- Security reports and vulnerability disclosures: **info@chatvia.ai**
+- Privacy questions, data-subject requests, and security or vulnerability reports: **info@chatvia.ai**
 
 ## Mapping
 

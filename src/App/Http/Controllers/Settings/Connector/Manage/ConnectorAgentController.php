@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Settings\Connector\Manage;
 
 use App\Http\Controllers\Concerns\ResolvesAccountAgent;
-use App\Http\Controllers\Controller;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\Agent\ListConnectorAgentAssignmentAction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -15,14 +14,12 @@ use Illuminate\Http\Request;
  * lists every account-level agent split into attached vs available. The
  * assignment payload is built by {@see ListConnectorAgentAssignmentAction}.
  */
-class ConnectorAgentController extends Controller
+class ConnectorAgentController
 {
     use ResolvesAccountAgent;
 
     public function index(Request $request, string $slug, ListConnectorAgentAssignmentAction $list): AgentMembershipAssignmentData
     {
-        abort_unless(has_team_permission('account.connectors'), 404);
-
         return $list->execute($request->user(), $this->server($request, $slug));
     }
 
@@ -32,8 +29,6 @@ class ConnectorAgentController extends Controller
         string $agent,
         ListConnectorAgentAssignmentAction $list,
     ): AgentMembershipAssignmentData {
-        abort_unless(has_team_permission('account.connectors'), 404);
-
         $server = $this->server($request, $slug);
         $this->resolveAccountAgent($request, $agent)->attachConnector($server);
 
@@ -46,8 +41,6 @@ class ConnectorAgentController extends Controller
         string $agent,
         ListConnectorAgentAssignmentAction $list,
     ): AgentMembershipAssignmentData {
-        abort_unless(has_team_permission('account.connectors'), 404);
-
         $server = $this->server($request, $slug);
         $this->resolveAccountAgent($request, $agent)->detachConnector($server);
 

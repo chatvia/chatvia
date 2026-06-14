@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Agent\Identity;
 
-use App\Http\Controllers\Controller;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
@@ -16,7 +15,7 @@ use Inertia\Response;
  * customer needs it on their backend to mint tokens; verified by
  * {@see AgentSignInTokenService}.
  */
-class AgentIdentityController extends Controller
+class AgentIdentityController
 {
     public function __invoke(Request $request, Agent $agent): Response
     {

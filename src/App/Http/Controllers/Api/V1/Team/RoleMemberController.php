@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
 class RoleMemberController
 {
     /**
-     * Assign user to role
+     * Assign a teammate to a role
      *
      * Body: `{ user_id: string }` — a user's `id` from `POST /api/v1/users`.
      *

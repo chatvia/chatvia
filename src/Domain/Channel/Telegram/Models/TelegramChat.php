@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Telegram\Models;
 
+use Domain\Channel\Contracts\ChannelConversationMapping;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $chat_conversation_id
  */
 #[Guarded(['id'])]
-class TelegramChat extends Model
+class TelegramChat extends Model implements ChannelConversationMapping
 {
     protected $casts = [
         'last_message_at' => 'datetime',

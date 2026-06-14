@@ -66,8 +66,9 @@ return new class extends Migration
             $table->index(['workspace_id', 'id']);
             $table->index('user_id');
             $table->index(['workspace_id', 'created_at']);
-            $table->index('connector_slug');
-            $table->index('outcome');
+            // No standalone connector_slug / outcome indexes: the audit pages are
+            // tenant-scoped + cursor-paginated on the (…, id) composites above and
+            // apply these only as cheap heap filters — never as an access path.
         });
 
         // BRIN for the retention prune's created_at sweep.

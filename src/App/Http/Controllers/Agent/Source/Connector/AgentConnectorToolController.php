@@ -16,8 +16,6 @@ class AgentConnectorToolController
         string $slug,
         ListConnectorToolsAction $list,
     ): ConnectorToolsResourceData {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $server = AgentMcpServer::query()
             ->attachedToAgent($agent)
             ->where('slug', $slug)

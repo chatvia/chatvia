@@ -18,6 +18,9 @@ use Illuminate\Http\Request;
 #[Group(name: 'Conversations', weight: 80)]
 class ConversationController
 {
+    /**
+     * List conversations
+     */
     public function index(Request $request, Agent $agent, ListAgentConversationsAction $list): LengthAwarePaginator
     {
         return $list->execute(
@@ -26,6 +29,9 @@ class ConversationController
         );
     }
 
+    /**
+     * Get conversation
+     */
     public function show(Request $request, Agent $agent, Conversation $conversation): ConversationDetailData
     {
         abort_unless($conversation->session->agent_id === $agent->id, 404);
@@ -33,6 +39,9 @@ class ConversationController
         return ConversationDetailData::fromModel($conversation);
     }
 
+    /**
+     * Delete conversation
+     */
     public function destroy(Request $request, Agent $agent, Conversation $conversation, AdminDeleteConversationAction $deleteConversation): JsonResponse
     {
         abort_unless($conversation->session->agent_id === $agent->id, 404);

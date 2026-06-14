@@ -508,11 +508,11 @@ onMounted(() => {
                 </div>
 
                 <!-- Sidebar Content -->
-                <SidebarContent class="!gap-6 overflow-y-auto">
+                <SidebarContent class="!gap-3 overflow-y-auto">
                     <!-- Navigation Section — Playground, Setup (single page
                          with a top tab bar for the three surfaces), Persona. -->
                     <SidebarGroup class="py-0 pt-2">
-                        <SidebarMenu class="space-y-1">
+                        <SidebarMenu>
                             <SidebarMenuItem v-for="item in uiNavigationItems" :key="item.id">
                                 <SidebarMenuButton
                                     as-child
@@ -531,8 +531,8 @@ onMounted(() => {
 
                     <!-- Management — split into labelled subgroups (Insights, Training, Access, Settings) -->
                     <SidebarGroup v-for="group in managementGroups" :key="group.id" class="py-0">
-                        <SidebarGroupLabel class="mb-2 px-2">{{ group.label }}</SidebarGroupLabel>
-                        <SidebarMenu class="space-y-1">
+                        <SidebarGroupLabel class="mb-1 h-6 px-2">{{ group.label }}</SidebarGroupLabel>
+                        <SidebarMenu>
                             <template v-for="item in group.items" :key="item.id">
                                 <!-- Analytics item with submenu -->
                                 <SidebarMenuItem v-if="item.id === 'analytics'">
@@ -746,8 +746,8 @@ onMounted(() => {
                         </div>
 
                         <SidebarGroup class="py-0">
-                            <SidebarGroupLabel class="text-destructive mb-2 px-2">{{ t('agents.nav.groups.danger_zone') }}</SidebarGroupLabel>
-                            <SidebarMenu class="space-y-1">
+                            <SidebarGroupLabel class="text-destructive mb-1 h-6 px-2">{{ t('agents.nav.groups.danger_zone') }}</SidebarGroupLabel>
+                            <SidebarMenu>
                                 <SidebarMenuItem v-for="item in dangerZoneNavigationItems" :key="item.id">
                                     <SidebarMenuButton
                                         @click="showDeleteDialog = true"

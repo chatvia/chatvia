@@ -25,6 +25,7 @@ it('persists the workspace policy and encrypts the webhook secret', function ():
             retention_conversations_days: 60,
             retention_audit_days: 120,
             ip_allowlist_mode: 'dashboard',
+            ip_allowlist: ['203.0.113.0/24', '198.51.100.7'],
             geo_mode: 'allow',
             geo_countries: ['AE', 'SA'],
             webhook_url: 'https://hooks.example.com/siem',
@@ -41,6 +42,7 @@ it('persists the workspace policy and encrypts the webhook secret', function ():
         ->and($fresh->retention_conversations_days)->toBe(60)
         ->and($fresh->retention_audit_days)->toBe(120)
         ->and($fresh->ip_allowlist_mode)->toBe('dashboard')
+        ->and($fresh->ip_allowlist)->toBe(['203.0.113.0/24', '198.51.100.7'])
         ->and($fresh->geo_mode)->toBe('allow')
         ->and($fresh->geo_countries)->toBe(['AE', 'SA'])
         ->and($fresh->webhook_enabled)->toBeTrue()

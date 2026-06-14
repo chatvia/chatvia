@@ -12,10 +12,12 @@ class CreateUserPayloadData extends Data
          */
         public string $name,
         /**
-         * ID of the agent this user is granted access to. The user can only
-         * sign in to agents they are granted on.
+         * IDs of the agents this user is granted access to. The user can only
+         * sign in to agents they are granted on. Provide at least one.
+         *
+         * @var list<string>
          */
-        public string $agent_id,
+        public array $agent_ids,
         /**
          * The user's login email. Must be globally unique.
          */
@@ -33,7 +35,8 @@ class CreateUserPayloadData extends Data
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'agent_id' => ['required', 'string'],
+            'agent_ids' => ['required', 'array', 'min:1'],
+            'agent_ids.*' => ['required', 'string'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'max:255'],
         ];

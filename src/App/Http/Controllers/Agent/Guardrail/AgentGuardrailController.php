@@ -22,8 +22,6 @@ class AgentGuardrailController
 {
     public function show(Request $request, Agent $agent): Response
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $settings = $agent->settings('guardrails');
 
         $triggers = GuardrailEvent::query()
@@ -55,8 +53,6 @@ class AgentGuardrailController
 
     public function update(SaveGuardrailSettingsRequest $request, Agent $agent): RedirectResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         foreach ($request->toData()->toSettings() as $key => $value) {
             $agent->setSetting(key: $key, value: $value, group: 'guardrails');
         }

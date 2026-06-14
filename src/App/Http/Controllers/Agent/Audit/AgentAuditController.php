@@ -20,8 +20,6 @@ class AgentAuditController
 {
     public function __invoke(Request $request, Agent $agent): Response
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $query = AgentActivity::query()
             ->forAgent($agent->id)
             ->with(['user', 'agent:id,external_id'])

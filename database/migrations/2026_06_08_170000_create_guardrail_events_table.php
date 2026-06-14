@@ -44,9 +44,9 @@ return new class extends Migration
             $table->index('user_id');
             $table->index(['workspace_id', 'created_at']);
             $table->index(['agent_id', 'id']); // per-agent recent lookup (order by id desc)
-            $table->index('guard_type');
-            $table->index('stage');
-            $table->index('outcome');
+            // No standalone guard_type / stage / outcome indexes: the events page is
+            // tenant-scoped + cursor-paginated on the (…, id) composites above and
+            // applies these only as cheap heap filters — never as an access path.
         });
 
         // BRIN for the retention prune's created_at sweep.

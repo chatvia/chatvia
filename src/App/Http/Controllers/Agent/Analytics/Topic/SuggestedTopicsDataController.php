@@ -11,8 +11,6 @@ class SuggestedTopicsDataController
 {
     public function __invoke(Request $request, Agent $agent): JsonResponse
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $minOccurrences = (int) config('chatvia.analytics.analysis.min_occurrences', 3);
         $maxExamples = (int) config('chatvia.analytics.analysis.max_examples', 10);
 

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
+use Support\Concerns\HasExternalId;
 use Support\Traits\Chunkable;
 
 /**
@@ -80,7 +81,7 @@ use Support\Traits\Chunkable;
 #[Guarded(['id'])]
 class SourceYoutubeVideo extends Model implements ChunkableContract
 {
-    use Chunkable;
+    use Chunkable, HasExternalId;
 
     protected function casts(): array
     {

@@ -1,6 +1,8 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
+use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Agent\Models\Agent;
@@ -49,7 +51,7 @@ it('signs a deactivated chatter out of the hosted chat mid-session', function ()
     expect(Auth::guard('web')->id())->toBe($this->chatter->id);
 
     // Admin deactivates the chatter while their session is live.
-    app(\App\Identity\Workspace\Actions\Account\DeactivateAccountAction::class)->execute($this->chatter, 'blocked by admin');
+    app(DeactivateAccountAction::class)->execute($this->chatter, 'blocked by admin');
 
     // In production each request is a fresh process that re-loads the user from
     // the DB; the test process caches the guard user, so forget it to simulate
@@ -67,12 +69,12 @@ it('signs a deactivated chatter out of the hosted chat mid-session', function ()
 it('blocks a reactivated-then-deactivated chatter again', function (): void {
     signIn();
 
-    app(\App\Identity\Workspace\Actions\Account\DeactivateAccountAction::class)->execute($this->chatter, 'temporary');
+    app(DeactivateAccountAction::class)->execute($this->chatter, 'temporary');
     Auth::forgetGuards();
     $this->get('https://'.$this->host.'/chat')->assertRedirectContains('/chat/login');
 
     // Reactivate + sign in again → allowed.
-    app(\App\Identity\Workspace\Actions\Account\ReactivateAccountAction::class)->execute($this->chatter);
+    app(ReactivateAccountAction::class)->execute($this->chatter);
     signIn();
     expect(Auth::guard('web')->id())->toBe($this->chatter->id);
 });

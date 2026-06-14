@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
  * Crawl a website and ingest its content. The crawler follows links inside
  * the host (subject to include/exclude path rules) and chunks each page.
  */
-#[Group(name: 'Knowledge Sources', weight: 70)]
+#[Group(name: 'Sources', weight: 70)]
 class SourceUrlController
 {
     /**

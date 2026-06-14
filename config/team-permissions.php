@@ -210,6 +210,10 @@ return [
             'label' => 'Governance',
             'description' => 'View the tool-call audit log and access controls',
         ],
+        'account.security' => [
+            'label' => 'Security',
+            'description' => 'Manage workspace security & compliance settings — network access control (IP allowlist, geo)',
+        ],
     ],
 
     /*
@@ -398,10 +402,11 @@ return [
         ],
         'governance' => [
             'scope' => 'account',
-            'label' => 'Governance',
-            'description' => 'Audit and control every action your agents take through tools and connectors.',
+            'label' => 'Governance & Security',
+            'description' => 'Audit every action your agents take, and manage workspace-wide security & compliance settings.',
             'permissions' => [
                 'account.governance',
+                'account.security',
             ],
         ],
     ],

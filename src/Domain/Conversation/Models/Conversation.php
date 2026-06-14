@@ -5,6 +5,7 @@ namespace Domain\Conversation\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Topic\Models\ConversationTopic;
@@ -24,8 +25,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Support\Casts\EncryptedTolerant;
-use Support\Localization\Language\Models\Language;
 use Support\Concerns\HasExternalId;
+use Support\Localization\Language\Models\Language;
 
 /**
  * @property int $id
@@ -54,6 +55,7 @@ use Support\Concerns\HasExternalId;
  * @property-read Lead|null $lead
  * @property-read Collection<int, Message> $messages
  * @property-read int|null $messages_count
+ * @property-read Message|null $lastMessage
  * @property-read Session $session
  * @property-read Collection<int, Topic> $topics
  * @property-read Collection<int, ConversationTopic> $suggestedTopics
@@ -120,7 +122,7 @@ use Support\Concerns\HasExternalId;
 #[Table(name: 'chat_conversations')]
 class Conversation extends Model
 {
-    use HasExternalId, HasFactory, SoftDeletes;
+    use CascadesAttachmentDeletes, HasExternalId, HasFactory, SoftDeletes;
 
     /** Placeholder title every conversation is created with until it's named. */
     public const string DEFAULT_TITLE = 'New Chat';
@@ -158,15 +160,15 @@ class Conversation extends Model
     }
 
     /**
-     * Delete attached files when the conversation is deleted. The DB-level
-     * cascade on `chat_attachments.chat_conversation_id` removes rows but
-     * skips Eloquent events — so the S3 objects would leak. Triggering
-     * attachment deletes through Eloquent first fires the `Attachment`
-     * `deleting` observer that wipes the underlying file.
+     * Delete attached files when the conversation is deleted. The shared
+     * {@see CascadesAttachmentDeletes::cascadeAttachmentDeletes()} body routes
+     * the attachment deletes through Eloquent so each fires its `deleting`
+     * observer and wipes the backing S3 object (the DB-level cascade on
+     * `chat_attachments.chat_conversation_id` would otherwise leak them).
      *
      * Any model owning attachments MUST repeat this hook (see
-     * {@see Message::booted}), or S3 objects will leak when rows are
-     * deleted — deliberately duplicated, not extracted to a trait.
+     * {@see Message::booted}): the registration stays explicit per model on
+     * purpose — only the shared body lives in the trait, not the hook itself.
      *
      * Runs on both soft- and force-delete: a soft-deleted conversation is
      * still "deleted" from the user's perspective, and they expect their
@@ -176,7 +178,7 @@ class Conversation extends Model
     protected static function booted(): void
     {
         static::deleting(static function (Conversation $conversation): void {
-            $conversation->attachments()->each(static fn (Attachment $a) => $a->delete());
+            $conversation->cascadeAttachmentDeletes();
 
             // Flush every Redis entry tagged with this conversation
             // (messages, sources, ...) so the cache matches the DB on
@@ -202,6 +204,19 @@ class Conversation extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class, 'chat_conversation_id');
+    }
+
+    /**
+     * The latest message in this conversation, by id (insertion order). A
+     * dedicated HasOne (latestOfMany) so eager-loading returns one row PER
+     * parent: a `messages()->latest()->limit(1)` inside `with()` applies the
+     * LIMIT to the single batched query, yielding one row across ALL parents.
+     *
+     * @return HasOne<Message, $this>
+     */
+    public function lastMessage(): HasOne
+    {
+        return $this->hasOne(Message::class, 'chat_conversation_id')->latestOfMany();
     }
 
     /**

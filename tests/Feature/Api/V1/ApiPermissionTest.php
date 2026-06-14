@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -7,6 +8,7 @@ use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
+use Spatie\Permission\PermissionRegistrar;
 
 /*
 |--------------------------------------------------------------------------
@@ -70,7 +72,7 @@ function permMemberToken(User $owner, array $permissions, bool $allAgents = true
     // Spatie caches the permission→role map for the whole process. We create a
     // role and hit it in the same test, so reset the cache or the next request
     // resolves against a stale map (production reloads per request — not a bug).
-    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
 
     return $member->createToken('account')->plainTextToken;
 }
@@ -150,7 +152,7 @@ describe('account-level MCP servers (account.connectors)', function (): void {
 describe('account-level chatters (account.chatters.manage)', function (): void {
 
     $chatterBody = fn (Agent $agent): array => [
-        'name' => 'Jane', 'agent_id' => $agent->external_id,
+        'name' => 'Jane', 'agent_ids' => [$agent->external_id],
         'email' => 'jane'.Str::random(6).'@example.test', 'password' => 'super-secret-pw',
     ];
 
@@ -174,6 +176,35 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
         $this->withHeaders(permHeaders($token))
             ->postJson('/api/v1/chatters', $chatterBody($this->agent))
             ->assertOk();
+    });
+
+    it('forbids a member WITHOUT account.chatters.manage from deleting a chatter', function (): void {
+        $chatter = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+        $token = permMemberToken($this->owner, []);
+
+        $this->withHeaders(permHeaders($token))
+            ->deleteJson('/api/v1/chatters/'.$chatter->external_id)
+            ->assertForbidden();
+
+        expect(User::whereKey($chatter->id)->exists())->toBeTrue();
+    });
+
+    it('lets a member WITH account.chatters.manage delete a chatter', function (): void {
+        $chatter = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+        $token = permMemberToken($this->owner, ['account.chatters.manage']);
+
+        $this->withHeaders(permHeaders($token))
+            ->deleteJson('/api/v1/chatters/'.$chatter->external_id)
+            ->assertNoContent();
+    });
+
+    it('forbids a member WITHOUT account.chatters.manage from revoking agent access', function (): void {
+        $chatter = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+        $token = permMemberToken($this->owner, []);
+
+        $this->withHeaders(permHeaders($token))
+            ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', ['agent_ids' => [$this->agent->external_id]])
+            ->assertForbidden();
     });
 });
 

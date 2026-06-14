@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('connector_oauth_clients', function (Blueprint $table) {
             $table->id();
-            $table->string('auth_server_url')->unique();
+            $table->text('auth_server_url')->unique();
             $table->string('client_id');
             $table->text('client_secret')->nullable();
             $table->text('registration_access_token')->nullable();

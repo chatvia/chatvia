@@ -11,27 +11,29 @@ class Billing
     {
         $packages = collect(config('billing.packages'));
 
-        $package = $packages->filter(function ($package) use ($priceId) {
+        // Match by price, keeping the config KEY — that key is the stable plan id
+        // (consumed by forPlan() + the capability resolver). Deriving the id from
+        // the display name instead would break the moment a name is rebranded.
+        $key = $packages->search(function ($package) use ($priceId) {
             return $package['stripe_monthly_price_id'] === $priceId || $package['stripe_yearly_price_id'] === $priceId;
-        })->map(function ($package) use ($priceId) {
-            $package['is_yearly'] = $package['stripe_yearly_price_id'] === $priceId;
-
-            return $package;
-        })->first();
+        });
 
         // The subscription may point at a price no longer in the billing config
         // (an archived/legacy Stripe price). Degrade to the default package
         // rather than dereferencing null and 500-ing every request.
-        if ($package === null) {
+        if ($key === false) {
             return $this->getFreePackage() ?? [];
         }
+
+        $package = $packages->get($key);
+        $package['is_yearly'] = $package['stripe_yearly_price_id'] === $priceId;
 
         if ($removeStripePriceIds) {
             unset($package['stripe_monthly_price_id'], $package['stripe_yearly_price_id']);
         }
 
         return array_merge($package, [
-            'id' => strtolower($package['name']),
+            'id' => $key,
             'monthly_price_formatted' => $this->formatPrice($package['monthly_price']),
             'yearly_price_formatted' => $this->formatPrice($package['yearly_price']),
             'monthly_savings' => $this->calculateSavings($package['monthly_price'], $package['yearly_price']),

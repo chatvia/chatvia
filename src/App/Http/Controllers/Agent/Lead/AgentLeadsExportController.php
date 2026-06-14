@@ -13,8 +13,6 @@ class AgentLeadsExportController
 {
     public function __invoke(Request $request, Agent $agent, ExportAgentLeadsToCsvAction $export): Response
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $request->validate([
             'lead_ids' => ['required', 'array', 'min:1'],
             'lead_ids.*' => ['integer', 'exists:leads,id'],

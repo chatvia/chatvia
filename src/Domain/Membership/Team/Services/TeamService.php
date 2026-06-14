@@ -4,19 +4,18 @@ namespace Domain\Membership\Team\Services;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Team\Actions\Invitations\CreateTeamInvitationAction;
 use Domain\Membership\Team\Data\Resources\Permissions\PermissionGroupData;
 use Domain\Membership\Team\Data\Resources\Permissions\PermissionMetaData;
 use Domain\Membership\Team\Data\Resources\Permissions\PermissionScopeData;
 use Domain\Membership\Team\Data\Resources\Roles\RoleConfigData;
 use Domain\Membership\Team\Data\Resources\Roles\TeamRoleData;
 use Domain\Membership\Team\Data\Resources\Team\TeamAgentData;
-use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 class TeamService
 {
@@ -47,21 +46,15 @@ class TeamService
         }
     }
 
+    /**
+     * Thin delegator kept for callers that still reach for the service. The
+     * invitation-row write + TeamInvitationCreated dispatch now lives in
+     * CreateTeamInvitationAction — a state-changing operation no longer belongs
+     * in this otherwise read-only config/authorization service.
+     */
     public function inviteUser(Team $team, string $email, string $roleCode): void
     {
-        $this->validateInvitation($team, $email, $roleCode);
-
-        $role = $team->roles()->where('code', $roleCode)->firstOrFail();
-
-        $invitation = $team->invitations()->create([
-            'email' => $email,
-            'role_id' => $role->id,
-        ]);
-
-        // The mail send lives in a listener (SendTeamInvitationEmail) so this
-        // service is now free of inline Notification dispatches — matches the
-        // codebase rule that side effects flow through events + listeners.
-        TeamInvitationCreated::dispatch($invitation, $email);
+        app(CreateTeamInvitationAction::class)->execute($team, $email, $roleCode);
     }
 
     /**
@@ -277,17 +270,6 @@ class TeamService
     private function defaultRolesConfig(): array
     {
         return config('team-permissions.roles', []);
-    }
-
-    private function validateInvitation(Team $team, string $email, string $roleCode): void
-    {
-        if ($team->hasUserWithEmail($email)) {
-            throw new RuntimeException('This user already belongs to the team.');
-        }
-
-        if (! $team->roles()->where('code', $roleCode)->exists()) {
-            throw new RuntimeException("The role '{$roleCode}' does not exist for this team.");
-        }
     }
 
     private function createRole(Team $team, string $code, array $config): Role

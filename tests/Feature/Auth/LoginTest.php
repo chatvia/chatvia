@@ -59,6 +59,31 @@ describe('User Login', function (): void {
         $this->assertGuest();
     });
 
+    it('locks out repeated failed logins for the same email', function (): void {
+        $user = User::factory()->create([
+            'email' => 'test@example.com',
+            'password' => Hash::make('correct-password'),
+        ]);
+
+        // The 'login' rate limiter (FortifyServiceProvider) allows 5 attempts
+        // per minute per (email, IP). The 6th request is throttled by Laravel's
+        // ThrottleRequests middleware, which returns HTTP 429.
+        foreach (range(1, 5) as $ignored) {
+            $this->post(route('login'), [
+                'email' => 'test@example.com',
+                'password' => 'wrong-password',
+            ])->assertStatus(302);
+        }
+
+        $response = $this->post(route('login'), [
+            'email' => 'test@example.com',
+            'password' => 'wrong-password',
+        ]);
+
+        $response->assertStatus(429);
+        $this->assertGuest();
+    });
+
     it('requires email field', function (): void {
         $response = $this->post(route('login'), [
             'email' => '',

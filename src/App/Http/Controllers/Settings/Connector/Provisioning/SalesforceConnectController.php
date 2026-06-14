@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Connector\SalesforceConnectRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
@@ -19,7 +18,7 @@ use Illuminate\Http\JsonResponse;
  * upstream authorize URL for the browser to redirect to (a full-page navigation,
  * so this is a JSON {redirect_url} the modal follows — not a server redirect).
  */
-class SalesforceConnectController extends Controller
+class SalesforceConnectController
 {
     public function __invoke(
         SalesforceConnectRequest $request,

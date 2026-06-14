@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\Account\ProfileUpdateRequest;
 use App\Identity\Workspace\Actions\Account\RemoveProfilePhotoAction;
 use App\Identity\Workspace\Actions\Account\UpdateProfileAction;
@@ -14,7 +13,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Support\Enums\User\DateFormat;
 
-class ProfileController extends Controller
+class ProfileController
 {
     public function edit(Request $request): Response
     {

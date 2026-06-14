@@ -16,7 +16,7 @@ class ListPendingHandoffsAction
     {
         return Conversation::query()
             ->forAgent($agent->id)
-            ->with(['session.user', 'lead', 'messages' => fn ($q) => $q->latest()->limit(1)])
+            ->with(['session.user', 'lead', 'lastMessage'])
             ->where('handoff_status', 'pending')
             ->where('is_visible', true)
             ->orderByDesc('updated_at')
@@ -28,8 +28,8 @@ class ListPendingHandoffsAction
                 conversation_id: $conversation->external_id,
                 user_name: $conversation->displayName() ?? 'Visitor',
                 user_email: $conversation->displayEmail(),
-                last_message: $conversation->messages->first()?->content,
-                last_message_at: $conversation->messages->first()?->created_at?->toIso8601String(),
+                last_message: $conversation->lastMessage?->content,
+                last_message_at: $conversation->lastMessage?->created_at?->toIso8601String(),
                 requested_at: $conversation->updated_at->toIso8601String(),
                 session_id: $conversation->session->external_id,
             ));

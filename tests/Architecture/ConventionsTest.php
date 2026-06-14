@@ -178,7 +178,6 @@ const INLINE_VALIDATE_ALLOWLIST = [
     'src/App/Http/Controllers/Agent/Source/File/Manage/AgentTrainedFileController.php',
     'src/App/Http/Controllers/Agent/Source/File/Upload/AgentKnowledgeFilesAnalyzeController.php',
     'src/App/Http/Controllers/Agent/Source/Web/AgentTrainedWebsiteController.php',
-    'src/App/Http/Controllers/Agent/Source/Web/AgentWebsiteController.php',
     'src/App/Http/Controllers/Agent/Source/Web/BulkDestroyAgentWebsiteLinksController.php',
     'src/App/Http/Controllers/Agent/Source/Web/TrainAgentWebsiteController.php',
     'src/App/Http/Controllers/Agent/Source/Youtube/AgentYoutubeController.php',

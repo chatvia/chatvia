@@ -291,11 +291,104 @@
             "title": "Audit log",
             "description": "Every action your agents take through tools and connectors — allowed, approved, denied, or rate-limited — with the arguments, result, and who triggered it."
         },
+        "security": {
+            "breadcrumb": "Security",
+            "title": "Security",
+            "description": "Workspace-wide security controls. Restrict who can reach your dashboard by network — trusted IP addresses and countries.",
+            "save": "Save changes",
+            "saved": "Security settings saved",
+            "save_error": "Could not save your security settings",
+            "cancel": "Cancel",
+            "done": "Done",
+            "teaser": {
+                "title": "Security & Compliance",
+                "description": "Lock your workspace down to trusted networks and meet your compliance needs. Available on the Ultra plan.",
+                "ip": "IP allowlist — only approved addresses can sign in",
+                "geo": "Country rules — allow or block access by country",
+                "more": "Plus data retention, SIEM webhooks, SSO / SCIM and more",
+                "cta": "Upgrade to Ultra"
+            },
+            "network": {
+                "title": "Network access control",
+                "help": "Restrict dashboard access to trusted IP addresses and countries. When off, anyone with a valid login can sign in from anywhere."
+            },
+            "ip": {
+                "title": "Allowed IP addresses",
+                "help": "Only these addresses can reach the dashboard. Leave empty to allow any IP (country rules still apply). You can't save a list that excludes your current address.",
+                "empty": "No IP restriction",
+                "manage": "Manage allowed IPs",
+                "dialog_title": "Allowed IP addresses",
+                "dialog_description": "Add the IP addresses or CIDR ranges allowed to reach your dashboard. Example: 203.0.113.4 or 203.0.113.0/24.",
+                "placeholder": "203.0.113.0/24",
+                "add": "Add address",
+                "remove": "Remove address",
+                "empty_draft": "No addresses yet — add one below."
+            },
+            "geo": {
+                "title": "Country rules",
+                "help": "Allow or block dashboard access based on the visitor's country.",
+                "allow": "Allow only these",
+                "deny": "Block these",
+                "empty": "No countries selected",
+                "manage": "Manage countries",
+                "countries_help": "Use 2-letter ISO country codes (e.g. US, GB, AE). Lookups that can't resolve a country are allowed through.",
+                "dialog_title": "Countries",
+                "dialog_description": "Pick the countries this rule applies to.",
+                "select_placeholder": "Search and select a country…",
+                "remove": "Remove country",
+                "empty_draft": "No countries selected yet."
+            },
+            "retention": {
+                "title": "Data retention",
+                "help": "How long Chatvia keeps your data before deleting it automatically. Shorten these for compliance — leave a field blank to use the default.",
+                "conversations": "Conversation history (days)",
+                "conversations_help": "Chat history is deleted after this many days. Up to {max} on your plan.",
+                "audit": "Security audit log (days)",
+                "audit_help": "Default {default} days, minimum {floor}.",
+                "plan_default": "Default ({days} days)"
+            },
+            "siem": {
+                "title": "SIEM webhook",
+                "help": "Forward every security event to your SIEM in real time, signed so you can verify it came from Chatvia.",
+                "url": "Endpoint URL",
+                "secret": "Signing secret",
+                "secret_placeholder": "Leave blank to keep the current secret",
+                "secret_help": "Used to HMAC-sign each delivery so your SIEM can verify it.",
+                "signature_help": "Each POST is signed with HMAC-SHA256 in the X-Chatvia-Signature header."
+            }
+        },
+        "security_audit": {
+            "breadcrumb": "Security audit",
+            "title": "Security audit log",
+            "description": "An immutable record of every sign-in, membership change, configuration change, and data event in your workspace.",
+            "all_categories": "All categories",
+            "all_outcomes": "All outcomes",
+            "system": "System",
+            "empty": "No security events match.",
+            "previous": "Previous",
+            "next": "Next",
+            "target": "Target",
+            "user_agent": "User agent",
+            "metadata": "Details",
+            "integrity": "Integrity hash recorded",
+            "teaser": {
+                "title": "Security audit log",
+                "description": "See every sign-in, role change, and security setting change — tamper-evident and exportable. Available on the Ultra plan.",
+                "cta": "Upgrade to Ultra"
+            },
+            "table": {
+                "actor": "Actor",
+                "action": "Action",
+                "outcome": "Outcome",
+                "ip": "IP address",
+                "when": "When"
+            }
+        },
         "sections": {
             "integrations": "Integrations",
             "library": "Library",
             "people": "People",
-            "governance": "Governance"
+            "governance": "Governance & Security"
         },
         "nav": {
             "connectors": "Connectors",
@@ -303,7 +396,9 @@
             "api_keys": "API Keys",
             "prompts": "Prompts",
             "members": "Chatters",
-            "audit_log": "Audit Log"
+            "audit_log": "Audit Log",
+            "security": "Security",
+            "security_audit": "Security audit"
         }
     }
 }

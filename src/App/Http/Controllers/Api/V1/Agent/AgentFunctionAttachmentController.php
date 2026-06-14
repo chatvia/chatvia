@@ -16,14 +16,22 @@ use Illuminate\Http\Request;
 #[Group(name: 'Functions', weight: 60)]
 class AgentFunctionAttachmentController
 {
-    /** @return array{data: list<FunctionData>} */
+    /**
+     * List an agent's functions
+     *
+     * @return array{data: list<FunctionData>}
+     */
     public function index(Request $request, Agent $agent): array
     {
         return ['data' => $agent->functions()->get()
             ->map(fn (AgentFunction $f): FunctionData => FunctionData::fromModel($f))->all()];
     }
 
-    /** @return array{data: FunctionData} */
+    /**
+     * Attach function to agent
+     *
+     * @return array{data: FunctionData}
+     */
     public function store(AttachAgentFunctionRequest $request, Agent $agent): array
     {
         $data = $request->toData($agent);
@@ -34,6 +42,9 @@ class AgentFunctionAttachmentController
         return ['data' => FunctionData::fromModel($function->fresh())];
     }
 
+    /**
+     * Detach function from agent
+     */
     public function destroy(Request $request, Agent $agent, string $function): JsonResponse
     {
         $agent->detachFunction($this->resolveFunction($agent, $function));

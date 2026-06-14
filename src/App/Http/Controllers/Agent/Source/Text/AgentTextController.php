@@ -20,8 +20,6 @@ class AgentTextController
 {
     public function index(Request $request, Agent $agent): Response|Collection
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         if ($request->wantsJson()) {
             return $this->buildTextList($agent);
         }
@@ -33,8 +31,6 @@ class AgentTextController
 
     public function show(Request $request, Agent $agent, int $id): SourceText
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         /** @var SourceText $text */
         $text = $agent
             ->texts()

@@ -37,6 +37,29 @@ it('activates the security feature for an enterprise workspace', function (): vo
     expect(Feature::for($user)->active(SecurityFeature::Security->value))->toBeTrue();
 });
 
+function proUser(): User
+{
+    $priceId = 'price_test_pro_'.Str::random(6);
+    config(['billing.packages.pro.stripe_monthly_price_id' => $priceId]);
+
+    $user = User::factory()->create();
+    $user->billing()->firstOrCreate([]);
+    $user->billing->subscriptions()->create([
+        'type' => 'default',
+        'stripe_id' => 'sub_test_'.Str::random(8),
+        'stripe_status' => 'active',
+        'stripe_price' => $priceId,
+        'quantity' => 1,
+    ]);
+    $user->refresh();
+
+    return $user;
+}
+
+it('activates the security feature for a pro workspace', function (): void {
+    expect(Feature::for(proUser())->active(SecurityFeature::Security->value))->toBeTrue();
+});
+
 it('leaves the security feature inactive for a non-enterprise workspace', function (): void {
     $user = User::factory()->create();
 

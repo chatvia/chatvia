@@ -14,9 +14,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
+use Support\Concerns\HasExternalId;
 use Support\Traits\Chunkable;
 use Support\Traits\HasStorageFile;
-use Support\Concerns\HasExternalId;
 
 /**
  * @property int $id

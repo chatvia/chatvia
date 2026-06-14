@@ -10,6 +10,17 @@ namespace Support;
  */
 class MimeType
 {
+    private const array CATEGORIES = [
+        'pdf' => 'pdf',
+        'word' => 'word',
+        'text' => 'text',
+        'presentation' => 'presentation',
+        'image' => 'images',
+        'spreadsheet' => 'spreadsheets',
+        'audio' => 'audio',
+        'video' => 'video',
+    ];
+
     public static function isWord(string $mimeType): bool
     {
         return self::matches($mimeType, 'word');
@@ -56,13 +67,8 @@ class MimeType
      */
     public static function category(string $mimeType): ?string
     {
-        foreach (self::CATEGORIES as $category => $configKey) {
-            if (self::matches($mimeType, $configKey)) {
-                return $category;
-            }
-        }
+        return array_find_key(self::CATEGORIES, fn ($configKey): bool => self::matches($mimeType, $configKey));
 
-        return null;
     }
 
     /**
@@ -75,17 +81,6 @@ class MimeType
 
         return $group ?? [];
     }
-
-    private const CATEGORIES = [
-        'pdf' => 'pdf',
-        'word' => 'word',
-        'text' => 'text',
-        'presentation' => 'presentation',
-        'image' => 'images',
-        'spreadsheet' => 'spreadsheets',
-        'audio' => 'audio',
-        'video' => 'video',
-    ];
 
     private static function matches(string $mimeType, string $configKey): bool
     {

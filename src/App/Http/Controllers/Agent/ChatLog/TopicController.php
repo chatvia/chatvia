@@ -14,8 +14,6 @@ class TopicController
 {
     public function __invoke(Request $request, Agent $agent): ChatLogTopicsResourceData
     {
-        abort_if($request->user()->cannot('view', $agent), 404);
-
         $topics = $agent->topics()
             ->orderBy('topics.topic')
             ->get(['topics.id', 'topics.topic', 'topics.description']);

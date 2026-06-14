@@ -33,6 +33,6 @@ class CancelSubscriptionAction
             }
         }
 
-        $user->cancelSubscription();
+        $user->workspace()->billing?->subscription()?->cancel();
     }
 }

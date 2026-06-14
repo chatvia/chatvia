@@ -59,7 +59,10 @@ return new class extends Migration
             $table->index(['workspace_id', 'id']);
             $table->index(['workspace_id', 'created_at']);
             $table->index(['workspace_id', 'action', 'id']);
-            $table->index('action');
+            // No standalone action index: the viewer's category filter is a
+            // tenant-scoped whereIn('action', …) that rides the
+            // (workspace_id, action, id) composite above — action is never
+            // queried as a leading access path on its own.
             $table->index('user_id');
         });
 

@@ -5,6 +5,7 @@ use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
+use Spatie\Permission\PermissionRegistrar;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,9 +17,10 @@ use Illuminate\Support\Str;
 | its `account.*` team permission: the owner has full access; a teammate without
 | the permission is blocked; a teammate with it passes.
 |
-| Integration/Library sections gate INLINE in the controller via
-| has_team_permission() → 404 (hide the section's existence). People/Governance
-| gate via the `team.permission:*` route middleware → 403. Teams are owner-only
+| Integration/Library sections gate via the `team.permission:*,404` route
+| middleware → 404 (the `,404` parameter hides the section's existence rather
+| than returning the default 403). People/Governance gate via the bare
+| `team.permission:*` route middleware → 403. Teams are owner-only
 | (DenyIfEmployee). This test pins all three shapes.
 */
 
@@ -49,13 +51,14 @@ function workspaceTeammate(User $owner, array $permissions): User
     $member = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
     $team->members()->attach($member->id, ['role_id' => $role->id]);
 
-    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
 
     return $member;
 }
 
-// [route name, permission] — sections gated INLINE (404 to hide existence)
-dataset('inline-gated pages', [
+// [route name, permission] — sections gated by `team.permission:*,404` route
+// middleware (404 to hide existence)
+dataset('route-404-gated pages', [
     'connectors edit' => ['integrations.connectors.edit', 'account.connectors'],
     'connectors data' => ['integrations.connectors.data', 'account.connectors'],
     'functions edit' => ['integrations.functions.edit', 'account.functions'],
@@ -64,29 +67,30 @@ dataset('inline-gated pages', [
     'prompts list' => ['library.prompts.list', 'account.prompts'],
 ]);
 
-// [route name, permission] — sections gated by route middleware (403)
+// [route name, permission] — sections gated by the bare `team.permission:*`
+// route middleware (403, no `,404` parameter)
 dataset('middleware-gated pages', [
     'chatters' => ['people.chatters.index', 'account.chatters.manage'],
     'governance' => ['governance.audit', 'account.governance'],
 ]);
 
-describe('inline-gated sections (404)', function (): void {
+describe('route-404-gated sections (404)', function (): void {
 
     it('404s a teammate WITHOUT the permission', function (string $route, string $perm): void {
         $member = workspaceTeammate($this->owner, []);
 
         $this->actingAs($member)->get(route($route))->assertNotFound();
-    })->with('inline-gated pages');
+    })->with('route-404-gated pages');
 
     it('allows a teammate WITH the permission', function (string $route, string $perm): void {
         $member = workspaceTeammate($this->owner, [$perm]);
 
         $this->actingAs($member)->get(route($route))->assertOk();
-    })->with('inline-gated pages');
+    })->with('route-404-gated pages');
 
     it('always allows the owner', function (string $route): void {
         $this->actingAs($this->owner)->get(route($route))->assertOk();
-    })->with('inline-gated pages');
+    })->with('route-404-gated pages');
 });
 
 describe('middleware-gated sections (403)', function (): void {

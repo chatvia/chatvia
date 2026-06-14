@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Agent\Invitations;
 
-use App\Http\Controllers\Controller;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
@@ -16,7 +15,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
  * the {@see AgentChatterInvitation} row, stash its id in the session so the callback
  * can finalize against the same row, and redirect to the provider.
  */
-class AgentInvitationSocialStartController extends Controller
+class AgentInvitationSocialStartController
 {
     public function __invoke(Request $request, string $token, string $provider): RedirectResponse
     {

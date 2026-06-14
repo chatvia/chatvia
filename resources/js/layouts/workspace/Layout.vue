@@ -2,7 +2,7 @@
 import Heading from '@/components/Heading.vue';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { Link } from '@inertiajs/vue3';
-import { Code, KeyRound, MessageSquareText, Plug, ShieldCheck, Users, type LucideIcon } from 'lucide-vue-next';
+import { Code, KeyRound, Lock, MessageSquareText, Plug, ScrollText, ShieldCheck, Users, type LucideIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -44,7 +44,11 @@ const allSections: NavSection[] = [
     },
     {
         title: 'workspace.sections.governance',
-        items: [{ title: 'workspace.nav.audit_log', name: 'governance.audit', icon: ShieldCheck, permission: 'account.governance' }],
+        items: [
+            { title: 'workspace.nav.audit_log', name: 'governance.audit', icon: ShieldCheck, permission: 'account.governance' },
+            { title: 'workspace.nav.security', name: 'security.edit', icon: Lock, permission: 'account.security' },
+            { title: 'workspace.nav.security_audit', name: 'security.audit', icon: ScrollText, permission: 'account.security' },
+        ],
     },
 ];
 

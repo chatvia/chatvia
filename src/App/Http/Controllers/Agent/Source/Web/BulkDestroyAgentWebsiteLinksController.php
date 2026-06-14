@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agent\Source\Web;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Source\Web\Actions\Url\BulkDeleteWebsiteUrlsAction;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,7 +16,6 @@ class BulkDestroyAgentWebsiteLinksController
         Request $request,
         Agent $agent,
         SourceWebsite $website,
-        BulkDeleteWebsiteUrlsAction $bulkDelete,
     ): JsonResponse {
         abort_if($request->user()->cannot('delete', $website), 404);
 
@@ -26,7 +24,7 @@ class BulkDestroyAgentWebsiteLinksController
             'link_ids.*' => ['required', 'integer', 'exists:source_website_urls,id'],
         ]);
 
-        $count = $bulkDelete->execute($website, $validated['link_ids']);
+        $count = $website->urls()->whereIn('id', $validated['link_ids'])->delete();
 
         return response()->json(['message' => 'Links deleted successfully.', 'count' => $count]);
     }

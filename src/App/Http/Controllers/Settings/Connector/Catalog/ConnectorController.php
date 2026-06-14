@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Settings\Connector\Catalog;
 
-use App\Http\Controllers\Controller;
 use Domain\Integration\Connector\Actions\Account\ListAccountConnectorsAction;
 use Domain\Integration\Connector\Data\Account\AccountConnectorsResourceData;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -16,26 +15,20 @@ use Inertia\Response;
  * its rows, and disconnects (deletes) account-level MCP servers. Per-server
  * mutations live in dedicated invokable controllers (toggle, refresh, …).
  */
-class ConnectorController extends Controller
+class ConnectorController
 {
     public function index(Request $request, ListAccountConnectorsAction $list): AccountConnectorsResourceData
     {
-        abort_unless(has_team_permission('account.connectors'), 404);
-
         return $list->execute($request->user());
     }
 
     public function edit(): Response
     {
-        abort_unless(has_team_permission('account.connectors'), 404);
-
         return Inertia::render('workspace/integrations/Connectors');
     }
 
     public function destroy(Request $request, string $slug): JsonResponse
     {
-        abort_unless(has_team_permission('account.connectors'), 404);
-
         AgentMcpServer::forSlugScoped($slug, $request->user())->delete();
 
         return response()->json(['ok' => true]);

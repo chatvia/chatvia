@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Team\Invitations;
 
-use App\Http\Controllers\Controller;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Models\Invitation;
 use Domain\Membership\Team\Models\Team;
@@ -15,7 +14,7 @@ use Inertia\Response;
  * Show the landing page for a team invitation. Accepting the invitation runs
  * through {@see AcceptTeamInvitationController}.
  */
-class TeamInvitationController extends Controller
+class TeamInvitationController
 {
     public function show(Request $request, Invitation $invitation): Response
     {

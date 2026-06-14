@@ -5,7 +5,9 @@ use App\Http\Controllers\Api\V1\Agent\AgentFunctionAttachmentController;
 use App\Http\Controllers\Api\V1\Agent\AgentMcpAttachmentController;
 use App\Http\Controllers\Api\V1\Chat\ConversationController;
 use App\Http\Controllers\Api\V1\Chatters\ChatterSignInLinkController;
+use App\Http\Controllers\Api\V1\Chatters\DeleteChatterController;
 use App\Http\Controllers\Api\V1\Chatters\ExternalChatterController;
+use App\Http\Controllers\Api\V1\Chatters\RevokeChatterAgentsController;
 use App\Http\Controllers\Api\V1\Function\FunctionController;
 use App\Http\Controllers\Api\V1\Mcp\McpServerController;
 use App\Http\Controllers\Api\V1\Source\SourceFileController;
@@ -60,6 +62,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])
             // Mint a one-time sign-in link so one of your chatters can open one of
             // your agents' chat. The link carries an opaque token consumed on first use.
             Route::post('chatters/sign', [ChatterSignInLinkController::class, 'store'])->name('chatters.sign');
+            // Delete a chatter entirely — account, agent grants and chat history.
+            Route::delete('chatters/{chatter}', DeleteChatterController::class)->name('chatters.destroy');
+            // Revoke a chatter's access to specific agents (the chatter account is kept).
+            Route::delete('chatters/{chatter}/agents', RevokeChatterAgentsController::class)->name('chatters.agents.revoke');
         });
 
         // Teams are owner-only (the dashboard blocks teammates from team

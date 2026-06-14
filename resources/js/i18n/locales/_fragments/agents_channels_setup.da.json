@@ -80,14 +80,16 @@
                     "steps": {
                         "connected_1": "I {link} skal du åbne {webhooks} og indsætte callback-URL'en + bekræftelsestoken ovenfor",
                         "connected_3": "Send en besked til din side på Messenger — din agent svarer automatisk",
-                        "connect_1": "Opret en app på {link} og tilføj produktet {product}",
-                        "connect_2": "Under {api_settings} skal du tilslutte din Facebook-side og generere et sideadgangstoken"
+                        "connect_1": "Opret en app på {link}, og tilføj derefter use casen {product} — søg efter den, hvis den ikke vises",
+                        "connect_2": "Under {api_settings} skal du tilslutte din Facebook-side og generere et sideadgangstoken",
+                        "connect_perms": "I {permissions} skal du tilføje {perm1}, {perm2} og {perm3}"
                     },
                     "your_meta_app": "din Meta-app",
-                    "webhooks_path": "Messenger → Settings → Webhooks",
-                    "api_settings_path": "Messenger → API settings",
+                    "webhooks_path": "Use cases → Customize → Messenger API Settings",
+                    "api_settings_path": "Use cases → Customize → Messenger API Settings",
+                    "permissions_path": "Use cases → Customize → Permissions and features",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Messenger"
+                    "product": "Engage with customers on Messenger"
                 },
                 "whatsapp": {
                     "steps": {

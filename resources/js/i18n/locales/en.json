@@ -237,14 +237,16 @@
                     "steps": {
                         "connected_1": "In {link}, open {webhooks} and paste the Callback URL + verify token above",
                         "connected_3": "Message your page on Messenger — your agent replies automatically",
-                        "connect_1": "Create an app at {link} and add the {product} product",
-                        "connect_2": "Under {api_settings}, connect your Facebook Page and generate a page access token"
+                        "connect_1": "Create an app at {link}, then add the {product} use case — search for it if it's not shown",
+                        "connect_2": "Under {api_settings}, connect your Facebook Page and generate a page access token",
+                        "connect_perms": "In {permissions}, add {perm1}, {perm2}, and {perm3}"
                     },
                     "your_meta_app": "your Meta app",
-                    "webhooks_path": "Messenger → Settings → Webhooks",
-                    "api_settings_path": "Messenger → API settings",
+                    "webhooks_path": "Use cases → Customize → Messenger API Settings",
+                    "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Messenger"
+                    "product": "Engage with customers on Messenger",
+                    "permissions_path": "Use cases → Customize → Permissions and features"
                 },
                 "whatsapp": {
                     "steps": {

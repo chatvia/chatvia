@@ -32,7 +32,7 @@ class AgentMessengerChannelController
 
         if ($page === null) {
             return back()->withErrors([
-                'page_access_token' => 'Meta rejected that token. Double-check it under Messenger → API settings in your Meta app and try again.',
+                'page_access_token' => 'Meta rejected that token. Add the pages_read_engagement permission to your Messenger use case, then regenerate the token under Use cases → Customize → Messenger API Settings and try again.',
             ]);
         }
 

@@ -404,14 +404,16 @@
                     "steps": {
                         "connected_1": "I {link}, åpne {webhooks} og lim inn tilbakeringing-URL-en + verifiseringstokenet ovenfor",
                         "connected_3": "Send en melding til siden din på Messenger — agenten din svarer automatisk",
-                        "connect_1": "Opprett en app på {link} og legg til produktet {product}",
-                        "connect_2": "Under {api_settings}, koble til Facebook-siden din og generer et sidetilgangstoken"
+                        "connect_1": "Opprett en app på {link}, og legg deretter til brukstilfellet {product} — søk etter det hvis det ikke vises",
+                        "connect_2": "Under {api_settings}, koble til Facebook-siden din og generer et sidetilgangstoken",
+                        "connect_perms": "I {permissions}, legg til {perm1}, {perm2} og {perm3}"
                     },
                     "your_meta_app": "Meta-appen din",
-                    "webhooks_path": "Messenger → Settings → Webhooks",
-                    "api_settings_path": "Messenger → API settings",
+                    "webhooks_path": "Use cases → Customize → Messenger API Settings",
+                    "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Messenger"
+                    "product": "Engage with customers on Messenger",
+                    "permissions_path": "Use cases → Customize → Permissions and features"
                 },
                 "whatsapp": {
                     "steps": {

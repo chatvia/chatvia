@@ -80,14 +80,16 @@
                     "steps": {
                         "connected_1": "في {link}، افتح {webhooks} والصق رابط الاستدعاء + رمز التحقق أعلاه",
                         "connected_3": "راسل صفحتك على Messenger — سيرد وكيلك تلقائياً",
-                        "connect_1": "أنشئ تطبيقاً على {link} وأضف منتج {product}",
-                        "connect_2": "تحت {api_settings}، اربط صفحة Facebook الخاصة بك وأنشئ رمز وصول للصفحة"
+                        "connect_1": "أنشئ تطبيقاً على {link}، ثم أضف حالة الاستخدام {product} — ابحث عنها إذا لم تظهر",
+                        "connect_2": "تحت {api_settings}، اربط صفحة Facebook الخاصة بك وأنشئ رمز وصول للصفحة",
+                        "connect_perms": "في {permissions}، أضف {perm1} و {perm2} و {perm3}"
                     },
                     "your_meta_app": "تطبيق Meta الخاص بك",
-                    "webhooks_path": "Messenger → Settings → Webhooks",
-                    "api_settings_path": "Messenger → API settings",
+                    "webhooks_path": "Use cases → Customize → Messenger API Settings",
+                    "api_settings_path": "Use cases → Customize → Messenger API Settings",
+                    "permissions_path": "Use cases → Customize → Permissions and features",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Messenger"
+                    "product": "Engage with customers on Messenger"
                 },
                 "whatsapp": {
                     "steps": {

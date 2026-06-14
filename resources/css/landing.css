@@ -4,7 +4,7 @@
 @import './additional-styles/toggle-switch.css' layer(components);
 @import './additional-styles/theme.css';
 
-@plugin "@tailwindcss/typography";
+@plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:is(.dark *));
 

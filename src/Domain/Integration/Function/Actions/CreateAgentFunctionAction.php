@@ -9,7 +9,10 @@ class CreateAgentFunctionAction
 {
     public function execute(CreateAgentFunctionData $data): AgentFunction
     {
-        return $data->user->functions()->create([
+        // A webhook tool is a workspace resource — own it by the workspace, not
+        // the acting employee, whose deletion (functions.user_id cascades) would
+        // otherwise take the tool down with them.
+        return $data->user->workspace()->functions()->create([
             'internal_name' => $data->internal_name,
             'display_name' => $data->display_name,
             'description' => $data->description,

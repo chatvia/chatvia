@@ -4,7 +4,7 @@
 @import 'tw-animate-css';
 @import './highlight.css';
 
-@plugin "@tailwindcss/typography";
+@plugin '@tailwindcss/typography';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

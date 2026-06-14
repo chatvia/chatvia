@@ -26,6 +26,7 @@ use App\Http\Controllers\Team\Crud\TeamsHomeController;
 use App\Http\Controllers\Team\Crud\TeamShowController;
 use App\Http\Controllers\Team\Crud\TeamsStoreController;
 use App\Http\Controllers\Team\Crud\TeamUpdateController;
+use App\Http\Controllers\Team\Member\RemoveTeammateFromWorkspaceController;
 use App\Http\Controllers\Team\Member\TeamCancelInvitationController;
 use App\Http\Controllers\Team\Member\TeamInviteMemberController;
 use App\Http\Controllers\Team\Member\TeamRemoveMemberController;
@@ -170,6 +171,11 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
         Route::delete('my/teams/{team}/invitations/{invitationId}', TeamCancelInvitationController::class)->name('teams.cancel-invitation');
         Route::put('my/teams/{team}/members/{member}', TeamUpdateMemberRoleController::class)->name('teams.update-member');
         Route::delete('my/teams/{team}/members/{member}', TeamRemoveMemberController::class)->name('teams.remove-member');
+
+        // Permanently delete a teammate's account + all their data — distinct
+        // from remove-member above, which only detaches the team pivot.
+        // Workspace-level (not team-scoped); DenyIfEmployee already limits it to owners.
+        Route::delete('my/workspace/teammates/{member}', RemoveTeammateFromWorkspaceController::class)->name('teammates.remove');
 
         // Team roles
         Route::get('my/teams/{team}/roles/create', TeamRoleCreateShowController::class)->name('teams.roles.create');

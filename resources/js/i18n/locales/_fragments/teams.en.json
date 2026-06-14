@@ -76,6 +76,10 @@
                 "remove_title": "Remove Team Member",
                 "remove_description": "Are you sure you want to remove {name} from this team? They will lose access to all team resources.",
                 "remove_confirm": "Remove Member",
+                "delete_from_workspace": "Remove from workspace",
+                "delete_from_workspace_title": "Delete teammate account",
+                "delete_from_workspace_description": "Permanently delete {name}'s account and all their personal data — login sessions, API tokens, devices and sign-in methods. Anything they created for the workspace (agents, knowledge, tools) stays. This cannot be undone.",
+                "delete_from_workspace_confirm": "Delete account",
                 "table": {
                     "member": "Member"
                 }

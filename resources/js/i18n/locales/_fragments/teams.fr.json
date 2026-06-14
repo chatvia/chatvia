@@ -76,6 +76,10 @@
                 "remove_title": "Retirer le membre de l'équipe",
                 "remove_description": "Êtes-vous sûr de vouloir retirer {name} de cette équipe ? Il perdra l'accès à toutes les ressources de l'équipe.",
                 "remove_confirm": "Retirer le membre",
+                "delete_from_workspace": "Retirer de l'espace de travail",
+                "delete_from_workspace_title": "Supprimer le compte du membre",
+                "delete_from_workspace_description": "Supprimer définitivement le compte de {name} et toutes ses données personnelles — sessions de connexion, jetons API, appareils et méthodes de connexion. Tout ce qu'il a créé pour l'espace de travail (agents, connaissances, outils) est conservé. Cette action est irréversible.",
+                "delete_from_workspace_confirm": "Supprimer le compte",
                 "table": {
                     "member": "Membre"
                 }

@@ -131,3 +131,28 @@ describe('teams.invite (FormRequest::authorize, permission-aware)', function ():
             ->assertRedirect();
     });
 });
+
+describe('teammates.remove (workspace-level account deletion)', function (): void {
+    it('lets the owner delete their own teammate', function (): void {
+        $employee = User::factory()->employee($this->owner)->create();
+
+        $this->actingAs($this->owner)
+            ->from('/')
+            ->delete(route('teammates.remove', $employee))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        expect(User::whereKey($employee->id)->exists())->toBeFalse();
+    });
+
+    it('404s for a teammate in another workspace and leaves them intact (no IDOR)', function (): void {
+        $foreignEmployee = User::factory()->employee($this->outsider)->create();
+
+        $this->actingAs($this->owner)
+            ->from('/')
+            ->delete(route('teammates.remove', $foreignEmployee))
+            ->assertNotFound();
+
+        expect(User::whereKey($foreignEmployee->id)->exists())->toBeTrue();
+    });
+});

@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Llm\Usage\TokenUsageContext;
 use Laravel\Octane\Contracts\OperationTerminated;
 use Laravel\Octane\Events\RequestHandled;
 use Laravel\Octane\Events\RequestReceived;
@@ -135,7 +136,11 @@ return [
     ],
 
     'flush' => [
-        //
+        // Request/job-scoped LLM-token accumulator. It self-balances (track()
+        // pops its frame in a `finally`), but flushing it between requests is
+        // cheap insurance against an orphaned frame surviving on the long-lived
+        // worker after a fatal mid-scope.
+        TokenUsageContext::class,
     ],
 
     /*
@@ -219,6 +224,10 @@ return [
     |
     */
 
-    'max_execution_time' => 30,
+    // LLM chat responses stream, and agentic tool loops chain several upstream
+    // calls, so the default 30s would kill long streams mid-flight. Bounded but
+    // generous; raise OCTANE_MAX_EXECUTION_TIME for very long agentic runs, or
+    // set 0 to disable (at the cost of a hung upstream tying up a worker).
+    'max_execution_time' => (int) env('OCTANE_MAX_EXECUTION_TIME', 120),
 
 ];

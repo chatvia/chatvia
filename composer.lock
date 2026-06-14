@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "233fe250dd28dfece9e16a6cc128cca3",
+    "content-hash": "045897dd56c0420f6ee435055a800891",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -5260,16 +5260,16 @@
         },
         {
             "name": "laravel/octane",
-            "version": "v2.17.4",
+            "version": "v2.17.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/octane.git",
-                "reference": "ffeac11324accc6edf8df426ba4541f3171d494e"
+                "reference": "058ae4d7109eed40836dc42960f9388b9bf71f73"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/octane/zipball/ffeac11324accc6edf8df426ba4541f3171d494e",
-                "reference": "ffeac11324accc6edf8df426ba4541f3171d494e",
+                "url": "https://api.github.com/repos/laravel/octane/zipball/058ae4d7109eed40836dc42960f9388b9bf71f73",
+                "reference": "058ae4d7109eed40836dc42960f9388b9bf71f73",
                 "shasum": ""
             },
             "require": {
@@ -5345,7 +5345,7 @@
                 "issues": "https://github.com/laravel/octane/issues",
                 "source": "https://github.com/laravel/octane"
             },
-            "time": "2026-05-22T11:30:06+00:00"
+            "time": "2026-06-04T09:05:08+00:00"
         },
         {
             "name": "laravel/passkeys",
@@ -10906,6 +10906,73 @@
             "time": "2025-07-04T00:12:53+00:00"
         },
         {
+            "name": "roadrunner-php/roadrunner-api-dto",
+            "version": "v1.14.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/roadrunner-php/roadrunner-api-dto.git",
+                "reference": "a7664d4a4c451631fba7d5504fdf4f94a81a19c3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/roadrunner-php/roadrunner-api-dto/zipball/a7664d4a4c451631fba7d5504fdf4f94a81a19c3",
+                "reference": "a7664d4a4c451631fba7d5504fdf4f94a81a19c3",
+                "shasum": ""
+            },
+            "require": {
+                "google/protobuf": "^4.31.1||^5.34.0",
+                "php": "^8.1"
+            },
+            "conflict": {
+                "temporal/sdk": "<2.9.0"
+            },
+            "suggest": {
+                "google/common-protos": "Required for Temporal API"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Temporal\\": "generated/Temporal",
+                    "RoadRunner\\": "generated/RoadRunner",
+                    "GPBMetadata\\": "generated/GPBMetadata"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pavel Butchnev (butschster)",
+                    "email": "pavel.buchnev@spiralscout.com"
+                },
+                {
+                    "name": "Aleksei Gagarin (roxblnfk)",
+                    "email": "alexey.gagarin@spiralscout.com"
+                },
+                {
+                    "name": "RoadRunner Community",
+                    "homepage": "https://github.com/roadrunner-server/roadrunner/graphs/contributors"
+                }
+            ],
+            "description": "RoadRunner PHP API",
+            "homepage": "https://roadrunner.dev",
+            "support": {
+                "chat": "https://discord.gg/V6EK4he",
+                "docs": "https://docs.roadrunner.dev",
+                "forum": "https://forum.roadrunner.dev",
+                "issues": "https://github.com/roadrunner-server/roadrunner/issues",
+                "source": "https://github.com/roadrunner-php/roadrunner-api-dto/tree/v1.14.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/roadrunner-server",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-02-28T14:55:02+00:00"
+        },
+        {
             "name": "ryangjchandler/blade-capture-directive",
             "version": "v1.1.1",
             "source": {
@@ -11706,6 +11773,147 @@
             "time": "2026-02-21T22:52:37+00:00"
         },
         {
+            "name": "spatie/flare-client-php",
+            "version": "3.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/flare-client-php.git",
+                "reference": "9534048cdee6201e7dbf11ecf3f5cc206a513de5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/flare-client-php/zipball/9534048cdee6201e7dbf11ecf3f5cc206a513de5",
+                "reference": "9534048cdee6201e7dbf11ecf3f5cc206a513de5",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "guzzlehttp/guzzle": "^7.9",
+                "monolog/monolog": "^3.0",
+                "php": "^8.2",
+                "psr/container": "^2.0",
+                "spatie/backtrace": "^1.8.0",
+                "spatie/flare-daemon": "^0.1|^0.2",
+                "symfony/console": "^5.2|^6.0|^7.0|^8.0",
+                "symfony/http-foundation": "^5.2|^6.0|^7.0|^8.0",
+                "symfony/mime": "^5.2|^6.0|^7.0|^8.0",
+                "symfony/process": "^5.2|^6.0|^7.0|^8.0",
+                "symfony/var-dumper": "^5.2|^6.0|^7.0|^8.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.89",
+                "pestphp/pest": "^2.36.0|^3.0|^4.0",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan-deprecation-rules": "^1.2",
+                "phpstan/phpstan-phpunit": "^1.4",
+                "spatie/invade": "^2.1",
+                "spatie/pest-plugin-snapshots": "^2.2"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\FlareClient\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Send PHP errors to Flare",
+            "homepage": "https://github.com/spatie/flare-client-php",
+            "keywords": [
+                "exception",
+                "flare",
+                "reporting",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/flare-client-php/issues",
+                "source": "https://github.com/spatie/flare-client-php/tree/3.1.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-05-28T10:17:26+00:00"
+        },
+        {
+            "name": "spatie/flare-daemon",
+            "version": "0.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/flare-daemon.git",
+                "reference": "fe7023452ae5e4d1f5c00a3e23f5878b885ec432"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/flare-daemon/zipball/fe7023452ae5e4d1f5c00a3e23f5878b885ec432",
+                "reference": "fe7023452ae5e4d1f5c00a3e23f5878b885ec432",
+                "shasum": ""
+            },
+            "require": {
+                "composer-runtime-api": "^2.2",
+                "ext-zlib": "*",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.0",
+                "pestphp/pest": "^4.0",
+                "phpstan/phpstan": "^2.1",
+                "react/async": "^4.3",
+                "spatie/flare-daemon-runtime": "*",
+                "spatie/ray": "^1.28",
+                "symfony/process": "^7.2"
+            },
+            "bin": [
+                "bin/flare-daemon"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\FlareDaemon\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alex Vanderbist",
+                    "email": "alex@spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Local HTTP daemon for asynchronous Flare delivery",
+            "homepage": "https://github.com/spatie/flare-daemon",
+            "keywords": [
+                "error-tracking",
+                "flare",
+                "flare-daemon",
+                "performance-monitoring",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/flare-daemon/issues",
+                "source": "https://github.com/spatie/flare-daemon/tree/0.2.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-05-12T12:03:49+00:00"
+        },
+        {
             "name": "spatie/invade",
             "version": "2.1.0",
             "source": {
@@ -11847,6 +12055,174 @@
                 }
             ],
             "time": "2026-05-08T14:41:13+00:00"
+        },
+        {
+            "name": "spatie/laravel-error-share",
+            "version": "1.0.9",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-error-share.git",
+                "reference": "52e65ee35a7f782e27460cb307cc97cec8332793"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-error-share/zipball/52e65ee35a7f782e27460cb307cc97cec8332793",
+                "reference": "52e65ee35a7f782e27460cb307cc97cec8332793",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^12.50|^13.0",
+                "php": "^8.2",
+                "spatie/laravel-package-tools": "^1.16"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.4",
+                "laravel/pint": "^1.14",
+                "nunomaduro/collision": "^8.1.1|^7.10.0",
+                "orchestra/testbench": "^11.0|^10.0|^9.0|^8.22",
+                "pestphp/pest": "^2.34|^3.0",
+                "pestphp/pest-plugin-arch": "^2.7|^3.0",
+                "pestphp/pest-plugin-laravel": "^2.3|^3.0",
+                "phpstan/extension-installer": "^1.3",
+                "phpstan/phpstan-deprecation-rules": "^1.1|^2.0",
+                "phpstan/phpstan-phpunit": "^1.3|^2.0",
+                "spatie/pest-plugin-snapshots": "^2.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "LaravelErrorShare": "Spatie\\LaravelErrorShare\\Facades\\LaravelErrorShare"
+                    },
+                    "providers": [
+                        "Spatie\\LaravelErrorShare\\LaravelErrorShareServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\LaravelErrorShare\\": "src/",
+                    "Spatie\\LaravelErrorShare\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ruben Van Assche",
+                    "email": "ruben@spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Share your Laravel errors to Flare",
+            "homepage": "https://github.com/spatie/laravel-error-share",
+            "keywords": [
+                "dev",
+                "errors",
+                "flare",
+                "laravel",
+                "laravel-error-share",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/laravel-error-share/issues",
+                "source": "https://github.com/spatie/laravel-error-share/tree/1.0.9"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/Spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-05-11T08:16:59+00:00"
+        },
+        {
+            "name": "spatie/laravel-flare",
+            "version": "3.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-flare.git",
+                "reference": "81ee3a36c24b1c341b20992cfdacaa8afd2816a1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-flare/zipball/81ee3a36c24b1c341b20992cfdacaa8afd2816a1",
+                "reference": "81ee3a36c24b1c341b20992cfdacaa8afd2816a1",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "illuminate/support": "^11.47|^12.42|^13.0",
+                "php": "^8.2",
+                "spatie/flare-client-php": "^3.0.0",
+                "spatie/laravel-error-share": "^1.0.3",
+                "symfony/console": "^7.2.1|^8.0",
+                "symfony/var-dumper": "^7.2.3|^8.0"
+            },
+            "require-dev": {
+                "laravel/serializable-closure": "^2.0",
+                "livewire/livewire": "^3.6.0|^4.2",
+                "mockery/mockery": "^1.6.12",
+                "orchestra/testbench": "^9.14|^10.8|^11.0",
+                "pestphp/pest": "^2.34|^3.7.4|^4.1",
+                "pestphp/pest-plugin-laravel": "^2.4|^3.0|^4.0",
+                "phpstan/extension-installer": "^1.4.3",
+                "phpstan/phpstan-deprecation-rules": "^1.1.1|^2.0.1",
+                "phpstan/phpstan-phpunit": "^1.3.16|^2.0.4",
+                "spatie/ray": "^1.45",
+                "vlucas/phpdotenv": "^5.6.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Flare": "Spatie\\LaravelFlare\\Facades\\Flare"
+                    },
+                    "providers": [
+                        "Spatie\\LaravelFlare\\FlareServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\LaravelFlare\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Spatie",
+                    "email": "info@spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Send Laravel errors to Flare",
+            "homepage": "https://flareapp.io/",
+            "keywords": [
+                "error",
+                "flare",
+                "laravel"
+            ],
+            "support": {
+                "docs": "https://flareapp.io/docs/integration/laravel-customizations/introduction",
+                "forum": "https://twitter.com/flareappio",
+                "issues": "https://github.com/spatie/laravel-flare/issues",
+                "source": "https://github.com/spatie/laravel-flare"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-05-27T09:25:50+00:00"
         },
         {
             "name": "spatie/laravel-markdown",
@@ -12971,6 +13347,317 @@
                 }
             ],
             "time": "2026-06-05T04:37:24+00:00"
+        },
+        {
+            "name": "spiral/goridge",
+            "version": "4.2.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/roadrunner-php/goridge.git",
+                "reference": "a14454ce6c9cfcec76bbd283292c25fb33fc5a43"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/roadrunner-php/goridge/zipball/a14454ce6c9cfcec76bbd283292c25fb33fc5a43",
+                "reference": "a14454ce6c9cfcec76bbd283292c25fb33fc5a43",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-sockets": "*",
+                "php": ">=8.1",
+                "spiral/roadrunner": "^2023 || ^2024.1 || ^2025.1"
+            },
+            "require-dev": {
+                "google/protobuf": "^3.22 || ^4.0",
+                "infection/infection": "^0.29.0",
+                "jetbrains/phpstorm-attributes": "^1.0",
+                "phpunit/phpunit": "^10.5.45",
+                "rybakit/msgpack": "^0.7",
+                "spiral/code-style": "*",
+                "vimeo/psalm": "^6.0"
+            },
+            "suggest": {
+                "ext-msgpack": "MessagePack codec support",
+                "ext-protobuf": "Protobuf codec support",
+                "google/protobuf": "(^3.0) Protobuf codec support",
+                "rybakit/msgpack": "(^0.7) MessagePack codec support"
+            },
+            "type": "goridge",
+            "autoload": {
+                "psr-4": {
+                    "Spiral\\Goridge\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Anton Titov (wolfy-j)",
+                    "email": "wolfy-j@spiralscout.com"
+                },
+                {
+                    "name": "Valery Piashchynski",
+                    "homepage": "https://github.com/rustatian"
+                },
+                {
+                    "name": "Aleksei Gagarin (roxblnfk)",
+                    "homepage": "https://github.com/roxblnfk"
+                },
+                {
+                    "name": "Pavel Buchnev (butschster)",
+                    "email": "pavel.buchnev@spiralscout.com"
+                },
+                {
+                    "name": "Maksim Smakouz (msmakouz)",
+                    "email": "maksim.smakouz@spiralscout.com"
+                },
+                {
+                    "name": "RoadRunner Community",
+                    "homepage": "https://github.com/roadrunner-server/roadrunner/graphs/contributors"
+                }
+            ],
+            "description": "High-performance PHP-to-Golang RPC bridge",
+            "homepage": "https://spiral.dev/",
+            "support": {
+                "chat": "https://discord.gg/V6EK4he",
+                "docs": "https://docs.roadrunner.dev",
+                "issues": "https://github.com/roadrunner-server/roadrunner/issues",
+                "source": "https://github.com/roadrunner-php/goridge/tree/4.2.2"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/roadrunner-server",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-05-11T11:29:46+00:00"
+        },
+        {
+            "name": "spiral/roadrunner",
+            "version": "v2025.1.14",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/roadrunner-server/roadrunner.git",
+                "reference": "3853ad693522e82d53d62950e5f1315402c910f2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/roadrunner-server/roadrunner/zipball/3853ad693522e82d53d62950e5f1315402c910f2",
+                "reference": "3853ad693522e82d53d62950e5f1315402c910f2",
+                "shasum": ""
+            },
+            "type": "metapackage",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Anton Titov / Wolfy-J",
+                    "email": "wolfy.jd@gmail.com"
+                },
+                {
+                    "name": "Valery Piashchynski",
+                    "homepage": "https://github.com/rustatian"
+                },
+                {
+                    "name": "RoadRunner Community",
+                    "homepage": "https://github.com/roadrunner-server/roadrunner/graphs/contributors"
+                }
+            ],
+            "description": "RoadRunner: High-performance PHP application server and process manager written in Go and powered with plugins",
+            "homepage": "https://roadrunner.dev/",
+            "support": {
+                "chat": "https://discord.gg/V6EK4he",
+                "docs": "https://docs.roadrunner.dev/",
+                "issues": "https://github.com/roadrunner-server/roadrunner/issues",
+                "source": "https://github.com/roadrunner-server/roadrunner/tree/v2025.1.14"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/roadrunner-server",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-05-15T13:20:01+00:00"
+        },
+        {
+            "name": "spiral/roadrunner-http",
+            "version": "v4.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/roadrunner-php/http.git",
+                "reference": "b69cf62dcab7d4b1945fef7b40339edd4fc016c8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/roadrunner-php/http/zipball/b69cf62dcab7d4b1945fef7b40339edd4fc016c8",
+                "reference": "b69cf62dcab7d4b1945fef7b40339edd4fc016c8",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": ">=8.1",
+                "psr/http-factory": "^1.0.1",
+                "psr/http-message": "^1.0.1 || ^2.0",
+                "roadrunner-php/roadrunner-api-dto": "^1.6",
+                "spiral/roadrunner": "^2023.3 || ^2024.1 || ^2025.1",
+                "spiral/roadrunner-worker": "^3.5",
+                "symfony/polyfill-php83": "^1.29"
+            },
+            "require-dev": {
+                "jetbrains/phpstorm-attributes": "^1.0",
+                "nyholm/psr7": "^1.3",
+                "phpunit/phpunit": "^10.5",
+                "spiral/code-style": "^2.3",
+                "spiral/dumper": "^3.3",
+                "symfony/process": "^6.2 || ^7.0",
+                "vimeo/psalm": "^6.13"
+            },
+            "suggest": {
+                "ext-protobuf": "Provides Protocol Buffers support. Without it, performance will be lower.",
+                "spiral/roadrunner-cli": "Provides RoadRunner installation and management CLI tools"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spiral\\RoadRunner\\Http\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Anton Titov (wolfy-j)",
+                    "email": "wolfy-j@spiralscout.com"
+                },
+                {
+                    "name": "Valery Piashchynski",
+                    "homepage": "https://github.com/rustatian"
+                },
+                {
+                    "name": "Aleksei Gagarin (roxblnfk)",
+                    "homepage": "https://github.com/roxblnfk"
+                },
+                {
+                    "name": "Pavel Buchnev (butschster)",
+                    "email": "pavel.buchnev@spiralscout.com"
+                },
+                {
+                    "name": "Maksim Smakouz (msmakouz)",
+                    "email": "maksim.smakouz@spiralscout.com"
+                },
+                {
+                    "name": "RoadRunner Community",
+                    "homepage": "https://github.com/roadrunner-server/roadrunner/graphs/contributors"
+                }
+            ],
+            "description": "RoadRunner: HTTP and PSR-7 worker",
+            "homepage": "https://spiral.dev/",
+            "support": {
+                "chat": "https://discord.gg/V6EK4he",
+                "docs": "https://docs.roadrunner.dev",
+                "forum": "https://forum.roadrunner.dev/",
+                "issues": "https://github.com/roadrunner-server/roadrunner/issues",
+                "source": "https://github.com/roadrunner-php/http/tree/v4.1.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/roadrunner-server",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-02-26T11:41:09+00:00"
+        },
+        {
+            "name": "spiral/roadrunner-worker",
+            "version": "v3.6.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/roadrunner-php/worker.git",
+                "reference": "8d9905b1e6677f34ff8623893f35b5e2fa828e37"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/roadrunner-php/worker/zipball/8d9905b1e6677f34ff8623893f35b5e2fa828e37",
+                "reference": "8d9905b1e6677f34ff8623893f35b5e2fa828e37",
+                "shasum": ""
+            },
+            "require": {
+                "composer-runtime-api": "^2.0",
+                "ext-json": "*",
+                "ext-sockets": "*",
+                "php": ">=8.1",
+                "psr/log": "^2.0 || ^3.0",
+                "spiral/goridge": "^4.1.0",
+                "spiral/roadrunner": "^2023.1 || ^2024.1 || ^2025.1"
+            },
+            "require-dev": {
+                "buggregator/trap": "^1.13",
+                "jetbrains/phpstorm-attributes": "^1.0",
+                "phpunit/phpunit": "^10.5.45",
+                "spiral/code-style": "^2.2",
+                "vimeo/psalm": "^6.0"
+            },
+            "suggest": {
+                "spiral/roadrunner-cli": "Provides RoadRunner installation and management CLI tools"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spiral\\RoadRunner\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Anton Titov (wolfy-j)",
+                    "email": "wolfy-j@spiralscout.com"
+                },
+                {
+                    "name": "Valery Piashchynski",
+                    "homepage": "https://github.com/rustatian"
+                },
+                {
+                    "name": "Aleksei Gagarin (roxblnfk)",
+                    "homepage": "https://github.com/roxblnfk"
+                },
+                {
+                    "name": "Pavel Buchnev (butschster)",
+                    "email": "pavel.buchnev@spiralscout.com"
+                },
+                {
+                    "name": "Maksim Smakouz (msmakouz)",
+                    "email": "maksim.smakouz@spiralscout.com"
+                },
+                {
+                    "name": "RoadRunner Community",
+                    "homepage": "https://github.com/roadrunner-server/roadrunner/graphs/contributors"
+                }
+            ],
+            "description": "RoadRunner: PHP worker",
+            "homepage": "https://spiral.dev/",
+            "support": {
+                "chat": "https://discord.gg/V6EK4he",
+                "docs": "https://docs.roadrunner.dev",
+                "issues": "https://github.com/roadrunner-server/roadrunner/issues",
+                "source": "https://github.com/roadrunner-php/worker/tree/v3.6.2"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/roadrunner-server",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-05T12:34:50+00:00"
         },
         {
             "name": "spomky-labs/cbor-php",

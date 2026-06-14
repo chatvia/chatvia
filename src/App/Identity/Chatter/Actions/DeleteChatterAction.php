@@ -7,7 +7,9 @@ use App\Identity\Workspace\Models\User;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
+use Domain\Lead\Models\Lead;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -41,10 +43,16 @@ class DeleteChatterAction
             ->with(['conversations' => fn ($query) => $query->withTrashed()])
             ->get();
 
-        // Wipe attachment files through Eloquent BEFORE the cascade drops the
-        // rows silently — chat_attachments cascades off both the conversation
-        // and the message, neither of which fires the S3-wiping observer.
-        $this->wipeAttachmentFiles($sessions);
+        $conversationIds = $sessions
+            ->flatMap(fn (Session $session): iterable => $session->conversations)
+            ->pluck('id');
+
+        // Clean up the artefacts the FK cascade can't reach correctly BEFORE
+        // $chatter->delete() drops the rows: attachment files on S3 (the cascade
+        // never fires the S3-wiping observer) and captured leads (chat_conversation_id
+        // is SET NULL, so a lead would otherwise outlive the chatter and keep its PII).
+        $this->wipeAttachmentFiles($conversationIds);
+        $this->deleteLeads($conversationIds);
 
         $chatter->delete();
 
@@ -52,14 +60,10 @@ class DeleteChatterAction
     }
 
     /**
-     * @param  Collection<int, Session>  $sessions
+     * @param  SupportCollection<int, int>  $conversationIds
      */
-    private function wipeAttachmentFiles(Collection $sessions): void
+    private function wipeAttachmentFiles(SupportCollection $conversationIds): void
     {
-        $conversationIds = $sessions
-            ->flatMap(fn (Session $session): iterable => $session->conversations)
-            ->pluck('id');
-
         if ($conversationIds->isEmpty()) {
             return;
         }
@@ -68,6 +72,23 @@ class DeleteChatterAction
             ->whereIn('chat_conversation_id', $conversationIds)
             ->get()
             ->each(static fn (Attachment $attachment) => $attachment->delete());
+    }
+
+    /**
+     * Delete leads captured from this chatter's conversations. `leads.chat_conversation_id`
+     * is SET NULL, so without this a lead — which holds the chatter's own PII
+     * (name / email / phone, encrypted) — would outlive the chatter it came from.
+     * Bulk delete is safe: Lead has only a `saving` hook, no `deleting` side effect.
+     *
+     * @param  SupportCollection<int, int>  $conversationIds
+     */
+    private function deleteLeads(SupportCollection $conversationIds): void
+    {
+        if ($conversationIds->isEmpty()) {
+            return;
+        }
+
+        Lead::query()->whereIn('chat_conversation_id', $conversationIds)->delete();
     }
 
     /**

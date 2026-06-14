@@ -33,7 +33,7 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Pennant\Middleware\EnsureFeaturesAreActive;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
-use Sentry\Laravel\Integration as SentryIntegration;
+use Spatie\LaravelFlare\Facades\Flare;
 use Support\Exceptions\DomainValidationException;
 
 $app = Application::configure(basePath: dirname(__DIR__))
@@ -137,7 +137,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         if (app()->isProduction()) {
-            SentryIntegration::handles($exceptions);
+            Flare::handles($exceptions);
         }
 
         // Canonical HTTP translation for the domain's field-keyed rejection

@@ -8,6 +8,7 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session as ChatSession;
 use Domain\Conversation\Services\Memory\ChatCache;
+use Domain\Lead\Models\Lead;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Cache;
@@ -182,4 +183,32 @@ it('flushes the deleted workspace chat memory cache and leaves other workspaces 
 
     expect(Cache::driver('chat')->tags([$workspaceTag, 'session-a'])->has('session-a'))->toBeFalse()
         ->and(Cache::driver('chat')->tags([$survivorTag, 'session-b'])->has('session-b'))->toBeTrue();
+});
+
+it('deletes leads, Sanctum tokens and HTTP sessions the FK cascade would orphan', function (): void {
+    $owner = User::factory()->create();
+    $employee = User::factory()->employee($owner)->create();
+    $agent = Agent::factory()->create(['user_id' => $owner->id]);
+
+    $lead = Lead::factory()->forAgent($agent)->create();
+
+    $owner->createToken('owner-cli');
+    $employee->createToken('emp-cli');
+
+    foreach ([$owner->id, $employee->id] as $i => $uid) {
+        DB::table('sessions')->insert([
+            'id' => "sess-ws-{$i}",
+            'user_id' => $uid,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'test',
+            'payload' => 'x',
+            'last_activity' => now()->timestamp,
+        ]);
+    }
+
+    app(DeleteUserAccountAction::class)->execute($owner);
+
+    expect(Lead::whereKey($lead->id)->exists())->toBeFalse()
+        ->and(DB::table('personal_access_tokens')->whereIn('tokenable_id', [$owner->id, $employee->id])->where('tokenable_type', $owner->getMorphClass())->exists())->toBeFalse()
+        ->and(DB::table('sessions')->whereIn('user_id', [$owner->id, $employee->id])->exists())->toBeFalse();
 });

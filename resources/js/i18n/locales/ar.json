@@ -3556,7 +3556,11 @@
                 "remove_confirm": "إزالة العضو",
                 "table": {
                     "member": "العضو"
-                }
+                },
+                "delete_from_workspace": "إزالة من مساحة العمل",
+                "delete_from_workspace_title": "حذف حساب الزميل",
+                "delete_from_workspace_description": "حذف حساب {name} وجميع بياناته الشخصية نهائيًا — جلسات الدخول ومفاتيح الـ API والأجهزة وطرق تسجيل الدخول. يبقى كل ما أنشأه لمساحة العمل (الوكلاء والمعرفة والأدوات). لا يمكن التراجع عن هذا الإجراء.",
+                "delete_from_workspace_confirm": "حذف الحساب"
             },
             "invitations": {
                 "title": "الدعوات المعلّقة",

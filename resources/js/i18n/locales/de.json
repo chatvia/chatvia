@@ -390,7 +390,7 @@
                     "steps": {
                         "connected_1": "In {link} {event_subscriptions} öffnen, aktivieren und die Anfrage-URL oben einfügen",
                         "connected_2": "Die Bot-Ereignisse {mention} und {im} abonnieren und speichern",
-                        "connected_3": "Den Bot mit {invite} zu einem Kanal einladen und ihn @@erwähnen {live}",
+                        "connected_3": "Den Bot mit {invite} zu einem Kanal einladen und ihn {'@'}erwähnen {live}",
                         "connect_1": "Eine App unter {link} in Ihrem Workspace erstellen",
                         "connect_2": "Unter {oauth} die Bot-Berechtigungen {scope1}, {scope2}, {scope3} hinzufügen, die App installieren und das Bot-Token kopieren",
                         "connect_3": "Das Signing-Secret aus {basic_info} kopieren und beides unten einfügen"

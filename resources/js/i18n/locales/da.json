@@ -390,7 +390,7 @@
                     "steps": {
                         "connected_1": "I {link} skal du åbne {event_subscriptions}, aktivere det og indsætte anmodnings-URL'en ovenfor",
                         "connected_2": "Abonner på bot-hændelserne {mention} og {im}, og gem derefter",
-                        "connected_3": "Invitér botten til en kanal med {invite} og @@omtale den {live}",
+                        "connected_3": "Invitér botten til en kanal med {invite} og {'@'}omtale den {live}",
                         "connect_1": "Opret en app på {link} i dit arbejdsområde",
                         "connect_2": "Under {oauth} skal du tilføje bot-omfangene {scope1}, {scope2}, {scope3}, installere appen og kopiere bot-tokenet",
                         "connect_3": "Kopiér signeringshemmeligheden fra {basic_info} og indsæt begge nedenfor"

@@ -3,6 +3,7 @@
 namespace Support\Traits;
 
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\File\File;
@@ -55,7 +56,12 @@ trait HasStorageFile
         if ($extension !== 'pdf') {
             $pdfFilePath = office()->toPdf($this->readFile($field)->getPathname());
 
-            $filePath = 'users/'.$this->user_id.'/tmp/'.Str::uuid()->toString().'.pdf';
+            // Entity-first storage: key the temp file off the owner's external id
+            // so it sits under the same users/{external_id} tree a workspace delete
+            // wipes. Resolved via a direct lookup because the models sharing this
+            // trait don't all expose a user() relation.
+            $ownerExternalId = DB::table('users')->where('id', $this->user_id)->value('external_id');
+            $filePath = 'users/'.$ownerExternalId.'/tmp/'.Str::uuid()->toString().'.pdf';
 
             Storage::put($filePath, file_get_contents($pdfFilePath));
         }

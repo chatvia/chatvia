@@ -33,7 +33,7 @@ class ProfilePhotoStorage
             ->cover(self::SIZE, self::SIZE)
             ->toJpeg(self::QUALITY);
 
-        $path = 'profile-photos/'.Str::uuid().'.jpg';
+        $path = 'users/'.$user->external_id.'/profile-photos/'.Str::uuid().'.jpg';
 
         $disk->put($path, (string) $encoded, ['visibility' => 'public']);
 

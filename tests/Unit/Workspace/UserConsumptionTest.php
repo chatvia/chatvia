@@ -30,7 +30,7 @@ it('counts pages for sources attached through the morph-aliased pivot', function
 
     $source = SourceText::create([
         'user_id' => $agent->user_id,
-        'filepath' => 'users/'.$agent->user_id.'/agents/'.$agent->id.'/train/text/'.Str::uuid()->toString().'.txt',
+        'filepath' => 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt',
         'excerpt' => 'quota regression',
         'length' => 5,
         'checksum' => md5('quota regression '.Str::uuid()->toString()),

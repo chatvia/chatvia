@@ -560,6 +560,15 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return $this->id;
     }
 
+    /**
+     * External id used as the entity-first storage prefix
+     * (`users/{external_id}/…`). For a user the owner is itself.
+     */
+    public function getUserExternalId(): string
+    {
+        return $this->external_id;
+    }
+
     public function consumableMessages(): int
     {
         return $this->creditSystem()->consumableMessages();

@@ -43,7 +43,7 @@ class DeleteAttachmentRequest extends FormRequest
         if ($attachment->chat_conversation_id === null) {
             return str_starts_with(
                 $attachment->filepath,
-                sprintf('chat-uploads/agent-%d/', $agent->id)
+                sprintf('users/%s/agents/%s/attachments/', $agent->workspaceExternalId(), $agent->external_id)
             );
         }
 

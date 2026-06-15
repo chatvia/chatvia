@@ -15,6 +15,13 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
+beforeEach(function (): void {
+    // The teardown wipes users/{external_id} on both the default and public
+    // disks; fake both so the assertions stay hermetic and never hit real S3.
+    Storage::fake();
+    Storage::fake('public');
+});
+
 it('hard-deletes the user row', function (): void {
     $user = User::factory()->create();
 
@@ -144,7 +151,7 @@ it('wipes conversation attachment files that the FK cascade would otherwise orph
         'title' => 'With attachment',
     ]);
 
-    $filepath = "chat-uploads/agent-{$agent->id}/doc.pdf";
+    $filepath = "users/{$workspace->external_id}/agents/{$agent->external_id}/attachments/pending/doc.pdf";
     Storage::disk('public')->put($filepath, 'data');
     $attachment = Attachment::create([
         'chat_conversation_id' => $conversation->id,
@@ -160,6 +167,22 @@ it('wipes conversation attachment files that the FK cascade would otherwise orph
 
     Storage::disk('public')->assertMissing($filepath);
     expect(Attachment::whereKey($attachment->id)->exists())->toBeFalse();
+});
+
+it('wipes the workspace knowledge-file storage tree the FK cascade would orphan', function (): void {
+    // Agents are removed by FK cascade, which never fires AgentObserver — so the
+    // knowledge files under users/{external_id}/agents/{external_id}/ would leak.
+    // The teardown wipes the whole users/{external_id} tree to catch them.
+    $agent = Agent::factory()->create();
+    $workspace = User::findOrFail($agent->getUserId());
+
+    $knowledgePath = 'users/'.$workspace->external_id.'/agents/'.$agent->external_id.'/files/doc.pdf';
+    Storage::put($knowledgePath, 'pdf-bytes');
+    Storage::assertExists($knowledgePath);
+
+    app(DeleteUserAccountAction::class)->execute($workspace);
+
+    Storage::assertMissing($knowledgePath);
 });
 
 it('flushes the deleted workspace chat memory cache and leaves other workspaces intact', function (): void {

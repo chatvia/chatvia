@@ -53,7 +53,7 @@ class IngestMediaAction
                 return $this->transcription->transcribe($compressedFilePath);
             });
 
-            $filePath = 'agents/'.$agent->id.'/audio/'.Str::uuid()->toString().'.txt';
+            $filePath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/audio/'.Str::uuid()->toString().'.txt';
 
             Storage::put($filePath, $transcription);
 

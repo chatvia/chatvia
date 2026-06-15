@@ -8,6 +8,7 @@ use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Cashier\Subscription;
 use Stripe\Exception\ApiErrorException;
 use Throwable;
@@ -69,6 +70,15 @@ class DeleteUserAccountAction
             ->whereIn('agent_id', fn ($query) => $query->select('id')->from('agents')->where('user_id', $user->id))
             ->delete();
 
+        // Capture every external id in this workspace BEFORE the teardown so the
+        // storage trees can be wiped once the rows are gone. Everything a user
+        // owns lives under users/{external_id}/ (knowledge, audio, attachments,
+        // profile photo), so the teardown is a handful of prefix wipes.
+        $storageExternalIds = $user->users()->pluck('external_id')
+            ->push($user->external_id)
+            ->filter()
+            ->all();
+
         DB::transaction(function () use ($user): void {
             $ownedTeamIds = $user->ownedTeams()->pluck('id')->all();
 
@@ -104,6 +114,7 @@ class DeleteUserAccountAction
             $user->delete();
         });
 
+        $this->wipeWorkspaceStorage($storageExternalIds);
         $this->flushChatMemoryCache($user);
     }
 
@@ -150,6 +161,31 @@ class DeleteUserAccountAction
                 'workspace_id' => $user->id,
                 'error' => $e->getMessage(),
             ]);
+        }
+    }
+
+    /**
+     * Wipe each user's entity-first storage tree (`users/{external_id}/…`) on
+     * both buckets: the default disk (knowledge files, audio, websites, text,
+     * chunk images) and the public disk (chat attachments, profile photos). The
+     * FK cascade drops the rows without firing the per-file Eloquent observers,
+     * so without this the objects would leak. Best-effort — a teardown must not
+     * fail because remote storage is briefly unreachable.
+     *
+     * @param  array<int, string>  $externalIds
+     */
+    private function wipeWorkspaceStorage(array $externalIds): void
+    {
+        foreach ($externalIds as $externalId) {
+            try {
+                Storage::deleteDirectory('users/'.$externalId);
+                Storage::disk('public')->deleteDirectory('users/'.$externalId);
+            } catch (Throwable $e) {
+                Log::warning('Account deletion: failed to wipe workspace storage tree.', [
+                    'external_id' => $externalId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 

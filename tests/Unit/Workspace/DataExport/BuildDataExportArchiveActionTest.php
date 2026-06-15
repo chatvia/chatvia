@@ -24,7 +24,7 @@ it('packages user data into a zip and marks the export ready', function (): void
     $export->refresh();
 
     expect($export->status)->toBe(DataExportStatus::Ready)
-        ->and($export->file_path)->toStartWith('data-exports/'.$user->id.'/')
+        ->and($export->file_path)->toStartWith('users/'.$user->external_id.'/data-exports/')
         ->and($export->file_path)->toEndWith('.zip')
         ->and($export->file_size)->toBeGreaterThan(0)
         ->and($export->expires_at)->not->toBeNull();

@@ -138,7 +138,7 @@ function ingestionPipelineSeedChunk(User $owner, Agent $agent, string $content):
 {
     $source = SourceText::create([
         'user_id' => $owner->id,
-        'filepath' => 'users/'.$owner->id.'/agents/'.$agent->id.'/train/text/'.Str::uuid()->toString().'.txt',
+        'filepath' => 'users/'.$owner->external_id.'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt',
         'excerpt' => Str::limit($content, 200),
         'length' => 1,
         'checksum' => md5($content),

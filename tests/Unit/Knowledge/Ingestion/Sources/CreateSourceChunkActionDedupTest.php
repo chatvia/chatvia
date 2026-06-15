@@ -18,7 +18,7 @@ it('returns the chunk on first ingest and null on a duplicate checksum', functio
 
     $source = SourceText::create([
         'user_id' => $agent->user_id,
-        'filepath' => 'users/'.$agent->user_id.'/agents/'.$agent->id.'/train/text/'.Str::uuid()->toString().'.txt',
+        'filepath' => 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt',
         'excerpt' => 'dedup',
         'length' => 1,
         'checksum' => md5(Str::uuid()->toString()),

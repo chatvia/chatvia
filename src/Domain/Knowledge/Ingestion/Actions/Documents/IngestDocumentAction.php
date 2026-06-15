@@ -52,7 +52,7 @@ class IngestDocumentAction
             $fileName = Str::uuid()->toString().'.json';
 
             $updateValues['parser_filepath'] = Storage::putFileAs(
-                path: 'users/'.$sourceFile->user_id.'/agents/'.$agent->id,
+                path: 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id,
                 file: new File(create_temp_file($fileName, $pages->toJson())),
                 name: $fileChecksum.'.json',
             );

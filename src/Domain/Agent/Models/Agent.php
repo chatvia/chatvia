@@ -611,6 +611,15 @@ class Agent extends Model
     }
 
     /**
+     * External id used as the entity-first storage prefix
+     * (`users/{external_id}/…`). For an agent the owner is its workspace.
+     */
+    public function getUserExternalId(): string
+    {
+        return $this->workspaceExternalId();
+    }
+
+    /**
      * The owning workspace's external id (uuid7) — used as the chat-memory
      * cache tag so a whole workspace's Redis entries can be flushed at once
      * (see {@see ChatCache::workspaceTag()}).

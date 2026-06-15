@@ -13,11 +13,11 @@ use Illuminate\Support\Str;
  * survived agent deletion forever. exclusiveSourceIds() now resolves an FQCN
  * to its morph alias before comparing.
  */
-function cleanupSourceText(int $userId, int $agentId): SourceText
+function cleanupSourceText(Agent $agent): SourceText
 {
     return SourceText::create([
-        'user_id' => $userId,
-        'filepath' => 'users/'.$userId.'/agents/'.$agentId.'/train/text/'.Str::uuid()->toString().'.txt',
+        'user_id' => $agent->user_id,
+        'filepath' => 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt',
         'excerpt' => 'cleanup',
         'length' => 1,
         'checksum' => md5(Str::uuid()->toString()),
@@ -26,7 +26,7 @@ function cleanupSourceText(int $userId, int $agentId): SourceText
 
 it('resolves exclusive source ids from an FQCN', function (): void {
     $agent = Agent::factory()->create();
-    $source = cleanupSourceText($agent->user_id, $agent->id);
+    $source = cleanupSourceText($agent);
     $agent->texts()->attach($source->id);
 
     expect(AgentSource::exclusiveSourceIds($agent->id, SourceText::class)->all())
@@ -39,10 +39,10 @@ it('deletes exclusively-owned sources when the agent is deleted, keeps shared on
     $agent = Agent::factory()->create();
     $other = Agent::factory()->create(['user_id' => $agent->user_id]);
 
-    $exclusive = cleanupSourceText($agent->user_id, $agent->id);
+    $exclusive = cleanupSourceText($agent);
     $agent->texts()->attach($exclusive->id);
 
-    $shared = cleanupSourceText($agent->user_id, $agent->id);
+    $shared = cleanupSourceText($agent);
     $agent->texts()->attach($shared->id);
     $other->texts()->attach($shared->id);
 

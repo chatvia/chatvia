@@ -7,6 +7,7 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Domain\Security\Services\NetworkAccessGuard;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Support\Localization\Country\Models\Country;
 
 /**
  * Write path for the workspace security policy: the network-access gate (IP
@@ -73,8 +74,10 @@ class UpdateSecurityPolicyRequest extends FormRequest
 
     /**
      * Anti-lockout: reject rules that would block the saver's own request, so a
-     * workspace can never fence itself out of its dashboard through the UI. Geo
-     * fails open when the country can't be resolved (so local/dev saves work).
+     * workspace can never fence itself out of its dashboard through the UI. The IP
+     * allowlist and the geo rule are checked separately so the message names the
+     * actual cause — a country-only rule never talks about IPs (and vice versa).
+     * Geo fails open when the country can't be resolved (so local/dev saves work).
      */
     public function withValidator(Validator $validator): void
     {
@@ -88,9 +91,17 @@ class UpdateSecurityPolicyRequest extends FormRequest
             $geoMode = (string) $this->input('geo_mode', 'off');
             $country = $geoMode === 'off' ? null : $guard->countryFor($ip);
 
-            if (! $guard->passes($this->cleanIpAllowlist(), $geoMode, $this->cleanGeoCountries(), $ip, $country)) {
-                $validator->errors()->add('ip_allowlist', __('These rules would block your current network (:ip), locking you out. Add your current address or country first.', ['ip' => $ip]));
+            $ipBlocks = ! $guard->ipAllowed($this->cleanIpAllowlist(), $ip);
+            $geoBlocks = ! $guard->geoAllowed($geoMode, $this->cleanGeoCountries(), $country);
+
+            if (! $ipBlocks && ! $geoBlocks) {
+                return;
             }
+
+            // One shared "lockout" channel: the Security page renders
+            // errors.ip_allowlist as a prominent alert regardless of which rule is
+            // at fault — so the wording, not the key, has to reflect the cause.
+            $validator->errors()->add('ip_allowlist', $this->lockoutMessage($ipBlocks, $geoBlocks, $geoMode, $ip, $country));
         });
 
         // Enabling SIEM delivery needs a destination and a signing secret. Only
@@ -140,6 +151,44 @@ class UpdateSecurityPolicyRequest extends FormRequest
             webhook_events: $base->webhook_events,
             scim_enabled: $base->scim_enabled,
         );
+    }
+
+    /**
+     * Phrase the self-lockout error for whichever rule would actually block the
+     * saver. Geo-only never mentions the IP; IP-only never mentions the country.
+     */
+    private function lockoutMessage(bool $ipBlocks, bool $geoBlocks, string $geoMode, string $ip, ?string $country): string
+    {
+        if ($ipBlocks && $geoBlocks) {
+            return __('These rules would lock you out — your address (:ip) is not in the allowed IPs and your location (:country) is blocked by the country rule. Fix both first.', [
+                'ip' => $ip,
+                'country' => $this->countryLabel($country),
+            ]);
+        }
+
+        if ($ipBlocks) {
+            return __('This IP allowlist would lock you out — your current address (:ip) is not on it. Add it first.', ['ip' => $ip]);
+        }
+
+        return $geoMode === 'allow'
+            ? __('This country rule would lock you out — your current location (:country) is not in the allowed countries. Add it, or switch the rule, first.', ['country' => $this->countryLabel($country)])
+            : __('This country rule would lock you out — your current location (:country) is in the blocked countries. Remove it, or switch the rule, first.', ['country' => $this->countryLabel($country)]);
+    }
+
+    /**
+     * Friendly, localized country name for an ISO code, falling back to the
+     * upper-cased code. Only hit on the rejection path, so the lookup is cheap.
+     */
+    private function countryLabel(?string $code): string
+    {
+        if ($code === null || $code === '') {
+            return '';
+        }
+
+        // countries.code is stored lowercase; the geo-IP provider may return either case.
+        $name = Country::query()->where('code', strtolower($code))->value('name');
+
+        return $name !== null ? (string) __($name) : strtoupper($code);
     }
 
     private function hasStoredWebhookSecret(): bool

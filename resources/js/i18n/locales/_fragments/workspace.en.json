@@ -336,7 +336,9 @@
                 "select_placeholder": "Search and select a country…",
                 "remove": "Remove country",
                 "empty_draft": "No countries selected yet.",
-                "no_matches": "No countries match."
+                "no_matches": "No countries match.",
+                "lockout_allow": "Your current location ({country}) isn't in the allowed countries — saving will lock you out of the dashboard. Add it, or switch the rule, first.",
+                "lockout_deny": "Your current location ({country}) is in the blocked countries — saving will lock you out of the dashboard. Remove it, or switch the rule, first."
             },
             "retention": {
                 "title": "Data retention",

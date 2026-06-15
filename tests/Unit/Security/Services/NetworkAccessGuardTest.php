@@ -60,3 +60,24 @@ it('requires both the IP allowlist and the geo rule to pass', function (): void 
         ->and($this->guard->passes(['203.0.113.0/24'], 'allow', ['US'], '198.51.100.7', 'US'))->toBeFalse() // blocked IP, allowed country
         ->and($this->guard->passes(['203.0.113.0/24'], 'allow', ['US'], '203.0.113.9', 'US'))->toBeTrue(); // both pass
 });
+
+it('judges the IP allowlist in isolation', function (): void {
+    expect($this->guard->ipAllowed([], '198.51.100.7'))->toBeTrue() // empty ⇒ no restriction
+        ->and($this->guard->ipAllowed(['203.0.113.0/24'], '203.0.113.9'))->toBeTrue()
+        ->and($this->guard->ipAllowed(['203.0.113.0/24'], '198.51.100.7'))->toBeFalse();
+});
+
+it('judges the geo rule in isolation', function (): void {
+    expect($this->guard->geoAllowed('off', [], 'US'))->toBeTrue() // off ⇒ no restriction
+        ->and($this->guard->geoAllowed('allow', ['AE'], 'AE'))->toBeTrue()
+        ->and($this->guard->geoAllowed('allow', ['AE'], 'US'))->toBeFalse()
+        ->and($this->guard->geoAllowed('deny', ['RU'], 'RU'))->toBeFalse()
+        ->and($this->guard->geoAllowed('allow', ['AE'], null))->toBeTrue(); // unresolved ⇒ fail open
+});
+
+it('does not blame the IP for a geo-only block (and vice versa)', function (): void {
+    // The anti-lockout message keys off these two verdicts: an empty allowlist
+    // with a blocking country must report geo alone, never the IP.
+    expect($this->guard->ipAllowed([], '198.51.100.7'))->toBeTrue()
+        ->and($this->guard->geoAllowed('allow', ['AE'], 'US'))->toBeFalse();
+});

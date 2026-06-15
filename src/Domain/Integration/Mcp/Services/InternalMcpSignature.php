@@ -18,13 +18,21 @@ use Illuminate\Support\Str;
 final class InternalMcpSignature
 {
     /** Max clock skew / request age in seconds. */
-    private const MAX_AGE = 300;
+    private const int MAX_AGE = 300;
+
+    public const string TIMESTAMP_HEADER = 'X-Chatvia-Mcp-Timestamp';
+
+    public const string SIGNATURE_HEADER = 'X-Chatvia-Mcp-Signature';
 
     public static function secret(): string
     {
-        $secret = (string) config('services.builtin_mcp.secret');
+        $secret = config('services.builtin_mcp.secret');
 
-        return $secret !== '' ? $secret : (string) config('app.key');
+        if (blank($secret)) {
+            throw new McpException('Missing secret');
+        }
+
+        return $secret;
     }
 
     public static function isInternalUrl(string $url): bool
@@ -46,10 +54,6 @@ final class InternalMcpSignature
             self::SIGNATURE_HEADER => hash_hmac('sha256', $timestamp, self::secret()),
         ];
     }
-
-    public const TIMESTAMP_HEADER = 'X-Chatvia-Mcp-Timestamp';
-
-    public const SIGNATURE_HEADER = 'X-Chatvia-Mcp-Signature';
 
     public static function verify(?string $timestamp, ?string $signature): bool
     {

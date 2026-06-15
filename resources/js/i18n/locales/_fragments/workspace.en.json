@@ -384,6 +384,13 @@
                 "when": "When"
             }
         },
+        "audit": {
+            "title": "Audit",
+            "tabs": {
+                "tool_calls": "Tool calls",
+                "security": "Security"
+            }
+        },
         "sections": {
             "integrations": "Integrations",
             "library": "Library",
@@ -396,6 +403,7 @@
             "api_keys": "API Keys",
             "prompts": "Prompts",
             "members": "Chatters",
+            "audit": "Audit",
             "audit_log": "Audit Log",
             "security": "Security",
             "security_audit": "Security audit"

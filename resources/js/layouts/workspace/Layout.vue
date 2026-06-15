@@ -2,7 +2,7 @@
 import Heading from '@/components/Heading.vue';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { Link } from '@inertiajs/vue3';
-import { Code, KeyRound, Lock, MessageSquareText, Plug, ScrollText, ShieldCheck, Users, type LucideIcon } from 'lucide-vue-next';
+import { Code, KeyRound, Lock, MessageSquareText, Plug, ScrollText, Users, type LucideIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -15,6 +15,9 @@ interface NavItem {
     name: string;
     icon: LucideIcon;
     permission?: string;
+    // Extra route names that also mark this item active — the unified Audit item
+    // lives on two tab routes.
+    activeNames?: string[];
 }
 
 interface NavSection {
@@ -25,7 +28,7 @@ interface NavSection {
 
 const { hasPermission } = useTeamPermissions();
 
-const allSections: NavSection[] = [
+const baseSections: NavSection[] = [
     {
         title: 'workspace.sections.integrations',
         items: [
@@ -42,19 +45,33 @@ const allSections: NavSection[] = [
         title: 'workspace.sections.people',
         items: [{ title: 'workspace.nav.members', name: 'people.chatters.index', icon: Users, permission: 'account.chatters.manage' }],
     },
-    {
-        title: 'workspace.sections.governance',
-        items: [
-            { title: 'workspace.nav.audit_log', name: 'governance.audit', icon: ShieldCheck, permission: 'account.governance' },
-            { title: 'workspace.nav.security', name: 'security.edit', icon: Lock, permission: 'account.security' },
-            { title: 'workspace.nav.security_audit', name: 'security.audit', icon: ScrollText, permission: 'account.security' },
-        ],
-    },
 ];
+
+// The two workspace audit logs share one "Audit" item (Tool calls + Security
+// tabs). It shows with either permission and its href points at the first tab
+// the role can open; the network-access policy editor stays a separate item.
+const governanceItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [];
+
+    if (hasPermission('account.governance') || hasPermission('account.security')) {
+        items.push({
+            title: 'workspace.nav.audit',
+            name: hasPermission('account.governance') ? 'governance.audit' : 'security.audit',
+            icon: ScrollText,
+            activeNames: ['governance.audit', 'security.audit'],
+        });
+    }
+
+    if (hasPermission('account.security')) {
+        items.push({ title: 'workspace.nav.security', name: 'security.edit', icon: Lock });
+    }
+
+    return items;
+});
 
 // Hide items the team role can't reach, then drop any section left empty.
 const sections = computed<NavSection[]>(() =>
-    allSections
+    [...baseSections, { title: 'workspace.sections.governance', items: governanceItems.value }]
         .map((section) => ({
             ...section,
             items: section.items.filter((item) => !item.permission || hasPermission(item.permission)),
@@ -69,8 +86,8 @@ withDefaults(
     { width: 'wide' },
 );
 
-function isActive(name: string): boolean {
-    return route().current(name);
+function isActive(item: NavItem): boolean {
+    return (item.activeNames ?? [item.name]).some((name) => route().current(name));
 }
 </script>
 
@@ -91,7 +108,7 @@ function isActive(name: string): boolean {
                             :href="route(item.name)"
                             :class="[
                                 'group inline-flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                                isActive(item.name)
+                                isActive(item)
                                     ? 'bg-accent text-accent-foreground font-medium'
                                     : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                             ]"
@@ -100,7 +117,7 @@ function isActive(name: string): boolean {
                                 :is="item.icon"
                                 :class="[
                                     'h-4 w-4 shrink-0',
-                                    isActive(item.name) ? 'text-accent-foreground' : 'text-muted-foreground group-hover:text-foreground',
+                                    isActive(item) ? 'text-accent-foreground' : 'text-muted-foreground group-hover:text-foreground',
                                 ]"
                             />
                             {{ t(item.title) }}

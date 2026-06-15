@@ -6,13 +6,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import AuditTabs from '@/components/governance/AuditTabs.vue';
 import { useDateFormat } from '@/composables/useDateFormat';
 import { getInitials } from '@/composables/useInitials';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ScrollText, ShieldCheck, Sparkles, User } from 'lucide-vue-next';
+import { ShieldCheck, Sparkles, User } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -89,17 +90,12 @@ const prettyMetadata = (metadata: unknown): string => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head :title="t('workspace.security_audit.title')" />
+        <Head :title="t('workspace.audit.title')" />
 
         <WorkspaceLayout width="wide">
             <div class="w-full space-y-6">
-                <div>
-                    <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
-                        <ScrollText class="size-6" />
-                        {{ t('workspace.security_audit.title') }}
-                    </h1>
-                    <p class="text-muted-foreground mt-1 text-sm">{{ t('workspace.security_audit.description') }}</p>
-                </div>
+                <AuditTabs active="security" />
+                <p class="text-muted-foreground text-sm">{{ t('workspace.security_audit.description') }}</p>
 
                 <!-- Upsell teaser — non-entitled workspaces -->
                 <Card v-if="!entitled">

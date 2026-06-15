@@ -97,7 +97,7 @@
             "all_outcomes": "All outcomes",
             "all_connectors": "All connectors",
             "all_agents": "All agents",
-            "col_by": "By",
+            "col_by": "Actor",
             "col_agent": "Agent",
             "col_tool": "Tool",
             "col_connector": "Connector",

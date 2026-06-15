@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import AuditTable from '@/components/governance/AuditTable.vue';
+import AuditTabs from '@/components/governance/AuditTabs.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import { ShieldCheck } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
 interface Props {
@@ -25,19 +25,14 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: t('workspace.governance.breadcru
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head :title="t('workspace.governance.title')" />
+        <Head :title="t('workspace.audit.title')" />
 
         <WorkspaceLayout width="wide">
             <div class="w-full space-y-6">
-                <div>
-                    <h1 class="flex items-center gap-2 text-2xl font-bold tracking-tight">
-                        <ShieldCheck class="size-6" />
-                        {{ t('workspace.governance.title') }}
-                    </h1>
-                    <p class="text-muted-foreground mt-1 text-sm">
-                        {{ t('workspace.governance.description') }}
-                    </p>
-                </div>
+                <AuditTabs active="tools" />
+                <p class="text-muted-foreground text-sm">
+                    {{ t('workspace.governance.description') }}
+                </p>
 
                 <AuditTable
                     :rows="rows"
@@ -46,7 +41,7 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: t('workspace.governance.breadcru
                     :agents="agents"
                     :show-agent="true"
                     :filters="filters"
-                    route-name="settings.governance"
+                    route-name="governance.audit"
                 />
             </div>
         </WorkspaceLayout>

@@ -3738,7 +3738,8 @@
             "members": "Chatters",
             "audit_log": "Audit Log",
             "security": "Security",
-            "security_audit": "Security audit"
+            "security_audit": "Security audit",
+            "audit": "Audit"
         },
         "security": {
             "breadcrumb": "Security",
@@ -3836,6 +3837,13 @@
                 "outcome": "Outcome",
                 "ip": "IP address",
                 "when": "When"
+            }
+        },
+        "audit": {
+            "title": "Audit",
+            "tabs": {
+                "tool_calls": "Tool calls",
+                "security": "Security"
             }
         }
     },
@@ -4348,7 +4356,7 @@
             "all_outcomes": "All outcomes",
             "all_connectors": "All connectors",
             "all_agents": "All agents",
-            "col_by": "By",
+            "col_by": "Actor",
             "col_agent": "Agent",
             "col_tool": "Tool",
             "col_connector": "Connector",

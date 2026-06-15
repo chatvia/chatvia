@@ -194,7 +194,8 @@
             "members": "المحادثون",
             "audit_log": "سجل التدقيق",
             "security": "الأمان",
-            "security_audit": "تدقيق الأمان"
+            "security_audit": "تدقيق الأمان",
+            "audit": "التدقيق"
         },
         "common": {
             "cancel": "إلغاء",
@@ -583,6 +584,13 @@
                 "outcome": "النتيجة",
                 "ip": "عنوان IP",
                 "when": "متى"
+            }
+        },
+        "audit": {
+            "title": "التدقيق",
+            "tabs": {
+                "tool_calls": "استدعاءات الأدوات",
+                "security": "الأمان"
             }
         }
     },
@@ -4338,7 +4346,7 @@
             "all_outcomes": "جميع النتائج",
             "all_connectors": "جميع الموصلات",
             "all_agents": "جميع الوكلاء",
-            "col_by": "بواسطة",
+            "col_by": "الفاعل",
             "col_agent": "الوكيل",
             "col_tool": "الأداة",
             "col_connector": "الموصل",

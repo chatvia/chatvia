@@ -384,6 +384,13 @@
                 "when": "متى"
             }
         },
+        "audit": {
+            "title": "التدقيق",
+            "tabs": {
+                "tool_calls": "استدعاءات الأدوات",
+                "security": "الأمان"
+            }
+        },
         "sections": {
             "integrations": "التكاملات",
             "library": "المكتبة",
@@ -396,6 +403,7 @@
             "api_keys": "مفاتيح API",
             "prompts": "الموجّهات",
             "members": "المحادثون",
+            "audit": "التدقيق",
             "audit_log": "سجل التدقيق",
             "security": "الأمان",
             "security_audit": "تدقيق الأمان"

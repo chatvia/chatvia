@@ -194,28 +194,28 @@ return [
         'mcp_url' => 'https://mcp.atlassian.com/v1/mcp/authv2',
     ],
 
-//    'gmail' => [
-//        'slug' => 'gmail',
-//        'name' => 'Gmail',
-//        'description' => 'Search messages, read threads, and draft replies from your Gmail inbox.',
-//        'category' => 'Communication',
-//        'icon' => 'gmail',
-//        'brand_color' => 'EA4335',
-//        'logo_url' => '/images/logos/connectors/gmail.svg',
-//        'priority' => 10,
-//        // Google does not support OAuth 2.1 Dynamic Client Registration. Register
-//        // one OAuth 2.0 client at https://console.cloud.google.com/apis/credentials
-//        // (Application type: Web; Authorized redirect URI: APP_URL + '/connectors/oauth/callback').
-//        // The same client_id/secret is reused for Gmail, Calendar, and Drive — enable
-//        // each API in the Cloud Console project.
-//        'auth_strategy' => 'oauth',
-//        'mcp_url' => 'https://gmailmcp.googleapis.com/mcp/v1',
-//        'oauth_client_id' => env('GOOGLE_CONNECTOR_OAUTH_CLIENT_ID'),
-//        'oauth_client_secret' => env('GOOGLE_CONNECTOR_OAUTH_CLIENT_SECRET'),
-//        'oauth_authorization_endpoint' => 'https://accounts.google.com/o/oauth2/v2/auth',
-//        'oauth_token_endpoint' => 'https://oauth2.googleapis.com/token',
-//        'oauth_scopes' => 'https://www.googleapis.com/auth/gmail.readonly',
-//    ],
+    'gmail' => [
+        'slug' => 'gmail',
+        'name' => 'Gmail',
+        'description' => 'Search messages, read threads, and draft replies from your Gmail inbox.',
+        'category' => 'Communication',
+        'icon' => 'gmail',
+        'brand_color' => 'EA4335',
+        'logo_url' => '/images/logos/connectors/gmail.svg',
+        'priority' => 10,
+        // Google does not support OAuth 2.1 Dynamic Client Registration. Register
+        // one OAuth 2.0 client at https://console.cloud.google.com/apis/credentials
+        // (Application type: Web; Authorized redirect URI: APP_URL + '/connectors/oauth/callback').
+        // The same client_id/secret is reused for Gmail, Calendar, and Drive — enable
+        // each API in the Cloud Console project.
+        'auth_strategy' => 'oauth',
+        'mcp_url' => 'https://gmailmcp.googleapis.com/mcp/v1',
+        'oauth_client_id' => env('GOOGLE_CONNECTOR_OAUTH_CLIENT_ID'),
+        'oauth_client_secret' => env('GOOGLE_CONNECTOR_OAUTH_CLIENT_SECRET'),
+        'oauth_authorization_endpoint' => 'https://accounts.google.com/o/oauth2/v2/auth',
+        'oauth_token_endpoint' => 'https://oauth2.googleapis.com/token',
+        'oauth_scopes' => 'https://www.googleapis.com/auth/gmail.readonly',
+    ],
 
     'google-calendar' => [
         'slug' => 'google-calendar',

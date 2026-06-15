@@ -43,6 +43,9 @@ interface Props {
     policy: Policy;
     countries: { code: string; name: string }[];
     limits: Limits | null;
+    // The viewer's own country (lowercase ISO code) for the live lockout warning;
+    // null when it can't be resolved (private IP / provider miss).
+    current_country: string | null;
 }
 
 const props = defineProps<Props>();
@@ -88,6 +91,20 @@ form.transform((d) => ({
 const networkEnabled = computed(() => form.ip_allowlist_mode !== 'off');
 const geoEnabled = computed(() => form.geo_mode !== 'off');
 
+// ---- Live self-lockout warning for the geo rule ----------------------------
+// Mirrors the server gate: with network control + geo on, the viewer's own
+// resolved country must satisfy the rule, or saving fences them out. An
+// unresolved country (null) shows nothing — the gate fails open on it too.
+const currentCountry = computed(() => props.current_country?.toLowerCase() ?? null);
+
+const wouldGeoLockOut = (countries: string[]): boolean => {
+    if (!networkEnabled.value || !geoEnabled.value || !currentCountry.value) return false;
+    const listed = countries.some((c) => c.toLowerCase() === currentCountry.value);
+    return form.geo_mode === 'allow' ? !listed : listed;
+};
+
+const geoLockout = computed(() => wouldGeoLockOut(form.geo_countries));
+
 const toggleNetwork = () => {
     if (canManage.value) form.ip_allowlist_mode = networkEnabled.value ? 'off' : 'dashboard';
 };
@@ -128,9 +145,22 @@ const countryMap = computed(() => new Map(props.countries.map((c) => [c.code, c.
 const countryName = (code: string): string => countryMap.value.get(code) ?? code.toUpperCase();
 const codeToFlag = (code: string): string => code.toUpperCase().replace(/./g, (ch) => String.fromCodePoint(127397 + ch.charCodeAt(0)));
 
+// Localized name of the viewer's own country + the matching lockout sentence,
+// shared by the section warning and the in-dialog warning.
+const currentCountryName = computed(() => (currentCountry.value ? countryName(currentCountry.value) : ''));
+const geoLockoutMessage = computed(() =>
+    form.geo_mode === 'allow'
+        ? t('workspace.security.geo.lockout_allow', { country: currentCountryName.value })
+        : t('workspace.security.geo.lockout_deny', { country: currentCountryName.value }),
+);
+
 const countriesOpen = ref(false);
 const countriesDraft = ref<string[]>([]);
 const countrySearch = ref('');
+
+// Same check against the dialog's in-progress draft, so the warning reacts as
+// the viewer toggles countries — before they commit with Done.
+const geoLockoutDraft = computed(() => wouldGeoLockOut(countriesDraft.value));
 
 // Type-to-filter the full country list by localized name or ISO code.
 const filteredCountries = computed(() => {
@@ -319,6 +349,12 @@ const applyCountries = () => {
                                     <div v-else class="text-muted-foreground rounded-md border border-dashed px-3 py-2 text-sm">
                                         {{ t('workspace.security.geo.empty') }}
                                     </div>
+
+                                    <!-- Live self-lockout warning: this rule would block the viewer's own country -->
+                                    <Alert v-if="geoLockout" variant="destructive" class="border-destructive/30 bg-destructive/5">
+                                        <ShieldAlert />
+                                        <AlertDescription>{{ geoLockoutMessage }}</AlertDescription>
+                                    </Alert>
 
                                     <p v-if="form.errors.geo_countries" class="text-destructive text-xs">{{ form.errors.geo_countries }}</p>
                                 </div>
@@ -517,6 +553,12 @@ const applyCountries = () => {
                     <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                     <Input v-model="countrySearch" :placeholder="t('workspace.security.geo.select_placeholder')" class="ps-9" />
                 </div>
+
+                <!-- Live self-lockout warning as the draft changes -->
+                <Alert v-if="geoLockoutDraft" variant="destructive" class="border-destructive/30 bg-destructive/5">
+                    <ShieldAlert />
+                    <AlertDescription>{{ geoLockoutMessage }}</AlertDescription>
+                </Alert>
 
                 <!-- Selected countries — removable chips -->
                 <div v-if="countriesDraft.length" class="flex flex-wrap gap-1.5">

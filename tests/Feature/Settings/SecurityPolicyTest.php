@@ -5,6 +5,7 @@ use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
@@ -116,6 +117,32 @@ it('rejects rules that would lock the saver out', function (): void {
         ->assertSessionHasErrors('ip_allowlist');
 
     expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->ip_allowlist_mode)->toBe('off');
+});
+
+it('rejects a country rule that would lock the saver out — and never blames the IP', function (): void {
+    entitleSecurity($this->owner);
+
+    // countryFor() reads this cache before any HTTP geo lookup, so seeding it
+    // pins the test IP (127.0.0.1) to a country the "allow only" rule excludes.
+    Cache::put('security:geoip:127.0.0.1', 'us', now()->addDay());
+
+    $response = $this->actingAs($this->owner)
+        ->put(route('security.update'), [
+            'ip_allowlist_mode' => 'dashboard',
+            'ip_allowlist' => [], // no IP restriction at all
+            'geo_mode' => 'allow',
+            'geo_countries' => ['ae'], // excludes the saver's resolved country (US)
+        ]);
+
+    $response->assertSessionHasErrors('ip_allowlist');
+
+    $message = session('errors')->get('ip_allowlist')[0];
+    expect($message)->toContain('country')        // explains it's the country rule…
+        ->and($message)->not->toContain('127.0.0.1') // …and never mentions the IP
+        ->and($message)->not->toContain('network');
+
+    // Nothing persisted — the save was rejected.
+    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->geo_mode)->toBe('off');
 });
 
 it('rejects an invalid IP / CIDR entry', function (): void {

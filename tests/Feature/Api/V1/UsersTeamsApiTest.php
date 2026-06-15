@@ -8,8 +8,13 @@ use Domain\Membership\Team\Data\CreateTeamData;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
+    // Deleting a chatter wipes its avatar tree on the public bucket; fake the
+    // disk so the delete tests stay hermetic and never reach real S3.
+    Storage::fake('public');
+
     // Registration is trial-checkout-only now (the Stripe webhook provisions
     // billing/quota/default team), so provision explicitly. Bump the team
     // quota so tests that POST /api/v1/teams aren't blocked by the starter

@@ -7,6 +7,7 @@ import { Link } from '@inertiajs/vue3';
 import { CalendarClock, MessageSquare, Zap } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { getSourceIcon } from './sourceMeta';
 import { useChatLog } from './useChatLog';
 
 const { t } = useI18n();
@@ -17,6 +18,7 @@ const {
     totalMessages,
     formatTimeAgo,
     getFlagPath,
+    getSourceDisplayName,
     getSentimentDisplayName,
     getSentimentBadgeColor,
     getToneDisplayName,
@@ -64,6 +66,23 @@ function formatExpiresRelative(iso: string | null | undefined): string {
                     <tr>
                         <td class="text-muted-foreground w-1/3 px-4 py-3 font-medium">{{ t('agents.chatlog.details.messages') }}</td>
                         <td class="px-4 py-3">{{ totalMessages }}</td>
+                    </tr>
+
+                    <!-- Channel — which surface the conversation came from
+                         (Chat Widget, Command Bar, Telegram, Slack, …). Icon
+                         mirrors the conversation sidebar; see sourceMeta.ts. -->
+                    <tr v-if="currentConversationData.source">
+                        <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.channel') }}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <component
+                                    :is="getSourceIcon(currentConversationData.source)"
+                                    v-if="getSourceIcon(currentConversationData.source)"
+                                    class="text-muted-foreground h-4 w-4"
+                                />
+                                <span>{{ getSourceDisplayName(currentConversationData.source) }}</span>
+                            </div>
+                        </td>
                     </tr>
 
                     <!-- Last Activity -->

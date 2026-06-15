@@ -188,6 +188,7 @@
             "details": {
                 "select_conversation": "Select a conversation to view details",
                 "messages": "Messages",
+                "channel": "Channel",
                 "last_activity": "Last activity",
                 "expires": "Expires",
                 "expires_today": "Today",

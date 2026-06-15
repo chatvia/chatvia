@@ -467,7 +467,8 @@
                 "referrer": "Referrer",
                 "locale": "Locale",
                 "upgrade_to_unlock": "Upgrade to unlock",
-                "waiting": "Waiting for analysis…"
+                "waiting": "Waiting for analysis…",
+                "channel": "Channel"
             },
             "pulse": {
                 "title": "Conversation pulse",

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Label } from '@/components/ui/label';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -30,6 +31,11 @@ const THEMES = [
     'stone',
 ] as const;
 
+// Tailwind exposes only these 11 stops per color (see resources/css/app.css).
+// The intensity slider must map 1:1 to them — intermediate values such as 550
+// have no `--{theme}-{shade}` variable and render as blank swatches.
+const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+
 const props = withDefaults(
     defineProps<{
         theme: string;
@@ -44,13 +50,27 @@ const emit = defineEmits<{
     'update:shade': [value: number];
 }>();
 
+// Snap to the nearest valid stop so an out-of-range stored shade (e.g. a legacy
+// 550) still previews a real color and the slider rests on a defined position.
+const shadeIndex = computed(() => {
+    let nearest = 0;
+    for (let i = 1; i < SHADES.length; i++) {
+        if (Math.abs(SHADES[i] - props.shade) < Math.abs(SHADES[nearest] - props.shade)) {
+            nearest = i;
+        }
+    }
+    return nearest;
+});
+
+const activeShade = computed(() => SHADES[shadeIndex.value]);
+
 function selectTheme(theme: string): void {
     if (props.disabled) return;
     emit('update:theme', theme);
 }
 
 function onShadeInput(event: Event): void {
-    emit('update:shade', Number((event.target as HTMLInputElement).value));
+    emit('update:shade', SHADES[Number((event.target as HTMLInputElement).value)]);
 }
 </script>
 
@@ -64,11 +84,11 @@ function onShadeInput(event: Event): void {
                         'border-primary ring-primary/20 ring-2': props.theme === theme,
                         'border-border hover:border-primary/50 hover:shadow-md': props.theme !== theme,
                     }"
-                    :style="{ backgroundColor: `var(--${theme}-${props.shade})` }"
+                    :style="{ backgroundColor: `var(--${theme}-${activeShade})` }"
                 >
                     <div class="flex h-full items-center justify-center">
                         <div v-if="props.theme === theme" class="flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-lg">
-                            <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-${props.shade})` }"></div>
+                            <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-${activeShade})` }"></div>
                         </div>
                     </div>
                 </div>
@@ -89,10 +109,10 @@ function onShadeInput(event: Event): void {
             <div class="px-1">
                 <input
                     type="range"
-                    min="50"
-                    max="950"
-                    step="50"
-                    :value="props.shade"
+                    min="0"
+                    :max="SHADES.length - 1"
+                    step="1"
+                    :value="shadeIndex"
                     :disabled="disabled"
                     class="slider h-3 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
                     :style="{ background: `linear-gradient(to right, var(--${props.theme}-50), var(--${props.theme}-950))` }"
@@ -101,7 +121,7 @@ function onShadeInput(event: Event): void {
             </div>
             <div class="text-muted-foreground flex justify-between text-xs">
                 <span>{{ t('shared.color_picker.light') }}</span>
-                <span class="font-medium">{{ props.shade }}</span>
+                <span class="font-medium">{{ activeShade }}</span>
                 <span>{{ t('shared.color_picker.dark') }}</span>
             </div>
         </div>

@@ -30,6 +30,22 @@ class EncryptedTolerant implements CastsAttributes
 {
     public function get(Model $model, string $key, mixed $value, array $attributes): ?string
     {
+        return self::decrypt($value);
+    }
+
+    public function set(Model $model, string $key, mixed $value, array $attributes): ?string
+    {
+        return $value === null ? null : Crypt::encryptString((string) $value);
+    }
+
+    /**
+     * Decrypt a raw column value the same way the cast does on read, tolerant of
+     * legacy plaintext. Use this when a value bypasses Eloquent hydration — e.g.
+     * a raw query-builder join that selects an encrypted column directly, where
+     * the cast never runs and the attribute would otherwise stay ciphertext.
+     */
+    public static function decrypt(mixed $value): ?string
+    {
         if ($value === null) {
             return null;
         }
@@ -40,10 +56,5 @@ class EncryptedTolerant implements CastsAttributes
             // Legacy plaintext written before this column was encrypted.
             return is_string($value) ? $value : null;
         }
-    }
-
-    public function set(Model $model, string $key, mixed $value, array $attributes): ?string
-    {
-        return $value === null ? null : Crypt::encryptString((string) $value);
     }
 }

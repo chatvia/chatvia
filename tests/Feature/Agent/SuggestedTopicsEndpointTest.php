@@ -56,6 +56,14 @@ it('returns grouped suggestions with examples from a single batched query', func
         ->and($response[0]['count'])->toBe(3)
         ->and($response[0]['examples'])->toHaveCount(2)
         ->and($response[0]['examples'][0])->toHaveKeys(['conversation_id', 'title']);
+
+    // The `title` column is encrypted at rest; the examples query reads it via a
+    // raw join that bypasses the model cast, so the controller must decrypt it.
+    // Assert we get plaintext back, never the ciphertext blob (`eyJpdiI6...`).
+    $titles = array_column($response[0]['examples'], 'title');
+
+    expect($titles)->each->not->toStartWith('eyJ')
+        ->and($titles)->toEqual(['Refund one', 'Refund two']);
 });
 
 it('does not leak another agent\'s suggestions or examples', function (): void {

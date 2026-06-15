@@ -87,6 +87,9 @@
             "invitations": {
                 "title": "Invitations en attente",
                 "description": "Ces invitations sont en attente d'acceptation.",
+                "resend": "Renvoyer",
+                "toast_resent": "Invitation renvoyée.",
+                "toast_resend_failed": "Nous n'avons pas pu renvoyer l'invitation. Veuillez réessayer.",
                 "table": {
                     "email": "E-mail",
                     "sent": "Envoyée"
@@ -101,7 +104,10 @@
                 "select_user_placeholder": "Choisir un utilisateur…",
                 "email_label": "Adresse e-mail",
                 "email_placeholder": "collegue{'@'}exemple.com",
-                "send_invitation": "Envoyer l'invitation"
+                "send_invitation": "Envoyer l'invitation",
+                "toast_invite_sent": "Invitation envoyée à {email}.",
+                "toast_member_added": "Membre de l'équipe ajouté.",
+                "toast_failed": "Nous n'avons pas pu ajouter le membre de l'équipe. Veuillez réessayer."
             },
             "role_members": {
                 "title": "Membres — {name}",

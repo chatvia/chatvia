@@ -87,6 +87,9 @@
             "invitations": {
                 "title": "Ausstehende Einladungen",
                 "description": "Diese Einladungen warten noch auf eine Annahme.",
+                "resend": "Erneut senden",
+                "toast_resent": "Einladung erneut gesendet.",
+                "toast_resend_failed": "Die Einladung konnte nicht erneut gesendet werden. Bitte versuche es erneut.",
                 "table": {
                     "email": "E-Mail",
                     "sent": "Gesendet"
@@ -101,7 +104,10 @@
                 "select_user_placeholder": "Benutzer auswählen...",
                 "email_label": "E-Mail-Adresse",
                 "email_placeholder": "kollegin{'@'}beispiel.de",
-                "send_invitation": "Einladung senden"
+                "send_invitation": "Einladung senden",
+                "toast_invite_sent": "Einladung an {email} gesendet.",
+                "toast_member_added": "Teammitglied hinzugefügt.",
+                "toast_failed": "Das Teammitglied konnte nicht hinzugefügt werden. Bitte versuche es erneut."
             },
             "role_members": {
                 "title": "{name}-Mitglieder",

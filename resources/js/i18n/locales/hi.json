@@ -3030,6 +3030,9 @@
             "invitations": {
                 "title": "लंबित आमंत्रण",
                 "description": "ये आमंत्रण स्वीकार किए जाने की प्रतीक्षा में हैं।",
+                "resend": "पुनः भेजें",
+                "toast_resent": "आमंत्रण पुनः भेजा गया।",
+                "toast_resend_failed": "हम आमंत्रण पुनः नहीं भेज सके। कृपया पुनः प्रयास करें।",
                 "table": {
                     "email": "ईमेल",
                     "sent": "भेजा गया"
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "एक उपयोगकर्ता चुनें...",
                 "email_label": "ईमेल पता",
                 "email_placeholder": "colleague{'@'}example.com",
-                "send_invitation": "आमंत्रण भेजें"
+                "send_invitation": "आमंत्रण भेजें",
+                "toast_invite_sent": "{email} को आमंत्रण भेजा गया।",
+                "toast_member_added": "टीम सदस्य जोड़ा गया।",
+                "toast_failed": "हम टीम सदस्य को नहीं जोड़ सके। कृपया पुनः प्रयास करें।"
             },
             "role_members": {
                 "title": "{name} सदस्य",

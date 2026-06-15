@@ -1,7 +1,10 @@
 {
     "teams": {
         "breadcrumb": "تیم‌ها",
-        "common": { "cancel": "لغو", "create_role": "ایجاد نقش" },
+        "common": {
+            "cancel": "لغو",
+            "create_role": "ایجاد نقش"
+        },
         "index": {
             "title": "تیم‌ها",
             "heading": "تیم‌ها",
@@ -17,9 +20,20 @@
             "manage": "مدیریت",
             "leave": "خروج",
             "delete": "حذف",
-            "table": { "name": "نام تیم", "agents": "عاملان", "members": "اعضا", "created": "ایجاد شده" },
-            "leave_dialog": { "title": "خروج از تیم", "description": "آیا مطمئن هستید که می‌خواهید از \"{name}\" خارج شوید؟" },
-            "delete_dialog": { "title": "حذف تیم", "description": "آیا مطمئن هستید که می‌خواهید \"{name}\" را حذف کنید؟ این عمل قابل بازگشت نیست." },
+            "table": {
+                "name": "نام تیم",
+                "agents": "عاملان",
+                "members": "اعضا",
+                "created": "ایجاد شده"
+            },
+            "leave_dialog": {
+                "title": "خروج از تیم",
+                "description": "آیا مطمئن هستید که می‌خواهید از \"{name}\" خارج شوید؟"
+            },
+            "delete_dialog": {
+                "title": "حذف تیم",
+                "description": "آیا مطمئن هستید که می‌خواهید \"{name}\" را حذف کنید؟ این عمل قابل بازگشت نیست."
+            },
             "create_dialog": {
                 "title": "ایجاد تیم جدید",
                 "description": "یک تیم برای همکاری با دیگران ایجاد کنید.",
@@ -62,12 +76,20 @@
                 "remove_title": "حذف عضو از تیم",
                 "remove_description": "آیا مطمئن هستید که می‌خواهید {name} را از این تیم حذف کنید؟ دسترسی آن‌ها به تمام منابع تیم از بین خواهد رفت.",
                 "remove_confirm": "حذف عضو",
-                "table": { "member": "عضو" }
+                "table": {
+                    "member": "عضو"
+                }
             },
             "invitations": {
                 "title": "دعوت‌نامه‌های در انتظار",
                 "description": "این دعوت‌نامه‌ها منتظر پذیرش هستند.",
-                "table": { "email": "ایمیل", "sent": "ارسال شده" }
+                "resend": "ارسال مجدد",
+                "toast_resent": "دعوت‌نامه دوباره ارسال شد.",
+                "toast_resend_failed": "نتوانستیم دعوت‌نامه را دوباره ارسال کنیم. لطفاً دوباره تلاش کنید.",
+                "table": {
+                    "email": "ایمیل",
+                    "sent": "ارسال شده"
+                }
             },
             "invite": {
                 "title": "افزودن عضو به تیم",
@@ -78,7 +100,10 @@
                 "select_user_placeholder": "یک کاربر را انتخاب کنید...",
                 "email_label": "آدرس ایمیل",
                 "email_placeholder": "colleague{'@'}example.com",
-                "send_invitation": "ارسال دعوت‌نامه"
+                "send_invitation": "ارسال دعوت‌نامه",
+                "toast_invite_sent": "دعوت‌نامه به {email} ارسال شد.",
+                "toast_member_added": "عضو تیم افزوده شد.",
+                "toast_failed": "نتوانستیم عضو تیم را اضافه کنیم. لطفاً دوباره تلاش کنید."
             },
             "role_members": {
                 "title": "اعضای {name}",
@@ -104,7 +129,9 @@
                 "description": "انتخاب کنید کاربران با این نقش چه اقداماتی می‌توانند انجام دهند.",
                 "requires": "نیاز دارد به:"
             },
-            "create": { "subtitle": "تعریف یک نقش جدید برای" },
+            "create": {
+                "subtitle": "تعریف یک نقش جدید برای"
+            },
             "edit": {
                 "title": "ویرایش نقش: {name}",
                 "breadcrumb": "ویرایش: {name}",

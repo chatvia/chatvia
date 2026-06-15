@@ -118,8 +118,8 @@
     },
     "sources": {
         "title": "Źródła wiedzy",
-        "source_count": "{count} źródło | {count} źródeł",
-        "description": "{count} źródło użyte do wygenerowania tej odpowiedzi | {count} źródeł użytych do wygenerowania tej odpowiedzi",
+        "source_count": "{count} źródło | {count} źródła | {count} źródeł",
+        "description": "{count} źródło użyte do wygenerowania tej odpowiedzi | {count} źródła użyte do wygenerowania tej odpowiedzi | {count} źródeł użytych do wygenerowania tej odpowiedzi",
         "page_label": "Strona {page}"
     },
     "home": {
@@ -792,14 +792,14 @@
                     "no_search_results": "Brak pytań pasujących do wyszukiwania.",
                     "no_questions": "Nie znaleziono jeszcze żadnych pytań w bazie wiedzy tego agenta.",
                     "add_cases": "Dodaj przypadki",
-                    "add_count": "Dodaj {count} przypadek | Dodaj {count} przypadków"
+                    "add_count": "Dodaj {count} przypadek | Dodaj {count} przypadki | Dodaj {count} przypadków"
                 },
                 "delete_case_title": "Usuń przypadek",
                 "delete_case_description": "Usunąć „{name}\"? Wyniki poprzednich uruchomień zachowają swoją kopię tego przypadku — wpłynie to tylko na przyszłe uruchomienia.",
                 "delete_run_title": "Usuń uruchomienie",
                 "delete_run_description": "Usunąć to uruchomienie wraz z wynikami dla poszczególnych przypadków? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone.",
                 "clear_runs_title": "Wyczyść historię uruchomień",
-                "clear_runs_description": "Usunąć wszystkie {count} uruchomienie dla tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną zmienione. | Usunąć wszystkie {count} uruchomień dla tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną zmienione.",
+                "clear_runs_description": "Usunąć wszystkie {count} uruchomienie tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone. | Usunąć wszystkie {count} uruchomienia tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone. | Usunąć wszystkie {count} uruchomień tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone.",
                 "clear_all": "Wyczyść wszystko",
                 "scorers": {
                     "contains": {
@@ -826,7 +826,7 @@
                 "toasts": {
                     "case_updated": "Przypadek zaktualizowany",
                     "case_added": "Przypadek dodany",
-                    "cases_added": "Dodano {count} przypadek | Dodano {count} przypadków",
+                    "cases_added": "{count} przypadek dodany | {count} przypadki dodane | {count} przypadków dodanych",
                     "case_deleted": "Przypadek usunięty",
                     "run_started": "Uruchomienie ewaluacji rozpoczęte",
                     "run_start_error": "Nie można uruchomić zestawu",
@@ -1070,8 +1070,8 @@
                 "uploader_description_video": "Przesyłaj pliki wideo do transkrypcji. Obsługiwane formaty: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime i 3GPP. Limit rozmiaru pliku: 200 MB.",
                 "uploader_description_default": "Dokumenty: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Tekst (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Obrazy: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Maks. 50 MB na plik.",
                 "type_unknown": "Nieznany",
-                "minutes_count": "{count} minuta | {count} minut",
-                "pages_count": "{count} strona | {count} stron",
+                "minutes_count": "{count} minuta | {count} minuty | {count} minut",
+                "pages_count": "{count} strona | {count} strony | {count} stron",
                 "clear_failed": "Nie udało się wyczyścić przesłanych plików z serwera: {error}",
                 "process_failed": "Nie udało się przetworzyć plików: {error}",
                 "unlinked": "{name} zostało odłączone od tego agenta.",
@@ -1092,7 +1092,7 @@
                 "quota_pages": "strony",
                 "uploads_disabled": "Przesyłanie plików jest wyłączone podczas trwania procesu trenowania",
                 "ready_to_train": "Gotowe do trenowania",
-                "uploaded_ready": "{count} plik przesłany i gotowy do trenowania | {count} plików przesłanych i gotowych do trenowania",
+                "uploaded_ready": "{count} plik przesłany i gotowy do trenowania | {count} pliki przesłane i gotowe do trenowania | {count} plików przesłanych i gotowych do trenowania",
                 "exceeds_quota": "Przekracza limit",
                 "clear_all": "Wyczyść wszystko",
                 "training": "Trenowanie...",
@@ -1100,7 +1100,7 @@
                 "ready_for_training": "Gotowe do trenowania",
                 "remove_file": "Usuń plik",
                 "trained_title": "Wytrenowane pliki",
-                "trained_description": "Pliki wytrenowane i dostępne dla Twojego agenta. Łącznie {count} plik. | Pliki wytrenowane i dostępne dla Twojego agenta. Łącznie {count} plików.",
+                "trained_description": "Pliki wytrenowane i dostępne dla Twojego agenta. Łącznie {count} plik. | Pliki wytrenowane i dostępne dla Twojego agenta. Łącznie {count} pliki. | Pliki wytrenowane i dostępne dla Twojego agenta. Łącznie {count} plików.",
                 "choose_trained": "Wybierz spośród już wytrenowanych plików",
                 "loading": "Wczytywanie plików...",
                 "empty": "Baza wiedzy nie zawiera jeszcze żadnych plików",
@@ -1116,7 +1116,7 @@
                 "delete_uploading_title": "Usunąć {name}?",
                 "delete_uploading_description": "Spowoduje to anulowanie przesyłania i usunięcie tego pliku z listy.",
                 "delete_uploading_confirm": "Tak, usuń plik",
-                "bulk_delete_title": "Usunąć {count} wybrany plik? | Usunąć {count} wybranych plików?",
+                "bulk_delete_title": "Usunąć {count} wybrany plik? | Usunąć {count} wybrane pliki? | Usunąć {count} wybranych plików?",
                 "bulk_delete_description": "Spowoduje to usunięcie wszystkich wybranych plików z listy przesyłanych plików.",
                 "bulk_delete_confirm": "Tak, usuń pliki",
                 "clear_all_title": "Wyczyścić wszystkie pliki?",
@@ -1334,7 +1334,7 @@
                 "link_delete_failed": "Nie udało się usunąć linku.",
                 "no_links_selected": "Nie wybrano linków do usunięcia.",
                 "cannot_delete_all_links": "Nie można usunąć wszystkich linków. Musi pozostać co najmniej jeden link.",
-                "links_deleted": "Usunięto {count} link. | Usunięto {count} linków.",
+                "links_deleted": "Pomyślnie usunięto {count} link. | Pomyślnie usunięto {count} linki. | Pomyślnie usunięto {count} linków.",
                 "links_delete_failed": "Nie udało się usunąć linków.",
                 "no_links_remaining": "Brak pozostałych linków",
                 "no_links_remaining_description": "Zaktualizuj plan, aby trenować strony internetowe.",
@@ -1369,7 +1369,7 @@
                 "slow_crawling_label": "Wolne indeksowanie",
                 "slow_crawling_hint": "Używa dłuższych opóźnień dla bardziej przyjaznego indeksowania",
                 "crawling_title": "Indeksowanie...",
-                "crawling_count": "{count} witryna jest obecnie skanowana. | {count} witryn jest obecnie skanowanych.",
+                "crawling_count": "Obecnie indeksowana {count} strona internetowa. | Obecnie indeksowane {count} strony internetowe. | Obecnie indeksowanych {count} stron internetowych.",
                 "tooltip_crawling": "Trwa indeksowanie...",
                 "tooltip_ready_crawl": "Gotowe do indeksowania",
                 "tooltip_processing": "Przetwarzanie",
@@ -1377,7 +1377,7 @@
                 "remove_source": "Usuń źródło",
                 "delete_source": "Usuń źródło internetowe",
                 "crawled_title": "Zaindeksowane",
-                "crawled_count": "{count} witryna zeskanowana i gotowa do trenowania. | {count} witryn zeskanowanych i gotowych do trenowania.",
+                "crawled_count": "{count} strona zaindeksowana i gotowa do trenowania. | {count} strony zaindeksowane i gotowe do trenowania. | {count} stron zaindeksowanych i gotowych do trenowania.",
                 "select_all_websites": "Zaznacz wszystkie strony internetowe ({count})",
                 "selected_with_links": "{count} zaznaczonych ({links} linków)",
                 "no_websites_selected": "Nie wybrano stron internetowych",
@@ -1403,14 +1403,14 @@
                 "page": "Strona {page}",
                 "page_of": "Strona {page} z {total}",
                 "training_title": "Trenowanie",
-                "training_count": "{count} witryna jest obecnie trenowana. | {count} witryn jest obecnie trenowanych.",
+                "training_count": "Obecnie trenowana {count} strona internetowa. | Obecnie trenowane {count} strony internetowe. | Obecnie trenowanych {count} stron internetowych.",
                 "training_in_progress": "Trenowanie w toku...",
                 "training_pending": "Trenowanie oczekuje...",
                 "view_all_links": "Wyświetl wszystkie linki",
                 "delete_cancel_training": "Usuń stronę (anuluje trenowanie)",
                 "retrain_entire": "Trenuj ponownie całą stronę",
                 "trained_title": "Wytrenowane",
-                "trained_description": "Witryny wytrenowane i dostępne dla Twojego agenta. Łącznie {count} witryna. | Witryny wytrenowane i dostępne dla Twojego agenta. Łącznie {count} witryn.",
+                "trained_description": "Strony internetowe wytrenowane i dostępne dla Twojego agenta. Łącznie {count} strona. | Strony internetowe wytrenowane i dostępne dla Twojego agenta. Łącznie {count} strony. | Strony internetowe wytrenowane i dostępne dla Twojego agenta. Łącznie {count} stron.",
                 "link_website": "Połącz stronę internetową",
                 "loading_sources": "Wczytywanie źródeł internetowych...",
                 "no_websites": "Baza wiedzy nie zawiera jeszcze żadnych stron internetowych",
@@ -1425,7 +1425,7 @@
                 "start_retraining": "Rozpocznij ponowne trenowanie",
                 "dialog_title": "Linki strony internetowej",
                 "dialog_manage_links": "Wyświetl linki z {name} i zarządzaj nimi",
-                "dialog_links_total": "Łącznie {count} link | Łącznie {count} linków",
+                "dialog_links_total": "Łącznie {count} link | Łącznie {count} linki | Łącznie {count} linków",
                 "showing_filtered": "Wyświetlanie przefiltrowanych wyników",
                 "delete_selected_count": "Usuń wybrane ({count})",
                 "crawled_at": "Zaindeksowano {date}",
@@ -1474,7 +1474,7 @@
             "delete_dialog_title": "Usunąć wybrane leady?",
             "delete_dialog_description": "Spowoduje to trwałe usunięcie wybranych leadów. Tej operacji nie można cofnąć.",
             "delete_selected_title": "Usuń wybrane leady",
-            "delete_selected_description": "Czy na pewno chcesz usunąć {count} wybrany kontakt? Tej operacji nie można cofnąć. | Czy na pewno chcesz usunąć {count} wybranych kontaktów? Tej operacji nie można cofnąć.",
+            "delete_selected_description": "Czy na pewno chcesz usunąć {count} wybrany lead? Tej operacji nie można cofnąć. | Czy na pewno chcesz usunąć {count} wybrane leady? Tej operacji nie można cofnąć. | Czy na pewno chcesz usunąć {count} wybranych leadów? Tej operacji nie można cofnąć.",
             "delete_leads": "Usuń leady",
             "anonymous": "Anonimowy",
             "no_email": "Nie podano adresu e-mail",
@@ -1783,7 +1783,7 @@
                 "position": "Pozycja",
                 "window_size": "Rozmiar okna",
                 "theme": "Motyw",
-                "live_chat": "Czat na żywo",
+                "live_chat": "Live Chat",
                 "live_chat_hint": "Pozwól odwiedzającym przekazać rozmowę do człowieka. Działa tylko na widgecie strony internetowej.",
                 "open_on_load": "Otwieraj automatycznie przy ładowaniu strony",
                 "delay_ms": "Opóźnienie (ms)",
@@ -1845,7 +1845,7 @@
                 "open_new_tab": "Otwórz w nowej karcie"
             },
             "api": {
-                "title": "API JavaScript",
+                "title": "JavaScript API",
                 "description": "Kontroluj widget czatu programowo, używając tych metod i zdarzeń",
                 "methods": "Metody",
                 "events": "Zdarzenia",
@@ -1921,7 +1921,7 @@
                 "starters_added": "Dodano",
                 "starters_no_match": "Żadne pytania nie pasują do wyszukiwania.",
                 "starters_add_label": "Dodaj startery",
-                "starters_add_count": "Dodaj {count} starter | Dodaj {count} starterów",
+                "starters_add_count": "Dodaj {count} starter | Dodaj {count} startery | Dodaj {count} starterów",
                 "security_title": "Kontrola dostępu",
                 "security_description": "Chroniony agent ładuje się tylko dla odwiedzających, których uwierzytelniasz za pomocą podpisanego tokenu.",
                 "security_public": "Ustaw jako publiczny",
@@ -2102,8 +2102,8 @@
             "functions_empty_hint": "Funkcje webhook pojawią się tutaj, gdy agent je wywoła.",
             "mcp_empty": "Brak wywołań narzędzi MCP",
             "mcp_empty_hint": "Poszczególne narzędzia z podłączonych serwerów MCP pojawią się tutaj, gdy agent je wywoła.",
-            "retrievals": "{count} pobranie | {count} pobrań",
-            "calls": "{count} wywołanie | {count} wywołań",
+            "retrievals": "{count} pobranie | {count} pobrania | {count} pobrań",
+            "calls": "{count} wywołanie | {count} wywołania | {count} wywołań",
             "last_used": "Ostatnio użyte {time}",
             "last_called": "Ostatnio wywołane {time}",
             "via_server": "przez {name}",
@@ -2116,12 +2116,12 @@
             },
             "relative": {
                 "just_now": "właśnie teraz",
-                "minutes_ago": "{count} minutę temu | {count} minut temu",
-                "hours_ago": "{count} godzinę temu | {count} godzin temu",
-                "days_ago": "{count} dzień temu | {count} dni temu",
-                "weeks_ago": "{count} tydzień temu | {count} tygodni temu",
-                "months_ago": "{count} miesiąc temu | {count} miesięcy temu",
-                "years_ago": "{count} rok temu | {count} lat temu"
+                "minutes_ago": "{count} minuta temu | {count} minuty temu | {count} minut temu",
+                "hours_ago": "{count} godzina temu | {count} godziny temu | {count} godzin temu",
+                "days_ago": "{count} dzień temu | {count} dni temu | {count} dni temu",
+                "weeks_ago": "{count} tydzień temu | {count} tygodnie temu | {count} tygodni temu",
+                "months_ago": "{count} miesiąc temu | {count} miesiące temu | {count} miesięcy temu",
+                "years_ago": "{count} rok temu | {count} lata temu | {count} lat temu"
             }
         },
         "deploy": {
@@ -2161,7 +2161,7 @@
             "save": "Zapisz",
             "sites_saved": "Dozwolone witryny zostały zaktualizowane",
             "sites_error": "Nie można zapisać — spróbuj ponownie",
-            "api_docs": "API JavaScript"
+            "api_docs": "JavaScript API"
         },
         "chatters": {
             "title": "Czatowicze",
@@ -3033,7 +3033,10 @@
                 "table": {
                     "email": "E-mail",
                     "sent": "Wysłano"
-                }
+                },
+                "resend": "Wyślij ponownie",
+                "toast_resent": "Zaproszenie wysłane ponownie.",
+                "toast_resend_failed": "Nie udało się ponownie wysłać zaproszenia. Spróbuj ponownie."
             },
             "invite": {
                 "title": "Dodaj członka zespołu",
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Wybierz użytkownika...",
                 "email_label": "Adres e-mail",
                 "email_placeholder": "kolega{'@'}przyklad.pl",
-                "send_invitation": "Wyślij zaproszenie"
+                "send_invitation": "Wyślij zaproszenie",
+                "toast_invite_sent": "Zaproszenie wysłane do {email}.",
+                "toast_member_added": "Dodano członka zespołu.",
+                "toast_failed": "Nie udało się dodać członka zespołu. Spróbuj ponownie."
             },
             "role_members": {
                 "title": "Członkowie roli {name}",
@@ -4172,8 +4178,8 @@
             "badge_failed": "Błąd",
             "progress_analyzed": "{progress}% przeanalizowano",
             "remove_file": "Usuń plik",
-            "minute_length": "{count} minuta | {count} minut",
-            "page_length": "{count} strona | {count} stron",
+            "minute_length": "{count} minuta | {count} minuty | {count} minut",
+            "page_length": "{count} strona | {count} strony | {count} stron",
             "toast_max_files_title": "Osiągnięto maksymalny limit plików",
             "toast_max_files_description": "Można przesłać maksymalnie {max} plików.",
             "toast_file_size_title": "Przekroczono limit rozmiaru pliku",
@@ -4195,7 +4201,7 @@
             "tips_heading": "Wskazówki:",
             "tip_speak_clearly": "Mów wyraźnie i w równym tempie",
             "tip_quiet_environment": "Używaj cichego otoczenia, aby uzyskać najlepsze wyniki",
-            "tip_max_duration": "Maksymalna długość nagrania: {minutes} minuta | Maksymalna długość nagrania: {minutes} minut"
+            "tip_max_duration": "Maksymalna długość nagrania: {minutes} minuta | Maksymalna długość nagrania: {minutes} minuty | Maksymalna długość nagrania: {minutes} minut"
         },
         "date_range": {
             "pick_range": "Wybierz zakres dat",
@@ -4421,8 +4427,8 @@
             "type_word": "Word",
             "type_audio": "Audio",
             "type_video": "Wideo",
-            "minute_length": "{count} minuta | {count} minut",
-            "page_length": "{count} strona | {count} stron",
+            "minute_length": "{count} minuta | {count} minuty | {count} minut",
+            "page_length": "{count} strona | {count} strony | {count} stron",
             "agents_count": "{count} agent | {count} agentów",
             "used_in": "Używane w:",
             "add": "Dodaj",
@@ -4460,7 +4466,7 @@
             "adding": "Dodawanie...",
             "add": "Dodaj",
             "added": "Dodano",
-            "footer_added": "Dodano {count} witrynę | Dodano {count} witryn",
+            "footer_added": "{count} strona dodana | {count} strony dodane | {count} stron dodanych",
             "footer_hint": "Wybierz strony, aby dodać do tego agenta",
             "toast_load_failed": "Nie udało się załadować dostępnych stron.",
             "toast_success": "Strona została pomyślnie dodana do agenta!",

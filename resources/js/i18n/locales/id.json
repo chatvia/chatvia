@@ -3030,6 +3030,9 @@
             "invitations": {
                 "title": "Undangan Tertunda",
                 "description": "Undangan ini menunggu untuk diterima.",
+                "resend": "Kirim ulang",
+                "toast_resent": "Undangan dikirim ulang.",
+                "toast_resend_failed": "Kami tidak dapat mengirim ulang undangan. Silakan coba lagi.",
                 "table": {
                     "email": "Email",
                     "sent": "Dikirim"
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Pilih pengguna...",
                 "email_label": "Alamat Email",
                 "email_placeholder": "kolega{'@'}example.com",
-                "send_invitation": "Kirim Undangan"
+                "send_invitation": "Kirim Undangan",
+                "toast_invite_sent": "Undangan dikirim ke {email}.",
+                "toast_member_added": "Anggota tim ditambahkan.",
+                "toast_failed": "Kami tidak dapat menambahkan anggota tim. Silakan coba lagi."
             },
             "role_members": {
                 "title": "Anggota {name}",

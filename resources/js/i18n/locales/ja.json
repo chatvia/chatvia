@@ -3030,6 +3030,9 @@
             "invitations": {
                 "title": "保留中の招待",
                 "description": "これらの招待は承諾待ちです。",
+                "resend": "再送信",
+                "toast_resent": "招待を再送信しました。",
+                "toast_resend_failed": "招待を再送信できませんでした。もう一度お試しください。",
                 "table": {
                     "email": "メールアドレス",
                     "sent": "送信日"
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "ユーザーを選択...",
                 "email_label": "メールアドレス",
                 "email_placeholder": "colleague{'@'}example.com",
-                "send_invitation": "招待を送信"
+                "send_invitation": "招待を送信",
+                "toast_invite_sent": "{email} に招待を送信しました。",
+                "toast_member_added": "チームメンバーを追加しました。",
+                "toast_failed": "チームメンバーを追加できませんでした。もう一度お試しください。"
             },
             "role_members": {
                 "title": "{name} のメンバー",

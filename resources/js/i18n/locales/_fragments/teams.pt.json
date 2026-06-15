@@ -83,6 +83,9 @@
             "invitations": {
                 "title": "Convites Pendentes",
                 "description": "Estes convites estão a aguardar aceitação.",
+                "resend": "Reenviar",
+                "toast_resent": "Convite reenviado.",
+                "toast_resend_failed": "Não foi possível reenviar o convite. Tente novamente.",
                 "table": {
                     "email": "E-mail",
                     "sent": "Enviado"
@@ -97,7 +100,10 @@
                 "select_user_placeholder": "Escolher um utilizador...",
                 "email_label": "Endereço de E-mail",
                 "email_placeholder": "colega{'@'}exemplo.com",
-                "send_invitation": "Enviar Convite"
+                "send_invitation": "Enviar Convite",
+                "toast_invite_sent": "Convite enviado para {email}.",
+                "toast_member_added": "Membro da equipa adicionado.",
+                "toast_failed": "Não foi possível adicionar o membro da equipa. Tente novamente."
             },
             "role_members": {
                 "title": "Membros de {name}",

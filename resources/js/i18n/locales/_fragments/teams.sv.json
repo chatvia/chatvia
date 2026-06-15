@@ -83,6 +83,9 @@
             "invitations": {
                 "title": "Väntande inbjudningar",
                 "description": "Dessa inbjudningar väntar på att accepteras.",
+                "resend": "Skicka igen",
+                "toast_resent": "Inbjudan skickad igen.",
+                "toast_resend_failed": "Vi kunde inte skicka inbjudan igen. Försök igen.",
                 "table": {
                     "email": "E-post",
                     "sent": "Skickad"
@@ -97,7 +100,10 @@
                 "select_user_placeholder": "Välj en användare...",
                 "email_label": "E-postadress",
                 "email_placeholder": "kollega{'@'}example.com",
-                "send_invitation": "Skicka inbjudan"
+                "send_invitation": "Skicka inbjudan",
+                "toast_invite_sent": "Inbjudan skickad till {email}.",
+                "toast_member_added": "Teammedlem tillagd.",
+                "toast_failed": "Vi kunde inte lägga till teammedlemmen. Försök igen."
             },
             "role_members": {
                 "title": "{name} – medlemmar",

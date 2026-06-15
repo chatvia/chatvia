@@ -3030,6 +3030,9 @@
             "invitations": {
                 "title": "대기 중인 초대",
                 "description": "이 초대는 수락을 기다리고 있습니다.",
+                "resend": "다시 보내기",
+                "toast_resent": "초대를 다시 보냈습니다.",
+                "toast_resend_failed": "초대를 다시 보내지 못했습니다. 다시 시도해 주세요.",
                 "table": {
                     "email": "이메일",
                     "sent": "발송일"
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "사용자 선택...",
                 "email_label": "이메일 주소",
                 "email_placeholder": "colleague{'@'}example.com",
-                "send_invitation": "초대 보내기"
+                "send_invitation": "초대 보내기",
+                "toast_invite_sent": "{email}(으)로 초대를 보냈습니다.",
+                "toast_member_added": "팀 멤버를 추가했습니다.",
+                "toast_failed": "팀 멤버를 추가하지 못했습니다. 다시 시도해 주세요."
             },
             "role_members": {
                 "title": "{name} 멤버",

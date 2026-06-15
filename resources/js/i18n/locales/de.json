@@ -204,7 +204,7 @@
                 },
                 "shared": {
                     "subscribe_webhook": "Den Webhook für das Feld {field} abonnieren",
-                    "messages_field": "Nachrichten",
+                    "messages_field": "messages",
                     "create_meta_app_at": "Eine App unter {link} erstellen",
                     "copy_app_secret_both": "Das App-Secret aus {section} kopieren und beides unten einfügen",
                     "copy_app_secret_all": "Das App-Secret aus {section} kopieren und alles unten einfügen",
@@ -226,7 +226,7 @@
                         "builtins_note": "/start, /reset und /help sind integriert und immer verfügbar.",
                         "dialog_title": "Eigene Befehle",
                         "dialog_description": "Fügen Sie Slash-Befehle hinzu, die Personen in Telegram antippen können. Jeder antwortet mit dem von Ihnen festgelegten Text. Integrierte Befehle (/start, /reset, /help) sind immer verfügbar.",
-                        "command_placeholder": "preise",
+                        "command_placeholder": "pricing",
                         "description_placeholder": "Was dieser Befehl macht",
                         "reply_placeholder": "Die Antwort, die gesendet wird, wenn jemand diesen Befehl verwendet…",
                         "remove": "Befehl entfernen",
@@ -271,7 +271,7 @@
                     "webhooks_path": "Anwendungsfälle → Anpassen → Messenger-API-Einstellungen",
                     "api_settings_path": "Anwendungsfälle → Anpassen → Messenger-API-Einstellungen",
                     "app_settings_basic": "App-Einstellungen → Allgemein",
-                    "product": "Interagieren Sie mit Kunden über Messenger",
+                    "product": "Engage with customers on Messenger",
                     "permissions_path": "Anwendungsfälle → Anpassen → Berechtigungen und Funktionen"
                 },
                 "whatsapp": {
@@ -2457,7 +2457,7 @@
             "view_plans": "Pläne ansehen",
             "cancel": "Abbrechen",
             "processing": "Wird verarbeitet...",
-            "not_available": "k. A."
+            "not_available": "N/A"
         },
         "payment_success": {
             "page_title": "Zahlung erfolgreich",
@@ -3033,7 +3033,10 @@
                 "table": {
                     "email": "E-Mail",
                     "sent": "Gesendet"
-                }
+                },
+                "resend": "Erneut senden",
+                "toast_resent": "Einladung erneut gesendet.",
+                "toast_resend_failed": "Die Einladung konnte nicht erneut gesendet werden. Bitte versuche es erneut."
             },
             "invite": {
                 "title": "Teammitglied hinzufügen",
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Benutzer auswählen...",
                 "email_label": "E-Mail-Adresse",
                 "email_placeholder": "kollegin{'@'}beispiel.de",
-                "send_invitation": "Einladung senden"
+                "send_invitation": "Einladung senden",
+                "toast_invite_sent": "Einladung an {email} gesendet.",
+                "toast_member_added": "Teammitglied hinzugefügt.",
+                "toast_failed": "Das Teammitglied konnte nicht hinzugefügt werden. Bitte versuche es erneut."
             },
             "role_members": {
                 "title": "{name}-Mitglieder",
@@ -4144,7 +4150,7 @@
         "delete_confirmation_description": "Diese Aktion kann nicht rückgängig gemacht werden.",
         "yes_delete": "Ja, löschen",
         "no_keep": "Nein, behalten",
-        "information": "Informationen",
+        "information": "Information",
         "dismiss_banner": "Banner schließen",
         "training_in_progress": "Training läuft",
         "unknown": "Unbekannt",

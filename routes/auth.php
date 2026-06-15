@@ -11,13 +11,18 @@ use App\Http\Controllers\Team\Invitations\AcceptTeamInvitationController;
 use App\Http\Controllers\Team\Invitations\TeamInvitationController;
 use Illuminate\Support\Facades\Route;
 
-// Team invitation routes (accessible via signed URL)
+// Team invitation routes (accessible via signed URL). The {invitation} segment
+// binds by bigint id; a non-integer (e.g. scanner probes for `.env`) resolves to
+// null in Invitation::resolveRouteBinding(), so ->missing() redirects to login
+// instead of hitting Postgres and 500ing.
 Route::get('invitation/{invitation}', [TeamInvitationController::class, 'show'])
     ->middleware('signed')
+    ->missing(fn () => redirect()->route('login'))
     ->name('teams.invitation.show');
 
 Route::post('invitation/{invitation}/accept', AcceptTeamInvitationController::class)
     ->middleware('signed')
+    ->missing(fn () => redirect()->route('login'))
     ->name('teams.invitation.accept');
 
 // Agent member invitations. The `{token}` segment is a high-entropy random

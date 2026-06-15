@@ -15,7 +15,7 @@
     "approval": {
         "badge": "Odottaa hyväksyntää",
         "prompt": "Haluatko jatkaa?",
-        "mcp_tool": "MCP-työkalu",
+        "mcp_tool": "MCP tool",
         "function": "Funktio",
         "approve": "Hyväksy",
         "deny": "Hylkää"
@@ -371,7 +371,7 @@
             "banner_off_title": "Chatin kirjaaminen on pois käytöstä",
             "banner_off_description": "Uusia keskusteluja ei tallenneta. Ota chatin kirjaaminen uudelleen käyttöön Asennus → Asetukset -kohdasta tallentaaksesi tulevat viestit.",
             "tabs": {
-                "chat": "Keskustelu",
+                "chat": "Chat",
                 "pulse": "Pulssi",
                 "details": "Tiedot",
                 "live_chat": "Live-chat"
@@ -1021,7 +1021,7 @@
                 "youtube": "YouTube",
                 "qa": "K&V",
                 "markdown": "Markdown",
-                "connectors": "Liittimet"
+                "connectors": "Connectors"
             },
             "overview": {
                 "coming_soon": "{type} tulossa pian",
@@ -1256,13 +1256,13 @@
                 "load_failed": "Connectorien lataaminen epäonnistui",
                 "attach_failed": "Liittäminen epäonnistui",
                 "detach_failed": "Irrottaminen epäonnistui",
-                "title": "Liittimet",
+                "title": "Connectors",
                 "description_prefix": "Liitä tilitason connectorit tähän agenttiin. Yhdistä tai lisää uusia connectoreita",
                 "settings_link": "Asetukset → Connectors",
                 "search_placeholder": "Hae connectoreita",
                 "loading": "Ladataan connectoreita",
                 "custom_title": "Mukautetut connectorit",
-                "column_connector": "Liitin",
+                "column_connector": "Connector",
                 "column_tools": "Työkalut",
                 "column_enabled": "Käytössä",
                 "no_match": "Connectoreita ei löydy.",
@@ -1783,7 +1783,7 @@
                 "position": "Sijainti",
                 "window_size": "Ikkunan koko",
                 "theme": "Teema",
-                "live_chat": "Live-keskustelu",
+                "live_chat": "Live Chat",
                 "live_chat_hint": "Anna vierailijoiden siirtää chat ihmiselle. Toimii vain verkkosivuston widgetissä.",
                 "open_on_load": "Avaa automaattisesti sivun latautuessa",
                 "delay_ms": "Viive (ms)",
@@ -3033,7 +3033,10 @@
                 "table": {
                     "email": "Sähköpostiosoite",
                     "sent": "Lähetetty"
-                }
+                },
+                "resend": "Lähetä uudelleen",
+                "toast_resent": "Kutsu lähetetty uudelleen.",
+                "toast_resend_failed": "Kutsun lähettäminen uudelleen epäonnistui. Yritä uudelleen."
             },
             "invite": {
                 "title": "Lisää tiimin jäsen",
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Valitse käyttäjä...",
                 "email_label": "Sähköpostiosoite",
                 "email_placeholder": "kollega{'@'}esimerkki.com",
-                "send_invitation": "Lähetä kutsu"
+                "send_invitation": "Lähetä kutsu",
+                "toast_invite_sent": "Kutsu lähetetty osoitteeseen {email}.",
+                "toast_member_added": "Tiimin jäsen lisätty.",
+                "toast_failed": "Tiimin jäsenen lisääminen epäonnistui. Yritä uudelleen."
             },
             "role_members": {
                 "title": "{name} jäsenet",
@@ -3103,7 +3109,7 @@
                     "description": "Hallitse koulutusaineistoa, josta agentti oppii."
                 },
                 "chat": {
-                    "label": "Keskustelu",
+                    "label": "Chat",
                     "description": "Lue, ota haltuun, vie tai poista aktiivisia keskusteluja."
                 },
                 "audit": {
@@ -4138,7 +4144,7 @@
         "widget_preview": "Widget-esikatselu",
         "preview": "Esikatselu",
         "composer_placeholder": "Kysy mitä tahansa...",
-        "chat_title_fallback": "Keskustelu",
+        "chat_title_fallback": "Chat",
         "more_options": "Lisää vaihtoehtoja",
         "delete_confirmation_title": "Poiston vahvistus",
         "delete_confirmation_description": "Tätä toimintoa ei voi peruuttaa.",

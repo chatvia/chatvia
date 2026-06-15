@@ -3030,6 +3030,9 @@
             "invitations": {
                 "title": "Lời mời đang chờ",
                 "description": "Những lời mời này đang chờ được chấp nhận.",
+                "resend": "Gửi lại",
+                "toast_resent": "Đã gửi lại lời mời.",
+                "toast_resend_failed": "Chúng tôi không thể gửi lại lời mời. Vui lòng thử lại.",
                 "table": {
                     "email": "Email",
                     "sent": "Đã gửi"
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Chọn một người dùng...",
                 "email_label": "Địa chỉ email",
                 "email_placeholder": "colleague{'@'}example.com",
-                "send_invitation": "Gửi lời mời"
+                "send_invitation": "Gửi lời mời",
+                "toast_invite_sent": "Đã gửi lời mời đến {email}.",
+                "toast_member_added": "Đã thêm thành viên nhóm.",
+                "toast_failed": "Chúng tôi không thể thêm thành viên nhóm. Vui lòng thử lại."
             },
             "role_members": {
                 "title": "Thành viên {name}",

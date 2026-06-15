@@ -204,7 +204,7 @@
                 },
                 "shared": {
                     "subscribe_webhook": "Suscribe el webhook al campo {field}",
-                    "messages_field": "mensajes",
+                    "messages_field": "messages",
                     "create_meta_app_at": "Crea una app en {link}",
                     "copy_app_secret_both": "Copia el secreto de la app desde {section} y pega ambos a continuación",
                     "copy_app_secret_all": "Copia el secreto de la app desde {section} y pega todo a continuación",
@@ -681,7 +681,7 @@
             "open_new_tab": "Abrir en nueva pestaña",
             "devices": {
                 "desktop": "Escritorio",
-                "tablet": "Tableta",
+                "tablet": "Tablet",
                 "mobile": "Móvil"
             },
             "tabs": {
@@ -839,8 +839,8 @@
                 "contains": "Contiene",
                 "regex": "Regex",
                 "exact": "Coincidencia exacta",
-                "json_schema": "Esquema JSON",
-                "llm_judge": "Juez LLM"
+                "json_schema": "JSON schema",
+                "llm_judge": "LLM judge"
             }
         },
         "identity_verification": {
@@ -1017,7 +1017,7 @@
                 "text": "Texto",
                 "web": "Sitio web",
                 "audio": "Audio",
-                "video": "Vídeo",
+                "video": "Video",
                 "youtube": "YouTube",
                 "qa": "P&R",
                 "markdown": "Markdown",
@@ -1043,7 +1043,7 @@
                     "description": "Sube archivos de audio y podcasts para transcripción"
                 },
                 "video": {
-                    "label": "Vídeo",
+                    "label": "Video",
                     "description": "Sube archivos de video para transcripción y análisis"
                 },
                 "youtube": {
@@ -1666,7 +1666,7 @@
                 "bar": "Barra de comandos"
             },
             "menu": {
-                "info": "Información",
+                "info": "Info",
                 "persona": "Persona",
                 "starters": "Iniciadores",
                 "model": "Modelo",
@@ -1869,7 +1869,7 @@
                 "code_language": "JavaScript"
             },
             "options": {
-                "theme_auto": "Automático",
+                "theme_auto": "Auto",
                 "theme_light": "Claro",
                 "theme_dark": "Oscuro",
                 "position_bottom_right": "Inferior derecha",
@@ -3033,7 +3033,10 @@
                 "table": {
                     "email": "Correo electrónico",
                     "sent": "Enviado"
-                }
+                },
+                "resend": "Reenviar",
+                "toast_resent": "Invitación reenviada.",
+                "toast_resend_failed": "No pudimos reenviar la invitación. Inténtalo de nuevo."
             },
             "invite": {
                 "title": "Agregar miembro al equipo",
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Elige un usuario...",
                 "email_label": "Correo electrónico",
                 "email_placeholder": "colega{'@'}ejemplo.com",
-                "send_invitation": "Enviar invitación"
+                "send_invitation": "Enviar invitación",
+                "toast_invite_sent": "Invitación enviada a {email}.",
+                "toast_member_added": "Miembro del equipo agregado.",
+                "toast_failed": "No pudimos agregar al miembro del equipo. Inténtalo de nuevo."
             },
             "role_members": {
                 "title": "Miembros de {name}",
@@ -3397,7 +3403,7 @@
     },
     "ticket": {
         "support": "Soporte",
-        "title": "Ticket n.º {id}",
+        "title": "Ticket #{id}",
         "created_at": "Creado {date}",
         "back_to_support": "Volver a soporte",
         "status_open": "Abierto",
@@ -3418,7 +3424,7 @@
         "save": "Guardar",
         "replies": "Respuestas ({count})",
         "no_replies": "Aún no hay respuestas.",
-        "role_staff": "Personal",
+        "role_staff": "Staff",
         "role_user": "Usuario",
         "resolved_notice": "Este ticket ha sido resuelto. Si el problema persiste, abre un nuevo ticket desde la página de Soporte.",
         "add_reply": "Agregar una respuesta",
@@ -4132,7 +4138,7 @@
         "enable_now": "Activar ahora",
         "upgrade_now": "Mejorar plan",
         "desktop": "Escritorio",
-        "tablet": "Tableta",
+        "tablet": "Tablet",
         "mobile": "Móvil",
         "close_preview": "Cerrar vista previa",
         "widget_preview": "Vista previa del widget",
@@ -4420,7 +4426,7 @@
             "type_pdf": "PDF",
             "type_word": "Word",
             "type_audio": "Audio",
-            "type_video": "Vídeo",
+            "type_video": "Video",
             "minute_length": "{count} minuto | {count} minutos",
             "page_length": "{count} página | {count} páginas",
             "agents_count": "{count} agente | {count} agentes",

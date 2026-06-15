@@ -83,6 +83,9 @@
             "invitations": {
                 "title": "Ventende invitasjoner",
                 "description": "Disse invitasjonene venter på å bli akseptert.",
+                "resend": "Send på nytt",
+                "toast_resent": "Invitasjon sendt på nytt.",
+                "toast_resend_failed": "Vi kunne ikke sende invitasjonen på nytt. Prøv igjen.",
                 "table": {
                     "email": "E-post",
                     "sent": "Sendt"
@@ -97,7 +100,10 @@
                 "select_user_placeholder": "Velg en bruker...",
                 "email_label": "E-postadresse",
                 "email_placeholder": "kollega{'@'}example.com",
-                "send_invitation": "Send invitasjon"
+                "send_invitation": "Send invitasjon",
+                "toast_invite_sent": "Invitasjon sendt til {email}.",
+                "toast_member_added": "Teammedlem lagt til.",
+                "toast_failed": "Vi kunne ikke legge til teammedlemmet. Prøv igjen."
             },
             "role_members": {
                 "title": "{name}-medlemmer",

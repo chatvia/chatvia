@@ -1,7 +1,10 @@
 {
     "teams": {
         "breadcrumb": "Tiimit",
-        "common": { "cancel": "Peruuta", "create_role": "Luo rooli" },
+        "common": {
+            "cancel": "Peruuta",
+            "create_role": "Luo rooli"
+        },
         "index": {
             "title": "Tiimit",
             "heading": "Tiimit",
@@ -17,9 +20,20 @@
             "manage": "Hallinnoi",
             "leave": "Poistu",
             "delete": "Poista",
-            "table": { "name": "Tiimin nimi", "agents": "Agentit", "members": "Jäsenet", "created": "Luotu" },
-            "leave_dialog": { "title": "Poistu tiimistä", "description": "Haluatko varmasti poistua tiimistä \"{name}\"?" },
-            "delete_dialog": { "title": "Poista tiimi", "description": "Haluatko varmasti poistaa tiimin \"{name}\"? Tätä toimintoa ei voi kumota." },
+            "table": {
+                "name": "Tiimin nimi",
+                "agents": "Agentit",
+                "members": "Jäsenet",
+                "created": "Luotu"
+            },
+            "leave_dialog": {
+                "title": "Poistu tiimistä",
+                "description": "Haluatko varmasti poistua tiimistä \"{name}\"?"
+            },
+            "delete_dialog": {
+                "title": "Poista tiimi",
+                "description": "Haluatko varmasti poistaa tiimin \"{name}\"? Tätä toimintoa ei voi kumota."
+            },
             "create_dialog": {
                 "title": "Luo uusi tiimi",
                 "description": "Luo tiimi tehdäksesi yhteistyötä muiden kanssa.",
@@ -62,12 +76,20 @@
                 "remove_title": "Poista tiimin jäsen",
                 "remove_description": "Haluatko varmasti poistaa käyttäjän {name} tästä tiimistä? Hän menettää pääsyn kaikkiin tiimin resursseihin.",
                 "remove_confirm": "Poista jäsen",
-                "table": { "member": "Jäsen" }
+                "table": {
+                    "member": "Jäsen"
+                }
             },
             "invitations": {
                 "title": "Odottavat kutsut",
                 "description": "Nämä kutsut odottavat hyväksymistä.",
-                "table": { "email": "Sähköpostiosoite", "sent": "Lähetetty" }
+                "resend": "Lähetä uudelleen",
+                "toast_resent": "Kutsu lähetetty uudelleen.",
+                "toast_resend_failed": "Kutsun lähettäminen uudelleen epäonnistui. Yritä uudelleen.",
+                "table": {
+                    "email": "Sähköpostiosoite",
+                    "sent": "Lähetetty"
+                }
             },
             "invite": {
                 "title": "Lisää tiimin jäsen",
@@ -78,7 +100,10 @@
                 "select_user_placeholder": "Valitse käyttäjä...",
                 "email_label": "Sähköpostiosoite",
                 "email_placeholder": "kollega{'@'}esimerkki.com",
-                "send_invitation": "Lähetä kutsu"
+                "send_invitation": "Lähetä kutsu",
+                "toast_invite_sent": "Kutsu lähetetty osoitteeseen {email}.",
+                "toast_member_added": "Tiimin jäsen lisätty.",
+                "toast_failed": "Tiimin jäsenen lisääminen epäonnistui. Yritä uudelleen."
             },
             "role_members": {
                 "title": "{name} jäsenet",
@@ -104,7 +129,9 @@
                 "description": "Valitse, mitä toimintoja tämän roolin käyttäjät voivat suorittaa.",
                 "requires": "Vaatii:"
             },
-            "create": { "subtitle": "Määritä uusi rooli kohteelle" },
+            "create": {
+                "subtitle": "Määritä uusi rooli kohteelle"
+            },
             "edit": {
                 "title": "Muokkaa roolia: {name}",
                 "breadcrumb": "Muokkaa: {name}",

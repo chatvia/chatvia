@@ -1,7 +1,10 @@
 {
     "teams": {
         "breadcrumb": "Zespoły",
-        "common": { "cancel": "Anuluj", "create_role": "Utwórz rolę" },
+        "common": {
+            "cancel": "Anuluj",
+            "create_role": "Utwórz rolę"
+        },
         "index": {
             "title": "Zespoły",
             "heading": "Zespoły",
@@ -17,9 +20,20 @@
             "manage": "Zarządzaj",
             "leave": "Opuść",
             "delete": "Usuń",
-            "table": { "name": "Nazwa zespołu", "agents": "Agenci", "members": "Członkowie", "created": "Utworzono" },
-            "leave_dialog": { "title": "Opuść zespół", "description": "Czy na pewno chcesz opuścić \"{name}\"?" },
-            "delete_dialog": { "title": "Usuń zespół", "description": "Czy na pewno chcesz usunąć \"{name}\"? Tej operacji nie można cofnąć." },
+            "table": {
+                "name": "Nazwa zespołu",
+                "agents": "Agenci",
+                "members": "Członkowie",
+                "created": "Utworzono"
+            },
+            "leave_dialog": {
+                "title": "Opuść zespół",
+                "description": "Czy na pewno chcesz opuścić \"{name}\"?"
+            },
+            "delete_dialog": {
+                "title": "Usuń zespół",
+                "description": "Czy na pewno chcesz usunąć \"{name}\"? Tej operacji nie można cofnąć."
+            },
             "create_dialog": {
                 "title": "Utwórz nowy zespół",
                 "description": "Utwórz zespół, aby współpracować z innymi.",
@@ -62,12 +76,20 @@
                 "remove_title": "Usuń członka zespołu",
                 "remove_description": "Czy na pewno chcesz usunąć {name} z tego zespołu? Utraci dostęp do wszystkich zasobów zespołu.",
                 "remove_confirm": "Usuń członka",
-                "table": { "member": "Członek" }
+                "table": {
+                    "member": "Członek"
+                }
             },
             "invitations": {
                 "title": "Oczekujące zaproszenia",
                 "description": "Te zaproszenia czekają na akceptację.",
-                "table": { "email": "E-mail", "sent": "Wysłano" }
+                "resend": "Wyślij ponownie",
+                "toast_resent": "Zaproszenie wysłane ponownie.",
+                "toast_resend_failed": "Nie udało się ponownie wysłać zaproszenia. Spróbuj ponownie.",
+                "table": {
+                    "email": "E-mail",
+                    "sent": "Wysłano"
+                }
             },
             "invite": {
                 "title": "Dodaj członka zespołu",
@@ -78,7 +100,10 @@
                 "select_user_placeholder": "Wybierz użytkownika...",
                 "email_label": "Adres e-mail",
                 "email_placeholder": "kolega{'@'}przyklad.pl",
-                "send_invitation": "Wyślij zaproszenie"
+                "send_invitation": "Wyślij zaproszenie",
+                "toast_invite_sent": "Zaproszenie wysłane do {email}.",
+                "toast_member_added": "Dodano członka zespołu.",
+                "toast_failed": "Nie udało się dodać członka zespołu. Spróbuj ponownie."
             },
             "role_members": {
                 "title": "Członkowie roli {name}",
@@ -104,7 +129,9 @@
                 "description": "Wybierz, jakie akcje mogą wykonywać użytkownicy z tą rolą.",
                 "requires": "Wymaga:"
             },
-            "create": { "subtitle": "Zdefiniuj nową rolę dla" },
+            "create": {
+                "subtitle": "Zdefiniuj nową rolę dla"
+            },
             "edit": {
                 "title": "Edytuj rolę: {name}",
                 "breadcrumb": "Edytuj: {name}",

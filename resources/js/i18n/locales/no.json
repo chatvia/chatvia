@@ -271,7 +271,7 @@
                     "webhooks_path": "Use cases → Customize → Messenger API Settings",
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Engasjer kunder på Messenger",
+                    "product": "Engage with customers on Messenger",
                     "permissions_path": "Use cases → Customize → Permissions and features"
                 },
                 "whatsapp": {
@@ -404,7 +404,7 @@
                 "msteams": "Microsoft Teams",
                 "teams": "Microsoft Teams",
                 "instagram": "Instagram",
-                "playground": "Lekeplass",
+                "playground": "Playground",
                 "api": "API"
             },
             "feedback": {
@@ -435,7 +435,7 @@
                 "feedback": "Tilbakemelding",
                 "country": "Land",
                 "topic": "Emne",
-                "sentiment": "Stemning",
+                "sentiment": "Sentiment",
                 "tone": "Tone",
                 "all_scores": "Alle scorer",
                 "all_sources": "Alle kilder",
@@ -463,7 +463,7 @@
                 "confidence": "{percent}% sikkerhet",
                 "tokens": "{count} tokens",
                 "tokens_breakdown": "Forespørsel: {prompt} · Fullføring: {completion}",
-                "playground": "Lekeplass",
+                "playground": "Playground",
                 "positive_feedback": "Positiv tilbakemelding",
                 "negative_feedback": "Negativ tilbakemelding",
                 "qa_matched": "Spørsmål og svar-treff",
@@ -481,7 +481,7 @@
                 "expires_in_months": "Om {count} måned | Om {count} måneder",
                 "expires_past": "Utløpt",
                 "topic": "Emne",
-                "sentiment": "Stemning",
+                "sentiment": "Sentiment",
                 "tone": "Tone",
                 "country": "Land",
                 "city": "By",
@@ -489,7 +489,7 @@
                 "browser": "Nettleser",
                 "os": "Operativsystem",
                 "page_url": "Side-URL",
-                "referrer": "Henviser",
+                "referrer": "Referrer",
                 "locale": "Språkinnstilling",
                 "upgrade_to_unlock": "Oppgrader for å låse opp",
                 "waiting": "Venter på analyse…",
@@ -505,7 +505,7 @@
                 "mood": "Stemning",
                 "message_number": "Melding {number}",
                 "tone_label": "Tone: {value}",
-                "sentiment_label": "Stemning: {value}",
+                "sentiment_label": "Sentiment: {value}",
                 "scale_good": "Positiv",
                 "scale_neutral": "Nøytral",
                 "scale_bad": "Negativ",
@@ -672,7 +672,7 @@
             "fix_errors": "Fiks feilene nedenfor før du lagrer"
         },
         "playground": {
-            "title": "Lekeplass",
+            "title": "Playground",
             "preview_title": "Agentforhåndsvisning",
             "copied": "Kopiert!",
             "copy_agent_id": "Kopier agent-ID",
@@ -701,7 +701,7 @@
                 "scoring_cases": "Scorer tilfeller…",
                 "no_results": "Ingen resultater ennå",
                 "detail_description": "Detaljer for eval-tilfelle-resultat",
-                "score_label": "Poengsum: {score} %",
+                "score_label": "Score: {score}%",
                 "rationale": "Begrunnelse",
                 "agent_answer": "Agentsvar",
                 "empty_output": "(tomt)",
@@ -712,8 +712,8 @@
                 "table": {
                     "case": "Tilfelle",
                     "result": "Resultat",
-                    "score": "Poengsum",
-                    "scorer": "Vurderer",
+                    "score": "Score",
+                    "scorer": "Scorer",
                     "latency": "Ventetid",
                     "tokens": "Tokens"
                 },
@@ -938,7 +938,7 @@
             "pie_chart": "Kakediagram"
         },
         "sentiment": {
-            "title": "Stemning",
+            "title": "Sentiment",
             "description": "Spor positivt, nøytralt og negativt sentiment på tvers av besøkendes meldinger.",
             "locked_description": "Oppgrader planen din for å låse opp sentimentanalyse.",
             "disabled_title": "Sentimentanalyse er av",
@@ -951,7 +951,7 @@
             "neutral": "Nøytral",
             "negative": "Negativ",
             "unspecified": "Uspesifisert",
-            "sentiment": "Stemning",
+            "sentiment": "Sentiment",
             "graph": "Graf",
             "pie_chart": "Kakediagram"
         },
@@ -1739,9 +1739,9 @@
                 "store_conversations_hint": "Når dette er av, lagres ikke meldinger — og analysen nedenfor kan heller ikke samle inn data.",
                 "analytics_title": "Analyse",
                 "analytics_description": "Velg hvilke samtaleinnsikter denne agenten samler inn. Å slå av én stopper analysen og skjuler dashbordet.",
-                "sentiment_label": "Stemning",
+                "sentiment_label": "Sentiment",
                 "sentiment_aria": "Hva sporer Sentiment?",
-                "sentiment_help_title": "Stemning",
+                "sentiment_help_title": "Sentiment",
                 "sentiment_help_1": "Etter hver chat leser modellen samtalen og merker den generelle stemningen som positiv, nøytral eller negativ.",
                 "sentiment_help_2": "Resultatene samles på Sentiment-dashbordet slik at du kan oppdage misfornøyde besøkende og følge trender over tid. Krever at Lagre samtaler er på — ellers er det ingenting å analysere.",
                 "sentiment_hint": "Spor om besøkende føler seg positive, nøytrale eller negative.",
@@ -1783,7 +1783,7 @@
                 "position": "Posisjon",
                 "window_size": "Vindusstørrelse",
                 "theme": "Tema",
-                "live_chat": "Live-chat",
+                "live_chat": "Live Chat",
                 "live_chat_hint": "La besøkende overføres til et menneske. Fungerer kun på nettstedswidgeten.",
                 "open_on_load": "Åpne automatisk ved sideinnlasting",
                 "delay_ms": "Forsinkelse (ms)",
@@ -1806,7 +1806,7 @@
                 "height_placeholder": "600px",
                 "preset_full": "Full",
                 "preset_large": "Stor",
-                "preset_medium": "Middels",
+                "preset_medium": "Medium",
                 "preset_small": "Liten",
                 "html_code": "HTML-integreringskode",
                 "install_title": "Installasjonskode",
@@ -1877,7 +1877,7 @@
                 "position_top_right": "Oppe til høyre",
                 "position_top_left": "Oppe til venstre",
                 "size_small": "Liten",
-                "size_medium": "Middels",
+                "size_medium": "Medium",
                 "size_large": "Stor",
                 "placement_top": "Topp midten",
                 "placement_top_right": "Øverst til høyre",
@@ -2240,9 +2240,9 @@
             "passkey_error_fallback": "Kunne ikke logge inn med passkey.",
             "password_tab": "Passord",
             "magic_link_tab": "Magisk lenke",
-            "passkey_tab": "Passnøkkel",
+            "passkey_tab": "Passkey",
             "email_label": "E-postadresse",
-            "email_placeholder": "epost{'@'}example.com",
+            "email_placeholder": "email{'@'}example.com",
             "password_label": "Passord",
             "forgot_password": "Glemt passord?",
             "password_placeholder": "Skriv inn passordet ditt",
@@ -2263,7 +2263,7 @@
             "name_label": "Navn",
             "name_placeholder": "Ola Nordmann",
             "email_label": "E-postadresse",
-            "email_placeholder": "epost{'@'}example.com",
+            "email_placeholder": "email{'@'}example.com",
             "password_label": "Passord",
             "password_placeholder": "Passord",
             "confirm_password_label": "Bekreft passord",
@@ -2284,7 +2284,7 @@
             "description": "Skriv inn e-postadressen din for å motta en lenke for tilbakestilling av passord",
             "head": "Glemt passord",
             "email_label": "E-postadresse",
-            "email_placeholder": "epost{'@'}example.com",
+            "email_placeholder": "email{'@'}example.com",
             "send_reset_link": "Send lenke for tilbakestilling av passord",
             "sending_reset_link": "Sender tilbakestillingslenke...",
             "return_to": "Eller, gå tilbake til",
@@ -2295,7 +2295,7 @@
             "description": "Skriv inn det nye passordet ditt nedenfor",
             "head": "Tilbakestill passord",
             "email_label": "E-postadresse",
-            "email_placeholder": "epost{'@'}example.com",
+            "email_placeholder": "email{'@'}example.com",
             "password_label": "Passord",
             "password_placeholder": "Passord",
             "confirm_password_label": "Bekreft passord",
@@ -2351,7 +2351,7 @@
             "password_tab": "Passord",
             "magic_link_tab": "Magisk lenke",
             "email_label": "E-postadresse",
-            "email_placeholder": "medlem{'@'}company.com",
+            "email_placeholder": "member{'@'}company.com",
             "password_label": "Passord",
             "password_placeholder": "Skriv inn passordet ditt",
             "keep_signed_in": "Hold meg innlogget",
@@ -2822,7 +2822,7 @@
                             "links": "5 000 nettsidelenker",
                             "minutes": "2 000 minutter lyd/video",
                             "sentiment": "Sentimentanalyse",
-                            "handoff": "Overlevering",
+                            "handoff": "Handoff",
                             "api": "API-tilgang",
                             "teams": "5 team",
                             "members": "20 medlemmer (teammedlemmer + chattere)",
@@ -2846,7 +2846,7 @@
                             "tone": "Toneanalyse",
                             "topics": "Temaanalyse",
                             "pulse": "Conversation Pulse",
-                            "handoff": "Overlevering",
+                            "handoff": "Handoff",
                             "mcp": "MCP",
                             "function_calling": "Function Calling",
                             "api": "API-tilgang",
@@ -2866,7 +2866,7 @@
                             "tone": "Toneanalyse",
                             "topics": "Temaanalyse",
                             "pulse": "Conversation Pulse",
-                            "handoff": "Overlevering",
+                            "handoff": "Handoff",
                             "mcp": "MCP",
                             "function_calling": "Function Calling",
                             "api": "API-tilgang",
@@ -2892,7 +2892,7 @@
                             "tone": "Toneanalyse",
                             "topics": "Temaanalyse",
                             "pulse": "Conversation Pulse",
-                            "handoff": "Overlevering",
+                            "handoff": "Handoff",
                             "mcp": "MCP",
                             "function_calling": "Function Calling",
                             "api": "API-tilgang",
@@ -2917,7 +2917,7 @@
                             "tone": "Toneanalyse",
                             "topics": "Temaanalyse",
                             "pulse": "Conversation Pulse",
-                            "handoff": "Overlevering",
+                            "handoff": "Handoff",
                             "mcp": "MCP",
                             "function_calling": "Function Calling",
                             "api": "API-tilgang",
@@ -3033,7 +3033,10 @@
                 "table": {
                     "email": "E-post",
                     "sent": "Sendt"
-                }
+                },
+                "resend": "Send på nytt",
+                "toast_resent": "Invitasjon sendt på nytt.",
+                "toast_resend_failed": "Vi kunne ikke sende invitasjonen på nytt. Prøv igjen."
             },
             "invite": {
                 "title": "Legg til teammedlem",
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Velg en bruker...",
                 "email_label": "E-postadresse",
                 "email_placeholder": "kollega{'@'}example.com",
-                "send_invitation": "Send invitasjon"
+                "send_invitation": "Send invitasjon",
+                "toast_invite_sent": "Invitasjon sendt til {email}.",
+                "toast_member_added": "Teammedlem lagt til.",
+                "toast_failed": "Vi kunne ikke legge til teammedlemmet. Prøv igjen."
             },
             "role_members": {
                 "title": "{name}-medlemmer",
@@ -3312,7 +3318,7 @@
         }
     },
     "dashboard": {
-        "title": "Dashbord",
+        "title": "Dashboard",
         "subtitle": "Oversikt over dine AI-agenter og aktivitet",
         "create_agent": "Opprett agent",
         "total_agents": "Totalt antall agenter",
@@ -3330,7 +3336,7 @@
         "messages_tooltip": "{n} melding | {n} meldinger"
     },
     "knowledge_base": {
-        "dashboard": "Dashbord",
+        "dashboard": "Dashboard",
         "title": "Kunnskapsbase",
         "subtitle": "Se og administrer alle kunnskapsfiler på tvers av agentene dine",
         "search_placeholder": "Søk etter filer eller agenter...",
@@ -3355,7 +3361,7 @@
         "train": "Tren"
     },
     "support": {
-        "title": "Kundestøtte",
+        "title": "Support",
         "subtitle": "Se dine saker eller opprett en ny.",
         "create_ticket": "Opprett ny sak",
         "your_tickets": "Dine saker",
@@ -3396,7 +3402,7 @@
         "submit": "Send inn"
     },
     "ticket": {
-        "support": "Kundestøtte",
+        "support": "Support",
         "title": "Sak #{id}",
         "created_at": "Opprettet {date}",
         "back_to_support": "Tilbake til support",
@@ -3431,7 +3437,7 @@
         "subtitle": "Overvåk ditt nåværende forbruk på tvers av alle tjenester og funksjoner.",
         "plan_badge": "{plan}-plan",
         "label_messages": "Meldinger",
-        "label_tokens": "Tokener",
+        "label_tokens": "Tokens",
         "label_pages": "Sider",
         "label_minutes": "Minutter",
         "label_links": "Lenker",
@@ -3747,7 +3753,7 @@
             "description": "Alle handlinger agentene dine utfører gjennom verktøy og koblinger — tillatt, godkjent, avvist eller hastighetsbegrenset — med argumenter, resultat og hvem som utløste det."
         },
         "layout": {
-            "heading": "Arbeidsområde",
+            "heading": "Workspace",
             "description": "Administrer integrasjoner, personer og styring"
         },
         "sections": {
@@ -3882,7 +3888,7 @@
             "usage": "Bruk",
             "ask_your_data": "Spør om dataene dine",
             "billing": "Fakturering",
-            "support": "Kundestøtte",
+            "support": "Support",
             "teams": "Team",
             "documentation": "Dokumentasjon",
             "api": "API",
@@ -3893,7 +3899,7 @@
     },
     "nav": {
         "account": "Konto",
-        "workspace": "Arbeidsområde",
+        "workspace": "Workspace",
         "logout": "Logg ut",
         "language": "Språk",
         "platform": "Plattform"
@@ -3907,7 +3913,7 @@
             "profile": "Profil",
             "password": "Passord",
             "two_factor": "Tofaktor",
-            "passkeys": "Passnøkler",
+            "passkeys": "Passkeys",
             "social": "Sosiale kontoer",
             "data_export": "Last ned dataene mine",
             "delete": "Slett konto"
@@ -3979,7 +3985,7 @@
             "disable": "Deaktiver tofaktor"
         },
         "passkeys": {
-            "title": "Passnøkler",
+            "title": "Passkeys",
             "name_required": "Gi passøkkelen et navn først.",
             "register_error": "Kunne ikke registrere passøkkel.",
             "never": "Aldri",
@@ -4471,7 +4477,7 @@
             "close": "Lukk",
             "more": "Mer",
             "toggle_sidebar": "Slå sidebar av/på",
-            "sidebar": "Sidefelt",
+            "sidebar": "Sidebar",
             "sidebar_description": "Viser mobilsidefeltet."
         }
     },

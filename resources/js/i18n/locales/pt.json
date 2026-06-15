@@ -839,7 +839,7 @@
                 "contains": "Contém",
                 "regex": "Regex",
                 "exact": "Correspondência exata",
-                "json_schema": "Esquema JSON",
+                "json_schema": "JSON schema",
                 "llm_judge": "Juiz LLM"
             }
         },
@@ -1383,7 +1383,7 @@
                 "no_websites_selected": "Nenhum website selecionado",
                 "train": "Treinar",
                 "train_exceeds_quota": "Os links selecionados ({selected}) excedem a sua quota restante ({remaining})",
-                "links_badge": "{count} ligações",
+                "links_badge": "{count} links",
                 "badge_upgrade_required": "Upgrade necessário",
                 "badge_exceeds_quota": "Excede a quota",
                 "no_links_remaining_plan": "Não tem links restantes no seu plano. Por favor, faça upgrade para treinar este website.",
@@ -3033,7 +3033,10 @@
                 "table": {
                     "email": "E-mail",
                     "sent": "Enviado"
-                }
+                },
+                "resend": "Reenviar",
+                "toast_resent": "Convite reenviado.",
+                "toast_resend_failed": "Não foi possível reenviar o convite. Tente novamente."
             },
             "invite": {
                 "title": "Adicionar Membro à Equipa",
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Escolher um utilizador...",
                 "email_label": "Endereço de E-mail",
                 "email_placeholder": "colega{'@'}exemplo.com",
-                "send_invitation": "Enviar Convite"
+                "send_invitation": "Enviar Convite",
+                "toast_invite_sent": "Convite enviado para {email}.",
+                "toast_member_added": "Membro da equipa adicionado.",
+                "toast_failed": "Não foi possível adicionar o membro da equipa. Tente novamente."
             },
             "role_members": {
                 "title": "Membros de {name}",
@@ -3877,7 +3883,7 @@
     },
     "app": {
         "header": {
-            "dashboard": "Painel",
+            "dashboard": "Dashboard",
             "agents": "Agentes",
             "usage": "Utilização",
             "ask_your_data": "Pergunte aos seus dados",

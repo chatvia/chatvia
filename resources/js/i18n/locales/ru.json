@@ -3030,6 +3030,9 @@
             "invitations": {
                 "title": "Ожидающие приглашения",
                 "description": "Эти приглашения ожидают принятия.",
+                "resend": "Отправить снова",
+                "toast_resent": "Приглашение отправлено снова.",
+                "toast_resend_failed": "Не удалось повторно отправить приглашение. Попробуйте снова.",
                 "table": {
                     "email": "Эл. почта",
                     "sent": "Отправлено"
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Выберите пользователя...",
                 "email_label": "Адрес эл. почты",
                 "email_placeholder": "colleague{'@'}example.com",
-                "send_invitation": "Отправить приглашение"
+                "send_invitation": "Отправить приглашение",
+                "toast_invite_sent": "Приглашение отправлено на {email}.",
+                "toast_member_added": "Участник команды добавлен.",
+                "toast_failed": "Не удалось добавить участника команды. Попробуйте снова."
             },
             "role_members": {
                 "title": "Участники роли «{name}»",

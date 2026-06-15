@@ -3030,6 +3030,9 @@
             "invitations": {
                 "title": "Bekleyen Davetler",
                 "description": "Bu davetler kabul edilmeyi bekliyor.",
+                "resend": "Tekrar gönder",
+                "toast_resent": "Davet tekrar gönderildi.",
+                "toast_resend_failed": "Davet tekrar gönderilemedi. Lütfen tekrar deneyin.",
                 "table": {
                     "email": "E-posta",
                     "sent": "Gönderildi"
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Bir kullanıcı seçin...",
                 "email_label": "E-posta Adresi",
                 "email_placeholder": "calisan{'@'}example.com",
-                "send_invitation": "Davet Gönder"
+                "send_invitation": "Davet Gönder",
+                "toast_invite_sent": "Davet {email} adresine gönderildi.",
+                "toast_member_added": "Ekip üyesi eklendi.",
+                "toast_failed": "Ekip üyesi eklenemedi. Lütfen tekrar deneyin."
             },
             "role_members": {
                 "title": "{name} Üyeleri",

@@ -3030,6 +3030,9 @@
             "invitations": {
                 "title": "待处理的邀请",
                 "description": "这些邀请正在等待接受。",
+                "resend": "重新发送",
+                "toast_resent": "邀请已重新发送。",
+                "toast_resend_failed": "无法重新发送邀请。请重试。",
                 "table": {
                     "email": "电子邮箱",
                     "sent": "发送时间"
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "选择一个用户……",
                 "email_label": "电子邮箱地址",
                 "email_placeholder": "colleague{'@'}example.com",
-                "send_invitation": "发送邀请"
+                "send_invitation": "发送邀请",
+                "toast_invite_sent": "邀请已发送至 {email}。",
+                "toast_member_added": "已添加团队成员。",
+                "toast_failed": "无法添加团队成员。请重试。"
             },
             "role_members": {
                 "title": "{name} 成员",

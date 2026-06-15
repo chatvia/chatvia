@@ -249,7 +249,7 @@
                     "steps": {
                         "connected_1": "I {link}, öppna {event_subscriptions}, aktivera det och klistra in begärans-URL:en ovan",
                         "connected_2": "Prenumerera på bot-händelserna {mention} och {im}, spara sedan",
-                        "connected_3": "Bjud in boten till en kanal med {invite} och {'@'}omnämn den {live}",
+                        "connected_3": "Bjud in boten till en kanal med {invite} och @omnämn den {live}",
                         "connect_1": "Skapa en app på {link} i din arbetsyta",
                         "connect_2": "Under {oauth}, lägg till bot-behörigheterna {scope1}, {scope2}, {scope3}, installera sedan appen och kopiera bot-token",
                         "connect_3": "Kopiera signeringshemligheten från {basic_info} och klistra in båda nedan"
@@ -1351,7 +1351,7 @@
                 "retrain_failed": "Det gick inte att träna om webbplatsen",
                 "monitoring_title": "Smart övervakning",
                 "monitoring_message": "Dina webbplatser kontrolleras regelbundet för ändringar och crawlas automatiskt om vid behov för att hålla agentens kunskap aktuell.",
-                "crawler_title": "Sökrobot",
+                "crawler_title": "Crawler",
                 "crawler_description": "Hämta länkar från webbplatser för att crawla och inkludera i agentens kunskapsbas.",
                 "settings": "Inställningar",
                 "links_used": "{used} / {limit} länkar använda",
@@ -1845,7 +1845,7 @@
                 "open_new_tab": "Öppna i ny flik"
             },
             "api": {
-                "title": "JavaScript-API",
+                "title": "JavaScript API",
                 "description": "Styr chattwidgeten programmatiskt med dessa metoder och händelser",
                 "methods": "Metoder",
                 "events": "Händelser",
@@ -2457,7 +2457,7 @@
             "view_plans": "Visa planer",
             "cancel": "Avbryt",
             "processing": "Bearbetar...",
-            "not_available": "Ej tillgänglig"
+            "not_available": "N/A"
         },
         "payment_success": {
             "page_title": "Betalning genomförd",
@@ -3033,7 +3033,10 @@
                 "table": {
                     "email": "E-post",
                     "sent": "Skickad"
-                }
+                },
+                "resend": "Skicka igen",
+                "toast_resent": "Inbjudan skickad igen.",
+                "toast_resend_failed": "Vi kunde inte skicka inbjudan igen. Försök igen."
             },
             "invite": {
                 "title": "Lägg till teammedlem",
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Välj en användare...",
                 "email_label": "E-postadress",
                 "email_placeholder": "kollega{'@'}example.com",
-                "send_invitation": "Skicka inbjudan"
+                "send_invitation": "Skicka inbjudan",
+                "toast_invite_sent": "Inbjudan skickad till {email}.",
+                "toast_member_added": "Teammedlem tillagd.",
+                "toast_failed": "Vi kunde inte lägga till teammedlemmen. Försök igen."
             },
             "role_members": {
                 "title": "{name} – medlemmar",
@@ -3301,7 +3307,7 @@
                     "description": "Hantera det delade promptbiblioteket"
                 },
                 "account_members_manage": {
-                    "label": "Chattare",
+                    "label": "Chatters",
                     "description": "Visa, återställ lösenord och ta bort chatters i hela arbetsytan"
                 },
                 "account_governance": {
@@ -3674,8 +3680,8 @@
             }
         },
         "members": {
-            "breadcrumb": "Chattare",
-            "title": "Chattare",
+            "breadcrumb": "Chatters",
+            "title": "Chatters",
             "description": "Alla du har gett åtkomst att chatta med dina agenter. Skicka en länk för lösenordsåterställning eller ta bort en chatter helt.",
             "search_placeholder": "Sök chatters...",
             "count": "{shown} av {total} chatter | {shown} av {total} chatters",
@@ -3761,7 +3767,7 @@
             "functions": "Funktioner",
             "api_keys": "API-nycklar",
             "prompts": "Prompter",
-            "members": "Chattare",
+            "members": "Chatters",
             "audit_log": "Granskningslogg",
             "security": "Säkerhet",
             "security_audit": "Säkerhetsgranskning",

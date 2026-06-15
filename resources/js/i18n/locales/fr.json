@@ -226,7 +226,7 @@
                         "builtins_note": "/start, /reset et /help sont intégrées et toujours disponibles.",
                         "dialog_title": "Commandes personnalisées",
                         "dialog_description": "Ajoutez des commandes slash sur lesquelles les utilisateurs peuvent appuyer dans Telegram. Chacune répond avec le texte que vous définissez. Les commandes intégrées (/start, /reset, /help) sont toujours disponibles.",
-                        "command_placeholder": "tarifs",
+                        "command_placeholder": "pricing",
                         "description_placeholder": "Ce que fait cette commande",
                         "reply_placeholder": "La réponse à envoyer lorsque quelqu'un utilise cette commande…",
                         "remove": "Supprimer la commande",
@@ -271,7 +271,7 @@
                     "webhooks_path": "Cas d'usage → Personnaliser → Paramètres de l'API Messenger",
                     "api_settings_path": "Cas d'usage → Personnaliser → Paramètres de l'API Messenger",
                     "app_settings_basic": "Paramètres de l'application → Général",
-                    "product": "Échangez avec vos clients sur Messenger",
+                    "product": "Engage with customers on Messenger",
                     "permissions_path": "Cas d'usage → Personnaliser → Autorisations et fonctionnalités"
                 },
                 "whatsapp": {
@@ -1636,7 +1636,7 @@
             "unique_sessions": "Sessions uniques",
             "total_tokens": "Total des tokens",
             "avg_tokens_per_message": "Tokens moyens / message",
-            "na": "N/D",
+            "na": "N/A",
             "chart_conversations": "Conversations",
             "chart_tooltip_conversations": "{date} : {count} conversations",
             "chart_tooltip_change": "Variation : {sign}{diff} ({sign}{percent}%)",
@@ -2779,7 +2779,7 @@
                             "teams": "1 équipe",
                             "members": "5 membres (membres d'équipe + chatters)",
                             "mcp": "MCP",
-                            "function_calling": "Appel de fonctions",
+                            "function_calling": "Function Calling",
                             "retention": "90 jours d'historique de conversation"
                         },
                         "yearly": {
@@ -2791,7 +2791,7 @@
                             "teams": "1 équipe",
                             "members": "5 membres (membres d'équipe + chatters)",
                             "mcp": "MCP",
-                            "function_calling": "Appel de fonctions",
+                            "function_calling": "Function Calling",
                             "retention": "90 jours d'historique de conversation"
                         }
                     }
@@ -2807,12 +2807,12 @@
                             "links": "5 000 liens de site web",
                             "minutes": "2 000 minutes audio/vidéo",
                             "sentiment": "Analyse de sentiment",
-                            "handoff": "Transfert",
+                            "handoff": "Handoff",
                             "api": "Accès API",
                             "teams": "5 équipes",
                             "members": "20 membres (membres d'équipe + chatters)",
                             "mcp": "MCP",
-                            "function_calling": "Appel de fonctions",
+                            "function_calling": "Function Calling",
                             "retention": "180 jours d'historique de conversation"
                         },
                         "yearly": {
@@ -2822,12 +2822,12 @@
                             "links": "5 000 liens de site web",
                             "minutes": "2 000 minutes audio/vidéo",
                             "sentiment": "Analyse de sentiment",
-                            "handoff": "Transfert",
+                            "handoff": "Handoff",
                             "api": "Accès API",
                             "teams": "5 équipes",
                             "members": "20 membres (membres d'équipe + chatters)",
                             "mcp": "MCP",
-                            "function_calling": "Appel de fonctions",
+                            "function_calling": "Function Calling",
                             "retention": "180 jours d'historique de conversation"
                         }
                     }
@@ -2845,10 +2845,10 @@
                             "sentiment": "Analyse de sentiment",
                             "tone": "Analyse de ton",
                             "topics": "Analyse de sujets",
-                            "pulse": "Pulse des conversations",
-                            "handoff": "Transfert",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
                             "mcp": "MCP",
-                            "function_calling": "Appel de fonctions",
+                            "function_calling": "Function Calling",
                             "api": "Accès API",
                             "integrations": "Intégrations personnalisées",
                             "branding": "Marque blanche (suppression de la marque Chatvia)",
@@ -2865,10 +2865,10 @@
                             "sentiment": "Analyse de sentiment",
                             "tone": "Analyse de ton",
                             "topics": "Analyse de sujets",
-                            "pulse": "Pulse des conversations",
-                            "handoff": "Transfert",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
                             "mcp": "MCP",
-                            "function_calling": "Appel de fonctions",
+                            "function_calling": "Function Calling",
                             "api": "Accès API",
                             "integrations": "Intégrations personnalisées",
                             "branding": "Marque blanche (suppression de la marque Chatvia)",
@@ -2891,8 +2891,8 @@
                             "sentiment": "Analyse de sentiment",
                             "tone": "Analyse de ton",
                             "topics": "Analyse de sujets",
-                            "pulse": "Pulse des conversations",
-                            "handoff": "Transfert",
+                            "pulse": "Conversation Pulse",
+                            "handoff": "Handoff",
                             "mcp": "MCP",
                             "function_calling": "Function Calling",
                             "api": "Accès API",
@@ -2917,7 +2917,7 @@
                             "tone": "Analyse de ton",
                             "topics": "Analyse de sujets",
                             "pulse": "Conversation Pulse",
-                            "handoff": "Transfert",
+                            "handoff": "Handoff",
                             "mcp": "MCP",
                             "function_calling": "Function Calling",
                             "api": "Accès API",
@@ -3033,7 +3033,10 @@
                 "table": {
                     "email": "E-mail",
                     "sent": "Envoyée"
-                }
+                },
+                "resend": "Renvoyer",
+                "toast_resent": "Invitation renvoyée.",
+                "toast_resend_failed": "Nous n'avons pas pu renvoyer l'invitation. Veuillez réessayer."
             },
             "invite": {
                 "title": "Ajouter un membre à l'équipe",
@@ -3044,7 +3047,10 @@
                 "select_user_placeholder": "Choisir un utilisateur…",
                 "email_label": "Adresse e-mail",
                 "email_placeholder": "collegue{'@'}exemple.com",
-                "send_invitation": "Envoyer l'invitation"
+                "send_invitation": "Envoyer l'invitation",
+                "toast_invite_sent": "Invitation envoyée à {email}.",
+                "toast_member_added": "Membre de l'équipe ajouté.",
+                "toast_failed": "Nous n'avons pas pu ajouter le membre de l'équipe. Veuillez réessayer."
             },
             "role_members": {
                 "title": "Membres — {name}",
@@ -3066,7 +3072,7 @@
             "agents_more": "{names} +{count} de plus",
             "no_agents_available": "Aucun agent disponible",
             "permissions": {
-                "title": "Autorisations",
+                "title": "Permissions",
                 "description": "Choisissez les actions que les utilisateurs ayant ce rôle peuvent effectuer.",
                 "requires": "Requiert :"
             },
@@ -3397,7 +3403,7 @@
     },
     "ticket": {
         "support": "Support",
-        "title": "Ticket n° {id}",
+        "title": "Ticket #{id}",
         "created_at": "Créé le {date}",
         "back_to_support": "Retour au support",
         "status_open": "Ouvert",
@@ -4144,7 +4150,7 @@
         "delete_confirmation_description": "Cette action est irréversible.",
         "yes_delete": "Oui, supprimer",
         "no_keep": "Non, conserver",
-        "information": "Informations",
+        "information": "Information",
         "dismiss_banner": "Fermer la bannière",
         "training_in_progress": "Entraînement en cours",
         "unknown": "Inconnu",

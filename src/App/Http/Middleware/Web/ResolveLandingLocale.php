@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
  *     landing in step with a choice made in the dashboard.
  *
  * Guests: no browser-based auto-redirect — everyone stays on the English default
- * until they pick German or French from the switcher.
+ * until they pick a language from the switcher.
  */
 class ResolveLandingLocale
 {
@@ -47,15 +47,16 @@ class ResolveLandingLocale
                 // No locale in the URL: follow the account preference (set anywhere,
                 // including the dashboard) so localeSessionRedirect routes them to it —
                 // but only when it is still a supported landing locale. An account on a
-                // now-disabled locale (e.g. a dashboard set to Arabic) falls through to
-                // the English default rather than seeding a session mcamara can't route.
+                // locale no longer offered (e.g. a legacy preference since removed)
+                // falls through to the English default rather than seeding a session
+                // mcamara can't route.
                 session(['locale' => $user->locale]);
             }
 
             return $next($request);
         }
 
-        // Guests stay on the English default and pick German or French from the
+        // Guests stay on the English default and pick a language from the
         // switcher — no browser-based auto-redirect.
         return $next($request);
     }

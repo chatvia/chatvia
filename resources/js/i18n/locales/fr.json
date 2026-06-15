@@ -2305,7 +2305,7 @@
             "title": "Chatters",
             "description": "Vos chatters. Les chatters ayant accès à cet agent sont listés en premier ; accordez l'accès à n'importe quel autre chatter en un clic.",
             "public_title": "Cet agent est public",
-            "public_description": "Toute personne disposant du lien peut discuter avec cet agent, les autorisations de chatters ne s'appliquent donc pas. Pour utiliser les chatters, rendez l'agent protégé depuis son onglet Configuration.",
+            "public_description": "Toute personne disposant du lien peut discuter avec cet agent, les autorisations de chatters ne s'appliquent donc pas. Pour utiliser les chatters, rendez l'agent protégé depuis son onglet Sécurité.",
             "search_placeholder": "Rechercher des chatters...",
             "count": "{filtered} sur {total} chatter | {filtered} sur {total} chatters",
             "invite_member": "Inviter un chatter",

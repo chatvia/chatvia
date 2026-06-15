@@ -2165,7 +2165,7 @@
             "title": "Chatterit",
             "description": "Chatterisi. Ne, joilla on pääsy tähän agentille, näytetään ensin. Voit myöntää muille chattereille pääsyn yhdellä napsautuksella.",
             "public_title": "Tämä agentti on julkinen",
-            "public_description": "Kuka tahansa linkin omaava voi keskustella agentin kanssa, joten chatterien käyttöoikeudet eivät ole voimassa. Voidaksesi käyttää chattereita, tee agentista suojattu Asetukset-välilehdeltä.",
+            "public_description": "Kuka tahansa linkin omaava voi keskustella agentin kanssa, joten chatterien käyttöoikeudet eivät ole voimassa. Voidaksesi käyttää chattereita, tee agentista suojattu Suojaus-välilehdeltä.",
             "search_placeholder": "Etsi chattereita...",
             "count": "{filtered} / {total} chatter | {filtered} / {total} chatteria",
             "invite_member": "Kutsu chatter",

@@ -2288,7 +2288,7 @@
             "title": "Chattere",
             "description": "Dine chattere. Chattere med adgang til denne agent vises først; giv en anden chatter adgang med ét klik.",
             "public_title": "Denne agent er offentlig",
-            "public_description": "Alle med linket kan chatte med denne agent, så chatter-tilladelser gælder ikke. For at bruge chattere skal du gøre agenten beskyttet fra fanen Opsætning.",
+            "public_description": "Alle med linket kan chatte med denne agent, så chatter-tilladelser gælder ikke. For at bruge chattere skal du gøre agenten beskyttet fra fanen Sikkerhed.",
             "search_placeholder": "Søg efter chattere...",
             "count": "{filtered} af {total} chatter | {filtered} af {total} chattere",
             "invite_member": "Inviter chatter",

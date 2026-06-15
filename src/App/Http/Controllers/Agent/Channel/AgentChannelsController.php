@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent\Channel;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -14,7 +15,7 @@ use Inertia\Response;
  */
 class AgentChannelsController
 {
-    public function __invoke(Request $request, Agent $agent): Response
+    public function __invoke(Request $request, Agent $agent, TelegramCommandRouter $commands): Response
     {
         $bot = $agent->telegramBot;
         $slack = $agent->slackApp;
@@ -26,7 +27,7 @@ class AgentChannelsController
         return Inertia::render('agents/Channels/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'telegram' => $bot !== null
-                ? ['connected' => true, 'bot_username' => $bot->bot_username, 'enabled' => $bot->enabled, 'commands' => $bot->custom_commands ?? []]
+                ? ['connected' => true, 'bot_username' => $bot->bot_username, 'enabled' => $bot->enabled, 'commands' => $commands->forEditing($bot)]
                 : ['connected' => false, 'bot_username' => null, 'enabled' => false, 'commands' => []],
             // The webhook URLs embed the per-app secret — the workspace pastes
             // them into their Slack app's Event Subscriptions / Meta app's

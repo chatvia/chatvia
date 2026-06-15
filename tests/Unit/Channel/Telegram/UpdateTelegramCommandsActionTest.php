@@ -9,10 +9,10 @@ use Illuminate\Support\Str;
 use Tests\Support\Telegram\FakeTelegramClient;
 
 /**
- * Saving custom commands persists them on the bot and re-registers the full
- * command menu (built-ins + custom) with Telegram.
+ * Saving commands persists them on the bot and re-registers the full "/" menu
+ * (built-ins merged with the stored overrides + customs) with Telegram.
  */
-it('stores the custom commands and re-registers the Telegram menu', function (): void {
+it('stores the commands and re-registers the Telegram menu', function (): void {
     $agent = Agent::factory()->create();
     $bot = AgentTelegramBot::create([
         'agent_id' => $agent->id,
@@ -26,16 +26,15 @@ it('stores the custom commands and re-registers the Telegram menu', function ():
     $action = new UpdateTelegramCommandsAction(new TelegramCommandRouter(app(TelegramChatResolver::class), $client));
 
     $action->execute($bot, [
-        ['command' => 'pricing', 'description' => 'See our plans', 'reply' => 'Plans start at €99/mo.'],
-        ['command' => 'hours', 'description' => 'Opening hours', 'reply' => 'We are open 9–5 CET.'],
+        ['command' => 'start', 'description' => 'Start', 'type' => 'message', 'value' => 'Hey there!'],
+        ['command' => 'pricing', 'description' => 'See our plans', 'type' => 'prompt', 'value' => 'Explain our pricing.'],
     ]);
 
-    // Persisted on the bot row.
-    expect($bot->fresh()->custom_commands)->toHaveCount(2)
-        ->and($bot->fresh()->custom_commands[0]['command'])->toBe('pricing');
+    // Persisted on the bot row, verbatim.
+    expect($bot->fresh()->commands)->toHaveCount(2)
+        ->and($bot->fresh()->commands[1])->toMatchArray(['command' => 'pricing', 'type' => 'prompt']);
 
-    // Menu re-registered: built-ins first, then the two custom commands.
+    // Menu re-registered: edited /start, the merged reset/help defaults, then customs.
     expect($client->commands)->toHaveCount(1)
-        ->and(array_column($client->commands[0]['commands'], 'command'))
-        ->toBe(['start', 'reset', 'help', 'pricing', 'hours']);
+        ->and(array_column($client->commands[0]['commands'], 'command'))->toBe(['start', 'reset', 'help', 'pricing']);
 });

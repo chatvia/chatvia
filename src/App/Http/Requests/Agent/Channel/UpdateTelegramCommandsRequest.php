@@ -2,15 +2,20 @@
 
 namespace App\Http\Requests\Agent\Channel;
 
-use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 /**
- * Validates an agent's custom Telegram commands. The route already enforces
- * `agent.permission:agent.setup`, so authorize() defers to it. Command names
- * follow Telegram's rules (lowercase letters, digits, underscores; ≤32 chars)
- * and can't shadow the built-ins (/start, /reset, /help).
+ * Validates an agent's Telegram commands — built-in overrides (/start, /reset,
+ * /help) plus custom commands. The route already enforces
+ * `agent.permission:agent.setup`, so authorize() defers to it.
+ *
+ * Each command is a {command, description, type, value}: `type` is "message"
+ * (canned text sent as-is) or "prompt" (run through the agent). Command names
+ * follow Telegram's rules (lowercase letters, digits, underscores; ≤32 chars).
+ * `/help` may have a blank value (it then auto-lists the commands); every other
+ * command needs a value.
  */
 class UpdateTelegramCommandsRequest extends FormRequest
 {
@@ -20,8 +25,8 @@ class UpdateTelegramCommandsRequest extends FormRequest
     }
 
     /**
-     * Normalise before validation: drop the leading slash a user might type,
-     * lowercase the command, and trim the labels.
+     * Normalise before validation: drop a leading slash, lowercase the command,
+     * default the type, and trim the labels.
      */
     protected function prepareForValidation(): void
     {
@@ -29,7 +34,8 @@ class UpdateTelegramCommandsRequest extends FormRequest
             static fn (array $c): array => [
                 'command' => ltrim(strtolower(trim((string) ($c['command'] ?? ''))), '/'),
                 'description' => trim((string) ($c['description'] ?? '')),
-                'reply' => trim((string) ($c['reply'] ?? '')),
+                'type' => ($c['type'] ?? 'message') === 'prompt' ? 'prompt' : 'message',
+                'value' => trim((string) ($c['value'] ?? '')),
             ],
             (array) $this->input('commands', []),
         );
@@ -43,17 +49,29 @@ class UpdateTelegramCommandsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'commands' => ['present', 'array', 'max:50'],
-            'commands.*.command' => [
-                'required',
-                'string',
-                'regex:/^[a-z0-9_]{1,32}$/',
-                Rule::notIn(TelegramCommandRouter::RESERVED),
-                'distinct:ignore_case',
-            ],
+            'commands' => ['present', 'array', 'max:60'],
+            'commands.*.command' => ['required', 'string', 'regex:/^[a-z0-9_]{1,32}$/', 'distinct:ignore_case'],
             'commands.*.description' => ['required', 'string', 'max:256'],
-            'commands.*.reply' => ['required', 'string', 'max:4096'],
+            'commands.*.type' => ['required', Rule::in(['message', 'prompt'])],
+            'commands.*.value' => ['nullable', 'string', 'max:4096'],
         ];
+    }
+
+    /**
+     * Every command needs a value except /help, which auto-lists the commands
+     * when left blank.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            foreach ((array) $this->input('commands', []) as $i => $command) {
+                $isHelp = ($command['command'] ?? '') === 'help';
+
+                if (! $isHelp && trim((string) ($command['value'] ?? '')) === '') {
+                    $validator->errors()->add("commands.{$i}.value", 'Add the message or prompt for this command.');
+                }
+            }
+        });
     }
 
     /**
@@ -63,17 +81,16 @@ class UpdateTelegramCommandsRequest extends FormRequest
     {
         return [
             'commands.*.command.regex' => 'Use lowercase letters, digits, and underscores only (max 32 characters).',
-            'commands.*.command.not_in' => 'start, reset, and help are built-in commands and can’t be redefined.',
             'commands.*.command.distinct' => 'Each command can only be defined once.',
         ];
     }
 
     /**
-     * @return list<array{command: string, description: string, reply: string}>
+     * @return list<array{command: string, description: string, type: string, value: string}>
      */
     public function commands(): array
     {
-        /** @var list<array{command: string, description: string, reply: string}> $commands */
+        /** @var list<array{command: string, description: string, type: string, value: string}> $commands */
         $commands = (array) $this->input('commands', []);
 
         return array_values($commands);

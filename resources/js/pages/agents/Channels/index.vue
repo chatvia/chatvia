@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
@@ -50,7 +51,7 @@ interface Props {
         connected: boolean;
         bot_username: string | null;
         enabled: boolean;
-        commands: { command: string; description: string; reply: string }[];
+        commands: { command: string; description: string; type: 'message' | 'prompt'; value: string; builtin: boolean }[];
     };
     slack: { connected: boolean; team_name: string | null; webhook_url: string | null; enabled: boolean };
     messenger: { connected: boolean; page_name: string | null; webhook_url: string | null; verify_token: string | null; enabled: boolean };
@@ -263,14 +264,16 @@ const disconnect = () => {
     });
 };
 
-// ── Telegram custom commands --------------------------------------------------
-// Built-ins (/start, /reset, /help) are code-defined; these are extra canned-text
-// commands the workspace can add. Same draft → dialog → commit-on-Save pattern as
-// the Guardrails blocked-topics editor.
+// ── Telegram commands ---------------------------------------------------------
+// Each command is a saved message or a prompt run through the agent. Built-ins
+// (/start, /reset, /help) arrive pre-filled and pinned; customs can be added or
+// removed. Same draft → dialog → commit-on-Save pattern as the Guardrails editor.
 interface TelegramCommand {
     command: string;
     description: string;
-    reply: string;
+    type: 'message' | 'prompt';
+    value: string;
+    builtin: boolean;
 }
 
 const commandsOpen = ref(false);
@@ -281,14 +284,14 @@ const openCommands = () => {
     commandsForm.commands = props.telegram.commands.map((c) => ({ ...c }));
     commandsOpen.value = true;
 };
-const addCommand = () => commandsForm.commands.push({ command: '', description: '', reply: '' });
+const addCommand = () => commandsForm.commands.push({ command: '', description: '', type: 'prompt', value: '', builtin: false });
 const removeCommand = (index: number) => commandsForm.commands.splice(index, 1);
 const saveCommands = () => {
     commandsForm
-        // Drop fully-blank rows so a stray empty row never blocks the save; the
-        // server still validates and reports any partially-filled ones.
+        // Drop fully-blank custom rows so a stray empty row never blocks the save;
+        // built-ins always go through, and the server validates the rest.
         .transform((data) => ({
-            commands: data.commands.filter((c) => c.command.trim() || c.description.trim() || c.reply.trim()),
+            commands: data.commands.filter((c) => c.builtin || c.command.trim() || c.description.trim() || c.value.trim()),
         }))
         .put(route('agents.channels.telegram.commands', props.agent.external_id), {
             preserveScroll: true,
@@ -1591,42 +1594,51 @@ const saveCommands = () => {
             </AlertDialogContent>
         </AlertDialog>
 
-        <!-- Telegram custom commands -->
+        <!-- Telegram commands -->
         <Dialog v-model:open="commandsOpen">
-            <DialogContent class="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+            <DialogContent class="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>{{ t('agents.channels.setup.telegram.commands.dialog_title') }}</DialogTitle>
                     <DialogDescription>{{ t('agents.channels.setup.telegram.commands.dialog_description') }}</DialogDescription>
                 </DialogHeader>
 
                 <div class="space-y-3">
-                    <div v-for="(command, index) in commandsForm.commands" :key="index" class="rounded-lg border p-3">
-                        <div class="flex items-start gap-2">
-                            <div class="flex-1 space-y-2">
-                                <div class="flex items-center gap-2">
-                                    <div class="relative w-40 shrink-0">
-                                        <span class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm"
-                                            >/</span
-                                        >
-                                        <Input
-                                            v-model="commandsForm.commands[index].command"
-                                            :placeholder="t('agents.channels.setup.telegram.commands.command_placeholder')"
-                                            class="ps-6 font-mono"
-                                        />
-                                    </div>
-                                    <Input
-                                        v-model="commandsForm.commands[index].description"
-                                        :placeholder="t('agents.channels.setup.telegram.commands.description_placeholder')"
-                                        class="flex-1"
-                                    />
-                                </div>
-                                <Textarea
-                                    v-model="commandsForm.commands[index].reply"
-                                    :placeholder="t('agents.channels.setup.telegram.commands.reply_placeholder')"
-                                    :rows="2"
+                    <div v-for="(command, index) in commandsForm.commands" :key="index" class="space-y-2 rounded-lg border p-3">
+                        <div class="flex items-center gap-2">
+                            <!-- Command name: read-only for built-ins, editable for custom -->
+                            <div
+                                v-if="command.builtin"
+                                class="bg-muted text-foreground/80 flex h-9 w-32 shrink-0 items-center rounded-md px-3 font-mono text-sm"
+                            >
+                                /{{ command.command }}
+                            </div>
+                            <div v-else class="relative w-32 shrink-0">
+                                <span class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm">/</span>
+                                <Input
+                                    v-model="command.command"
+                                    :placeholder="t('agents.channels.setup.telegram.commands.command_placeholder')"
+                                    class="ps-6 font-mono"
                                 />
                             </div>
+
+                            <!-- Description (shown in Telegram's command menu) -->
+                            <Input
+                                v-model="command.description"
+                                :placeholder="t('agents.channels.setup.telegram.commands.description_placeholder')"
+                                class="flex-1"
+                            />
+
+                            <!-- Mode: prompt (run through agent) vs message (canned) -->
+                            <Select v-model="command.type">
+                                <SelectTrigger class="w-36 shrink-0"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="prompt">{{ t('agents.channels.setup.telegram.commands.mode_prompt') }}</SelectItem>
+                                    <SelectItem value="message">{{ t('agents.channels.setup.telegram.commands.mode_message') }}</SelectItem>
+                                </SelectContent>
+                            </Select>
+
                             <Button
+                                v-if="!command.builtin"
                                 type="button"
                                 variant="ghost"
                                 size="icon"
@@ -1636,12 +1648,31 @@ const saveCommands = () => {
                             >
                                 <Trash2 class="size-4" />
                             </Button>
+                            <Badge v-else variant="secondary" class="shrink-0">
+                                {{ t('agents.channels.setup.telegram.commands.builtin_badge') }}
+                            </Badge>
                         </div>
-                    </div>
 
-                    <p v-if="!commandsForm.commands.length" class="text-muted-foreground text-sm">
-                        {{ t('agents.channels.setup.telegram.commands.empty_draft') }}
-                    </p>
+                        <Textarea
+                            v-model="command.value"
+                            :rows="2"
+                            :placeholder="
+                                command.type === 'prompt'
+                                    ? t('agents.channels.setup.telegram.commands.prompt_placeholder')
+                                    : t('agents.channels.setup.telegram.commands.message_placeholder')
+                            "
+                        />
+
+                        <p class="text-muted-foreground text-xs">
+                            {{
+                                command.command === 'reset'
+                                    ? t('agents.channels.setup.telegram.commands.reset_hint')
+                                    : command.command === 'help'
+                                      ? t('agents.channels.setup.telegram.commands.help_hint')
+                                      : t('agents.channels.setup.telegram.commands.name_token_hint')
+                            }}
+                        </p>
+                    </div>
 
                     <p v-for="(message, key) in commandsForm.errors" :key="key" class="text-destructive text-xs">{{ message }}</p>
                 </div>

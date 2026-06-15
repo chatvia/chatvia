@@ -44,23 +44,23 @@ class HandleTelegramUpdateAction
 
         $chat = $this->resolver->resolve($bot, $chatId, $from);
 
-        // Slash commands (/start, /reset, /help, custom) are answered directly —
-        // no "typing…", no LLM, no billing. Anything else (incl. an unknown
-        // /command) returns null and falls through to the real agent pipeline.
-        $reply = $this->commands->handle($bot, $chat, $text, $from);
+        // A slash command resolves to either a canned message (sent directly — no
+        // LLM, no billing) or a prompt to run through the agent. A plain message,
+        // or an unknown /command, returns null and runs the pipeline as-is.
+        $outcome = $this->commands->handle($bot, $chat, $text, $from);
 
-        if ($reply !== null) {
-            $this->client->sendMessage($bot->bot_token, $chatId, $reply);
+        if ($outcome !== null && ! $outcome->runThroughAgent) {
+            $this->client->sendMessage($bot->bot_token, $chatId, $outcome->text);
             $chat->forceFill(['last_message_at' => now()])->save();
 
             return;
         }
 
-        // Instant feedback: "typing…" the moment the message lands. The runner
-        // keeps it alive while the agent (RAG + LLM) generates the reply.
+        // Either a prompt-mode command (run its prompt) or a normal turn (the
+        // original text). Instant "typing…" while the agent (RAG + LLM) works.
         $this->client->sendChatAction($bot->bot_token, $chatId);
 
-        $reply = $this->runner->reply($chat, $text);
+        $reply = $this->runner->reply($chat, $outcome?->text ?? $text);
 
         $this->client->sendMessage($bot->bot_token, $chatId, $reply);
 

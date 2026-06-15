@@ -4,7 +4,7 @@
             "title": "Chatters",
             "description": "Your chatters. Those with access to this agent are listed first; grant any other chatter access in one click.",
             "public_title": "This agent is public",
-            "public_description": "Anyone with the link can chat with this agent, so chatter grants don't apply. To use chatters, make the agent protected from its Setup tab.",
+            "public_description": "Anyone with the link can chat with this agent, so chatter grants don't apply. To use chatters, make the agent protected from its Security tab.",
             "search_placeholder": "Search chatters...",
             "count": "{filtered} of {total} chatter | {filtered} of {total} chatters",
             "invite_member": "Invite chatter",

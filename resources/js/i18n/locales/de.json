@@ -384,7 +384,24 @@
                         "connect_2": "{command} senden und den Anweisungen folgen",
                         "connect_3": "Das Token unten einfügen – die Verbindung wird automatisch hergestellt"
                     },
-                    "botfather": "{'@'}BotFather"
+                    "botfather": "{'@'}BotFather",
+                    "commands": {
+                        "title": "Befehle",
+                        "empty": "Noch keine eigenen Befehle",
+                        "manage": "Verwalten",
+                        "builtins_note": "/start, /reset und /help sind integriert und immer verfügbar.",
+                        "dialog_title": "Eigene Befehle",
+                        "dialog_description": "Fügen Sie Slash-Befehle hinzu, die Personen in Telegram antippen können. Jeder antwortet mit dem von Ihnen festgelegten Text. Integrierte Befehle (/start, /reset, /help) sind immer verfügbar.",
+                        "command_placeholder": "pricing",
+                        "description_placeholder": "Was dieser Befehl macht",
+                        "reply_placeholder": "Die Antwort, die gesendet wird, wenn jemand diesen Befehl verwendet…",
+                        "remove": "Befehl entfernen",
+                        "empty_draft": "Noch keine Befehle. Fügen Sie unten einen hinzu.",
+                        "add": "Befehl hinzufügen",
+                        "cancel": "Abbrechen",
+                        "save": "Befehle speichern",
+                        "saved_toast": "Befehle gespeichert"
+                    }
                 },
                 "slack": {
                     "steps": {

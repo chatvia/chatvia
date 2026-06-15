@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Support\Casts\EncryptedTolerant;
 
 class SuggestedTopicsDataController
 {
@@ -55,7 +56,9 @@ class SuggestedTopicsDataController
                 'examples' => ($examplesByLabel[$row->suggested_label] ?? collect())
                     ->map(fn ($example): array => [
                         'conversation_id' => $example->external_id,
-                        'title' => $example->title,
+                        // Raw join bypasses the Conversation `title` cast, so the
+                        // column comes back ciphertext — decrypt it by hand.
+                        'title' => EncryptedTolerant::decrypt($example->title),
                     ])
                     ->values()
                     ->all(),

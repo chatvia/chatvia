@@ -8,8 +8,26 @@ import en from './locales/en.json';
 // locale against that list, and SetLocale honours it). `ar`/`fa` are right-to-left
 // (see RTL_LOCALES). Remove a code from both lists to hide a UI language.
 export const SUPPORTED_LOCALES = [
-    'en', 'de', 'fr', 'es', 'pt', 'pl', 'da', 'sv', 'fi', 'no',
-    'ar', 'fa', 'hi', 'id', 'ja', 'ko', 'ru', 'tr', 'vi', 'zh',
+    'en',
+    'de',
+    'fr',
+    'es',
+    'pt',
+    'pl',
+    'da',
+    'sv',
+    'fi',
+    'no',
+    'ar',
+    'fa',
+    'hi',
+    'id',
+    'ja',
+    'ko',
+    'ru',
+    'tr',
+    'vi',
+    'zh',
 ] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 

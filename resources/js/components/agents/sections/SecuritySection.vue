@@ -72,7 +72,7 @@ defineEmits<{
                     <TagsInputItemText />
                     <TagsInputItemDelete />
                 </TagsInputItem>
-                <TagsInputInput :placeholder="t('agents.setup.sections.security_sites_placeholder')" />
+                <TagsInputInput add-on-blur :placeholder="t('agents.setup.sections.security_sites_placeholder')" />
             </TagsInput>
             <p v-if="errors?.widget_sites" class="text-destructive text-sm">{{ errors.widget_sites }}</p>
             <p v-else-if="errors?.sites" class="text-destructive text-sm">{{ errors.sites }}</p>

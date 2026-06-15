@@ -7,8 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useDateFormat } from '@/composables/useDateFormat';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { useEcho } from '@laravel/echo-vue';
 import { ArrowLeft, Braces, CheckCircle2, Equal, Gauge, Hash, LoaderCircle, Regex, Scale, Search, Target, XCircle } from 'lucide-vue-next';
-import { computed, ref, type Component } from 'vue';
+import { computed, ref, watch, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -33,6 +34,7 @@ interface EvalResult {
 
 interface EvalRun {
     id: number;
+    external_id: string;
     status: string;
     total_cases: number;
     passed_count: number;
@@ -56,6 +58,62 @@ interface Props {
 const props = defineProps<Props>();
 const { formatDateTime } = useDateFormat();
 
+// Local copies so Reverb events can update the header badge, summary cards, and
+// result rows live; Inertia reloads reset them back to the server's truth.
+const results = ref<EvalResult[]>([...props.results]);
+const run = ref<EvalRun>({ ...props.run });
+
+const applyTally = (passed: number, failed: number) => {
+    run.value.passed_count = passed;
+    run.value.failed_count = failed;
+    const scored = passed + failed;
+    run.value.pass_rate = scored > 0 ? Math.round((passed / scored) * 100) : null;
+};
+
+// A still-running run hasn't had its counts persisted yet (that happens on
+// finalize), so seed the live tally from the results already scored.
+if (run.value.status === 'running') {
+    applyTally(results.value.filter((r) => r.pass).length, results.value.filter((r) => !r.pass).length);
+}
+
+watch(
+    () => props.run,
+    (next) => {
+        run.value = { ...next };
+    },
+);
+watch(
+    () => props.results,
+    (next) => {
+        results.value = [...next];
+    },
+);
+
+// A scored case appends/updates its result row and advances the summary tally;
+// a run-progress event refreshes the header badge + the finalized scores. Both
+// listeners share one ref-counted channel and clean up on unmount.
+useEcho(
+    `agents.${props.agent.external_id}.evals`,
+    '.EvalCaseScored',
+    (e: { run_external_id: string; result: EvalResult; passed_count: number; failed_count: number }) => {
+        if (e.run_external_id !== run.value.external_id) return;
+
+        const idx = results.value.findIndex((r) => r.id === e.result.id);
+        if (idx === -1) {
+            results.value = [...results.value, e.result];
+        } else {
+            results.value[idx] = e.result;
+        }
+
+        applyTally(e.passed_count, e.failed_count);
+    },
+);
+
+useEcho(`agents.${props.agent.external_id}.evals`, '.EvalRunProgressed', (e: { run: EvalRun }) => {
+    if (e.run.external_id !== run.value.external_id) return;
+    run.value = e.run;
+});
+
 const SCORER_META: Record<string, { label: string; icon: Component }> = {
     contains: { label: 'agents.evals.scorers.contains', icon: Search },
     regex: { label: 'agents.evals.scorers.regex', icon: Regex },
@@ -78,50 +136,50 @@ const runStatusVariant = (status: string): 'default' | 'secondary' | 'destructiv
 // a share-of-total bar; percentages fill the bar directly; Tokens is note-only
 // (uncapped) like the billing Tokens card.
 const stats = computed(() => {
-    const run = props.run;
-    const total = run.passed_count + run.failed_count;
+    const data = run.value;
+    const total = data.passed_count + data.failed_count;
 
     return [
         {
             key: 'pass_rate',
             label: t('agents.evals.run.stats.pass_rate'),
             icon: Target,
-            value: run.pass_rate !== null ? `${run.pass_rate}%` : '—',
+            value: data.pass_rate !== null ? `${data.pass_rate}%` : '—',
             secondary: null as string | null,
-            bar: run.pass_rate,
-            barClass: (run.pass_rate ?? 0) >= 50 ? 'bg-emerald-500' : 'bg-destructive',
+            bar: data.pass_rate,
+            barClass: (data.pass_rate ?? 0) >= 50 ? 'bg-emerald-500' : 'bg-destructive',
             note:
                 total > 0
-                    ? t('agents.evals.run.stats.cases_passed', { passed: run.passed_count, total })
+                    ? t('agents.evals.run.stats.cases_passed', { passed: data.passed_count, total })
                     : t('agents.evals.run.stats.no_cases_scored'),
         },
         {
             key: 'passed',
             label: t('agents.evals.run.stats.passed'),
             icon: CheckCircle2,
-            value: run.passed_count.toLocaleString(),
+            value: data.passed_count.toLocaleString(),
             secondary: total > 0 ? t('agents.evals.run.stats.of_total', { total }) : null,
-            bar: total > 0 ? Math.round((run.passed_count / total) * 100) : null,
+            bar: total > 0 ? Math.round((data.passed_count / total) * 100) : null,
             barClass: 'bg-emerald-500',
-            note: t('agents.evals.run.stats.n_failed', { count: run.failed_count }),
+            note: t('agents.evals.run.stats.n_failed', { count: data.failed_count }),
         },
         {
             key: 'failed',
             label: t('agents.evals.run.stats.failed'),
             icon: XCircle,
-            value: run.failed_count.toLocaleString(),
+            value: data.failed_count.toLocaleString(),
             secondary: total > 0 ? t('agents.evals.run.stats.of_total', { total }) : null,
-            bar: total > 0 ? Math.round((run.failed_count / total) * 100) : null,
+            bar: total > 0 ? Math.round((data.failed_count / total) * 100) : null,
             barClass: 'bg-destructive',
-            note: t('agents.evals.run.stats.n_passed', { count: run.passed_count }),
+            note: t('agents.evals.run.stats.n_passed', { count: data.passed_count }),
         },
         {
             key: 'avg',
             label: t('agents.evals.run.stats.avg_score'),
             icon: Gauge,
-            value: run.avg_score !== null ? `${Math.round(run.avg_score * 100)}%` : '—',
+            value: data.avg_score !== null ? `${Math.round(data.avg_score * 100)}%` : '—',
             secondary: null as string | null,
-            bar: run.avg_score !== null ? Math.round(run.avg_score * 100) : null,
+            bar: data.avg_score !== null ? Math.round(data.avg_score * 100) : null,
             barClass: 'bg-primary',
             note: t('agents.evals.run.stats.mean_score'),
         },
@@ -129,7 +187,7 @@ const stats = computed(() => {
             key: 'tokens',
             label: t('agents.evals.run.stats.tokens'),
             icon: Hash,
-            value: run.total_tokens !== null ? run.total_tokens.toLocaleString() : '—',
+            value: data.total_tokens !== null ? data.total_tokens.toLocaleString() : '—',
             secondary: null as string | null,
             bar: null,
             barClass: '',
@@ -149,7 +207,7 @@ const openDetail = (result: EvalResult) => {
 
 <template>
     <AgentLayout :agent="props.agent" :title="t('agents.evals.run.title')">
-        <Head :title="t('agents.evals.run.head_title', { id: props.run.id, name: props.agent.name })" />
+        <Head :title="t('agents.evals.run.head_title', { id: run.id, name: props.agent.name })" />
 
         <div class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-5xl space-y-6">
@@ -161,17 +219,17 @@ const openDetail = (result: EvalResult) => {
                     </Button>
                     <div>
                         <h2 class="flex items-center gap-2 text-lg font-semibold">
-                            {{ t('agents.evals.run.run_number', { id: props.run.id }) }}
-                            <Badge :variant="runStatusVariant(props.run.status)" class="gap-1.5 capitalize">
-                                <LoaderCircle v-if="props.run.status === 'running'" class="h-3 w-3 animate-spin" />
-                                <CheckCircle2 v-else-if="props.run.status === 'completed'" class="h-3 w-3" />
+                            {{ t('agents.evals.run.run_number', { id: run.id }) }}
+                            <Badge :variant="runStatusVariant(run.status)" class="gap-1.5 capitalize">
+                                <LoaderCircle v-if="run.status === 'running'" class="h-3 w-3 animate-spin" />
+                                <CheckCircle2 v-else-if="run.status === 'completed'" class="h-3 w-3" />
                                 <XCircle v-else class="h-3 w-3" />
-                                {{ statusLabel(props.run.status) }}
+                                {{ statusLabel(run.status) }}
                             </Badge>
                         </h2>
                         <p class="text-muted-foreground text-sm">
-                            {{ t('agents.evals.run.triggered_by', { name: props.run.triggered_by_name ?? '—' }) }} ·
-                            {{ formatDateTime(props.run.created_at) }}
+                            {{ t('agents.evals.run.triggered_by', { name: run.triggered_by_name ?? '—' }) }} ·
+                            {{ formatDateTime(run.created_at) }}
                         </p>
                     </div>
                 </div>
@@ -217,12 +275,7 @@ const openDetail = (result: EvalResult) => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow
-                                v-for="result in props.results"
-                                :key="result.id"
-                                class="hover:bg-muted/50 cursor-pointer"
-                                @click="openDetail(result)"
-                            >
+                            <TableRow v-for="result in results" :key="result.id" class="hover:bg-muted/50 cursor-pointer" @click="openDetail(result)">
                                 <TableCell class="max-w-md">
                                     <div class="truncate font-medium">{{ result.case_name }}</div>
                                 </TableCell>
@@ -248,9 +301,9 @@ const openDetail = (result: EvalResult) => {
                                     result.tokens !== null ? result.tokens.toLocaleString() : '—'
                                 }}</TableCell>
                             </TableRow>
-                            <TableRow v-if="props.results.length === 0">
+                            <TableRow v-if="results.length === 0">
                                 <TableCell colspan="6" class="text-muted-foreground py-10 text-center text-sm">
-                                    {{ props.run.status === 'running' ? t('agents.evals.run.scoring_cases') : t('agents.evals.run.no_results') }}
+                                    {{ run.status === 'running' ? t('agents.evals.run.scoring_cases') : t('agents.evals.run.no_results') }}
                                 </TableCell>
                             </TableRow>
                         </TableBody>

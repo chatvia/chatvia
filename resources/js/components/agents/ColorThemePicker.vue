@@ -2,8 +2,9 @@
 import ColorPicker from '@/components/agents/ColorPicker.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { nearestShade } from '@/lib/colorShades';
 import { Palette } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -25,6 +26,8 @@ const emit = defineEmits<{
 
 const open = ref(false);
 
+const activeShade = computed(() => nearestShade(props.shade));
+
 function applyAndClose(): void {
     emit('apply');
     open.value = false;
@@ -39,11 +42,11 @@ function applyAndClose(): void {
     >
         <div
             class="border-border h-20 w-20 rounded-lg border-2 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md"
-            :style="{ backgroundColor: `var(--${props.theme}-${props.shade})` }"
+            :style="{ backgroundColor: `var(--${props.theme}-${activeShade})` }"
         >
             <div class="flex h-full items-center justify-center">
                 <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-lg">
-                    <div class="h-6 w-6 rounded-full" :style="{ backgroundColor: `var(--${props.theme}-${props.shade})` }"></div>
+                    <div class="h-6 w-6 rounded-full" :style="{ backgroundColor: `var(--${props.theme}-${activeShade})` }"></div>
                 </div>
             </div>
         </div>

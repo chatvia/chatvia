@@ -48,6 +48,12 @@ Broadcast::channel('agents.{externalId}.web.ingestion.url', function (User $user
     return $agent && Gate::forUser($user)->allows('access-agent', $agent);
 });
 
+Broadcast::channel('agents.{externalId}.evals', function (User $user, string $externalId) {
+    $agent = Agent::where('external_id', $externalId)->first();
+
+    return $agent && Gate::forUser($user)->allows('access-agent', $agent);
+});
+
 /*
 |--------------------------------------------------------------------------
 | Chat Channels (Presence Channels for Handoff)

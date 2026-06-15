@@ -6,6 +6,7 @@ use Domain\Billing\Jobs\UpdateUserCreditsJob;
 use Domain\Billing\Services\UserCreditSystem;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
+use Domain\Evaluation\Events\EvalCaseScored;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalResult;
 use Domain\Evaluation\Models\EvalRun;
@@ -77,7 +78,7 @@ class ScoreEvalCaseAction
     {
         [$output, $truncated] = $this->cap($result->answer, (int) config('chatvia.evals.max_output_bytes', 8192));
 
-        return EvalResult::create([
+        $evalResult = EvalResult::create([
             'run_id' => $run->id,
             'case_id' => $case->id,
             'case_name' => $case->name,
@@ -94,6 +95,37 @@ class ScoreEvalCaseAction
             'tokens' => $result->tokens,
             'trace_id' => $result->traceId,
         ]);
+
+        $this->broadcastScored($run, $evalResult);
+
+        return $evalResult;
+    }
+
+    /**
+     * Push the fresh result + the run's running pass/fail tally to the Evals
+     * index and the run drill-down over Reverb. The run's own counts aren't
+     * persisted until {@see FinalizeEvalRunAction}, so the tally is derived from
+     * the immutable results written so far. Skipped when the agent is gone — the
+     * pages that listen live under the agent and are unreachable without it.
+     */
+    private function broadcastScored(EvalRun $run, EvalResult $result): void
+    {
+        $agentExternalId = $run->agent?->external_id;
+
+        if ($agentExternalId === null) {
+            return;
+        }
+
+        $scored = $run->results()->get(['pass']);
+        $passed = $scored->where('pass', true)->count();
+
+        EvalCaseScored::dispatch(
+            $result,
+            $run->external_id,
+            $agentExternalId,
+            $passed,
+            $scored->count() - $passed,
+        );
     }
 
     /**

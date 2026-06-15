@@ -189,8 +189,9 @@ return [
     ],
 
     // Shared secret signing internal calls to our own built-in MCP servers
-    // (/mcp/*) and ingestion callbacks. Falls back to APP_KEY when unset so it
-    // is never empty; set explicitly to rotate independently of APP_KEY.
+    // (/mcp/*). Must be set explicitly in every environment — InternalMcpSignature
+    // fails closed (throws "Missing secret") when blank, so the built-in tool loop
+    // refuses to sign rather than silently reuse another key.
     'builtin_mcp' => [
         'secret' => env('BUILTIN_MCP_SECRET'),
     ],

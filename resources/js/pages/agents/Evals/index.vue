@@ -20,6 +20,7 @@ import { getInitials } from '@/composables/useInitials';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
+import { useEcho } from '@laravel/echo-vue';
 import {
     Braces,
     Check,
@@ -40,7 +41,7 @@ import {
     Trash2,
     X,
 } from 'lucide-vue-next';
-import { computed, onUnmounted, ref, watch, type Component } from 'vue';
+import { computed, ref, watch, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
@@ -127,8 +128,19 @@ const scorerIcon = (type: string) => SCORER_ICONS[type];
 // and not part of useForm's flat error type — read them through a cast.
 const configError = (key: string): string | undefined => (form.errors as Record<string, string | undefined>)[`scorer_config.${key}`];
 
+// Live-updated copy of the server's runs. Reverb events (below) mutate this in
+// place so a run's status + scores update without a reload; Inertia reloads
+// (run start / delete / clear) reset it back to the server's truth.
+const runs = ref<EvalRun[]>([...props.runs]);
+watch(
+    () => props.runs,
+    (next) => {
+        runs.value = [...next];
+    },
+);
+
 const activeCases = computed(() => props.cases.filter((c) => c.active).length);
-const hasRunning = computed(() => props.runs.some((r) => r.status === 'running'));
+const hasRunning = computed(() => runs.value.some((r) => r.status === 'running'));
 const canRun = computed(() => canManage.value && activeCases.value > 0 && !hasRunning.value);
 
 const runStatusVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
@@ -363,23 +375,31 @@ const clearRuns = () => {
     });
 };
 
-// While a run is in flight, poll the runs list so status + scores update live.
-let pollTimer: number | undefined;
-watch(
-    hasRunning,
-    (running) => {
-        if (running && !pollTimer) {
-            pollTimer = window.setInterval(() => router.reload({ only: ['runs'] }), 4000);
-        } else if (!running && pollTimer) {
-            clearInterval(pollTimer);
-            pollTimer = undefined;
-        }
-    },
-    { immediate: true },
-);
-onUnmounted(() => {
-    if (pollTimer) clearInterval(pollTimer);
+// Live run updates over Reverb (replaces the old 4s polling). A run row upserts
+// when it's started or finalized; each scored case bumps its running pass/fail
+// tally so progress shows before the run is finalized. useEcho cleans up on
+// unmount, and both listeners share the one ref-counted channel subscription.
+useEcho(`agents.${props.agent.external_id}.evals`, '.EvalRunProgressed', (e: { run: EvalRun }) => {
+    const idx = runs.value.findIndex((r) => r.external_id === e.run.external_id);
+    if (idx === -1) {
+        runs.value = [e.run, ...runs.value];
+    } else {
+        runs.value[idx] = e.run;
+    }
 });
+
+useEcho(
+    `agents.${props.agent.external_id}.evals`,
+    '.EvalCaseScored',
+    (e: { run_external_id: string; passed_count: number; failed_count: number }) => {
+        const run = runs.value.find((r) => r.external_id === e.run_external_id);
+        if (!run) return;
+        run.passed_count = e.passed_count;
+        run.failed_count = e.failed_count;
+        const scored = e.passed_count + e.failed_count;
+        run.pass_rate = scored > 0 ? Math.round((e.passed_count / scored) * 100) : null;
+    },
+);
 
 const knowledgeAddLabel = computed(() => {
     if (!selectedKeys.value.length) {
@@ -506,7 +526,7 @@ const knowledgeAddLabel = computed(() => {
                                 <h2 class="text-base font-semibold">{{ t('agents.evals.index.recent_runs') }}</h2>
                                 <p class="text-muted-foreground text-sm">{{ t('agents.evals.index.recent_runs_description') }}</p>
                             </div>
-                            <Button v-if="canManage && props.runs.length > 0" size="sm" variant="outline" @click="isClearOpen = true">
+                            <Button v-if="canManage && runs.length > 0" size="sm" variant="outline" @click="isClearOpen = true">
                                 <Trash2 class="me-2 h-4 w-4" />
                                 {{ t('agents.evals.index.clear') }}
                             </Button>
@@ -527,7 +547,7 @@ const knowledgeAddLabel = computed(() => {
                                 </TableHeader>
                                 <TableBody>
                                     <TableRow
-                                        v-for="run in props.runs"
+                                        v-for="run in runs"
                                         :key="run.id"
                                         class="hover:bg-muted/50 cursor-pointer"
                                         @click="openRun(run.external_id)"
@@ -583,7 +603,7 @@ const knowledgeAddLabel = computed(() => {
                                             </Button>
                                         </TableCell>
                                     </TableRow>
-                                    <TableRow v-if="props.runs.length === 0">
+                                    <TableRow v-if="runs.length === 0">
                                         <TableCell :colspan="canManage ? 7 : 6" class="text-muted-foreground py-10 text-center text-sm">
                                             {{ t('agents.evals.index.empty_runs') }}
                                         </TableCell>
@@ -858,7 +878,7 @@ const knowledgeAddLabel = computed(() => {
                 <DialogHeader>
                     <DialogTitle>{{ t('agents.evals.index.clear_runs_title') }}</DialogTitle>
                     <DialogDescription>
-                        {{ t('agents.evals.index.clear_runs_description', { count: props.runs.length }, props.runs.length) }}
+                        {{ t('agents.evals.index.clear_runs_description', { count: runs.length }, runs.length) }}
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

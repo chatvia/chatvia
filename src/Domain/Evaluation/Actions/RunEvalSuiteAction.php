@@ -5,6 +5,7 @@ namespace Domain\Evaluation\Actions;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Services\UserCreditSystem;
+use Domain\Evaluation\Events\EvalRunProgressed;
 use Domain\Evaluation\Jobs\ScoreEvalCaseJob;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalRun;
@@ -46,11 +47,20 @@ class RunEvalSuiteAction
             'workspace_id' => $agent->user_id,
             'status' => EvalRun::STATUS_RUNNING,
             'total_cases' => $cases->count(),
+            // Set explicitly so the freshly-created in-memory model (which Eloquent
+            // does not re-hydrate from the DB defaults) carries int counts for the
+            // EvalRunProgressed broadcast below — fromModel() types them as int.
+            'passed_count' => 0,
+            'failed_count' => 0,
             'model_snapshot' => $agent->llm?->internal_name,
             'triggered_by_user_id' => $triggeredBy?->id,
             'triggered_by_name' => $triggeredBy?->name,
             'started_at' => now(),
         ]);
+
+        // Surface the new "running" row live on any open Evals page before the
+        // cases start scoring — the finalize callback broadcasts the close-out.
+        EvalRunProgressed::dispatch($run, $agent->external_id);
 
         if ($cases->isEmpty()) {
             return app(FinalizeEvalRunAction::class)->execute($run);

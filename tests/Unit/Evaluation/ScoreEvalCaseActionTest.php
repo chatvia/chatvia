@@ -4,11 +4,13 @@ use Domain\Agent\Models\Agent;
 use Domain\Billing\Jobs\UpdateUserCreditsJob;
 use Domain\Evaluation\Actions\ScoreEvalCaseAction;
 use Domain\Evaluation\Data\AgentRunResultData;
+use Domain\Evaluation\Events\EvalCaseScored;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalRun;
 use Domain\Evaluation\Services\EvalAgentRunner;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Event;
 
 /**
  * ScoreEvalCase glues the runner to the scorer and writes the immutable result.
@@ -175,4 +177,39 @@ it('skips the LLM call and charges nothing when the workspace is out of messages
         ->and($result->judge_rationale)->toContain('Message limit reached');
 
     Bus::assertNotDispatched(UpdateUserCreditsJob::class);
+});
+
+it('broadcasts the scored case with the run external id and running pass/fail tally', function (): void {
+    [$run, $case] = scoringFixtures();
+    $agent = $run->agent;
+
+    // Partial fake so HasExternalId's model `creating` hook still assigns the
+    // (NOT NULL) external_id to the result row written by the action.
+    Event::fake([EvalCaseScored::class]);
+
+    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+        answer: 'The capital is Paris.',
+        sources: [],
+        toolsCalled: [],
+        tokens: 42,
+        latencyMs: 120,
+        traceId: 'trace-bc',
+    )));
+
+    $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
+
+    Event::assertDispatched(
+        EvalCaseScored::class,
+        // broadcastWith() in the closure exercises the result resource serialization.
+        function (EvalCaseScored $e) use ($run, $agent, $result): bool {
+            $payload = $e->broadcastWith();
+
+            return $e->result->is($result)
+                && $e->agentExternalId === $agent->external_id
+                && $payload['run_external_id'] === $run->external_id
+                && $payload['result']['id'] === $result->id
+                && $payload['passed_count'] === 1
+                && $payload['failed_count'] === 0;
+        },
+    );
 });

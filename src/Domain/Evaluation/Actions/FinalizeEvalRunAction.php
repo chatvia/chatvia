@@ -2,6 +2,7 @@
 
 namespace Domain\Evaluation\Actions;
 
+use Domain\Evaluation\Events\EvalRunProgressed;
 use Domain\Evaluation\Models\EvalResult;
 use Domain\Evaluation\Models\EvalRun;
 
@@ -29,6 +30,12 @@ class FinalizeEvalRunAction
             'total_tokens' => (int) $results->sum('tokens'),
             'finished_at' => now(),
         ]);
+
+        $agentExternalId = $run->agent?->external_id;
+
+        if ($agentExternalId !== null) {
+            EvalRunProgressed::dispatch($run, $agentExternalId);
+        }
 
         return $run;
     }

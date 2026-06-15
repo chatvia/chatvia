@@ -1119,7 +1119,7 @@ const copyApiCode = async (code: string) => {
                                                     <TagsInputItemText />
                                                     <TagsInputItemDelete />
                                                 </TagsInputItem>
-                                                <TagsInputInput :placeholder="t('agents.setup.bubbles_placeholder')" />
+                                                <TagsInputInput add-on-blur :placeholder="t('agents.setup.bubbles_placeholder')" />
                                             </TagsInput>
                                             <p v-if="bubblesForm.errors.bubbles" class="text-destructive text-sm">
                                                 {{ bubblesForm.errors.bubbles }}

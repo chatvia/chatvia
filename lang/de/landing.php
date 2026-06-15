@@ -1,8 +1,8 @@
 <?php
 
-// Public marketing homepage (resources/views/landing/*). English is the source of
-// truth and the default locale, so this file mirrors the copy shown on the site —
-// keep it in sync with lang/ar/landing.php (same keys).
+// Public marketing homepage (resources/views/landing/*). English
+// (lang/en/landing.php) is the source of truth — keep this file in sync with it
+// (same keys). EU-data-sovereignty positioning.
 
 return [
 
@@ -72,13 +72,41 @@ return [
         'col_chatvia' => 'ChatVia',
         'col_us' => 'Typisches US-gehostetes KI-Tool',
         'rows' => [
-            'residency' => ['label' => 'Datenresidenz', 'ours' => 'Deutschland & Frankreich', 'theirs' => 'USA / global'],
-            'cloud_act' => ['label' => 'US-CLOUD-Act-Risiko', 'ours' => 'Keines', 'theirs' => 'Ja'],
-            'dpa' => ['label' => 'DPA', 'ours' => 'Enterprise-Tarif', 'theirs' => 'Zusatz oder nur Enterprise'],
-            'subprocessors' => ['label' => 'US-Unterauftragsverarbeiter', 'ours' => 'Keine', 'theirs' => 'Üblich'],
-            'ai_models' => ['label' => 'KI-Modelle', 'ours' => 'EU-gehostet', 'theirs' => 'US-gehostet'],
-            'agentic' => ['label' => 'Agentische Aktionen (MCP, Tools)', 'ours' => 'Ja', 'theirs' => 'Manchmal'],
-            'governance' => ['label' => 'Governance (Audit, Evals, Guardrails)', 'ours' => 'Standardmäßig integriert', 'theirs' => 'Oft nur Enterprise'],
+            'residency' => [
+                'label' => 'Datenresidenz',
+                'ours' => 'Deutschland & Frankreich',
+                'theirs' => 'USA / global',
+            ],
+            'cloud_act' => [
+                'label' => 'US-CLOUD-Act-Risiko',
+                'ours' => 'Keines',
+                'theirs' => 'Ja',
+            ],
+            'dpa' => [
+                'label' => 'DPA',
+                'ours' => 'Enterprise-Tarif',
+                'theirs' => 'Zusatz oder nur Enterprise',
+            ],
+            'subprocessors' => [
+                'label' => 'US-Unterauftragsverarbeiter',
+                'ours' => 'Keine',
+                'theirs' => 'Üblich',
+            ],
+            'ai_models' => [
+                'label' => 'KI-Modelle',
+                'ours' => 'EU-gehostet',
+                'theirs' => 'US-gehostet',
+            ],
+            'agentic' => [
+                'label' => 'Agentische Aktionen (MCP, Tools)',
+                'ours' => 'Ja',
+                'theirs' => 'Manchmal',
+            ],
+            'governance' => [
+                'label' => 'Governance (Audit, Evals, Guardrails)',
+                'ours' => 'Standardmäßig integriert',
+                'theirs' => 'Oft nur Enterprise',
+            ],
         ],
     ],
 
@@ -340,7 +368,7 @@ return [
         'privacy' => 'Datenschutz',
         'refund' => 'Rückerstattungsrichtlinie',
         'subprocessors' => 'Unterauftragsverarbeiter',
-        'made_with_love' => 'Made with ❤️ in Denmark',
+        'made_with_love' => 'Mit ❤️ in Dänemark entwickelt',
     ],
 
     'cookie_banner' => [
@@ -348,5 +376,4 @@ return [
         'accept' => 'Verstanden',
         'privacy' => 'Datenschutzrichtlinie',
     ],
-
 ];

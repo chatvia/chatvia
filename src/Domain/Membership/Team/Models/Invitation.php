@@ -37,6 +37,25 @@ use Illuminate\Support\Carbon;
 class Invitation extends Model
 {
     /**
+     * Resolve an implicit route binding.
+     *
+     * The id is a bigint, but the route segment is attacker-controlled (the
+     * invitation links are public, only signed). A non-numeric value such as
+     * `.env` from a vulnerability scanner would otherwise reach Postgres and
+     * throw a 22P02 "invalid text representation" QueryException. Returning
+     * null for any non-integer id makes the binding miss cleanly so the
+     * route's ->missing() callback redirects instead.
+     */
+    public function resolveRouteBinding($value, $field = null): ?Model
+    {
+        if (! ctype_digit((string) $value)) {
+            return null;
+        }
+
+        return parent::resolveRouteBinding($value, $field);
+    }
+
+    /**
      * Get the team this invitation is for.
      */
     public function team(): BelongsTo

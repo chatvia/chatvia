@@ -129,6 +129,25 @@ describe('teams.invite', function (): void {
     });
 });
 
+describe('teams.invitation.show', function (): void {
+    it('redirects a non-integer invitation id to login instead of 500ing', function (): void {
+        // The id is a bigint; vulnerability scanners probe `/invitation/.env`,
+        // which used to reach Postgres and throw a 22P02 QueryException (500).
+        // Invitation::resolveRouteBinding() now misses cleanly → ->missing()
+        // redirects, all before the `signed` middleware ever runs.
+        $this->get('/invitation/.env')
+            ->assertRedirect(route('login'));
+
+        $this->get('/invitation/'.urlencode('.env'))
+            ->assertRedirect(route('login'));
+    });
+
+    it('redirects a numeric-but-missing invitation id to login', function (): void {
+        $this->get('/invitation/999999999')
+            ->assertRedirect(route('login'));
+    });
+});
+
 describe('agents.chatters.store', function (): void {
     beforeEach(function (): void {
         $this->agent = createAgent($this->owner);

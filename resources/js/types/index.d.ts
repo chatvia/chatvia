@@ -77,7 +77,10 @@ export interface User {
     created_at: string;
     updated_at: string;
     is_paid: boolean;
-    type: 'admin' | 'company' | 'staff';
+    // Mirrors Support\Enums\User\UserType. `workspace` = account owner,
+    // `employee` = invited teammate/collaborator, `chatter` = widget end-user,
+    // `admin` = internal Chatvia staff.
+    type: 'admin' | 'workspace' | 'employee' | 'chatter';
     // Preferred date display format key — see Support\Enums\User\DateFormat and
     // the useDateFormat composable. Null/undefined falls back to ISO.
     date_format?: string | null;

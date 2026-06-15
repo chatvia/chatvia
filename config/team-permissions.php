@@ -32,7 +32,14 @@ return [
         // deleting one is its own grant below.)
         'agent.setup' => [
             'label' => 'Setup agent',
-            'description' => 'Edit the agent itself — its name, AI model & temperature, system instructions / persona, branding, chat widget & embed, custom domain, conversation starters, and messaging channels.',
+            'description' => 'Edit the agent itself — its name, AI model & temperature, system instructions / persona, branding, chat widget & embed, custom domain, and conversation starters.',
+        ],
+
+        // Connecting the agent to messaging apps. Split out from `agent.setup`
+        // so channel access can be granted independently of agent configuration.
+        'agent.channels' => [
+            'label' => 'Manage channels',
+            'description' => 'Connect and disconnect messaging channels — Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, and Instagram.',
         ],
 
         // Sources - Training by type
@@ -271,6 +278,14 @@ return [
             'description' => 'Edit the agent itself — personality, models, widget, embed.',
             'permissions' => [
                 'agent.setup',
+            ],
+        ],
+        'channels' => [
+            'scope' => 'agent',
+            'label' => 'Channels',
+            'description' => 'Connect the agent to messaging apps.',
+            'permissions' => [
+                'agent.channels',
             ],
         ],
         'sources' => [

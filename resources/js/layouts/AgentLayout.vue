@@ -144,6 +144,12 @@ const uiNavigationItems = computed(() => {
             route: 'agents.deploy',
             tooltip: t('agents.nav.deploy_tooltip'),
         });
+    }
+
+    // Channels is its own permission (`agent.channels`) — a teammate can be
+    // granted channel access without the broader agent-setup grant, and vice
+    // versa. Mirrors the `agent.permission:agent.channels` route gate.
+    if (hasPermission('agent.channels')) {
         baseItems.push({
             id: 'channels',
             label: t('agents.nav.channels'),

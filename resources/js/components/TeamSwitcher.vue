@@ -34,7 +34,9 @@ interface Team {
 const page = usePage<SharedData>();
 const auth = computed(() => page.props.auth as Auth);
 const currentTeam = computed(() => page.props.currentTeam as Team | null);
-const isStaff = computed(() => auth.value.user.type === 'staff');
+// Teammates (employees) are blocked from the teams-management routes by the
+// backend `DenyIfEmployee` middleware, so they must not see Manage/Create here.
+const isEmployee = computed(() => auth.value.user.type === 'employee');
 
 const isOpen = ref(false);
 const isCreateDialogOpen = ref(false);
@@ -136,7 +138,7 @@ const createTeam = () => {
                         </div>
                     </template>
                 </div>
-                <template v-if="!isStaff">
+                <template v-if="!isEmployee">
                     <DropdownMenuSeparator />
                     <DropdownMenuItem as-child>
                         <Link :href="route('teams.index')" class="cursor-pointer gap-2">

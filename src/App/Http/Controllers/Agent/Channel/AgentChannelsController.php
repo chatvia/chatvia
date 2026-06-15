@@ -6,13 +6,12 @@ use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
  * Per-agent "Channels" page — connects the agent to messaging apps (Telegram,
- * Slack, and Messenger today, more to come). Gated by `agent.setup` on the route.
+ * Slack, and Messenger today, more to come). Gated by `agent.channels` on the route.
  */
 class AgentChannelsController
 {
@@ -64,21 +63,21 @@ class AgentChannelsController
     /**
      * The Pages Facebook just handed back, waiting for the workspace to pick
      * which one powers this agent — id + name only (tokens stay server-side).
-     * Mirrors the cache key written by {@see AgentMessengerChannelController}.
+     * Mirrors the session stash written by {@see AgentMessengerChannelController}.
      *
      * @return list<array{id: string, name: string}>|null
      */
     private function messengerPick(Agent $agent): ?array
     {
-        $pages = Cache::get("meta:oauth:messenger:pages:{$agent->id}");
+        $stash = session('messenger_oauth_pages');
 
-        if (! is_array($pages) || $pages === []) {
+        if (! is_array($stash) || ($stash['agent_id'] ?? null) !== $agent->id || ! is_array($stash['pages'] ?? null) || $stash['pages'] === []) {
             return null;
         }
 
         return array_map(static fn (array $page): array => [
             'id' => (string) $page['id'],
             'name' => (string) $page['name'],
-        ], $pages);
+        ], $stash['pages']);
     }
 }

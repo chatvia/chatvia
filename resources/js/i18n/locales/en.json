@@ -3163,6 +3163,10 @@
                 "governance": {
                     "label": "Governance",
                     "description": "Audit and control every action your agents take through tools and connectors."
+                },
+                "channels": {
+                    "label": "Channels",
+                    "description": "Connect the agent to messaging apps."
                 }
             },
             "codes": {
@@ -3317,6 +3321,10 @@
                 "account_governance": {
                     "label": "Governance",
                     "description": "View the tool-call audit log and access controls"
+                },
+                "agent_channels": {
+                    "label": "Manage channels",
+                    "description": "Connect and disconnect messaging channels (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
                 }
             }
         }

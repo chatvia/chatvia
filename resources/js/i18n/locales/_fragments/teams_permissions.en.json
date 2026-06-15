@@ -16,6 +16,10 @@
                     "label": "Setup",
                     "description": "Edit the agent itself — personality, models, widget, embed."
                 },
+                "channels": {
+                    "label": "Channels",
+                    "description": "Connect the agent to messaging apps."
+                },
                 "sources": {
                     "label": "Sources",
                     "description": "Manage the training data the agent learns from."
@@ -81,6 +85,10 @@
                 "agent_setup": {
                     "label": "Setup agent",
                     "description": "Modify agent settings, personality, and behavior"
+                },
+                "agent_channels": {
+                    "label": "Manage channels",
+                    "description": "Connect and disconnect messaging channels (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
                 },
                 "agent_sources_train_files": {
                     "label": "Train Files",

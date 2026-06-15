@@ -292,25 +292,26 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('guardrails', [AgentGuardrailController::class, 'show'])->middleware('agent.permission:agent.guardrails.view')->name('guardrails');
         Route::post('guardrails', [AgentGuardrailController::class, 'update'])->middleware(['capability:guardrails', 'agent.permission:agent.guardrails.manage'])->name('guardrails.update');
 
-        // Channels — where the agent is deployed (Hosted Chat / Widget / Bar) + the Telegram bot + the Slack app.
-        Route::get('channels', AgentChannelsController::class)->middleware('agent.permission:agent.setup')->name('channels');
-        Route::post('channels/telegram', [AgentTelegramChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.telegram.connect');
-        Route::delete('channels/telegram', [AgentTelegramChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.telegram.disconnect');
-        Route::put('channels/telegram/commands', [AgentTelegramChannelController::class, 'updateCommands'])->middleware('agent.permission:agent.setup')->name('channels.telegram.commands');
-        Route::post('channels/slack', [AgentSlackChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.slack.connect');
-        Route::delete('channels/slack', [AgentSlackChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.slack.disconnect');
+        // Channels — connecting the agent to messaging apps. Gated by its own
+        // `agent.channels` permission (split out from `agent.setup`).
+        Route::get('channels', AgentChannelsController::class)->middleware('agent.permission:agent.channels')->name('channels');
+        Route::post('channels/telegram', [AgentTelegramChannelController::class, 'connect'])->middleware('agent.permission:agent.channels')->name('channels.telegram.connect');
+        Route::delete('channels/telegram', [AgentTelegramChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.telegram.disconnect');
+        Route::put('channels/telegram/commands', [AgentTelegramChannelController::class, 'updateCommands'])->middleware('agent.permission:agent.channels')->name('channels.telegram.commands');
+        Route::post('channels/slack', [AgentSlackChannelController::class, 'connect'])->middleware('agent.permission:agent.channels')->name('channels.slack.connect');
+        Route::delete('channels/slack', [AgentSlackChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.slack.disconnect');
         // Messenger connects via Facebook Login for Business (one Chatvia Meta
         // app): redirect → Facebook consent → callback (outside this {agent}
         // group, see below) → select the Page. Disconnect is a single delete.
-        Route::get('channels/messenger/oauth/redirect', [AgentMessengerChannelController::class, 'redirect'])->middleware('agent.permission:agent.setup')->name('channels.messenger.redirect');
-        Route::post('channels/messenger/oauth/select', [AgentMessengerChannelController::class, 'select'])->middleware('agent.permission:agent.setup')->name('channels.messenger.select');
-        Route::delete('channels/messenger', [AgentMessengerChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.messenger.disconnect');
-        Route::post('channels/whatsapp', [AgentWhatsappChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.whatsapp.connect');
-        Route::delete('channels/whatsapp', [AgentWhatsappChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.whatsapp.disconnect');
-        Route::post('channels/msteams', [AgentTeamsChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.msteams.connect');
-        Route::delete('channels/msteams', [AgentTeamsChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.msteams.disconnect');
-        Route::post('channels/instagram', [AgentInstagramChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.instagram.connect');
-        Route::delete('channels/instagram', [AgentInstagramChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.instagram.disconnect');
+        Route::get('channels/messenger/oauth/redirect', [AgentMessengerChannelController::class, 'redirect'])->middleware('agent.permission:agent.channels')->name('channels.messenger.redirect');
+        Route::post('channels/messenger/oauth/select', [AgentMessengerChannelController::class, 'select'])->middleware('agent.permission:agent.channels')->name('channels.messenger.select');
+        Route::delete('channels/messenger', [AgentMessengerChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.messenger.disconnect');
+        Route::post('channels/whatsapp', [AgentWhatsappChannelController::class, 'connect'])->middleware('agent.permission:agent.channels')->name('channels.whatsapp.connect');
+        Route::delete('channels/whatsapp', [AgentWhatsappChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.whatsapp.disconnect');
+        Route::post('channels/msteams', [AgentTeamsChannelController::class, 'connect'])->middleware('agent.permission:agent.channels')->name('channels.msteams.connect');
+        Route::delete('channels/msteams', [AgentTeamsChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.msteams.disconnect');
+        Route::post('channels/instagram', [AgentInstagramChannelController::class, 'connect'])->middleware('agent.permission:agent.channels')->name('channels.instagram.connect');
+        Route::delete('channels/instagram', [AgentInstagramChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.instagram.disconnect');
         Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->middleware(['capability:pulse', 'agent.permission:agent.chat.pulse'])->name('logs.pulse');
         Route::get('logs/topics', ChatLogTopicsController::class)->middleware('agent.permission:agent.chat.view')->name('logs.topics');
         Route::get('logs/countries', ChatLogCountriesController::class)->middleware('agent.permission:agent.chat.view')->name('logs.countries');

@@ -69,7 +69,7 @@ const activeItemStyles = computed(
     () => (url: string) => (isCurrentRoute.value(url) ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100' : ''),
 );
 
-const isStaff = computed(() => auth.value.user.type === 'staff');
+const isEmployee = computed(() => auth.value.user.type === 'employee');
 
 const { isOwner } = useTeamPermissions();
 
@@ -94,7 +94,7 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     // "Ask your data" is owner-only — it exposes whole-account numbers
     // (including identified users) and is gated server-side to the owner.
-    if (!isStaff.value && isOwner.value) {
+    if (!isEmployee.value && isOwner.value) {
         items.push({
             title: t('app.header.ask_your_data'),
             href: route('analytics.chat'),
@@ -103,8 +103,8 @@ const mainNavItems = computed<NavItem[]>(() => {
     }
 
     // Billing is workspace-owner only — employees/teammates are blocked from
-    // the billing routes server-side (DenyIfEmployee), and staff never see it.
-    if (!isStaff.value && isOwner.value) {
+    // the billing routes server-side (DenyIfEmployee).
+    if (!isEmployee.value && isOwner.value) {
         items.push({
             title: t('app.header.billing'),
             href: route('billing.index'),

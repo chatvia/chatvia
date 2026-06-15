@@ -7,6 +7,7 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -27,6 +28,10 @@ use Spatie\Permission\PermissionRegistrar;
 */
 
 beforeEach(function (): void {
+    // Deleting a chatter wipes its avatar tree on the public bucket; fake the
+    // disk so the delete tests stay hermetic and never reach real S3.
+    Storage::fake('public');
+
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
     $this->ownerToken = $this->owner->createToken('account')->plainTextToken;

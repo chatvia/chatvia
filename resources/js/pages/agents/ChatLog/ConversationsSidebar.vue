@@ -4,48 +4,16 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
-import {
-    Calendar,
-    Circle,
-    Download,
-    Facebook,
-    Filter,
-    Globe,
-    Instagram,
-    LoaderCircle,
-    MessageSquare,
-    Phone,
-    RefreshCcw,
-    Search,
-    Send,
-    Slack,
-    ThumbsDown,
-    ThumbsUp,
-    Users,
-    X,
-} from 'lucide-vue-next';
+import { Calendar, Circle, Download, Filter, Globe, LoaderCircle, RefreshCcw, ThumbsDown, ThumbsUp, X } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { getSourceIcon } from './sourceMeta';
 import { useChatLog } from './useChatLog';
 
 const { t } = useI18n();
 
 const { hasCapability } = useCapabilityGuard();
 const hasTopicsAccess = computed(() => hasCapability('topics'));
-
-type ConversationSource = 'hosted_chat' | 'widget' | 'bar' | 'telegram' | 'slack' | 'messenger' | 'whatsapp' | 'msteams' | 'instagram';
-
-const sourceMeta = computed<Record<ConversationSource, { label: string; icon: typeof Globe }>>(() => ({
-    hosted_chat: { label: t('agents.chatlog.source.hosted_chat'), icon: MessageSquare },
-    widget: { label: t('agents.chatlog.source.widget'), icon: Globe },
-    bar: { label: t('agents.chatlog.source.bar'), icon: Search },
-    telegram: { label: t('agents.chatlog.source.telegram'), icon: Send },
-    slack: { label: t('agents.chatlog.source.slack'), icon: Slack },
-    messenger: { label: t('agents.chatlog.source.messenger'), icon: Facebook },
-    whatsapp: { label: t('agents.chatlog.source.whatsapp'), icon: Phone },
-    msteams: { label: t('agents.chatlog.source.teams'), icon: Users },
-    instagram: { label: t('agents.chatlog.source.instagram'), icon: Instagram },
-}));
 
 const {
     agent: _agent,
@@ -338,12 +306,12 @@ import { ref } from 'vue';
                             class="flex items-center gap-2 text-[11px]"
                             :class="currentConversationId === c.conversation_id ? 'opacity-70' : 'opacity-50'"
                         >
-                            <Tooltip v-if="c.source && sourceMeta[c.source as ConversationSource]">
+                            <Tooltip v-if="c.source && getSourceIcon(c.source)">
                                 <TooltipTrigger as-child>
-                                    <component :is="sourceMeta[c.source as ConversationSource].icon" class="h-3 w-3 flex-shrink-0" />
+                                    <component :is="getSourceIcon(c.source)" class="h-3 w-3 flex-shrink-0" />
                                 </TooltipTrigger>
                                 <TooltipContent side="top">
-                                    {{ sourceMeta[c.source as ConversationSource]?.label }}
+                                    {{ getSourceDisplayName(c.source) }}
                                 </TooltipContent>
                             </Tooltip>
                             <img

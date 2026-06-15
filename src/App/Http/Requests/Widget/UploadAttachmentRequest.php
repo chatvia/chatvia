@@ -26,7 +26,12 @@ class UploadAttachmentRequest extends FormRequest
 
         return new UploadAttachmentData(
             file: $this->file('file'),
-            directory: sprintf('widget-uploads/agent-%d/%s', $agent->id, $sessionId),
+            directory: sprintf(
+                'users/%s/agents/%s/attachments/%s',
+                $agent->workspaceExternalId(),
+                $agent->external_id,
+                $sessionId,
+            ),
             conversationId: $conversationId,
         );
     }

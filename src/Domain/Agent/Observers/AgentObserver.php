@@ -101,7 +101,30 @@ class AgentObserver
 
     public function deleted(Agent $agent): void
     {
-        Storage::deleteDirectory('users/'.$agent->user_id.'/agents/'.$agent->id);
+        // Wipe the agent's whole storage subtree in one shot — knowledge files,
+        // audio, websites, text and chunk images on the default disk, plus chat
+        // attachments on the public disk. Keyed entity-first by external id.
+        // Skip when the owning workspace is already gone: the account-deletion
+        // teardown wipes the entire users/{external_id} tree itself.
+        $workspaceExternalId = $agent->user()->value('external_id');
+        if ($workspaceExternalId === null) {
+            return;
+        }
+
+        $prefix = 'users/'.$workspaceExternalId.'/agents/'.$agent->external_id;
+
+        // Best-effort, like the cache flush above — a delete must not fail
+        // because remote storage is briefly unreachable. The daily attachment
+        // prune is the backstop for anything left behind.
+        try {
+            Storage::deleteDirectory($prefix);
+            Storage::disk('public')->deleteDirectory($prefix);
+        } catch (Throwable $e) {
+            Log::warning('Agent deletion: failed to wipe agent storage subtree.', [
+                'agent_id' => $agent->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function restored(Agent $agent): void {}

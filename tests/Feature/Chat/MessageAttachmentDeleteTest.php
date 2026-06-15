@@ -68,7 +68,7 @@ function messageConversation(Agent $agent, ?User $user = null): Conversation
 
 function messageAttachment(Agent $agent, Conversation $conversation, Message $message): Attachment
 {
-    $filepath = sprintf('chat-uploads/agent-%d/%s/%s.pdf', $agent->id, $conversation->external_id, Str::uuid());
+    $filepath = sprintf('users/%s/agents/%s/attachments/%s/%s.pdf', $agent->workspaceExternalId(), $agent->external_id, $conversation->external_id, Str::uuid());
     Storage::disk('public')->put($filepath, 'fake');
 
     return Attachment::create([

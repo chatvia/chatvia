@@ -20,7 +20,11 @@ class UploadAttachmentRequest extends FormRequest
 
     public function toData(?int $conversationId): UploadAttachmentData
     {
-        $agentId = (int) ($this->header('X-AGENT-ID') ?: 0);
+        // Key the storage prefix off the authoritative agent identity (the
+        // subdomain resolved by EnsureChatIsAccessible), not the client-supplied
+        // X-AGENT-ID header. Storage is entity-first — users/{workspace}/agents/{agent}
+        // — so deleting a workspace or agent is a single prefix wipe.
+        $agent = current_agent();
         // Sanitize the client-supplied conversation id before it becomes a
         // storage path segment — block `../` cross-prefix writes (see the widget
         // UploadAttachmentRequest).
@@ -28,7 +32,12 @@ class UploadAttachmentRequest extends FormRequest
 
         return new UploadAttachmentData(
             file: $this->file('file'),
-            directory: sprintf('chat-uploads/agent-%d/%s', $agentId, $conversationExternalId),
+            directory: sprintf(
+                'users/%s/agents/%s/attachments/%s',
+                $agent?->workspaceExternalId() ?? '',
+                $agent?->external_id ?? '',
+                $conversationExternalId,
+            ),
             conversationId: $conversationId,
         );
     }

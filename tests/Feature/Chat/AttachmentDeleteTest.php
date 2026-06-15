@@ -58,7 +58,7 @@ function makeAttachment(Agent $agent, ?Conversation $conversation = null, ?int $
 {
     $convPart = $conversation ? $conversation->external_id : 'pending';
     $uuid = (string) Str::uuid();
-    $filepath = sprintf('chat-uploads/agent-%d/%s/%s.pdf', $agent->id, $convPart, $uuid);
+    $filepath = sprintf('users/%s/agents/%s/attachments/%s/%s.pdf', $agent->workspaceExternalId(), $agent->external_id, $convPart, $uuid);
 
     Storage::disk('public')->put($filepath, 'fake pdf bytes');
 
@@ -142,7 +142,7 @@ it('refuses to delete an attachment already bound to a sent message (composer-on
 
 it('refuses to delete an orphan attachment that lives under a different agent\'s upload bucket', function (): void {
     $otherAgent = attachmentDeleteAgent();
-    $attachment = makeAttachment($otherAgent); // filepath baked under $otherAgent->id
+    $attachment = makeAttachment($otherAgent); // filepath baked under $otherAgent->external_id
 
     // Hit the endpoint as a different agent.
     $requesterAgent = attachmentDeleteAgent();

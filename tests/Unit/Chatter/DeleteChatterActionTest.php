@@ -12,6 +12,12 @@ use Domain\Lead\Models\Lead;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
+beforeEach(function (): void {
+    // Chatter deletion wipes the avatar tree on the public bucket; fake it so
+    // the assertions stay hermetic and never hit real S3.
+    Storage::fake('public');
+});
+
 it('hard-deletes the chatter row', function (): void {
     $workspace = User::factory()->workspace()->create();
     $chatter = User::factory()->chatter($workspace)->create();
@@ -84,7 +90,7 @@ it('wipes the deleted chatter conversation attachment files on S3', function ():
         'title' => 'With attachment',
     ]);
 
-    $filepath = "chat-uploads/agent-{$agent->id}/doc.pdf";
+    $filepath = "users/{$workspace->external_id}/agents/{$agent->external_id}/attachments/pending/doc.pdf";
     Storage::disk('public')->put($filepath, 'data');
     $attachment = Attachment::create([
         'chat_conversation_id' => $conversation->id,
@@ -100,6 +106,23 @@ it('wipes the deleted chatter conversation attachment files on S3', function ():
 
     Storage::disk('public')->assertMissing($filepath);
     expect(Attachment::whereKey($attachment->id)->exists())->toBeFalse();
+});
+
+it('wipes the deleted chatter profile photo on S3', function (): void {
+    config(['cache.stores.chat' => ['driver' => 'array']]);
+
+    $workspace = User::factory()->workspace()->create();
+    $chatter = User::factory()->chatter($workspace)->create();
+
+    $photoPath = 'users/'.$chatter->external_id.'/profile-photos/avatar.jpg';
+    Storage::disk('public')->put($photoPath, 'img');
+    $chatter->update(['profile_image_path' => $photoPath]);
+
+    Storage::disk('public')->assertExists($photoPath);
+
+    app(DeleteChatterAction::class)->execute($chatter);
+
+    Storage::disk('public')->assertMissing($photoPath);
 });
 
 it('deletes leads captured from the chatter conversations and leaves other chatters leads intact', function (): void {

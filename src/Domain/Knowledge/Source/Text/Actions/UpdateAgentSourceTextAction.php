@@ -35,7 +35,7 @@ class UpdateAgentSourceTextAction
 
         Storage::delete($sourceText->filepath);
 
-        $filepath = 'users/'.$agent->user_id.'/agents/'.$agent->id.'/train/text/'.Str::uuid()->toString().'.txt';
+        $filepath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt';
         Storage::put($filepath, $newContent);
 
         $sourceText->update([

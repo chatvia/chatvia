@@ -70,7 +70,7 @@ it('stores the uploaded photo and sets the profile image path', function (): voi
     $path = $user->fresh()->profile_image_path;
 
     expect($path)->not->toBeNull()
-        ->and($path)->toStartWith('profile-photos/')
+        ->and($path)->toStartWith('users/'.$user->external_id.'/profile-photos/')
         ->and($path)->toEndWith('.jpg');
 
     Storage::disk(User::PROFILE_IMAGE_DISK)->assertExists($path);

@@ -48,7 +48,7 @@ class EnhanceDocumentChunkAction
             );
 
             if ($imageDescription !== false) {
-                $imagePath = 'users/'.$sourceFile->user_id.'/agents/'.$agent->id.'/'.Str::uuid()->toString().'.jpg';
+                $imagePath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/'.Str::uuid()->toString().'.jpg';
                 Storage::put($imagePath, $imageContent);
 
                 $describedImages[$imagePath] = $imageDescription;

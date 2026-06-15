@@ -51,7 +51,7 @@ it('stores the page count for a PDF upload', function (): void {
 
     $attachment = app(StoreAttachmentAction::class)->execute(new UploadAttachmentData(
         file: realPdfUpload(),
-        directory: 'chat-uploads/agent-1/test',
+        directory: 'users/test-workspace/agents/test-agent/attachments/test',
     ));
 
     expect($attachment->pages)->toBe(7)
@@ -63,7 +63,7 @@ it('leaves pages null for a non-PDF upload', function (): void {
     // No PdfInfo bound — a non-PDF must never reach the page-count path.
     $attachment = app(StoreAttachmentAction::class)->execute(new UploadAttachmentData(
         file: realTextUpload(),
-        directory: 'chat-uploads/agent-1/test',
+        directory: 'users/test-workspace/agents/test-agent/attachments/test',
     ));
 
     expect($attachment->pages)->toBeNull();

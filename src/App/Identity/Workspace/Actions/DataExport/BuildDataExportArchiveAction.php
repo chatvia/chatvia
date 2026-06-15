@@ -47,15 +47,13 @@ class BuildDataExportArchiveAction
 
     private const TEMP_PREFIX = 'data-exports/tmp';
 
-    private const ARCHIVE_PREFIX = 'data-exports';
-
     public function execute(DataExport $export): void
     {
         $export->update(['status' => DataExportStatus::Processing]);
 
         $user = $export->user;
         $tempDir = self::TEMP_PREFIX.'/'.$export->id;
-        $zipRelativePath = self::ARCHIVE_PREFIX.'/'.$user->id.'/'.Str::uuid()->toString().'.zip';
+        $zipRelativePath = 'users/'.$user->external_id.'/data-exports/'.Str::uuid()->toString().'.zip';
 
         $localDisk = Storage::disk(self::ARCHIVE_DISK);
         $localDisk->makeDirectory($tempDir);

@@ -13,10 +13,14 @@ use Illuminate\Support\Facades\Storage;
 class PruneAttachments extends Command
 {
     /**
-     * Top-level prefixes the upload action writes to. Anything outside these
-     * is left alone — the bucket is shared with other Chatvia assets.
+     * Attachments live at `users/{external_id}/agents/{external_id}/attachments/…`
+     * on the public bucket. The `users/` tree is shared with other per-user
+     * assets (profile photos, etc.), so we walk it but only ever delete files
+     * inside an `/attachments/` segment — everything else is left alone.
      */
-    private const PREFIXES = ['widget-uploads', 'chat-uploads'];
+    private const ROOT_PREFIX = 'users';
+
+    private const ATTACHMENT_SEGMENT = '/attachments/';
 
     public function handle(): int
     {
@@ -33,15 +37,19 @@ class PruneAttachments extends Command
         $deleted = 0;
         $kept = 0;
 
-        foreach (self::PREFIXES as $prefix) {
-            foreach ($disk->allFiles($prefix) as $path) {
-                $lastModified = $disk->lastModified($path);
-                if ($lastModified < $cutoff) {
-                    $disk->delete($path);
-                    $deleted++;
-                } else {
-                    $kept++;
-                }
+        foreach ($disk->allFiles(self::ROOT_PREFIX) as $path) {
+            // Never touch sibling per-user assets that share the `users/`
+            // prefix (profile photos, etc.) — only files under `…/attachments/…`.
+            if (! str_contains($path, self::ATTACHMENT_SEGMENT)) {
+                continue;
+            }
+
+            $lastModified = $disk->lastModified($path);
+            if ($lastModified < $cutoff) {
+                $disk->delete($path);
+                $deleted++;
+            } else {
+                $kept++;
             }
         }
 

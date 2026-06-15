@@ -73,7 +73,7 @@ class StartWebsiteIngestionAction
                     ->pluck('chunk')
                     ->implode("\n\n");
 
-                $filePath = 'users/'.$agent->user_id.'/agents/'.$agent->id.'/websites/'.$website->id.'/'.Str::uuid()->toString().'.txt';
+                $filePath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/websites/'.$website->id.'/'.Str::uuid()->toString().'.txt';
 
                 Storage::put($filePath, $text);
 

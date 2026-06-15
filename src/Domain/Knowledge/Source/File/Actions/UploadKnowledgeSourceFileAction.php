@@ -34,7 +34,7 @@ class UploadKnowledgeSourceFileAction
         }
 
         $path = Storage::putFile(
-            path: 'users/'.$agent->user_id.'/agents/'.$agent->id.'/files',
+            path: 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/files',
             file: $file,
         );
 

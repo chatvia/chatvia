@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 /**
@@ -51,10 +52,16 @@ class DeleteChatterAction
         // $chatter->delete() drops the rows: attachment files on S3 (the cascade
         // never fires the S3-wiping observer) and captured leads (chat_conversation_id
         // is SET NULL, so a lead would otherwise outlive the chatter and keep its PII).
+        // Capture the external id before the row is gone — the chatter's avatar
+        // lives on the public bucket at users/{external_id}/profile-photos/….
+        $chatterExternalId = $chatter->external_id;
+
         $this->wipeAttachmentFiles($conversationIds);
         $this->deleteLeads($conversationIds);
 
         $chatter->delete();
+
+        Storage::disk('public')->deleteDirectory('users/'.$chatterExternalId);
 
         $this->flushChatMemory($sessions);
     }

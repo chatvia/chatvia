@@ -44,7 +44,7 @@ function buildAttachment(?int $messageId = null): Attachment
         'title' => 'Test',
     ]);
 
-    $filepath = sprintf('chat-uploads/agent-%d/%s/%s.pdf', $agent->id, $conversation->external_id, Str::uuid());
+    $filepath = sprintf('users/%s/agents/%s/attachments/%s/%s.pdf', $agent->workspaceExternalId(), $agent->external_id, $conversation->external_id, Str::uuid());
     Storage::disk('public')->put($filepath, 'fake pdf');
 
     return Attachment::create([

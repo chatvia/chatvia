@@ -204,7 +204,7 @@
                 },
                 "shared": {
                     "subscribe_webhook": "اشترك بـ webhook في حقل {field}",
-                    "messages_field": "الرسائل",
+                    "messages_field": "messages",
                     "create_meta_app_at": "أنشئ تطبيقاً على {link}",
                     "copy_app_secret_both": "انسخ سر التطبيق من {section} والصقهما أدناه",
                     "copy_app_secret_all": "انسخ سر التطبيق من {section} والصق كل شيء أدناه",
@@ -271,8 +271,12 @@
                     "webhooks_path": "Use cases → Customize → Messenger API Settings",
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "تفاعل مع العملاء عبر Messenger",
-                    "permissions_path": "Use cases → Customize → Permissions and features"
+                    "product": "Engage with customers on Messenger",
+                    "permissions_path": "Use cases → Customize → Permissions and features",
+                    "oauth_intro": "اربط صفحة فيسبوك ليتمكن هذا الوكيل من الرد على محادثات ماسنجر — ستسجّل الدخول عبر فيسبوك ثم تختار الصفحة التي تريد استخدامها.",
+                    "connect_facebook": "الاتصال عبر فيسبوك",
+                    "pick_title": "اختر صفحة فيسبوك",
+                    "pick_button": "ربط هذه الصفحة"
                 },
                 "whatsapp": {
                     "steps": {
@@ -282,7 +286,7 @@
                         "connect_2": "أكمل {basic_setup}، ثم انسخ معرّف رقم الهاتف ومعرّف حساب WhatsApp Business ورمز وصول"
                     },
                     "configuration_path": "WhatsApp → Configuration",
-                    "use_case": "تواصل مع العملاء عبر WhatsApp",
+                    "use_case": "Connect with customers through WhatsApp",
                     "basic_setup_path": "Use cases → Customize → Basic setup"
                 },
                 "msteams": {
@@ -1845,7 +1849,7 @@
                 "open_new_tab": "فتح في تبويب جديد"
             },
             "api": {
-                "title": "واجهة JavaScript API",
+                "title": "JavaScript API",
                 "description": "تحكم في أداة الدردشة برمجياً باستخدام هذه الطرق والأحداث",
                 "methods": "الطرق",
                 "events": "الأحداث",
@@ -3033,7 +3037,10 @@
                 "table": {
                     "email": "البريد الإلكتروني",
                     "sent": "أُرسلت"
-                }
+                },
+                "resend": "إعادة الإرسال",
+                "toast_resent": "تمت إعادة إرسال الدعوة.",
+                "toast_resend_failed": "تعذّرت إعادة إرسال الدعوة. حاول مرة أخرى."
             },
             "invite": {
                 "title": "إضافة عضو إلى الفريق",
@@ -3044,7 +3051,10 @@
                 "select_user_placeholder": "اختر مستخدمًا...",
                 "email_label": "البريد الإلكتروني",
                 "email_placeholder": "colleague{'@'}example.com",
-                "send_invitation": "إرسال الدعوة"
+                "send_invitation": "إرسال الدعوة",
+                "toast_invite_sent": "تم إرسال الدعوة إلى {email}.",
+                "toast_member_added": "تمت إضافة عضو الفريق.",
+                "toast_failed": "تعذّرت إضافة عضو الفريق. حاول مرة أخرى."
             },
             "role_members": {
                 "title": "أعضاء {name}",
@@ -4217,7 +4227,7 @@
             "parameters_heading": "معاملات الرد",
             "temperature": {
                 "label": "مستوى الإبداع",
-                "param": "درجة الحرارة",
+                "param": "Temperature",
                 "help": "منخفض = ردود متوقعة ومتسقة. مرتفع = إجابات أكثر إبداعاً وتنوعاً.",
                 "scale_focused": "مركّز",
                 "scale_balanced": "متوازن",
@@ -4252,7 +4262,7 @@
             },
             "presence_penalty": {
                 "label": "تجنّب تكرار المواضيع",
-                "param": "عقوبة الحضور",
+                "param": "Presence Penalty",
                 "help": "القيم الأعلى تثبط تكرار نفس المواضيع أو الأفكار.",
                 "scale_repetitive": "متكرر",
                 "scale_neutral": "محايد",
@@ -4263,7 +4273,7 @@
             },
             "frequency_penalty": {
                 "label": "تجنّب تكرار الكلمات",
-                "param": "عقوبة التكرار",
+                "param": "Frequency Penalty",
                 "help": "القيم الأعلى تثبط استخدام نفس الكلمات مراراً.",
                 "scale_repetitive": "متكرر",
                 "scale_neutral": "محايد",

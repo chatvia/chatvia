@@ -116,6 +116,12 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
 
     Route::get('countries/list', CountriesListController::class)->name('countries.list');
 
+    // Facebook's OAuth redirect lands here (the agent rides in the signed
+    // `state`, not the URL), so it sits in the `my/` group — authenticated but
+    // outside the per-{agent} binding. Register this URL as the redirect URI in
+    // the Chatvia Meta app's Login settings.
+    Route::get('channels/messenger/oauth/callback', [AgentMessengerChannelController::class, 'callback'])->name('channels.messenger.callback');
+
     Route::prefix('agents/{agent}')->name('agents.')->middleware('can.access.agent')->group(function (): void {
         Route::get('home', AgentManagerController::class)->name('manager');
         Route::get('analytics', AgentAnalyticsController::class)->name('analytics');
@@ -293,7 +299,11 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::put('channels/telegram/commands', [AgentTelegramChannelController::class, 'updateCommands'])->middleware('agent.permission:agent.setup')->name('channels.telegram.commands');
         Route::post('channels/slack', [AgentSlackChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.slack.connect');
         Route::delete('channels/slack', [AgentSlackChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.slack.disconnect');
-        Route::post('channels/messenger', [AgentMessengerChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.messenger.connect');
+        // Messenger connects via Facebook Login for Business (one Chatvia Meta
+        // app): redirect → Facebook consent → callback (outside this {agent}
+        // group, see below) → select the Page. Disconnect is a single delete.
+        Route::get('channels/messenger/oauth/redirect', [AgentMessengerChannelController::class, 'redirect'])->middleware('agent.permission:agent.setup')->name('channels.messenger.redirect');
+        Route::post('channels/messenger/oauth/select', [AgentMessengerChannelController::class, 'select'])->middleware('agent.permission:agent.setup')->name('channels.messenger.select');
         Route::delete('channels/messenger', [AgentMessengerChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.messenger.disconnect');
         Route::post('channels/whatsapp', [AgentWhatsappChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.whatsapp.connect');
         Route::delete('channels/whatsapp', [AgentWhatsappChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.whatsapp.disconnect');

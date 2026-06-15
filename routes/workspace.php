@@ -30,6 +30,7 @@ use App\Http\Controllers\Team\Member\RemoveTeammateFromWorkspaceController;
 use App\Http\Controllers\Team\Member\TeamCancelInvitationController;
 use App\Http\Controllers\Team\Member\TeamInviteMemberController;
 use App\Http\Controllers\Team\Member\TeamRemoveMemberController;
+use App\Http\Controllers\Team\Member\TeamResendInvitationController;
 use App\Http\Controllers\Team\Member\TeamUpdateMemberRoleController;
 use App\Http\Controllers\Team\Roles\TeamRoleCreateShowController;
 use App\Http\Controllers\Team\Roles\TeamRoleDeleteController;
@@ -169,6 +170,7 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
         // Team members
         Route::post('my/teams/{team}/invite', TeamInviteMemberController::class)->name('teams.invite');
         Route::delete('my/teams/{team}/invitations/{invitationId}', TeamCancelInvitationController::class)->name('teams.cancel-invitation');
+        Route::post('my/teams/{team}/invitations/{invitationId}/resend', TeamResendInvitationController::class)->name('teams.resend-invitation');
         Route::put('my/teams/{team}/members/{member}', TeamUpdateMemberRoleController::class)->name('teams.update-member');
         Route::delete('my/teams/{team}/members/{member}', TeamRemoveMemberController::class)->name('teams.remove-member');
 

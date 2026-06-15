@@ -46,6 +46,26 @@ return [
         'redirect' => env('SLACK_REDIRECT_URI'),
     ],
 
+    /*
+     * Chatvia's own Facebook (Meta) app. One app serves every workspace —
+     * customers connect their Pages via Facebook Login for Business instead of
+     * creating their own app. Used by the Messenger channel today; Instagram
+     * and WhatsApp reuse the same app + OAuth core.
+     */
+    'meta' => [
+        'app_id' => env('META_APP_ID'),
+        'app_secret' => env('META_APP_SECRET'),
+        // Facebook Login for Business configuration id (Use cases → Customize →
+        // Facebook Login for Business → Configurations). Optional — when unset
+        // the authorize URL falls back to a classic `scope` request.
+        'config_id' => env('META_LOGIN_CONFIG_ID'),
+        'graph_version' => env('META_GRAPH_VERSION', 'v25.0'),
+        // Fixed OAuth redirect — must be whitelisted in the app's Login settings.
+        'redirect' => env('META_REDIRECT_URI'),
+        // The single app-level verify token pasted into the app's webhook config.
+        'webhook_verify_token' => env('META_WEBHOOK_VERIFY_TOKEN'),
+    ],
+
     'openrouter' => [
         'api_key' => env('OPENROUTER_API_KEY'),
         'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),

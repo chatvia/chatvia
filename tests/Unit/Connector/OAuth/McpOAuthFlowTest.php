@@ -5,6 +5,7 @@ namespace Tests\Unit\Connector\OAuth;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
+use Domain\Integration\Connector\Services\OAuth\ConnectorMisconfiguredException;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthDiscoverer;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
@@ -99,6 +100,36 @@ class McpOAuthFlowTest extends TestCase
 
         // State is stashed for later code exchange.
         $this->assertIsArray(Cache::get('oauth:mcp:state:'.$parts['state']));
+    }
+
+    public function test_begin_raises_a_misconfigured_exception_when_oauth_env_is_missing(): void
+    {
+        Cache::flush();
+
+        // A connector wired for pre-registered OAuth (authorization endpoint set)
+        // but whose client_id env var is unset — i.e. the operator never filled in
+        // the credentials. This must surface as a reportable misconfiguration, not
+        // a user-facing OAuth flow error, so the controller can hide the detail.
+        $connector = ConnectorData::fromArray([
+            'slug' => 'fixture',
+            'name' => 'Fixture',
+            'description' => 'd',
+            'category' => 'Test',
+            'icon' => 'fixture',
+            'brand_color' => '000000',
+            'auth_strategy' => 'oauth',
+            'mcp_url' => 'https://mcp.example.test/rpc',
+            'priority' => 999,
+            'oauth_authorization_endpoint' => 'https://auth.example.test/authorize',
+            'oauth_token_endpoint' => 'https://auth.example.test/token',
+            'oauth_client_id' => null,
+        ]);
+
+        $flow = $this->flowWithStubs($this->createMock(McpCatalog::class));
+
+        $this->expectException(ConnectorMisconfiguredException::class);
+
+        $flow->begin($this->user(), $connector);
     }
 
     public function test_complete_rejects_unknown_state(): void

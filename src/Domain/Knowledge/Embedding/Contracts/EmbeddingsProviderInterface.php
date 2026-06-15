@@ -35,9 +35,10 @@ interface EmbeddingsProviderInterface
      *
      * @param  string  $query  The search query
      * @param  array  $documents  Array of documents to rerank
+     * @param  int|null  $topN  Cap on results returned; null leaves the provider default in place
      * @return array|null Array of reranked documents with relevance scores or null if not supported
      */
-    public function rerank(string $query, array $documents): ?array;
+    public function rerank(string $query, array $documents, ?int $topN = null): ?array;
 
     /**
      * Check if the provider supports reranking.

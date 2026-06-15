@@ -80,7 +80,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
         return $vector;
     }
 
-    public function rerank(string $query, array $documents): ?array
+    public function rerank(string $query, array $documents, ?int $topN = null): ?array
     {
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
@@ -91,7 +91,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
                 'model' => $this->getModel(),
                 'query' => $query,
                 'documents' => $documents,
-                'top_n' => 3,
+                'top_n' => $topN ?? 3,
             ]);
 
         app(TokenUsageContext::class)->addFromResponse($response);

@@ -5,6 +5,7 @@ namespace Domain\Channel\Telegram\Actions;
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Services\TelegramClient;
+use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 use Illuminate\Support\Str;
 
 /**
@@ -21,6 +22,7 @@ class ConnectTelegramBotAction
 {
     public function __construct(
         private readonly TelegramClient $client,
+        private readonly TelegramCommandRouter $commands,
     ) {}
 
     public function execute(Agent $agent, string $token): ?AgentTelegramBot
@@ -44,6 +46,10 @@ class ConnectTelegramBotAction
         );
 
         $this->client->setWebhook($token, route('telegram.webhook', ['secret' => $secret]), $secret);
+
+        // Surface the command menu (built-ins + any commands kept across a
+        // reconnect) in Telegram's "/" autocomplete.
+        $this->commands->sync($bot);
 
         return $bot;
     }

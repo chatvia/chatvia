@@ -26,8 +26,8 @@ class AgentChannelsController
         return Inertia::render('agents/Channels/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'telegram' => $bot !== null
-                ? ['connected' => true, 'bot_username' => $bot->bot_username, 'enabled' => $bot->enabled]
-                : ['connected' => false, 'bot_username' => null, 'enabled' => false],
+                ? ['connected' => true, 'bot_username' => $bot->bot_username, 'enabled' => $bot->enabled, 'commands' => $bot->custom_commands ?? []]
+                : ['connected' => false, 'bot_username' => null, 'enabled' => false, 'commands' => []],
             // The webhook URLs embed the per-app secret — the workspace pastes
             // them into their Slack app's Event Subscriptions / Meta app's
             // Messenger Webhooks settings after connecting. For Messenger the

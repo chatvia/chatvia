@@ -11,11 +11,31 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { Building2, Check, Fingerprint, Hash, KeyRound, Link2, LoaderCircle, Lock, Plug, Settings2, ShieldCheck, Unplug } from 'lucide-vue-next';
+import {
+    Building2,
+    Check,
+    Command,
+    Fingerprint,
+    Hash,
+    KeyRound,
+    Link2,
+    LoaderCircle,
+    Lock,
+    Plug,
+    Plus,
+    Settings2,
+    ShieldCheck,
+    Trash2,
+    Unplug,
+    X,
+} from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -26,7 +46,12 @@ const { t } = useI18n();
 
 interface Props {
     agent: { external_id: string; name: string; is_public: boolean };
-    telegram: { connected: boolean; bot_username: string | null; enabled: boolean };
+    telegram: {
+        connected: boolean;
+        bot_username: string | null;
+        enabled: boolean;
+        commands: { command: string; description: string; reply: string }[];
+    };
     slack: { connected: boolean; team_name: string | null; webhook_url: string | null; enabled: boolean };
     messenger: { connected: boolean; page_name: string | null; webhook_url: string | null; verify_token: string | null; enabled: boolean };
     whatsapp: {
@@ -237,6 +262,43 @@ const disconnect = () => {
         },
     });
 };
+
+// ── Telegram custom commands --------------------------------------------------
+// Built-ins (/start, /reset, /help) are code-defined; these are extra canned-text
+// commands the workspace can add. Same draft → dialog → commit-on-Save pattern as
+// the Guardrails blocked-topics editor.
+interface TelegramCommand {
+    command: string;
+    description: string;
+    reply: string;
+}
+
+const commandsOpen = ref(false);
+const commandsForm = useForm<{ commands: TelegramCommand[] }>({ commands: [] });
+
+const openCommands = () => {
+    commandsForm.clearErrors();
+    commandsForm.commands = props.telegram.commands.map((c) => ({ ...c }));
+    commandsOpen.value = true;
+};
+const addCommand = () => commandsForm.commands.push({ command: '', description: '', reply: '' });
+const removeCommand = (index: number) => commandsForm.commands.splice(index, 1);
+const saveCommands = () => {
+    commandsForm
+        // Drop fully-blank rows so a stray empty row never blocks the save; the
+        // server still validates and reports any partially-filled ones.
+        .transform((data) => ({
+            commands: data.commands.filter((c) => c.command.trim() || c.description.trim() || c.reply.trim()),
+        }))
+        .put(route('agents.channels.telegram.commands', props.agent.external_id), {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                commandsOpen.value = false;
+                toast.success(t('agents.channels.setup.telegram.commands.saved_toast'));
+            },
+        });
+};
 </script>
 
 <template>
@@ -295,6 +357,30 @@ const disconnect = () => {
                                 <p class="text-muted-foreground text-sm">
                                     {{ t('agents.channels.setup.telegram.connected_description') }}
                                 </p>
+
+                                <!-- Custom commands -->
+                                <div class="rounded-lg border p-4">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-medium">{{ t('agents.channels.setup.telegram.commands.title') }}</p>
+                                            <p class="text-muted-foreground truncate text-xs">
+                                                {{
+                                                    props.telegram.commands.length
+                                                        ? props.telegram.commands.map((c) => '/' + c.command).join(', ')
+                                                        : t('agents.channels.setup.telegram.commands.empty')
+                                                }}
+                                            </p>
+                                        </div>
+                                        <Button v-if="canManage" variant="outline" size="sm" class="shrink-0" @click="openCommands">
+                                            <Command class="me-2 size-4" />
+                                            {{ t('agents.channels.setup.telegram.commands.manage') }}
+                                        </Button>
+                                    </div>
+                                    <p class="text-muted-foreground mt-3 text-xs">
+                                        {{ t('agents.channels.setup.telegram.commands.builtins_note') }}
+                                    </p>
+                                </div>
+
                                 <div
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
@@ -1504,5 +1590,79 @@ const disconnect = () => {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+
+        <!-- Telegram custom commands -->
+        <Dialog v-model:open="commandsOpen">
+            <DialogContent class="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>{{ t('agents.channels.setup.telegram.commands.dialog_title') }}</DialogTitle>
+                    <DialogDescription>{{ t('agents.channels.setup.telegram.commands.dialog_description') }}</DialogDescription>
+                </DialogHeader>
+
+                <div class="space-y-3">
+                    <div v-for="(command, index) in commandsForm.commands" :key="index" class="rounded-lg border p-3">
+                        <div class="flex items-start gap-2">
+                            <div class="flex-1 space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="relative w-40 shrink-0">
+                                        <span class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-sm"
+                                            >/</span
+                                        >
+                                        <Input
+                                            v-model="commandsForm.commands[index].command"
+                                            :placeholder="t('agents.channels.setup.telegram.commands.command_placeholder')"
+                                            class="ps-6 font-mono"
+                                        />
+                                    </div>
+                                    <Input
+                                        v-model="commandsForm.commands[index].description"
+                                        :placeholder="t('agents.channels.setup.telegram.commands.description_placeholder')"
+                                        class="flex-1"
+                                    />
+                                </div>
+                                <Textarea
+                                    v-model="commandsForm.commands[index].reply"
+                                    :placeholder="t('agents.channels.setup.telegram.commands.reply_placeholder')"
+                                    :rows="2"
+                                />
+                            </div>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                class="text-muted-foreground hover:text-destructive shrink-0"
+                                :aria-label="t('agents.channels.setup.telegram.commands.remove')"
+                                @click="removeCommand(index)"
+                            >
+                                <Trash2 class="size-4" />
+                            </Button>
+                        </div>
+                    </div>
+
+                    <p v-if="!commandsForm.commands.length" class="text-muted-foreground text-sm">
+                        {{ t('agents.channels.setup.telegram.commands.empty_draft') }}
+                    </p>
+
+                    <p v-for="(message, key) in commandsForm.errors" :key="key" class="text-destructive text-xs">{{ message }}</p>
+                </div>
+
+                <Button type="button" variant="outline" size="sm" class="w-fit" @click="addCommand">
+                    <Plus class="me-2 size-4" />
+                    {{ t('agents.channels.setup.telegram.commands.add') }}
+                </Button>
+
+                <DialogFooter>
+                    <Button type="button" variant="ghost" @click="commandsOpen = false">
+                        <X class="me-2 size-4" />
+                        {{ t('agents.channels.setup.telegram.commands.cancel') }}
+                    </Button>
+                    <Button type="button" :disabled="commandsForm.processing" @click="saveCommands">
+                        <LoaderCircle v-if="commandsForm.processing" class="me-2 size-4 animate-spin" />
+                        <Check v-else class="me-2 size-4" />
+                        {{ t('agents.channels.setup.telegram.commands.save') }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AgentLayout>
 </template>

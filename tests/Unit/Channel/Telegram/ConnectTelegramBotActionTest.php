@@ -3,7 +3,14 @@
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Telegram\Actions\ConnectTelegramBotAction;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
+use Domain\Channel\Telegram\Services\TelegramChatResolver;
+use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 use Tests\Support\Telegram\FakeTelegramClient;
+
+function connectAction(FakeTelegramClient $client): ConnectTelegramBotAction
+{
+    return new ConnectTelegramBotAction($client, new TelegramCommandRouter(app(TelegramChatResolver::class), $client));
+}
 
 /**
  * Connect is the only write in the Telegram channel that carries real behaviour:
@@ -14,7 +21,7 @@ it('connects a bot, stores it encrypted, and registers the webhook', function ()
     $agent = Agent::factory()->create();
     $client = new FakeTelegramClient;
 
-    $bot = (new ConnectTelegramBotAction($client))->execute($agent, '123456:ABCDEF_token_value_here');
+    $bot = (connectAction($client))->execute($agent, '123456:ABCDEF_token_value_here');
 
     expect($bot)->not->toBeNull();
 
@@ -32,6 +39,10 @@ it('connects a bot, stores it encrypted, and registers the webhook', function ()
     expect($client->webhooks)->toHaveCount(1)
         ->and($client->webhooks[0]['secret'])->toBe($row->webhook_secret)
         ->and($client->webhooks[0]['url'])->toContain('telegram/webhook');
+
+    // The built-in command menu (/start, /reset, /help) is registered with Telegram.
+    expect($client->commands)->toHaveCount(1)
+        ->and(array_column($client->commands[0]['commands'], 'command'))->toBe(['start', 'reset', 'help']);
 });
 
 it('returns null and stores nothing when Telegram rejects the token', function (): void {
@@ -39,7 +50,7 @@ it('returns null and stores nothing when Telegram rejects the token', function (
     $client = new FakeTelegramClient;
     $client->me = null; // Telegram: invalid token.
 
-    $bot = (new ConnectTelegramBotAction($client))->execute($agent, 'bogus');
+    $bot = (connectAction($client))->execute($agent, 'bogus');
 
     expect($bot)->toBeNull();
     expect(AgentTelegramBot::query()->count())->toBe(0);
@@ -49,7 +60,7 @@ it('returns null and stores nothing when Telegram rejects the token', function (
 it('reconnects in place — one bot row per agent, token rotated', function (): void {
     $agent = Agent::factory()->create();
     $client = new FakeTelegramClient;
-    $action = new ConnectTelegramBotAction($client);
+    $action = connectAction($client);
 
     $action->execute($agent, '111:first_token_value_aaaaaaaaaa');
     $first = AgentTelegramBot::query()->firstOrFail();

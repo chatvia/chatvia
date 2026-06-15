@@ -60,7 +60,24 @@
                         "connect_2": "Send {command} and follow the prompts",
                         "connect_3": "Paste the token below — we connect it automatically"
                     },
-                    "botfather": "{'@'}BotFather"
+                    "botfather": "{'@'}BotFather",
+                    "commands": {
+                        "title": "Commands",
+                        "empty": "No custom commands yet",
+                        "manage": "Manage",
+                        "builtins_note": "/start, /reset, and /help are built in and always available.",
+                        "dialog_title": "Custom commands",
+                        "dialog_description": "Add slash commands people can tap in Telegram. Each one replies with the text you set. Built-in commands (/start, /reset, /help) are always available.",
+                        "command_placeholder": "pricing",
+                        "description_placeholder": "What this command does",
+                        "reply_placeholder": "The reply to send when someone uses this command…",
+                        "remove": "Remove command",
+                        "empty_draft": "No commands yet. Add one below.",
+                        "add": "Add command",
+                        "cancel": "Cancel",
+                        "save": "Save commands",
+                        "saved_toast": "Commands saved"
+                    }
                 },
                 "slack": {
                     "steps": {

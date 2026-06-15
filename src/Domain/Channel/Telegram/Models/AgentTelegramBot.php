@@ -20,6 +20,7 @@ use Support\Concerns\HasExternalId;
  * @property string|null $bot_username
  * @property string $webhook_secret
  * @property bool $enabled
+ * @property list<array{command: string, description: string, reply: string}>|null $custom_commands
  */
 #[Guarded(['id'])]
 class AgentTelegramBot extends Model
@@ -29,6 +30,7 @@ class AgentTelegramBot extends Model
     protected $casts = [
         'bot_token' => 'encrypted',
         'enabled' => 'boolean',
+        'custom_commands' => 'array',
     ];
 
     public function getRouteKeyName(): string

@@ -26,9 +26,19 @@ class FakeTelegramClient extends TelegramClient
     /** @var list<array{token: string, chatId: int|string, action: string}> */
     public array $actions = [];
 
+    /** @var list<array{token: string, commands: list<array{command: string, description: string}>}> */
+    public array $commands = [];
+
     public function getMe(string $token): ?array
     {
         return $this->me;
+    }
+
+    public function setMyCommands(string $token, array $commands): bool
+    {
+        $this->commands[] = compact('token', 'commands');
+
+        return true;
     }
 
     public function setWebhook(string $token, string $url, string $secret): bool

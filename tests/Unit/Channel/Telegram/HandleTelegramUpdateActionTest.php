@@ -6,6 +6,7 @@ use Domain\Channel\Telegram\Actions\HandleTelegramUpdateAction;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
+use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 use Domain\Channel\Telegram\Services\TelegramReplyRunner;
 use Illuminate\Support\Str;
 use Tests\Support\Telegram\FakeTelegramClient;
@@ -50,6 +51,7 @@ it('resolves the chat, sends the agent reply, and stamps last_message_at', funct
         stubReplyRunner('Hello from the agent'),
         $client,
         new ChannelAccessGate,
+        new TelegramCommandRouter(app(TelegramChatResolver::class), $client),
     );
 
     $action->execute($bot, '555', 'hi there', ['first_name' => 'Sam']);
@@ -78,6 +80,7 @@ it('keeps one chat mapping across multiple inbound messages', function (): void 
         stubReplyRunner('ok'),
         $client,
         new ChannelAccessGate,
+        new TelegramCommandRouter(app(TelegramChatResolver::class), $client),
     );
 
     $action->execute($bot, '900', 'first', ['first_name' => 'Ann']);
@@ -96,6 +99,7 @@ it('refuses to answer on a protected agent and creates no chat', function (): vo
         stubReplyRunner('should never be sent'),
         $client,
         new ChannelAccessGate,
+        new TelegramCommandRouter(app(TelegramChatResolver::class), $client),
     );
 
     $action->execute($bot, '555', 'hello', ['first_name' => 'Sam']);
@@ -106,4 +110,28 @@ it('refuses to answer on a protected agent and creates no chat', function (): vo
         ->and($client->sent[0]['text'])->not->toBe('should never be sent');
 
     expect(TelegramChat::query()->count())->toBe(0);
+});
+
+it('answers /start with the welcome greeting and never runs the pipeline', function (): void {
+    $bot = handleBot();
+    $bot->agent->setSetting('welcome_message', 'Ask me anything!', 'appearance');
+    $client = new FakeTelegramClient;
+
+    $action = new HandleTelegramUpdateAction(
+        app(TelegramChatResolver::class),
+        stubReplyRunner('PIPELINE REPLY'),
+        $client,
+        new ChannelAccessGate,
+        new TelegramCommandRouter(app(TelegramChatResolver::class), $client),
+    );
+
+    $action->execute($bot, '777', '/start', ['first_name' => 'Sam']);
+
+    expect($client->sent)->toHaveCount(1)
+        ->and($client->sent[0]['text'])->toContain('Ask me anything!')
+        ->and($client->sent[0]['text'])->toContain('Sam')
+        ->and($client->sent[0]['text'])->not->toBe('PIPELINE REPLY');
+
+    // Commands answer instantly — no "typing…", no LLM, no billing.
+    expect($client->actions)->toBeEmpty();
 });

@@ -53,6 +53,7 @@ import {
     X,
 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 const { permissionLabel, permissionDescription } = useTeamPermissionsI18n();
@@ -175,6 +176,9 @@ const inviteMember = () => {
     // Reshape the submitted payload depending on whether we're inviting an
     // existing managed user (by id) or a new one (by email). Inertia's
     // `transform()` is the supported way to mutate the data right before send.
+    const wasEmailInvite = inviteType.value === 'email';
+    const invitedEmail = inviteForm.email;
+
     inviteForm
         .transform((current) =>
             inviteType.value === 'existing' ? { user_id: current.user_id, role: current.role } : { email: current.email, role: current.role },
@@ -184,7 +188,12 @@ const inviteMember = () => {
                 isInviteDialogOpen.value = false;
                 inviteForm.reset();
                 inviteType.value = 'existing';
+
+                toast.success(
+                    wasEmailInvite ? t('teams.show.invite.toast_invite_sent', { email: invitedEmail }) : t('teams.show.invite.toast_member_added'),
+                );
             },
+            onError: () => toast.error(t('teams.show.invite.toast_failed')),
         });
 };
 
@@ -198,6 +207,21 @@ const openInviteDialogForRole = (role: TeamRoleData) => {
 const cancelInvitationForm = useForm({});
 const cancelInvitation = (invitationId: number) => {
     cancelInvitationForm.delete(route('teams.cancel-invitation', { team: props.team.external_id, invitationId }));
+};
+
+// Resend invitation
+const resendInvitationForm = useForm({});
+const resendingInvitationId = ref<number | null>(null);
+const resendInvitation = (invitationId: number) => {
+    resendingInvitationId.value = invitationId;
+    resendInvitationForm.post(route('teams.resend-invitation', { team: props.team.external_id, invitationId }), {
+        preserveScroll: true,
+        onSuccess: () => toast.success(t('teams.show.invitations.toast_resent')),
+        onError: (errors) => toast.error(errors.invitation || t('teams.show.invitations.toast_resend_failed')),
+        onFinish: () => {
+            resendingInvitationId.value = null;
+        },
+    });
 };
 
 // Update member role
@@ -699,17 +723,30 @@ const displayableRoles = computed(() => props.roles.filter((r) => r.code !== 'ow
                                         {{ new Date(invitation.created_at).toLocaleDateString() }}
                                     </TableCell>
                                     <TableCell class="text-end">
-                                        <Button
-                                            v-if="canManageMembers"
-                                            variant="ghost"
-                                            size="sm"
-                                            class="text-destructive hover:text-destructive"
-                                            @click="cancelInvitation(invitation.id)"
-                                            :disabled="cancelInvitationForm.processing"
-                                        >
-                                            <X class="me-1 size-4" />
-                                            {{ t('teams.common.cancel') }}
-                                        </Button>
+                                        <div class="flex items-center justify-end gap-1">
+                                            <Button
+                                                v-if="canManageMembers"
+                                                variant="ghost"
+                                                size="sm"
+                                                @click="resendInvitation(invitation.id)"
+                                                :disabled="resendInvitationForm.processing"
+                                            >
+                                                <Loader2 v-if="resendingInvitationId === invitation.id" class="me-1 size-4 animate-spin" />
+                                                <Send v-else class="me-1 size-4" />
+                                                {{ t('teams.show.invitations.resend') }}
+                                            </Button>
+                                            <Button
+                                                v-if="canManageMembers"
+                                                variant="ghost"
+                                                size="sm"
+                                                class="text-destructive hover:text-destructive"
+                                                @click="cancelInvitation(invitation.id)"
+                                                :disabled="cancelInvitationForm.processing"
+                                            >
+                                                <X class="me-1 size-4" />
+                                                {{ t('teams.common.cancel') }}
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             </TableBody>

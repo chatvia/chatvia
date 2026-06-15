@@ -113,7 +113,11 @@
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "permissions_path": "Use cases → Customize → Permissions and features",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Engage with customers on Messenger"
+                    "product": "Engage with customers on Messenger",
+                    "oauth_intro": "Connect a Facebook Page so this agent can reply to Messenger conversations — you'll sign in with Facebook, then pick which Page to use.",
+                    "connect_facebook": "Connect with Facebook",
+                    "pick_title": "Choose a Facebook Page",
+                    "pick_button": "Connect this Page"
                 },
                 "whatsapp": {
                     "steps": {

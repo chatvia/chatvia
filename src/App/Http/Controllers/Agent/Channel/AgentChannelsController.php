@@ -6,6 +6,7 @@ use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -36,9 +37,16 @@ class AgentChannelsController
             'slack' => $slack !== null
                 ? ['connected' => true, 'team_name' => $slack->team_name, 'webhook_url' => route('slack.webhook', ['secret' => $slack->webhook_secret]), 'enabled' => $slack->enabled]
                 : ['connected' => false, 'team_name' => null, 'webhook_url' => null, 'enabled' => false],
-            'messenger' => $messenger !== null
-                ? ['connected' => true, 'page_name' => $messenger->page_name, 'webhook_url' => route('messenger.webhook', ['secret' => $messenger->webhook_secret]), 'verify_token' => $messenger->webhook_secret, 'enabled' => $messenger->enabled]
-                : ['connected' => false, 'page_name' => null, 'webhook_url' => null, 'verify_token' => null, 'enabled' => false],
+            // Messenger connects via Facebook OAuth (one Chatvia Meta app), so
+            // there's no per-page webhook URL to surface. `pick` holds the Pages
+            // returned from Facebook awaiting the workspace's choice (id + name
+            // only — the page tokens stay server-side in cache).
+            'messenger' => [
+                'connected' => $messenger !== null,
+                'page_name' => $messenger?->page_name,
+                'enabled' => (bool) $messenger?->enabled,
+                'pick' => $this->messengerPick($agent),
+            ],
             'whatsapp' => $whatsapp !== null
                 ? ['connected' => true, 'display_phone_number' => $whatsapp->display_phone_number, 'verified_name' => $whatsapp->verified_name, 'webhook_url' => route('whatsapp.webhook', ['secret' => $whatsapp->webhook_secret]), 'verify_token' => $whatsapp->webhook_secret, 'enabled' => $whatsapp->enabled]
                 : ['connected' => false, 'display_phone_number' => null, 'verified_name' => null, 'webhook_url' => null, 'verify_token' => null, 'enabled' => false],
@@ -51,5 +59,26 @@ class AgentChannelsController
                 ? ['connected' => true, 'username' => $instagram->username, 'webhook_url' => route('instagram.webhook', ['secret' => $instagram->webhook_secret]), 'verify_token' => $instagram->webhook_secret, 'enabled' => $instagram->enabled]
                 : ['connected' => false, 'username' => null, 'webhook_url' => null, 'verify_token' => null, 'enabled' => false],
         ]);
+    }
+
+    /**
+     * The Pages Facebook just handed back, waiting for the workspace to pick
+     * which one powers this agent — id + name only (tokens stay server-side).
+     * Mirrors the cache key written by {@see AgentMessengerChannelController}.
+     *
+     * @return list<array{id: string, name: string}>|null
+     */
+    private function messengerPick(Agent $agent): ?array
+    {
+        $pages = Cache::get("meta:oauth:messenger:pages:{$agent->id}");
+
+        if (! is_array($pages) || $pages === []) {
+            return null;
+        }
+
+        return array_map(static fn (array $page): array => [
+            'id' => (string) $page['id'],
+            'name' => (string) $page['name'],
+        ], $pages);
     }
 }

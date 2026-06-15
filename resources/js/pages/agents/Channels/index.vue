@@ -18,7 +18,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Textarea } from '@/components/ui/textarea';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import {
     Building2,
     Check,
@@ -54,7 +54,7 @@ interface Props {
         commands: { command: string; description: string; type: 'message' | 'prompt'; value: string; builtin: boolean }[];
     };
     slack: { connected: boolean; team_name: string | null; webhook_url: string | null; enabled: boolean };
-    messenger: { connected: boolean; page_name: string | null; webhook_url: string | null; verify_token: string | null; enabled: boolean };
+    messenger: { connected: boolean; page_name: string | null; enabled: boolean; pick: { id: string; name: string }[] | null };
     whatsapp: {
         connected: boolean;
         display_phone_number: string | null;
@@ -150,8 +150,8 @@ const openChannel = (item: ChannelItem) => {
     telegramForm.clearErrors();
     slackForm.reset();
     slackForm.clearErrors();
-    messengerForm.reset();
-    messengerForm.clearErrors();
+    messengerSelectForm.reset();
+    messengerSelectForm.clearErrors();
     whatsappForm.reset();
     whatsappForm.clearErrors();
     msteamsForm.reset();
@@ -189,15 +189,25 @@ const connectSlack = () => {
     });
 };
 
-// ── Messenger connect ----------------------------------------------------------
-const messengerForm = useForm({ page_access_token: '', app_secret: '' });
+// ── Messenger connect (Facebook Login for Business) ---------------------------
+// Connecting is a full-page hop to Facebook's consent screen (not an Inertia
+// XHR): redirect → consent → our callback drops the granted Pages into `pick`
+// → the workspace picks one below. Callback errors come back as a shared page
+// error (no form owns them).
+const page = usePage();
+const messengerError = computed<string | undefined>(() => (page.props.errors as Record<string, string> | undefined)?.messenger);
 
 const connectMessenger = () => {
-    messengerForm.post(route('agents.channels.messenger.connect', props.agent.external_id), {
+    window.location.href = route('agents.channels.messenger.redirect', props.agent.external_id);
+};
+
+const messengerSelectForm = useForm({ page_id: props.messenger.pick?.[0]?.id ?? '' });
+
+const selectMessengerPage = () => {
+    messengerSelectForm.post(route('agents.channels.messenger.select', props.agent.external_id), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {
-            messengerForm.reset();
             toast.success(t('agents.channels.messenger.connected_toast'));
         },
     });
@@ -687,68 +697,6 @@ const saveCommands = () => {
                                     </div>
                                 </div>
 
-                                <CopyField
-                                    id="messenger-webhook-url"
-                                    :label="t('agents.channels.setup.labels.callback_url')"
-                                    :icon="Link2"
-                                    :value="props.messenger.webhook_url"
-                                />
-                                <CopyField
-                                    id="messenger-verify-token"
-                                    :label="t('agents.channels.setup.labels.verify_token')"
-                                    :icon="ShieldCheck"
-                                    :value="props.messenger.verify_token"
-                                />
-
-                                <ol class="text-muted-foreground space-y-2 text-xs">
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >1</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.messenger.steps.connected_1" tag="span">
-                                                <template #link>
-                                                    <a
-                                                        href="https://developers.facebook.com/apps"
-                                                        target="_blank"
-                                                        rel="noopener"
-                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                        >{{ t('agents.channels.setup.messenger.your_meta_app') }}</a
-                                                    >
-                                                </template>
-                                                <template #webhooks>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.messenger.webhooks_path')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >2</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.shared.subscribe_webhook" tag="span">
-                                                <template #field>
-                                                    <span class="text-foreground font-mono">{{
-                                                        t('agents.channels.setup.shared.messages_field')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >3</span
-                                        >
-                                        <span>{{ t('agents.channels.setup.messenger.steps.connected_3') }}</span>
-                                    </li>
-                                </ol>
-
                                 <div
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
@@ -784,108 +732,55 @@ const saveCommands = () => {
 
                             <!-- Not connected -->
                             <template v-else-if="canManage">
-                                <ol class="text-muted-foreground space-y-2 text-xs">
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >1</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.messenger.steps.connect_1" tag="span">
-                                                <template #link>
-                                                    <a
-                                                        href="https://developers.facebook.com/apps"
-                                                        target="_blank"
-                                                        rel="noopener"
-                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                        >developers.facebook.com</a
-                                                    >
-                                                </template>
-                                                <template #product>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.messenger.product')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >2</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.messenger.steps.connect_perms" tag="span">
-                                                <template #permissions>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.messenger.permissions_path')
-                                                    }}</span>
-                                                </template>
-                                                <template #perm1><span class="text-foreground font-mono">pages_messaging</span></template>
-                                                <template #perm2><span class="text-foreground font-mono">pages_read_engagement</span></template>
-                                                <template #perm3><span class="text-foreground font-mono">pages_manage_metadata</span></template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >3</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.messenger.steps.connect_2" tag="span">
-                                                <template #api_settings>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.messenger.api_settings_path')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >4</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.shared.copy_app_secret_both" tag="span">
-                                                <template #section>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.messenger.app_settings_basic')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                </ol>
-                                <CredentialInput
-                                    id="messenger-page-token"
-                                    v-model="messengerForm.page_access_token"
-                                    :label="t('agents.channels.setup.labels.page_access_token')"
-                                    :icon="KeyRound"
-                                    :placeholder="t('agents.channels.setup.placeholders.meta_token')"
-                                    :error="messengerForm.errors.page_access_token"
-                                />
-                                <CredentialInput
-                                    id="messenger-app-secret"
-                                    v-model="messengerForm.app_secret"
-                                    :label="t('agents.channels.setup.labels.app_secret')"
-                                    :icon="Lock"
-                                    secret
-                                    :error="messengerForm.errors.app_secret"
-                                    @enter="connectMessenger"
-                                />
-                                <div class="border-t pt-5">
-                                    <Button
-                                        class="w-full"
-                                        :disabled="messengerForm.processing || !messengerForm.page_access_token || !messengerForm.app_secret"
-                                        @click="connectMessenger"
-                                    >
-                                        <LoaderCircle v-if="messengerForm.processing" class="me-2 size-4 animate-spin" />
-                                        <Plug v-else class="me-2 size-4" />
-                                        {{ t('agents.channels.connect') }}
-                                    </Button>
+                                <div
+                                    v-if="messengerError"
+                                    class="border-destructive/30 bg-destructive/10 text-destructive rounded-md border p-3 text-xs"
+                                >
+                                    {{ messengerError }}
                                 </div>
+
+                                <!-- Page picker — the Pages Facebook handed back after consent -->
+                                <template v-if="props.messenger.pick && props.messenger.pick.length">
+                                    <p class="text-sm font-medium">{{ t('agents.channels.setup.messenger.pick_title') }}</p>
+                                    <div class="space-y-2">
+                                        <label
+                                            v-for="fbPage in props.messenger.pick"
+                                            :key="fbPage.id"
+                                            class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition"
+                                            :class="messengerSelectForm.page_id === fbPage.id ? 'border-foreground/40 bg-muted/50' : ''"
+                                        >
+                                            <input
+                                                v-model="messengerSelectForm.page_id"
+                                                type="radio"
+                                                :value="fbPage.id"
+                                                class="accent-foreground size-4"
+                                            />
+                                            <span class="truncate text-sm font-medium">{{ fbPage.name }}</span>
+                                        </label>
+                                    </div>
+                                    <div class="border-t pt-5">
+                                        <Button
+                                            class="w-full"
+                                            :disabled="!messengerSelectForm.page_id || messengerSelectForm.processing"
+                                            @click="selectMessengerPage"
+                                        >
+                                            <LoaderCircle v-if="messengerSelectForm.processing" class="me-2 size-4 animate-spin" />
+                                            <Plug v-else class="me-2 size-4" />
+                                            {{ t('agents.channels.setup.messenger.pick_button') }}
+                                        </Button>
+                                    </div>
+                                </template>
+
+                                <!-- Kick off the OAuth flow -->
+                                <template v-else>
+                                    <p class="text-muted-foreground text-sm">{{ t('agents.channels.setup.messenger.oauth_intro') }}</p>
+                                    <div class="border-t pt-5">
+                                        <Button class="w-full" @click="connectMessenger">
+                                            <Plug class="me-2 size-4" />
+                                            {{ t('agents.channels.setup.messenger.connect_facebook') }}
+                                        </Button>
+                                    </div>
+                                </template>
                             </template>
 
                             <template v-else>

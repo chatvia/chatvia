@@ -11,41 +11,46 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Receives Messenger Platform webhooks. The {secret} path segment is the
- * per-page `webhook_secret` (routes the event to the agent); it doubles as
- * the verify token of Meta's GET handshake, and POSTed events are verified
- * with Meta's signed payload (HMAC-SHA256 of the raw body with the app
- * secret, `X-Hub-Signature-256`). Each message is processed once (idempotency
- * on `mid` — Meta re-delivers on timeout) and handed to a queued job so the
- * webhook answers fast. POST always replies 200 — repeated non-2xx makes
- * Meta disable the subscription, and an unknown/spoofed secret should just
- * be a silent no-op.
+ * Receives Messenger Platform webhooks for Chatvia's single Meta app. With one
+ * app serving every workspace there's one app-level Callback URL (no per-page
+ * secret in the path): the GET handshake is verified against the app-level
+ * verify token, POSTed events against the app secret (HMAC-SHA256 of the raw
+ * body, `X-Hub-Signature-256`), and each `entry` is routed to the right agent
+ * by its Page id (`entry.id`). Each message is processed once (idempotency on
+ * `mid` — Meta re-delivers on timeout) and handed to a queued job so the
+ * webhook answers fast. POST always replies 200 — repeated non-2xx makes Meta
+ * disable the subscription, and an unknown/spoofed payload should be a silent
+ * no-op.
  */
 class MessengerWebhookController
 {
     use InteractsWithMetaWebhooks;
 
-    /**
-     * Meta verifies the Callback URL with a GET handshake when it's pasted
-     * into the app's Messenger → Webhooks settings.
-     */
-    public function verify(Request $request, string $secret): Response
+    public function verify(Request $request): Response
     {
-        return $this->metaChallengeResponse($request, $this->page($secret)?->webhook_secret);
+        return $this->metaChallengeResponse($request, config('services.meta.webhook_verify_token'));
     }
 
-    public function receive(Request $request, string $secret): JsonResponse
+    public function receive(Request $request): JsonResponse
     {
         $ok = response()->json(['ok' => true]);
 
-        $page = $this->page($secret);
+        $appSecret = (string) config('services.meta.app_secret');
 
-        if ($page === null || ! $this->hasValidMetaSignature($request, $page->app_secret) || $request->input('object') !== 'page') {
+        if ($appSecret === '' || ! $this->hasValidMetaSignature($request, $appSecret) || $request->input('object') !== 'page') {
             return $ok;
         }
 
-        // Events arrive batched: entry[] per page, messaging[] per sender.
+        // Events arrive batched: entry[] per page, messaging[] per sender. One
+        // app-level URL receives every connected page, so route each entry to
+        // its agent by Page id.
         foreach ((array) $request->input('entry', []) as $entry) {
+            $page = $this->page((string) ($entry['id'] ?? ''));
+
+            if ($page === null) {
+                continue;
+            }
+
             foreach ((array) ($entry['messaging'] ?? []) as $event) {
                 if (! is_array($event) || ! $this->shouldHandle($page, $event)) {
                     continue;
@@ -70,11 +75,15 @@ class MessengerWebhookController
         return $ok;
     }
 
-    private function page(string $secret): ?AgentMessengerPage
+    private function page(string $pageId): ?AgentMessengerPage
     {
+        if ($pageId === '') {
+            return null;
+        }
+
         return AgentMessengerPage::query()
             ->with('agent')
-            ->where('webhook_secret', $secret)
+            ->where('page_id', $pageId)
             ->where('enabled', true)
             ->first();
     }

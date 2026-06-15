@@ -2,8 +2,11 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserQuota;
+use Domain\Membership\Team\Actions\Invitations\CreateTeamInvitationAction;
+use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
+use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 
 /*
@@ -128,6 +131,44 @@ describe('teams.invite (FormRequest::authorize, permission-aware)', function ():
                 'email' => 'newbie@example.com',
                 'role' => 'admin',
             ])
+            ->assertRedirect();
+    });
+});
+
+// Seed a pending invitation on the owner's team. CreateTeamInvitationAction has
+// no subscription gate, so this works for the bare beforeEach owner.
+function seedResendInvitation(User $owner): array
+{
+    $team = $owner->primaryTeam();
+    app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
+        team: $team, name: 'Support', permissions: ['agent.chat.view'], allAgents: true, agentExternalIds: [],
+    ));
+    $invitation = app(CreateTeamInvitationAction::class)->execute($team, 'invitee@example.com', 'support');
+
+    return [$team, $invitation];
+}
+
+describe('teams.resend-invitation (inline abort 403)', function (): void {
+    it('forbids an outsider', function (): void {
+        [$team, $invitation] = seedResendInvitation($this->owner);
+
+        $this->actingAs($this->outsider)
+            ->from('/')
+            ->post(route('teams.resend-invitation', [$team, $invitation->id]))
+            ->assertForbidden();
+    });
+
+    it('lets the owner through the resend gate', function (): void {
+        // Mirrors teams.invite: the bare owner has no active subscription, so the
+        // resend's own subscription gate returns back()->withErrors — still a
+        // redirect, not a 403. Asserting redirect-not-forbidden proves the
+        // addTeamMember authorization opened; the success path + the
+        // subscription gate are pinned in ResendTeamInvitationActionTest.
+        [$team, $invitation] = seedResendInvitation($this->owner);
+
+        $this->actingAs($this->owner)
+            ->from('/')
+            ->post(route('teams.resend-invitation', [$team, $invitation->id]))
             ->assertRedirect();
     });
 });

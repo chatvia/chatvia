@@ -272,7 +272,11 @@
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
                     "product": "Engage with customers on Messenger",
-                    "permissions_path": "Use cases → Customize → Permissions and features"
+                    "permissions_path": "Use cases → Customize → Permissions and features",
+                    "oauth_intro": "Connect a Facebook Page so this agent can reply to Messenger conversations — you'll sign in with Facebook, then pick which Page to use.",
+                    "connect_facebook": "Connect with Facebook",
+                    "pick_title": "Choose a Facebook Page",
+                    "pick_button": "Connect this Page"
                 },
                 "whatsapp": {
                     "steps": {
@@ -3033,7 +3037,10 @@
                 "table": {
                     "email": "Email",
                     "sent": "Sent"
-                }
+                },
+                "resend": "Resend",
+                "toast_resent": "Invitation resent.",
+                "toast_resend_failed": "We couldn't resend the invitation. Please try again."
             },
             "invite": {
                 "title": "Add Team Member",
@@ -3044,7 +3051,10 @@
                 "select_user_placeholder": "Choose a user...",
                 "email_label": "Email Address",
                 "email_placeholder": "colleague{'@'}example.com",
-                "send_invitation": "Send Invitation"
+                "send_invitation": "Send Invitation",
+                "toast_invite_sent": "Invitation sent to {email}.",
+                "toast_member_added": "Team member added.",
+                "toast_failed": "We couldn't add the team member. Please try again."
             },
             "role_members": {
                 "title": "{name} Members",

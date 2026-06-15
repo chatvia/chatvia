@@ -113,7 +113,11 @@
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "permissions_path": "Use cases → Customize → Permissions and features",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Engage with customers on Messenger"
+                    "product": "Engage with customers on Messenger",
+                    "oauth_intro": "اربط صفحة فيسبوك ليتمكن هذا الوكيل من الرد على محادثات ماسنجر — ستسجّل الدخول عبر فيسبوك ثم تختار الصفحة التي تريد استخدامها.",
+                    "connect_facebook": "الاتصال عبر فيسبوك",
+                    "pick_title": "اختر صفحة فيسبوك",
+                    "pick_button": "ربط هذه الصفحة"
                 },
                 "whatsapp": {
                     "steps": {

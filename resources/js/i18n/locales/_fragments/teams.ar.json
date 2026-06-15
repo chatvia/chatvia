@@ -87,6 +87,9 @@
             "invitations": {
                 "title": "الدعوات المعلّقة",
                 "description": "هذه الدعوات في انتظار القبول.",
+                "resend": "إعادة الإرسال",
+                "toast_resent": "تمت إعادة إرسال الدعوة.",
+                "toast_resend_failed": "تعذّرت إعادة إرسال الدعوة. حاول مرة أخرى.",
                 "table": {
                     "email": "البريد الإلكتروني",
                     "sent": "أُرسلت"
@@ -101,7 +104,10 @@
                 "select_user_placeholder": "اختر مستخدمًا...",
                 "email_label": "البريد الإلكتروني",
                 "email_placeholder": "colleague{'@'}example.com",
-                "send_invitation": "إرسال الدعوة"
+                "send_invitation": "إرسال الدعوة",
+                "toast_invite_sent": "تم إرسال الدعوة إلى {email}.",
+                "toast_member_added": "تمت إضافة عضو الفريق.",
+                "toast_failed": "تعذّرت إضافة عضو الفريق. حاول مرة أخرى."
             },
             "role_members": {
                 "title": "أعضاء {name}",

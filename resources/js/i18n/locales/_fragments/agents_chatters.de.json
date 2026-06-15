@@ -1,6 +1,6 @@
 {
     "agents": {
-        "members": {
+        "chatters": {
             "title": "Chatter",
             "description": "Ihre Chatter. Chatter mit Zugriff auf diesen Agenten werden zuerst angezeigt; anderen Chattern können Sie mit einem Klick Zugriff gewähren.",
             "public_title": "Dieser Agent ist öffentlich",

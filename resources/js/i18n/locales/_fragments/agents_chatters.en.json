@@ -1,6 +1,6 @@
 {
     "agents": {
-        "members": {
+        "chatters": {
             "title": "Chatters",
             "description": "Your chatters. Those with access to this agent are listed first; grant any other chatter access in one click.",
             "public_title": "This agent is public",

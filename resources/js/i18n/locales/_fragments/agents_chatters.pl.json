@@ -1,6 +1,6 @@
 {
     "agents": {
-        "members": {
+        "chatters": {
             "title": "Czatowicze",
             "description": "Twoi czatowicze. Ci z dostępem do tego agenta są wymienieni jako pierwsi; przyznaj dostęp innemu czatowiczowi jednym kliknięciem.",
             "public_title": "Ten agent jest publiczny",
@@ -8,9 +8,21 @@
             "search_placeholder": "Szukaj czatowiczów...",
             "count": "{filtered} z {total} czatowicza | {filtered} z {total} czatowiczów",
             "invite_member": "Zaproś czatowicza",
-            "table": { "name": "Nazwa", "email": "E-mail", "status": "Status", "access": "Dostęp", "actions": "Akcje" },
-            "status": { "pending": "Oczekujący", "active": "Aktywny" },
-            "access": { "granted": "Przyznany", "no_access": "Brak dostępu" },
+            "table": {
+                "name": "Nazwa",
+                "email": "E-mail",
+                "status": "Status",
+                "access": "Dostęp",
+                "actions": "Akcje"
+            },
+            "status": {
+                "pending": "Oczekujący",
+                "active": "Aktywny"
+            },
+            "access": {
+                "granted": "Przyznany",
+                "no_access": "Brak dostępu"
+            },
             "no_email": "Brak e-maila",
             "empty_title": "Brak czatowiczów.",
             "empty_description": "Zaproś kogoś, aby rozpocząć — pojawią się tutaj.",

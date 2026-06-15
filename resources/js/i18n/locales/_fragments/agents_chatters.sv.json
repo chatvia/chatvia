@@ -1,6 +1,6 @@
 {
     "agents": {
-        "members": {
+        "chatters": {
             "title": "Chatters",
             "description": "Dina chatters. De med tillgång till den här agenten visas först – ge valfri annan chatter tillgång med ett klick.",
             "public_title": "Den här agenten är offentlig",

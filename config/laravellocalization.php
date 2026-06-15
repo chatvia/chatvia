@@ -9,13 +9,21 @@ return [
     // a `lang/{code}/landing.php` file are actually translated — the rest resolve
     // and fall back to English (fallback_locale) until translations land.
     'supportedLocales' => [
-        // Public marketing site is intentionally limited to EN/DE/FR for now — the
-        // EU-sovereignty positioning is fully translated only in these three. The
-        // other locales (ar, da, es, fa, pt, …) and their lang/*/landing.php files
-        // stay on disk; re-add a row here to re-enable one in the future.
-        'en' => ['name' => 'English', 'script' => 'Latn', 'native' => 'English',  'regional' => 'en_GB', 'flag' => 'gb'],
-        'de' => ['name' => 'German',  'script' => 'Latn', 'native' => 'Deutsch',  'regional' => 'de_DE', 'flag' => 'de'],
-        'fr' => ['name' => 'French',  'script' => 'Latn', 'native' => 'Français', 'regional' => 'fr_FR', 'flag' => 'fr'],
+        // Kept in lock-step with the dashboard switcher (resources/js/i18n `LOCALES`).
+        // Every row here has a lang/{code}/landing.php file; `ar` and `fa` are
+        // right-to-left. Remove a row to hide a language on the public site.
+        'en' => ['name' => 'English',    'script' => 'Latn', 'native' => 'English',  'regional' => 'en_GB', 'flag' => 'gb'],
+        'de' => ['name' => 'German',     'script' => 'Latn', 'native' => 'Deutsch',  'regional' => 'de_DE', 'flag' => 'de'],
+        'fr' => ['name' => 'French',     'script' => 'Latn', 'native' => 'Français', 'regional' => 'fr_FR', 'flag' => 'fr'],
+        'ar' => ['name' => 'Arabic',     'script' => 'Arab', 'native' => 'العربية',  'regional' => 'ar_SA', 'flag' => 'sa'],
+        'da' => ['name' => 'Danish',     'script' => 'Latn', 'native' => 'Dansk',    'regional' => 'da_DK', 'flag' => 'dk'],
+        'es' => ['name' => 'Spanish',    'script' => 'Latn', 'native' => 'Español',  'regional' => 'es_ES', 'flag' => 'es'],
+        'fa' => ['name' => 'Persian',    'script' => 'Arab', 'native' => 'فارسی',    'regional' => 'fa_IR', 'flag' => 'ir'],
+        'fi' => ['name' => 'Finnish',    'script' => 'Latn', 'native' => 'Suomi',    'regional' => 'fi_FI', 'flag' => 'fi'],
+        'no' => ['name' => 'Norwegian',  'script' => 'Latn', 'native' => 'Norsk',    'regional' => 'nb_NO', 'flag' => 'no'],
+        'pl' => ['name' => 'Polish',     'script' => 'Latn', 'native' => 'Polski',   'regional' => 'pl_PL', 'flag' => 'pl'],
+        'pt' => ['name' => 'Portuguese', 'script' => 'Latn', 'native' => 'Português', 'regional' => 'pt_PT', 'flag' => 'pt'],
+        'sv' => ['name' => 'Swedish',    'script' => 'Latn', 'native' => 'Svenska',  'regional' => 'sv_SE', 'flag' => 'se'],
     ],
 
     // Browser auto-detection stays OFF (locale is resolved in
@@ -32,7 +40,7 @@ return [
     'hideDefaultLocaleInURL' => true,
 
     // Order shown in the language dropdown — mirrors the dashboard switcher.
-    'localesOrder' => ['en', 'de', 'fr'],
+    'localesOrder' => ['en', 'de', 'fr', 'ar', 'da', 'es', 'fa', 'fi', 'no', 'pl', 'pt', 'sv'],
 
     'localesMapping' => [],
 

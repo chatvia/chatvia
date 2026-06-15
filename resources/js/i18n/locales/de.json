@@ -2305,7 +2305,7 @@
             "title": "Chatter",
             "description": "Ihre Chatter. Chatter mit Zugriff auf diesen Agenten werden zuerst angezeigt; anderen Chattern können Sie mit einem Klick Zugriff gewähren.",
             "public_title": "Dieser Agent ist öffentlich",
-            "public_description": "Jeder mit dem Link kann mit diesem Agenten chatten, daher gelten keine Chatter-Zugänge. Um Chatter zu verwenden, stellen Sie den Agenten im Setup-Tab auf geschützt.",
+            "public_description": "Jeder mit dem Link kann mit diesem Agenten chatten, daher gelten keine Chatter-Zugänge. Um Chatter zu verwenden, stellen Sie den Agenten im Sicherheits-Tab auf geschützt.",
             "search_placeholder": "Chatter suchen...",
             "count": "{filtered} von {total} Chatter | {filtered} von {total} Chattern",
             "invite_member": "Chatter einladen",

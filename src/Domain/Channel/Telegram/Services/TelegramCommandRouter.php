@@ -6,23 +6,31 @@ use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
 
 /**
- * Answers Telegram slash commands (/start, /reset, /help and the agent's own
- * custom commands) *before* the chat pipeline runs. Built-in commands are
- * code-defined and free — no LLM, no billing; custom commands are canned-text
- * replies the workspace configures on the Channels page.
+ * Resolves Telegram slash commands (/start, /reset, /help and the agent's own
+ * custom commands) *before* the chat pipeline runs.
+ *
+ * Each command is either a **message** — sent verbatim, no LLM, no billing — or a
+ * **prompt**, run through the agent pipeline like a normal turn (RAG + tools +
+ * LLM, billed). Built-in commands are pre-seeded, editable rows: /start greets,
+ * /reset always starts a new thread, /help auto-lists the commands when blank.
  *
  * On Telegram a "command" is text starting with `/` — Telegram auto-sends
- * `/start` the moment a user opens the bot, so this is what turns that first
- * tap into the agent's greeting rather than a literal "/start" sent to the LLM.
+ * `/start` the moment a user opens the bot, so this is what turns that first tap
+ * into the agent's greeting rather than a literal "/start" sent to the LLM.
  *
- * This is Telegram-local on purpose: other channels (Slack slash commands, the
- * Meta channels) don't share Telegram's `/command` model, so there's no shared
- * cross-channel abstraction here.
+ * Telegram-local on purpose: other channels don't share the `/command` model.
  */
 class TelegramCommandRouter
 {
-    /** Built-in command names the agent can't redefine. */
+    /** Built-in command names — always present, can't be deleted or renamed. */
     public const RESERVED = ['start', 'reset', 'help'];
+
+    /** Code defaults for the built-ins, overlaid with the agent's stored edits. */
+    private const BUILTIN_DEFAULTS = [
+        'start' => ['description' => 'Start the conversation', 'type' => 'message', 'value' => 'Hello'],
+        'reset' => ['description' => 'Start a new conversation', 'type' => 'message', 'value' => 'Started a new conversation. What would you like to talk about?'],
+        'help' => ['description' => 'What this assistant can do', 'type' => 'message', 'value' => ''],
+    ];
 
     public function __construct(
         private readonly TelegramChatResolver $resolver,
@@ -30,58 +38,123 @@ class TelegramCommandRouter
     ) {}
 
     /**
-     * If $text is a slash command, handle it and return the reply to send back.
-     * Returns null to let the message fall through to the normal agent pipeline —
-     * that covers both a plain message and an unknown /command (we'd rather let
-     * the LLM field "/menu" than bounce an "unknown command" error).
+     * Resolve $text to a command outcome — a canned message or a prompt to run —
+     * or null to let the message fall through to the normal agent pipeline (a
+     * plain message, or an unknown /command we'd rather let the LLM field).
      *
      * @param  array{first_name?: string|null, username?: string|null}  $from
      */
-    public function handle(AgentTelegramBot $bot, TelegramChat $chat, string $text, array $from = []): ?string
+    public function handle(AgentTelegramBot $bot, TelegramChat $chat, string $text, array $from = []): ?TelegramCommandOutcome
     {
-        $command = $this->parse($text);
+        $name = $this->parse($text);
 
-        if ($command === null) {
+        if ($name === null) {
             return null;
         }
 
-        return match ($command) {
-            'start' => $this->greeting($bot, $from),
-            'reset' => $this->reset($chat),
-            'help' => $this->help($bot),
-            default => $this->custom($bot, $command),
-        };
+        // /reset always rotates onto a fresh thread first, whatever its response is.
+        if ($name === 'reset') {
+            $this->resolver->startNewConversation($chat);
+        }
+
+        $commands = $this->effective($bot);
+
+        if (! isset($commands[$name])) {
+            return null; // unknown custom command → fall through to the agent
+        }
+
+        $entry = $commands[$name];
+        $value = trim($entry['value']);
+
+        // /help with no custom text auto-lists the available commands.
+        if ($name === 'help' && $value === '') {
+            return TelegramCommandOutcome::message($this->autoHelp($commands));
+        }
+
+        // Never let /start go silent.
+        if ($name === 'start' && $value === '') {
+            $value = 'Hello';
+        }
+
+        $value = $this->interpolate($value, $from);
+
+        return $entry['type'] === 'prompt'
+            ? TelegramCommandOutcome::prompt($value)
+            : TelegramCommandOutcome::message($value);
     }
 
     /**
-     * Re-register the bot's command menu (the "/" autocomplete list Telegram shows
-     * users) with the built-ins followed by the agent's custom commands. Called on
-     * connect and whenever the custom commands change. Best-effort (logs on failure).
+     * Re-register the bot's "/" autocomplete menu (built-ins + custom commands).
+     * Called on connect and whenever the commands change. Best-effort.
      */
     public function sync(AgentTelegramBot $bot): void
     {
-        $this->client->setMyCommands($bot->bot_token, $this->menu($bot));
+        $menu = array_map(
+            static fn (array $e): array => [
+                'command' => $e['command'],
+                'description' => $e['description'] !== '' ? $e['description'] : ucfirst($e['command']),
+            ],
+            array_values($this->effective($bot)),
+        );
+
+        $this->client->setMyCommands($bot->bot_token, $menu);
     }
 
     /**
-     * The full command menu for {@see sync()}: built-ins first, then custom commands.
+     * The command list for the management UI: built-ins first (flagged), then the
+     * agent's custom commands.
      *
-     * @return list<array{command: string, description: string}>
+     * @return list<array{command: string, description: string, type: string, value: string, builtin: bool}>
      */
-    public function menu(AgentTelegramBot $bot): array
+    public function forEditing(AgentTelegramBot $bot): array
     {
-        $builtins = [
-            ['command' => 'start', 'description' => 'Start the conversation'],
-            ['command' => 'reset', 'description' => 'Start a new conversation'],
-            ['command' => 'help', 'description' => 'What this assistant can do'],
-        ];
-
-        $custom = array_map(
-            static fn (array $c): array => ['command' => $c['command'], 'description' => $c['description']],
-            $bot->custom_commands ?? [],
+        return array_map(
+            fn (array $e): array => [...$e, 'builtin' => in_array($e['command'], self::RESERVED, true)],
+            array_values($this->effective($bot)),
         );
+    }
 
-        return [...$builtins, ...$custom];
+    /**
+     * Built-in defaults overlaid with stored edits, then custom commands — keyed
+     * by command name, built-ins first.
+     *
+     * @return array<string, array{command: string, description: string, type: string, value: string}>
+     */
+    private function effective(AgentTelegramBot $bot): array
+    {
+        $stored = [];
+        foreach ($bot->commands ?? [] as $c) {
+            if (isset($c['command'])) {
+                $stored[$c['command']] = $c;
+            }
+        }
+
+        $result = [];
+
+        foreach (self::BUILTIN_DEFAULTS as $name => $default) {
+            $entry = $stored[$name] ?? [];
+            $result[$name] = [
+                'command' => $name,
+                'description' => (string) ($entry['description'] ?? $default['description']),
+                'type' => ($entry['type'] ?? $default['type']) === 'prompt' ? 'prompt' : 'message',
+                'value' => (string) ($entry['value'] ?? $default['value']),
+            ];
+        }
+
+        foreach ($bot->commands ?? [] as $c) {
+            $name = $c['command'] ?? null;
+            if ($name === null || isset(self::BUILTIN_DEFAULTS[$name])) {
+                continue;
+            }
+            $result[$name] = [
+                'command' => (string) $name,
+                'description' => (string) ($c['description'] ?? ''),
+                'type' => ($c['type'] ?? 'message') === 'prompt' ? 'prompt' : 'message',
+                'value' => (string) ($c['value'] ?? ''),
+            ];
+        }
+
+        return $result;
     }
 
     /** Parse "/cmd@botname args" → "cmd" (lowercased), or null when it isn't a command. */
@@ -97,8 +170,7 @@ class TelegramCommandRouter
         // Telegram appends "@botusername", which we strip.
         $token = strtok(substr($text, 1), " \n\t");
 
-        // strtok skips leading delimiters and returns false (never '') when the
-        // remainder is empty or all-whitespace — e.g. a bare "/" or "/   ".
+        // strtok returns false (never '') when the remainder is empty/all-whitespace.
         if ($token === false) {
             return null;
         }
@@ -108,63 +180,29 @@ class TelegramCommandRouter
         return preg_match('/^[a-z0-9_]{1,32}$/', $command) === 1 ? $command : null;
     }
 
-    /**
-     * /start → the agent's configured welcome message (the same one the web widget
-     * shows), greeted with the sender's first name when Telegram gives us one.
-     *
-     * @param  array{first_name?: string|null, username?: string|null}  $from
-     */
-    private function greeting(AgentTelegramBot $bot, array $from): string
+    /** Replace the {name} placeholder with the sender's first name (or a neutral fallback). */
+    private function interpolate(string $value, array $from): string
     {
-        $welcome = trim((string) $bot->agent->settings('appearance')['welcome_message']);
-
-        if ($welcome === '') {
-            $welcome = 'Hi! How can I help you today?';
-        }
-
         $name = trim((string) ($from['first_name'] ?? ''));
 
-        return $name !== '' ? "👋 {$name}\n\n{$welcome}" : $welcome;
+        return str_replace('{name}', $name !== '' ? $name : 'there', $value);
     }
 
-    /** /reset → a fresh conversation thread under the same Session. */
-    private function reset(TelegramChat $chat): string
+    /**
+     * @param  array<string, array{command: string, description: string, type: string, value: string}>  $commands
+     */
+    private function autoHelp(array $commands): string
     {
-        $this->resolver->startNewConversation($chat);
+        $lines = ['Here is what I can do:', ''];
 
-        return 'Started a new conversation. What would you like to talk about?';
-    }
-
-    /** /help → a self-maintaining list of every available command. */
-    private function help(AgentTelegramBot $bot): string
-    {
-        $lines = [
-            'Here is what I can do:',
-            '',
-            '/start — restart and see the welcome message',
-            '/reset — begin a new conversation',
-            '/help — show this list',
-        ];
-
-        foreach ($bot->custom_commands ?? [] as $command) {
-            $lines[] = "/{$command['command']} — {$command['description']}";
+        foreach ($commands as $name => $entry) {
+            $description = trim($entry['description']);
+            $lines[] = $description !== '' ? "/{$name} — {$description}" : "/{$name}";
         }
 
         $lines[] = '';
         $lines[] = 'Or just send a message — you can ask me anything.';
 
         return implode("\n", $lines);
-    }
-
-    /** A custom command's canned reply, or null to fall through if it's undefined. */
-    private function custom(AgentTelegramBot $bot, string $command): ?string
-    {
-        foreach ($bot->custom_commands ?? [] as $entry) {
-            if (($entry['command'] ?? null) === $command) {
-                return $entry['reply'] ?? null;
-            }
-        }
-
-        return null;
     }
 }

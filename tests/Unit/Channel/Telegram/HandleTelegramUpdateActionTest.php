@@ -42,6 +42,20 @@ function stubReplyRunner(string $reply): TelegramReplyRunner
     };
 }
 
+/** A runner that echoes the message it was asked to run — to assert what the pipeline received. */
+function echoReplyRunner(): TelegramReplyRunner
+{
+    return new class extends TelegramReplyRunner
+    {
+        public function __construct() {}
+
+        public function reply(TelegramChat $chat, string $message): string
+        {
+            return $message;
+        }
+    };
+}
+
 it('resolves the chat, sends the agent reply, and stamps last_message_at', function (): void {
     $bot = handleBot();
     $client = new FakeTelegramClient;
@@ -112,9 +126,8 @@ it('refuses to answer on a protected agent and creates no chat', function (): vo
     expect(TelegramChat::query()->count())->toBe(0);
 });
 
-it('answers /start with the welcome greeting and never runs the pipeline', function (): void {
+it('answers /start with the default message and never runs the pipeline', function (): void {
     $bot = handleBot();
-    $bot->agent->setSetting('welcome_message', 'Ask me anything!', 'appearance');
     $client = new FakeTelegramClient;
 
     $action = new HandleTelegramUpdateAction(
@@ -127,11 +140,36 @@ it('answers /start with the welcome greeting and never runs the pipeline', funct
 
     $action->execute($bot, '777', '/start', ['first_name' => 'Sam']);
 
+    // Built-in /start defaults to "Hello" — a canned message, not the pipeline.
     expect($client->sent)->toHaveCount(1)
-        ->and($client->sent[0]['text'])->toContain('Ask me anything!')
-        ->and($client->sent[0]['text'])->toContain('Sam')
+        ->and($client->sent[0]['text'])->toBe('Hello')
         ->and($client->sent[0]['text'])->not->toBe('PIPELINE REPLY');
 
-    // Commands answer instantly — no "typing…", no LLM, no billing.
+    // Message-mode commands answer instantly — no "typing…", no LLM, no billing.
     expect($client->actions)->toBeEmpty();
+});
+
+it('runs a prompt-mode command through the agent pipeline', function (): void {
+    $bot = handleBot();
+    $bot->update(['commands' => [
+        ['command' => 'pricing', 'description' => 'Pricing', 'type' => 'prompt', 'value' => 'What are our prices?'],
+    ]]);
+    $client = new FakeTelegramClient;
+
+    $action = new HandleTelegramUpdateAction(
+        app(TelegramChatResolver::class),
+        echoReplyRunner(),
+        $client,
+        new ChannelAccessGate,
+        new TelegramCommandRouter(app(TelegramChatResolver::class), $client),
+    );
+
+    $action->execute($bot, '888', '/pricing', ['first_name' => 'Sam']);
+
+    // The configured prompt — not the literal "/pricing" — is what the agent runs.
+    expect($client->sent)->toHaveCount(1)
+        ->and($client->sent[0]['text'])->toBe('What are our prices?');
+
+    // Typing fired → the pipeline ran (prompt mode is billed like a normal turn).
+    expect($client->actions)->not->toBeEmpty();
 });

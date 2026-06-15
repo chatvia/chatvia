@@ -6,9 +6,9 @@ use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 
 /**
- * Replaces an agent's custom Telegram commands and re-registers the bot's command
- * menu with Telegram. Built-in commands (/start, /reset, /help) are not stored —
- * they're always available and prepended to the menu by {@see TelegramCommandRouter::menu()}.
+ * Replaces an agent's Telegram commands (built-in overrides + custom commands) and
+ * re-registers the bot's "/" menu with Telegram. Built-in defaults are merged back
+ * in at read time by {@see TelegramCommandRouter}, so an empty list is safe.
  */
 class UpdateTelegramCommandsAction
 {
@@ -17,11 +17,11 @@ class UpdateTelegramCommandsAction
     ) {}
 
     /**
-     * @param  list<array{command: string, description: string, reply: string}>  $commands
+     * @param  list<array{command: string, description: string, type: string, value: string}>  $commands
      */
     public function execute(AgentTelegramBot $bot, array $commands): void
     {
-        $bot->update(['custom_commands' => array_values($commands)]);
+        $bot->update(['commands' => array_values($commands)]);
 
         $this->commands->sync($bot);
     }

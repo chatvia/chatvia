@@ -4,7 +4,7 @@
             "title": "Czatowicze",
             "description": "Twoi czatowicze. Ci z dostępem do tego agenta są wymienieni jako pierwsi; przyznaj dostęp innemu czatowiczowi jednym kliknięciem.",
             "public_title": "Ten agent jest publiczny",
-            "public_description": "Każdy, kto ma link, może rozmawiać z tym agentem, więc przyznawanie dostępu czatowiczom nie ma zastosowania. Aby korzystać z czatowiczów, ustaw agenta jako chroniony na karcie Konfiguracja.",
+            "public_description": "Każdy, kto ma link, może rozmawiać z tym agentem, więc przyznawanie dostępu czatowiczom nie ma zastosowania. Aby korzystać z czatowiczów, ustaw agenta jako chroniony na karcie Bezpieczeństwo.",
             "search_placeholder": "Szukaj czatowiczów...",
             "count": "{filtered} z {total} czatowicza | {filtered} z {total} czatowiczów",
             "invite_member": "Zaproś czatowicza",

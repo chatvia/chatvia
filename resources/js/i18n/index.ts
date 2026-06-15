@@ -1,11 +1,12 @@
 import { createI18n } from 'vue-i18n';
 import en from './locales/en.json';
 
-// Dashboard UI is intentionally limited to en/de/fr for now (mirrors the public
-// site, see config/laravellocalization.php). The other locale JSONs stay under
-// ./locales/ and agent response languages (config('chatvia.languages')) are
-// unaffected — re-add a code here to bring a UI language back.
-export const SUPPORTED_LOCALES = ['en', 'de', 'fr'] as const;
+// Dashboard UI languages. Kept in lock-step with the public site
+// (config/laravellocalization.php `supportedLocales` / `localesOrder`). Every code
+// here has a ./locales/{code}.json bundle; `ar`/`fa` are right-to-left (see
+// RTL_LOCALES). Agent response languages (config('chatvia.languages')) are a
+// separate, larger list — don't conflate. Remove a code here to hide a UI language.
+export const SUPPORTED_LOCALES = ['en', 'de', 'fr', 'ar', 'da', 'es', 'fa', 'fi', 'no', 'pl', 'pt', 'sv'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 // `ar` (Arabic), `fa` (Farsi/Persian), `he` (Hebrew), `ur` (Urdu) all use the
@@ -27,6 +28,15 @@ export const LOCALES: readonly LocaleMeta[] = [
     { code: 'en', nativeName: 'English', flag: 'gb' },
     { code: 'de', nativeName: 'Deutsch', flag: 'de' },
     { code: 'fr', nativeName: 'Français', flag: 'fr' },
+    { code: 'ar', nativeName: 'العربية', flag: 'sa' },
+    { code: 'da', nativeName: 'Dansk', flag: 'dk' },
+    { code: 'es', nativeName: 'Español', flag: 'es' },
+    { code: 'fa', nativeName: 'فارسی', flag: 'ir' },
+    { code: 'fi', nativeName: 'Suomi', flag: 'fi' },
+    { code: 'no', nativeName: 'Norsk', flag: 'no' },
+    { code: 'pl', nativeName: 'Polski', flag: 'pl' },
+    { code: 'pt', nativeName: 'Português', flag: 'pt' },
+    { code: 'sv', nativeName: 'Svenska', flag: 'se' },
 ];
 
 // The English bundle is the canonical schema every other locale conforms to.

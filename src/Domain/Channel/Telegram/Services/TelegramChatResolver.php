@@ -62,6 +62,10 @@ class TelegramChatResolver extends ChannelConversationResolver
         $conversation = $chat->session->conversations()->latest('id')->firstOrFail();
 
         $chat->update(['chat_conversation_id' => $conversation->id]);
+
+        // Point the relation at the new thread so a prompt-mode /reset runs the
+        // pipeline against the fresh conversation, not the stale cached one.
+        $chat->setRelation('conversation', $conversation);
     }
 
     /**

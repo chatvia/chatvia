@@ -125,15 +125,17 @@ class McpOAuthFlow
         ?ConnectorData $connector,
     ): string {
         // Pre-flight: if the connector requires pre-registered OAuth but the
-        // env vars haven't been filled in, fail fast with a helpful message
-        // rather than discovering the auth server and failing later.
+        // env vars haven't been filled in, fail fast. This is an operator
+        // misconfiguration, not a user error — the detailed message is for the
+        // error tracker / local debug only; the controller reports it and shows
+        // the user a generic failure rather than leaking our env setup.
         if ($connector && $connector->authStrategy === 'oauth'
             && $connector->oauthAuthorizationEndpoint
             && empty($connector->oauthClientId)
         ) {
-            throw new McpOAuthException(
+            throw new ConnectorMisconfiguredException(
                 "{$connector->name} needs an OAuth App registered manually. ".
-                'Create one at the service and set the OAuth client_id + client_secret in your environment.'
+                'Create one at the service and set the OAuth client_id + client_secret in the environment.'
             );
         }
 

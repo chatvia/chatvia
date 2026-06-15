@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Label } from '@/components/ui/label';
+import { nearestShade, SHADES } from '@/lib/colorShades';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -31,11 +32,6 @@ const THEMES = [
     'stone',
 ] as const;
 
-// Tailwind exposes only these 11 stops per color (see resources/css/app.css).
-// The intensity slider must map 1:1 to them — intermediate values such as 550
-// have no `--{theme}-{shade}` variable and render as blank swatches.
-const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
-
 const props = withDefaults(
     defineProps<{
         theme: string;
@@ -52,17 +48,8 @@ const emit = defineEmits<{
 
 // Snap to the nearest valid stop so an out-of-range stored shade (e.g. a legacy
 // 550) still previews a real color and the slider rests on a defined position.
-const shadeIndex = computed(() => {
-    let nearest = 0;
-    for (let i = 1; i < SHADES.length; i++) {
-        if (Math.abs(SHADES[i] - props.shade) < Math.abs(SHADES[nearest] - props.shade)) {
-            nearest = i;
-        }
-    }
-    return nearest;
-});
-
-const activeShade = computed(() => SHADES[shadeIndex.value]);
+const activeShade = computed(() => nearestShade(props.shade));
+const shadeIndex = computed(() => SHADES.indexOf(activeShade.value));
 
 function selectTheme(theme: string): void {
     if (props.disabled) return;

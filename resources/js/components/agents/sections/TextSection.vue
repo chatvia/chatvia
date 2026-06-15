@@ -53,7 +53,7 @@ defineEmits<{
                     <TagsInputItemText />
                     <TagsInputItemDelete />
                 </TagsInputItem>
-                <TagsInputInput :placeholder="t('agents.setup.sections.text_bubbles_placeholder')" />
+                <TagsInputInput add-on-blur :placeholder="t('agents.setup.sections.text_bubbles_placeholder')" />
             </TagsInput>
             <p v-if="errors?.bubbles" class="text-destructive text-sm">{{ errors.bubbles }}</p>
         </div>

@@ -2,8 +2,10 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Actions\FinalizeEvalRunAction;
+use Domain\Evaluation\Events\EvalRunProgressed;
 use Domain\Evaluation\Models\EvalResult;
 use Domain\Evaluation\Models\EvalRun;
+use Illuminate\Support\Facades\Event;
 
 /**
  * Finalize is the single place a run's headline numbers are computed, straight
@@ -63,4 +65,27 @@ it('marks the run failed when the batch was cancelled', function (): void {
     expect($finalized->status)->toBe(EvalRun::STATUS_FAILED)
         ->and($finalized->avg_score)->toBeNull()
         ->and($finalized->finished_at)->not->toBeNull();
+});
+
+it('broadcasts the finalized run so open Evals pages update live', function (): void {
+    Event::fake([EvalRunProgressed::class]);
+
+    $agent = Agent::factory()->create();
+    $run = runningRun($agent, 1);
+    resultRow($run, true, 1.0, 10);
+
+    (new FinalizeEvalRunAction)->execute($run->fresh());
+
+    Event::assertDispatched(
+        EvalRunProgressed::class,
+        // broadcastWith() in the closure exercises the resource serialization.
+        function (EvalRunProgressed $e) use ($run, $agent): bool {
+            $payload = $e->broadcastWith();
+
+            return $e->agentExternalId === $agent->external_id
+                && $payload['run']['external_id'] === $run->external_id
+                && $payload['run']['status'] === EvalRun::STATUS_COMPLETED
+                && $payload['run']['passed_count'] === 1;
+        },
+    );
 });

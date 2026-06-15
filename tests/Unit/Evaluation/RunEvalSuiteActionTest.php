@@ -2,12 +2,14 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Actions\RunEvalSuiteAction;
+use Domain\Evaluation\Events\EvalRunProgressed;
 use Domain\Evaluation\Jobs\ScoreEvalCaseJob;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalRun;
 use Domain\Llm\Models\Llm;
 use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -86,4 +88,30 @@ it('refuses to start a suite when the workspace is out of messages', function ()
     expect(EvalRun::query()->forAgent($agent->id)->count())->toBe(0);
 
     Bus::assertNothingBatched();
+});
+
+it('broadcasts the new running run so it appears live on open Evals pages', function (): void {
+    Bus::fake();
+    Event::fake([EvalRunProgressed::class]);
+    $agent = agentWithLlm();
+
+    evalCaseFor($agent, active: true);
+
+    $run = app(RunEvalSuiteAction::class)->execute($agent);
+
+    Event::assertDispatched(
+        EvalRunProgressed::class,
+        // Call broadcastWith() inside the closure so the assertion exercises
+        // EvalRunResourceData::fromModel on the freshly-created in-memory run —
+        // its int counts must be populated or the payload build throws.
+        function (EvalRunProgressed $e) use ($run, $agent): bool {
+            $payload = $e->broadcastWith();
+
+            return $e->agentExternalId === $agent->external_id
+                && $payload['run']['external_id'] === $run->external_id
+                && $payload['run']['status'] === EvalRun::STATUS_RUNNING
+                && $payload['run']['passed_count'] === 0
+                && $payload['run']['failed_count'] === 0;
+        },
+    );
 });

@@ -384,7 +384,24 @@
                         "connect_2": "Envoyez {command} et suivez les instructions",
                         "connect_3": "Collez le token ci-dessous — nous le connectons automatiquement"
                     },
-                    "botfather": "{'@'}BotFather"
+                    "botfather": "{'@'}BotFather",
+                    "commands": {
+                        "title": "Commandes",
+                        "empty": "Aucune commande personnalisée pour le moment",
+                        "manage": "Gérer",
+                        "builtins_note": "/start, /reset et /help sont intégrées et toujours disponibles.",
+                        "dialog_title": "Commandes personnalisées",
+                        "dialog_description": "Ajoutez des commandes slash sur lesquelles les utilisateurs peuvent appuyer dans Telegram. Chacune répond avec le texte que vous définissez. Les commandes intégrées (/start, /reset, /help) sont toujours disponibles.",
+                        "command_placeholder": "pricing",
+                        "description_placeholder": "Ce que fait cette commande",
+                        "reply_placeholder": "La réponse à envoyer lorsque quelqu'un utilise cette commande…",
+                        "remove": "Supprimer la commande",
+                        "empty_draft": "Aucune commande pour le moment. Ajoutez-en une ci-dessous.",
+                        "add": "Ajouter une commande",
+                        "cancel": "Annuler",
+                        "save": "Enregistrer les commandes",
+                        "saved_toast": "Commandes enregistrées"
+                    }
                 },
                 "slack": {
                     "steps": {

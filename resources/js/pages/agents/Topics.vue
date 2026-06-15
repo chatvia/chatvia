@@ -138,6 +138,7 @@ interface TopicSuggestion {
 const suggestions = ref<TopicSuggestion[]>([]);
 const promotingLabel = ref<string | null>(null);
 const dismissTarget = ref<string | null>(null);
+const dismissDialogOpen = ref(false);
 const dismissing = ref(false);
 
 const fetchSuggestions = async () => {
@@ -162,15 +163,26 @@ const promoteSuggestion = async (label: string) => {
     }
 };
 
+// dismissTarget is held separately from the dialog's open state: reka's
+// <AlertDialogAction> closes the dialog (clearing the open state) BEFORE this
+// @click runs, so reading the open-state ref here would always be null and the
+// dismiss would silently no-op.
+const askDismiss = (label: string) => {
+    dismissTarget.value = label;
+    dismissDialogOpen.value = true;
+};
+
 const confirmDismiss = async () => {
-    if (!dismissTarget.value) return;
+    const label = dismissTarget.value;
+    dismissDialogOpen.value = false;
+    if (!label) return;
 
     dismissing.value = true;
     try {
         await axios.delete(route('agents.topics.suggestions.dismiss', props.agent.external_id), {
-            data: { label: dismissTarget.value },
+            data: { label },
         });
-        suggestions.value = suggestions.value.filter((s) => s.label !== dismissTarget.value);
+        suggestions.value = suggestions.value.filter((s) => s.label !== label);
         toast.success(t('agents.topics_index.dismissed'));
     } catch (err: any) {
         toast.error(err.response?.data?.message || t('agents.topics_index.dismiss_error'));
@@ -565,7 +577,7 @@ onMounted(() => {
                                         <Plus v-else class="me-1 h-4 w-4" />
                                         {{ t('agents.topics_index.add') }}
                                     </Button>
-                                    <Button @click="dismissTarget = s.label" variant="outline" size="sm">
+                                    <Button @click="askDismiss(s.label)" variant="outline" size="sm">
                                         <X class="me-1 h-4 w-4" />
                                         {{ t('agents.topics_index.dismiss') }}
                                     </Button>
@@ -827,14 +839,7 @@ onMounted(() => {
             </Dialog>
 
             <!-- Dismiss suggestion confirmation -->
-            <AlertDialog
-                :open="dismissTarget !== null"
-                @update:open="
-                    (v) => {
-                        if (!v) dismissTarget = null;
-                    }
-                "
-            >
+            <AlertDialog v-model:open="dismissDialogOpen">
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>{{ t('agents.topics_index.dismiss_dialog_title') }}</AlertDialogTitle>

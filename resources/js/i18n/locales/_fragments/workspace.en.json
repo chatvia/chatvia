@@ -331,12 +331,12 @@
                 "deny": "Block these",
                 "empty": "No countries selected",
                 "manage": "Manage countries",
-                "countries_help": "Use 2-letter ISO country codes (e.g. US, GB, AE). Lookups that can't resolve a country are allowed through.",
                 "dialog_title": "Countries",
                 "dialog_description": "Pick the countries this rule applies to.",
                 "select_placeholder": "Search and select a country…",
                 "remove": "Remove country",
-                "empty_draft": "No countries selected yet."
+                "empty_draft": "No countries selected yet.",
+                "no_matches": "No countries match."
             },
             "retention": {
                 "title": "Data retention",

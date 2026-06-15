@@ -22,6 +22,13 @@ class BillingPackageCapabilitiesData extends Data
         public bool $handoff = false,
         public bool $api = false,
         public bool $pulse = false,
+        // Agent governance suite. Eval suites (answer-quality testing) and
+        // AI-safety guardrails ship from Standard up; the per-agent tool-call
+        // audit log is Pro (and Enterprise). Enforced in the UI via the
+        // LockedFeature card and on mutation routes via `capability:` middleware.
+        public bool $evals = false,
+        public bool $guardrails = false,
+        public bool $audit = false,
         public bool $removeBranding = false,
         // The Security & Compliance suite (network access control, configurable
         // retention, security audit log). Single umbrella flag — Pro and
@@ -57,6 +64,8 @@ class BillingPackageCapabilitiesData extends Data
             sentiment: true,
             handoff: true,
             api: true,
+            evals: true,
+            guardrails: true,
             retentionDays: 180,
         );
     }
@@ -70,6 +79,9 @@ class BillingPackageCapabilitiesData extends Data
             handoff: true,
             api: true,
             pulse: true,
+            evals: true,
+            guardrails: true,
+            audit: true,
             removeBranding: true,
             security: true,
             siemWebhook: true,
@@ -86,6 +98,9 @@ class BillingPackageCapabilitiesData extends Data
             handoff: true,
             api: true,
             pulse: true,
+            evals: true,
+            guardrails: true,
+            audit: true,
             removeBranding: true,
             security: true,
             siemWebhook: true,
@@ -119,6 +134,9 @@ class BillingPackageCapabilitiesData extends Data
             handoff: $capabilities['handoff'] ?? false,
             api: $capabilities['api'] ?? false,
             pulse: $capabilities['pulse'] ?? false,
+            evals: $capabilities['evals'] ?? false,
+            guardrails: $capabilities['guardrails'] ?? false,
+            audit: $capabilities['audit'] ?? false,
             removeBranding: $capabilities['removeBranding'] ?? false,
             security: $capabilities['security'] ?? false,
             siemWebhook: $capabilities['siemWebhook'] ?? false,

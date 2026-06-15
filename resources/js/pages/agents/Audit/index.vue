@@ -1,10 +1,16 @@
 <script setup lang="ts">
+import LockedFeature from '@/components/LockedFeature.vue';
 import AuditTable from '@/components/governance/AuditTable.vue';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+
+const { hasCapability } = useCapabilityGuard();
+const hasAccess = computed(() => hasCapability('audit'));
 
 interface Props {
     agent: { external_id: string; name: string };
@@ -22,7 +28,9 @@ const props = defineProps<Props>();
     <AgentLayout :agent="props.agent" :title="t('agents.audit.title')">
         <Head :title="t('agents.audit.head_title', { name: props.agent.name })" />
 
-        <div class="flex justify-center">
+        <LockedFeature v-if="!hasAccess" :description="t('agents.audit.locked_description')" />
+
+        <div v-else class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-6xl space-y-6">
                 <p class="text-muted-foreground text-sm">
                     {{ t('agents.audit.description') }}

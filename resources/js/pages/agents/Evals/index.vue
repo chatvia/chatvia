@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LockedFeature from '@/components/LockedFeature.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { useDateFormat } from '@/composables/useDateFormat';
 import { getInitials } from '@/composables/useInitials';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
@@ -94,6 +96,9 @@ interface Props {
 const props = defineProps<Props>();
 
 const { hasPermission } = useTeamPermissions();
+const { hasCapability } = useCapabilityGuard();
+const hasAccess = computed(() => hasCapability('evals'));
+
 const canManage = computed(() => hasPermission('agent.evals.manage'));
 
 const { formatDateTime } = useDateFormat();
@@ -388,7 +393,7 @@ const knowledgeAddLabel = computed(() => {
 <template>
     <AgentLayout :agent="props.agent" :title="t('agents.evals.index.title')" :description="t('agents.evals.index.description')">
         <template #header-actions>
-            <Button v-if="canManage" :disabled="!canRun || runProcessing" @click="triggerRun">
+            <Button v-if="canManage && hasAccess" :disabled="!canRun || runProcessing" @click="triggerRun">
                 <LoaderCircle v-if="runProcessing || hasRunning" class="me-2 h-4 w-4 animate-spin" />
                 <Play v-else class="me-2 h-4 w-4" />
                 {{ t('agents.evals.index.run_suite') }}
@@ -397,7 +402,9 @@ const knowledgeAddLabel = computed(() => {
 
         <Head :title="t('agents.evals.index.head_title', { name: props.agent.name })" />
 
-        <TooltipProvider :delay-duration="200">
+        <LockedFeature v-if="!hasAccess" :description="t('agents.evals.index.locked_description')" />
+
+        <TooltipProvider v-else :delay-duration="200">
             <div class="flex justify-center">
                 <div class="min-h-[calc(100vh-220px)] w-full max-w-5xl space-y-8">
                     <!-- Cases -->

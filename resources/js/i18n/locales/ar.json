@@ -1233,7 +1233,24 @@
                         "connect_2": "أرسل {command} واتبع التعليمات",
                         "connect_3": "الصق الرمز أدناه — نربطه تلقائياً"
                     },
-                    "botfather": "{'@'}BotFather"
+                    "botfather": "{'@'}BotFather",
+                    "commands": {
+                        "title": "الأوامر",
+                        "empty": "لا توجد أوامر مخصّصة بعد",
+                        "manage": "إدارة",
+                        "builtins_note": "الأوامر /start و/reset و/help مدمجة ومتاحة دائماً.",
+                        "dialog_title": "الأوامر المخصّصة",
+                        "dialog_description": "أضف أوامر يمكن للأشخاص الضغط عليها في Telegram. يردّ كل أمر بالنص الذي تحدّده. الأوامر المدمجة (/start و/reset و/help) متاحة دائماً.",
+                        "command_placeholder": "pricing",
+                        "description_placeholder": "ماذا يفعل هذا الأمر",
+                        "reply_placeholder": "الردّ الذي يُرسَل عند استخدام هذا الأمر…",
+                        "remove": "حذف الأمر",
+                        "empty_draft": "لا توجد أوامر بعد. أضف أمراً في الأسفل.",
+                        "add": "إضافة أمر",
+                        "cancel": "إلغاء",
+                        "save": "حفظ الأوامر",
+                        "saved_toast": "تم حفظ الأوامر"
+                    }
                 },
                 "slack": {
                     "steps": {

@@ -290,6 +290,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('channels', AgentChannelsController::class)->middleware('agent.permission:agent.setup')->name('channels');
         Route::post('channels/telegram', [AgentTelegramChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.telegram.connect');
         Route::delete('channels/telegram', [AgentTelegramChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.telegram.disconnect');
+        Route::put('channels/telegram/commands', [AgentTelegramChannelController::class, 'updateCommands'])->middleware('agent.permission:agent.setup')->name('channels.telegram.commands');
         Route::post('channels/slack', [AgentSlackChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.slack.connect');
         Route::delete('channels/slack', [AgentSlackChannelController::class, 'disconnect'])->middleware('agent.permission:agent.setup')->name('channels.slack.disconnect');
         Route::post('channels/messenger', [AgentMessengerChannelController::class, 'connect'])->middleware('agent.permission:agent.setup')->name('channels.messenger.connect');

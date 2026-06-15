@@ -3,16 +3,19 @@
 namespace App\Http\Controllers\Agent\Channel;
 
 use App\Http\Requests\Agent\Channel\ConnectTelegramRequest;
+use App\Http\Requests\Agent\Channel\UpdateTelegramCommandsRequest;
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Telegram\Actions\ConnectTelegramBotAction;
+use Domain\Channel\Telegram\Actions\UpdateTelegramCommandsAction;
 use Domain\Channel\Telegram\Services\TelegramClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * Connect / disconnect an agent's Telegram bot. Both gated by `agent.setup`.
- * Connect validates + registers via {@see ConnectTelegramBotAction}; disconnect
- * is a single delete (+ best-effort webhook removal), so it stays inline.
+ * Connect / disconnect an agent's Telegram bot, and manage its custom commands.
+ * All gated by `agent.setup`. Connect validates + registers via
+ * {@see ConnectTelegramBotAction}; disconnect is a single delete (+ best-effort
+ * webhook removal), so it stays inline.
  */
 class AgentTelegramChannelController
 {
@@ -46,6 +49,19 @@ class AgentTelegramChannelController
             $client->deleteWebhook($bot->bot_token);
             $bot->delete();
         }
+
+        return back();
+    }
+
+    public function updateCommands(UpdateTelegramCommandsRequest $request, Agent $agent, UpdateTelegramCommandsAction $action): RedirectResponse
+    {
+        $bot = $agent->telegramBot;
+
+        if ($bot === null) {
+            return back()->withErrors(['commands' => 'Connect a Telegram bot before adding commands.']);
+        }
+
+        $action->execute($bot, $request->commands());
 
         return back();
     }

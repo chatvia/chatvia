@@ -31,6 +31,7 @@ class SemanticToolRouter
         private readonly EmbeddingsProviderInterface $embeddings,
         private readonly ToolRegistry $registry,
         private readonly ToolHybridSearch $search,
+        private readonly ToolRelevanceGate $gate,
     ) {}
 
     /**
@@ -55,9 +56,17 @@ class SemanticToolRouter
 
         $entries = array_map(static fn (array $row): ToolEntry => $row['entry'], $ranked);
 
+        // Recall is done; now the precision gate. RRF ranked these candidates but
+        // can't say whether the strongest is actually relevant — the reranker can.
+        // On an off-topic turn (a greeting, a thank-you) this returns [], so the
+        // caller ships zero tools and the model stays conversational.
+        $gated = $this->gate->gate($userMessage, $entries);
+
         Log::debug('SemanticToolRouter: routing complete', [
             'agent_id' => $agent->id,
-            'returned' => count($entries),
+            'candidates' => count($entries),
+            'returned' => count($gated),
+            'gated_out' => count($entries) - count($gated),
             'top_5' => array_slice(array_map(static fn (array $r): array => [
                 'kind' => $r['kind'],
                 'name' => $r['entry']->name,
@@ -66,6 +75,6 @@ class SemanticToolRouter
             ], $ranked), 0, 5),
         ]);
 
-        return $entries;
+        return $gated;
     }
 }

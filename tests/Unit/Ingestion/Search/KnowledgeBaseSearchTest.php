@@ -50,7 +50,7 @@ function knowledgeBaseEmbeddingFake(): void
                 return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
             }
 
-            public function rerank(string $query, array $documents): ?array
+            public function rerank(string $query, array $documents, ?int $topN = null): ?array
             {
                 return null;
             }

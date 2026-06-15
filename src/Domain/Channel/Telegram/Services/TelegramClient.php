@@ -115,6 +115,26 @@ class TelegramClient
     }
 
     /**
+     * Register the bot's command menu — the "/" autocomplete list Telegram shows
+     * users. Replaces the full set on each call, so pass every command you want
+     * visible. The SDK JSON-serialises the array for us. Best-effort.
+     *
+     * @param  list<array{command: string, description: string}>  $commands
+     */
+    public function setMyCommands(string $token, array $commands): bool
+    {
+        try {
+            $this->api($token)->setMyCommands(['commands' => $commands]);
+
+            return true;
+        } catch (Throwable $e) {
+            Log::warning('Telegram setMyCommands failed', ['error' => $e->getMessage()]);
+
+            return false;
+        }
+    }
+
+    /**
      * Show the "typing…" indicator in the chat. Telegram clears it after ~5s (or
      * when the next message arrives), so callers re-send it during a long
      * generation to keep it alive. Best-effort.

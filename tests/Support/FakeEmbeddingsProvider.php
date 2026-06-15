@@ -35,14 +35,17 @@ class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
      * @param  array<int, string>  $documents
      * @return array<int, array{index: int, relevance_score: float}>
      */
-    public function rerank(string $query, array $documents): ?array
+    public function rerank(string $query, array $documents, ?int $topN = null): ?array
     {
         // Identity rerank — keep input order with descending scores — so the
-        // rerank path is exercised without needing semantic ordering.
-        return array_map(
+        // rerank path is exercised without needing semantic ordering. Scores stay
+        // high (1.0, 0.99, ...) so the tool relevance gate is a passthrough here.
+        $ranked = array_map(
             static fn (int $i): array => ['index' => $i, 'relevance_score' => 1.0 - ($i * 0.01)],
             array_keys(array_values($documents)),
         );
+
+        return $topN === null ? $ranked : array_slice($ranked, 0, $topN);
     }
 
     public function supportsReranking(): bool

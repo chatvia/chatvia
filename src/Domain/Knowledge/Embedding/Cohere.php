@@ -25,16 +25,22 @@ class Cohere extends AbstractEmbeddingsProvider
         return $embedding;
     }
 
-    public function rerank(string $query, array $documents): ?array
+    public function rerank(string $query, array $documents, ?int $topN = null): ?array
     {
+        $payload = [
+            'model' => 'rerank-v4.0-pro',
+            'query' => $query,
+            'max_tokens_per_doc' => 1000,
+            'documents' => $documents,
+        ];
+
+        if ($topN !== null) {
+            $payload['top_n'] = $topN;
+        }
+
         $rerank = Http::withToken($this->getApiKey())
             ->throw()
-            ->post($this->endpoint('/rerank'), [
-                'model' => 'rerank-v4.0-pro',
-                'query' => $query,
-                'max_tokens_per_doc' => 1000,
-                'documents' => $documents,
-            ])->json('results');
+            ->post($this->endpoint('/rerank'), $payload)->json('results');
 
         // Return array with index and relevance_score for each result
         return collect($rerank)

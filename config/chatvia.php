@@ -100,6 +100,33 @@ return [
             // How long a pending tool-approval checkpoint stays resumable before
             // it is considered expired (the visitor walked away). Minutes.
             'approval_ttl_minutes' => (int) env('AGENT_TOOL_APPROVAL_TTL_MINUTES', 1440),
+
+            // Per-turn tool routing. The hybrid search (ToolHybridSearch) recalls
+            // candidate tools and ranks them by RRF — great for ordering, but RRF
+            // is a rank-fusion score with no absolute "is this relevant" meaning,
+            // so the top tool scores about the same for "hi" as for a real request.
+            // The relevance gate adds the missing signal: a reranker scores each
+            // candidate against the user's message and anything below the threshold
+            // is dropped. When nothing clears the bar (a greeting, a thank-you), the
+            // turn ships ZERO tools — the `tools` array is omitted entirely, so the
+            // model can't see, list, or advertise an off-topic tool. This is the
+            // tool-side mirror of chatvia.vector.search.relevance_threshold, which
+            // already keeps greetings from pulling in irrelevant knowledge chunks.
+            'routing' => [
+                // Master switch. Off = recall-only (every tool-bearing turn ships
+                // its top hybrid hits, the old availability-driven behaviour).
+                'relevance_gate' => (bool) env('AGENT_TOOL_RELEVANCE_GATE', true),
+
+                // A tool must score at/above this (reranker relevance, 0..1) to
+                // ship. Higher = stricter. Tune against real traffic via the
+                // ToolRelevanceGate debug log ("kept"/"dropped" with scores).
+                'relevance_threshold' => (float) env('AGENT_TOOL_RELEVANCE_THRESHOLD', 0.55),
+
+                // How many hybrid-search candidates to send to the reranker. Caps
+                // the rerank payload/latency; past the top dozen the cross-encoder
+                // rarely promotes a tool the RRF recall didn't already surface.
+                'rerank_candidates' => (int) env('AGENT_TOOL_RERANK_CANDIDATES', 12),
+            ],
         ],
 
         // The LLM (matched by `llms.internal_name`) that new agents are seeded

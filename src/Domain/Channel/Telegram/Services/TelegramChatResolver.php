@@ -46,6 +46,25 @@ class TelegramChatResolver extends ChannelConversationResolver
     }
 
     /**
+     * Rotate this chat onto a fresh Conversation under the same Session — a /reset
+     * gives the user a clean thread while keeping their persistent identity (and
+     * the previous conversation's history intact for the dashboard).
+     */
+    public function startNewConversation(TelegramChat $chat): void
+    {
+        $title = $chat->first_name !== null ? "Telegram · {$chat->first_name}" : 'Telegram';
+
+        $this->memory
+            ->withContext($chat->bot->agent, $chat->session->external_id)
+            ->createConversation(title: $title, source: ConversationSource::Telegram);
+
+        // The conversation createConversation() just made is the newest for the session.
+        $conversation = $chat->session->conversations()->latest('id')->firstOrFail();
+
+        $chat->update(['chat_conversation_id' => $conversation->id]);
+    }
+
+    /**
      * @return TelegramChat
      */
     protected function createMapping(array $attributes): Model

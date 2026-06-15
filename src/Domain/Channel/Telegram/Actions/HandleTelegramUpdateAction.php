@@ -7,6 +7,7 @@ use Domain\Channel\Telegram\Jobs\HandleTelegramUpdateJob;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
 use Domain\Channel\Telegram\Services\TelegramClient;
+use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 use Domain\Channel\Telegram\Services\TelegramReplyRunner;
 
 /**
@@ -28,6 +29,7 @@ class HandleTelegramUpdateAction
         private readonly TelegramReplyRunner $runner,
         private readonly TelegramClient $client,
         private readonly ChannelAccessGate $gate,
+        private readonly TelegramCommandRouter $commands,
     ) {}
 
     /**
@@ -41,6 +43,18 @@ class HandleTelegramUpdateAction
         }
 
         $chat = $this->resolver->resolve($bot, $chatId, $from);
+
+        // Slash commands (/start, /reset, /help, custom) are answered directly —
+        // no "typing…", no LLM, no billing. Anything else (incl. an unknown
+        // /command) returns null and falls through to the real agent pipeline.
+        $reply = $this->commands->handle($bot, $chat, $text, $from);
+
+        if ($reply !== null) {
+            $this->client->sendMessage($bot->bot_token, $chatId, $reply);
+            $chat->forceFill(['last_message_at' => now()])->save();
+
+            return;
+        }
 
         // Instant feedback: "typing…" the moment the message lands. The runner
         // keeps it alive while the agent (RAG + LLM) generates the reply.

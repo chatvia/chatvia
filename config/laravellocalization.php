@@ -15,15 +15,15 @@ return [
         'en' => ['name' => 'English',    'script' => 'Latn', 'native' => 'English',  'regional' => 'en_GB', 'flag' => 'gb'],
         'de' => ['name' => 'German',     'script' => 'Latn', 'native' => 'Deutsch',  'regional' => 'de_DE', 'flag' => 'de'],
         'fr' => ['name' => 'French',     'script' => 'Latn', 'native' => 'Français', 'regional' => 'fr_FR', 'flag' => 'fr'],
-        'ar' => ['name' => 'Arabic',     'script' => 'Arab', 'native' => 'العربية',  'regional' => 'ar_SA', 'flag' => 'sa'],
-        'da' => ['name' => 'Danish',     'script' => 'Latn', 'native' => 'Dansk',    'regional' => 'da_DK', 'flag' => 'dk'],
         'es' => ['name' => 'Spanish',    'script' => 'Latn', 'native' => 'Español',  'regional' => 'es_ES', 'flag' => 'es'],
-        'fa' => ['name' => 'Persian',    'script' => 'Arab', 'native' => 'فارسی',    'regional' => 'fa_IR', 'flag' => 'ir'],
+        'pt' => ['name' => 'Portuguese', 'script' => 'Latn', 'native' => 'Português', 'regional' => 'pt_PT', 'flag' => 'pt'],
+        'pl' => ['name' => 'Polish',     'script' => 'Latn', 'native' => 'Polski',   'regional' => 'pl_PL', 'flag' => 'pl'],
+        'da' => ['name' => 'Danish',     'script' => 'Latn', 'native' => 'Dansk',    'regional' => 'da_DK', 'flag' => 'dk'],
+        'sv' => ['name' => 'Swedish',    'script' => 'Latn', 'native' => 'Svenska',  'regional' => 'sv_SE', 'flag' => 'se'],
         'fi' => ['name' => 'Finnish',    'script' => 'Latn', 'native' => 'Suomi',    'regional' => 'fi_FI', 'flag' => 'fi'],
         'no' => ['name' => 'Norwegian',  'script' => 'Latn', 'native' => 'Norsk',    'regional' => 'nb_NO', 'flag' => 'no'],
-        'pl' => ['name' => 'Polish',     'script' => 'Latn', 'native' => 'Polski',   'regional' => 'pl_PL', 'flag' => 'pl'],
-        'pt' => ['name' => 'Portuguese', 'script' => 'Latn', 'native' => 'Português', 'regional' => 'pt_PT', 'flag' => 'pt'],
-        'sv' => ['name' => 'Swedish',    'script' => 'Latn', 'native' => 'Svenska',  'regional' => 'sv_SE', 'flag' => 'se'],
+        'ar' => ['name' => 'Arabic',     'script' => 'Arab', 'native' => 'العربية',  'regional' => 'ar_SA', 'flag' => 'iq'],
+        'fa' => ['name' => 'Persian',    'script' => 'Arab', 'native' => 'فارسی',    'regional' => 'fa_IR', 'flag' => 'ir'],
     ],
 
     // Browser auto-detection stays OFF (locale is resolved in
@@ -39,8 +39,9 @@ return [
     // there is one canonical URL per page (no SEO duplicate content).
     'hideDefaultLocaleInURL' => true,
 
-    // Order shown in the language dropdown — mirrors the dashboard switcher.
-    'localesOrder' => ['en', 'de', 'fr', 'ar', 'da', 'es', 'fa', 'fi', 'no', 'pl', 'pt', 'sv'],
+    // Order shown in the language dropdown — mirrors the dashboard switcher
+    // (resources/js/i18n `LOCALES`): EU majors, EU/EEA Nordic + Polish, then RTL.
+    'localesOrder' => ['en', 'de', 'fr', 'es', 'pt', 'pl', 'da', 'sv', 'fi', 'no', 'ar', 'fa'],
 
     'localesMapping' => [],
 

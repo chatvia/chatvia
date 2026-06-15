@@ -1,8 +1,8 @@
 <?php
 
-// Public marketing homepage (resources/views/landing/*). English is the source of
-// truth and the default locale, so this file mirrors the copy shown on the site —
-// keep it in sync with lang/ar/landing.php (same keys).
+// Public marketing homepage (resources/views/landing/*). English
+// (lang/en/landing.php) is the source of truth — keep this file in sync with it
+// (same keys). EU-data-sovereignty positioning.
 
 return [
 
@@ -72,13 +72,41 @@ return [
         'col_chatvia' => 'ChatVia',
         'col_us' => 'Outil d\'IA typique hébergé aux États-Unis',
         'rows' => [
-            'residency' => ['label' => 'Résidence des données', 'ours' => 'Allemagne et France', 'theirs' => 'États-Unis / mondial'],
-            'cloud_act' => ['label' => 'Exposition au CLOUD Act américain', 'ours' => 'Aucune', 'theirs' => 'Oui'],
-            'dpa' => ['label' => 'DPA', 'ours' => 'Offre Enterprise', 'theirs' => 'Option ou réservé aux entreprises'],
-            'subprocessors' => ['label' => 'Sous-traitants américains', 'ours' => 'Aucun', 'theirs' => 'Fréquents'],
-            'ai_models' => ['label' => 'Modèles d\'IA', 'ours' => 'Hébergés en UE', 'theirs' => 'Hébergés aux États-Unis'],
-            'agentic' => ['label' => 'Actions agentiques (MCP, outils)', 'ours' => 'Oui', 'theirs' => 'Parfois'],
-            'governance' => ['label' => 'Gouvernance (audit, évals, garde-fous)', 'ours' => 'Intégrée par défaut', 'theirs' => 'Souvent réservée aux entreprises'],
+            'residency' => [
+                'label' => 'Résidence des données',
+                'ours' => 'Allemagne et France',
+                'theirs' => 'États-Unis / mondial',
+            ],
+            'cloud_act' => [
+                'label' => 'Exposition au CLOUD Act américain',
+                'ours' => 'Aucune',
+                'theirs' => 'Oui',
+            ],
+            'dpa' => [
+                'label' => 'DPA',
+                'ours' => 'Offre Enterprise',
+                'theirs' => 'Option ou réservé aux entreprises',
+            ],
+            'subprocessors' => [
+                'label' => 'Sous-traitants américains',
+                'ours' => 'Aucun',
+                'theirs' => 'Fréquents',
+            ],
+            'ai_models' => [
+                'label' => 'Modèles d\'IA',
+                'ours' => 'Hébergés en UE',
+                'theirs' => 'Hébergés aux États-Unis',
+            ],
+            'agentic' => [
+                'label' => 'Actions agentiques (MCP, outils)',
+                'ours' => 'Oui',
+                'theirs' => 'Parfois',
+            ],
+            'governance' => [
+                'label' => 'Gouvernance (audit, évals, garde-fous)',
+                'ours' => 'Intégrée par défaut',
+                'theirs' => 'Souvent réservée aux entreprises',
+            ],
         ],
     ],
 
@@ -128,7 +156,7 @@ return [
         'demo_product_faq' => 'FAQ produit',
         'demo_book' => 'Réservez-moi une démo pour mardi après-midi.',
         'demo_booking' => 'Réservation démo · Mar 15h00',
-        'demo_booked' => "C'est fait — vous êtes inscrit pour mardi à 15h00.",
+        'demo_booked' => 'C\'est fait — vous êtes inscrit pour mardi à 15h00.',
         'demo_topics' => 'Sujets',
         'last_7_days' => '7 derniers jours',
         'demo_account_setup' => 'Configuration du compte',
@@ -348,5 +376,4 @@ return [
         'accept' => 'Compris',
         'privacy' => 'Politique de confidentialité',
     ],
-
 ];

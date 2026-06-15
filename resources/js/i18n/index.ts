@@ -1,12 +1,16 @@
 import { createI18n } from 'vue-i18n';
 import en from './locales/en.json';
 
-// Dashboard UI languages. Kept in lock-step with the public site
-// (config/laravellocalization.php `supportedLocales` / `localesOrder`). Every code
-// here has a ./locales/{code}.json bundle; `ar`/`fa` are right-to-left (see
-// RTL_LOCALES). Agent response languages (config('chatvia.languages')) are a
-// separate, larger list — don't conflate. Remove a code here to hide a UI language.
-export const SUPPORTED_LOCALES = ['en', 'de', 'fr', 'ar', 'da', 'es', 'fa', 'fi', 'no', 'pl', 'pt', 'sv'] as const;
+// Dashboard UI languages, ordered EU-first: English, the EU majors, the EU/EEA
+// Nordic + Polish block, RTL (Arabic, Persian), then the rest. Every code here
+// has a ./locales/{code}.json bundle and MUST also appear in
+// config('chatvia.languages') (UpdatePreferencesRequest validates a user's saved
+// locale against that list, and SetLocale honours it). `ar`/`fa` are right-to-left
+// (see RTL_LOCALES). Remove a code from both lists to hide a UI language.
+export const SUPPORTED_LOCALES = [
+    'en', 'de', 'fr', 'es', 'pt', 'pl', 'da', 'sv', 'fi', 'no',
+    'ar', 'fa', 'hi', 'id', 'ja', 'ko', 'ru', 'tr', 'vi', 'zh',
+] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 // `ar` (Arabic), `fa` (Farsi/Persian), `he` (Hebrew), `ur` (Urdu) all use the
@@ -28,15 +32,23 @@ export const LOCALES: readonly LocaleMeta[] = [
     { code: 'en', nativeName: 'English', flag: 'gb' },
     { code: 'de', nativeName: 'Deutsch', flag: 'de' },
     { code: 'fr', nativeName: 'Français', flag: 'fr' },
-    { code: 'ar', nativeName: 'العربية', flag: 'sa' },
-    { code: 'da', nativeName: 'Dansk', flag: 'dk' },
     { code: 'es', nativeName: 'Español', flag: 'es' },
-    { code: 'fa', nativeName: 'فارسی', flag: 'ir' },
+    { code: 'pt', nativeName: 'Português', flag: 'pt' },
+    { code: 'pl', nativeName: 'Polski', flag: 'pl' },
+    { code: 'da', nativeName: 'Dansk', flag: 'dk' },
+    { code: 'sv', nativeName: 'Svenska', flag: 'se' },
     { code: 'fi', nativeName: 'Suomi', flag: 'fi' },
     { code: 'no', nativeName: 'Norsk', flag: 'no' },
-    { code: 'pl', nativeName: 'Polski', flag: 'pl' },
-    { code: 'pt', nativeName: 'Português', flag: 'pt' },
-    { code: 'sv', nativeName: 'Svenska', flag: 'se' },
+    { code: 'ar', nativeName: 'العربية', flag: 'iq' },
+    { code: 'fa', nativeName: 'فارسی', flag: 'ir' },
+    { code: 'hi', nativeName: 'हिन्दी', flag: 'in' },
+    { code: 'id', nativeName: 'Bahasa Indonesia', flag: 'id' },
+    { code: 'ja', nativeName: '日本語', flag: 'jp' },
+    { code: 'ko', nativeName: '한국어', flag: 'kr' },
+    { code: 'ru', nativeName: 'Русский', flag: 'ru' },
+    { code: 'tr', nativeName: 'Türkçe', flag: 'tr' },
+    { code: 'vi', nativeName: 'Tiếng Việt', flag: 'vn' },
+    { code: 'zh', nativeName: '中文', flag: 'cn' },
 ];
 
 // The English bundle is the canonical schema every other locale conforms to.

@@ -37,24 +37,32 @@ return [
     |--------------------------------------------------------------------------
     |
     | The unified language list. Both the widget (chatvia.widget.available_languages)
-    | and the hosted-chat selector read from this — set it once here.
+    | and the hosted-chat selector read from this — set it once here. It is also the
+    | allow-list for a user's saved dashboard locale (UpdatePreferencesRequest /
+    | SetLocale), so every dashboard UI language (resources/js/i18n SUPPORTED_LOCALES)
+    | must appear here. Ordered EU-first to match the dashboard switcher; 'auto' (let
+    | the agent detect the visitor's language) stays first.
     |
     */
 
     'languages' => [
         'auto' => 'Auto',
         'en' => 'English',
-        'ar' => 'Arabic (العربية)',
-        'da' => 'Danish (Dansk)',
         'de' => 'German (Deutsch)',
-        'es' => 'Spanish (Español)',
-        'fa' => 'Persian (فارسی)',
         'fr' => 'French (Français)',
+        'es' => 'Spanish (Español)',
+        'pt' => 'Portuguese (Português)',
+        'pl' => 'Polish (Polski)',
+        'da' => 'Danish (Dansk)',
+        'sv' => 'Swedish (Svenska)',
+        'fi' => 'Finnish (Suomi)',
+        'no' => 'Norwegian (Norsk)',
+        'ar' => 'Arabic (العربية)',
+        'fa' => 'Persian (فارسی)',
         'hi' => 'Hindi (हिन्दी)',
         'id' => 'Indonesian (Bahasa Indonesia)',
         'ja' => 'Japanese (日本語)',
         'ko' => 'Korean (한국어)',
-        'pt' => 'Portuguese (Português)',
         'ru' => 'Russian (Русский)',
         'tr' => 'Turkish (Türkçe)',
         'vi' => 'Vietnamese (Tiếng Việt)',

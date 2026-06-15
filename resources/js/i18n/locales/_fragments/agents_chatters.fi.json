@@ -1,6 +1,6 @@
 {
     "agents": {
-        "members": {
+        "chatters": {
             "title": "Chatterit",
             "description": "Chatterisi. Ne, joilla on pääsy tähän agentille, näytetään ensin. Voit myöntää muille chattereille pääsyn yhdellä napsautuksella.",
             "public_title": "Tämä agentti on julkinen",
@@ -8,9 +8,21 @@
             "search_placeholder": "Etsi chattereita...",
             "count": "{filtered} / {total} chatter | {filtered} / {total} chatteria",
             "invite_member": "Kutsu chatter",
-            "table": { "name": "Nimi", "email": "Sähköposti", "status": "Tila", "access": "Käyttöoikeus", "actions": "Toiminnot" },
-            "status": { "pending": "Odottaa", "active": "Aktiivinen" },
-            "access": { "granted": "Myönnetty", "no_access": "Ei käyttöoikeutta" },
+            "table": {
+                "name": "Nimi",
+                "email": "Sähköposti",
+                "status": "Tila",
+                "access": "Käyttöoikeus",
+                "actions": "Toiminnot"
+            },
+            "status": {
+                "pending": "Odottaa",
+                "active": "Aktiivinen"
+            },
+            "access": {
+                "granted": "Myönnetty",
+                "no_access": "Ei käyttöoikeutta"
+            },
             "no_email": "Ei sähköpostia",
             "empty_title": "Ei vielä chattereita.",
             "empty_description": "Kutsu joku aloittaaksesi — he ilmestyvät tähän.",

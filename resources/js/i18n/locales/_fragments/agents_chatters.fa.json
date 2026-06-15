@@ -1,6 +1,6 @@
 {
     "agents": {
-        "members": {
+        "chatters": {
             "title": "چت‌کنندگان",
             "description": "چت‌کنندگان شما. کسانی که به این عامل دسترسی دارند ابتدا فهرست می‌شوند؛ با یک کلیک به هر چت‌کننده دیگری دسترسی بدهید.",
             "public_title": "این عامل عمومی است",
@@ -8,9 +8,21 @@
             "search_placeholder": "جستجوی چت‌کنندگان...",
             "count": "{filtered} از {total} چت‌کننده",
             "invite_member": "دعوت چت‌کننده",
-            "table": { "name": "نام", "email": "ایمیل", "status": "وضعیت", "access": "دسترسی", "actions": "عملیات" },
-            "status": { "pending": "در انتظار", "active": "فعال" },
-            "access": { "granted": "اعطا شده", "no_access": "بدون دسترسی" },
+            "table": {
+                "name": "نام",
+                "email": "ایمیل",
+                "status": "وضعیت",
+                "access": "دسترسی",
+                "actions": "عملیات"
+            },
+            "status": {
+                "pending": "در انتظار",
+                "active": "فعال"
+            },
+            "access": {
+                "granted": "اعطا شده",
+                "no_access": "بدون دسترسی"
+            },
             "no_email": "بدون ایمیل",
             "empty_title": "هنوز هیچ چت‌کننده‌ای وجود ندارد.",
             "empty_description": "کسی را دعوت کنید تا شروع کنید — اینجا نمایش داده می‌شود.",

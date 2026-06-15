@@ -1,6 +1,6 @@
 {
     "agents": {
-        "members": {
+        "chatters": {
             "title": "Chattere",
             "description": "Dine chattere. De med tilgang til denne agenten vises først. Du kan gi andre chattere tilgang med ett klikk.",
             "public_title": "Denne agenten er offentlig",

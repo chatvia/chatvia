@@ -80,15 +80,22 @@ const registerPasskey = async () => {
     }
 };
 
+// The pending passkey is held separately from the AlertDialog's open state.
+// reka's <AlertDialogAction> fires the dialog close — which clears the open
+// state — BEFORE our @click handler runs. If the target lived on the
+// open-state ref, confirmDelete would read null and bail out before the
+// password prompt, so the dialog would just vanish and nothing would happen.
+const deleteDialogOpen = ref(false);
 const passkeyToDelete = ref<Passkey | null>(null);
 
 const deletePasskey = (passkey: Passkey) => {
     passkeyToDelete.value = passkey;
+    deleteDialogOpen.value = true;
 };
 
 const confirmDelete = async () => {
     const target = passkeyToDelete.value;
-    passkeyToDelete.value = null;
+    deleteDialogOpen.value = false;
     if (!target) return;
     if (!(await ensureConfirmed())) return;
     router.delete(route('passkey.destroy', { passkey: target.id }), {
@@ -104,7 +111,7 @@ const confirmDelete = async () => {
 
         <ConfirmPasswordDialog ref="confirmDlg" />
 
-        <AlertDialog :open="passkeyToDelete !== null" @update:open="(v) => !v && (passkeyToDelete = null)">
+        <AlertDialog v-model:open="deleteDialogOpen">
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>{{ t('account.passkeys.delete_title') }}</AlertDialogTitle>

@@ -5,6 +5,7 @@
                 "title": "Evals",
                 "head_title": "Evals — {name}",
                 "description": "Test suites that grade this agent's real answers — same knowledge, tools, and model as production. Run the suite and track whether changes make the agent better or worse.",
+                "locked_description": "Evals are available on the Standard and Pro plans. Upgrade to test and grade this agent's answers before they reach customers.",
                 "run_suite": "Run suite",
                 "cases_heading": "Cases",
                 "cases_summary": "{total} total · {active} active",

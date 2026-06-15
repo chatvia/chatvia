@@ -46,7 +46,7 @@ Schedule::command('app:prune-security-audit-log')->dailyAt('04:25');
 Schedule::command('queue:prune-batches --hours=48 --unfinished=72 --cancelled=72')->dailyAt('05:00');
 Schedule::command('queue:prune-failed --hours=168')->dailyAt('05:05');
 Schedule::command('sanctum:prune-expired --hours=24')->dailyAt('05:10');
-Schedule::command('magiclink:clear')->dailyAt('05:15');
+Schedule::command('model:prune', ['--model' => [\MagicLink\MagicLink::class]])->dailyAt('05:15');
 
 // Consolidated end-of-life conversation analysis: one LLM call per conversation
 // sets topic(s), sentiment, tone and language and records emergent-topic

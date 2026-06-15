@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent\Eval;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Evaluation\Actions\ListKnowledgeQuestionCandidatesAction;
 use Domain\Evaluation\Data\Resources\EvalCaseResourceData;
 use Domain\Evaluation\Data\Resources\EvalRunResourceData;
@@ -27,6 +28,18 @@ class AgentEvalController
         Agent $agent,
         ListKnowledgeQuestionCandidatesAction $knowledgeQuestions,
     ): Response {
+        // Eval suites are a Standard-tier capability. Below it the page still
+        // renders so the Vue LockedFeature card can show the upgrade prompt, but
+        // we skip the queries and ship no eval data.
+        if (! $request->user()->hasCapability(CapabilityEnum::EVALS)) {
+            return Inertia::render('agents/Evals/index', [
+                'agent' => AgentResourceData::fromModel($agent),
+                'cases' => [],
+                'runs' => [],
+                'scorerTypes' => array_column(ScorerType::cases(), 'value'),
+            ]);
+        }
+
         $cases = EvalCase::query()->forAgent($agent->id)->orderByDesc('id')->get();
         $runs = EvalRun::query()->forAgent($agent->id)->orderByDesc('id')->limit(20)->get();
 

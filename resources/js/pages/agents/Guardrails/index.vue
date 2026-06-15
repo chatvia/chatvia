@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LockedFeature from '@/components/LockedFeature.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { useDateFormat } from '@/composables/useDateFormat';
 import { getInitials } from '@/composables/useInitials';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
@@ -43,6 +45,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { hasCapability } = useCapabilityGuard();
+const hasAccess = computed(() => hasCapability('guardrails'));
 
 const { hasPermission } = useTeamPermissions();
 const canManage = computed(() => hasPermission('agent.guardrails.manage'));
@@ -195,7 +200,9 @@ const prettyDetail = (detail: unknown): string => {
     <AgentLayout :agent="props.agent" :title="t('agents.guardrails.title')" :description="t('agents.guardrails.description')">
         <Head :title="t('agents.guardrails.head_title', { name: props.agent.name })" />
 
-        <div class="flex justify-center">
+        <LockedFeature v-if="!hasAccess" :description="t('agents.guardrails.locked_description')" />
+
+        <div v-else class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-5xl">
                 <Tabs v-model="activeTab">
                     <TabsList>

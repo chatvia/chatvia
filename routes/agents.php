@@ -261,23 +261,30 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('logs/messages/{conversation}', ChatLogConversationMessagesController::class)->middleware('agent.permission:agent.chat.view')->name('logs.messages');
 
         // Per-agent tool-call audit log (Governed MCP Gateway), scoped to this agent.
+        // The `audit` capability (Pro+) is enforced in the controller (which skips
+        // the heavy queries) and the Vue page (LockedFeature card), so the upgrade
+        // prompt renders in place rather than 403-ing. Read-only — no mutations.
         Route::get('audit', AgentAuditController::class)->middleware('agent.permission:agent.audit.view')->name('audit');
 
         // Per-agent Eval Suites (Agent Governance + Evals — Phase 1). View lists
         // cases + recent runs; manage edits cases and triggers a run (async).
+        // The `evals` capability (Standard+) hard-gates the mutations below and the
+        // Vue page; the view routes stay open so the LockedFeature card can render.
         Route::get('evals', AgentEvalController::class)->middleware('agent.permission:agent.evals.view')->name('evals');
         Route::get('evals/runs/{run}', [AgentEvalRunController::class, 'show'])->middleware('agent.permission:agent.evals.view')->name('evals.runs.show');
-        Route::post('evals/runs', RunAgentEvalController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.runs.store');
-        Route::delete('evals/runs/{run}', [AgentEvalRunController::class, 'destroy'])->middleware('agent.permission:agent.evals.manage')->name('evals.runs.destroy');
-        Route::delete('evals/runs', [AgentEvalRunController::class, 'clear'])->middleware('agent.permission:agent.evals.manage')->name('evals.runs.clear');
-        Route::post('evals/cases', [AgentEvalCaseController::class, 'store'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.store');
-        Route::post('evals/cases/from-knowledge', CreateEvalCasesFromKnowledgeController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.cases.from-knowledge');
-        Route::patch('evals/cases/{case}', [AgentEvalCaseController::class, 'update'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.update');
-        Route::delete('evals/cases/{case}', [AgentEvalCaseController::class, 'destroy'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.destroy');
+        Route::post('evals/runs', RunAgentEvalController::class)->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.runs.store');
+        Route::delete('evals/runs/{run}', [AgentEvalRunController::class, 'destroy'])->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.runs.destroy');
+        Route::delete('evals/runs', [AgentEvalRunController::class, 'clear'])->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.runs.clear');
+        Route::post('evals/cases', [AgentEvalCaseController::class, 'store'])->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.cases.store');
+        Route::post('evals/cases/from-knowledge', CreateEvalCasesFromKnowledgeController::class)->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.cases.from-knowledge');
+        Route::patch('evals/cases/{case}', [AgentEvalCaseController::class, 'update'])->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.cases.update');
+        Route::delete('evals/cases/{case}', [AgentEvalCaseController::class, 'destroy'])->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.cases.destroy');
 
         // Per-agent AI-safety Guardrails — config form + immutable trigger log.
+        // The `guardrails` capability (Standard+) hard-gates the save below and the
+        // Vue page; the view route stays open so the LockedFeature card can render.
         Route::get('guardrails', [AgentGuardrailController::class, 'show'])->middleware('agent.permission:agent.guardrails.view')->name('guardrails');
-        Route::post('guardrails', [AgentGuardrailController::class, 'update'])->middleware('agent.permission:agent.guardrails.manage')->name('guardrails.update');
+        Route::post('guardrails', [AgentGuardrailController::class, 'update'])->middleware(['capability:guardrails', 'agent.permission:agent.guardrails.manage'])->name('guardrails.update');
 
         // Channels — where the agent is deployed (Hosted Chat / Widget / Bar) + the Telegram bot + the Slack app.
         Route::get('channels', AgentChannelsController::class)->middleware('agent.permission:agent.setup')->name('channels');

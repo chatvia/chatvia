@@ -22,7 +22,8 @@
         "audit": {
             "title": "Audit log",
             "head_title": "Audit · {name}",
-            "description": "Every action this agent takes through tools and connectors — allowed, approved, denied, or rate-limited — with the arguments, result, and who triggered it."
+            "description": "Every action this agent takes through tools and connectors — allowed, approved, denied, or rate-limited — with the arguments, result, and who triggered it.",
+            "locked_description": "The audit log is available on the Pro plan. Upgrade to see every tool and connector action this agent takes."
         },
         "channels": {
             "title": "Channels",
@@ -302,6 +303,7 @@
             "title": "Guardrails",
             "description": "Control what your agent can discuss and how it handles sensitive content.",
             "head_title": "Guardrails · {name}",
+            "locked_description": "Guardrails are available on the Standard and Pro plans. Upgrade to control what your agent can discuss and how it handles sensitive content.",
             "configuration": "Configuration",
             "activity": "Activity",
             "enable_guardrails": "Enable guardrails",

@@ -12,6 +12,9 @@ enum CapabilityEnum: string
     case HANDOFF = 'handoff';
     case API = 'api';
     case PULSE = 'pulse';
+    case EVALS = 'evals';
+    case GUARDRAILS = 'guardrails';
+    case AUDIT = 'audit';
 
     /**
      * Get capabilities for a specific plan as an array
@@ -41,6 +44,9 @@ enum CapabilityEnum: string
             self::HANDOFF => 'Handoff Support',
             self::API => 'API Access',
             self::PULSE => 'Conversation Pulse',
+            self::EVALS => 'Evals',
+            self::GUARDRAILS => 'Guardrails',
+            self::AUDIT => 'Audit Log',
         };
     }
 }

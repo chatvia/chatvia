@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { useFeature } from '@/composables/useFeature';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
@@ -13,7 +14,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { Check, Globe, LoaderCircle, Lock, Network, Plus, Save, Sparkles, Trash2, Webhook, X } from 'lucide-vue-next';
+import { Check, Globe, History, LoaderCircle, Lock, Network, Plus, Save, Search, ShieldAlert, Sparkles, Trash2, Webhook, X } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -121,7 +122,7 @@ const applyIps = () => {
     ipOpen.value = false;
 };
 
-// ---- Country editor (dropdown sourced from the countries table) -------------
+// ---- Country editor (searchable list sourced from the countries table) ------
 
 const countryMap = computed(() => new Map(props.countries.map((c) => [c.code, c.name])));
 const countryName = (code: string): string => countryMap.value.get(code) ?? code.toUpperCase();
@@ -129,22 +130,27 @@ const codeToFlag = (code: string): string => code.toUpperCase().replace(/./g, (c
 
 const countriesOpen = ref(false);
 const countriesDraft = ref<string[]>([]);
-const addCountryCode = ref<string | undefined>(undefined);
+const countrySearch = ref('');
 
-// Only offer countries not already picked, so the dropdown can't add duplicates.
-const availableCountries = computed(() => props.countries.filter((c) => !countriesDraft.value.includes(c.code)));
+// Type-to-filter the full country list by localized name or ISO code.
+const filteredCountries = computed(() => {
+    const q = countrySearch.value.trim().toLowerCase();
+    if (!q) return props.countries;
+    return props.countries.filter((c) => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q));
+});
+
+const isCountrySelected = (code: string): boolean => countriesDraft.value.includes(code);
 
 const openCountries = () => {
     countriesDraft.value = [...form.geo_countries];
+    countrySearch.value = '';
     countriesOpen.value = true;
 };
-const onAddCountry = (code: unknown) => {
-    if (typeof code === 'string' && code && !countriesDraft.value.includes(code)) {
-        countriesDraft.value.push(code);
-    }
-    addCountryCode.value = undefined; // reset the trigger so the next can be picked
+const toggleCountry = (code: string) => {
+    const index = countriesDraft.value.indexOf(code);
+    if (index === -1) countriesDraft.value.push(code);
+    else countriesDraft.value.splice(index, 1);
 };
-const removeCountry = (index: number) => countriesDraft.value.splice(index, 1);
 const applyCountries = () => {
     form.geo_countries = [...new Set(countriesDraft.value.filter(Boolean))];
     countriesOpen.value = false;
@@ -187,85 +193,134 @@ const applyCountries = () => {
                 </Card>
 
                 <!-- Network access control -->
-                <Card v-if="entitled">
-                    <CardContent class="space-y-6">
-                        <!-- Master switch -->
-                        <div
-                            class="flex items-center justify-between gap-4 rounded-md border p-3"
-                            :class="{ 'cursor-pointer': canManage }"
-                            @click="toggleNetwork"
-                        >
-                            <div>
-                                <Label class="pointer-events-none text-sm font-medium">{{ t('workspace.security.network.title') }}</Label>
-                                <p class="text-muted-foreground text-sm">{{ t('workspace.security.network.help') }}</p>
+                <Card v-if="entitled" class="overflow-hidden py-0">
+                    <CardContent class="p-0">
+                        <!-- Capability header / master switch -->
+                        <div class="flex items-start justify-between gap-4 p-5" :class="{ 'cursor-pointer': canManage }" @click="toggleNetwork">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-lg">
+                                    <Network class="size-5" />
+                                </div>
+                                <div class="space-y-0.5">
+                                    <p class="text-sm font-semibold">{{ t('workspace.security.network.title') }}</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('workspace.security.network.help') }}</p>
+                                </div>
                             </div>
-                            <Switch :model-value="networkEnabled" :disabled="!canManage" class="pointer-events-none" />
+                            <Switch
+                                :model-value="networkEnabled"
+                                :disabled="!canManage"
+                                :aria-label="t('workspace.security.network.title')"
+                                class="pointer-events-none mt-0.5"
+                            />
                         </div>
 
-                        <div v-if="networkEnabled" class="space-y-6 px-[13px]">
+                        <!-- Nested controls -->
+                        <div v-if="networkEnabled" class="space-y-4 border-t p-5">
+                            <!-- Self-lockout guard (server-side validation error) -->
+                            <Alert v-if="form.errors.ip_allowlist" variant="destructive" class="border-destructive/30 bg-destructive/5">
+                                <ShieldAlert />
+                                <AlertDescription>{{ form.errors.ip_allowlist }}</AlertDescription>
+                            </Alert>
+
                             <!-- IP allowlist -->
-                            <div class="space-y-1.5">
-                                <Label>{{ t('workspace.security.ip.title') }}</Label>
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <Badge v-for="ip in form.ip_allowlist" :key="ip" variant="secondary" class="font-mono font-normal">{{
-                                        ip
-                                    }}</Badge>
-                                    <span v-if="!form.ip_allowlist.length" class="text-muted-foreground text-sm">{{
-                                        t('workspace.security.ip.empty')
-                                    }}</span>
-                                    <Button v-if="canManage" type="button" variant="link" class="h-auto p-0 text-sm" @click="openIps">
-                                        <Network class="me-1.5 h-4 w-4" />
+                            <div class="bg-muted/30 space-y-3 rounded-lg border p-4">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex items-start gap-3">
+                                        <div
+                                            class="bg-background text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg border"
+                                        >
+                                            <Network class="size-4" />
+                                        </div>
+                                        <div class="space-y-0.5">
+                                            <p class="text-sm font-medium">{{ t('workspace.security.ip.title') }}</p>
+                                            <p class="text-muted-foreground text-xs">{{ t('workspace.security.ip.help') }}</p>
+                                        </div>
+                                    </div>
+                                    <Button v-if="canManage" type="button" variant="outline" size="sm" class="shrink-0" @click="openIps">
                                         {{ t('workspace.security.ip.manage') }}
                                     </Button>
                                 </div>
-                                <p class="text-muted-foreground text-xs">{{ t('workspace.security.ip.help') }}</p>
-                                <p v-if="form.errors.ip_allowlist" class="text-destructive text-xs">{{ form.errors.ip_allowlist }}</p>
+
+                                <div class="ps-12">
+                                    <div v-if="form.ip_allowlist.length" class="flex flex-wrap gap-2">
+                                        <Badge v-for="ip in form.ip_allowlist" :key="ip" variant="secondary" class="font-mono font-normal">{{
+                                            ip
+                                        }}</Badge>
+                                    </div>
+                                    <div v-else class="text-muted-foreground rounded-md border border-dashed px-3 py-2 text-sm">
+                                        {{ t('workspace.security.ip.empty') }}
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Country rules -->
-                            <div class="space-y-2">
-                                <div class="flex items-start justify-between gap-4" :class="{ 'cursor-pointer': canManage }" @click="toggleGeo">
-                                    <div>
-                                        <Label class="pointer-events-none text-sm font-medium">{{ t('workspace.security.geo.title') }}</Label>
-                                        <p class="text-muted-foreground text-sm">{{ t('workspace.security.geo.help') }}</p>
+                            <div class="bg-muted/30 rounded-lg border p-4">
+                                <div class="flex items-start justify-between gap-3" :class="{ 'cursor-pointer': canManage }" @click="toggleGeo">
+                                    <div class="flex items-start gap-3">
+                                        <div
+                                            class="bg-background text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg border"
+                                        >
+                                            <Globe class="size-4" />
+                                        </div>
+                                        <div class="space-y-0.5">
+                                            <p class="text-sm font-medium">{{ t('workspace.security.geo.title') }}</p>
+                                            <p class="text-muted-foreground text-xs">{{ t('workspace.security.geo.help') }}</p>
+                                        </div>
                                     </div>
-                                    <Switch :model-value="geoEnabled" :disabled="!canManage" class="pointer-events-none" />
+                                    <Switch
+                                        :model-value="geoEnabled"
+                                        :disabled="!canManage"
+                                        :aria-label="t('workspace.security.geo.title')"
+                                        class="pointer-events-none mt-0.5"
+                                    />
                                 </div>
 
-                                <div v-if="geoEnabled" class="space-y-3">
-                                    <div class="flex gap-2">
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            :variant="form.geo_mode === 'allow' ? 'default' : 'outline'"
-                                            :disabled="!canManage"
-                                            @click="form.geo_mode = 'allow'"
-                                        >
-                                            {{ t('workspace.security.geo.allow') }}
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            :variant="form.geo_mode === 'deny' ? 'default' : 'outline'"
-                                            :disabled="!canManage"
-                                            @click="form.geo_mode = 'deny'"
-                                        >
-                                            {{ t('workspace.security.geo.deny') }}
-                                        </Button>
-                                    </div>
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <Badge v-for="c in form.geo_countries" :key="c" variant="secondary" class="font-normal">
-                                            {{ codeToFlag(c) }} {{ countryName(c) }}
-                                        </Badge>
-                                        <span v-if="!form.geo_countries.length" class="text-muted-foreground text-sm">{{
-                                            t('workspace.security.geo.empty')
-                                        }}</span>
-                                        <Button v-if="canManage" type="button" variant="link" class="h-auto p-0 text-sm" @click="openCountries">
-                                            <Globe class="me-1.5 h-4 w-4" />
+                                <div v-if="geoEnabled" class="mt-3 space-y-3 ps-12">
+                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                        <!-- Allow / Block segmented control -->
+                                        <div class="border-input bg-background inline-flex rounded-lg border p-0.5">
+                                            <button
+                                                type="button"
+                                                :disabled="!canManage"
+                                                class="rounded-md px-3 py-1 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                                                :class="
+                                                    form.geo_mode === 'allow'
+                                                        ? 'bg-primary text-primary-foreground shadow-sm'
+                                                        : 'text-muted-foreground hover:text-foreground'
+                                                "
+                                                @click="form.geo_mode = 'allow'"
+                                            >
+                                                {{ t('workspace.security.geo.allow') }}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                :disabled="!canManage"
+                                                class="rounded-md px-3 py-1 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                                                :class="
+                                                    form.geo_mode === 'deny'
+                                                        ? 'bg-primary text-primary-foreground shadow-sm'
+                                                        : 'text-muted-foreground hover:text-foreground'
+                                                "
+                                                @click="form.geo_mode = 'deny'"
+                                            >
+                                                {{ t('workspace.security.geo.deny') }}
+                                            </button>
+                                        </div>
+                                        <Button v-if="canManage" type="button" variant="outline" size="sm" class="shrink-0" @click="openCountries">
                                             {{ t('workspace.security.geo.manage') }}
                                         </Button>
                                     </div>
-                                    <p class="text-muted-foreground text-xs">{{ t('workspace.security.geo.countries_help') }}</p>
+
+                                    <div v-if="form.geo_countries.length" class="flex flex-wrap gap-2">
+                                        <Badge v-for="c in form.geo_countries" :key="c" variant="secondary" class="font-normal">
+                                            {{ codeToFlag(c) }} {{ countryName(c) }}
+                                        </Badge>
+                                    </div>
+                                    <div v-else class="text-muted-foreground rounded-md border border-dashed px-3 py-2 text-sm">
+                                        {{ t('workspace.security.geo.empty') }}
+                                    </div>
+
+                                    <p v-if="form.errors.geo_countries" class="text-destructive text-xs">{{ form.errors.geo_countries }}</p>
                                 </div>
                             </div>
                         </div>
@@ -273,14 +328,19 @@ const applyCountries = () => {
                 </Card>
 
                 <!-- Data retention -->
-                <Card v-if="entitled">
-                    <CardContent class="space-y-5">
-                        <div>
-                            <Label class="text-sm font-medium">{{ t('workspace.security.retention.title') }}</Label>
-                            <p class="text-muted-foreground text-sm">{{ t('workspace.security.retention.help') }}</p>
+                <Card v-if="entitled" class="overflow-hidden py-0">
+                    <CardContent class="p-0">
+                        <div class="flex items-start gap-3 p-5">
+                            <div class="bg-background text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-lg border">
+                                <History class="size-5" />
+                            </div>
+                            <div class="space-y-0.5">
+                                <p class="text-sm font-semibold">{{ t('workspace.security.retention.title') }}</p>
+                                <p class="text-muted-foreground text-sm">{{ t('workspace.security.retention.help') }}</p>
+                            </div>
                         </div>
 
-                        <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="grid gap-4 border-t p-5 sm:grid-cols-2">
                             <div class="space-y-1.5">
                                 <Label for="ret-conv">{{ t('workspace.security.retention.conversations') }}</Label>
                                 <Input
@@ -328,21 +388,27 @@ const applyCountries = () => {
                 </Card>
 
                 <!-- SIEM webhook — its own capability (Pro / Enterprise) -->
-                <Card v-if="siem">
-                    <CardContent class="space-y-6">
-                        <div
-                            class="flex items-center justify-between gap-4 rounded-md border p-3"
-                            :class="{ 'cursor-pointer': canManage }"
-                            @click="toggleWebhook"
-                        >
-                            <div>
-                                <Label class="pointer-events-none text-sm font-medium">{{ t('workspace.security.siem.title') }}</Label>
-                                <p class="text-muted-foreground text-sm">{{ t('workspace.security.siem.help') }}</p>
+                <Card v-if="siem" class="overflow-hidden py-0">
+                    <CardContent class="p-0">
+                        <div class="flex items-start justify-between gap-4 p-5" :class="{ 'cursor-pointer': canManage }" @click="toggleWebhook">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-background text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-lg border">
+                                    <Webhook class="size-5" />
+                                </div>
+                                <div class="space-y-0.5">
+                                    <p class="text-sm font-semibold">{{ t('workspace.security.siem.title') }}</p>
+                                    <p class="text-muted-foreground text-sm">{{ t('workspace.security.siem.help') }}</p>
+                                </div>
                             </div>
-                            <Switch :model-value="form.webhook_enabled" :disabled="!canManage" class="pointer-events-none" />
+                            <Switch
+                                :model-value="form.webhook_enabled"
+                                :disabled="!canManage"
+                                :aria-label="t('workspace.security.siem.title')"
+                                class="pointer-events-none mt-0.5"
+                            />
                         </div>
 
-                        <div v-if="form.webhook_enabled" class="space-y-4 px-[13px]">
+                        <div v-if="form.webhook_enabled" class="space-y-4 border-t p-5">
                             <div class="space-y-1.5">
                                 <Label for="siem-url">{{ t('workspace.security.siem.url') }}</Label>
                                 <div class="relative">
@@ -447,37 +513,48 @@ const applyCountries = () => {
                     <DialogDescription>{{ t('workspace.security.geo.dialog_description') }}</DialogDescription>
                 </DialogHeader>
 
-                <Select :model-value="addCountryCode" @update:model-value="onAddCountry">
-                    <SelectTrigger class="w-full">
-                        <SelectValue :placeholder="t('workspace.security.geo.select_placeholder')" />
-                    </SelectTrigger>
-                    <SelectContent class="max-h-[300px]">
-                        <SelectItem v-for="c in availableCountries" :key="c.code" :value="c.code">
-                            <span class="me-2">{{ codeToFlag(c.code) }}</span
-                            >{{ c.name }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-
-                <div v-if="countriesDraft.length" class="space-y-1.5">
-                    <div v-for="(c, index) in countriesDraft" :key="c" class="flex items-center justify-between gap-2 rounded-md border p-2 ps-3">
-                        <span class="text-sm"
-                            ><span class="me-2">{{ codeToFlag(c) }}</span
-                            >{{ countryName(c) }}</span
-                        >
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            class="text-muted-foreground hover:text-destructive size-7 shrink-0"
-                            :aria-label="t('workspace.security.geo.remove')"
-                            @click="removeCountry(index)"
-                        >
-                            <Trash2 class="h-4 w-4" />
-                        </Button>
-                    </div>
+                <div class="relative">
+                    <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                    <Input v-model="countrySearch" :placeholder="t('workspace.security.geo.select_placeholder')" class="ps-9" />
                 </div>
-                <p v-else class="text-muted-foreground text-sm">{{ t('workspace.security.geo.empty_draft') }}</p>
+
+                <!-- Selected countries — removable chips -->
+                <div v-if="countriesDraft.length" class="flex flex-wrap gap-1.5">
+                    <Badge v-for="c in countriesDraft" :key="c" variant="secondary" class="gap-1 py-1 font-normal">
+                        {{ codeToFlag(c) }} {{ countryName(c) }}
+                        <button
+                            type="button"
+                            class="hover:text-destructive ms-0.5 -me-0.5 rounded-sm"
+                            :aria-label="t('workspace.security.geo.remove')"
+                            @click="toggleCountry(c)"
+                        >
+                            <X class="h-3 w-3" />
+                        </button>
+                    </Badge>
+                </div>
+
+                <!-- Filtered, toggleable list -->
+                <ScrollArea class="h-64 rounded-md border">
+                    <div class="p-1">
+                        <button
+                            v-for="c in filteredCountries"
+                            :key="c.code"
+                            type="button"
+                            class="hover:bg-accent flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-start text-sm transition-colors"
+                            :aria-pressed="isCountrySelected(c.code)"
+                            @click="toggleCountry(c.code)"
+                        >
+                            <span
+                                ><span class="me-2">{{ codeToFlag(c.code) }}</span
+                                >{{ c.name }}</span
+                            >
+                            <Check v-if="isCountrySelected(c.code)" class="text-primary h-4 w-4 shrink-0" />
+                        </button>
+                        <p v-if="!filteredCountries.length" class="text-muted-foreground px-2 py-6 text-center text-sm">
+                            {{ t('workspace.security.geo.no_matches') }}
+                        </p>
+                    </div>
+                </ScrollArea>
 
                 <DialogFooter>
                     <Button type="button" variant="ghost" @click="countriesOpen = false">

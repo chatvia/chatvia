@@ -43,7 +43,7 @@ class EnsureWorkspaceNetworkAllowed
         }
 
         $ip = (string) $request->ip();
-        $country = $policy->geo_mode === 'off' ? null : $this->guard->countryFor($ip);
+        $country = $policy->geo_mode === 'off' ? null : request_country($request);
 
         $allowed = $this->guard->passes(
             $policy->ip_allowlist ?? [],

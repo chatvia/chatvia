@@ -145,3 +145,66 @@ it('passes a request from a country not on the deny list', function (): void {
         ->get(route('security.edit'))
         ->assertOk();
 });
+
+/*
+| Cloudflare's CF-IPCountry header (the REAL visitor's country) wins over a
+| geo lookup of the connecting IP — which, behind CF, is the edge/egress IP and
+| resolves to the serving PoP's country (e.g. Bulgaria for Middle-East traffic),
+| not the visitor's. Both tests prime the IP geo cache to the WRONG (edge)
+| country and assert the decision follows the header instead.
+*/
+
+it('trusts the Cloudflare visitor country over the connecting edge IP', function (): void {
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+        'ip_allowlist_mode' => 'dashboard',
+        'ip_allowlist' => [],
+        'geo_mode' => 'deny',
+        'geo_countries' => ['BG'], // block Bulgaria — the edge PoP's country
+    ]);
+
+    // The connecting IP geo-resolves to Bulgaria (the CF edge), but the visitor
+    // is in Iraq. Old code 403'd here; the header must let them through.
+    Cache::put('security:geoip:198.51.100.7', 'BG', now()->addDay());
+
+    $this->actingAs($this->owner)
+        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
+        ->withHeaders(['CF-IPCountry' => 'IQ'])
+        ->get(route('security.edit'))
+        ->assertOk();
+});
+
+it('blocks on the Cloudflare visitor country even when the edge IP is elsewhere', function (): void {
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+        'ip_allowlist_mode' => 'dashboard',
+        'ip_allowlist' => [],
+        'geo_mode' => 'deny',
+        'geo_countries' => ['IQ'], // block Iraq — the real visitor
+    ]);
+
+    // Edge IP looks like Bulgaria, but CF reports the visitor is in Iraq.
+    Cache::put('security:geoip:198.51.100.7', 'BG', now()->addDay());
+
+    $this->actingAs($this->owner)
+        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
+        ->withHeaders(['CF-IPCountry' => 'IQ'])
+        ->get(route('security.edit'))
+        ->assertForbidden();
+});
+
+it('falls back to the IP geo lookup when CF-IPCountry is a non-country sentinel', function (): void {
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+        'ip_allowlist_mode' => 'dashboard',
+        'ip_allowlist' => [],
+        'geo_mode' => 'deny',
+        'geo_countries' => ['RU'],
+    ]);
+
+    Cache::put('security:geoip:198.51.100.7', 'RU', now()->addDay());
+
+    // XX = country undetermined ⇒ ignore the header, use the IP geo (RU ⇒ 403).
+    $this->actingAs($this->owner)
+        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
+        ->withHeaders(['CF-IPCountry' => 'XX'])
+        ->get(route('security.edit'))
+        ->assertForbidden();
+});

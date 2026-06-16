@@ -22,12 +22,12 @@ class FakeMetaOAuthClient extends MetaOAuthClient
 
     public ?string $userToken = 'USER-LONG-TOKEN';
 
-    public function authorizeUrl(string $state, string $scopes): string
+    public function authorizeUrl(string $state, string $scopes, ?string $configId = null, ?string $redirectUri = null): string
     {
         return 'https://www.facebook.com/dialog/oauth?state='.$state;
     }
 
-    public function exchangeCodeForUserToken(string $code): ?string
+    public function exchangeCodeForUserToken(string $code, ?string $redirectUri = null): ?string
     {
         return $this->userToken;
     }

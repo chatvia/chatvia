@@ -22,11 +22,10 @@ function instagramHandleAccount(bool $public = true): AgentInstagramAccount
 
     return AgentInstagramAccount::create([
         'agent_id' => $agent->id,
-        'access_token' => 'IGAA-secret-token-1234567890',
-        'app_secret' => 'app-secret-value-1234567890',
+        'page_access_token' => 'IGAA-secret-token-1234567890',
+        'page_id' => '998877',
         'ig_id' => '17840012345',
         'username' => 'acme.support',
-        'webhook_secret' => Str::random(48),
         'enabled' => true,
     ]);
 }

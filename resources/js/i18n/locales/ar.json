@@ -318,7 +318,11 @@
                     "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
                     "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
                     "api_setup_path": "Instagram → API setup with Instagram login",
-                    "product": "Instagram"
+                    "product": "Instagram",
+                    "oauth_intro": "اربط حساب إنستغرام احترافي ليتمكن هذا الوكيل من الرد على الرسائل المباشرة — ستسجّل الدخول عبر فيسبوك ثم تختار الحساب الذي تريد استخدامه.",
+                    "connect_facebook": "الاتصال عبر فيسبوك",
+                    "pick_title": "اختر حساب إنستغرام",
+                    "pick_button": "ربط هذا الحساب"
                 }
             },
             "security": "الأمان",

@@ -5,20 +5,15 @@ namespace Domain\Channel\Instagram\Actions;
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Domain\Channel\Instagram\Services\InstagramClient;
-use Illuminate\Support\Str;
 
 /**
- * Connects (or reconnects) an Instagram professional account to an agent:
- * validates the access token with the Graph API, stores it (encrypted)
- * together with the Instagram app secret and a fresh webhook secret, and
- * subscribes the app to the account's `messages` field (best-effort) so the
- * webhook starts firing. Returns null when the token is invalid/unreachable
- * so the controller can surface a field error.
- *
- * The app-level webhook itself can't be registered via API — the workspace
- * pastes the Callback URL + verify token (both embed `webhook_secret`) into
- * their Instagram app's webhook settings; Meta then verifies it with a GET
- * handshake our webhook answers.
+ * Stores (or replaces) the Instagram professional account an agent answers on,
+ * after the workspace granted it through Facebook Login for Business. The page
+ * access token comes straight from Meta's /me/accounts (already valid), so we
+ * persist it (encrypted) and best-effort subscribe the linked Page to its
+ * `messages` webhook field — without that Meta never delivers the IG DMs to
+ * Chatvia's app-level Callback URL. One account per agent (`agent_id` is
+ * unique); inbound events are routed back to this row by `ig_id`.
  */
 class ConnectInstagramAccountAction
 {
@@ -26,27 +21,25 @@ class ConnectInstagramAccountAction
         private readonly InstagramClient $client,
     ) {}
 
-    public function execute(Agent $agent, string $accessToken, string $appSecret): ?AgentInstagramAccount
-    {
-        $info = $this->client->accountInfo($accessToken);
-
-        if ($info === null) {
-            return null;
-        }
-
+    public function execute(
+        Agent $agent,
+        string $igId,
+        string $igUsername,
+        string $pageId,
+        string $pageAccessToken,
+    ): AgentInstagramAccount {
         $account = AgentInstagramAccount::updateOrCreate(
             ['agent_id' => $agent->id],
             [
-                'access_token' => $accessToken,
-                'app_secret' => $appSecret,
-                'ig_id' => $info['id'],
-                'username' => $info['username'],
-                'webhook_secret' => Str::random(48),
+                'page_access_token' => $pageAccessToken,
+                'page_id' => $pageId,
+                'ig_id' => $igId,
+                'username' => $igUsername,
                 'enabled' => true,
             ],
         );
 
-        $this->client->subscribeAccount($accessToken);
+        $this->client->subscribeAccount($pageAccessToken, $pageId);
 
         return $account;
     }

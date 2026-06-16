@@ -6,53 +6,53 @@ use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Tests\Support\Instagram\FakeInstagramClient;
 
 /**
- * Connect validates the access token with the Graph API (stubbed here) before
- * anything is stored, subscribes the app to the account's `messages` field,
- * and a reconnect updates the same row in place and rotates the webhook
- * secret so the old Callback URL goes dead.
+ * Connect stores the OAuth-granted Page token + IG account ids (encrypted) for
+ * the agent and best-effort subscribes the linked Page to its `messages` field
+ * so DMs start flowing. The ids come straight from Facebook's /me/accounts →
+ * instagram_business_account (already valid), so there's no token validation.
  */
-it('stores the account and subscribes the app when the token is valid', function (): void {
+it('stores the IG account + page token encrypted and subscribes the linked page', function (): void {
     $agent = Agent::factory()->create();
     $client = new FakeInstagramClient;
 
-    $account = (new ConnectInstagramAccountAction($client))
-        ->execute($agent, 'IGAA-token-value-1234567890', 'app-secret-value-1234567890');
+    $account = (new ConnectInstagramAccountAction($client))->execute(
+        $agent,
+        '17840012345',
+        'acme.support',
+        '998877',
+        'EAAG-page-token-value-here',
+    );
 
-    expect($account)->not->toBeNull()
-        ->and($account->agent_id)->toBe($agent->id)
-        ->and($account->access_token)->toBe('IGAA-token-value-1234567890') // decrypted by the cast
-        ->and($account->app_secret)->toBe('app-secret-value-1234567890')
-        ->and($account->ig_id)->toBe('17840012345')
-        ->and($account->username)->toBe('acme.support')
-        ->and(strlen($account->webhook_secret))->toBe(48)
-        ->and($account->enabled)->toBeTrue();
+    $row = AgentInstagramAccount::query()->firstOrFail();
 
-    // The app is subscribed to the account's messages field (best-effort).
-    expect($client->subscriptions)->toBe(['IGAA-token-value-1234567890']);
+    expect($account->is($row))->toBeTrue()
+        ->and($row->agent_id)->toBe($agent->id)
+        ->and($row->ig_id)->toBe('17840012345')
+        ->and($row->username)->toBe('acme.support')
+        ->and($row->page_id)->toBe('998877')
+        ->and($row->enabled)->toBeTrue()
+        // Encrypted cast round-trips...
+        ->and($row->page_access_token)->toBe('EAAG-page-token-value-here')
+        // ...but the stored ciphertext is not the plaintext.
+        ->and($row->getRawOriginal('page_access_token'))->not->toBe('EAAG-page-token-value-here');
+
+    expect($client->subscriptions)->toHaveCount(1)
+        ->and($client->subscriptions[0]['pageId'])->toBe('998877')
+        ->and($client->subscriptions[0]['pageToken'])->toBe('EAAG-page-token-value-here');
 });
 
-it('returns null and stores nothing when the token is rejected', function (): void {
-    $agent = Agent::factory()->create();
-    $client = new FakeInstagramClient;
-    $client->account = null;
-
-    $account = (new ConnectInstagramAccountAction($client))
-        ->execute($agent, 'bad-token-value-1234567890', 'app-secret-value-1234567890');
-
-    expect($account)->toBeNull();
-    expect(AgentInstagramAccount::query()->count())->toBe(0);
-    expect($client->subscriptions)->toBeEmpty();
-});
-
-it('reconnecting updates the same row and rotates the webhook secret', function (): void {
+it('reconnects in place — one account row per agent, page token replaced', function (): void {
     $agent = Agent::factory()->create();
     $action = new ConnectInstagramAccountAction(new FakeInstagramClient);
 
-    $first = $action->execute($agent, 'IGAA-old-token-1234567890', 'app-secret-value-1234567890');
-    $second = $action->execute($agent, 'IGAA-new-token-1234567890', 'app-secret-value-1234567890');
+    $action->execute($agent, '17840012345', 'acme.support', '998877', 'EAAG-first-token');
+    $first = AgentInstagramAccount::query()->firstOrFail();
 
-    expect(AgentInstagramAccount::query()->count())->toBe(1)
-        ->and($second->id)->toBe($first->id)
-        ->and($second->access_token)->toBe('IGAA-new-token-1234567890')
-        ->and($second->webhook_secret)->not->toBe($first->webhook_secret);
+    $action->execute($agent, '17840012345', 'acme.support', '998877', 'EAAG-second-token');
+
+    expect(AgentInstagramAccount::query()->count())->toBe(1);
+
+    $row = AgentInstagramAccount::query()->firstOrFail();
+    expect($row->id)->toBe($first->id)
+        ->and($row->page_access_token)->toBe('EAAG-second-token');
 });

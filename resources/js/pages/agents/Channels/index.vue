@@ -64,7 +64,7 @@ interface Props {
         enabled: boolean;
     };
     msteams: { connected: boolean; app_id: string | null; webhook_url: string | null; enabled: boolean };
-    instagram: { connected: boolean; username: string | null; webhook_url: string | null; verify_token: string | null; enabled: boolean };
+    instagram: { connected: boolean; username: string | null; enabled: boolean; pick: { ig_id: string; ig_username: string; page_name: string }[] | null };
 }
 
 const props = defineProps<Props>();
@@ -156,8 +156,8 @@ const openChannel = (item: ChannelItem) => {
     whatsappForm.clearErrors();
     msteamsForm.reset();
     msteamsForm.clearErrors();
-    instagramForm.reset();
-    instagramForm.clearErrors();
+    instagramSelectForm.reset();
+    instagramSelectForm.clearErrors();
     sheetOpen.value = true;
 };
 
@@ -241,15 +241,22 @@ const connectMsteams = () => {
     });
 };
 
-// ── Instagram connect -----------------------------------------------------------
-const instagramForm = useForm({ access_token: '', app_secret: '' });
+// ── Instagram connect (OAuth via Facebook) ------------------------------------
+// Same shape as Messenger: a full-page hop to Facebook consent → our callback
+// drops the IG-linked accounts into `pick` → the workspace selects one below.
+const instagramError = computed<string | undefined>(() => (page.props.errors as Record<string, string> | undefined)?.instagram);
 
 const connectInstagram = () => {
-    instagramForm.post(route('agents.channels.instagram.connect', props.agent.external_id), {
+    window.location.href = route('agents.channels.instagram.redirect', props.agent.external_id);
+};
+
+const instagramSelectForm = useForm({ ig_id: props.instagram.pick?.[0]?.ig_id ?? '' });
+
+const selectInstagramAccount = () => {
+    instagramSelectForm.post(route('agents.channels.instagram.select', props.agent.external_id), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {
-            instagramForm.reset();
             toast.success(t('agents.channels.instagram.connected_toast'));
         },
     });
@@ -1279,76 +1286,6 @@ const saveCommands = () => {
                                     </div>
                                 </div>
 
-                                <CopyField
-                                    id="instagram-webhook-url"
-                                    :label="t('agents.channels.setup.labels.callback_url')"
-                                    :icon="Link2"
-                                    :value="props.instagram.webhook_url"
-                                />
-                                <CopyField
-                                    id="instagram-verify-token"
-                                    :label="t('agents.channels.setup.labels.verify_token')"
-                                    :icon="ShieldCheck"
-                                    :value="props.instagram.verify_token"
-                                />
-
-                                <ol class="text-muted-foreground space-y-2 text-xs">
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >1</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.instagram.steps.connected_1" tag="span">
-                                                <template #link>
-                                                    <a
-                                                        href="https://developers.facebook.com/apps"
-                                                        target="_blank"
-                                                        rel="noopener"
-                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                        >{{ t('agents.channels.setup.messenger.your_meta_app') }}</a
-                                                    >
-                                                </template>
-                                                <template #webhooks>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.instagram.webhooks_path')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >2</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.shared.subscribe_webhook" tag="span">
-                                                <template #field>
-                                                    <span class="text-foreground font-mono">{{
-                                                        t('agents.channels.setup.shared.messages_field')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >3</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.instagram.steps.connected_3" tag="span">
-                                                <template #message_controls>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.instagram.message_controls_path')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                </ol>
-
                                 <div
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
@@ -1384,82 +1321,58 @@ const saveCommands = () => {
 
                             <!-- Not connected -->
                             <template v-else-if="canManage">
-                                <ol class="text-muted-foreground space-y-2 text-xs">
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >1</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.instagram.steps.connect_1" tag="span">
-                                                <template #link>
-                                                    <a
-                                                        href="https://developers.facebook.com/apps"
-                                                        target="_blank"
-                                                        rel="noopener"
-                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                        >developers.facebook.com</a
-                                                    >
-                                                </template>
-                                                <template #product>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.instagram.product')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >2</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.instagram.steps.connect_2" tag="span">
-                                                <template #api_setup>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.instagram.api_setup_path')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >3</span
-                                        >
-                                        <span>{{ t('agents.channels.setup.shared.copy_app_secret_same_page') }}</span>
-                                    </li>
-                                </ol>
-                                <CredentialInput
-                                    id="instagram-access-token"
-                                    v-model="instagramForm.access_token"
-                                    :label="t('agents.channels.setup.labels.access_token')"
-                                    :icon="KeyRound"
-                                    :placeholder="t('agents.channels.setup.placeholders.instagram_token')"
-                                    :error="instagramForm.errors.access_token"
-                                />
-                                <CredentialInput
-                                    id="instagram-app-secret"
-                                    v-model="instagramForm.app_secret"
-                                    :label="t('agents.channels.setup.labels.app_secret')"
-                                    :icon="Lock"
-                                    secret
-                                    :error="instagramForm.errors.app_secret"
-                                    @enter="connectInstagram"
-                                />
-                                <div class="border-t pt-5">
-                                    <Button
-                                        class="w-full"
-                                        :disabled="instagramForm.processing || !instagramForm.access_token || !instagramForm.app_secret"
-                                        @click="connectInstagram"
-                                    >
-                                        <LoaderCircle v-if="instagramForm.processing" class="me-2 size-4 animate-spin" />
-                                        <Plug v-else class="me-2 size-4" />
-                                        {{ t('agents.channels.connect') }}
-                                    </Button>
+                                <div
+                                    v-if="instagramError"
+                                    class="border-destructive/30 bg-destructive/10 text-destructive rounded-md border p-3 text-xs"
+                                >
+                                    {{ instagramError }}
                                 </div>
+
+                                <!-- Account picker — the IG accounts Facebook handed back after consent -->
+                                <template v-if="props.instagram.pick && props.instagram.pick.length">
+                                    <p class="text-sm font-medium">{{ t('agents.channels.setup.instagram.pick_title') }}</p>
+                                    <div class="space-y-2">
+                                        <label
+                                            v-for="igAccount in props.instagram.pick"
+                                            :key="igAccount.ig_id"
+                                            class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition"
+                                            :class="instagramSelectForm.ig_id === igAccount.ig_id ? 'border-foreground/40 bg-muted/50' : ''"
+                                        >
+                                            <input
+                                                v-model="instagramSelectForm.ig_id"
+                                                type="radio"
+                                                :value="igAccount.ig_id"
+                                                class="accent-foreground size-4"
+                                            />
+                                            <span class="min-w-0">
+                                                <span class="block truncate text-sm font-medium">@{{ igAccount.ig_username }}</span>
+                                                <span class="text-muted-foreground block truncate text-xs">{{ igAccount.page_name }}</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <div class="border-t pt-5">
+                                        <Button
+                                            class="w-full"
+                                            :disabled="!instagramSelectForm.ig_id || instagramSelectForm.processing"
+                                            @click="selectInstagramAccount"
+                                        >
+                                            <LoaderCircle v-if="instagramSelectForm.processing" class="me-2 size-4 animate-spin" />
+                                            <Plug v-else class="me-2 size-4" />
+                                            {{ t('agents.channels.setup.instagram.pick_button') }}
+                                        </Button>
+                                    </div>
+                                </template>
+
+                                <!-- Kick off the OAuth flow -->
+                                <template v-else>
+                                    <p class="text-muted-foreground text-sm">{{ t('agents.channels.setup.instagram.oauth_intro') }}</p>
+                                    <div class="border-t pt-5">
+                                        <Button class="w-full" @click="connectInstagram">
+                                            <Plug class="me-2 size-4" />
+                                            {{ t('agents.channels.setup.instagram.connect_facebook') }}
+                                        </Button>
+                                    </div>
+                                </template>
                             </template>
 
                             <template v-else>

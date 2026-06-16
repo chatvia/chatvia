@@ -35,7 +35,7 @@ class HandleInstagramMessageAction
     public function execute(AgentInstagramAccount $account, string $igsid, string $text): void
     {
         // Protected agents are never answered on Instagram (defence in depth).
-        if (! $this->gate->allows($account->agent, fn () => $this->client->sendMessage($account->access_token, $igsid, self::UNAVAILABLE))) {
+        if (! $this->gate->allows($account->agent, fn () => $this->client->sendMessage($account->page_access_token, $igsid, self::UNAVAILABLE))) {
             return;
         }
 
@@ -43,11 +43,11 @@ class HandleInstagramMessageAction
 
         // Instant feedback: "typing…" the moment the message lands. The runner
         // keeps it alive while the agent (RAG + LLM) generates the reply.
-        $this->client->sendTypingAction($account->access_token, $igsid);
+        $this->client->sendTypingAction($account->page_access_token, $igsid);
 
         $reply = $this->runner->reply($thread, $text);
 
-        $this->client->sendMessage($account->access_token, $igsid, $reply);
+        $this->client->sendMessage($account->page_access_token, $igsid, $reply);
 
         $thread->forceFill(['last_message_at' => now()])->save();
     }

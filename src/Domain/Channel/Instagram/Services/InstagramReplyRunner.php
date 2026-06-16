@@ -24,7 +24,7 @@ class InstagramReplyRunner
 
     public function reply(InstagramThread $thread, string $message): string
     {
-        $token = $thread->account->access_token;
+        $token = $thread->account->page_access_token;
         $lastTyping = microtime(true);
 
         return $this->runner->reply(

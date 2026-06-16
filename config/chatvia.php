@@ -148,7 +148,7 @@ return [
         // replay into the LLM context on each turn. Caps the history window so
         // it stays bounded as a chat grows — older messages are dropped. Raise
         // it to give the model more follow-up context, lower it to save tokens.
-        'history_messages' => (int) env('AGENT_HISTORY_MESSAGES', 10),
+        'history_messages' => (int) env('AGENT_HISTORY_MESSAGES', 3),
     ],
 
     /*
@@ -225,9 +225,9 @@ return [
             // greetings and acknowledgments will pull in noise.
             'rerank' => env('VECTOR_SEARCH_RERANK', true),
 
-            'relevance_threshold' => env('VECTOR_SEARCH_RELEVANCE_THRESHOLD', 0.55),
+            'relevance_threshold' => env('VECTOR_SEARCH_RELEVANCE_THRESHOLD', 0.50),
 
-            'max_chunks' => env('VECTOR_SEARCH_MAX_CHUNKS', 5),
+            'max_chunks' => env('VECTOR_SEARCH_MAX_CHUNKS', 3),
 
             // vchordrq.probes — scale with sqrt(lists). For lists=4096, probes=64
             // is the recall sweet spot. Adjust when lists changes via vector:reindex.

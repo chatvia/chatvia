@@ -25,16 +25,22 @@ use Throwable;
  */
 class MetaOAuthClient
 {
-    /** Page messaging + read content (the GET /me check) + manage webhooks + list pages. */
-    public const MESSENGER_SCOPES = 'pages_show_list,pages_messaging,pages_read_engagement,pages_manage_metadata';
+    /**
+     * Page messaging + read content (the GET /me check) + manage webhooks + list
+     * pages. `business_management` is required to see Pages owned by a Business
+     * Portfolio — `/me/accounts` omits those (it only lists personally-managed
+     * Pages), so without it a business customer's Page never comes back.
+     */
+    public const MESSENGER_SCOPES = 'pages_show_list,pages_messaging,pages_read_engagement,pages_manage_metadata,business_management';
 
     /**
      * Instagram messaging via Facebook Login: read the IG professional account
-     * linked to a Page, send/receive its DMs, list + manage the Pages. (When a
+     * linked to a Page, send/receive its DMs, list + manage the Pages, plus
+     * `business_management` for Business-Portfolio-owned Pages. (When a
      * Login-for-Business config_id is used these come from the configuration;
      * this string is the classic-scope fallback.)
      */
-    public const INSTAGRAM_SCOPES = 'instagram_basic,instagram_manage_messages,pages_show_list,pages_manage_metadata,pages_read_engagement';
+    public const INSTAGRAM_SCOPES = 'instagram_basic,instagram_manage_messages,pages_show_list,pages_manage_metadata,pages_read_engagement,business_management';
 
     /**
      * Build the Facebook authorize URL. Uses the Login-for-Business `config_id`
@@ -133,44 +139,96 @@ class MetaOAuthClient
      */
     public function pages(string $userToken): array
     {
-        $response = $this->get('/me/accounts', [
+        /** @var array<string, array{id: string, name: string, access_token: string}> $byId */
+        $byId = [];
+
+        // 1. Pages the user manages personally.
+        $this->collectPages($this->get('/me/accounts', [
             'fields' => 'id,name,access_token',
+            'limit' => 100,
+            'access_token' => $userToken,
+        ]), $byId);
+
+        $personalCount = count($byId);
+
+        // 2. Pages owned by the user's Business Portfolio(s). `/me/accounts`
+        //    omits these — they only surface by traversing the business, which
+        //    needs the `business_management` permission. owned_pages/client_pages
+        //    return the page access token directly (fields=access_token).
+        $businesses = $this->get('/me/businesses', [
+            'fields' => 'id,name',
             'limit' => 100,
             'access_token' => $userToken,
         ]);
 
-        $pages = [];
+        $businessIds = [];
 
+        foreach ((array) ($businesses['data'] ?? []) as $business) {
+            $bizId = $business['id'] ?? null;
+
+            if (! is_string($bizId)) {
+                continue;
+            }
+
+            $businessIds[] = $bizId;
+
+            $this->collectPages($this->get("/{$bizId}/owned_pages", [
+                'fields' => 'id,name,access_token',
+                'limit' => 100,
+                'access_token' => $userToken,
+            ]), $byId);
+
+            $this->collectPages($this->get("/{$bizId}/client_pages", [
+                'fields' => 'id,name,access_token',
+                'limit' => 100,
+                'access_token' => $userToken,
+            ]), $byId);
+        }
+
+        $pages = array_values($byId);
+
+        $context = [
+            'personal_pages' => $personalCount,
+            'businesses' => $businessIds,
+            'business_response_present' => $businesses !== null,
+            'total_pages' => count($pages),
+            'page_ids' => array_map(static fn (array $p): string => $p['id'], $pages), // ids only, never tokens
+        ];
+
+        if ($pages === []) {
+            // The "No Pages came back" case — warning level so it shows up
+            // regardless of LOG_LEVEL. If `businesses` is empty/null the
+            // `business_management` grant is the thing to check.
+            Log::warning('Meta OAuth: no Pages from /me/accounts or any Business Portfolio', $context);
+        } else {
+            Log::info('Meta OAuth: Pages resolved (personal + business)', $context);
+        }
+
+        return $pages;
+    }
+
+    /**
+     * Merge a Graph `data[]` of pages into the id-keyed accumulator (first write
+     * wins, so a personally-managed token is preferred over a business one for
+     * the same Page).
+     *
+     * @param  array<string, mixed>|null  $response
+     * @param  array<string, array{id: string, name: string, access_token: string}>  $byId
+     */
+    private function collectPages(?array $response, array &$byId): void
+    {
         foreach ((array) ($response['data'] ?? []) as $page) {
             $id = $page['id'] ?? null;
             $token = $page['access_token'] ?? null;
 
-            if (is_string($id) && is_string($token)) {
-                $pages[] = [
+            if (is_string($id) && is_string($token) && ! isset($byId[$id])) {
+                $byId[$id] = [
                     'id' => $id,
                     'name' => (string) ($page['name'] ?? $id),
                     'access_token' => $token,
                 ];
             }
         }
-
-        $context = [
-            'response_present' => $response !== null,
-            'top_keys' => $response !== null ? array_keys($response) : [],
-            'data_count' => is_array($response['data'] ?? null) ? count($response['data']) : 0,
-            'usable_pages' => count($pages),
-            'raw' => $this->redactTokens($response),
-        ];
-
-        if ($pages === []) {
-            // The "No Pages came back" case — log the full (redacted) /me/accounts
-            // body at warning level so it's visible regardless of LOG_LEVEL.
-            Log::warning('Meta OAuth: /me/accounts returned no usable Pages', $context);
-        } else {
-            Log::info('Meta OAuth: /me/accounts returned Pages', $context);
-        }
-
-        return $pages;
     }
 
     /**
@@ -221,32 +279,6 @@ class MetaOAuthClient
     private function version(): string
     {
         return (string) config('services.meta.graph_version', 'v25.0');
-    }
-
-    /**
-     * Replace any `access_token` values in a Graph response with a length
-     * marker so the body can be logged safely.
-     *
-     * @param  array<string, mixed>|null  $response
-     * @return array<string, mixed>|null
-     */
-    private function redactTokens(?array $response): ?array
-    {
-        if ($response === null) {
-            return null;
-        }
-
-        if (is_array($response['data'] ?? null)) {
-            $response['data'] = array_map(static function ($page) {
-                if (is_array($page) && isset($page['access_token']) && is_string($page['access_token'])) {
-                    $page['access_token'] = '[redacted len='.strlen($page['access_token']).']';
-                }
-
-                return $page;
-            }, $response['data']);
-        }
-
-        return $response;
     }
 
     /**

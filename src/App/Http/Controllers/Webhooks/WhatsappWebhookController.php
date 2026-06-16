@@ -11,42 +11,40 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Receives WhatsApp Business Cloud API webhooks. The {secret} path segment is
- * the per-number `webhook_secret` (routes the event to the agent); it doubles
- * as the verify token of Meta's GET handshake, and POSTed events are verified
- * with Meta's signed payload (HMAC-SHA256 of the raw body with the app
- * secret, `X-Hub-Signature-256`). Each message is processed once (idempotency
- * on the wamid — Meta re-delivers for up to 7 days on non-200 and duplicates
- * even without failures) and handed to a queued job so the webhook answers
- * fast. POST always replies 200 — repeated non-200s make Meta retry and
- * eventually disable the subscription, and an unknown/spoofed secret should
- * just be a silent no-op.
+ * Receives WhatsApp Business Cloud API webhooks for Chatvia's single Meta app.
+ * With one app serving every workspace there's one app-level Callback URL (no
+ * per-number secret in the path): the GET handshake is verified against the
+ * app-level verify token, POSTed events against the app secret (HMAC-SHA256 of
+ * the raw body, `X-Hub-Signature-256`), and each change is routed to the right
+ * agent by the phone number id that received the message
+ * (`value.metadata.phone_number_id`). Each message is processed once
+ * (idempotency on the wamid — Meta re-delivers for up to 7 days) and handed to
+ * a queued job so the webhook answers fast. POST always replies 200 — repeated
+ * non-2xx makes Meta disable the subscription, and an unknown/spoofed payload
+ * should be a silent no-op.
  */
 class WhatsappWebhookController
 {
     use InteractsWithMetaWebhooks;
 
-    /**
-     * Meta verifies the Callback URL with a GET handshake when it's pasted
-     * into the app's WhatsApp → Configuration settings.
-     */
-    public function verify(Request $request, string $secret): Response
+    public function verify(Request $request): Response
     {
-        return $this->metaChallengeResponse($request, $this->number($secret)?->webhook_secret);
+        return $this->metaChallengeResponse($request, config('services.meta.webhook_verify_token'));
     }
 
-    public function receive(Request $request, string $secret): JsonResponse
+    public function receive(Request $request): JsonResponse
     {
         $ok = response()->json(['ok' => true]);
 
-        $number = $this->number($secret);
+        $appSecret = (string) config('services.meta.app_secret');
 
-        if ($number === null || ! $this->hasValidMetaSignature($request, $number->app_secret) || $request->input('object') !== 'whatsapp_business_account') {
+        if ($appSecret === '' || ! $this->hasValidMetaSignature($request, $appSecret) || $request->input('object') !== 'whatsapp_business_account') {
             return $ok;
         }
 
         // Events arrive batched: entry[] per WABA, changes[] per field,
-        // messages[] per sender — loop every level.
+        // messages[] per sender. One app-level URL receives every connected
+        // number, so route each change to its agent by phone number id.
         foreach ((array) $request->input('entry', []) as $entry) {
             foreach ((array) ($entry['changes'] ?? []) as $change) {
                 if (! is_array($change) || ($change['field'] ?? null) !== 'messages') {
@@ -55,9 +53,9 @@ class WhatsappWebhookController
 
                 $value = $change['value'] ?? [];
 
-                $target = $this->routeByPhoneNumberId($number, $value['metadata']['phone_number_id'] ?? null);
+                $number = $this->number($value['metadata']['phone_number_id'] ?? null);
 
-                if ($target === null) {
+                if ($number === null) {
                     continue;
                 }
 
@@ -72,14 +70,14 @@ class WhatsappWebhookController
                     // unacknowledged WhatsApp webhooks with decreasing
                     // frequency for up to 7 days, hence the matching 7-day TTL.
                     $mid = (string) $message['id'];
-                    if (! Cache::add("wa:mid:{$target->id}:{$mid}", true, now()->addDays(7))) {
+                    if (! Cache::add("wa:mid:{$number->id}:{$mid}", true, now()->addDays(7))) {
                         continue;
                     }
 
                     $waId = (string) $message['from'];
 
                     HandleWhatsappMessageJob::dispatch(
-                        $target,
+                        $number,
                         $waId,
                         (string) $message['text']['body'],
                         $mid,
@@ -92,42 +90,17 @@ class WhatsappWebhookController
         return $ok;
     }
 
-    private function number(string $secret): ?AgentWhatsappNumber
+    private function number(?string $phoneNumberId): ?AgentWhatsappNumber
     {
-        return AgentWhatsappNumber::query()
-            ->with('agent')
-            ->where('webhook_secret', $secret)
-            ->where('enabled', true)
-            ->first();
-    }
-
-    /**
-     * One Meta app has ONE callback URL, but can serve several WhatsApp
-     * numbers (one per agent) — every number's events land on whichever
-     * agent's URL is configured. `value.metadata.phone_number_id` names the
-     * number that actually received the message, so re-route to its row.
-     * Only a sibling sharing the same app secret is accepted: the signature
-     * was verified against the URL row's secret, so an equal secret proves
-     * the event came from that sibling's Meta app too — without the check, a
-     * workspace could replay events into another workspace's agent.
-     */
-    private function routeByPhoneNumberId(AgentWhatsappNumber $urlNumber, ?string $phoneNumberId): ?AgentWhatsappNumber
-    {
-        if ($phoneNumberId === null || $phoneNumberId === $urlNumber->phone_number_id) {
-            return $urlNumber;
+        if ($phoneNumberId === null || $phoneNumberId === '') {
+            return null;
         }
 
-        $sibling = AgentWhatsappNumber::query()
+        return AgentWhatsappNumber::query()
             ->with('agent')
             ->where('phone_number_id', $phoneNumberId)
             ->where('enabled', true)
             ->first();
-
-        if ($sibling === null || ! hash_equals($urlNumber->app_secret, $sibling->app_secret)) {
-            return null;
-        }
-
-        return $sibling;
     }
 
     /**

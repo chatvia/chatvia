@@ -15,6 +15,13 @@ use stdClass;
  * `embedding` may be null when the row hasn't been embedded yet — the
  * router treats those as "ineligible to score" and either falls back to
  * the full pool or sets them aside until the embedding job lands.
+ *
+ * `mutates` is the tool's side-effect class — true for write/delete tools
+ * (connector/MCP `scope = write`, or a non-GET webhook function), false for
+ * read-only ones. {@see ToolRelevanceGate} holds write tools to a stricter
+ * relevance bar: a missed read is cheap (the user re-asks), a wrong mutation
+ * executes. Defaults to true so an unclassified tool gets the safer, stricter
+ * gate rather than slipping through as a read.
  */
 final class ToolEntry
 {
@@ -32,6 +39,7 @@ final class ToolEntry
         public readonly string $description,
         public readonly array $parameters,
         public readonly ?array $embedding,
+        public readonly bool $mutates = true,
     ) {}
 
     /**

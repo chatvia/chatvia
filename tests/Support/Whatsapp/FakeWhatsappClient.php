@@ -17,6 +17,9 @@ class FakeWhatsappClient extends WhatsappClient
     /** @var list<array{token: string, wabaId: string}> */
     public array $subscriptions = [];
 
+    /** @var list<array{token: string, phoneNumberId: string, pin: string}> */
+    public array $registrations = [];
+
     /** @var list<array{token: string, phoneNumberId: string, to: string, markdown: string}> */
     public array $sent = [];
 
@@ -31,6 +34,13 @@ class FakeWhatsappClient extends WhatsappClient
     public function subscribeWaba(string $token, string $wabaId): bool
     {
         $this->subscriptions[] = compact('token', 'wabaId');
+
+        return true;
+    }
+
+    public function registerNumber(string $token, string $phoneNumberId, string $pin): bool
+    {
+        $this->registrations[] = compact('token', 'phoneNumberId', 'pin');
 
         return true;
     }

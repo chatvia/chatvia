@@ -25,6 +25,13 @@ use Throwable;
  * `tools` array is omitted from the LLM request entirely, so the model can't see,
  * list, or advertise a tool that isn't relevant to the turn.
  *
+ * The bar is per-scope: write/delete tools ({@see ToolEntry::$mutates}) are held to
+ * `relevance_threshold_write`, read-only tools to `relevance_threshold_read`. A
+ * missed read just costs the user a re-ask; a wrong write executes against the
+ * wrong system — so the write set is biased toward precision (fewer, surer tools)
+ * and the read set toward recall. Both default to the shared `relevance_threshold`,
+ * so the gate stays symmetric until the two are deliberately split.
+ *
  * It is the tool-side mirror of {@see KnowledgeBase}'s
  * rerank gate (config: chatvia.vector.search.relevance_threshold), which already
  * keeps greetings from pulling in irrelevant knowledge chunks.
@@ -61,7 +68,13 @@ class ToolRelevanceGate
             return $candidates;
         }
 
-        $threshold = (float) config('chatvia.agent.tools.routing.relevance_threshold', 0.55);
+        // Per-scope bars: a wrong read is cheap, a wrong write executes — so write
+        // tools are held to a stricter relevance score than read tools. Both fall
+        // back to the shared `relevance_threshold` (so the gate is symmetric until
+        // the two are deliberately split).
+        $fallback = (float) config('chatvia.agent.tools.routing.relevance_threshold', 0.55);
+        $readThreshold = (float) config('chatvia.agent.tools.routing.relevance_threshold_read', $fallback);
+        $writeThreshold = (float) config('chatvia.agent.tools.routing.relevance_threshold_write', $fallback);
         $candidateLimit = max((int) config('chatvia.agent.tools.routing.rerank_candidates', 12), 1);
 
         $pool = array_slice(array_values($candidates), 0, $candidateLimit);
@@ -95,17 +108,26 @@ class ToolRelevanceGate
                 continue;
             }
 
-            if ((float) $item['relevance_score'] >= $threshold) {
+            $bar = $entry->mutates ? $writeThreshold : $readThreshold;
+            $score = (float) $item['relevance_score'];
+
+            if ($score >= $bar) {
                 $kept[] = $entry;
 
                 continue;
             }
 
-            $dropped[] = ['name' => $entry->name, 'score' => round((float) $item['relevance_score'], 4)];
+            $dropped[] = [
+                'name' => $entry->name,
+                'score' => round($score, 4),
+                'scope' => $entry->mutates ? 'write' : 'read',
+                'bar' => $bar,
+            ];
         }
 
         Log::debug('ToolRelevanceGate: gate complete', [
-            'threshold' => $threshold,
+            'read_threshold' => $readThreshold,
+            'write_threshold' => $writeThreshold,
             'candidates' => count($pool),
             'kept' => array_map(static fn (ToolEntry $e): string => $e->name, $kept),
             'dropped' => $dropped,

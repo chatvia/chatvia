@@ -46,7 +46,6 @@ const UNTESTED_ACTIONS_ALLOWLIST = [
     'DeleteTeamRoleAction',
     'DetachTopicFromAgentAction',
     'EmbedAgentFunctionAction',
-    'EmbedMcpToolsAction',
     'EnhanceDocumentChunkAction',
     'FindWidgetConversationAction',
     'IngestDocumentChunkAction',

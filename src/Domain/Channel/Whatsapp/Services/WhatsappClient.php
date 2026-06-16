@@ -60,6 +60,20 @@ class WhatsappClient
     }
 
     /**
+     * Register the connected number for the Cloud API (POST /{phone_number_id}/
+     * register with a 6-digit two-step-verification PIN) — required before a
+     * freshly added number can send/receive. Best-effort: a number already
+     * registered through Embedded Signup returns an error we treat as non-fatal.
+     */
+    public function registerNumber(string $token, string $phoneNumberId, string $pin): bool
+    {
+        return $this->call($token, 'post', "/{$phoneNumberId}/register", [
+            'messaging_product' => 'whatsapp',
+            'pin' => $pin,
+        ]) !== null;
+    }
+
+    /**
      * Send a reply (the model's Markdown rendered as WhatsApp markup — see
      * {@see WhatsappFormatter}), chunked at the 4096-char limit. The first
      * URL in each message gets a link preview.

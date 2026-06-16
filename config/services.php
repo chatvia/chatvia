@@ -62,14 +62,20 @@ return [
         // Separate Login-for-Business configuration for Instagram (its own
         // permission set). When unset, the Instagram flow reuses `config_id`.
         'instagram_config_id' => env('META_INSTAGRAM_LOGIN_CONFIG_ID'),
+        // Separate Login-for-Business configuration for WhatsApp Embedded Signup
+        // (WhatsApp Business Account asset). When unset, reuses `config_id`.
+        'whatsapp_config_id' => env('META_WHATSAPP_LOGIN_CONFIG_ID'),
         'graph_version' => env('META_GRAPH_VERSION', 'v25.0'),
         // Fixed OAuth redirects — each must be whitelisted in the app's Login
         // settings. Instagram has its own callback path.
         'redirect' => env('META_REDIRECT_URI'),
         'instagram_redirect' => env('META_INSTAGRAM_REDIRECT_URI'),
         // The single app-level verify token pasted into the app's webhook config
-        // (shared by Messenger + Instagram).
+        // (shared by Messenger + Instagram + WhatsApp).
         'webhook_verify_token' => env('META_WEBHOOK_VERIFY_TOKEN'),
+        // 6-digit PIN used to register a connected WhatsApp number for the Cloud
+        // API (POST /{phone_number_id}/register). Set a deliberate value, never 000000.
+        'whatsapp_register_pin' => env('META_WHATSAPP_REGISTER_PIN'),
     ],
 
     'openrouter' => [

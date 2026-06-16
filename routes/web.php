@@ -25,7 +25,6 @@ use App\Http\Controllers\Landing\Legal\SecurityController;
 use App\Http\Controllers\Landing\Legal\SubprocessorsController;
 use App\Http\Controllers\Landing\Legal\TermsController;
 use App\Http\Controllers\Landing\Marketing\ContactController;
-use App\Http\Controllers\Landing\Marketing\DocController;
 use App\Http\Controllers\Landing\Marketing\MissionController;
 use App\Http\Controllers\Landing\Marketing\PricingController;
 use App\Http\Controllers\Landing\Marketing\UseCaseController;
@@ -59,7 +58,6 @@ Route::group([
     Route::get('/blog/{post:slug}', PostController::class)->name('blog.post');
 
     Route::get('contact', [ContactController::class, 'show'])->name('contact');
-    Route::get('docs', DocController::class)->name('docs');
     Route::get('/use-cases/{case}', UseCaseController::class)->name('use-cases');
     Route::get('free-tools/chat-with-pdf', ChatPdfController::class)->name('free-tools.chat-with-pdf');
 });

@@ -127,8 +127,21 @@ return [
 
                 // A tool must score at/above this (reranker relevance, 0..1) to
                 // ship. Higher = stricter. Tune against real traffic via the
-                // ToolRelevanceGate debug log ("kept"/"dropped" with scores).
+                // ToolRelevanceGate debug log ("kept"/"dropped" with scores) or
+                // the offline harness (tests/Eval/ToolRoutingEvalTest). Acts as
+                // the shared fallback for the per-scope thresholds below.
                 'relevance_threshold' => (float) env('AGENT_TOOL_RELEVANCE_THRESHOLD', 0.55),
+
+                // Per-scope gating. A wrong READ is cheap (the user re-asks); a
+                // wrong WRITE executes — so read tools get a looser bar (recall)
+                // and write/delete tools the shared, stricter `relevance_threshold`
+                // (precision). Tuned against the offline eval harness
+                // (tests/Eval/ToolRoutingEvalTest): raising the WRITE bar above the
+                // shared value trades wrong-tool suppression ~1:1 for starving the
+                // correct write (the reranker scores correct and wrong writes in the
+                // same band), so it stays at the shared default. See ToolRelevanceGate.
+                'relevance_threshold_read' => (float) env('AGENT_TOOL_RELEVANCE_THRESHOLD_READ', 0.45),
+                'relevance_threshold_write' => (float) env('AGENT_TOOL_RELEVANCE_THRESHOLD_WRITE', env('AGENT_TOOL_RELEVANCE_THRESHOLD', 0.55)),
 
                 // How many hybrid-search candidates to send to the reranker. Caps
                 // the rerank payload/latency; past the top dozen the cross-encoder

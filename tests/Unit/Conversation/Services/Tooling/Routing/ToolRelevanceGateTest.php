@@ -8,7 +8,7 @@ use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
  * Pure unit coverage for the gate's branching — no DB, no live API. The reranker
  * is mocked so each test pins an exact score distribution and asserts what ships.
  */
-function toolEntry(string $name, string $description = ''): ToolEntry
+function toolEntry(string $name, string $description = '', bool $mutates = true): ToolEntry
 {
     return new ToolEntry(
         kind: 'function',
@@ -17,6 +17,7 @@ function toolEntry(string $name, string $description = ''): ToolEntry
         description: $description,
         parameters: [],
         embedding: null,
+        mutates: $mutates,
     );
 }
 
@@ -28,6 +29,11 @@ function gateWith(EmbeddingsProviderInterface $provider): ToolRelevanceGate
 beforeEach(function (): void {
     config()->set('chatvia.agent.tools.routing.relevance_gate', true);
     config()->set('chatvia.agent.tools.routing.relevance_threshold', 0.55);
+    // Pin both per-scope bars to a symmetric 0.55 baseline so the generic tests
+    // below are deterministic regardless of the config-file defaults (read ships
+    // at 0.45 in prod). The per-scope test overrides these.
+    config()->set('chatvia.agent.tools.routing.relevance_threshold_read', 0.55);
+    config()->set('chatvia.agent.tools.routing.relevance_threshold_write', 0.55);
     config()->set('chatvia.agent.tools.routing.rerank_candidates', 12);
 });
 
@@ -81,6 +87,29 @@ it('keeps multiple tools when several clear the threshold', function (): void {
     expect($kept)->toHaveCount(2)
         ->and($kept[0]->name)->toBe('list_commits')
         ->and($kept[1]->name)->toBe('render_heatmap');
+});
+
+it('holds write tools to a stricter bar than read tools', function (): void {
+    // A wrong read is cheap, a wrong write executes — so split the bars.
+    config()->set('chatvia.agent.tools.routing.relevance_threshold_read', 0.45);
+    config()->set('chatvia.agent.tools.routing.relevance_threshold_write', 0.65);
+
+    $provider = Mockery::mock(EmbeddingsProviderInterface::class);
+    $provider->shouldReceive('supportsReranking')->andReturnTrue();
+    // Both land at 0.55 — between the read bar (0.45) and the write bar (0.65).
+    $provider->shouldReceive('rerank')->once()->andReturn([
+        ['index' => 0, 'relevance_score' => 0.55],
+        ['index' => 1, 'relevance_score' => 0.55],
+    ]);
+
+    $write = toolEntry('create_refund', 'Refund a charge to a customer', mutates: true);
+    $read = toolEntry('get_charge', 'Retrieve a payment charge', mutates: false);
+
+    $kept = gateWith($provider)->gate('do something about that charge', [$write, $read]);
+
+    // The read tool clears its looser bar; the borderline write tool is pruned.
+    expect($kept)->toHaveCount(1)
+        ->and($kept[0]->name)->toBe('get_charge');
 });
 
 it('treats the threshold as inclusive (>=)', function (): void {

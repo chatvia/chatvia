@@ -110,7 +110,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'localizationRedirect' => LaravelLocalizationRedirectFilter::class,
         ]);
 
-        $middleware->validateCsrfTokens(except: [
+        $middleware->preventRequestForgery(except: [
             '/chat/*',
             '/embed/*',
             '/widget/*',

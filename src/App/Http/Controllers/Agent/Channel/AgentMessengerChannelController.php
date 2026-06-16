@@ -42,11 +42,27 @@ class AgentMessengerChannelController
 
         session()->put('messenger_oauth', ['agent_id' => $agent->id, 'state' => $state]);
 
+        // Confirms (at connect time) whether the Meta config is actually loaded
+        // — if config_id/redirect are null here, config:cache wasn't rebuilt.
+        Log::info('Messenger OAuth: starting connect', [
+            'agent_id' => $agent->id,
+            'has_app_id' => (bool) config('services.meta.app_id'),
+            'has_app_secret' => (bool) config('services.meta.app_secret'),
+            'config_id' => config('services.meta.config_id'),
+            'redirect_uri' => config('services.meta.redirect'),
+        ]);
+
         return redirect()->away($this->oauth->authorizeUrl($state, MetaOAuthClient::MESSENGER_SCOPES));
     }
 
     public function callback(Request $request): RedirectResponse
     {
+        Log::info('Messenger OAuth: callback hit', [
+            'has_code' => (string) $request->query('code') !== '',
+            'has_state' => (string) $request->query('state') !== '',
+            'error' => $request->query('error'),
+        ]);
+
         $pending = session()->pull('messenger_oauth');
         $returnedState = (string) $request->query('state');
 

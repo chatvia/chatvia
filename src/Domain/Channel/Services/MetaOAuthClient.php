@@ -18,6 +18,10 @@ use Throwable;
  * overrides let each channel use its own Login-for-Business configuration and
  * callback URL. Every call is best-effort — a Meta hiccup logs and returns a
  * safe empty/null value rather than throwing.
+ *
+ * The whole flow is heavily logged (channel "META_OAUTH") so a "no Pages came
+ * back" can be diagnosed from the production log alone: never log a token or
+ * the app secret — only their presence/length and (for Pages) ids + names.
  */
 class MetaOAuthClient
 {
@@ -40,20 +44,34 @@ class MetaOAuthClient
      */
     public function authorizeUrl(string $state, string $scopes, ?string $configId = null, ?string $redirectUri = null): string
     {
+        $appId = (string) config('services.meta.app_id');
+        $redirect = (string) ($redirectUri ?: config('services.meta.redirect'));
+        $configId ??= config('services.meta.config_id');
+        $usingConfig = is_string($configId) && $configId !== '';
+
         $params = [
-            'client_id' => (string) config('services.meta.app_id'),
-            'redirect_uri' => (string) ($redirectUri ?: config('services.meta.redirect')),
+            'client_id' => $appId,
+            'redirect_uri' => $redirect,
             'state' => $state,
             'response_type' => 'code',
         ];
 
-        $configId ??= config('services.meta.config_id');
-
-        if (is_string($configId) && $configId !== '') {
-            $params['config_id'] = $configId;
+        if ($usingConfig) {
+            $params['config_id'] = (string) $configId;
         } else {
             $params['scope'] = $scopes;
         }
+
+        // app_id / redirect / config_id are all public (they appear in the URL).
+        Log::info('Meta OAuth: built authorize URL', [
+            'has_app_id' => $appId !== '',
+            'app_id' => $appId,
+            'redirect_uri' => $redirect,
+            'mode' => $usingConfig ? 'config_id' : 'scope',
+            'config_id' => $usingConfig ? (string) $configId : null,
+            'scopes' => $usingConfig ? null : $scopes,
+            'graph_version' => $this->version(),
+        ]);
 
         return 'https://www.facebook.com/'.$this->version().'/dialog/oauth?'.http_build_query($params);
     }
@@ -61,33 +79,49 @@ class MetaOAuthClient
     /**
      * Swap the OAuth code for a long-lived user access token (~60 days), or
      * null on failure. The `redirectUri` MUST match the one used in
-     * {@see authorizeUrl()}. Page tokens derived from a long-lived user token
-     * are themselves long-lived, so the stored page token effectively never
-     * expires.
+     * {@see authorizeUrl()}.
      */
     public function exchangeCodeForUserToken(string $code, ?string $redirectUri = null): ?string
     {
+        $appId = (string) config('services.meta.app_id');
+        $appSecret = (string) config('services.meta.app_secret');
+        $redirect = (string) ($redirectUri ?: config('services.meta.redirect'));
+
+        Log::info('Meta OAuth: exchanging code for user token', [
+            'has_app_id' => $appId !== '',
+            'has_app_secret' => $appSecret !== '',
+            'app_secret_len' => strlen($appSecret),
+            'redirect_uri' => $redirect,
+            'code_len' => strlen($code),
+        ]);
+
         $short = $this->get('/oauth/access_token', [
-            'client_id' => (string) config('services.meta.app_id'),
-            'client_secret' => (string) config('services.meta.app_secret'),
-            'redirect_uri' => (string) ($redirectUri ?: config('services.meta.redirect')),
+            'client_id' => $appId,
+            'client_secret' => $appSecret,
+            'redirect_uri' => $redirect,
             'code' => $code,
         ]);
 
         $shortToken = $short['access_token'] ?? null;
 
         if (! is_string($shortToken)) {
+            Log::warning('Meta OAuth: code → short-lived token exchange returned no access_token (check app secret + redirect_uri match)');
+
             return null;
         }
 
+        Log::info('Meta OAuth: got short-lived user token', ['len' => strlen($shortToken)]);
+
         $long = $this->get('/oauth/access_token', [
             'grant_type' => 'fb_exchange_token',
-            'client_id' => (string) config('services.meta.app_id'),
-            'client_secret' => (string) config('services.meta.app_secret'),
+            'client_id' => $appId,
+            'client_secret' => $appSecret,
             'fb_exchange_token' => $shortToken,
         ]);
 
         $longToken = $long['access_token'] ?? null;
+
+        Log::info('Meta OAuth: short → long-lived token exchange', ['got_long_lived' => is_string($longToken)]);
 
         return is_string($longToken) ? $longToken : $shortToken;
     }
@@ -120,18 +154,29 @@ class MetaOAuthClient
             }
         }
 
+        $context = [
+            'response_present' => $response !== null,
+            'top_keys' => $response !== null ? array_keys($response) : [],
+            'data_count' => is_array($response['data'] ?? null) ? count($response['data']) : 0,
+            'usable_pages' => count($pages),
+            'raw' => $this->redactTokens($response),
+        ];
+
+        if ($pages === []) {
+            // The "No Pages came back" case — log the full (redacted) /me/accounts
+            // body at warning level so it's visible regardless of LOG_LEVEL.
+            Log::warning('Meta OAuth: /me/accounts returned no usable Pages', $context);
+        } else {
+            Log::info('Meta OAuth: /me/accounts returned Pages', $context);
+        }
+
         return $pages;
     }
 
     /**
      * List the Pages the user manages that have a linked Instagram professional
      * account, each carrying its own page access token plus the IG account's id
-     * + username. Pages without a linked IG account are omitted — they can't
-     * power an Instagram channel. The page access token is what sends IG DMs
-     * (graph.facebook.com/me/messages), so it travels with each entry.
-     *
-     * Two hops: /me/accounts (pages + tokens), then per page
-     * /{page-id}?fields=instagram_business_account{id,username}.
+     * + username. Pages without a linked IG account are omitted.
      *
      * @return list<array{page_id: string, page_name: string, page_access_token: string, ig_id: string, ig_username: string}>
      */
@@ -148,6 +193,13 @@ class MetaOAuthClient
             $iba = $linked['instagram_business_account'] ?? null;
             $igId = is_array($iba) ? ($iba['id'] ?? null) : null;
 
+            Log::info('Meta OAuth: resolved IG account for Page', [
+                'page_id' => $page['id'],
+                'page_name' => $page['name'],
+                'has_ig_account' => is_string($igId) && $igId !== '',
+                'ig_id' => is_string($igId) ? $igId : null,
+            ]);
+
             if (! is_string($igId) || $igId === '') {
                 continue; // no IG professional account linked to this Page
             }
@@ -161,12 +213,40 @@ class MetaOAuthClient
             ];
         }
 
+        Log::info('Meta OAuth: IG-linked accounts resolved', ['count' => count($out)]);
+
         return $out;
     }
 
     private function version(): string
     {
         return (string) config('services.meta.graph_version', 'v25.0');
+    }
+
+    /**
+     * Replace any `access_token` values in a Graph response with a length
+     * marker so the body can be logged safely.
+     *
+     * @param  array<string, mixed>|null  $response
+     * @return array<string, mixed>|null
+     */
+    private function redactTokens(?array $response): ?array
+    {
+        if ($response === null) {
+            return null;
+        }
+
+        if (is_array($response['data'] ?? null)) {
+            $response['data'] = array_map(static function ($page) {
+                if (is_array($page) && isset($page['access_token']) && is_string($page['access_token'])) {
+                    $page['access_token'] = '[redacted len='.strlen($page['access_token']).']';
+                }
+
+                return $page;
+            }, $response['data']);
+        }
+
+        return $response;
     }
 
     /**
@@ -180,7 +260,12 @@ class MetaOAuthClient
             $json = $response->json();
 
             if (! $response->successful() || ! is_array($json) || isset($json['error'])) {
-                Log::warning("Meta OAuth {$path} returned an error", ['error' => $json['error']['message'] ?? 'malformed response']);
+                // The full error array (message/type/code/error_subcode/fbtrace_id)
+                // is the gold for diagnosing a refusal — it contains no secrets.
+                Log::warning("Meta OAuth {$path} returned an error", [
+                    'status' => $response->status(),
+                    'error' => is_array($json) ? ($json['error'] ?? 'no error key in body') : 'non-array body',
+                ]);
 
                 return null;
             }

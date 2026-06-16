@@ -11,43 +11,55 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Receives Instagram Messaging webhooks (Instagram Login flavour — the
- * payload shape mirrors Messenger's). The {secret} path segment is the
- * per-account `webhook_secret` (routes the event to the agent); it doubles as
- * the verify token of Meta's GET handshake, and POSTed events are verified
- * with Meta's signed payload (HMAC-SHA256 of the raw body with the Instagram
- * app secret, `X-Hub-Signature-256`). Each message is processed once
- * (idempotency on `mid` — Meta re-delivers on timeout) and handed to a queued
- * job so the webhook answers fast. POST always replies 200 — repeated non-2xx
- * makes Meta disable the subscription, and an unknown/spoofed secret should
- * just be a silent no-op.
+ * Receives Instagram Messaging webhooks for Chatvia's single Meta app. With one
+ * app serving every workspace there's one app-level Callback URL (no per-account
+ * secret in the path): the GET handshake is verified against the app-level
+ * verify token, POSTed events against the app secret (HMAC-SHA256 of the raw
+ * body, `X-Hub-Signature-256`). Instagram delivers `object="instagram"` with
+ * each `entry.id` = the IG professional account id — route each entry to its
+ * agent by `ig_id` (falling back to the messaging recipient). Each message is
+ * processed once (idempotency on `mid`) and handed to a queued job so the
+ * webhook answers fast. POST always replies 200 — repeated non-2xx makes Meta
+ * disable the subscription, and an unknown/spoofed payload should be a silent
+ * no-op.
  */
 class InstagramWebhookController
 {
     use InteractsWithMetaWebhooks;
 
-    /**
-     * Meta verifies the Callback URL with a GET handshake when it's pasted
-     * into the app's Instagram webhook settings.
-     */
-    public function verify(Request $request, string $secret): Response
+    public function verify(Request $request): Response
     {
-        return $this->metaChallengeResponse($request, $this->account($secret)?->webhook_secret);
+        return $this->metaChallengeResponse($request, config('services.meta.webhook_verify_token'));
     }
 
-    public function receive(Request $request, string $secret): JsonResponse
+    public function receive(Request $request): JsonResponse
     {
         $ok = response()->json(['ok' => true]);
 
-        $account = $this->account($secret);
+        $appSecret = (string) config('services.meta.app_secret');
 
-        if ($account === null || ! $this->hasValidMetaSignature($request, $account->app_secret) || $request->input('object') !== 'instagram') {
+        if ($appSecret === '' || ! $this->hasValidMetaSignature($request, $appSecret) || $request->input('object') !== 'instagram') {
             return $ok;
         }
 
-        // Events arrive batched: entry[] per account, messaging[] per sender.
+        // Events arrive batched: entry[] per IG account, messaging[] per sender.
         foreach ((array) $request->input('entry', []) as $entry) {
-            foreach ((array) ($entry['messaging'] ?? []) as $event) {
+            $messaging = (array) ($entry['messaging'] ?? []);
+
+            // entry.id is the IG professional account id; fall back to the
+            // recipient on the first event if a payload variant omits it.
+            $igId = (string) ($entry['id'] ?? '');
+            if ($igId === '' && isset($messaging[0]['recipient']['id'])) {
+                $igId = (string) $messaging[0]['recipient']['id'];
+            }
+
+            $account = $this->account($igId);
+
+            if ($account === null) {
+                continue;
+            }
+
+            foreach ($messaging as $event) {
                 if (! is_array($event) || ! $this->shouldHandle($account, $event)) {
                     continue;
                 }
@@ -71,11 +83,15 @@ class InstagramWebhookController
         return $ok;
     }
 
-    private function account(string $secret): ?AgentInstagramAccount
+    private function account(string $igId): ?AgentInstagramAccount
     {
+        if ($igId === '') {
+            return null;
+        }
+
         return AgentInstagramAccount::query()
             ->with('agent')
-            ->where('webhook_secret', $secret)
+            ->where('ig_id', $igId)
             ->where('enabled', true)
             ->first();
     }

@@ -40,7 +40,7 @@ class InstagramThreadResolver extends ChannelConversationResolver
             ],
             source: ConversationSource::Instagram,
             context: function () use ($account, $igsid): array {
-                $profile = $this->client->userProfile($account->access_token, $igsid);
+                $profile = $this->client->userProfile($account->page_access_token, $igsid);
                 $username = $profile['username'] ?? null;
                 $name = $profile['name'] ?? ($username !== null ? "@{$username}" : null);
 

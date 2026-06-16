@@ -318,7 +318,11 @@
                     "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
                     "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
                     "api_setup_path": "Instagram → API setup with Instagram login",
-                    "product": "Instagram"
+                    "product": "Instagram",
+                    "oauth_intro": "Connect an Instagram professional account so this agent can reply to DMs — you'll sign in with Facebook, then pick which account to use.",
+                    "connect_facebook": "Connect with Facebook",
+                    "pick_title": "Choose an Instagram account",
+                    "pick_button": "Connect this account"
                 }
             },
             "security": "Security",

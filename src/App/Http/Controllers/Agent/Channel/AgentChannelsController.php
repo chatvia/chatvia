@@ -54,9 +54,16 @@ class AgentChannelsController
             'msteams' => $teams !== null
                 ? ['connected' => true, 'app_id' => $teams->app_id, 'webhook_url' => route('msteams.webhook', ['secret' => $teams->webhook_secret]), 'enabled' => $teams->enabled]
                 : ['connected' => false, 'app_id' => null, 'webhook_url' => null, 'enabled' => false],
-            'instagram' => $instagram !== null
-                ? ['connected' => true, 'username' => $instagram->username, 'webhook_url' => route('instagram.webhook', ['secret' => $instagram->webhook_secret]), 'verify_token' => $instagram->webhook_secret, 'enabled' => $instagram->enabled]
-                : ['connected' => false, 'username' => null, 'webhook_url' => null, 'verify_token' => null, 'enabled' => false],
+            // Instagram connects via Facebook OAuth (one Chatvia Meta app) — no
+            // per-account webhook URL to surface. `pick` holds the IG-linked
+            // accounts returned from Facebook awaiting the workspace's choice
+            // (ig username + page name only — the page tokens stay server-side).
+            'instagram' => [
+                'connected' => $instagram !== null,
+                'username' => $instagram?->username,
+                'enabled' => (bool) $instagram?->enabled,
+                'pick' => $this->instagramPick($agent),
+            ],
         ]);
     }
 
@@ -78,6 +85,29 @@ class AgentChannelsController
         return array_map(static fn (array $page): array => [
             'id' => (string) $page['id'],
             'name' => (string) $page['name'],
+        ], $stash['pages']);
+    }
+
+    /**
+     * The IG-linked accounts Facebook just handed back, waiting for the
+     * workspace to pick which one powers this agent — ig username + page name
+     * only (tokens stay server-side). Mirrors the session stash written by
+     * {@see AgentInstagramChannelController}.
+     *
+     * @return list<array{ig_id: string, ig_username: string, page_name: string}>|null
+     */
+    private function instagramPick(Agent $agent): ?array
+    {
+        $stash = session('instagram_oauth_pages');
+
+        if (! is_array($stash) || ($stash['agent_id'] ?? null) !== $agent->id || ! is_array($stash['pages'] ?? null) || $stash['pages'] === []) {
+            return null;
+        }
+
+        return array_map(static fn (array $page): array => [
+            'ig_id' => (string) $page['ig_id'],
+            'ig_username' => (string) $page['ig_username'],
+            'page_name' => (string) $page['page_name'],
         ], $stash['pages']);
     }
 }

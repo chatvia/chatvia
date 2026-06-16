@@ -10,20 +10,24 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Support\Concerns\HasExternalId;
 
 /**
- * An agent's Instagram Direct channel: the professional account's access
- * token (encrypted at rest — it can send DMs as the account), the Instagram
- * app secret (encrypted — verifies the HMAC signature on inbound webhooks),
- * and the random `webhook_secret` that routes an incoming event to this agent
- * (it's the path segment of the public Callback URL and the verify token of
- * Meta's GET webhook handshake). Connected via the Instagram API with
- * Instagram Login — no Facebook Page involved.
+ * An agent's Instagram Direct channel, connected via Facebook Login for Business
+ * (one Chatvia Meta app). The professional account is linked to a Facebook Page;
+ * we store that Page's access token (encrypted — it sends DMs as the account)
+ * and the IG account id (`ig_id`, the routing key for inbound webhooks). Inbound
+ * events arrive on Chatvia's single app-level Instagram Callback URL and are
+ * routed here by `ig_id`; the HMAC + verify token are app-level config.
+ *
+ * The legacy per-account `access_token`/`app_secret`/`webhook_secret` columns are
+ * nullable and unused by the OAuth flow (kept for already-connected rows).
  *
  * @property string $external_id
- * @property string $access_token
- * @property string $app_secret
+ * @property string|null $page_access_token
+ * @property string|null $page_id
+ * @property string|null $access_token
+ * @property string|null $app_secret
  * @property string|null $ig_id
  * @property string|null $username
- * @property string $webhook_secret
+ * @property string|null $webhook_secret
  * @property bool $enabled
  */
 #[Guarded(['id'])]
@@ -32,6 +36,7 @@ class AgentInstagramAccount extends Model
     use HasExternalId;
 
     protected $casts = [
+        'page_access_token' => 'encrypted',
         'access_token' => 'encrypted',
         'app_secret' => 'encrypted',
         'enabled' => 'boolean',

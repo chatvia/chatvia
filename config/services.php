@@ -59,10 +59,16 @@ return [
         // Facebook Login for Business → Configurations). Optional — when unset
         // the authorize URL falls back to a classic `scope` request.
         'config_id' => env('META_LOGIN_CONFIG_ID'),
+        // Separate Login-for-Business configuration for Instagram (its own
+        // permission set). When unset, the Instagram flow reuses `config_id`.
+        'instagram_config_id' => env('META_INSTAGRAM_LOGIN_CONFIG_ID'),
         'graph_version' => env('META_GRAPH_VERSION', 'v25.0'),
-        // Fixed OAuth redirect — must be whitelisted in the app's Login settings.
+        // Fixed OAuth redirects — each must be whitelisted in the app's Login
+        // settings. Instagram has its own callback path.
         'redirect' => env('META_REDIRECT_URI'),
-        // The single app-level verify token pasted into the app's webhook config.
+        'instagram_redirect' => env('META_INSTAGRAM_REDIRECT_URI'),
+        // The single app-level verify token pasted into the app's webhook config
+        // (shared by Messenger + Instagram).
         'webhook_verify_token' => env('META_WEBHOOK_VERIFY_TOKEN'),
     ],
 

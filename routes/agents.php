@@ -121,6 +121,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
     // outside the per-{agent} binding. Register this URL as the redirect URI in
     // the Chatvia Meta app's Login settings.
     Route::get('channels/messenger/oauth/callback', [AgentMessengerChannelController::class, 'callback'])->name('channels.messenger.callback');
+    Route::get('channels/instagram/oauth/callback', [AgentInstagramChannelController::class, 'callback'])->name('channels.instagram.callback');
 
     Route::prefix('agents/{agent}')->name('agents.')->middleware('can.access.agent')->group(function (): void {
         Route::get('home', AgentManagerController::class)->name('manager');
@@ -310,7 +311,11 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::delete('channels/whatsapp', [AgentWhatsappChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.whatsapp.disconnect');
         Route::post('channels/msteams', [AgentTeamsChannelController::class, 'connect'])->middleware('agent.permission:agent.channels')->name('channels.msteams.connect');
         Route::delete('channels/msteams', [AgentTeamsChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.msteams.disconnect');
-        Route::post('channels/instagram', [AgentInstagramChannelController::class, 'connect'])->middleware('agent.permission:agent.channels')->name('channels.instagram.connect');
+        // Instagram connects via Facebook Login for Business (one Chatvia Meta
+        // app): redirect → Facebook consent → callback (outside this {agent}
+        // group, see below) → select the account. Disconnect is a single delete.
+        Route::get('channels/instagram/oauth/redirect', [AgentInstagramChannelController::class, 'redirect'])->middleware('agent.permission:agent.channels')->name('channels.instagram.redirect');
+        Route::post('channels/instagram/oauth/select', [AgentInstagramChannelController::class, 'select'])->middleware('agent.permission:agent.channels')->name('channels.instagram.select');
         Route::delete('channels/instagram', [AgentInstagramChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.instagram.disconnect');
         Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->middleware(['capability:pulse', 'agent.permission:agent.chat.pulse'])->name('logs.pulse');
         Route::get('logs/topics', ChatLogTopicsController::class)->middleware('agent.permission:agent.chat.view')->name('logs.topics');

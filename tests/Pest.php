@@ -26,6 +26,14 @@ pest()
     ->use(RefreshTestDatabases::class)
     ->in('Feature', 'Unit');
 
+// Eval harnesses (e.g. tool-routing retrieval quality) need the full app + a
+// transactional DB like Feature/Unit, but run the REAL embeddings provider and
+// skip themselves without an API key — so they stay out of normal CI on their own.
+pest()
+    ->extend(TestCase::class)
+    ->use(RefreshTestDatabases::class)
+    ->in('Eval');
+
 // Architecture tests are framework-free guardrails (e.g. "every Action has a
 // test"). They don't need a TestCase or DB; binding them to the bare PHPUnit
 // TestCase keeps them fast and avoids RefreshTestDatabases overhead.

@@ -5,6 +5,7 @@ namespace Domain\Conversation\Services\Tooling\Registry;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
+use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\McpTool;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -143,6 +144,7 @@ class ToolRegistry
                 description: $tool->description,
                 parameters: $tool->input_schema ?? [],
                 embedding: null,
+                mutates: $tool->scope !== McpToolScope::Read,
             ))
             ->all();
     }
@@ -157,7 +159,7 @@ class ToolRegistry
     private function compilePresetMcpTools(int $agentId): array
     {
         $rows = DB::table('connector_tools as ct')
-            ->select(['ct.id as connector_tool_id', 'ct.name', 'ct.description', 'ct.input_schema', 'mcp_servers.slug as server_slug'])
+            ->select(['ct.id as connector_tool_id', 'ct.name', 'ct.description', 'ct.input_schema', 'ct.scope', 'mcp_servers.slug as server_slug'])
             ->join('mcp_server_tool as mst', 'mst.connector_tool_id', '=', 'ct.id')
             ->join('mcp_servers', 'mcp_servers.id', '=', 'mst.mcp_server_id')
             ->leftJoin('agent_mcp_server', function ($join) use ($agentId): void {
@@ -188,6 +190,7 @@ class ToolRegistry
                     description: (string) $row->description,
                     parameters: is_array($schema) ? $schema : [],
                     embedding: null,
+                    mutates: $row->scope !== 'read',
                 );
             })
             ->all();
@@ -224,6 +227,7 @@ class ToolRegistry
                 description: $fn->description,
                 parameters: $parameters,
                 embedding: null,
+                mutates: strtoupper($fn->webhook_method) !== 'GET',
             );
         })->all();
     }

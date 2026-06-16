@@ -43,6 +43,13 @@ class MetaOAuthClient
     public const INSTAGRAM_SCOPES = 'instagram_basic,instagram_manage_messages,pages_show_list,pages_manage_metadata,pages_read_engagement,business_management';
 
     /**
+     * WhatsApp Cloud API via Embedded Signup: manage + message WhatsApp Business
+     * Accounts, plus `business_management`. (Embedded Signup supplies the scopes
+     * through its config_id; this string is the classic-scope fallback.)
+     */
+    public const WHATSAPP_SCOPES = 'whatsapp_business_management,whatsapp_business_messaging,business_management';
+
+    /**
      * Build the Facebook authorize URL. Uses the Login-for-Business `config_id`
      * when configured (permissions come from the configuration); otherwise it
      * falls back to a classic `scope` request. `configId`/`redirectUri` let a
@@ -130,6 +137,44 @@ class MetaOAuthClient
         Log::info('Meta OAuth: short → long-lived token exchange', ['got_long_lived' => is_string($longToken)]);
 
         return is_string($longToken) ? $longToken : $shortToken;
+    }
+
+    /**
+     * Swap a WhatsApp Embedded Signup auth code for a business-integration system
+     * user access token (long-lived). Unlike the Login-for-Business user-token
+     * flow this is a single code→token exchange with NO redirect_uri and NO
+     * fb_exchange_token second hop — Embedded Signup has no redirect. Returns
+     * null on failure.
+     */
+    public function exchangeEmbeddedSignupCode(string $code): ?string
+    {
+        $appId = (string) config('services.meta.app_id');
+        $appSecret = (string) config('services.meta.app_secret');
+
+        Log::info('Meta OAuth: exchanging Embedded Signup code for business token', [
+            'has_app_id' => $appId !== '',
+            'has_app_secret' => $appSecret !== '',
+            'app_secret_len' => strlen($appSecret),
+            'code_len' => strlen($code),
+        ]);
+
+        $response = $this->get('/oauth/access_token', [
+            'client_id' => $appId,
+            'client_secret' => $appSecret,
+            'code' => $code,
+        ]);
+
+        $token = $response['access_token'] ?? null;
+
+        if (! is_string($token)) {
+            Log::warning('Meta OAuth: Embedded Signup code → token exchange returned no access_token (check app secret + that the code is unused)');
+
+            return null;
+        }
+
+        Log::info('Meta OAuth: got Embedded Signup business token', ['len' => strlen($token)]);
+
+        return $token;
     }
 
     /**

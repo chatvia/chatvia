@@ -24,7 +24,6 @@ import {
     Check,
     Command,
     Fingerprint,
-    Hash,
     KeyRound,
     Link2,
     LoaderCircle,
@@ -32,16 +31,27 @@ import {
     Plug,
     Plus,
     Settings2,
-    ShieldCheck,
     Trash2,
     Unplug,
     X,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import CopyField from './CopyField.vue';
 import CredentialInput from './CredentialInput.vue';
+
+// The Facebook JS SDK (loaded lazily for WhatsApp Embedded Signup) attaches
+// itself to window — declare the slice we call.
+declare global {
+    interface Window {
+        FB?: {
+            init: (options: Record<string, unknown>) => void;
+            login: (callback: (response: { authResponse?: { code?: string } | null }) => void, options: Record<string, unknown>) => void;
+        };
+        fbAsyncInit?: () => void;
+    }
+}
 
 const { t } = useI18n();
 
@@ -59,9 +69,10 @@ interface Props {
         connected: boolean;
         display_phone_number: string | null;
         verified_name: string | null;
-        webhook_url: string | null;
-        verify_token: string | null;
         enabled: boolean;
+        app_id: string | null;
+        config_id: string | null;
+        graph_version: string;
     };
     msteams: { connected: boolean; app_id: string | null; webhook_url: string | null; enabled: boolean };
     instagram: { connected: boolean; username: string | null; enabled: boolean; pick: { ig_id: string; ig_username: string; page_name: string }[] | null };
@@ -152,12 +163,18 @@ const openChannel = (item: ChannelItem) => {
     slackForm.clearErrors();
     messengerSelectForm.reset();
     messengerSelectForm.clearErrors();
-    whatsappForm.reset();
-    whatsappForm.clearErrors();
     msteamsForm.reset();
     msteamsForm.clearErrors();
     instagramSelectForm.reset();
     instagramSelectForm.clearErrors();
+
+    // Preload the Facebook JS SDK as soon as the WhatsApp sheet opens, so the
+    // Embedded Signup popup later fires inside the click gesture (loading it
+    // on click would make the popup look unrequested and get blocked).
+    if (item.kind === 'whatsapp' && !props.whatsapp.connected && props.whatsapp.config_id) {
+        void loadFacebookSdk();
+    }
+
     sheetOpen.value = true;
 };
 
@@ -213,19 +230,144 @@ const selectMessengerPage = () => {
     });
 };
 
-// ── WhatsApp connect ------------------------------------------------------------
-const whatsappForm = useForm({ access_token: '', app_secret: '', phone_number_id: '', waba_id: '' });
+// ── WhatsApp connect (Embedded Signup via the Facebook JS SDK) ----------------
+// WhatsApp doesn't redirect like Messenger/Instagram — the customer picks their
+// WhatsApp Business Account + phone number inside Meta's popup, which hands back
+// the WABA id + phone number id (a postMessage event) and an auth code (the
+// FB.login callback). We POST all three; the backend exchanges the code,
+// subscribes the WABA, registers the number, and stores the token. The SDK is
+// injected only when the WhatsApp sheet opens (never globally — it's a
+// third-party script we keep off every other page).
+const whatsappError = computed<string | undefined>(() => (page.props.errors as Record<string, string> | undefined)?.whatsapp);
+const whatsappConnecting = ref(false);
+let waSessionInfo: { waba_id?: string; phone_number_id?: string } = {};
 
-const connectWhatsapp = () => {
-    whatsappForm.post(route('agents.channels.whatsapp.connect', props.agent.external_id), {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: () => {
-            whatsappForm.reset();
-            toast.success(t('agents.channels.whatsapp.connected_toast'));
-        },
+const loadFacebookSdk = (): Promise<void> =>
+    new Promise((resolve) => {
+        if (window.FB) {
+            resolve();
+            return;
+        }
+
+        window.fbAsyncInit = () => {
+            window.FB?.init({
+                appId: props.whatsapp.app_id,
+                autoLogAppEvents: true,
+                xfbml: false,
+                version: props.whatsapp.graph_version,
+            });
+            resolve();
+        };
+
+        if (!document.getElementById('facebook-jssdk')) {
+            const script = document.createElement('script');
+            script.id = 'facebook-jssdk';
+            script.src = 'https://connect.facebook.net/en_US/sdk.js';
+            script.async = true;
+            script.defer = true;
+            script.crossOrigin = 'anonymous';
+            document.body.appendChild(script);
+        }
     });
+
+const onWhatsappSessionMessage = (event: MessageEvent) => {
+    // Only trust messages from a facebook.com subdomain (the `.` guards against a
+    // look-alike like notfacebook.com). The ids here are hints anyway — the real
+    // auth is the server-side code exchange — but keep the listener tight.
+    if (typeof event.origin !== 'string' || !event.origin.endsWith('.facebook.com')) return;
+
+    try {
+        const data = JSON.parse(event.data);
+        if (data?.type === 'WA_EMBEDDED_SIGNUP' && (data.event === 'FINISH' || data.event === 'FINISH_ONLY_WABA')) {
+            waSessionInfo = { waba_id: data.data?.waba_id, phone_number_id: data.data?.phone_number_id };
+        }
+    } catch {
+        // The SDK posts many non-JSON messages — ignore whatever we can't parse.
+    }
 };
+
+// Single teardown for every exit path: drop the global 'message' listener and
+// clear the in-flight flag so the Connect button never gets stuck spinning.
+const resetWhatsappConnect = () => {
+    window.removeEventListener('message', onWhatsappSessionMessage);
+    whatsappConnecting.value = false;
+};
+
+const launchWhatsappLogin = () => {
+    window.FB?.login(
+        (response) => {
+            resetWhatsappConnect();
+
+            const code = response?.authResponse?.code;
+            const wabaId = waSessionInfo.waba_id;
+            const phoneNumberId = waSessionInfo.phone_number_id;
+
+            if (!code || !wabaId || !phoneNumberId) {
+                // No code = the user closed/cancelled the popup (staying silent is
+                // fine). A code but missing ids = the popup finished without a
+                // usable number — surface it rather than failing silently.
+                if (code && wabaId && !phoneNumberId) {
+                    toast.error(t('agents.channels.setup.whatsapp.finish_number'));
+                } else if (code) {
+                    toast.error(t('agents.channels.setup.whatsapp.connect_failed'));
+                }
+                return;
+            }
+
+            router.post(
+                route('agents.channels.whatsapp.connect', props.agent.external_id),
+                { code, waba_id: wabaId, phone_number_id: phoneNumberId },
+                {
+                    preserveScroll: true,
+                    preserveState: true,
+                    onSuccess: () => toast.success(t('agents.channels.whatsapp.connected_toast')),
+                },
+            );
+        },
+        {
+            config_id: props.whatsapp.config_id,
+            response_type: 'code',
+            override_default_response_type: true,
+            extras: { feature: 'whatsapp_embedded_signup', sessionInfoVersion: '3' },
+        },
+    );
+};
+
+const connectWhatsappEmbedded = () => {
+    if (!props.whatsapp.app_id || !props.whatsapp.config_id) {
+        toast.error(t('agents.channels.setup.whatsapp.not_configured'));
+        return;
+    }
+
+    waSessionInfo = {};
+    whatsappConnecting.value = true;
+    window.addEventListener('message', onWhatsappSessionMessage);
+
+    if (window.FB) {
+        launchWhatsappLogin();
+    } else {
+        // Preload (on sheet-open) usually has the SDK ready; if not, load then
+        // launch. Best-effort: a launch after the async load may be popup-blocked,
+        // so the watch(sheetOpen) recovery net below clears any stuck state.
+        void loadFacebookSdk().then(() => {
+            if (window.FB) {
+                launchWhatsappLogin();
+            } else {
+                resetWhatsappConnect();
+                toast.error(t('agents.channels.setup.whatsapp.not_configured'));
+            }
+        });
+    }
+};
+
+// Recovery net: if the sheet closes while a connect is in flight (or the popup
+// is abandoned in a way that never fires FB.login's callback), clear the stuck
+// spinner + leaked 'message' listener so reopening the sheet works.
+watch(sheetOpen, (open) => {
+    if (!open && whatsappConnecting.value) {
+        resetWhatsappConnect();
+    }
+});
 
 // ── Microsoft Teams connect -----------------------------------------------------
 const msteamsForm = useForm({ app_id: '', app_secret: '', tenant_id: '' });
@@ -814,79 +956,6 @@ const saveCommands = () => {
                                     </div>
                                 </div>
 
-                                <CopyField
-                                    id="whatsapp-webhook-url"
-                                    :label="t('agents.channels.setup.labels.callback_url')"
-                                    :icon="Link2"
-                                    :value="props.whatsapp.webhook_url"
-                                />
-                                <CopyField
-                                    id="whatsapp-verify-token"
-                                    :label="t('agents.channels.setup.labels.verify_token')"
-                                    :icon="ShieldCheck"
-                                    :value="props.whatsapp.verify_token"
-                                />
-
-                                <ol class="text-muted-foreground space-y-2 text-xs">
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >1</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.whatsapp.steps.connected_1" tag="span">
-                                                <template #link>
-                                                    <a
-                                                        href="https://developers.facebook.com/apps"
-                                                        target="_blank"
-                                                        rel="noopener"
-                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                        >{{ t('agents.channels.setup.messenger.your_meta_app') }}</a
-                                                    >
-                                                </template>
-                                                <template #configuration>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.whatsapp.configuration_path')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >2</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.shared.subscribe_webhook" tag="span">
-                                                <template #field>
-                                                    <span class="text-foreground font-mono">{{
-                                                        t('agents.channels.setup.shared.messages_field')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >3</span
-                                        >
-                                        <span>{{ t('agents.channels.setup.whatsapp.steps.connected_3') }}</span>
-                                    </li>
-                                </ol>
-                                <p class="text-muted-foreground text-xs">
-                                    {{ t('agents.channels.setup.guide.need_detail_before') }}
-                                    <a
-                                        href="https://docs.chatvia.ai/guide/channels/whatsapp"
-                                        target="_blank"
-                                        rel="noopener"
-                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                        >{{ t('agents.channels.setup.guide.step_by_step_guide') }}</a
-                                    >
-                                    {{ t('agents.channels.setup.guide.need_detail_after') }}
-                                </p>
-
                                 <div
                                     v-if="!props.agent.is_public"
                                     class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-400"
@@ -922,121 +991,19 @@ const saveCommands = () => {
 
                             <!-- Not connected -->
                             <template v-else-if="canManage">
-                                <ol class="text-muted-foreground space-y-2 text-xs">
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >1</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.whatsapp.steps.connect_1" tag="span">
-                                                <template #link>
-                                                    <a
-                                                        href="https://developers.facebook.com/apps"
-                                                        target="_blank"
-                                                        rel="noopener"
-                                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                                        >developers.facebook.com</a
-                                                    >
-                                                </template>
-                                                <template #use_case>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.whatsapp.use_case')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >2</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.whatsapp.steps.connect_2" tag="span">
-                                                <template #basic_setup>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.whatsapp.basic_setup_path')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span
-                                            class="bg-muted text-foreground/80 flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
-                                            >3</span
-                                        >
-                                        <span>
-                                            <i18n-t keypath="agents.channels.setup.shared.copy_app_secret_all" tag="span">
-                                                <template #section>
-                                                    <span class="text-foreground font-medium">{{
-                                                        t('agents.channels.setup.messenger.app_settings_basic')
-                                                    }}</span>
-                                                </template>
-                                            </i18n-t>
-                                        </span>
-                                    </li>
-                                </ol>
-                                <p class="text-muted-foreground text-xs">
-                                    {{ t('agents.channels.setup.guide.need_detail_before') }}
-                                    <a
-                                        href="https://docs.chatvia.ai/guide/channels/whatsapp"
-                                        target="_blank"
-                                        rel="noopener"
-                                        class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                                        >{{ t('agents.channels.setup.guide.step_by_step_guide') }}</a
-                                    >
-                                    {{ t('agents.channels.setup.guide.need_detail_after') }}
-                                </p>
-                                <CredentialInput
-                                    id="whatsapp-phone-number-id"
-                                    v-model="whatsappForm.phone_number_id"
-                                    :label="t('agents.channels.setup.labels.phone_number_id')"
-                                    :icon="Hash"
-                                    :placeholder="t('agents.channels.setup.placeholders.phone_number_id')"
-                                    :error="whatsappForm.errors.phone_number_id"
-                                />
-                                <CredentialInput
-                                    id="whatsapp-waba-id"
-                                    v-model="whatsappForm.waba_id"
-                                    :label="t('agents.channels.setup.labels.waba_id')"
-                                    :icon="Building2"
-                                    :placeholder="t('agents.channels.setup.placeholders.phone_number_id')"
-                                    :error="whatsappForm.errors.waba_id"
-                                />
-                                <CredentialInput
-                                    id="whatsapp-access-token"
-                                    v-model="whatsappForm.access_token"
-                                    :label="t('agents.channels.setup.labels.access_token')"
-                                    :icon="KeyRound"
-                                    :placeholder="t('agents.channels.setup.placeholders.meta_token')"
-                                    :error="whatsappForm.errors.access_token"
-                                />
-                                <CredentialInput
-                                    id="whatsapp-app-secret"
-                                    v-model="whatsappForm.app_secret"
-                                    :label="t('agents.channels.setup.labels.app_secret')"
-                                    :icon="Lock"
-                                    secret
-                                    :error="whatsappForm.errors.app_secret"
-                                    @enter="connectWhatsapp"
-                                />
+                                <div
+                                    v-if="whatsappError"
+                                    class="border-destructive/30 bg-destructive/10 text-destructive rounded-md border p-3 text-xs"
+                                >
+                                    {{ whatsappError }}
+                                </div>
+
+                                <p class="text-muted-foreground text-sm">{{ t('agents.channels.setup.whatsapp.oauth_intro') }}</p>
                                 <div class="border-t pt-5">
-                                    <Button
-                                        class="w-full"
-                                        :disabled="
-                                            whatsappForm.processing ||
-                                            !whatsappForm.access_token ||
-                                            !whatsappForm.app_secret ||
-                                            !whatsappForm.phone_number_id ||
-                                            !whatsappForm.waba_id
-                                        "
-                                        @click="connectWhatsapp"
-                                    >
-                                        <LoaderCircle v-if="whatsappForm.processing" class="me-2 size-4 animate-spin" />
+                                    <Button class="w-full" :disabled="whatsappConnecting" @click="connectWhatsappEmbedded">
+                                        <LoaderCircle v-if="whatsappConnecting" class="me-2 size-4 animate-spin" />
                                         <Plug v-else class="me-2 size-4" />
-                                        {{ t('agents.channels.connect') }}
+                                        {{ t('agents.channels.setup.whatsapp.connect_facebook') }}
                                     </Button>
                                 </div>
                             </template>

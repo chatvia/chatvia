@@ -11,7 +11,8 @@ use Inertia\Response;
 
 /**
  * Per-agent "Channels" page — connects the agent to messaging apps (Telegram,
- * Slack, and Messenger today, more to come). Gated by `agent.channels` on the route.
+ * Slack, Messenger, WhatsApp, Instagram, and Microsoft Teams). Gated by
+ * `agent.channels` on the route.
  */
 class AgentChannelsController
 {
@@ -46,9 +47,18 @@ class AgentChannelsController
                 'enabled' => (bool) $messenger?->enabled,
                 'pick' => $this->messengerPick($agent),
             ],
-            'whatsapp' => $whatsapp !== null
-                ? ['connected' => true, 'display_phone_number' => $whatsapp->display_phone_number, 'verified_name' => $whatsapp->verified_name, 'webhook_url' => route('whatsapp.webhook', ['secret' => $whatsapp->webhook_secret]), 'verify_token' => $whatsapp->webhook_secret, 'enabled' => $whatsapp->enabled]
-                : ['connected' => false, 'display_phone_number' => null, 'verified_name' => null, 'webhook_url' => null, 'verify_token' => null, 'enabled' => false],
+            // WhatsApp connects via Embedded Signup (the Facebook JS SDK popup),
+            // so there's no per-number webhook URL to surface — the frontend just
+            // needs the shared app id + WhatsApp Login configuration to launch it.
+            'whatsapp' => [
+                'connected' => $whatsapp !== null,
+                'display_phone_number' => $whatsapp?->display_phone_number,
+                'verified_name' => $whatsapp?->verified_name,
+                'enabled' => (bool) $whatsapp?->enabled,
+                'app_id' => config('services.meta.app_id'),
+                'config_id' => config('services.meta.whatsapp_config_id') ?: config('services.meta.config_id'),
+                'graph_version' => config('services.meta.graph_version'),
+            ],
             // The app id doubles as the "Open in Teams" deep-link target
             // (a bot's Teams user id is `28:{app_id}`).
             'msteams' => $teams !== null

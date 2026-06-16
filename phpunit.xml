@@ -14,6 +14,11 @@
         <testsuite name="Architecture">
             <directory>tests/Architecture</directory>
         </testsuite>
+        <!-- On-demand eval harnesses (real embeddings; self-skip without an API
+             key, so harmless in the default run). Target with the eval group. -->
+        <testsuite name="Eval">
+            <directory>tests/Eval</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>

@@ -185,14 +185,17 @@ SELECT r.kind, r.id, r.score, r.src,
        pt.name              AS preset_name,
        pt.description        AS preset_description,
        pt.input_schema      AS preset_schema,
+       pt.scope             AS preset_scope,
        ps.slug              AS preset_server_slug,
        t.name               AS custom_name,
        t.description         AS custom_description,
        t.input_schema       AS custom_schema,
+       t.scope              AS custom_scope,
        cs.slug              AS custom_server_slug,
        f.internal_name      AS fn_name,
        f.description         AS fn_description,
-       f.parameters_schema  AS fn_schema
+       f.parameters_schema  AS fn_schema,
+       f.webhook_method     AS fn_method
 FROM rrf r
 LEFT JOIN connector_tools pt ON r.kind = 'mcp_preset' AND pt.id = r.id
 LEFT JOIN LATERAL (
@@ -246,6 +249,7 @@ SQL;
                     description: (string) $row->preset_description,
                     parameters: is_array($schema) ? $schema : [],
                     embedding: null,
+                    mutates: $row->preset_scope !== 'read',
                 );
             } elseif ($row->kind === 'mcp_custom') {
                 $schema = is_string($row->custom_schema) ? json_decode($row->custom_schema, true) : $row->custom_schema;
@@ -256,6 +260,7 @@ SQL;
                     description: (string) $row->custom_description,
                     parameters: is_array($schema) ? $schema : [],
                     embedding: null,
+                    mutates: $row->custom_scope !== 'read',
                 );
             } else {
                 $schema = is_string($row->fn_schema) ? json_decode($row->fn_schema, true) : $row->fn_schema;
@@ -266,6 +271,7 @@ SQL;
                     description: (string) $row->fn_description,
                     parameters: is_array($schema) ? $schema : [],
                     embedding: null,
+                    mutates: strtoupper((string) $row->fn_method) !== 'GET',
                 );
             }
 

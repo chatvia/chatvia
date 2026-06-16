@@ -287,7 +287,12 @@
                     },
                     "configuration_path": "WhatsApp → Configuration",
                     "use_case": "Connect with customers through WhatsApp",
-                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                    "basic_setup_path": "Use cases → Customize → Basic setup",
+                    "oauth_intro": "Connect your WhatsApp Business number so this agent can reply to WhatsApp messages — you'll sign in with Facebook and set it up in one step.",
+                    "connect_facebook": "Connect with Facebook",
+                    "not_configured": "WhatsApp isn't set up on this Chatvia instance yet. Please contact support.",
+                    "finish_number": "Add a phone number to your WhatsApp Business Account in the popup, then try again.",
+                    "connect_failed": "We couldn't read your WhatsApp account from Facebook. Please try connecting again."
                 },
                 "msteams": {
                     "app_id_label": "App {id}",

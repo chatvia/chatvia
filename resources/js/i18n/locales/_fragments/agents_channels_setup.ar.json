@@ -128,7 +128,12 @@
                     },
                     "configuration_path": "WhatsApp → Configuration",
                     "use_case": "Connect with customers through WhatsApp",
-                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                    "basic_setup_path": "Use cases → Customize → Basic setup",
+                    "oauth_intro": "اربط رقم WhatsApp Business الخاص بك ليتمكن هذا الوكيل من الرد على رسائل WhatsApp — سجّل الدخول عبر Facebook وأكمل الإعداد في خطوة واحدة.",
+                    "connect_facebook": "الاتصال عبر Facebook",
+                    "not_configured": "لم يتم إعداد WhatsApp على نظام Chatvia هذا بعد. يرجى التواصل مع الدعم.",
+                    "finish_number": "أضف رقم هاتف إلى حساب WhatsApp Business في النافذة المنبثقة، ثم حاول مرة أخرى.",
+                    "connect_failed": "تعذّر قراءة حساب WhatsApp الخاص بك من Facebook. يرجى المحاولة مرة أخرى."
                 },
                 "msteams": {
                     "app_id_label": "التطبيق {id}",

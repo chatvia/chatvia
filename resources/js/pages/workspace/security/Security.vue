@@ -143,7 +143,7 @@ const applyIps = () => {
 
 const countryMap = computed(() => new Map(props.countries.map((c) => [c.code, c.name])));
 const countryName = (code: string): string => countryMap.value.get(code) ?? code.toUpperCase();
-const codeToFlag = (code: string): string => code.toUpperCase().replace(/./g, (ch) => String.fromCodePoint(127397 + ch.charCodeAt(0)));
+const flagUrl = (code: string): string => `/images/flags/${code.toLowerCase()}.svg`;
 
 // Localized name of the viewer's own country + the matching lockout sentence,
 // shared by the section warning and the in-dialog warning.
@@ -342,8 +342,14 @@ const applyCountries = () => {
                                     </div>
 
                                     <div v-if="form.geo_countries.length" class="flex flex-wrap gap-2">
-                                        <Badge v-for="c in form.geo_countries" :key="c" variant="secondary" class="font-normal">
-                                            {{ codeToFlag(c) }} {{ countryName(c) }}
+                                        <Badge v-for="c in form.geo_countries" :key="c" variant="secondary" class="gap-1.5 font-normal">
+                                            <img
+                                                :src="flagUrl(c)"
+                                                :alt="countryName(c)"
+                                                class="h-3 w-4 shrink-0 rounded-[2px] object-cover"
+                                                onerror="this.style.display = 'none'"
+                                            />
+                                            {{ countryName(c) }}
                                         </Badge>
                                     </div>
                                     <div v-else class="text-muted-foreground rounded-md border border-dashed px-3 py-2 text-sm">
@@ -563,7 +569,13 @@ const applyCountries = () => {
                 <!-- Selected countries — removable chips -->
                 <div v-if="countriesDraft.length" class="flex flex-wrap gap-1.5">
                     <Badge v-for="c in countriesDraft" :key="c" variant="secondary" class="gap-1 py-1 font-normal">
-                        {{ codeToFlag(c) }} {{ countryName(c) }}
+                        <img
+                            :src="flagUrl(c)"
+                            :alt="countryName(c)"
+                            class="h-3 w-4 shrink-0 rounded-[2px] object-cover"
+                            onerror="this.style.display = 'none'"
+                        />
+                        {{ countryName(c) }}
                         <button
                             type="button"
                             class="hover:text-destructive ms-0.5 -me-0.5 rounded-sm"
@@ -586,10 +598,15 @@ const applyCountries = () => {
                             :aria-pressed="isCountrySelected(c.code)"
                             @click="toggleCountry(c.code)"
                         >
-                            <span
-                                ><span class="me-2">{{ codeToFlag(c.code) }}</span
-                                >{{ c.name }}</span
-                            >
+                            <span class="flex items-center gap-2">
+                                <img
+                                    :src="flagUrl(c.code)"
+                                    :alt="c.name"
+                                    class="h-4 w-5 shrink-0 rounded-[2px] object-cover"
+                                    onerror="this.style.display = 'none'"
+                                />
+                                {{ c.name }}
+                            </span>
                             <Check v-if="isCountrySelected(c.code)" class="text-primary h-4 w-4 shrink-0" />
                         </button>
                         <p v-if="!filteredCountries.length" class="text-muted-foreground px-2 py-6 text-center text-sm">

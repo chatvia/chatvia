@@ -32,6 +32,7 @@ class SemanticToolRouter
         private readonly ToolRegistry $registry,
         private readonly ToolHybridSearch $search,
         private readonly ToolRelevanceGate $gate,
+        private readonly ConnectorClassifier $connectorClassifier,
     ) {}
 
     /**
@@ -63,6 +64,10 @@ class SemanticToolRouter
         // holds write tools to a stricter bar than reads (per-scope thresholds).
         $gated = $this->gate->gate($userMessage, $entries);
 
+        // Optional small-model connector router: drop write tools whose connector
+        // the classifier didn't pick for this turn. Off by default; fails open.
+        $gated = $this->routeByConnector($agent, $userMessage, $gated);
+
         Log::debug('SemanticToolRouter: routing complete', [
             'agent_id' => $agent->id,
             'candidates' => count($entries),
@@ -77,5 +82,81 @@ class SemanticToolRouter
         ]);
 
         return $gated;
+    }
+
+    /**
+     * Small-model connector router (experiment, off by default). When enabled and
+     * the gated set still contains a write, ask {@see ConnectorClassifier} which
+     * connector(s) the turn is about, then drop write tools from connectors it
+     * didn't pick. Reads, functions, and tools with no parseable connector pass
+     * through. Fails open: a null route (declined / errored) prunes nothing.
+     *
+     * @param  array<int, ToolEntry>  $gated
+     * @return array<int, ToolEntry>
+     */
+    private function routeByConnector(Agent $agent, string $userMessage, array $gated): array
+    {
+        if ($gated === [] || ! config('chatvia.agent.tools.routing.connector_classifier', false)) {
+            return $gated;
+        }
+
+        // Only worth a model call if there's a CONNECTOR write to suppress — a write
+        // MCP tool (mcp__{slug}__…). Webhook functions have no connector and are
+        // never pruned, and an agent with no connectors has none of these — so we
+        // skip the classifier (and its DB/LLM work) entirely rather than route a
+        // turn that has nothing a connector route could touch.
+        $hasConnectorWrite = false;
+        foreach ($gated as $entry) {
+            if ($entry->mutates && self::connectorSlug($entry->name) !== null) {
+                $hasConnectorWrite = true;
+                break;
+            }
+        }
+        if (! $hasConnectorWrite) {
+            return $gated;
+        }
+
+        $picked = $this->connectorClassifier->classify($agent, $userMessage);
+        if ($picked === null) {
+            return $gated;
+        }
+
+        $allowed = array_flip($picked);
+        $dropped = [];
+
+        $kept = array_values(array_filter($gated, static function (ToolEntry $entry) use ($allowed, &$dropped): bool {
+            if (! $entry->mutates) {
+                return true;
+            }
+            $slug = self::connectorSlug($entry->name);
+            if ($slug !== null && ! isset($allowed[$slug])) {
+                $dropped[] = $entry->name;
+
+                return false;
+            }
+
+            return true;
+        }));
+
+        if ($dropped !== []) {
+            Log::debug('SemanticToolRouter: connector router pruned writes', [
+                'agent_id' => $agent->id,
+                'picked' => $picked,
+                'dropped' => $dropped,
+            ]);
+        }
+
+        return $kept;
+    }
+
+    /**
+     * Connector slug from a compiled MCP tool name (`mcp__{slug}__{tool}`), or null
+     * for a webhook function or malformed name.
+     */
+    private static function connectorSlug(string $name): ?string
+    {
+        $parts = explode('__', $name);
+
+        return ($parts[0] === 'mcp' && isset($parts[1]) && $parts[1] !== '') ? $parts[1] : null;
     }
 }

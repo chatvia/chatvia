@@ -18,7 +18,8 @@ use Tests\Support\FakeEmbeddingsProvider;
 
 /**
  * OFFLINE EVAL — not a pass/fail gate. It measures the live tool router against a
- * labelled set ({@see fixtures/tool_routing_cases.php}) and prints a scoreboard:
+ * labelled set (fixtures/cases.php + fixtures/connectors.php; format in README.md)
+ * and prints a scoreboard:
  * top-1 accuracy, recall@5, MRR, and the metric that actually matters for tools —
  * the WRONG-MUTATION rate (a write tool from the wrong connector surfacing for a
  * request). "Relevance is not correctness": a retriever that surfaces a usable
@@ -35,6 +36,11 @@ use Tests\Support\FakeEmbeddingsProvider;
  * Tune the per-scope bars in the same run by overriding the env:
  *
  *     SCALEWAYAI_API_KEY=… AGENT_TOOL_RELEVANCE_THRESHOLD_WRITE=0.60 vendor/bin/pest --testsuite=Eval
+ *
+ * Or A/B the experimental small-model connector router (drops writes from
+ * connectors it doesn't pick for the turn) against the default:
+ *
+ *     SCALEWAYAI_API_KEY=… AGENT_TOOL_CONNECTOR_CLASSIFIER=1 vendor/bin/pest --testsuite=Eval
  *
  * Establish a baseline now, change a threshold (#1 per-scope gating), re-run, diff
  * the scoreboard. The number it prints is the thing you're trying to move.
@@ -70,8 +76,37 @@ beforeEach(function (): void {
 });
 
 it('measures tool-routing retrieval quality against the labelled set', function (): void {
-    /** @var array{catalog: array<string, array{name: string, description: string, tools: array<int, array{name: string, scope: string, description: string}>}>, cases: array<int, array{query: string, connector: string, tool: string, write: bool}>} $data */
-    $data = require __DIR__.'/fixtures/tool_routing_cases.php';
+    $data = [
+        'catalog' => require __DIR__.'/fixtures/connectors.php',
+        'cases' => require __DIR__.'/fixtures/cases.php',
+    ];
+
+    // Validate the fixture before scoring: every case must point at a tool that
+    // exists in the catalog, with a scope that matches its `write` label. A typo'd
+    // tool name or a mislabelled read/write would otherwise silently score 0 —
+    // fail loudly with the offending rows instead.
+    $catalogScopes = [];
+    foreach ($data['catalog'] as $slug => $connector) {
+        foreach ($connector['tools'] as $tool) {
+            $catalogScopes[$slug.'/'.$tool['name']] = $tool['scope'];
+        }
+    }
+    $fixtureErrors = [];
+    foreach ($data['cases'] as $i => $case) {
+        $key = $case['connector'].'/'.$case['tool'];
+        if (! isset($catalogScopes[$key])) {
+            $fixtureErrors[] = "case #{$i} \"{$case['query']}\": tool '{$key}' is not in connectors.php.";
+
+            continue;
+        }
+        if ($case['write'] !== ($catalogScopes[$key] === 'write')) {
+            $fixtureErrors[] = "case #{$i} \"{$case['query']}\": write=".($case['write'] ? 'true' : 'false')
+                ." but connectors.php scopes '{$key}' as '{$catalogScopes[$key]}'.";
+        }
+    }
+    if ($fixtureErrors !== []) {
+        throw new RuntimeException("Eval fixture invalid:\n  - ".implode("\n  - ", $fixtureErrors));
+    }
 
     // scope lookup keyed by compiled tool name, so we can classify whatever the
     // router ships (mcp__{slug}__{tool}) back to read/write for the mutation metric.
@@ -220,7 +255,8 @@ it('measures tool-routing retrieval quality against the labelled set', function 
     $out .= "TOOL-ROUTING EVAL  ·  provider={$this->embeddings->getModelName()}"
         .'  ·  gate='.(config('chatvia.agent.tools.routing.relevance_gate') ? 'on' : 'off')
         .'  ·  threshold read='.config('chatvia.agent.tools.routing.relevance_threshold_read', $fallback)
-        .' / write='.config('chatvia.agent.tools.routing.relevance_threshold_write', $fallback)."\n";
+        .' / write='.config('chatvia.agent.tools.routing.relevance_threshold_write', $fallback)
+        .'  ·  connector_router='.(config('chatvia.agent.tools.routing.connector_classifier') ? 'on' : 'off')."\n";
     $out .= str_repeat('=', 96)."\n";
     $out .= sprintf("%-40s %-30s %-7s %-7s %-5s %s\n", 'query', 'expected', 'ship#1', 'in-set', 'rank', 'wrong-write');
     $out .= str_repeat('-', 96)."\n";

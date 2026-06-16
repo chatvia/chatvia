@@ -143,6 +143,16 @@ return [
                 'relevance_threshold_read' => (float) env('AGENT_TOOL_RELEVANCE_THRESHOLD_READ', 0.45),
                 'relevance_threshold_write' => (float) env('AGENT_TOOL_RELEVANCE_THRESHOLD_WRITE', env('AGENT_TOOL_RELEVANCE_THRESHOLD', 0.55)),
 
+                // EXPERIMENTAL (off by default). A small "middle model" connector
+                // router: after the relevance gate, a cheap structured LLM call
+                // (config('chatvia.ai.models.connector_router')) picks which
+                // connector(s) the turn is about, and write tools from connectors
+                // it didn't pick are dropped. A reasoning model can separate
+                // "ticket → support" from "issue → tracker" where the embedding
+                // reranker's scores bunched. Costs a serial LLM hop per tool-bearing
+                // turn; measure it against tests/Eval before turning on. Fails open.
+                'connector_classifier' => (bool) env('AGENT_TOOL_CONNECTOR_CLASSIFIER', false),
+
                 // How many hybrid-search candidates to send to the reranker. Caps
                 // the rerank payload/latency; past the top dozen the cross-encoder
                 // rarely promotes a tool the RRF recall didn't already surface.
@@ -197,6 +207,10 @@ return [
             // the prompt-injection / off-topic / toxicity verdicts for a message.
             // PII detection is regex (free), not this model.
             'guardrail' => 'mistral-small-3.2-24b-instruct-2506',
+
+            // Small "middle model" that routes a turn to the relevant connector(s)
+            // for the experimental tool connector_classifier (off by default).
+            'connector_router' => 'mistral-small-3.2-24b-instruct-2506',
         ],
 
         'query' => [

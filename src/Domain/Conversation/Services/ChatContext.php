@@ -71,6 +71,17 @@ class ChatContext
     public array $toolCallNames = [];
 
     /**
+     * Tool calls the model emitted but that were deliberately NOT executed —
+     * populated only when the loop runs in capture-only mode (evals). Each entry
+     * is `['name' => string, 'arguments' => string]` (arguments is the raw JSON
+     * string the model produced). Lets a caller grade the agent's INTENDED tool
+     * call without paying for (or causing the side effects of) a real dispatch.
+     *
+     * @var array<int, array{name: string, arguments: string}>
+     */
+    public array $capturedToolCalls = [];
+
+    /**
      * Set by the input guardrail when the visitor's message must be refused. The
      * turn then routes to GuardBlockSource instead of the LLM — no model call,
      * no message credit.

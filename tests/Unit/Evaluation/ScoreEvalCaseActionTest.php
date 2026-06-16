@@ -85,6 +85,48 @@ it('records a passing result with the captured run state', function (): void {
         ->and($result->run_id)->toBe($run->id);
 });
 
+it('scores a tool_call case from the captured (never executed) tool call', function (): void {
+    $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
+
+    $run = EvalRun::create([
+        'agent_id' => $agent->id,
+        'agent_name' => $agent->name,
+        'workspace_id' => $agent->user_id,
+        'status' => EvalRun::STATUS_RUNNING,
+        'total_cases' => 1,
+        'started_at' => now(),
+    ]);
+
+    $case = EvalCase::create([
+        'agent_id' => $agent->id,
+        'agent_name' => $agent->name,
+        'workspace_id' => $agent->user_id,
+        'name' => 'emails support',
+        'input' => 'Email the support team.',
+        'scorer_type' => 'tool_call',
+        'scorer_config' => ['tool' => 'send_email', 'arguments' => '{"to": "support@acme.com"}'],
+        'active' => true,
+    ]);
+
+    // The runner captures the intended call (extra "subject" arg is ignored) and
+    // never executes it — the result carries no text answer, only the tool call.
+    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+        answer: '',
+        sources: [],
+        toolsCalled: ['send_email'],
+        tokens: 12,
+        latencyMs: 30,
+        traceId: 'trace-tool',
+        toolCalls: [['name' => 'send_email', 'arguments' => '{"to": "support@acme.com", "subject": "Help"}']],
+    )));
+
+    $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
+
+    expect($result->pass)->toBeTrue()
+        ->and($result->scorer_type)->toBe('tool_call')
+        ->and($result->tools_called)->toBe(['send_email']);
+});
+
 it('records a failing result when the scorer rejects the answer', function (): void {
     [$run, $case] = scoringFixtures('berlin');
 

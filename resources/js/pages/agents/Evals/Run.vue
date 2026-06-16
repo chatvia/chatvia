@@ -8,7 +8,7 @@ import { useDateFormat } from '@/composables/useDateFormat';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
-import { ArrowLeft, Braces, CheckCircle2, Equal, Gauge, Hash, LoaderCircle, Regex, Scale, Search, Target, XCircle } from 'lucide-vue-next';
+import { ArrowLeft, Braces, CheckCircle2, Equal, Gauge, Hash, LoaderCircle, Regex, Scale, Search, Target, Wrench, XCircle } from 'lucide-vue-next';
 import { computed, ref, watch, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -120,6 +120,7 @@ const SCORER_META: Record<string, { label: string; icon: Component }> = {
     exact: { label: 'agents.evals.scorers.exact', icon: Equal },
     json_schema: { label: 'agents.evals.scorers.json_schema', icon: Braces },
     llm_judge: { label: 'agents.evals.scorers.llm_judge', icon: Scale },
+    tool_call: { label: 'agents.evals.scorers.tool_call', icon: Wrench },
 };
 const scorerLabel = (type: string) => (SCORER_META[type] ? t(SCORER_META[type].label) : type);
 

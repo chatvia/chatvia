@@ -25,6 +25,7 @@ class AgentEvalRunController
     {
         abort_if($run->agent_id !== $agent->id, 404);
 
+        $run->loadMissing('triggeredByUser');
         $results = $run->results()->orderBy('id')->get();
 
         return Inertia::render('agents/Evals/Run', [

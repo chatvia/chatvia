@@ -69,7 +69,7 @@ class ScoreEvalCaseAction
 
         $score = $result->failed()
             ? ScoreResultData::fail(0.0, 'Agent run failed: '.$result->error)
-            : $this->scorers->for($case->scorer_type)->score($case, $result->answer);
+            : $this->scorers->for($case->scorer_type)->score($case, $result);
 
         return $this->record($run, $case, $score, $result);
     }

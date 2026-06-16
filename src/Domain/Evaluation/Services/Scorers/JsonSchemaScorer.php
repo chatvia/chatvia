@@ -2,6 +2,7 @@
 
 namespace Domain\Evaluation\Services\Scorers;
 
+use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
 
@@ -12,9 +13,9 @@ use Domain\Evaluation\Models\EvalCase;
  */
 class JsonSchemaScorer implements ScorerInterface
 {
-    public function score(EvalCase $case, string $actual): ScoreResultData
+    public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
     {
-        $decoded = json_decode(trim($actual), true);
+        $decoded = json_decode(trim($result->answer), true);
 
         if (! is_array($decoded)) {
             return ScoreResultData::fail(0.0, 'Output is not valid JSON.');

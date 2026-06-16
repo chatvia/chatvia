@@ -2,6 +2,7 @@
 
 namespace Domain\Evaluation\Models;
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Builder;
@@ -54,6 +55,17 @@ class EvalRun extends Model
     public function results(): HasMany
     {
         return $this->hasMany(EvalResult::class, 'run_id');
+    }
+
+    /**
+     * The teammate who triggered the run. Nulls on user delete; `triggered_by_name`
+     * is kept denormalized so the row stays readable after the account is gone.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function triggeredByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'triggered_by_user_id');
     }
 
     public function scopeForAgent(Builder $query, int $agentId): Builder

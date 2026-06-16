@@ -122,6 +122,7 @@ function fakeToolLoopRunner(Closure $scripted): ToolLoopRunner
             array $toolDefinitions,
             array $extraSettings = [],
             int $startIteration = 0,
+            bool $captureToolCallsOnly = false,
         ): Generator {
             return yield from ($this->scripted)($context, $llmMessages);
         }

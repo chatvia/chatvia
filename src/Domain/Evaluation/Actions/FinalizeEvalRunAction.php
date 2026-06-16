@@ -34,6 +34,9 @@ class FinalizeEvalRunAction
         $agentExternalId = $run->agent?->external_id;
 
         if ($agentExternalId !== null) {
+            // Carry the actor's avatar on the close-out broadcast too (eager-load
+            // so the resource never lazy-loads under Model::shouldBeStrict()).
+            $run->loadMissing('triggeredByUser');
             EvalRunProgressed::dispatch($run, $agentExternalId);
         }
 

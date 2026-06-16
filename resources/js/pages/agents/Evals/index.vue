@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import LockedFeature from '@/components/LockedFeature.vue';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -39,6 +39,7 @@ import {
     Sparkles,
     Tag,
     Trash2,
+    Wrench,
     X,
 } from 'lucide-vue-next';
 import { computed, ref, watch, type Component } from 'vue';
@@ -71,6 +72,7 @@ interface EvalRun {
     total_tokens: number | null;
     model_snapshot: string | null;
     triggered_by_name: string | null;
+    triggered_by_avatar: string | null;
     started_at: string | null;
     finished_at: string | null;
     created_at: string;
@@ -110,6 +112,7 @@ const SCORER_ICONS: Record<string, Component> = {
     exact: Equal,
     json_schema: Braces,
     llm_judge: Scale,
+    tool_call: Wrench,
 };
 
 const scorerLabel = (type: string) => {
@@ -123,6 +126,10 @@ const scorerHelp = (type: string) => {
 };
 
 const scorerIcon = (type: string) => SCORER_ICONS[type];
+
+// A JSON syntax example, not prose — kept out of i18n because vue-i18n reserves
+// `{`, `}` and `@`, which a JSON object literal is full of.
+const TOOL_ARGS_PLACEHOLDER = '{\n  "to": "support@acme.com"\n}';
 
 // Server validation keys for scorer config are dotted (e.g. "scorer_config.value")
 // and not part of useForm's flat error type — read them through a cast.
@@ -164,6 +171,8 @@ const form = useForm({
     pattern: '',
     criteria: '',
     required: '',
+    tool: '',
+    tool_arguments: '',
     expected_output: '',
     active: true,
 });
@@ -182,6 +191,11 @@ form.transform((data) => {
             .split(',')
             .map((k) => k.trim())
             .filter(Boolean);
+    } else if (data.scorer_type === 'tool_call') {
+        config.tool = data.tool;
+        // Optional: only check arguments when the user supplied them. Sent as the
+        // raw JSON string — the server validates it and the scorer decodes it.
+        if (data.tool_arguments.trim()) config.arguments = data.tool_arguments;
     }
 
     return {
@@ -212,6 +226,13 @@ const openEdit = (item: EvalCase) => {
     form.pattern = item.scorer_config?.pattern ?? '';
     form.criteria = item.scorer_config?.criteria ?? '';
     form.required = Array.isArray(item.scorer_config?.required) ? item.scorer_config!.required.join(', ') : '';
+    form.tool = item.scorer_config?.tool ?? '';
+    form.tool_arguments =
+        typeof item.scorer_config?.arguments === 'string'
+            ? item.scorer_config.arguments
+            : item.scorer_config?.arguments
+              ? JSON.stringify(item.scorer_config.arguments, null, 2)
+              : '';
     form.expected_output = item.expected_output ?? '';
     form.active = item.active;
     isCaseDialogOpen.value = true;
@@ -536,7 +557,7 @@ const knowledgeAddLabel = computed(() => {
                             <Table class="[&_td]:px-4 [&_td]:py-3 [&_th]:px-4">
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>{{ t('agents.evals.index.table.by') }}</TableHead>
+                                        <TableHead>{{ t('agents.evals.index.table.actor') }}</TableHead>
                                         <TableHead>{{ t('agents.evals.index.table.pass_rate') }}</TableHead>
                                         <TableHead>{{ t('agents.evals.index.table.passed_failed') }}</TableHead>
                                         <TableHead>{{ t('agents.evals.index.table.avg_score') }}</TableHead>
@@ -555,6 +576,11 @@ const knowledgeAddLabel = computed(() => {
                                         <TableCell>
                                             <div v-if="run.triggered_by_name" class="flex items-center gap-2">
                                                 <Avatar class="h-7 w-7">
+                                                    <AvatarImage
+                                                        v-if="run.triggered_by_avatar"
+                                                        :src="run.triggered_by_avatar"
+                                                        :alt="run.triggered_by_name"
+                                                    />
                                                     <AvatarFallback class="text-xs">{{ getInitials(run.triggered_by_name) }}</AvatarFallback>
                                                 </Avatar>
                                                 <span>{{ run.triggered_by_name }}</span>
@@ -739,6 +765,35 @@ const knowledgeAddLabel = computed(() => {
                             {{ configError('criteria') }}
                         </p>
                     </div>
+
+                    <template v-else-if="form.scorer_type === 'tool_call'">
+                        <div class="space-y-1.5">
+                            <Label for="cfg-tool">{{ t('agents.evals.index.case_dialog.expected_tool') }}</Label>
+                            <div class="relative">
+                                <Wrench class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                                <Input
+                                    id="cfg-tool"
+                                    v-model="form.tool"
+                                    :placeholder="t('agents.evals.index.case_dialog.expected_tool_placeholder')"
+                                    class="ps-9 font-mono"
+                                />
+                            </div>
+                            <p class="text-muted-foreground text-xs">{{ t('agents.evals.index.case_dialog.expected_tool_hint') }}</p>
+                            <p v-if="configError('tool')" class="text-destructive text-xs">{{ configError('tool') }}</p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <Label for="cfg-tool-args">{{ t('agents.evals.index.case_dialog.expected_arguments') }}</Label>
+                            <Textarea
+                                id="cfg-tool-args"
+                                v-model="form.tool_arguments"
+                                rows="3"
+                                :placeholder="TOOL_ARGS_PLACEHOLDER"
+                                class="font-mono"
+                            />
+                            <p class="text-muted-foreground text-xs">{{ t('agents.evals.index.case_dialog.expected_arguments_hint') }}</p>
+                            <p v-if="configError('arguments')" class="text-destructive text-xs">{{ configError('arguments') }}</p>
+                        </div>
+                    </template>
 
                     <div v-if="['exact', 'llm_judge'].includes(form.scorer_type)" class="space-y-1.5">
                         <Label for="cfg-expected">

@@ -2,6 +2,7 @@
 
 namespace Domain\Evaluation\Services\Scorers;
 
+use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
 
@@ -11,9 +12,10 @@ use Domain\Evaluation\Models\EvalCase;
  */
 class ExactMatchScorer implements ScorerInterface
 {
-    public function score(EvalCase $case, string $actual): ScoreResultData
+    public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
     {
         $expected = trim((string) ($case->expected_output ?? ''));
+        $actual = $result->answer;
         $got = trim($actual);
 
         return $got === $expected

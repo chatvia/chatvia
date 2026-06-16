@@ -60,6 +60,9 @@ class RunEvalSuiteAction
 
         // Surface the new "running" row live on any open Evals page before the
         // cases start scoring — the finalize callback broadcasts the close-out.
+        // Bind the actor in-memory so the broadcast resource carries the avatar
+        // without a lazy load (which would throw under Model::shouldBeStrict()).
+        $run->setRelation('triggeredByUser', $triggeredBy);
         EvalRunProgressed::dispatch($run, $agent->external_id);
 
         if ($cases->isEmpty()) {

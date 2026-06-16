@@ -3,6 +3,7 @@
 namespace Domain\Evaluation\Services\Scorers;
 
 use Domain\Analytics\Services\ConversationAnalyzer;
+use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Llm\Contracts\LlmProviderInterface;
@@ -24,8 +25,9 @@ class LlmJudgeScorer implements ScorerInterface
         private readonly LlmProviderInterface $provider,
     ) {}
 
-    public function score(EvalCase $case, string $actual): ScoreResultData
+    public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
     {
+        $actual = $result->answer;
         $criteria = trim((string) ($case->scorer_config['criteria'] ?? ''));
 
         if ($criteria === '') {

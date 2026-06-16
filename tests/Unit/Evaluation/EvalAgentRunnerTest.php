@@ -159,6 +159,36 @@ it('builds the headless request with VALID uuid session + conversation ids', fun
         ->and($captured->source)->toBe('eval');
 });
 
+it('runs the tool loop in capture-only mode and returns the intended calls without executing them', function (): void {
+    $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
+
+    $captureFlag = null;
+
+    $toolSelector = Mockery::mock(ToolSelector::class);
+    $toolSelector->shouldReceive('selectForTurn')->andReturn([['type' => 'function']]);
+
+    $runner = Mockery::mock(ToolLoopRunner::class);
+    $runner->shouldReceive('run')->andReturnUsing(
+        function ($context, $provider, $modelName, $providerSlug, $llmMessages, $toolDefinitions, $extraSettings = [], $startIteration = 0, $captureToolCallsOnly = false) use (&$captureFlag) {
+            $captureFlag = $captureToolCallsOnly;
+            // What the runner records in capture mode: the intended call + its name.
+            $context->capturedToolCalls[] = ['name' => 'send_email', 'arguments' => '{"to":"a@b.com"}'];
+            $context->toolCallNames[] = 'send_email';
+
+            return (function () {
+                yield from [];
+            })();
+        },
+    );
+
+    $evalRunner = new EvalAgentRunner(fakeChatService(), $runner, $toolSelector, app(LlmProviderInterface::class));
+    $result = $evalRunner->run($agent, 'Please email support.');
+
+    expect($captureFlag)->toBeTrue()
+        ->and($result->toolCalls)->toBe([['name' => 'send_email', 'arguments' => '{"to":"a@b.com"}']])
+        ->and($result->toolsCalled)->toBe(['send_email']);
+});
+
 it('returns an error result when the agent has no model', function (): void {
     $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
     // Pre-load the relations as null so loadMissing() is a no-op and llm stays null.

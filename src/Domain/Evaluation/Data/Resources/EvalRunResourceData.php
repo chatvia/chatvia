@@ -23,6 +23,7 @@ class EvalRunResourceData extends Data
         public ?int $total_tokens,
         public ?string $model_snapshot,
         public ?string $triggered_by_name,
+        public ?string $triggered_by_avatar,
         public ?CarbonInterface $started_at,
         public ?CarbonInterface $finished_at,
         public CarbonInterface $created_at,
@@ -44,6 +45,9 @@ class EvalRunResourceData extends Data
             total_tokens: $run->total_tokens,
             model_snapshot: $run->model_snapshot,
             triggered_by_name: $run->triggered_by_name,
+            // Only when eager-loaded — under Model::shouldBeStrict() a lazy load
+            // would throw, and this resource is built on the broadcast path too.
+            triggered_by_avatar: $run->relationLoaded('triggeredByUser') ? $run->triggeredByUser?->avatar : null,
             started_at: $run->started_at,
             finished_at: $run->finished_at,
             created_at: $run->created_at,

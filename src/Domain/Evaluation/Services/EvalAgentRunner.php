@@ -28,6 +28,12 @@ use Throwable;
  * production tool-call log); both config overrides are restored in `finally` so
  * they can't leak to the next job in the same queue worker.
  *
+ * Tools are offered to the model but NEVER executed: the loop runs in
+ * capture-only mode, so when the agent decides to call a tool the call (name +
+ * arguments) is recorded and the turn stops. Running real webhooks / MCP calls
+ * on every eval would be expensive and have real-world side effects; instead the
+ * captured call is what the `tool_call` scorer grades.
+ *
  * A fresh, unique conversationId per run means no prior history, so
  * ChatService::initializeChatContext never persists the user message either.
  */
@@ -99,6 +105,7 @@ class EvalAgentRunner
                     toolDefinitions: $toolDefinitions,
                     extraSettings: $agent->llmSettings(),
                     startIteration: 0,
+                    captureToolCallsOnly: true,
                 ),
                 preserve_keys: false,
             );
@@ -110,6 +117,7 @@ class EvalAgentRunner
                 tokens: $context->usage['total_tokens'] ?? null,
                 latencyMs: (int) round((microtime(true) - $started) * 1000),
                 traceId: $context->assistantMessageId,
+                toolCalls: $context->capturedToolCalls,
             );
         } catch (Throwable $e) {
             return new AgentRunResultData(

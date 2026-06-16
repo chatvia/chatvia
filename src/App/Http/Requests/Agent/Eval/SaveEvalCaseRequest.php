@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Agent\Eval;
 
+use Closure;
 use Domain\Evaluation\Data\SaveEvalCaseData;
 use Domain\Evaluation\Enums\ScorerType;
 use Illuminate\Foundation\Http\FormRequest;
@@ -36,9 +37,31 @@ class SaveEvalCaseRequest extends FormRequest
             'scorer_config.criteria' => ['nullable', 'required_if:scorer_type,llm_judge', 'string', 'max:4000'],
             'scorer_config.required' => ['nullable', 'array'],
             'scorer_config.required.*' => ['string', 'max:128'],
+            'scorer_config.tool' => ['nullable', 'required_if:scorer_type,tool_call', 'string', 'max:255'],
+            'scorer_config.arguments' => ['nullable', 'string', 'max:4000', $this->jsonObjectRule()],
             'expected_output' => ['nullable', 'required_if:scorer_type,exact', 'string', 'max:8000'],
             'active' => ['sometimes', 'boolean'],
         ];
+    }
+
+    /**
+     * The tool_call scorer's optional expected-arguments must be a JSON object
+     * (key → value). An empty value is allowed (tool-name-only check); a JSON
+     * array or scalar is rejected so a bad config can't silently fail every run.
+     */
+    private function jsonObjectRule(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail): void {
+            if (! is_string($value) || trim($value) === '') {
+                return;
+            }
+
+            $decoded = json_decode($value, true);
+
+            if (! is_array($decoded) || array_is_list($decoded)) {
+                $fail('The expected arguments must be a valid JSON object.');
+            }
+        };
     }
 
     public function toData(): SaveEvalCaseData

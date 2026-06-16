@@ -16,7 +16,7 @@
                     "scorer": "Scorer",
                     "status": "Status",
                     "actions": "Actions",
-                    "by": "By",
+                    "actor": "Actor",
                     "pass_rate": "Pass rate",
                     "passed_failed": "Passed / Failed",
                     "avg_score": "Avg score",
@@ -51,6 +51,11 @@
                     "grading_criteria_placeholder": "The answer must state that refunds are available within 30 days of purchase.",
                     "expected_answer": "Expected answer",
                     "reference_answer": "Reference answer (optional)",
+                    "expected_tool": "Expected tool",
+                    "expected_tool_placeholder": "e.g. send_email",
+                    "expected_tool_hint": "The tool the agent should call. The eval checks the agent's choice — it never runs the tool. For an MCP tool, use the full name (mcp__slack__send_message) or just the tool's own name.",
+                    "expected_arguments": "Expected arguments (optional)",
+                    "expected_arguments_hint": "A JSON object of arguments the call must include. Extra arguments are ignored. Leave empty to check only the tool name.",
                     "active_label": "Active (included in runs)",
                     "save": "Save"
                 },
@@ -91,6 +96,10 @@
                     "llm_judge": {
                         "label": "AI judge",
                         "help": "An open-weight model grades the answer against your criteria."
+                    },
+                    "tool_call": {
+                        "label": "Tool call",
+                        "help": "Checks the agent calls the expected tool — without running it."
                     }
                 },
                 "toasts": {
@@ -109,7 +118,8 @@
                 "regex": "Regex",
                 "exact": "Exact match",
                 "json_schema": "JSON schema",
-                "llm_judge": "LLM judge"
+                "llm_judge": "LLM judge",
+                "tool_call": "Tool call"
             }
         }
     }

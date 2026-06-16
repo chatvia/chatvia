@@ -53,6 +53,11 @@ class ToolLoopRunner
      * + `awaiting_approval`/`done` events were already emitted) and false when
      * a final answer was streamed or the iteration cap was hit.
      *
+     * When `$captureToolCallsOnly` is true (evals), the loop never dispatches a
+     * tool: the first turn that emits tool calls records them on
+     * {@see ChatContext::$capturedToolCalls} and stops. This lets an eval grade
+     * the agent's INTENDED call without the cost or side effects of running it.
+     *
      * @param  array<int, array<string, mixed>>  $llmMessages
      * @param  array<int, array<string, mixed>>  $toolDefinitions
      * @param  array<string, mixed>  $extraSettings  per-turn settings (temperature, etc.)
@@ -67,6 +72,7 @@ class ToolLoopRunner
         array $toolDefinitions,
         array $extraSettings = [],
         int $startIteration = 0,
+        bool $captureToolCallsOnly = false,
     ): Generator {
         $agent = $context->requestData->agent;
         $assistantId = $context->assistantMessageId;
@@ -98,6 +104,19 @@ class ToolLoopRunner
 
             $toolCalls = $context->takeToolCalls();
             if ($toolCalls === []) {
+                return false;
+            }
+
+            // Eval mode: capture the intended call(s) and stop without running
+            // anything. There is no tool result to feed back, so the loop cannot
+            // continue — and that's the point: an eval grades the decision, not
+            // the (expensive, side-effecting) execution.
+            if ($captureToolCallsOnly) {
+                foreach ($toolCalls as $tc) {
+                    $context->capturedToolCalls[] = ['name' => $tc['name'], 'arguments' => $tc['arguments']];
+                    $context->toolCallNames[] = $tc['name'];
+                }
+
                 return false;
             }
 

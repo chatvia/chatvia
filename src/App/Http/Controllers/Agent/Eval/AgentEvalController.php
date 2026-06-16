@@ -41,7 +41,7 @@ class AgentEvalController
         }
 
         $cases = EvalCase::query()->forAgent($agent->id)->orderByDesc('id')->get();
-        $runs = EvalRun::query()->forAgent($agent->id)->orderByDesc('id')->limit(20)->get();
+        $runs = EvalRun::query()->forAgent($agent->id)->with('triggeredByUser')->orderByDesc('id')->limit(20)->get();
 
         return Inertia::render('agents/Evals/index', [
             'agent' => AgentResourceData::fromModel($agent),

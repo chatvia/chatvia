@@ -8,7 +8,6 @@ use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Data\WorkspaceSecurityPolicyData;
 use Domain\Security\Exceptions\UnsafeWebhookUrlException;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
-use Domain\Security\Services\NetworkAccessGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -26,7 +25,7 @@ use Support\Localization\Country\Models\Country;
  */
 class SecurityPolicyController
 {
-    public function edit(Request $request, NetworkAccessGuard $guard): Response
+    public function edit(Request $request): Response
     {
         $workspace = $request->user()->workspace();
         $entitled = Feature::for($request->user())->active('security');
@@ -37,11 +36,11 @@ class SecurityPolicyController
             ->where('workspace_id', $workspace->id)
             ->first();
 
-        // The viewer's own country (lowercase ISO code, via IP2Country) so the
-        // page can warn — before they ever hit Save — that a geo rule would lock
-        // them out. Null when unresolved (private IP / provider miss) ⇒ no
-        // warning, mirroring the gate's geo fail-open.
-        $currentCountry = $entitled ? $guard->countryFor($request->ip()) : null;
+        // The viewer's own country (lowercase ISO code) so the page can warn —
+        // before they ever hit Save — that a geo rule would lock them out. Prefers
+        // Cloudflare's CF-IPCountry (the real visitor, not CF's edge IP); null when
+        // unresolved ⇒ no warning, mirroring the gate's geo fail-open.
+        $currentCountry = $entitled ? request_country($request) : null;
 
         return Inertia::render('workspace/security/Security', [
             'entitled' => $entitled,
@@ -52,7 +51,7 @@ class SecurityPolicyController
             // (not the teaser) renders. Codes are the lowercase ISO-3166 alpha-2
             // values the geo gate stores and matches against.
             'countries' => $entitled ? $this->countryOptions() : [],
-            'current_country' => $currentCountry !== null ? strtolower($currentCountry) : null,
+            'current_country' => $currentCountry,
             // Retention bounds for the form: conversations cap at the plan ceiling
             // (shorten only); audit sits between the mandated floor and default.
             'limits' => $entitled ? [

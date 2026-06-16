@@ -89,7 +89,7 @@ class UpdateSecurityPolicyRequest extends FormRequest
             $guard = app(NetworkAccessGuard::class);
             $ip = (string) $this->ip();
             $geoMode = (string) $this->input('geo_mode', 'off');
-            $country = $geoMode === 'off' ? null : $guard->countryFor($ip);
+            $country = $geoMode === 'off' ? null : request_country($this);
 
             $ipBlocks = ! $guard->ipAllowed($this->cleanIpAllowlist(), $ip);
             $geoBlocks = ! $guard->geoAllowed($geoMode, $this->cleanGeoCountries(), $country);

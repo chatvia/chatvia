@@ -256,6 +256,14 @@ return [
 
             'max_chunks' => env('VECTOR_SEARCH_MAX_CHUNKS', 3),
 
+            // Size of the candidate pool fed to the reranker. Must stay
+            // comfortably above max_chunks — the reranker's value is promoting a
+            // chunk the rough first-stage RRF under-ranked, so a pool == max_chunks
+            // makes it a no-op reorder. Latency is dominated by the rerank
+            // round-trip, not the doc count, so trim only if debug rerank_ms
+            // justifies it. Ignored when rerank is off (pool is max_chunks * 2).
+            'rerank_candidates' => env('VECTOR_SEARCH_RERANK_CANDIDATES', 12),
+
             // vchordrq.probes — scale with sqrt(lists). For lists=4096, probes=64
             // is the recall sweet spot. Adjust when lists changes via vector:reindex.
             'probes' => [

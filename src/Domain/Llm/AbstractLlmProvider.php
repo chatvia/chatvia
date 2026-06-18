@@ -86,13 +86,16 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
     }
 
     /**
-     * Scaleway's reasoning models (qwen3.*, etc.) think by default: that adds
+     * Scaleway's Qwen3 reasoning models (qwen3.*) think by default: that adds
      * several seconds before the first answer token plus a chunk of hidden
      * chain-of-thought. This pipeline is RAG — we want the grounded answer
-     * straight away, not a reasoning pass — so default reasoning OFF for
-     * Scaleway. A caller that genuinely wants it can pass an explicit
-     * `reasoning_effort` and we leave it untouched. `gpt-oss-*` on Scaleway
-     * rejects `reasoning_effort=none`, so those models are skipped.
+     * straight away — so default reasoning OFF for those models via
+     * `reasoning_effort=none`.
+     *
+     * Scoped to qwen ONLY: other Scaleway models (the analytics / guardrail
+     * instruct models) strictly validate the request body and return 400 on an
+     * unknown `reasoning_effort` field, so they must never receive it. A caller
+     * that set `reasoning_effort` itself is always left untouched.
      *
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
@@ -107,7 +110,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
             return $payload;
         }
 
-        if (str_contains((string) ($payload['model'] ?? ''), 'gpt-oss')) {
+        if (! str_contains(strtolower((string) ($payload['model'] ?? '')), 'qwen')) {
             return $payload;
         }
 

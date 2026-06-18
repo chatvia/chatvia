@@ -256,6 +256,12 @@ return [
 
             'max_chunks' => env('VECTOR_SEARCH_MAX_CHUNKS', 3),
 
+            // Hybrid SQL normally runs in ~200ms; when the phase exceeds this
+            // (cold index / autovacuum / checkpoint) KnowledgeBase logs a
+            // warning with the full phase breakdown — independent of LOG_LEVEL,
+            // so spikes are catchable in prod. Set to 0 to disable.
+            'slow_log_ms' => (int) env('VECTOR_SEARCH_SLOW_LOG_MS', 2000),
+
             // Size of the candidate pool fed to the reranker. Must stay
             // comfortably above max_chunks — the reranker's value is promoting a
             // chunk the rough first-stage RRF under-ranked, so a pool == max_chunks

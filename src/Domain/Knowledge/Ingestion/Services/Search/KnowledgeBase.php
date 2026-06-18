@@ -118,9 +118,8 @@ class KnowledgeBase
 
         // Phase breakdown so we can see where search latency actually goes
         // (cold embed call vs the 4-channel SQL vs the reranker round-trip)
-        // before trading retrieval quality for fewer channels. Debug-level, so
-        // it only writes when LOG_LEVEL=debug.
-        Log::debug('KnowledgeBase: search complete', [
+        // before trading retrieval quality for fewer channels.
+        $breakdown = [
             'agent_id' => $agent,
             'query_chars' => strlen($query),
             'accuracy' => $accuracyLevel,
@@ -132,7 +131,20 @@ class KnowledgeBase
             'sql_ms' => round($sqlMs, 2),
             'rerank_ms' => round($rerankMs, 2),
             'total_ms' => round((microtime(true) - $searchStart) * 1000, 2),
-        ]);
+        ];
+
+        // Debug-level breakdown — only writes when LOG_LEVEL=debug.
+        Log::debug('KnowledgeBase: search complete', $breakdown);
+
+        // The 4-channel hybrid SQL normally runs in ~200ms but occasionally
+        // spikes to 20s+ (cold index / autovacuum / checkpoint), which reads
+        // to the visitor as a hung chat. Surface those at warning level —
+        // independent of LOG_LEVEL — so they're catchable in prod without
+        // leaving debug logging on. Set slow_log_ms to 0 to disable.
+        $slowMs = (int) config('chatvia.vector.search.slow_log_ms', 2000);
+        if ($slowMs > 0 && $sqlMs >= $slowMs) {
+            Log::warning('KnowledgeBase: slow vector search', $breakdown + ['slow_threshold_ms' => $slowMs]);
+        }
 
         return $results;
     }

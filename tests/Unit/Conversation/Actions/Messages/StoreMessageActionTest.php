@@ -10,6 +10,7 @@ use Domain\Billing\Services\UserCreditSystem;
 use Domain\Conversation\Actions\Messages\StoreMessageAction;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
+use Domain\Conversation\Events\SessionLocationUnknown;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Llm\Contracts\LlmProviderInterface;
@@ -236,6 +237,25 @@ it('backfills the chatter onto a session that was minted without a user_id', fun
     ]));
 
     expect(Session::where('external_id', $sessionExternalId)->value('user_id'))->toBe($chatter->id);
+});
+
+it('dispatches the location event with the request-resolved country', function (): void {
+    // The CF-aware country is captured on the payload at request time and must
+    // reach the queued locate listener via the event — geo-locating the stored
+    // IP there would mislabel CF-proxied visitors as the edge PoP (Bulgaria).
+    Event::fake([MessageSent::class, SessionLocationUnknown::class]);
+
+    $agent = Agent::factory()->create();
+
+    makeStoreMessageAction(fakeLlmProvider())->execute($agent, makeInputPayload($agent, [
+        'ip_address' => '203.0.113.10',
+        'country' => 'iq',
+    ]));
+
+    Event::assertDispatched(
+        SessionLocationUnknown::class,
+        fn (SessionLocationUnknown $event): bool => $event->countryCode === 'iq',
+    );
 });
 
 it('counts a chatter user message against their monthly limit', function (): void {

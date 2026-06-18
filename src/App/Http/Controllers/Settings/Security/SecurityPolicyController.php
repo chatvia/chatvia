@@ -40,7 +40,7 @@ class SecurityPolicyController
         // before they ever hit Save — that a geo rule would lock them out. Prefers
         // Cloudflare's CF-IPCountry (the real visitor, not CF's edge IP); null when
         // unresolved ⇒ no warning, mirroring the gate's geo fail-open.
-        $currentCountry = $entitled ? request_country($request) : null;
+        $currentCountry = $entitled ? $request->country() : null;
 
         return Inertia::render('workspace/security/Security', [
             'entitled' => $entitled,

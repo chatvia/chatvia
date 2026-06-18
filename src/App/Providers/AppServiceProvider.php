@@ -17,6 +17,7 @@ use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Membership\Team\Services\TeamService;
 use Domain\Security\Enums\SecurityFeature;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
+use Domain\Security\Services\NetworkAccessGuard;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -138,6 +139,29 @@ class AppServiceProvider extends ServiceProvider
             preg_match('/([a-z0-9\-]+\.[a-z]{2,})$/i', $host, $matches);
 
             return $matches[1] ?? $host.($this->getPort() === 80 ? '' : ':'.$this->getPort());
+        });
+
+        // The visitor's ISO-3166 alpha-2 country (lowercase), or null when it
+        // can't be resolved (callers treat null as fail-open).
+        //
+        // Behind Cloudflare — every deployed environment, since the origin only
+        // accepts CF-proxied traffic — CF geolocates the REAL visitor and sends
+        // it in `CF-IPCountry`. We trust that header directly: it sidesteps the
+        // edge-IP problem where geo-locating CF's egress IP returns the serving
+        // PoP's country (e.g. Bulgaria for Middle-East traffic) rather than the
+        // visitor's, and avoids a third-party IP lookup entirely. CF's
+        // non-country sentinels (`XX` unknown, `T1` Tor) and a missing header
+        // (local/dev, no CF) fall back to a geo-IP lookup of the connecting IP.
+        Request::macro('country', function (): ?string {
+            $cf = strtoupper(trim((string) $this->header('CF-IPCountry')));
+
+            if ($cf !== '' && ! in_array($cf, ['XX', 'T1'], true)) {
+                return strtolower($cf);
+            }
+
+            $country = app(NetworkAccessGuard::class)->countryFor((string) $this->ip());
+
+            return $country !== null ? strtolower($country) : null;
         });
 
         Request::macro('agentSlug', function () {

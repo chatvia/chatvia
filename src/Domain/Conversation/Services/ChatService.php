@@ -89,6 +89,7 @@ readonly class ChatService
             'user_id' => $data->chatterUserId,
             'language' => $lang,
             'ip_address' => $data->ipAddress,
+            'country' => $data->country,
             'user_agent' => $data->userAgent,
             'referrer_url' => $data->referrerUrl,
             'page_url' => $data->pageUrl,

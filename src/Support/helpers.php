@@ -6,8 +6,6 @@ use Domain\Knowledge\Document\LibreOffice;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
-use Domain\Security\Services\NetworkAccessGuard;
-use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Support\MimeType;
@@ -319,36 +317,6 @@ if (! function_exists('current_agent_from_widget')) {
         }
 
         return AgentModel::where('external_id', $agentId)->first();
-    }
-}
-
-if (! function_exists('request_country')) {
-    /**
-     * The visitor's ISO-3166 alpha-2 country (lowercase) for a request, or null
-     * when it can't be resolved (callers treat null as fail-open).
-     *
-     * Behind Cloudflare — every deployed environment, since the origin only
-     * accepts CF-proxied traffic — CF geolocates the REAL visitor and sends it in
-     * `CF-IPCountry`. We trust that header directly: it sidesteps the edge-IP
-     * problem where geo-locating CF's egress IP returns the serving PoP's country
-     * (e.g. Bulgaria for Middle-East traffic) rather than the visitor's, and it
-     * avoids a third-party IP lookup entirely. CF's non-country sentinels
-     * (`XX` = unknown, `T1` = Tor) and a missing header (local/dev, no CF) fall
-     * back to a geo-IP lookup of the connecting IP.
-     */
-    function request_country(?Request $request = null): ?string
-    {
-        $request ??= request();
-
-        $cf = strtoupper(trim((string) $request->header('CF-IPCountry')));
-
-        if ($cf !== '' && ! in_array($cf, ['XX', 'T1'], true)) {
-            return strtolower($cf);
-        }
-
-        $country = app(NetworkAccessGuard::class)->countryFor((string) $request->ip());
-
-        return $country !== null ? strtolower($country) : null;
     }
 }
 

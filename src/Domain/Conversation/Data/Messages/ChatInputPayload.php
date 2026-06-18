@@ -22,6 +22,10 @@ class ChatInputPayload extends Data
         public ?int $user_id = null,
         public ?string $language = null,
         public ?string $ip_address = null,
+        // Lowercase ISO-3166 alpha-2, resolved at request time (CF-aware). Carried
+        // to the session so its country comes from Cloudflare's view of the real
+        // visitor, not a geo lookup of the CF edge IP on the queued locate listener.
+        public ?string $country = null,
         public ?string $user_agent = null,
         public ?string $referrer_url = null,
         public ?string $page_url = null,

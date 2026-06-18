@@ -299,3 +299,92 @@ onMounted(() => {
         />
     </div>
 </template>
+
+<style scoped>
+/* ---------------------------------------------------------------
+ * Streaming reveal.
+ *
+ * These rules used to live (scoped) in AssistantChatBubble, but the
+ * `.streaming-content` element is rendered HERE, in the child. Vue
+ * scoped styles don't reach a child's inner elements, so the whole
+ * fade treatment silently stopped applying after that refactor —
+ * leaving a raw, instant typewriter. They belong with the element
+ * they style, so the scope matches and the fade actually shows.
+ *
+ * Effect: a tall trailing gradient mask + sub-pixel blur fades freshly
+ * arrived text in at the leading (bottom) edge as it streams, plus a
+ * breathing caret. When `is-streaming` flips off the mask/blur
+ * transition out (320ms) so the final tokens settle instead of popping.
+ * --------------------------------------------------------------- */
+.streaming-content {
+    --stream-fade: 0px;
+    transition:
+        -webkit-mask-image 320ms ease-out,
+        mask-image 320ms ease-out,
+        filter 320ms ease-out;
+}
+
+.streaming-content.is-streaming {
+    /* 96px ≈ 3 lines of body text; the multi-stop falloff approximates
+       an ease-out curve so the edge reads as "appearing" not "grey". */
+    --stream-fade: 96px;
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        #000 0,
+        #000 calc(100% - var(--stream-fade)),
+        rgba(0, 0, 0, 0.92) calc(100% - var(--stream-fade) * 0.78),
+        rgba(0, 0, 0, 0.72) calc(100% - var(--stream-fade) * 0.55),
+        rgba(0, 0, 0, 0.42) calc(100% - var(--stream-fade) * 0.32),
+        rgba(0, 0, 0, 0.18) calc(100% - var(--stream-fade) * 0.14),
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        #000 0,
+        #000 calc(100% - var(--stream-fade)),
+        rgba(0, 0, 0, 0.92) calc(100% - var(--stream-fade) * 0.78),
+        rgba(0, 0, 0, 0.72) calc(100% - var(--stream-fade) * 0.55),
+        rgba(0, 0, 0, 0.42) calc(100% - var(--stream-fade) * 0.32),
+        rgba(0, 0, 0, 0.18) calc(100% - var(--stream-fade) * 0.14),
+        transparent 100%
+    );
+    filter: blur(0.35px);
+}
+
+/* Breathing caret — soft pulse rather than a hard blink. Inherits the
+   text color via currentColor (theme vars are full color functions, so
+   wrapping them in hsl() would be invalid). */
+.streaming-content.is-streaming::after {
+    content: '▋';
+    display: inline-block;
+    margin-left: 2px;
+    color: currentColor;
+    transform-origin: bottom;
+    filter: blur(0);
+    animation: stream-cursor 1.1s ease-in-out infinite;
+}
+
+@keyframes stream-cursor {
+    0%,
+    100% {
+        opacity: 0.85;
+        transform: scaleY(1);
+    }
+    50% {
+        opacity: 0.15;
+        transform: scaleY(0.94);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .streaming-content.is-streaming {
+        -webkit-mask-image: none;
+        mask-image: none;
+        filter: none;
+    }
+    .streaming-content.is-streaming::after {
+        animation: none;
+        opacity: 0.7;
+    }
+}
+</style>

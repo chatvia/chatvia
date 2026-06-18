@@ -31,9 +31,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
             'stream' => true,
         ], $settings);
 
-        //        if (static::class === Scaleway::class) {
-        //            $json['reasoning_effort'] = 'none';
-        //        }
+        $json = $this->disableScalewayReasoning($json);
 
         // Force the upstream to emit a final chunk with token usage so Spectra
         // can record cost/tokens. Caller-provided stream_options keys win.
@@ -67,9 +65,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
      */
     public function completion(array $data)
     {
-        //        if (static::class === Scaleway::class) {
-        //            $data += ['reasoning_effort' => 'none'];
-        //        }
+        $data = $this->disableScalewayReasoning($data);
 
         if (static::class === Mistral::class) {
             unset($data['top_k']);
@@ -87,6 +83,37 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
         app(TokenUsageContext::class)->addFromResponse($response);
 
         return $response;
+    }
+
+    /**
+     * Scaleway's reasoning models (qwen3.*, etc.) think by default: that adds
+     * several seconds before the first answer token plus a chunk of hidden
+     * chain-of-thought. This pipeline is RAG — we want the grounded answer
+     * straight away, not a reasoning pass — so default reasoning OFF for
+     * Scaleway. A caller that genuinely wants it can pass an explicit
+     * `reasoning_effort` and we leave it untouched. `gpt-oss-*` on Scaleway
+     * rejects `reasoning_effort=none`, so those models are skipped.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function disableScalewayReasoning(array $payload): array
+    {
+        if (static::class !== Scaleway::class) {
+            return $payload;
+        }
+
+        if (array_key_exists('reasoning_effort', $payload)) {
+            return $payload;
+        }
+
+        if (str_contains((string) ($payload['model'] ?? ''), 'gpt-oss')) {
+            return $payload;
+        }
+
+        $payload['reasoning_effort'] = 'none';
+
+        return $payload;
     }
 
     public function client(): PendingRequest

@@ -515,6 +515,7 @@ pass_rate: number | null;
 total_tokens: number | null;
 model_snapshot: string | null;
 triggered_by_name: string | null;
+triggered_by_avatar: string | null;
 started_at: string | null;
 finished_at: string | null;
 created_at: string;

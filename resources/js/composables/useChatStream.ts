@@ -27,12 +27,15 @@ import { ref } from 'vue';
  *
  * Slow streams pay no cost — the queue stays empty so paced output keeps
  * up with arrivals. When the server's `done` envelope arrives we accelerate
- * the drain (4× the steady rate) so any backlog flushes within ~1s before
- * `onDone` fires, keeping the streaming indicator visible until the last
- * character lands.
+ * the drain so any backlog flushes before `onDone` fires, keeping the
+ * streaming indicator visible until the last character lands.
+ *
+ * Rates are deliberately calm: fast local models dump a whole response as
+ * backlog, so the post-`done` drain dominates the perceived speed. Keep the
+ * acceleration modest or the reveal still feels like an instant block.
  */
-const PACE_CHARS_PER_SECOND = 80;
-const FINISH_ACCELERATION = 4;
+const PACE_CHARS_PER_SECOND = 50;
+const FINISH_ACCELERATION = 2.5;
 
 export interface UseChatStreamOptions {
     /**

@@ -63,7 +63,9 @@ class KnowledgeBase
         $accuracyLevel = config('chatvia.vector.search.mode', 'default');
         $maxChunks = config('chatvia.vector.search.max_chunks', 3);
         $rerankEnabled = config('chatvia.vector.search.rerank', false);
-        $candidateLimit = $rerankEnabled ? 12 : ($maxChunks * 2);
+        $candidateLimit = $rerankEnabled
+            ? config('chatvia.vector.search.rerank_candidates', 12)
+            : ($maxChunks * 2);
 
         // --- Phase 2: hybrid SQL search (4-channel RRF) ---
         // SET LOCAL needs a transaction so vchordrq settings don't leak

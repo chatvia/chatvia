@@ -32,6 +32,12 @@ class StreamRequestData extends Data
         public bool $streamLanguage = false,
         public ?string $source = null,
         public ?string $ipAddress = null,
+        // The visitor's ISO-3166 alpha-2 country (lowercase), resolved at request
+        // time via Request::country() — Cloudflare's CF-IPCountry behind the proxy,
+        // an IP geo lookup otherwise. Captured here because the queued location
+        // listener runs without the request and can't see CF-IPCountry; geo-locating
+        // the stored IP there would mislabel CF-proxied traffic as the edge PoP.
+        public ?string $country = null,
         public ?string $userAgent = null,
         public ?string $referrerUrl = null,
         public ?string $pageUrl = null,

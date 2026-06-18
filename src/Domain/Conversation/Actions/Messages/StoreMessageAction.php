@@ -185,8 +185,14 @@ class StoreMessageAction
             $session->update($sessionUpdates);
         }
 
-        if ($session->ip_address && ! $session->country_id) {
-            SessionLocationUnknown::dispatch($session);
+        // Resolve location off the hot path. The request-time country (CF-aware,
+        // user turns only) is the trusted signal; the queued listener still
+        // enriches city/region from the stored IP when it can. Fire when either
+        // source can yield something and the country isn't already stamped.
+        $country = $isUserMessage && $payload instanceof ChatInputPayload ? $payload->country : null;
+
+        if (! $session->country_id && ($country || $session->ip_address)) {
+            SessionLocationUnknown::dispatch($session, $country);
         }
 
         return $session;

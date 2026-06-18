@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Services\UserCreditSystem;
+use Domain\Conversation\Services\AgentChatRateLimiter;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\ChatStreamService;
@@ -39,6 +40,7 @@ class ChannelReplyRunner
         private readonly QASource $qaSource,
         private readonly GuardBlockSource $guardBlockSource,
         private readonly UserCreditSystem $creditSystem,
+        private readonly AgentChatRateLimiter $rateLimiter,
     ) {}
 
     /**
@@ -64,6 +66,14 @@ class ChannelReplyRunner
 
         if ($agent->llm === null) {
             return 'Sorry — this assistant is not fully configured yet.';
+        }
+
+        // Per-agent chat rate limit (owner-configurable on the Security page).
+        // The web SSE surface applies this in ChatStreamService; channels reach
+        // the pipeline directly, so the cap is enforced here too — otherwise a
+        // visitor could bypass it by messaging through Telegram/Slack/etc.
+        if ($this->rateLimiter->exceeded($agent)) {
+            return 'This assistant is receiving too many messages right now. Please try again in a moment.';
         }
 
         $data = new StreamRequestData(

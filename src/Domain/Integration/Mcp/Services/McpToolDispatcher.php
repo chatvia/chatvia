@@ -7,7 +7,6 @@ use Domain\Analytics\Events\McpToolInvoked;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatchResult;
 use Domain\Conversation\Services\Tooling\Registry\ToolCallerIdentity;
-use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Support\Facades\Log;
@@ -36,24 +35,15 @@ class McpToolDispatcher implements ToolDispatcherInterface
             return $this->error("Tool \"{$name}\" is not a recognized MCP tool.");
         }
 
+        // Attached to this agent (workspace-owned + on the pivot).
         $server = AgentMcpServer::query()
             ->where('slug', $slug)
             ->where('is_enabled', true)
-            ->where(function ($q) use ($agent): void {
-                // Attached to this agent (workspace-owned + on the pivot) …
-                $q->where(function ($attached) use ($agent): void {
-                    $attached->where('user_id', $agent->user_id)
-                        ->whereExists(function ($sub) use ($agent): void {
-                            $sub->from('agent_mcp_server')
-                                ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')
-                                ->where('agent_mcp_server.agent_id', $agent->id);
-                        });
-                })
-                    // … or a global always-on built-in (e.g. charts).
-                    ->orWhere(function ($builtin): void {
-                        $builtin->whereNull('user_id')
-                            ->where('category', McpServerCategory::Builtin->value);
-                    });
+            ->where('user_id', $agent->user_id)
+            ->whereExists(function ($sub) use ($agent): void {
+                $sub->from('agent_mcp_server')
+                    ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')
+                    ->where('agent_mcp_server.agent_id', $agent->id);
             })
             ->first();
 

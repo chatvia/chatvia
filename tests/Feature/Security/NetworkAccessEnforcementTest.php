@@ -147,6 +147,64 @@ it('passes a request from a country not on the deny list', function (): void {
 });
 
 /*
+| Geo-only policy: the IP allowlist is OFF and geo alone decides. This is the
+| common UI path ("Allow only these → Denmark" with no IP rules). Regression
+| guard: the middleware used to short-circuit whenever `ip_allowlist_mode` was
+| 'off', so a geo-only policy never enforced and any country got through.
+*/
+
+it('forbids a geo-allow policy from a country not on the allow list, with the IP allowlist off', function (): void {
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+        'ip_allowlist_mode' => 'off', // the exact UI scenario: only geo is configured
+        'ip_allowlist' => [],
+        'geo_mode' => 'allow',
+        'geo_countries' => ['DK'], // allow only Denmark
+    ]);
+
+    Cache::put('security:geoip:198.51.100.7', 'US', now()->addDay());
+
+    $this->actingAs($this->owner)
+        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
+        ->get(route('security.edit'))
+        ->assertForbidden();
+});
+
+it('passes a geo-allow policy from an allow-listed country, with the IP allowlist off', function (): void {
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+        'ip_allowlist_mode' => 'off',
+        'ip_allowlist' => [],
+        'geo_mode' => 'allow',
+        'geo_countries' => ['DK'],
+    ]);
+
+    Cache::put('security:geoip:198.51.100.7', 'DK', now()->addDay());
+
+    $this->actingAs($this->owner)
+        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
+        ->get(route('security.edit'))
+        ->assertOk();
+});
+
+it('ignores a dormant IP allowlist when its mode is off and only geo is active', function (): void {
+    // A workspace that once configured IP rules, turned them OFF, then enabled
+    // geo. The stale `ip_allowlist` must NOT be enforced — only geo decides — or
+    // turning geo on would unexpectedly resurrect the old IP fence.
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+        'ip_allowlist_mode' => 'off',
+        'ip_allowlist' => ['203.0.113.0/24'], // dormant: the request IP is outside it
+        'geo_mode' => 'allow',
+        'geo_countries' => ['DK'],
+    ]);
+
+    Cache::put('security:geoip:198.51.100.7', 'DK', now()->addDay());
+
+    $this->actingAs($this->owner)
+        ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7']) // outside the dormant /24
+        ->get(route('security.edit'))
+        ->assertOk();
+});
+
+/*
 | Cloudflare's CF-IPCountry header (the REAL visitor's country) wins over a
 | geo lookup of the connecting IP — which, behind CF, is the edge/egress IP and
 | resolves to the serving PoP's country (e.g. Bulgaria for Middle-East traffic),

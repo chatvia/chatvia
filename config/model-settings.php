@@ -82,6 +82,13 @@ return [
                 // on by default.
                 'allow_file_uploads' => false,
                 'allow_voice_input' => true,
+                // "Powered by Chatvia" badge. Only honoured for workspaces that
+                // can hide branding (plan white-label or the remove-branding
+                // add-on); everyone else always shows it regardless of this
+                // value — see Agent::showsChatviaBranding(). Defaults to hidden
+                // so the badge disappears the moment the entitlement is gained;
+                // the Setup → Branding toggle lets them opt back in.
+                'show_branding' => false,
             ],
             // Bar surface — surface-specific behaviour only (text/branding now
             // come from `appearance`). Single model lives on `agents.llm_id`.
@@ -198,6 +205,7 @@ return [
             'composer_placeholder' => ['nullable', 'string'],
             'allow_file_uploads' => ['nullable', 'boolean'],
             'allow_voice_input' => ['nullable', 'boolean'],
+            'show_branding' => ['nullable', 'boolean'],
         ],
         'widget' => [
             'enabled' => ['nullable', 'boolean'],

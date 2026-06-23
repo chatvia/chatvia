@@ -14,8 +14,8 @@ use Pgvector\Laravel\Vector;
  * Runs the real six-channel RRF query against Postgres — the SQL (CTE shape,
  * bind order, LATERAL slug pick) is the unit under test, so nothing is mocked.
  * Preset reachability comes from the precomputed reachable-set CTEs: a catalog
- * tool surfaces iff one of the agent's servers (or a global builtin) advertises
- * it with an unblocked membership.
+ * tool surfaces iff one of the agent's attached servers advertises it with an
+ * unblocked membership.
  */
 pest()->beforeEach(function (): void {
     if (! Schema::hasTable('connector_tools') || ! Schema::hasColumn('mcp_servers', 'uses_central_catalog')) {

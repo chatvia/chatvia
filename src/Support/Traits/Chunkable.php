@@ -67,7 +67,15 @@ trait Chunkable
         // queries on list pages); fall back to a per-row count if absent.
         $importedChunks = $this->chunks_count ?? $this->chunks()->count();
 
-        return (int) round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
+        $progress = (int) round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
+
+        // While still Processing, never report a full 100%. Completion is
+        // signalled solely by the status flip to Completed (short-circuited
+        // above). If imported >= expected before the batch `finally()` commits
+        // the status, a 100 here makes the UI render "ingested" and then revert
+        // to "Training in progress" on the next read that still sees Processing.
+        // Cap at 99 so 100% unambiguously means "done".
+        return min($progress, 99);
     }
 
     public function summary(): MorphOne

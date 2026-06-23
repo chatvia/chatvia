@@ -13,7 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
  * Enforces a workspace's network-access policy (IP allowlist + geo) on the
  * authenticated dashboard. Appended to the `web` group, so it runs on every web
  * request but no-ops unless ALL of: there's an authenticated user, they aren't
- * platform staff, their workspace has a policy row, and the policy mode is on.
+ * platform staff, their workspace has a policy row, and at least one control
+ * (IP allowlist or geo) is on.
  *
  * Anti-lockout lives at the write boundary — the security-policy FormRequest
  * rejects rules that would block the saver — so a workspace can't fence itself
@@ -38,15 +39,16 @@ class EnsureWorkspaceNetworkAllowed
             ->where('workspace_id', $user->workspace()->id)
             ->first(['ip_allowlist_mode', 'ip_allowlist', 'geo_mode', 'geo_countries']);
 
-        if ($policy === null || $policy->ip_allowlist_mode === 'off') {
+        if ($policy === null || ($policy->ip_allowlist_mode === 'off' && $policy->geo_mode === 'off')) {
             return $next($request);
         }
 
         $ip = (string) $request->ip();
+        $ipAllowlist = $policy->ip_allowlist_mode === 'off' ? [] : ($policy->ip_allowlist ?? []);
         $country = $policy->geo_mode === 'off' ? null : $request->country();
 
         $allowed = $this->guard->passes(
-            $policy->ip_allowlist ?? [],
+            $ipAllowlist,
             $policy->geo_mode,
             $policy->geo_countries ?? [],
             $ip,

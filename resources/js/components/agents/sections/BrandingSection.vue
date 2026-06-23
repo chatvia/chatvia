@@ -3,6 +3,7 @@ import ColorThemePicker from '@/components/agents/ColorThemePicker.vue';
 import ImageUploadField from '@/components/agents/ImageUploadField.vue';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -13,15 +14,20 @@ withDefaults(
         colorShade: number;
         avatarPreview?: string | null;
         logoPreview?: string | null;
+        // Whether the workspace may hide the "Powered by Chatvia" badge. When
+        // false the show/hide toggle is omitted and the badge always shows.
+        canHideBranding?: boolean;
+        showBranding?: boolean;
         errors?: Record<string, string | undefined>;
         disabled?: boolean;
     }>(),
-    { avatarPreview: null, logoPreview: null, errors: () => ({}), disabled: false },
+    { avatarPreview: null, logoPreview: null, canHideBranding: false, showBranding: false, errors: () => ({}), disabled: false },
 );
 
 defineEmits<{
     'update:colorTheme': [value: string];
     'update:colorShade': [value: number];
+    'update:showBranding': [value: boolean];
     avatarSelect: [file: File];
     avatarRemove: [];
     logoSelect: [file: File];
@@ -71,5 +77,23 @@ defineEmits<{
             @select="$emit('logoSelect', $event)"
             @remove="$emit('logoRemove')"
         />
+
+        <!-- Show/hide the "Powered by Chatvia" badge — only for workspaces whose
+             plan/add-on allows it. Otherwise the badge always shows. -->
+        <template v-if="canHideBranding">
+            <Separator />
+
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <Label>{{ t('agents.setup.sections.branding_badge') }}</Label>
+                    <p class="text-muted-foreground mt-1 text-xs">{{ t('agents.setup.sections.branding_badge_hint') }}</p>
+                </div>
+                <Switch
+                    :model-value="showBranding"
+                    :disabled="disabled"
+                    @update:model-value="$emit('update:showBranding', $event)"
+                />
+            </div>
+        </template>
     </div>
 </template>

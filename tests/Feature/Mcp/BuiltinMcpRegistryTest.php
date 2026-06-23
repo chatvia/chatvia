@@ -8,6 +8,7 @@ use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -54,6 +55,42 @@ function bindFakeEmbeddings(): void
             return 'fake-embed';
         }
     });
+}
+
+/**
+ * Provision + attach the (now opt-in) charts connector to an agent the way a
+ * workspace would: an account-level row sharing the central catalog, a
+ * membership for each synced charts tool, and the agent pivot. Assumes
+ * `app:sync-builtin-mcp` has already populated the shared `connector_tools`
+ * catalog for 'charts'.
+ */
+function attachCharts(Agent $agent): AgentMcpServer
+{
+    $server = AgentMcpServer::create([
+        'user_id' => $agent->user_id,
+        'category' => McpServerCategory::Builtin,
+        'connector_slug' => 'charts',
+        'name' => 'Interactive charts',
+        'slug' => 'charts',
+        'url' => rtrim((string) config('app.url'), '/').'/mcp/charts',
+        'transport' => 'streamable_http',
+        'auth_type' => 'none',
+        'uses_central_catalog' => true,
+        'is_enabled' => true,
+    ]);
+
+    foreach (ConnectorTool::where('connector_slug', 'charts')->get() as $tool) {
+        DB::table('mcp_server_tool')->insert([
+            'mcp_server_id' => $server->id,
+            'connector_tool_id' => $tool->id,
+            'permission' => $tool->default_permission->value,
+        ]);
+    }
+
+    $agent->mcpServers()->attach($server->id);
+    app(ToolRegistry::class)->forget($agent->id);
+
+    return $server;
 }
 
 it('catalogs the built-in servers as global rows and indexes their tools', function (): void {
@@ -109,7 +146,7 @@ it('routes a question to the relevant global tools + a name→url map', function
     }
 })->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
 
-it('makes the global builtin (charts) ambient for every agent, but keeps leads per-agent', function (): void {
+it('does not make charts ambient — an unattached agent gets neither charts nor leads', function (): void {
     bindFakeEmbeddings();
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
 
@@ -120,13 +157,27 @@ it('makes the global builtin (charts) ambient for every agent, but keeps leads p
         app(ToolRegistry::class)->for($agent),
     );
 
-    // Charts is global builtin (synced) → always available.
-    expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__charts__')))->toBeTrue();
-    // Leads is builtin but NOT synced as a global row → stays per-agent (not attached here).
+    // Charts is now opt-in (like leads): not attached → not in the pool.
+    expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__charts__')))->toBeFalse();
     expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__leads__')))->toBeFalse();
 })->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
 
-it('lets an unattached agent call the always-on charts route, but 403s leads', function (): void {
+it('surfaces charts tools once the agent attaches the connector', function (): void {
+    bindFakeEmbeddings();
+    $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
+
+    $agent = Agent::factory()->create();
+    attachCharts($agent);
+
+    $names = array_map(
+        static fn ($entry): string => $entry->name,
+        app(ToolRegistry::class)->for($agent),
+    );
+
+    expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__charts__')))->toBeTrue();
+})->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
+
+it('403s an unattached agent on the charts route, allows it once attached', function (): void {
     bindFakeEmbeddings();
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
     $agent = Agent::factory()->create();
@@ -134,10 +185,27 @@ it('lets an unattached agent call the always-on charts route, but 403s leads', f
     $sign = fn (): array => array_merge(InternalMcpSignature::headers(), ['X-Chatvia-Agent-Id' => $agent->external_id]);
     $call = fn (string $tool): array => ['jsonrpc' => '2.0', 'id' => '1', 'method' => 'tools/call', 'params' => ['name' => $tool, 'arguments' => (object) []]];
 
-    // Charts: global builtin → middleware allows (would be 403 without the rule).
+    // Charts is opt-in now: an agent that hasn't enabled it is gated like any other connector.
+    $this->withHeaders($sign())->postJson('/mcp/charts', $call('render-bar-chart'))->assertStatus(403);
+    // Leads (also opt-in, not attached) → still gated.
+    $this->withHeaders($sign())->postJson('/mcp/leads', $call('capture-lead'))->assertStatus(403);
+
+    // Once charts is attached, the per-agent enablement check passes (no longer 403).
+    attachCharts($agent);
     $charts = $this->withHeaders($sign())->postJson('/mcp/charts', $call('render-bar-chart'));
     expect($charts->getStatusCode())->not->toBe(403);
+})->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
 
-    // Leads: not global, not attached → still gated.
-    $this->withHeaders($sign())->postJson('/mcp/leads', $call('capture-lead'))->assertStatus(403);
+it('still authorizes the analytics chat (workspace mode) on the charts route', function (): void {
+    bindFakeEmbeddings();
+    $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
+
+    // The owner "Ask your data" chat reaches /mcp/charts via a signed workspace
+    // id, NOT the removed global-builtin carve-out — this must keep working.
+    $workspace = Agent::factory()->create()->user;
+    $headers = array_merge(InternalMcpSignature::headers(), ['X-Chatvia-Workspace-Id' => $workspace->external_id]);
+    $call = ['jsonrpc' => '2.0', 'id' => '1', 'method' => 'tools/call', 'params' => ['name' => 'render-bar-chart', 'arguments' => (object) []]];
+
+    $resp = $this->withHeaders($headers)->postJson('/mcp/charts', $call);
+    expect($resp->getStatusCode())->not->toBe(403);
 })->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');

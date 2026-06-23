@@ -63,6 +63,10 @@ class SetupController
             'prompts' => $prompts,
             'hasPermission' => has_permission_to_agent($agent, 'agent.setup'),
             'canUseHandoff' => $agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false,
+            // Whether the workspace may hide the "Powered by Chatvia" badge. Only
+            // then does the Branding section expose the show/hide toggle; otherwise
+            // the badge always shows and there's nothing to choose.
+            'canHideBranding' => $agent->loadMissing('team.owner')->team?->owner?->canHideBranding() ?? false,
 
             // Shared content settings + their defaults — written across all surfaces.
             'appearanceSettings' => $agent->settings('appearance'),

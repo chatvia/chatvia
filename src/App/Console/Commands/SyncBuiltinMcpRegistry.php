@@ -78,14 +78,15 @@ class SyncBuiltinMcpRegistry extends Command
             }
         }
 
-        // A builtin catalog change alters every agent's effective tool pool —
-        // the global always-on builtins are unioned into ToolRegistry::for(),
-        // which caches per agent for an hour and is otherwise only invalidated
-        // by per-agent pivot observers (agent_mcp_server / agent_function). A
-        // global builtin sync trips none of those, so without this every warm
-        // agent serves a stale pool until the TTL lapses — and an agent whose
-        // pool was cached empty (chatted before the first-ever sync) stays
-        // toolless, since ToolSelector gates the whole turn on an empty pool.
+        // A builtin catalog change alters the shared connector_tools rows that
+        // every agent which ATTACHED a builtin connector reads through its
+        // mcp_server_tool membership — and ToolRegistry::for() caches that pool
+        // per agent for an hour, otherwise invalidated only by per-agent pivot
+        // observers (agent_mcp_server / agent_function). A global builtin sync
+        // trips none of those, so without this flush a warm agent serves a stale
+        // pool (old tool descriptions/schemas) until the TTL lapses. We flush all
+        // agents rather than only attached ones — a sync is rare and the cost is
+        // a cheap cache delete per agent.
         $flushed = 0;
         Agent::query()->select('id')->chunkById(500, function ($agents) use ($registry, &$flushed): void {
             foreach ($agents as $agent) {

@@ -1739,7 +1739,8 @@
                 "copied_clipboard": "Copied to clipboard",
                 "agent_id_copied": "Agent ID copied to clipboard",
                 "code_copied": "Code copied to clipboard!",
-                "code_copy_error": "Failed to copy code. Please try again."
+                "code_copy_error": "Failed to copy code. Please try again.",
+                "branding_saved": "Branding updated"
             },
             "settings": {
                 "composer_title": "Composer options",
@@ -1975,7 +1976,9 @@
                 "models_context": "Context window:",
                 "models_location_us": "🇺🇸 United States",
                 "models_location_eu": "🇪🇺 Europe",
-                "models_location_cn": "🇨🇳 China"
+                "models_location_cn": "🇨🇳 China",
+                "branding_badge": "Show \"Powered by Chatvia\" badge",
+                "branding_badge_hint": "Display the Chatvia badge on this agent's chat and widget."
             }
         },
         "team": {

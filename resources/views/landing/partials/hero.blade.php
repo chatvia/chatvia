@@ -44,14 +44,14 @@
 
                 <h1
                     class="text-6xl sm:text-7xl lg:text-8xl font-bold text-slate-900 mb-6 sm:mb-8 leading-tight sm:leading-[1.15] md:leading-[1.1] tracking-tight px-2 sm:px-0">
-                    <span class="block">{{ __('landing.hero.title_line1') }}</span>
-                    <span class="block mt-1">
+                    <span class="block">
                         <span class="relative inline-block">
-                            <span class="relative z-10 text-indigo-600 font-extrabold">{{ __('landing.hero.title_make') }} {{ __('landing.hero.title_minutes') }}</span>
+                            <span class="relative z-10 text-indigo-600 font-extrabold">{{ __('landing.hero.title_line1') }}</span>
                             <span
                                 class="absolute bottom-0.5 sm:bottom-1 left-0 right-0 h-2.5 sm:h-3 bg-linear-to-r from-indigo-200 via-indigo-300 to-purple-200 -rotate-1 opacity-60"></span>
-                        </span>.
+                        </span>
                     </span>
+                    <span class="block mt-1">{{ __('landing.hero.title_line2') }}.</span>
                 </h1>
 
                 <p

@@ -32,10 +32,9 @@ return [
         'badges' => [
             'main' => 'Integritetsfokuserade AI-agenter, helt hostade i EU',
         ],
-        'title_line1' => 'AI-agenter som håller',
-        'title_make' => 'dina data kvar i',
-        'title_minutes' => 'EU',
-        'subtitle' => 'Byggda och hostade i Europa på öppen, europaägd infrastruktur. Dina data lämnar aldrig Europa — och tränar aldrig någon annans modell. 🇪🇺',
+        'title_line1' => 'Integritet först',
+        'title_line2' => 'AI-agenter',
+        'subtitle' => 'AI-agenter byggda och hostade i Europa på europeiskt ägd infrastruktur. Dina data lämnar aldrig Europa till USA — och används aldrig för att träna AI-modeller. 🇪🇺',
         'no_code' => 'Ingen kod, inga utvecklare.',
         'eu_hosting' => 'Hostat i EU · GDPR som standard · Inga amerikanska underleverantörer · DPA ingår',
         'gdpr_alt' => 'GDPR-anpassat',

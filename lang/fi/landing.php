@@ -32,10 +32,9 @@ return [
         'badges' => [
             'main' => 'Yksityisyys edellä — täysin EU:ssa isännöidyt tekoälyagentit',
         ],
-        'title_line1' => 'Tekoälyagentit, jotka pitävät',
-        'title_make' => 'datasi turvassa',
-        'title_minutes' => 'EU:ssa',
-        'subtitle' => 'Rakennettu ja isännöity Euroopassa avoimella, eurooppalaisomisteisella infrastruktuurilla. Datasi ei poistu — eikä koskaan kouluta kenenkään muun mallia. 🇪🇺',
+        'title_line1' => 'Yksityisyys edellä',
+        'title_line2' => 'Tekoälyagentit',
+        'subtitle' => 'Tekoälyagentit, jotka on rakennettu ja isännöity Euroopassa eurooppalaisomisteisella infrastruktuurilla. Tietosi eivät koskaan päädy Yhdysvaltoihin — eikä niitä koskaan käytetä tekoälymallien kouluttamiseen. 🇪🇺',
         'no_code' => 'Ei koodia, ei insinöörejä.',
         'eu_hosting' => 'Isännöity EU:ssa · GDPR oletuksena · Ei yhdysvaltalaisia alihankkijoita · DPA mukana',
         'gdpr_alt' => 'GDPR-yhteensopiva',

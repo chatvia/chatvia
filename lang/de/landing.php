@@ -32,10 +32,9 @@ return [
         'badges' => [
             'main' => 'Datenschutzorientierte KI-Agenten, vollständig in der EU gehostet',
         ],
-        'title_line1' => 'KI-Agenten, die Ihre Daten',
-        'title_make' => 'in der EU',
-        'title_minutes' => 'behalten',
-        'subtitle' => 'In Europa entwickelt und gehostet, auf offener Infrastruktur in europäischem Besitz. Ihre Daten verlassen Europa nie — und trainieren niemals fremde Modelle. 🇪🇺',
+        'title_line1' => 'Datenschutz zuerst',
+        'title_line2' => 'KI-Agenten',
+        'subtitle' => 'KI-Agenten, entwickelt und gehostet in Europa auf Infrastruktur in europäischem Besitz. Ihre Daten verlassen Europa nie in Richtung USA — und werden niemals zum Training von KI-Modellen verwendet. 🇪🇺',
         'no_code' => 'Kein Code, keine Entwickler.',
         'eu_hosting' => 'In der EU gehostet · GDPR ab Werk · Keine US-Unterauftragsverarbeiter · DPA inklusive',
         'gdpr_alt' => 'GDPR-konform',

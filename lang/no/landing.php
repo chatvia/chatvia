@@ -32,10 +32,9 @@ return [
         'badges' => [
             'main' => 'Personvern først — AI-agenter fullt driftet i EU',
         ],
-        'title_line1' => 'AI-agenter som holder',
-        'title_make' => 'dataene dine i',
-        'title_minutes' => 'EU',
-        'subtitle' => 'Bygget og driftet i Europa på åpen, europeisk-eid infrastruktur. Dataene dine forlater aldri Europa — og trener aldri en annens modell. 🇪🇺',
+        'title_line1' => 'Personvern først',
+        'title_line2' => 'AI-agenter',
+        'subtitle' => 'AI-agenter bygget og driftet i Europa på europeisk-eid infrastruktur. Dataene dine forlater aldri Europa til USA — og brukes aldri til å trene AI-modeller. 🇪🇺',
         'no_code' => 'Ingen kode, ingen utviklere.',
         'eu_hosting' => 'Driftet i EU · GDPR som standard · Ingen amerikanske underleverandører · DPA inkludert',
         'gdpr_alt' => 'GDPR-kompatibel',

@@ -32,10 +32,9 @@ return [
         'badges' => [
             'main' => 'Privacy-first, fully EU-hosted AI agents',
         ],
-        'title_line1' => 'AI agents that keep',
-        'title_make' => 'your data in the',
-        'title_minutes' => 'EU',
-        'subtitle' => 'Built and hosted in Europe on open, European-owned infrastructure. Your data never leaves — and never trains anyone else\'s model. 🇪🇺',
+        'title_line1' => 'Privacy-first',
+        'title_line2' => 'AI Agents',
+        'subtitle' => 'Built AI Agents that are hosted in Europe on European-owned infrastructure. Your data never leaves for the U.S. — and will never be used to train AI models. 🇪🇺',
         'no_code' => 'No code, no engineers.',
         'eu_hosting' => 'Hosted in the EU · GDPR by default · No US sub-processors · DPA included',
         'gdpr_alt' => 'GDPR Compliant',

@@ -32,10 +32,9 @@ return [
         'badges' => [
             'main' => 'Des agents IA axés sur la confidentialité, entièrement hébergés dans l\'UE',
         ],
-        'title_line1' => 'Des agents IA qui gardent',
-        'title_make' => 'vos données dans',
-        'title_minutes' => 'l\'UE',
-        'subtitle' => 'Conçus et hébergés en Europe, sur une infrastructure ouverte et détenue par des Européens. Vos données ne quittent jamais l\'Europe — et n\'entraînent jamais les modèles de tiers. 🇪🇺',
+        'title_line1' => 'Confidentialité d\'abord',
+        'title_line2' => 'Agents IA',
+        'subtitle' => 'Des agents IA conçus et hébergés en Europe, sur une infrastructure 100 % européenne. Vos données ne partent jamais vers les États-Unis — et ne serviront jamais à entraîner des modèles d\'IA. 🇪🇺',
         'no_code' => 'Sans code, sans développeurs.',
         'eu_hosting' => 'Hébergé en UE · RGPD par défaut · Aucun sous-traitant américain · DPA inclus',
         'gdpr_alt' => 'Conforme au RGPD',

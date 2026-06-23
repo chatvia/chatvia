@@ -4,7 +4,6 @@ namespace Domain\Conversation\Services\Tooling\Registry;
 
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
-use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\McpTool;
 use Illuminate\Support\Collection;
@@ -123,15 +122,8 @@ class ToolRegistry
             ->where('mcp_servers.is_enabled', true)
             ->where('mcp_servers.uses_central_catalog', false)
             ->where('mcp_tools.permission', '!=', 'blocked')
-            // Tools attached to THIS agent, OR a global always-on built-in
-            // (user_id IS NULL, category 'builtin') available to every agent.
-            ->where(function ($q): void {
-                $q->whereNotNull('agent_mcp_server.agent_id')
-                    ->orWhere(function ($q2): void {
-                        $q2->whereNull('mcp_servers.user_id')
-                            ->where('mcp_servers.category', McpServerCategory::Builtin->value);
-                    });
-            })
+            // Only tools attached to THIS agent (via the agent_mcp_server pivot).
+            ->whereNotNull('agent_mcp_server.agent_id')
             ->orderBy('mcp_servers.slug')
             ->orderBy('mcp_tools.name')
             ->get();
@@ -168,13 +160,8 @@ class ToolRegistry
             })
             ->where('mcp_servers.is_enabled', true)
             ->where('mst.permission', '!=', 'blocked')
-            ->where(function ($q): void {
-                $q->whereNotNull('agent_mcp_server.agent_id')
-                    ->orWhere(function ($q2): void {
-                        $q2->whereNull('mcp_servers.user_id')
-                            ->where('mcp_servers.category', McpServerCategory::Builtin->value);
-                    });
-            })
+            // Only tools attached to THIS agent (via the agent_mcp_server pivot).
+            ->whereNotNull('agent_mcp_server.agent_id')
             ->orderBy('mcp_servers.slug')
             ->orderBy('ct.name')
             ->get();

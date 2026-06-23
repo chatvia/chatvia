@@ -5,7 +5,6 @@ namespace App\Http\Middleware\Auth;
 use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
 use Illuminate\Http\Request;
@@ -23,7 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
  *   2. Authorisation — for a `tools/call`, EITHER:
  *      a. Per-agent enablement: the agent named in the identity header has THIS
  *         built-in connector attached + enabled (so a tool only runs for agents
- *         whose owner explicitly turned it on); OR
+ *         whose owner explicitly turned it on — charts included); OR
  *      b. Workspace mode: a signed `X-Chatvia-Workspace-Id` names a real
  *         workspace. Used by the owner-facing "Ask your data" analytics chat,
  *         which has no agent and a fixed internal toolset.
@@ -41,7 +40,6 @@ class VerifyInternalMcpRequest
 
         if ($this->rpcMethod($request) === 'tools/call'
             && ! $this->workspaceIdentified($request)
-            && ! $this->isGlobalBuiltin($request)
             && ! $this->agentHasConnectorEnabled($request)) {
             return response()->json([
                 'error' => 'This tool is not enabled for this caller.',
@@ -68,22 +66,6 @@ class VerifyInternalMcpRequest
         return User::query()
             ->where('external_id', $externalId)
             ->whereIn('type', UserType::workspaceTypes())
-            ->exists();
-    }
-
-    /**
-     * Global built-in mode: the route is backed by a Chatvia-hosted, always-on
-     * built-in (a global `user_id IS NULL`, category `builtin` row — e.g.
-     * /mcp/charts). These are ambient for every agent, so the HMAC alone
-     * (already verified) is sufficient — there is no per-agent attachment.
-     */
-    private function isGlobalBuiltin(Request $request): bool
-    {
-        return AgentMcpServer::query()
-            ->whereNull('user_id')
-            ->where('category', McpServerCategory::Builtin->value)
-            ->where('is_enabled', true)
-            ->where('url', 'like', '%/'.$request->path())
             ->exists();
     }
 

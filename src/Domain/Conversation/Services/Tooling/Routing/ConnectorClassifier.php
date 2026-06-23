@@ -3,7 +3,6 @@
 namespace Domain\Conversation\Services\Tooling\Routing;
 
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -167,25 +166,18 @@ class ConnectorClassifier
     /**
      * The agent's reachable connectors as slug => "{name}: {description}". Same
      * reachability rule as the hybrid search: a server attached via
-     * `agent_mcp_server`, or a global always-on builtin.
+     * `agent_mcp_server`.
      *
      * @return array<string, string>
      */
     private function reachableConnectors(Agent $agent): array
     {
         $rows = DB::table('mcp_servers as s')
-            ->leftJoin('agent_mcp_server as ams', function ($join) use ($agent): void {
+            ->join('agent_mcp_server as ams', function ($join) use ($agent): void {
                 $join->on('ams.mcp_server_id', '=', 's.id')
                     ->where('ams.agent_id', $agent->id);
             })
             ->where('s.is_enabled', true)
-            ->where(function ($q): void {
-                $q->whereNotNull('ams.agent_id')
-                    ->orWhere(function ($q2): void {
-                        $q2->whereNull('s.user_id')
-                            ->where('s.category', McpServerCategory::Builtin->value);
-                    });
-            })
             ->select('s.slug', 's.name', 's.description')
             ->distinct()
             ->get();

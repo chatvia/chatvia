@@ -259,15 +259,23 @@ class Agent extends Model
 
     /**
      * Whether the "Powered by Chatvia" badge renders for this agent — on both
-     * the embedded widget and the hosted chat. Visible by default; hidden only
-     * when the owning workspace holds the active "remove branding" add-on.
+     * the embedded widget and the hosted chat.
+     *
+     * Workspaces that can't hide branding (no white-label plan / remove-branding
+     * add-on) always show it — there's no per-agent choice to make. Entitled
+     * workspaces choose per agent via the `show_branding` appearance setting
+     * (Setup → Branding), which defaults to hidden.
      *
      * Reads `team.owner`; callers under strict mode must eager-load it
      * (BuildWidgetSettingsAction and the chat controllers already do).
      */
     public function showsChatviaBranding(): bool
     {
-        return ! ($this->team?->owner?->canHideBranding() ?? false);
+        if (! ($this->team?->owner?->canHideBranding() ?? false)) {
+            return true;
+        }
+
+        return (bool) $this->settings('appearance')->get('show_branding', false);
     }
 
     /**

@@ -28,6 +28,11 @@ return [
             'name' => 'Account Analytics',
             'description' => "Answer the workspace owner's questions about their own account in numbers — messages, conversations, users, channels, leads, satisfaction, response time, topics and handoffs.",
         ],
+        // Charts is ALSO a per-agent opt-in connector (config/connectors.php).
+        // This global row is NOT ambient for agents — it exists only so the
+        // owner analytics "Ask your data" chat can route to the chart tools
+        // (BuiltinToolRouter) and so the shared connector_tools catalog +
+        // embeddings are pre-seeded before the first per-workspace connect.
         [
             'slug' => 'charts',
             'class' => ChartsServer::class,

@@ -855,24 +855,41 @@ const handleFileIngestionProgress = (event: any) => {
     // Find the file and update its progress
     const fileIndex = knowledgeFiles.value.findIndex((file) => file.id === file_id);
 
-    if (fileIndex !== -1) {
-        // Create a new array with the updated file for reactivity
-        const updatedFiles = [...knowledgeFiles.value];
+    if (fileIndex === -1) {
+        return;
+    }
 
-        updatedFiles[fileIndex] = {
-            ...updatedFiles[fileIndex],
-            progress: progress,
-            status: progress >= 100 ? 'ingested' : 'ingesting',
-        };
-        knowledgeFiles.value = updatedFiles;
+    const currentFile = knowledgeFiles.value[fileIndex];
 
-        // If progress is 100%, update the status to 'ingested' immediately
-        if (progress >= 100) {
-            // Refresh files to get the complete updated data
-            setTimeout(() => {
-                fetchKnowledgeFiles();
-            }, 1000); // Small delay to ensure backend has updated
-        }
+    // Guard against out-of-order broadcasts. Per-chunk progress events and the
+    // terminal completion event share the same channel + name, so a stale chunk
+    // event (e.g. 98%) can arrive after the file is already 'ingested', or a
+    // lower percentage can arrive after a higher one. Never regress a completed
+    // file, and never let progress run backwards.
+    if (currentFile.status === 'ingested') {
+        return;
+    }
+
+    if (typeof currentFile.progress === 'number' && progress < currentFile.progress) {
+        return;
+    }
+
+    // Create a new array with the updated file for reactivity
+    const updatedFiles = [...knowledgeFiles.value];
+
+    updatedFiles[fileIndex] = {
+        ...updatedFiles[fileIndex],
+        progress: progress,
+        status: progress >= 100 ? 'ingested' : 'ingesting',
+    };
+    knowledgeFiles.value = updatedFiles;
+
+    // If progress is 100%, update the status to 'ingested' immediately
+    if (progress >= 100) {
+        // Refresh files to get the complete updated data
+        setTimeout(() => {
+            fetchKnowledgeFiles();
+        }, 1000); // Small delay to ensure backend has updated
     }
 };
 
@@ -891,8 +908,17 @@ const fetchKnowledgeFiles = async () => {
 
         const allFiles = response.data as KnowledgeFile[];
 
-        // Use server data directly
-        knowledgeFiles.value = allFiles;
+        // A refresh can race ahead of the ingestion batch's terminal commit and
+        // return a just-finished file as still 'ingesting' (capped at 99%),
+        // reverting an already-completed file in the UI back to "Training in
+        // progress". Keep any file the client already knows is 'ingested'.
+        const ingestedIds = new Set(
+            knowledgeFiles.value.filter((file) => file.status === 'ingested').map((file) => file.id),
+        );
+
+        knowledgeFiles.value = allFiles.map((file) =>
+            file.status === 'ingesting' && ingestedIds.has(file.id) ? { ...file, status: 'ingested', progress: 100 } : file,
+        );
 
         // Separate uploaded files from processed files
         uploadedFiles.value = allFiles

@@ -87,12 +87,12 @@ return [
         'provider' => 'chatvia',
         'priority' => 30,
         'auth_strategy' => 'none',
-        // First-party builtin: always-on for every agent via the global
-        // (user_id IS NULL) mcp_servers row synced by app:sync-builtin-mcp.
+        // First-party builtin, opt-in per agent like `leads`: the workspace
+        // connects it once (no token), then enables it per agent. The global
+        // (user_id IS NULL) row synced by app:sync-builtin-mcp is NOT ambient
+        // for agents — it exists only to back the owner analytics "Ask your
+        // data" chat's chart rendering and to seed the shared tool catalog.
         'server_category' => 'builtin',
-        // Hidden from the attachable catalog — it's always on, so there's
-        // nothing to attach and no per-agent 'charts' row to collide with.
-        'visible' => false,
         'mcp_url' => env('APP_URL').'/mcp/charts',
     ],
 

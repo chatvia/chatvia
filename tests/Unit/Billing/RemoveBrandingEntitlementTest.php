@@ -42,10 +42,28 @@ it('shows the Chatvia badge on an agent by default', function (): void {
     expect($agent->loadMissing('team.owner')->showsChatviaBranding())->toBeTrue();
 });
 
-it('hides the Chatvia badge on an agent when the owning workspace removed branding', function (): void {
+it('hides the Chatvia badge by default once the owning workspace can remove branding', function (): void {
     $agent = Agent::factory()->create();
 
     grantRemoveBranding($agent->team->owner);
 
     expect($agent->fresh()->loadMissing('team.owner')->showsChatviaBranding())->toBeFalse();
+});
+
+it('lets an entitled workspace opt the badge back on per agent', function (): void {
+    $agent = Agent::factory()->create();
+    grantRemoveBranding($agent->team->owner);
+
+    $agent->setSetting(key: 'show_branding', value: true, group: 'appearance');
+
+    expect($agent->fresh()->loadMissing('team.owner')->showsChatviaBranding())->toBeTrue();
+});
+
+it('ignores the show_branding setting when the workspace cannot remove branding', function (): void {
+    $agent = Agent::factory()->create();
+
+    // No entitlement: the toggle is moot — the badge always shows.
+    $agent->setSetting(key: 'show_branding', value: false, group: 'appearance');
+
+    expect($agent->fresh()->loadMissing('team.owner')->showsChatviaBranding())->toBeTrue();
 });

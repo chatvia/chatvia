@@ -61,17 +61,13 @@ class ToolHybridSearch
 
         $sql = <<<SQL
 WITH reachable_servers AS (
-    -- The agent's attached servers + the global always-on builtins. A handful
+    -- The agent's attached servers (via the agent_mcp_server pivot). A handful
     -- of rows, driven from the agent_mcp_server PK — never from the
     -- membership table, whose size scales with the whole customer base.
     SELECT s.id, s.slug
     FROM mcp_servers s
     INNER JOIN agent_mcp_server ams ON ams.mcp_server_id = s.id AND ams.agent_id = ?
     WHERE s.is_enabled = true
-    UNION
-    SELECT s.id, s.slug
-    FROM mcp_servers s
-    WHERE s.is_enabled = true AND s.user_id IS NULL AND s.category = 'builtin'
 ),
 reachable_preset AS (
     -- Catalog tools those servers advertise with an unblocked membership.
@@ -113,7 +109,7 @@ custom_vector AS (
       AND s.uses_central_catalog = false
       AND t.permission != 'blocked'
       AND t.embedding IS NOT NULL
-      AND (ams.agent_id IS NOT NULL OR (s.user_id IS NULL AND s.category = 'builtin'))
+      AND ams.agent_id IS NOT NULL
     ORDER BY t.embedding <-> ?::vector({$dims})
     LIMIT ?
 ),
@@ -132,7 +128,7 @@ custom_bm25 AS (
       AND s.uses_central_catalog = false
       AND t.permission != 'blocked'
       AND t.embedding_bm25 IS NOT NULL
-      AND (ams.agent_id IS NOT NULL OR (s.user_id IS NULL AND s.category = 'builtin'))
+      AND ams.agent_id IS NOT NULL
     ORDER BY rank
     LIMIT ?
 ),

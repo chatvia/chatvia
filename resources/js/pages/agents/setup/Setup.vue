@@ -80,6 +80,7 @@ interface Props {
     prompts: PromptOption[];
     hasPermission: boolean;
     canUseHandoff: boolean;
+    canHideBranding: boolean;
 
     appearanceSettings: Record<string, unknown>;
     defaultAppearance: Record<string, unknown>;
@@ -357,21 +358,40 @@ const copyCnameTarget = async () => {
 const brandingForm = useForm({
     color_theme: str(a.color_theme, str(ad.color_theme, 'black')),
     color_shade: num(a.color_shade, num(ad.color_shade, 700)),
+    // Only meaningful for workspaces that can hide branding; defaults to hidden.
+    show_branding: bool(a.show_branding, bool(ad.show_branding, false)),
 });
 const avatarPreview = ref<string | null>(str(a.avatar) || null);
 const logoPreview = ref<string | null>(str(a.logo) || null);
+// After an upload we `router.reload({ only: ['appearanceSettings'] })`; mirror the
+// refreshed prop back into the local previews so the new image shows immediately.
+// Each upload is stored under a unique hashed path, so the URL always changes —
+// no cache-busting needed.
+watch(
+    () => props.appearanceSettings,
+    (next) => {
+        avatarPreview.value = str(next.avatar) || null;
+        logoPreview.value = str(next.logo) || null;
+    },
+);
 const isSavingBranding = ref(false);
-const saveBranding = () => {
+const postBranding = (toastKey: string) => {
     isSavingBranding.value = true;
     brandingForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
         preserveScroll: true,
         onSuccess: () => {
-            toast.success(t('agents.setup.toasts.colors_saved'));
+            toast.success(t(toastKey));
             bumpPreview();
         },
         onError: () => toast.error(t('agents.setup.toasts.colors_error')),
         onFinish: () => (isSavingBranding.value = false),
     });
+};
+const saveBranding = () => postBranding('agents.setup.toasts.colors_saved');
+// The badge show/hide toggle saves on change (no extra Save button).
+const saveBrandingVisibility = (value: boolean) => {
+    brandingForm.show_branding = value;
+    postBranding('agents.setup.toasts.branding_saved');
 };
 const uploadImage = (key: 'avatar' | 'logo', file: File) => {
     const upload = useForm({ [key]: file });
@@ -1183,9 +1203,12 @@ const copyApiCode = async (code: string) => {
                                         v-model:color-shade="brandingForm.color_shade"
                                         :avatar-preview="avatarPreview"
                                         :logo-preview="logoPreview"
+                                        :can-hide-branding="canHideBranding"
+                                        :show-branding="brandingForm.show_branding"
                                         :errors="brandingForm.errors as Record<string, string>"
-                                        :disabled="locked"
+                                        :disabled="locked || isSavingBranding"
                                         @color-apply="saveBranding"
+                                        @update:show-branding="saveBrandingVisibility"
                                         @avatar-select="(file: File) => uploadImage('avatar', file)"
                                         @avatar-remove="() => removeImage('avatar')"
                                         @logo-select="(file: File) => uploadImage('logo', file)"

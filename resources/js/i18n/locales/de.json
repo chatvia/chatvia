@@ -1588,7 +1588,9 @@
                 "save": "Speichern"
             },
             "deploy": "Bereitstellen",
-            "deploy_tooltip": "Binden Sie Ihren Agent ein — Chat-Widget, gehosteter Chat oder Befehlsleiste"
+            "deploy_tooltip": "Binden Sie Ihren Agent ein — Chat-Widget, gehosteter Chat oder Befehlsleiste",
+            "capabilities": "Fähigkeiten",
+            "capabilities_tooltip": "Erweiterte Funktionen zum Chat hinzufügen – etwa interaktive Diagramme"
         },
         "create_modal": {
             "title": "Agent erstellen",
@@ -2229,6 +2231,14 @@
             "grant_error": "Zugriff konnte nicht gewährt werden",
             "fresh_link": "Neuer Einladungslink für {name} generiert",
             "link_error": "Einladungslink konnte nicht generiert werden"
+        },
+        "capabilities": {
+            "page_title": "Fähigkeiten",
+            "title": "Fähigkeiten",
+            "description": "Fähigkeiten fügen dem Chat direkt erweiterte Funktionen hinzu. Aktivieren Sie eine, damit dieser Agent sie in Gesprächen nutzen kann.",
+            "empty": "Es sind noch keine Fähigkeiten verfügbar.",
+            "enable_failed": "Diese Fähigkeit konnte nicht aktiviert werden",
+            "disable_failed": "Diese Fähigkeit konnte nicht deaktiviert werden"
         }
     },
     "auth": {

@@ -1588,7 +1588,9 @@
                 "save": "Simpan"
             },
             "deploy": "Terapkan",
-            "deploy_tooltip": "Sematkan agen Anda — widget obrolan, obrolan terhosting, atau bilah perintah"
+            "deploy_tooltip": "Sematkan agen Anda — widget obrolan, obrolan terhosting, atau bilah perintah",
+            "capabilities": "Kemampuan",
+            "capabilities_tooltip": "Tambahkan fitur canggih ke obrolan — seperti grafik interaktif"
         },
         "create_modal": {
             "title": "Buat Agen",
@@ -2229,6 +2231,14 @@
             "grant_error": "Tidak dapat memberikan akses",
             "fresh_link": "Tautan undangan baru dibuat untuk {name}",
             "link_error": "Tidak dapat membuat tautan undangan"
+        },
+        "capabilities": {
+            "page_title": "Kemampuan",
+            "title": "Kemampuan",
+            "description": "Kemampuan menambahkan fitur canggih langsung di dalam obrolan. Aktifkan salah satu agar agen ini dapat menggunakannya dalam percakapan.",
+            "empty": "Belum ada kemampuan yang tersedia.",
+            "enable_failed": "Tidak dapat mengaktifkan kemampuan ini",
+            "disable_failed": "Tidak dapat menonaktifkan kemampuan ini"
         }
     },
     "auth": {

@@ -26,7 +26,7 @@ class ListAccountConnectorsAction
         $servers = $user->mcpServers()->withCount('agents')->orderBy('created_at')->get();
         $serversByConnector = $servers->whereNotNull('connector_slug')->keyBy('connector_slug');
 
-        $featured = $this->catalog->all()->values()->map(
+        $featured = $this->catalog->connectors()->values()->map(
             fn ($connector): AccountConnectorRowData => new AccountConnectorRowData(
                 kind: 'featured',
                 connector: $connector,

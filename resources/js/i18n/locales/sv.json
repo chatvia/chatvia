@@ -1588,7 +1588,9 @@
                 "save": "Spara"
             },
             "deploy": "Distribuera",
-            "deploy_tooltip": "Bädda in din agent — chattwidget, hostad chatt eller kommandofält"
+            "deploy_tooltip": "Bädda in din agent — chattwidget, hostad chatt eller kommandofält",
+            "capabilities": "Förmågor",
+            "capabilities_tooltip": "Lägg till avancerade funktioner i chatten — som interaktiva diagram"
         },
         "create_modal": {
             "title": "Skapa agent",
@@ -2229,6 +2231,14 @@
             "grant_error": "Det gick inte att bevilja åtkomst",
             "fresh_link": "Ny inbjudningslänk genererad för {name}",
             "link_error": "Det gick inte att generera en inbjudningslänk"
+        },
+        "capabilities": {
+            "page_title": "Förmågor",
+            "title": "Förmågor",
+            "description": "Förmågor lägger till avancerade funktioner direkt i chatten. Aktivera en så att den här agenten kan använda den i konversationer.",
+            "empty": "Inga förmågor är tillgängliga ännu.",
+            "enable_failed": "Det gick inte att aktivera den här förmågan",
+            "disable_failed": "Det gick inte att inaktivera den här förmågan"
         }
     },
     "auth": {

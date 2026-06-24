@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "nav": {
+            "capabilities": "Kapabiliteter",
+            "capabilities_tooltip": "Legg til avanserte muligheter i chatten — som interaktive diagrammer"
+        },
+        "capabilities": {
+            "page_title": "Kapabiliteter",
+            "title": "Kapabiliteter",
+            "description": "Kapabiliteter legger til avanserte muligheter rett i chatten. Slå på én slik at denne agenten kan bruke den i samtaler.",
+            "empty": "Ingen kapabiliteter er tilgjengelige ennå.",
+            "enable_failed": "Kunne ikke slå på denne kapabiliteten",
+            "disable_failed": "Kunne ikke slå av denne kapabiliteten"
+        }
+    }
+}

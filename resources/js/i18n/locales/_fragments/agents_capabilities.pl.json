@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "nav": {
+            "capabilities": "Możliwości",
+            "capabilities_tooltip": "Dodaj zaawansowane funkcje do czatu — takie jak interaktywne wykresy"
+        },
+        "capabilities": {
+            "page_title": "Możliwości",
+            "title": "Możliwości",
+            "description": "Możliwości dodają zaawansowane funkcje bezpośrednio w czacie. Włącz jedną, aby ten agent mógł z niej korzystać w rozmowach.",
+            "empty": "Brak dostępnych możliwości.",
+            "enable_failed": "Nie udało się włączyć tej możliwości",
+            "disable_failed": "Nie udało się wyłączyć tej możliwości"
+        }
+    }
+}

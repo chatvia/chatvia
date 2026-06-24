@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "nav": {
+            "capabilities": "Kyvyt",
+            "capabilities_tooltip": "Lisää chattiin monipuolisia ominaisuuksia — kuten interaktiivisia kaavioita"
+        },
+        "capabilities": {
+            "page_title": "Kyvyt",
+            "title": "Kyvyt",
+            "description": "Kyvyt tuovat monipuolisia ominaisuuksia suoraan chattiin. Ota jokin käyttöön, jotta tämä agentti voi hyödyntää sitä keskusteluissa.",
+            "empty": "Kykyjä ei ole vielä saatavilla.",
+            "enable_failed": "Tämän kyvyn käyttöönotto epäonnistui",
+            "disable_failed": "Tämän kyvyn poistaminen käytöstä epäonnistui"
+        }
+    }
+}

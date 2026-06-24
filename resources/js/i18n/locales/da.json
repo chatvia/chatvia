@@ -1588,7 +1588,9 @@
                 "save": "Gem"
             },
             "deploy": "Udrul",
-            "deploy_tooltip": "Integrér din agent — chat-widget, hostet chat eller kommandolinje"
+            "deploy_tooltip": "Integrér din agent — chat-widget, hostet chat eller kommandolinje",
+            "capabilities": "Kapabiliteter",
+            "capabilities_tooltip": "Tilføj avancerede muligheder til chatten — som interaktive diagrammer"
         },
         "create_modal": {
             "title": "Opret agent",
@@ -2229,6 +2231,14 @@
             "grant_error": "Kunne ikke give adgang",
             "fresh_link": "Nyt invitationslink genereret til {name}",
             "link_error": "Kunne ikke generere et invitationslink"
+        },
+        "capabilities": {
+            "page_title": "Kapabiliteter",
+            "title": "Kapabiliteter",
+            "description": "Kapabiliteter tilføjer avancerede muligheder direkte i chatten. Slå én til, så denne agent kan bruge den i samtaler.",
+            "empty": "Der er ingen kapabiliteter tilgængelige endnu.",
+            "enable_failed": "Kunne ikke slå denne kapabilitet til",
+            "disable_failed": "Kunne ikke slå denne kapabilitet fra"
         }
     },
     "auth": {

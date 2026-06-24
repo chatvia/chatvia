@@ -14,6 +14,9 @@ use Illuminate\Support\Collection;
 class ConnectorCatalog
 {
     /**
+     * Every catalog entry — connectors AND capabilities. Prefer the narrower
+     * {@see connectors()} / {@see capabilities()} for UI listings.
+     *
      * @return Collection<string, ConnectorData>
      */
     public function all(): Collection
@@ -23,6 +26,28 @@ class ConnectorCatalog
             ->map(fn (array $entry): ConnectorData => ConnectorData::fromArray($entry))
             ->sortBy(fn (ConnectorData $c): int => $c->priority)
             ->keyBy(fn (ConnectorData $c): string => $c->slug);
+    }
+
+    /**
+     * Catalog entries shown on the Connectors page — everything that is not a
+     * first-party Capability (Interactive Charts, …).
+     *
+     * @return Collection<string, ConnectorData>
+     */
+    public function connectors(): Collection
+    {
+        return $this->all()->reject(fn (ConnectorData $c): bool => $c->isCapability);
+    }
+
+    /**
+     * First-party, no-auth chat enrichments surfaced on the per-agent
+     * Capabilities page (Interactive Charts, …).
+     *
+     * @return Collection<string, ConnectorData>
+     */
+    public function capabilities(): Collection
+    {
+        return $this->all()->filter(fn (ConnectorData $c): bool => $c->isCapability);
     }
 
     public function find(string $slug): ?ConnectorData

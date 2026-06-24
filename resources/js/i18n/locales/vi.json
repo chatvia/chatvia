@@ -1588,7 +1588,9 @@
                 "save": "Lưu"
             },
             "deploy": "Triển khai",
-            "deploy_tooltip": "Nhúng trợ lý AI của bạn — tiện ích trò chuyện, trò chuyện được lưu trữ hoặc thanh lệnh"
+            "deploy_tooltip": "Nhúng trợ lý AI của bạn — tiện ích trò chuyện, trò chuyện được lưu trữ hoặc thanh lệnh",
+            "capabilities": "Khả năng",
+            "capabilities_tooltip": "Thêm các tính năng nâng cao vào cuộc trò chuyện — như biểu đồ tương tác"
         },
         "create_modal": {
             "title": "Tạo trợ lý AI",
@@ -2229,6 +2231,14 @@
             "grant_error": "Không thể cấp quyền truy cập",
             "fresh_link": "Đã tạo liên kết lời mời mới cho {name}",
             "link_error": "Không thể tạo liên kết lời mời"
+        },
+        "capabilities": {
+            "page_title": "Khả năng",
+            "title": "Khả năng",
+            "description": "Khả năng bổ sung các tính năng nâng cao ngay trong cuộc trò chuyện. Bật một khả năng để Trợ lý AI này có thể dùng nó trong các cuộc trò chuyện.",
+            "empty": "Chưa có khả năng nào khả dụng.",
+            "enable_failed": "Không thể bật khả năng này",
+            "disable_failed": "Không thể tắt khả năng này"
         }
     },
     "auth": {

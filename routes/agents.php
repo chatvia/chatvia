@@ -18,6 +18,9 @@ use App\Http\Controllers\Agent\Analytics\Topic\PromoteSuggestedTopicController;
 use App\Http\Controllers\Agent\Analytics\Topic\SuggestedTopicsDataController;
 use App\Http\Controllers\Agent\Audit\AgentAuditController;
 use App\Http\Controllers\Agent\Bar\BarPreviewController;
+use App\Http\Controllers\Agent\Capability\AgentCapabilitiesController;
+use App\Http\Controllers\Agent\Capability\DisableAgentCapabilityController;
+use App\Http\Controllers\Agent\Capability\EnableAgentCapabilityController;
 use App\Http\Controllers\Agent\Channel\AgentChannelsController;
 use App\Http\Controllers\Agent\Channel\AgentInstagramChannelController;
 use App\Http\Controllers\Agent\Channel\AgentMessengerChannelController;
@@ -292,6 +295,16 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Vue page; the view route stays open so the LockedFeature card can render.
         Route::get('guardrails', [AgentGuardrailController::class, 'show'])->middleware('agent.permission:agent.guardrails.view')->name('guardrails');
         Route::post('guardrails', [AgentGuardrailController::class, 'update'])->middleware(['capability:guardrails', 'agent.permission:agent.guardrails.manage'])->name('guardrails.update');
+
+        // Capabilities — first-party, no-auth chat enrichments (Interactive
+        // Charts, …). A friendlier surface over the builtin-connector machinery;
+        // enabling provisions + attaches in one toggle. Reuses the connector
+        // permission so the gate matches its underlying attach/detach.
+        Route::get('capabilities', AgentCapabilitiesController::class)->name('capabilities');
+        Route::post('capabilities/{slug}/enable', EnableAgentCapabilityController::class)
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('capabilities.enable');
+        Route::delete('capabilities/{slug}', DisableAgentCapabilityController::class)
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('capabilities.disable');
 
         // Channels — connecting the agent to messaging apps. Gated by its own
         // `agent.channels` permission (split out from `agent.setup`).

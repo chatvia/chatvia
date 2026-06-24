@@ -37,6 +37,11 @@ class ConnectorData extends Data
         // for services without a first-party hosted MCP server (e.g. Zendesk).
         public bool $requiresUrl = false,
         public bool $comingSoon = false,
+        // When true, this preset is presented on the per-agent Capabilities
+        // page (first-party, no-auth chat enrichments like Interactive Charts)
+        // instead of the Connectors list. Purely a UI-surface flag — the MCP
+        // server it provisions is identical to any other builtin connector.
+        public bool $isCapability = false,
         // When true, this is an OAuth connector whose client is registered
         // per-workspace (no global app / no DCR) — the workspace supplies its
         // own client_id at connect time (e.g. Salesforce External Client App).
@@ -86,6 +91,7 @@ class ConnectorData extends Data
             tokenPlaceholder: $entry['token_placeholder'] ?? null,
             requiresUrl: (bool) ($entry['requires_url'] ?? false),
             comingSoon: (bool) ($entry['coming_soon'] ?? false),
+            isCapability: (bool) ($entry['is_capability'] ?? false),
             requiresClientId: (bool) ($entry['requires_client_id'] ?? false),
             oauthClientId: $entry['oauth_client_id'] ?? null,
             oauthClientSecret: $entry['oauth_client_secret'] ?? null,

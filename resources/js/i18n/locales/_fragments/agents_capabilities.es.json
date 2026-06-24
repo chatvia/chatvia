@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "nav": {
+            "capabilities": "Capacidades",
+            "capabilities_tooltip": "Añade funciones avanzadas al chat — como gráficos interactivos"
+        },
+        "capabilities": {
+            "page_title": "Capacidades",
+            "title": "Capacidades",
+            "description": "Las capacidades añaden funciones avanzadas dentro del propio chat. Activa una para que este agente pueda usarla en las conversaciones.",
+            "empty": "Aún no hay capacidades disponibles.",
+            "enable_failed": "No se pudo activar esta capacidad",
+            "disable_failed": "No se pudo desactivar esta capacidad"
+        }
+    }
+}

@@ -57,6 +57,7 @@ import {
     ShieldAlert,
     ShieldCheck,
     SmilePlus,
+    Sparkles,
     Trash2,
     UserCheck,
     Users,
@@ -143,6 +144,18 @@ const uiNavigationItems = computed(() => {
             icon: Rocket,
             route: 'agents.deploy',
             tooltip: t('agents.nav.deploy_tooltip'),
+        });
+    }
+
+    // Capabilities — first-party chat enrichments (Interactive Charts, …).
+    // Gated by the connector permission it shares an attach/detach path with.
+    if (hasPermission('agent.sources.train.connectors')) {
+        baseItems.push({
+            id: 'capabilities',
+            label: t('agents.nav.capabilities'),
+            icon: Sparkles,
+            route: 'agents.capabilities',
+            tooltip: t('agents.nav.capabilities_tooltip'),
         });
     }
 

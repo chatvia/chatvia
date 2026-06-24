@@ -1611,7 +1611,9 @@
                 "save": "Save"
             },
             "deploy": "Deploy",
-            "deploy_tooltip": "Embed your agent — chat widget, hosted chat, or command bar"
+            "deploy_tooltip": "Embed your agent — chat widget, hosted chat, or command bar",
+            "capabilities": "Capabilities",
+            "capabilities_tooltip": "Add rich features to the chat — like interactive charts"
         },
         "create_modal": {
             "title": "Create Agent",
@@ -2255,6 +2257,14 @@
             "grant_error": "Could not grant access",
             "fresh_link": "Fresh invitation link generated for {name}",
             "link_error": "Could not generate an invitation link"
+        },
+        "capabilities": {
+            "page_title": "Capabilities",
+            "title": "Capabilities",
+            "description": "Capabilities add rich features right inside the chat. Turn one on to let this agent use it in conversations.",
+            "empty": "No capabilities are available yet.",
+            "enable_failed": "Could not turn on this capability",
+            "disable_failed": "Could not turn off this capability"
         }
     },
     "auth": {

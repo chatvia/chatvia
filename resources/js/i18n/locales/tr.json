@@ -1588,7 +1588,9 @@
                 "save": "Kaydet"
             },
             "deploy": "Yayına al",
-            "deploy_tooltip": "Asistanınızı yerleştirin — sohbet widget'ı, barındırılan sohbet veya komut çubuğu"
+            "deploy_tooltip": "Asistanınızı yerleştirin — sohbet widget'ı, barındırılan sohbet veya komut çubuğu",
+            "capabilities": "Yetenekler",
+            "capabilities_tooltip": "Sohbete gelişmiş özellikler ekleyin — etkileşimli grafikler gibi"
         },
         "create_modal": {
             "title": "Asistan Oluştur",
@@ -2229,6 +2231,14 @@
             "grant_error": "Erişim verilemedi",
             "fresh_link": "{name} için yeni davet bağlantısı oluşturuldu",
             "link_error": "Davet bağlantısı oluşturulamadı"
+        },
+        "capabilities": {
+            "page_title": "Yetenekler",
+            "title": "Yetenekler",
+            "description": "Yetenekler, sohbetin içine doğrudan gelişmiş özellikler ekler. Bu asistanın konuşmalarda kullanabilmesi için birini açın.",
+            "empty": "Henüz kullanılabilir yetenek yok.",
+            "enable_failed": "Bu yetenek açılamadı",
+            "disable_failed": "Bu yetenek kapatılamadı"
         }
     },
     "auth": {

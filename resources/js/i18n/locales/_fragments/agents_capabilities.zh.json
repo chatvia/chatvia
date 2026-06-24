@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "nav": {
+            "capabilities": "能力",
+            "capabilities_tooltip": "为聊天添加丰富的功能 — 例如交互式图表"
+        },
+        "capabilities": {
+            "page_title": "能力",
+            "title": "能力",
+            "description": "能力可直接在聊天中添加丰富的功能。开启某项能力，让该智能体在对话中使用它。",
+            "empty": "暂无可用的能力。",
+            "enable_failed": "无法开启此能力",
+            "disable_failed": "无法关闭此能力"
+        }
+    }
+}

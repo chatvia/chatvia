@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "nav": {
+            "capabilities": "Capabilities",
+            "capabilities_tooltip": "Add rich features to the chat — like interactive charts"
+        },
+        "capabilities": {
+            "page_title": "Capabilities",
+            "title": "Capabilities",
+            "description": "Capabilities add rich features right inside the chat. Turn one on to let this agent use it in conversations.",
+            "empty": "No capabilities are available yet.",
+            "enable_failed": "Could not turn on this capability",
+            "disable_failed": "Could not turn off this capability"
+        }
+    }
+}

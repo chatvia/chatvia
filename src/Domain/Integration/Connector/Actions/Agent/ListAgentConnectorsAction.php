@@ -41,7 +41,7 @@ class ListAgentConnectorsAction
             ->pluck('mcp_server_id')
             ->flip();
 
-        $featured = $this->catalog->all()->values()->map(function ($connector) use ($serverBySlug, $attachedIds): AgentConnectorRowData {
+        $featured = $this->catalog->connectors()->values()->map(function ($connector) use ($serverBySlug, $attachedIds): AgentConnectorRowData {
             /** @var AgentMcpServer|null $row */
             $row = $serverBySlug->get($connector->slug);
             $attached = $row !== null && $attachedIds->has($row->id);

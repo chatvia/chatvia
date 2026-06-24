@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "nav": {
+            "capabilities": "能力",
+            "capabilities_tooltip": "高度な機能をチャットに追加 — インタラクティブなチャートなど"
+        },
+        "capabilities": {
+            "page_title": "能力",
+            "title": "能力",
+            "description": "能力は、チャット内に直接高度な機能を追加します。1つ有効にすると、このエージェントが会話の中でそれを利用できます。",
+            "empty": "利用できる能力はまだありません。",
+            "enable_failed": "この能力を有効にできませんでした",
+            "disable_failed": "この能力を無効にできませんでした"
+        }
+    }
+}

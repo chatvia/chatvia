@@ -1588,7 +1588,9 @@
                 "save": "Guardar"
             },
             "deploy": "Implementar",
-            "deploy_tooltip": "Incorpore o seu agente — widget de chat, chat alojado ou barra de comandos"
+            "deploy_tooltip": "Incorpore o seu agente — widget de chat, chat alojado ou barra de comandos",
+            "capabilities": "Capacidades",
+            "capabilities_tooltip": "Adicione funcionalidades avançadas ao chat — como gráficos interativos"
         },
         "create_modal": {
             "title": "Criar Agente",
@@ -2229,6 +2231,14 @@
             "grant_error": "Não foi possível conceder o acesso",
             "fresh_link": "Novo link de convite gerado para {name}",
             "link_error": "Não foi possível gerar um link de convite"
+        },
+        "capabilities": {
+            "page_title": "Capacidades",
+            "title": "Capacidades",
+            "description": "As capacidades adicionam funcionalidades avançadas dentro do próprio chat. Ative uma para que este agente a possa usar nas conversas.",
+            "empty": "Ainda não há capacidades disponíveis.",
+            "enable_failed": "Não foi possível ativar esta capacidade",
+            "disable_failed": "Não foi possível desativar esta capacidade"
         }
     },
     "auth": {

@@ -20,8 +20,11 @@ use Symfony\Component\HttpFoundation\Response;
  * rejects rules that would block the saver — so a workspace can't fence itself
  * out via the UI. Platform admins always bypass so support can reach any account.
  *
- * Only the web surface is enforced today; `dashboard_api` is reserved for a
- * later phase (and is therefore not selectable in the policy UI yet).
+ * Scope: this guards the web/Inertia dashboard surface — full page loads,
+ * Inertia partial reloads, and the dashboard broadcasting/auth endpoint (all in
+ * the `web` group). The customer `/api/v1` surface lives in the `api` group and
+ * is NOT covered yet, so a session-cookie-authenticated request from a blocked
+ * country can still reach the same workspace data through the API.
  */
 class EnsureWorkspaceNetworkAllowed
 {

@@ -1588,7 +1588,9 @@
                 "save": "保存"
             },
             "deploy": "部署",
-            "deploy_tooltip": "嵌入你的智能体 — 聊天挂件、托管聊天或命令栏"
+            "deploy_tooltip": "嵌入你的智能体 — 聊天挂件、托管聊天或命令栏",
+            "capabilities": "能力",
+            "capabilities_tooltip": "为聊天添加丰富的功能 — 例如交互式图表"
         },
         "create_modal": {
             "title": "创建智能体",
@@ -2229,6 +2231,14 @@
             "grant_error": "无法授予访问权限",
             "fresh_link": "已为 {name} 生成新的邀请链接",
             "link_error": "无法生成邀请链接"
+        },
+        "capabilities": {
+            "page_title": "能力",
+            "title": "能力",
+            "description": "能力可直接在聊天中添加丰富的功能。开启某项能力，让该智能体在对话中使用它。",
+            "empty": "暂无可用的能力。",
+            "enable_failed": "无法开启此能力",
+            "disable_failed": "无法关闭此能力"
         }
     },
     "auth": {

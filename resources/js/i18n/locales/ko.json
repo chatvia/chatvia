@@ -1588,7 +1588,9 @@
                 "save": "저장"
             },
             "deploy": "배포",
-            "deploy_tooltip": "에이전트를 임베드합니다 — 채팅 위젯, 호스티드 챗 또는 커맨드 바"
+            "deploy_tooltip": "에이전트를 임베드합니다 — 채팅 위젯, 호스티드 챗 또는 커맨드 바",
+            "capabilities": "능력",
+            "capabilities_tooltip": "풍부한 기능을 채팅에 추가합니다 — 대화형 차트 등"
         },
         "create_modal": {
             "title": "에이전트 만들기",
@@ -2229,6 +2231,14 @@
             "grant_error": "액세스 권한을 부여할 수 없습니다",
             "fresh_link": "{name}님을 위한 새 초대 링크가 생성되었습니다",
             "link_error": "초대 링크를 생성할 수 없습니다"
+        },
+        "capabilities": {
+            "page_title": "능력",
+            "title": "능력",
+            "description": "능력은 채팅 안에서 바로 풍부한 기능을 더해 줍니다. 하나를 켜면 이 에이전트가 대화에서 사용할 수 있습니다.",
+            "empty": "아직 사용할 수 있는 능력이 없습니다.",
+            "enable_failed": "이 능력을 켤 수 없습니다",
+            "disable_failed": "이 능력을 끌 수 없습니다"
         }
     },
     "auth": {

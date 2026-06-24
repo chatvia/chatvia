@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "nav": {
+            "capabilities": "Fähigkeiten",
+            "capabilities_tooltip": "Erweiterte Funktionen zum Chat hinzufügen – etwa interaktive Diagramme"
+        },
+        "capabilities": {
+            "page_title": "Fähigkeiten",
+            "title": "Fähigkeiten",
+            "description": "Fähigkeiten fügen dem Chat direkt erweiterte Funktionen hinzu. Aktivieren Sie eine, damit dieser Agent sie in Gesprächen nutzen kann.",
+            "empty": "Es sind noch keine Fähigkeiten verfügbar.",
+            "enable_failed": "Diese Fähigkeit konnte nicht aktiviert werden",
+            "disable_failed": "Diese Fähigkeit konnte nicht deaktiviert werden"
+        }
+    }
+}

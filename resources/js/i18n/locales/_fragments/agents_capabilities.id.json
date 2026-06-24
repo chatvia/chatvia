@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "nav": {
+            "capabilities": "Kemampuan",
+            "capabilities_tooltip": "Tambahkan fitur canggih ke obrolan — seperti grafik interaktif"
+        },
+        "capabilities": {
+            "page_title": "Kemampuan",
+            "title": "Kemampuan",
+            "description": "Kemampuan menambahkan fitur canggih langsung di dalam obrolan. Aktifkan salah satu agar agen ini dapat menggunakannya dalam percakapan.",
+            "empty": "Belum ada kemampuan yang tersedia.",
+            "enable_failed": "Tidak dapat mengaktifkan kemampuan ini",
+            "disable_failed": "Tidak dapat menonaktifkan kemampuan ini"
+        }
+    }
+}

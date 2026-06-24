@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "nav": {
+            "capabilities": "Yetenekler",
+            "capabilities_tooltip": "Sohbete gelişmiş özellikler ekleyin — etkileşimli grafikler gibi"
+        },
+        "capabilities": {
+            "page_title": "Yetenekler",
+            "title": "Yetenekler",
+            "description": "Yetenekler, sohbetin içine doğrudan gelişmiş özellikler ekler. Bu asistanın konuşmalarda kullanabilmesi için birini açın.",
+            "empty": "Henüz kullanılabilir yetenek yok.",
+            "enable_failed": "Bu yetenek açılamadı",
+            "disable_failed": "Bu yetenek kapatılamadı"
+        }
+    }
+}

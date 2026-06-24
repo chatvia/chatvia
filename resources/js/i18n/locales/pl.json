@@ -1588,7 +1588,9 @@
                 "save": "Zapisz"
             },
             "deploy": "Wdrożenie",
-            "deploy_tooltip": "Osadź agenta — widget czatu, hostowany czat lub pasek poleceń"
+            "deploy_tooltip": "Osadź agenta — widget czatu, hostowany czat lub pasek poleceń",
+            "capabilities": "Możliwości",
+            "capabilities_tooltip": "Dodaj zaawansowane funkcje do czatu — takie jak interaktywne wykresy"
         },
         "create_modal": {
             "title": "Utwórz agenta",
@@ -2229,6 +2231,14 @@
             "grant_error": "Nie udało się przyznać dostępu",
             "fresh_link": "Nowy link zaproszenia wygenerowany dla {name}",
             "link_error": "Nie udało się wygenerować linku zaproszenia"
+        },
+        "capabilities": {
+            "page_title": "Możliwości",
+            "title": "Możliwości",
+            "description": "Możliwości dodają zaawansowane funkcje bezpośrednio w czacie. Włącz jedną, aby ten agent mógł z niej korzystać w rozmowach.",
+            "empty": "Brak dostępnych możliwości.",
+            "enable_failed": "Nie udało się włączyć tej możliwości",
+            "disable_failed": "Nie udało się wyłączyć tej możliwości"
         }
     },
     "auth": {

@@ -93,6 +93,11 @@ return [
         // for agents — it exists only to back the owner analytics "Ask your
         // data" chat's chart rendering and to seed the shared tool catalog.
         'server_category' => 'builtin',
+        // Surfaced on the per-agent Capabilities page (a friendlier name for
+        // first-party, no-auth chat enrichments), not in the Connectors list.
+        // Engine-wise it stays an ordinary builtin MCP server — only the UI
+        // surface that presents it differs.
+        'is_capability' => true,
         'mcp_url' => env('APP_URL').'/mcp/charts',
     ],
 
@@ -110,6 +115,10 @@ return [
         // First-party builtin, but NOT synced as a global always-on row, so it
         // stays per-agent opt-in (lead capture is an agent-specific choice).
         'server_category' => 'builtin',
+        // Surfaced on the per-agent Capabilities page alongside Interactive
+        // Charts, not in the Connectors list. UI-surface flag only — the
+        // builtin MCP server it provisions is unchanged.
+        'is_capability' => true,
         'mcp_url' => env('APP_URL').'/mcp/leads',
     ],
 

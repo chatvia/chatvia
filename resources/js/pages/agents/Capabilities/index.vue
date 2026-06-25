@@ -88,11 +88,7 @@ async function toggle(row: CapabilityRow): Promise<void> {
                                     <p class="text-muted-foreground mt-1 text-xs">{{ connectorDescription(row.connector) }}</p>
                                 </div>
                                 <LoaderCircle v-if="busy[row.connector.slug]" class="text-muted-foreground h-4 w-4 animate-spin" />
-                                <Switch
-                                    :model-value="row.enabled"
-                                    :disabled="busy[row.connector.slug]"
-                                    @update:model-value="toggle(row)"
-                                />
+                                <Switch :model-value="row.enabled" :disabled="busy[row.connector.slug]" @update:model-value="toggle(row)" />
                             </div>
                         </div>
                     </CardContent>

@@ -12,6 +12,7 @@ use Domain\Conversation\Services\Tooling\Access\ToolAccessPolicy;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
 use Domain\Conversation\Services\Tooling\Registry\ToolDisplayResolver;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Generator;
 use Spectra\Facades\Spectra;
@@ -46,6 +47,7 @@ class ToolLoopRunner
         private readonly ToolDisplayResolver $displayResolver,
         private readonly ToolAccessPolicy $accessPolicy,
         private readonly ToolApprovalStore $approvalStore,
+        private readonly ConnectorCatalog $catalog,
     ) {}
 
     /**
@@ -364,6 +366,12 @@ class ToolLoopRunner
         $agent = $rd->agent;
         $kind = (string) ($pc['kind'] ?? 'function');
         [$connectorSlug, $toolName] = $this->toolOrigin((string) $pc['name'], $kind);
+
+        // First-party builtin capabilities (charts, forms, leads) are excluded
+        // from the governance audit — they run directly and aren't logged.
+        if ($kind === 'mcp' && $connectorSlug !== null && $this->catalog->isBuiltinSlug($connectorSlug)) {
+            return;
+        }
 
         ToolCallCompleted::dispatch(
             agentId: (int) $agent->id,

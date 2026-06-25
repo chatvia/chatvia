@@ -41,6 +41,8 @@ use App\Http\Controllers\Agent\Eval\AgentEvalController;
 use App\Http\Controllers\Agent\Eval\AgentEvalRunController;
 use App\Http\Controllers\Agent\Eval\CreateEvalCasesFromKnowledgeController;
 use App\Http\Controllers\Agent\Eval\RunAgentEvalController;
+use App\Http\Controllers\Agent\Form\AgentFormController;
+use App\Http\Controllers\Agent\Form\AgentSubmissionController;
 use App\Http\Controllers\Agent\Guardrail\AgentGuardrailController;
 use App\Http\Controllers\Agent\Handoff\AgentHandoffController;
 use App\Http\Controllers\Agent\Handoff\HandoffTypingController;
@@ -50,9 +52,7 @@ use App\Http\Controllers\Agent\Handoff\SendHandoffMessageController;
 use App\Http\Controllers\Agent\Handoff\TakeoverHandoffController;
 use App\Http\Controllers\Agent\Identity\AgentIdentityController;
 use App\Http\Controllers\Agent\Identity\RegenerateAgentAuthSecretController;
-use App\Http\Controllers\Agent\Lead\AgentLeadController;
 use App\Http\Controllers\Agent\Lead\AgentLeadSettingsController;
-use App\Http\Controllers\Agent\Lead\AgentLeadsExportController;
 use App\Http\Controllers\Agent\Persona\AgentShowPersonaController;
 use App\Http\Controllers\Agent\Playground\AgentPlaygroundController;
 use App\Http\Controllers\Agent\RenameAgentController;
@@ -250,10 +250,13 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::put('starters', [AgentStarterController::class, 'update'])
             ->middleware('agent.permission:agent.setup')->name('starters.update');
 
-        Route::get('leads', [AgentLeadController::class, 'index'])->middleware('agent.permission:agent.leads.view')->name('leads.index');
-        Route::delete('leads', [AgentLeadController::class, 'destroy'])->middleware('agent.permission:agent.leads.view')->name('leads.destroy');
+        // Submissions live under each form (Forms → a form → Submissions).
+        // Field + CRM-webhook settings stay on the shared settings endpoint.
+        // Permissions reuse the agent.leads.* set.
         Route::patch('leads/settings', AgentLeadSettingsController::class)->middleware('agent.permission:agent.leads.settings')->name('leads.settings');
-        Route::post('leads/export', AgentLeadsExportController::class)->middleware('agent.permission:agent.leads.export')->name('leads.export');
+        Route::get('forms/{form}/submissions', [AgentSubmissionController::class, 'index'])->middleware('agent.permission:agent.leads.view')->name('forms.submissions.index');
+        Route::get('forms/{form}/submissions/export', [AgentSubmissionController::class, 'export'])->middleware('agent.permission:agent.leads.export')->name('forms.submissions.export');
+        Route::delete('forms/{form}/submissions', [AgentSubmissionController::class, 'destroy'])->middleware('agent.permission:agent.leads.view')->name('forms.submissions.destroy');
 
         // Chatter members. index lists every workspace chatter (with a
         // `has_access` flag for this agent); store invites a brand-new
@@ -301,6 +304,16 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // enabling provisions + attaches in one toggle. Reuses the connector
         // permission so the gate matches its underlying attach/detach.
         Route::get('capabilities', AgentCapabilitiesController::class)->name('capabilities');
+
+        // Forms — the inline-form builder. Reuses the connector permission for
+        // mutations (same surface family as Capabilities).
+        Route::get('forms', [AgentFormController::class, 'index'])->name('forms.index');
+        Route::post('forms', [AgentFormController::class, 'store'])
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.store');
+        Route::put('forms/{form}', [AgentFormController::class, 'update'])
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.update');
+        Route::delete('forms/{form}', [AgentFormController::class, 'destroy'])
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.destroy');
         Route::post('capabilities/{slug}/enable', EnableAgentCapabilityController::class)
             ->middleware('agent.permission:agent.sources.train.connectors')->name('capabilities.enable');
         Route::delete('capabilities/{slug}', DisableAgentCapabilityController::class)

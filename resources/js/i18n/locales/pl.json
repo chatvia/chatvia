@@ -86,7 +86,14 @@
         "message_limit_reached": "Osiągnięto limit wiadomości",
         "upgrade_prompt": "Uaktualnij swój plan, aby kontynuować czatowanie",
         "regenerate_failed": "Nie udało się wygenerować odpowiedzi ponownie. Spróbuj jeszcze raz.",
-        "loading_conversation": "Ładowanie rozmowy"
+        "loading_conversation": "Ładowanie rozmowy",
+        "forms": {
+            "submit": "Wyślij",
+            "default_success": "Dziękujemy — Twoje dane zostały odebrane.",
+            "submit_failed": "Coś poszło nie tak. Spróbuj ponownie.",
+            "expired": "Ten formularz wygasł.",
+            "unavailable": "Tego formularza nie można tu wysłać."
+        }
     },
     "messages": {
         "send": "Wyślij",

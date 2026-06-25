@@ -66,7 +66,7 @@ class DeleteUserAccountAction
         // Leads hold the visitor's PII and only SET NULL on the agents →
         // conversations cascade, so delete the workspace's leads (keyed by its
         // agents) before the owner — and their agents — are torn down.
-        DB::table('leads')
+        DB::table('form_submissions')
             ->whereIn('agent_id', fn ($query) => $query->select('id')->from('agents')->where('user_id', $user->id))
             ->delete();
 

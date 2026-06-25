@@ -1,0 +1,11 @@
+{
+    "chat": {
+        "forms": {
+            "submit": "Gönder",
+            "default_success": "Teşekkürler — bilgileriniz alındı.",
+            "submit_failed": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+            "expired": "Bu formun süresi doldu.",
+            "unavailable": "Bu form burada gönderilemez."
+        }
+    }
+}

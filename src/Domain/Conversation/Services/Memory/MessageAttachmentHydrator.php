@@ -6,6 +6,7 @@ use Domain\Conversation\Data\Attachments\AttachmentData;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
+use Domain\Form\Models\FormSubmission;
 
 /**
  * Hydrates an in-memory message list (as returned by
@@ -30,6 +31,12 @@ class MessageAttachmentHydrator
      */
     public function hydrate(array $messages, Conversation $conversation): array
     {
+        // Overwrite each form artifact's persisted status with the live
+        // submission status, so a reload shows a submitted form read-only
+        // regardless of whether the on-submit metadata flip landed (it races the
+        // async message persist). One query for all forms.
+        $this->enrichFormArtifactStatuses($messages);
+
         $attachments = Attachment::query()
             ->where('chat_conversation_id', $conversation->id)
             ->get();
@@ -60,6 +67,54 @@ class MessageAttachmentHydrator
         unset($message);
 
         return $messages;
+    }
+
+    /**
+     * Refresh every `form` artifact's `status` from its FormSubmission row
+     * (keyed by form_instance_id = the submission external_id). The persisted
+     * artifact status can be stale (the on-submit flip races StoreMessageJob),
+     * so the DB row is the authoritative source on reload. Batched: one query.
+     *
+     * @param  array<int, array<string, mixed>>  $messages
+     */
+    private function enrichFormArtifactStatuses(array &$messages): void
+    {
+        $instanceIds = [];
+        foreach ($messages as $message) {
+            foreach (($message['metadata']['artifacts'] ?? []) as $artifact) {
+                if (($artifact['kind'] ?? null) === 'form' && isset($artifact['data']['form_instance_id'])) {
+                    $instanceIds[] = $artifact['data']['form_instance_id'];
+                }
+            }
+        }
+
+        if ($instanceIds === []) {
+            return;
+        }
+
+        $statuses = FormSubmission::query()
+            ->select(['external_id', 'status'])
+            ->whereIn('external_id', array_unique($instanceIds))
+            ->pluck('status', 'external_id')
+            ->all();
+
+        if ($statuses === []) {
+            return;
+        }
+
+        foreach ($messages as &$message) {
+            if (! is_array($message['metadata']['artifacts'] ?? null)) {
+                continue;
+            }
+            foreach ($message['metadata']['artifacts'] as &$artifact) {
+                $id = ($artifact['kind'] ?? null) === 'form' ? ($artifact['data']['form_instance_id'] ?? null) : null;
+                if ($id !== null && isset($statuses[$id])) {
+                    $artifact['data']['status'] = $statuses[$id];
+                }
+            }
+            unset($artifact);
+        }
+        unset($message);
     }
 
     /**

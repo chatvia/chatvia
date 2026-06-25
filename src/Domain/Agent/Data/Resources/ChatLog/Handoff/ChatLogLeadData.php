@@ -2,7 +2,7 @@
 
 namespace Domain\Agent\Data\Resources\ChatLog\Handoff;
 
-use Domain\Lead\Models\Lead;
+use Domain\Form\Models\FormSubmission;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -24,21 +24,21 @@ class ChatLogLeadData extends Data
         public string $created_at,
     ) {}
 
-    public static function fromLead(Lead $lead): self
+    public static function fromLead(FormSubmission $submission): self
     {
         return new self(
-            id: $lead->id,
-            name: $lead->name,
-            email: $lead->email,
-            phone: $lead->phone,
-            job_title: $lead->job_title,
-            company: $lead->company,
-            location: $lead->location,
-            message: $lead->message,
-            referrer_url: $lead->referrer_url,
-            page_url: $lead->page_url,
-            locale: $lead->locale,
-            created_at: $lead->created_at->toISOString(),
+            id: $submission->id,
+            name: $submission->name,
+            email: $submission->email,
+            phone: $submission->phone,
+            job_title: $submission->job_title,
+            company: $submission->company,
+            location: $submission->location,
+            message: $submission->message,
+            referrer_url: null,
+            page_url: null,
+            locale: null,
+            created_at: $submission->created_at->toISOString(),
         );
     }
 }

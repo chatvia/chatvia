@@ -8,7 +8,7 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session as ChatSession;
 use Domain\Conversation\Services\Memory\ChatCache;
-use Domain\Lead\Models\Lead;
+use Domain\Form\Models\FormSubmission;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Cache;
@@ -213,7 +213,7 @@ it('deletes leads, Sanctum tokens and HTTP sessions the FK cascade would orphan'
     $employee = User::factory()->employee($owner)->create();
     $agent = Agent::factory()->create(['user_id' => $owner->id]);
 
-    $lead = Lead::factory()->forAgent($agent)->create();
+    $lead = FormSubmission::factory()->forAgent($agent)->create();
 
     $owner->createToken('owner-cli');
     $employee->createToken('emp-cli');
@@ -231,7 +231,7 @@ it('deletes leads, Sanctum tokens and HTTP sessions the FK cascade would orphan'
 
     app(DeleteUserAccountAction::class)->execute($owner);
 
-    expect(Lead::whereKey($lead->id)->exists())->toBeFalse()
+    expect(FormSubmission::whereKey($lead->id)->exists())->toBeFalse()
         ->and(DB::table('personal_access_tokens')->whereIn('tokenable_id', [$owner->id, $employee->id])->where('tokenable_type', $owner->getMorphClass())->exists())->toBeFalse()
         ->and(DB::table('sessions')->whereIn('user_id', [$owner->id, $employee->id])->exists())->toBeFalse();
 });

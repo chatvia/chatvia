@@ -7,7 +7,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
-use Domain\Lead\Models\Lead;
+use Domain\Form\Models\FormSubmission;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Cache;
@@ -95,7 +95,7 @@ class DeleteChatterAction
             return;
         }
 
-        Lead::query()->whereIn('chat_conversation_id', $conversationIds)->delete();
+        FormSubmission::query()->whereIn('chat_conversation_id', $conversationIds)->delete();
     }
 
     /**

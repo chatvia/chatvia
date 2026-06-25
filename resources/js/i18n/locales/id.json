@@ -86,7 +86,14 @@
         "message_limit_reached": "Anda telah mencapai batas pesan",
         "upgrade_prompt": "Silakan tingkatkan paket Anda untuk melanjutkan obrolan",
         "regenerate_failed": "Tidak dapat membuat ulang respons. Silakan coba lagi.",
-        "loading_conversation": "Memuat percakapan"
+        "loading_conversation": "Memuat percakapan",
+        "forms": {
+            "submit": "Kirim",
+            "default_success": "Terima kasih — detail Anda telah kami terima.",
+            "submit_failed": "Terjadi kesalahan. Silakan coba lagi.",
+            "expired": "Formulir ini sudah kedaluwarsa.",
+            "unavailable": "Formulir ini tidak dapat dikirim di sini."
+        }
     },
     "messages": {
         "send": "Kirim",

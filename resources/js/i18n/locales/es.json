@@ -86,7 +86,14 @@
         "message_limit_reached": "Alcanzaste el límite de mensajes",
         "upgrade_prompt": "Actualiza tu plan para continuar chateando",
         "regenerate_failed": "No se pudo regenerar la respuesta. Intenta de nuevo.",
-        "loading_conversation": "Cargando conversación"
+        "loading_conversation": "Cargando conversación",
+        "forms": {
+            "submit": "Enviar",
+            "default_success": "Gracias — hemos recibido tus datos.",
+            "submit_failed": "Algo salió mal. Inténtalo de nuevo.",
+            "expired": "Este formulario ha caducado.",
+            "unavailable": "Este formulario no se puede enviar aquí."
+        }
     },
     "messages": {
         "send": "Enviar",

@@ -86,7 +86,14 @@
         "message_limit_reached": "Bạn đã đạt giới hạn tin nhắn",
         "upgrade_prompt": "Vui lòng nâng cấp gói để tiếp tục trò chuyện",
         "regenerate_failed": "Không thể tạo lại phản hồi. Vui lòng thử lại.",
-        "loading_conversation": "Đang tải cuộc trò chuyện"
+        "loading_conversation": "Đang tải cuộc trò chuyện",
+        "forms": {
+            "submit": "Gửi",
+            "default_success": "Cảm ơn — chúng tôi đã nhận được thông tin của bạn.",
+            "submit_failed": "Đã xảy ra lỗi. Vui lòng thử lại.",
+            "expired": "Biểu mẫu này đã hết hạn.",
+            "unavailable": "Không thể gửi biểu mẫu này tại đây."
+        }
     },
     "messages": {
         "send": "Gửi",

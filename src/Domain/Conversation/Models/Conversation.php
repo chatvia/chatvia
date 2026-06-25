@@ -10,7 +10,7 @@ use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
-use Domain\Lead\Models\Lead;
+use Domain\Form\Models\FormSubmission;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Collection;
@@ -52,7 +52,7 @@ use Support\Localization\Language\Models\Language;
  * @property-read Agent|null $agent
  * @property-read User|null $handoffUser
  * @property-read Language|null $language
- * @property-read Lead|null $lead
+ * @property-read FormSubmission|null $lead
  * @property-read Collection<int, Message> $messages
  * @property-read int|null $messages_count
  * @property-read Message|null $lastMessage
@@ -271,11 +271,15 @@ class Conversation extends Model
     }
 
     /**
-     * @return HasOne<Lead, $this>
+     * The most recent submission captured in this conversation. Kept named
+     * `lead` for the chat-log / handoff readers that display the captured
+     * contact's name/email via FormSubmission's field accessors.
+     *
+     * @return HasOne<FormSubmission, $this>
      */
     public function lead(): HasOne
     {
-        return $this->hasOne(Lead::class, 'chat_conversation_id');
+        return $this->hasOne(FormSubmission::class, 'chat_conversation_id')->latestOfMany();
     }
 
     /**

@@ -12,6 +12,7 @@ use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\Data\StreamRequestData;
 use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Form\Services\FormHybridSearch;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Knowledge\Ingestion\Services\Search\KnowledgeBase;
@@ -512,6 +513,19 @@ readonly class ChatService
                 'address' => $business['address'] ?? null,
                 'opening_hours' => $business['opening_hours'] ?? null,
             ]);
+        }
+
+        // When the Forms capability is enabled, tell the model which forms it can
+        // render (by slug) and what each is for — so it calls render-form with the
+        // right form by INTENT rather than matching the form's title. Bounded by
+        // FormHybridSearch: small catalogs are listed whole; larger ones are
+        // narrowed to the forms most relevant to this turn's message.
+        if ($data->agent->isFormsEnabled()) {
+            $forms = app(FormHybridSearch::class)->forPrompt($data->agent, $data->message->message);
+
+            if ($forms->isNotEmpty()) {
+                $systemPrompt .= "\n\n".prompt('forms/available', ['forms' => $forms->toArray()]);
+            }
         }
 
         return [

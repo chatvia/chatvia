@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Services;
 
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Services\ChannelReplyRunner;
 use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\RateLimiter;
  *
  * Shared by every chat surface so the cap applies uniformly regardless of where
  * a message arrives: the web SSE stream ({@see ChatStreamService}) and the
- * messaging channels ({@see \Domain\Channel\Services\ChannelReplyRunner} —
+ * messaging channels ({@see ChannelReplyRunner} —
  * Telegram, Slack, Messenger, WhatsApp, Instagram, Teams).
  *
  * The cap itself rides on the cache store (via {@see RateLimiter}); the agent's

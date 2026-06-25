@@ -1,5 +1,9 @@
 <?php
 
+use Spatie\FlareClient\Sampling\RateSampler;
+use Spatie\LaravelFlare\FlareConfig;
+use Spatie\LaravelFlare\Senders\LaravelHttpSender;
+
 return [
     /*
     |
@@ -25,7 +29,7 @@ return [
     |
     */
 
-    'collects' => \Spatie\LaravelFlare\FlareConfig::defaultCollects(
+    'collects' => FlareConfig::defaultCollects(
         ignore: [],
         extra: []
     ),
@@ -74,7 +78,7 @@ return [
     */
 
     'sender' => [
-        'class' => \Spatie\LaravelFlare\Senders\LaravelHttpSender::class,
+        'class' => LaravelHttpSender::class,
         'config' => [
             'timeout' => 10,
         ],
@@ -165,7 +169,7 @@ return [
     */
 
     'sampler' => [
-        'class' => \Spatie\FlareClient\Sampling\RateSampler::class,
+        'class' => RateSampler::class,
         'config' => [
             'rate' => env('FLARE_SAMPLER_RATE', 0.1),
         ],

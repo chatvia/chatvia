@@ -130,7 +130,6 @@ class DatabaseSeeder extends Seeder
         $this->call(TopicsSeeder::class);
 
         // Seed leads
-        $this->call(LeadSeeder::class);
 
         $this->command->info('Database seeding completed successfully!');
     }

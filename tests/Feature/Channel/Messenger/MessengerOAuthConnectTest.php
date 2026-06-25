@@ -70,7 +70,9 @@ it('callback with a matching state holds the granted Pages for the picker', func
         ->withSession(['messenger_oauth' => ['agent_id' => $this->agent->id, 'state' => 'good-state']])
         ->get(route('channels.messenger.callback', ['code' => 'CODE', 'state' => 'good-state']));
 
-    $res->assertRedirect(route('agents.channels', $this->agent));
+    // `open=messenger` re-opens the slide-over so the Page picker is visible
+    // instead of behind a closed sheet after the full-page OAuth redirect.
+    $res->assertRedirect(route('agents.channels', ['agent' => $this->agent, 'open' => 'messenger']));
     expect(session('messenger_oauth_pages.agent_id'))->toBe($this->agent->id)
         ->and(session('messenger_oauth_pages.pages'))->toHaveCount(1);
     // Not connected until the workspace actually picks a Page.

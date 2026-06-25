@@ -197,7 +197,12 @@ const exportAsText = (_id: string | number) => {};
                     </div>
                 </div>
                 <div v-else>
-                    <AssistantMessageBody v-if="message.content" :content="message.content" :artifacts="message.artifacts ?? undefined" />
+                    <AssistantMessageBody
+                        v-if="message.content"
+                        :content="message.content"
+                        :artifacts="message.artifacts ?? undefined"
+                        :message-id="message.id ? String(message.id) : undefined"
+                    />
                     <WaitingIndicator v-else />
                 </div>
 

@@ -21,6 +21,7 @@ import { markedHighlight } from 'marked-highlight';
 import markedKatex from 'marked-katex-extension';
 import { type Component, computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import EChartBlock from './EChartBlock.vue';
+import InlineFormBlock from './InlineFormBlock.vue';
 
 /**
  * Image-exfiltration guard.
@@ -83,6 +84,10 @@ const props = withDefaults(
         artifacts?: ToolArtifact[];
         isStreaming?: boolean;
         isRTL?: boolean;
+        // External id of the message that owns these artifacts — passed to the
+        // inline-form renderer so a submit can stamp the read-only state back
+        // onto this message for reload.
+        messageId?: string;
     }>(),
     {
         artifacts: () => [],
@@ -106,6 +111,10 @@ const ARTIFACT_RENDERERS: Record<string, ArtifactRenderer> = {
     echarts_option: {
         component: EChartBlock,
         toProps: (data) => ({ option: data }),
+    },
+    form: {
+        component: InlineFormBlock,
+        toProps: (data) => ({ form: data }),
     },
 };
 
@@ -288,6 +297,7 @@ onMounted(() => {
             v-for="(artifact, i) in renderableArtifacts"
             :key="`artifact-${i}`"
             v-bind="ARTIFACT_RENDERERS[artifact.kind].toProps(artifact.data)"
+            :message-id="artifact.kind === 'form' ? messageId : undefined"
         />
         <div
             v-if="content"

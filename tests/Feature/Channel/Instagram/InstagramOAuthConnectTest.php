@@ -75,7 +75,9 @@ it('callback with a matching state holds the granted accounts for the picker', f
         ->withSession(['instagram_oauth' => ['agent_id' => $this->agent->id, 'state' => 'good-state']])
         ->get(route('channels.instagram.callback', ['code' => 'CODE', 'state' => 'good-state']));
 
-    $res->assertRedirect(route('agents.channels', $this->agent));
+    // `open=instagram` re-opens the slide-over so the account picker is visible
+    // instead of behind a closed sheet after the full-page OAuth redirect.
+    $res->assertRedirect(route('agents.channels', ['agent' => $this->agent, 'open' => 'instagram']));
     expect(session('instagram_oauth_pages.agent_id'))->toBe($this->agent->id)
         ->and(session('instagram_oauth_pages.pages'))->toHaveCount(1);
     // Not connected until the workspace actually picks an account.

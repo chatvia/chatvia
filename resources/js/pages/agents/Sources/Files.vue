@@ -912,9 +912,7 @@ const fetchKnowledgeFiles = async () => {
         // return a just-finished file as still 'ingesting' (capped at 99%),
         // reverting an already-completed file in the UI back to "Training in
         // progress". Keep any file the client already knows is 'ingested'.
-        const ingestedIds = new Set(
-            knowledgeFiles.value.filter((file) => file.status === 'ingested').map((file) => file.id),
-        );
+        const ingestedIds = new Set(knowledgeFiles.value.filter((file) => file.status === 'ingested').map((file) => file.id));
 
         knowledgeFiles.value = allFiles.map((file) =>
             file.status === 'ingesting' && ingestedIds.has(file.id) ? { ...file, status: 'ingested', progress: 100 } : file,

@@ -19,6 +19,7 @@ use App\Http\Controllers\Chat\Conversations\MessageAttachmentDeleteController;
 use App\Http\Controllers\Chat\Embed\ChatEmbedController;
 use App\Http\Controllers\Chat\Embed\ChatEmbedHomeController;
 use App\Http\Controllers\Chat\Export\ChatExportController;
+use App\Http\Controllers\Chat\Forms\SubmitInlineFormController;
 use App\Http\Controllers\Chat\Home\ChatAppearanceController;
 use App\Http\Controllers\Chat\Home\ChatController;
 use App\Http\Controllers\Chat\Home\ChatHomeController;
@@ -64,6 +65,11 @@ Route::prefix('/chat')
         // Resume a paused agent turn after the user approves/denies a gated
         // tool call. {approval} binds ToolApprovalCheckpoint by external_id.
         Route::post('/tools/{approval}/resolve', ResolveToolApprovalController::class)->name('chat.tools.resolve');
+
+        // Inline-form submit. {formInstance} binds FormSubmission by external_id.
+        // Stores a Lead and/or FormSubmission — never opens a new (billed) turn.
+        Route::post('/forms/{formInstance}/submit', SubmitInlineFormController::class)
+            ->middleware('throttle:chat-stream')->name('chat.forms.submit');
 
         Route::post('/conversations/create', ConversationCreateController::class)->name('conversations.create');
         Route::get('/conversations/{conversationId}/messages', ConversationMessageController::class)->name('conversations.messages');

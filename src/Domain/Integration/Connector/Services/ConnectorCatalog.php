@@ -3,6 +3,7 @@
 namespace Domain\Integration\Connector\Services;
 
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
+use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Illuminate\Support\Collection;
 
 /**
@@ -58,6 +59,17 @@ class ConnectorCatalog
         }
 
         return ConnectorData::fromArray($entry);
+    }
+
+    /**
+     * Whether a server slug belongs to a first-party builtin (charts, forms,
+     * leads). These are safe, no-auth, Chatvia-hosted tools — they run without
+     * an approval gate and are excluded from the governance audit. Resolves by
+     * slug even for hidden (visible:false) builtins like `leads`.
+     */
+    public function isBuiltinSlug(string $slug): bool
+    {
+        return $this->find($slug)?->serverCategory() === McpServerCategory::Builtin;
     }
 
     /**

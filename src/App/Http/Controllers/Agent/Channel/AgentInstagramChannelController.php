@@ -161,7 +161,10 @@ class AgentInstagramChannelController
             return redirect()->route('agents.index');
         }
 
-        $redirect = redirect()->route('agents.channels', $agent);
+        // `open=instagram` re-opens the Instagram slide-over on the reloaded page
+        // — the OAuth hop is a full-page redirect (not an Inertia XHR), so the
+        // sheet would otherwise land closed and hide the account picker / error.
+        $redirect = redirect()->route('agents.channels', ['agent' => $agent, 'open' => 'instagram']);
 
         return $error === null ? $redirect : $redirect->withErrors(['instagram' => $error]);
     }

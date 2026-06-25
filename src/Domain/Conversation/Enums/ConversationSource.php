@@ -24,4 +24,16 @@ enum ConversationSource: string
     case Whatsapp = 'whatsapp';
     case MsTeams = 'msteams';
     case Instagram = 'instagram';
+
+    /**
+     * Web surfaces render rich inline artifacts (charts, forms); messaging
+     * channels can only show text, so artifact-emitting tools fall back there.
+     */
+    public function isWeb(): bool
+    {
+        return match ($this) {
+            self::HostedChat, self::Widget, self::Bar => true,
+            default => false,
+        };
+    }
 }

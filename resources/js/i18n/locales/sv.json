@@ -86,7 +86,14 @@
         "message_limit_reached": "Du har nått din meddelandegräns",
         "upgrade_prompt": "Uppgradera ditt abonnemang för att fortsätta chatta",
         "regenerate_failed": "Det gick inte att generera om svaret. Försök igen.",
-        "loading_conversation": "Laddar konversation"
+        "loading_conversation": "Laddar konversation",
+        "forms": {
+            "submit": "Skicka",
+            "default_success": "Tack — dina uppgifter har tagits emot.",
+            "submit_failed": "Något gick fel. Försök igen.",
+            "expired": "Det här formuläret har gått ut.",
+            "unavailable": "Det här formuläret kan inte skickas här."
+        }
     },
     "messages": {
         "send": "Skicka",

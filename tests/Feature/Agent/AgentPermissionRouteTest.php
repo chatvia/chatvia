@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Form\Models\FormDefinition;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
@@ -93,15 +94,18 @@ it('gates the qa delete route by agent.sources.delete', function (): void {
         ->assertNotFound();
 });
 
-it('gates the leads list and bulk-delete by agent.leads.view', function (): void {
+it('gates the submissions list and bulk-delete by agent.leads.view', function (): void {
     $blocked = teammateWithPermissions($this->owner, []);
     $allowed = teammateWithPermissions($this->owner, ['agent.leads.view']);
+    $form = FormDefinition::factory()->forAgent($this->agent)->create();
 
-    $this->actingAs($blocked)->getJson(route('agents.leads.index', $this->agent))->assertForbidden();
-    $this->actingAs($allowed)->getJson(route('agents.leads.index', $this->agent))->assertOk();
+    $this->actingAs($blocked)->getJson(route('agents.forms.submissions.index', [$this->agent, $form]))->assertForbidden();
+    $this->actingAs($allowed)->getJson(route('agents.forms.submissions.index', [$this->agent, $form]))->assertOk();
 
-    $this->actingAs($blocked)->deleteJson(route('agents.leads.destroy', $this->agent), [])->assertForbidden();
-    $this->actingAs($allowed)->deleteJson(route('agents.leads.destroy', $this->agent), [])->assertStatus(422);
+    // Empty body → nothing deleted → the controller redirects back (302); the
+    // contrast with the blocked 403 isolates the permission gate.
+    $this->actingAs($blocked)->deleteJson(route('agents.forms.submissions.destroy', [$this->agent, $form]), [])->assertForbidden();
+    $this->actingAs($allowed)->deleteJson(route('agents.forms.submissions.destroy', [$this->agent, $form]), [])->assertStatus(302);
 });
 
 it('gates leads settings by agent.leads.settings', function (): void {
@@ -112,12 +116,13 @@ it('gates leads settings by agent.leads.settings', function (): void {
     $this->actingAs($allowed)->patchJson(route('agents.leads.settings', $this->agent), [])->assertStatus(422);
 });
 
-it('gates leads export by agent.leads.export', function (): void {
+it('gates submissions export by agent.leads.export', function (): void {
     $blocked = teammateWithPermissions($this->owner, []);
     $allowed = teammateWithPermissions($this->owner, ['agent.leads.export']);
+    $form = FormDefinition::factory()->forAgent($this->agent)->create();
 
-    $this->actingAs($blocked)->postJson(route('agents.leads.export', $this->agent), [])->assertForbidden();
-    $this->actingAs($allowed)->postJson(route('agents.leads.export', $this->agent), [])->assertStatus(422);
+    $this->actingAs($blocked)->get(route('agents.forms.submissions.export', [$this->agent, $form]))->assertForbidden();
+    $this->actingAs($allowed)->get(route('agents.forms.submissions.export', [$this->agent, $form]))->assertOk();
 });
 
 it('gates the chat-log conversations list by agent.chat.view', function (): void {

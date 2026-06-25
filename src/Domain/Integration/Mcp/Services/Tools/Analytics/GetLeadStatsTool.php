@@ -33,13 +33,11 @@ class GetLeadStatsTool extends AnalyticsTool
         $period = $this->resolvePeriod($workspace, $v);
         $scope = $this->agentScope($workspace, $v);
 
-        $leads = DB::table('leads')
+        $total = DB::table('form_submissions')
             ->whereIn('agent_id', $scope['ids'])
-            ->whereBetween('created_at', [$period->start, $period->end]);
-
-        $total = (clone $leads)->count();
-        $contacted = (clone $leads)->whereNotNull('contacted_at')->count();
-        $byStatus = (clone $leads)->groupBy('status')->selectRaw('status, COUNT(*) total')->pluck('total', 'status');
+            ->where('status', 'submitted')
+            ->whereBetween('created_at', [$period->start, $period->end])
+            ->count();
 
         $conversations = (int) $this->analytics()->table('analytics_agent_hourly_rollups')
             ->where('workspace_id', $workspace->id)
@@ -50,10 +48,9 @@ class GetLeadStatsTool extends AnalyticsTool
         $conversionRate = $this->pct($total, $conversations);
 
         $summary = sprintf(
-            '%s: %s leads captured (%s contacted). Conversion rate %s%% of %s conversations.',
+            '%s: %s leads captured. Conversion rate %s%% of %s conversations.',
             ucfirst($period->label),
             number_format($total),
-            number_format($contacted),
             $conversionRate,
             number_format($conversations),
         );
@@ -61,15 +58,6 @@ class GetLeadStatsTool extends AnalyticsTool
         return Response::make(Response::text($summary))->withStructuredContent([
             'period' => ['key' => $period->key, 'label' => $period->label, 'start' => $period->start->toDateString(), 'end' => $period->end->toDateString()],
             'total_leads' => $total,
-            'contacted' => $contacted,
-            'uncontacted' => max(0, $total - $contacted),
-            'by_status' => [
-                'new' => (int) ($byStatus['new'] ?? 0),
-                'contacted' => (int) ($byStatus['contacted'] ?? 0),
-                'qualified' => (int) ($byStatus['qualified'] ?? 0),
-                'converted' => (int) ($byStatus['converted'] ?? 0),
-                'lost' => (int) ($byStatus['lost'] ?? 0),
-            ],
             'conversations' => $conversations,
             'conversion_rate_pct' => $conversionRate,
         ]);

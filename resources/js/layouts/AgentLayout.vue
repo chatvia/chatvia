@@ -59,7 +59,6 @@ import {
     SmilePlus,
     Sparkles,
     Trash2,
-    UserCheck,
     Users,
 } from 'lucide-vue-next';
 
@@ -117,9 +116,10 @@ const toggleSidebar = () => {
 
 // Remove breadcrumbs as we're creating a knowledge_base layout
 
-// Two top-level entries per agent — Playground (read-only preview) and Setup
-// (one unified configuration page with a Hosted Chat / Widget / Bar preview-tab
-// switcher). Persona lives as a Setup section.
+// Top-level entries per agent — Playground (read-only preview), Setup (one
+// unified configuration page with a Hosted Chat / Widget / Bar preview-tab
+// switcher) and Deploy. Capabilities, Forms and Channels live in the labelled
+// Management groups below to keep this top section focused.
 const uiNavigationItems = computed(() => {
     const baseItems: any[] = [];
 
@@ -144,31 +144,6 @@ const uiNavigationItems = computed(() => {
             icon: Rocket,
             route: 'agents.deploy',
             tooltip: t('agents.nav.deploy_tooltip'),
-        });
-    }
-
-    // Capabilities — first-party chat enrichments (Interactive Charts, …).
-    // Gated by the connector permission it shares an attach/detach path with.
-    if (hasPermission('agent.sources.train.connectors')) {
-        baseItems.push({
-            id: 'capabilities',
-            label: t('agents.nav.capabilities'),
-            icon: Sparkles,
-            route: 'agents.capabilities',
-            tooltip: t('agents.nav.capabilities_tooltip'),
-        });
-    }
-
-    // Channels is its own permission (`agent.channels`) — a teammate can be
-    // granted channel access without the broader agent-setup grant, and vice
-    // versa. Mirrors the `agent.permission:agent.channels` route gate.
-    if (hasPermission('agent.channels')) {
-        baseItems.push({
-            id: 'channels',
-            label: t('agents.nav.channels'),
-            icon: Send,
-            route: 'agents.channels',
-            tooltip: t('agents.nav.channels_tooltip'),
         });
     }
 
@@ -271,15 +246,8 @@ const managementGroups = computed(() => {
             tooltip: t('agents.nav.guardrails_tooltip'),
         });
     }
-    if (hasPermission('agent.leads.view') && props.agent.leads_mcp_enabled) {
-        insights.push({
-            id: 'leads',
-            label: t('agents.nav.leads'),
-            icon: UserCheck,
-            route: 'agents.leads.index',
-            tooltip: t('agents.nav.leads_tooltip'),
-        });
-    }
+    // Captured contacts now live as submissions under Forms (Forms → a form →
+    // Submissions), so there is no standalone Leads item.
     if (insights.length) groups.push({ id: 'insights', label: t('agents.nav.groups.insights'), items: insights });
 
     // Training — knowledge sources and tools the agent can call
@@ -310,10 +278,27 @@ const managementGroups = computed(() => {
             route: 'agents.sources.connectors.index',
             tooltip: t('agents.nav.connectors_tooltip'),
         });
+        // Capabilities — first-party chat enrichments (Interactive Charts, …).
+        // Shares the connector attach/detach permission and path.
+        training.push({
+            id: 'capabilities',
+            label: t('agents.nav.capabilities'),
+            icon: Sparkles,
+            route: 'agents.capabilities',
+            tooltip: t('agents.nav.capabilities_tooltip'),
+        });
+        training.push({
+            id: 'forms',
+            label: t('agents.nav.forms'),
+            icon: FileText,
+            route: 'agents.forms.index',
+            tooltip: t('agents.nav.forms_tooltip'),
+        });
     }
     if (training.length) groups.push({ id: 'training', label: t('agents.nav.groups.training'), items: training });
 
-    // Access — who can chat with the agent and how they prove it
+    // Access — who can chat with the agent, the surfaces they reach it on, and
+    // how they prove identity.
     const access: any[] = [];
     if (hasPermission('agent.chatters.manage')) {
         access.push({
@@ -322,6 +307,18 @@ const managementGroups = computed(() => {
             icon: Users,
             route: 'agents.chatters.index',
             tooltip: t('agents.nav.members_tooltip'),
+        });
+    }
+    // Channels is its own permission (`agent.channels`) — a teammate can be
+    // granted channel access without the broader agent-setup grant, and vice
+    // versa. Mirrors the `agent.permission:agent.channels` route gate.
+    if (hasPermission('agent.channels')) {
+        access.push({
+            id: 'channels',
+            label: t('agents.nav.channels'),
+            icon: Send,
+            route: 'agents.channels',
+            tooltip: t('agents.nav.channels_tooltip'),
         });
     }
     if (hasPermission('agent.identity.manage')) {

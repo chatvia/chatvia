@@ -86,7 +86,14 @@
         "message_limit_reached": "Du har nådd meldingsgrensen din",
         "upgrade_prompt": "Oppgrader abonnementet ditt for å fortsette å chatte",
         "regenerate_failed": "Kunne ikke regenerere svaret. Prøv igjen.",
-        "loading_conversation": "Laster samtale"
+        "loading_conversation": "Laster samtale",
+        "forms": {
+            "submit": "Send",
+            "default_success": "Takk — opplysningene dine er mottatt.",
+            "submit_failed": "Noe gikk galt. Prøv igjen.",
+            "expired": "Dette skjemaet er utløpt.",
+            "unavailable": "Dette skjemaet kan ikke sendes her."
+        }
     },
     "messages": {
         "send": "Send",

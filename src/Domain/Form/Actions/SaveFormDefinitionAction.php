@@ -1,0 +1,54 @@
+<?php
+
+namespace Domain\Form\Actions;
+
+use Domain\Agent\Models\Agent;
+use Domain\Form\Data\FormDefinitionData;
+use Domain\Form\Enums\FormType;
+use Domain\Form\Models\FormDefinition;
+use Illuminate\Support\Str;
+
+/**
+ * Create or update a form definition for an agent. Slug is derived from the name
+ * on create and kept stable on update (so rendered forms keep resolving).
+ */
+class SaveFormDefinitionAction
+{
+    public function execute(Agent $agent, FormDefinitionData $data, ?FormDefinition $existing = null): FormDefinition
+    {
+        $attributes = [
+            'name' => $data->name,
+            'form_type' => FormType::from($data->form_type),
+            'schema' => array_values($data->schema),
+            'lead_field_map' => $data->lead_field_map ?: null,
+            'success_message' => $data->success_message,
+            'description' => $data->description,
+            'is_active' => $data->is_active,
+        ];
+
+        if ($existing !== null) {
+            $existing->update($attributes);
+
+            return $existing;
+        }
+
+        return FormDefinition::create([
+            ...$attributes,
+            'agent_id' => $agent->id,
+            'slug' => $this->uniqueSlug($agent, $data->name),
+        ]);
+    }
+
+    private function uniqueSlug(Agent $agent, string $name): string
+    {
+        $base = Str::slug($name) ?: 'form';
+        $slug = $base;
+        $i = 1;
+
+        while (FormDefinition::query()->where('agent_id', $agent->id)->where('slug', $slug)->exists()) {
+            $slug = $base.'-'.(++$i);
+        }
+
+        return $slug;
+    }
+}

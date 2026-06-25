@@ -1,0 +1,11 @@
+{
+    "chat": {
+        "forms": {
+            "submit": "Envoyer",
+            "default_success": "Merci — vos informations ont bien été reçues.",
+            "submit_failed": "Une erreur s'est produite. Veuillez réessayer.",
+            "expired": "Ce formulaire a expiré.",
+            "unavailable": "Ce formulaire ne peut pas être envoyé ici."
+        }
+    }
+}

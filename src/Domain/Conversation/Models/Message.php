@@ -4,8 +4,8 @@ namespace Domain\Conversation\Models;
 
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\MessageQueryBuilder;
+use Domain\Form\Models\FormSubmission;
 use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
-use Domain\Lead\Models\Lead;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -44,7 +44,7 @@ use Support\Concerns\HasExternalId;
  * @property Carbon|null $updated_at
  * @property Carbon|null $read_at
  * @property-read Conversation|null $conversation
- * @property-read Lead|null $conversationLead
+ * @property-read FormSubmission|null $conversationLead
  * @property-read Llm|null $llm
  * @property-read AgentQuestionAnswer|null $questionAnswer
  *
@@ -174,11 +174,11 @@ class Message extends Model
      * same conversation returns the same row; the name avoids the
      * ownership-implying `lead()`. Prefer `$message->conversation->lead`.
      *
-     * @return HasOne<Lead, $this>
+     * @return HasOne<FormSubmission, $this>
      */
     public function conversationLead(): HasOne
     {
-        return $this->hasOne(Lead::class, 'chat_conversation_id', 'chat_conversation_id');
+        return $this->hasOne(FormSubmission::class, 'chat_conversation_id', 'chat_conversation_id')->latestOfMany();
     }
 
     /**

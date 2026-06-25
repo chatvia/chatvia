@@ -86,7 +86,14 @@
         "message_limit_reached": "لقد وصلت إلى الحد الأقصى للرسائل",
         "upgrade_prompt": "يرجى ترقية باقتك للاستمرار في المحادثة",
         "regenerate_failed": "تعذر إعادة توليد الرد. يرجى المحاولة مرة أخرى.",
-        "loading_conversation": "جارٍ تحميل المحادثة"
+        "loading_conversation": "جارٍ تحميل المحادثة",
+        "forms": {
+            "submit": "إرسال",
+            "default_success": "شكرًا — تم استلام بياناتك.",
+            "submit_failed": "حدث خطأ ما. حاول مرة أخرى.",
+            "expired": "انتهت صلاحية هذا النموذج.",
+            "unavailable": "لا يمكن إرسال هذا النموذج هنا."
+        }
     },
     "messages": {
         "send": "إرسال",
@@ -1613,7 +1620,9 @@
             "deploy": "النشر",
             "deploy_tooltip": "ضمّن وكيلك — ودجت المحادثة أو محادثة مُستضافة أو شريط أوامر",
             "capabilities": "القدرات",
-            "capabilities_tooltip": "أضف ميزات غنية إلى المحادثة — مثل الرسوم البيانية التفاعلية"
+            "capabilities_tooltip": "أضف ميزات غنية إلى المحادثة — مثل الرسوم البيانية التفاعلية",
+            "forms": "النماذج",
+            "forms_tooltip": "أنشئ نماذج يعرضها وكيلك في المحادثة"
         },
         "create_modal": {
             "title": "إنشاء وكيل",
@@ -2262,6 +2271,53 @@
             "empty": "لا توجد قدرات متاحة بعد.",
             "enable_failed": "تعذّر تفعيل هذه القدرة",
             "disable_failed": "تعذّر إيقاف هذه القدرة"
+        },
+        "forms": {
+            "page_title": "النماذج",
+            "title": "النماذج",
+            "description": "متى يُعرض هذا النموذج",
+            "new": "نموذج جديد",
+            "empty": "لا توجد نماذج بعد. أنشئ واحدًا للبدء.",
+            "fields": "حقول",
+            "inactive": "غير مُفعّل",
+            "edit": "تعديل",
+            "type_lead": "التقاط عميل محتمل",
+            "type_qualification": "تأهيل",
+            "type_booking": "حجز",
+            "type_generic": "عام",
+            "edit_form": "تعديل النموذج",
+            "new_form": "نموذج جديد",
+            "form_name": "اسم النموذج",
+            "form_name_placeholder": "مثال: اطلب عرض سعر",
+            "form_type": "نوع النموذج",
+            "add_field": "إضافة حقل",
+            "field_label": "تسمية الحقل",
+            "required": "مطلوب",
+            "maps_to": "يرتبط بـ",
+            "options_placeholder": "خيار واحد في كل سطر. استخدم value|label لقيم منفصلة.",
+            "success_message": "رسالة النجاح",
+            "success_placeholder": "تظهر بعد إرسال الزائر.",
+            "active": "مُفعّل",
+            "save": "حفظ",
+            "cancel": "إلغاء",
+            "preview": "معاينة",
+            "name_required": "يرجى إعطاء النموذج اسمًا.",
+            "saved": "تم حفظ النموذج",
+            "save_failed": "تعذّر حفظ النموذج",
+            "deleted": "تم حذف النموذج",
+            "submissions": "الإرساليات",
+            "description_placeholder": "مثال: اعرضه عندما يريد الزائر عرض سعر أو عرضًا توضيحيًا أو أن يتم التواصل معه",
+            "description_hint": "يستخدم الوكيل هذا لتحديد متى يعرض هذا النموذج في المحادثة."
+        },
+        "submissions": {
+            "page_title": "الإرساليات",
+            "back_to_forms": "العودة إلى النماذج",
+            "count": "{n} إرسالية",
+            "export": "تصدير CSV",
+            "search": "ابحث في الإرساليات",
+            "empty": "لا توجد إرساليات بعد.",
+            "submitted_at": "أُرسلت",
+            "deleted": "تم حذف الإرسالية"
         }
     },
     "auth": {

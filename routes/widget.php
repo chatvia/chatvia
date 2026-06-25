@@ -12,6 +12,7 @@ use App\Http\Controllers\Widget\Conversations\ConversationController;
 use App\Http\Controllers\Widget\Conversations\ConversationCreateController;
 use App\Http\Controllers\Widget\Conversations\ConversationDeleteController;
 use App\Http\Controllers\Widget\Conversations\ConversationMessageController;
+use App\Http\Controllers\Widget\Forms\SubmitInlineFormController;
 use App\Http\Controllers\Widget\Handoff\EndChatController;
 use App\Http\Controllers\Widget\Handoff\HandoffRequestController;
 use App\Http\Controllers\Widget\Handoff\HandoffStatusController;
@@ -63,6 +64,12 @@ Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void
             ->name('widget.stream');
 
         Route::post('/feedback', FeedbackController::class)->name('widget.feedback');
+
+        // Inline-form submit (anonymous visitor). {formInstance} binds
+        // FormSubmission by external_id; WidgetVerification binds it to the
+        // agent + chatter in the controller.
+        Route::post('/forms/{formInstance}/submit', SubmitInlineFormController::class)
+            ->middleware('throttle:widget-stream')->name('widget.forms.submit');
 
         // WebSocket / handoff endpoints
         Route::post('/broadcasting/auth', BroadcastAuthController::class)->name('widget.broadcasting.auth');

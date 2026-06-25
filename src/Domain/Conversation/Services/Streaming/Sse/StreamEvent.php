@@ -91,6 +91,7 @@ final readonly class StreamEvent
         ?string $error = null,
         ?string $kind = null,
         ?string $label = null,
+        ?string $activityLabel = null,
         ?string $iconUrl = null,
         ?string $brandColor = null,
         ?string $approvalId = null,
@@ -118,6 +119,9 @@ final readonly class StreamEvent
         }
         if ($label !== null) {
             $data['label'] = $label;
+        }
+        if ($activityLabel !== null) {
+            $data['activity_label'] = $activityLabel;
         }
         if ($iconUrl !== null) {
             $data['icon_url'] = $iconUrl;

@@ -12,6 +12,7 @@ use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
@@ -213,6 +214,17 @@ class Agent extends Model
     public function settings(string $group): SupportCollection
     {
         return $this->baseSettings($group);
+    }
+
+    /**
+     * Whether a web surface (Hosted Chat, Widget, Command Bar) is enabled for this
+     * agent. Defaults to ON — an agent with no stored `surfaces` setting (every
+     * agent created before this feature) serves all three. Disabling one hides
+     * that surface: Hosted Chat 404s, the Widget/Bar embed doesn't mount.
+     */
+    public function surfaceEnabled(ConversationSource $surface): bool
+    {
+        return (bool) ($this->settings('surfaces')->get($surface->value) ?? true);
     }
 
     /**

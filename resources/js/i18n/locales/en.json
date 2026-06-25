@@ -2203,7 +2203,13 @@
             "save": "Save",
             "sites_saved": "Allowed sites updated",
             "sites_error": "Couldn't save — please try again",
-            "api_docs": "JavaScript API"
+            "api_docs": "JavaScript API",
+            "enabled": "Enabled",
+            "disabled": "Disabled",
+            "toggle_surface": "Enable or disable this surface",
+            "surface_enabled": "Surface enabled",
+            "surface_disabled": "Surface disabled — it won't be reachable",
+            "surface_error": "Couldn't update — please try again"
         },
         "chatters": {
             "title": "Chatters",

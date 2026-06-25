@@ -33,6 +33,8 @@ class AgentDeployController
             'defaultWidget' => config('model-settings.defaults.'.Agent::class.'.widget'),
             'barSettings' => $agent->settings('bar'),
             'defaultBar' => config('model-settings.defaults.'.Agent::class.'.bar'),
+            // Per-surface on/off state, so each section can show an enable toggle.
+            'surfaces' => $agent->settings('surfaces'),
         ]);
     }
 }

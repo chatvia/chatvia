@@ -157,6 +157,7 @@ class ToolLoopRunner
                         args: $pc['arguments'],
                         kind: $pc['kind'],
                         label: $pc['label'],
+                        activityLabel: $pc['activity_label'] ?? null,
                         iconUrl: $pc['icon_url'],
                         brandColor: $pc['brand_color'],
                         approvalId: $checkpoint->external_id,
@@ -255,6 +256,7 @@ class ToolLoopRunner
             args: $pc['arguments'],
             kind: $pc['kind'],
             label: $pc['label'],
+            activityLabel: $pc['activity_label'] ?? null,
             iconUrl: $pc['icon_url'],
             brandColor: $pc['brand_color'],
         );
@@ -345,6 +347,7 @@ class ToolLoopRunner
                 'access' => $decision->value,
                 'kind' => $display['kind'],
                 'label' => $display['label'],
+                'activity_label' => $display['activity_label'],
                 'icon_url' => $display['icon_url'],
                 'brand_color' => $display['brand_color'],
                 'reason' => $requires ? self::APPROVAL_REASON : null,

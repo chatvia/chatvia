@@ -11,17 +11,17 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Per-turn retrieval of the forms to surface to the model, so it renders a form
- * by the visitor's INTENT rather than the form's title. Mirrors
- * {@see ToolHybridSearch}: a
- * dense (vchordrq, L2) and a sparse (BM25, llmlingua2) channel over an agent's
- * active forms, fused with RRF (k = 60).
+ * Intent-driven retrieval of the forms to return to the model from the
+ * `find-forms` MCP tool, so it renders a form by the visitor's INTENT rather than
+ * the form's title. Mirrors {@see ToolHybridSearch}: a dense (vchordrq, L2) and a
+ * sparse (BM25, llmlingua2) channel over an agent's active forms, fused with RRF
+ * (k = 60).
  *
  * The common case — an agent with only a handful of forms — never pays for the
- * embedding round-trip: {@see self::forPrompt()} lists the whole set wholesale.
- * Hybrid retrieval only kicks in once a form catalog outgrows the prompt
- * budget, and degrades to an alphabetical slice if embeddings aren't populated
- * yet or the query embedding fails — a form is never silently invisible.
+ * embedding round-trip: {@see self::forPrompt()} returns the whole set wholesale.
+ * Hybrid retrieval only kicks in once a form catalog outgrows the result budget,
+ * and degrades to an alphabetical slice if embeddings aren't populated yet or the
+ * query embedding fails — a form is never silently invisible.
  */
 class FormHybridSearch
 {

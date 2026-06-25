@@ -112,6 +112,31 @@ class FormSubmission extends Model
     }
 
     /**
+     * Of the given form ids, the ones this visitor SESSION has already submitted —
+     * so an agent never re-renders a form the visitor already completed. Scoped by
+     * session (the visitor's identity across conversations), not by conversation,
+     * so a booking made in an earlier chat in the same session still counts.
+     *
+     * @param  array<int, int>  $formDefinitionIds
+     * @return array<int, int>
+     */
+    public static function submittedFormIdsForSession(int $sessionId, array $formDefinitionIds): array
+    {
+        if ($formDefinitionIds === []) {
+            return [];
+        }
+
+        return self::query()
+            ->where('status', self::STATUS_SUBMITTED)
+            ->whereIn('form_definition_id', $formDefinitionIds)
+            ->whereHas('conversation', fn (Builder $query): Builder => $query->where('chat_session_id', $sessionId))
+            ->distinct()
+            ->pluck('form_definition_id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+    }
+
+    /**
      * Already-submitted rows carrying the same answer fingerprint for a form —
      * the de-dupe probe (the `form_definition_id, values_checksum` index serves it).
      */

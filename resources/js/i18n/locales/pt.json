@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "Copiado para a área de transferência",
                 "agent_id_copied": "ID do agente copiado para a área de transferência",
                 "code_copied": "Código copiado para a área de transferência!",
-                "code_copy_error": "Falha ao copiar o código. Por favor, tente novamente."
+                "code_copy_error": "Falha ao copiar o código. Por favor, tente novamente.",
+                "privacy_saved": "Link da política de privacidade salvo",
+                "privacy_error": "Não foi possível salvar o link da política de privacidade"
             },
             "settings": {
                 "composer_title": "Opções do compositor",
@@ -1961,7 +1963,10 @@
                 "models_context": "Janela de contexto:",
                 "models_location_us": "🇺🇸 Estados Unidos",
                 "models_location_eu": "🇪🇺 Europa",
-                "models_location_cn": "🇨🇳 China"
+                "models_location_cn": "🇨🇳 China",
+                "appearance_privacy_url": "URL da política de privacidade",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Exibido aos visitantes como “Ao conversar, você concorda com a nossa política de privacidade.” Deixe vazio para ocultar."
             }
         },
         "team": {

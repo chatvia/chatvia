@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "क्लिपबोर्ड पर कॉपी किया गया",
                 "agent_id_copied": "एजेंट ID क्लिपबोर्ड पर कॉपी की गई",
                 "code_copied": "कोड क्लिपबोर्ड पर कॉपी किया गया!",
-                "code_copy_error": "कोड कॉपी करने में विफल। कृपया फिर से प्रयास करें।"
+                "code_copy_error": "कोड कॉपी करने में विफल। कृपया फिर से प्रयास करें।",
+                "privacy_saved": "गोपनीयता नीति लिंक सहेजा गया",
+                "privacy_error": "गोपनीयता नीति लिंक सहेजा नहीं जा सका"
             },
             "settings": {
                 "composer_title": "कंपोज़र विकल्प",
@@ -1961,7 +1963,10 @@
                 "models_context": "कॉन्टेक्स्ट विंडो:",
                 "models_location_us": "🇺🇸 संयुक्त राज्य अमेरिका",
                 "models_location_eu": "🇪🇺 यूरोप",
-                "models_location_cn": "🇨🇳 चीन"
+                "models_location_cn": "🇨🇳 चीन",
+                "appearance_privacy_url": "गोपनीयता नीति का URL",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "आगंतुकों को इस रूप में दिखाया जाता है: “चैट करके, आप हमारी गोपनीयता नीति से सहमत होते हैं।” छिपाने के लिए खाली छोड़ें।"
             }
         },
         "team": {

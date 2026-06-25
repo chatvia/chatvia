@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "Copiado al portapapeles",
                 "agent_id_copied": "ID del agente copiado al portapapeles",
                 "code_copied": "¡Código copiado al portapapeles!",
-                "code_copy_error": "Error al copiar el código. Inténtalo de nuevo."
+                "code_copy_error": "Error al copiar el código. Inténtalo de nuevo.",
+                "privacy_saved": "Enlace de la política de privacidad guardado",
+                "privacy_error": "No se pudo guardar el enlace de la política de privacidad"
             },
             "settings": {
                 "composer_title": "Opciones del compositor",
@@ -1961,7 +1963,10 @@
                 "models_context": "Ventana de contexto:",
                 "models_location_us": "🇺🇸 Estados Unidos",
                 "models_location_eu": "🇪🇺 Europa",
-                "models_location_cn": "🇨🇳 China"
+                "models_location_cn": "🇨🇳 China",
+                "appearance_privacy_url": "URL de la política de privacidad",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Se muestra a los visitantes como “Al chatear, aceptas nuestra política de privacidad.” Déjalo vacío para ocultarlo."
             }
         },
         "team": {

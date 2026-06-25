@@ -1,16 +1,14 @@
 # Introduction
 
-Chatvia is a B2B AI workspace. Your business deploys AI agents to your team and to your customers — grounded in the content you own.
+Chatvia is a B2B AI workspace. Your business deploys AI agents to your team and to your customers - grounded in the content you own.
 
-Your workspace uploads files, points at URLs, pastes text, or imports YouTube videos. Chatvia parses them, breaks them into chunks, builds vector embeddings, and stores them in a search index. When someone asks a question, the agent retrieves the most relevant chunks and uses them to ground its answer — so it stays on-topic and on-brand.
+Your workspace uploads files, points at URLs, pastes text, or connect to MCP/Functions from your server.
 
 Every agent has three surfaces at once:
 
-- **Hosted Chat** — a standalone chat page at `{agent}.chatvia.ai`, or a custom domain via CNAME.
-- **Widget** — an embeddable floating chat bubble that drops onto any host page with one `<script>` tag.
-- **Bar** — a search-style trigger that opens a full-screen chat modal inside your own app.
-
-Alongside the agent surfaces, your workspace gets one unified chat at `/chat` — a ChatGPT-style interface where your chatters switch between every agent they have been granted access to.
+- **Hosted Chat**: a standalone chat page at `{agent}.chatvia.ai`, or a custom domain via CNAME.
+- **Widget**: an embeddable floating chat bubble that drops onto any host page with one `<script>` tag.
+- **Bar**: a search-style trigger that opens a full-screen chat modal inside your own app.
 
 This documentation covers the dashboard (creating agents, adding sources, configuring surfaces, managing members, viewing analytics) and the developer surface (REST API, sign-in tokens, functions, MCP connectors).
 
@@ -18,15 +16,15 @@ This documentation covers the dashboard (creating agents, adding sources, config
 
 ## What's in this guide
 
-- **[Quick start](/guide/quick-start)** — create an agent and put it in front of your team in 5 minutes.
-- **[Core concepts](/guide/core-concepts)** — the mental model: workspace, teammates, chatters, agents, sources, conversations.
-- **[Agents](/guide/agents/types)** — persona, model, appearance, behavior, and the three surfaces.
-- **[Knowledge sources](/guide/sources/overview)** — files, web, YouTube, text, Q&A pairs.
-- **[Tools & extensions](/guide/tools/functions)** — let your agent call your APIs (functions) or branded MCP connectors (GitHub, Slack, Jira, Linear, Notion, Stripe, ...) with per-tool allow / require approval / blocked permissions.
-- **[Identity & access](/guide/core-concepts)** — workspace, teammates (dashboard users), chatters (end-users in `/chat`), and role-based access to agents.
-- **[Identity verification](/guide/account/identity)** — sign your own users in to protected agents.
-- **[Public API](https://chatvia.ai/docs/api)** — auto-generated REST reference for programmatic access.
-- **[Embed](/embed/widget)** — drop the widget or the bar into any site.
+- **[Quick start](/guide/quick-start)**: create an agent and put it in front of your team in 5 minutes.
+- **[Core concepts](/guide/core-concepts)**: the mental model: workspace, teammates, chatters, agents, sources, conversations.
+- **[Agents](/guide/agents/types)**: persona, model, appearance, behavior, and the three surfaces.
+- **[Knowledge sources](/guide/sources/overview)**: files, web, YouTube, text, Q&A pairs.
+- **[Tools & extensions](/guide/tools/functions)**: let your agent call your APIs (functions) or branded MCP connectors (GitHub, Slack, Jira, Linear, Notion, Stripe, ...) with per-tool allow / require approval / blocked permissions.
+- **[Identity & access](/guide/core-concepts)**: workspace, teammates (dashboard users), chatters (end-users in `/chat`), and role-based access to agents.
+- **[Identity verification](/guide/account/identity)**: sign your own users in to protected agents.
+- **[Public API](https://chatvia.ai/docs/api)**: auto-generated REST reference for programmatic access.
+- **[Embed](/embed/widget)**: drop the widget or the bar into any site.
 
 ## What Chatvia is not
 

@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "Disalin ke papan klip",
                 "agent_id_copied": "ID Agen disalin ke papan klip",
                 "code_copied": "Kode disalin ke papan klip!",
-                "code_copy_error": "Gagal menyalin kode. Silakan coba lagi."
+                "code_copy_error": "Gagal menyalin kode. Silakan coba lagi.",
+                "privacy_saved": "Tautan kebijakan privasi disimpan",
+                "privacy_error": "Tidak dapat menyimpan tautan kebijakan privasi"
             },
             "settings": {
                 "composer_title": "Opsi penyusun",
@@ -1961,7 +1963,10 @@
                 "models_context": "Jendela konteks:",
                 "models_location_us": "🇺🇸 Amerika Serikat",
                 "models_location_eu": "🇪🇺 Eropa",
-                "models_location_cn": "🇨🇳 Tiongkok"
+                "models_location_cn": "🇨🇳 Tiongkok",
+                "appearance_privacy_url": "URL kebijakan privasi",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Ditampilkan kepada pengunjung sebagai “Dengan mengobrol, Anda menyetujui kebijakan privasi kami.” Biarkan kosong untuk menyembunyikan."
             }
         },
         "team": {

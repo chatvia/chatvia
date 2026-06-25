@@ -10,7 +10,9 @@ Create a workspace at [chatvia.ai](https://chatvia.ai) and start a free trial. A
 
 ## 2. Create an agent
 
-From **Dashboard → Agents → Create agent**, give the agent a name and press **Create**. That is the only field — every agent ships with three surfaces (Hosted Chat, Widget, and Bar) which you configure later in **Setup**. The subdomain is generated for you and can be renamed any time under **Setup → Domain**.
+From **Dashboard → Agents → Create agent**, give the agent a name and press **Create**. That is the only field — every agent ships with three surfaces (Hosted Chat, Widget, and Bar) which you configure later in **Setup**. The subdomain is generated for you and can be renamed any time under **Agent → Dashboard → Rename**.
+
+
 
 ![SCREENSHOT — create agent modal](/screenshots/agent-create-modal.png)
 
@@ -18,15 +20,17 @@ From **Dashboard → Agents → Create agent**, give the agent a name and press 
 
 Open the new agent and go to **Sources**. Sources live with the agent — there is no separate Knowledge Base page. Add at least one source so the agent has something to answer from:
 
-- **Files** — PDFs, Word docs, Markdown, audio, video.
-- **Web pages** — a URL; Chatvia crawls and indexes child links.
-- **YouTube** — a video URL; the transcript is indexed.
-- **Text** — paste a snippet (FAQ, policy text, etc.).
-- **Q&A** — explicit question/answer pairs that override RAG retrieval.
+- **Files**: PDFs, Word docs, Markdown, audio, video.
+- **Web pages**: a URL; Chatvia crawls and indexes child links.
+- **YouTube**: a video URL; the transcript is indexed.
+- **Text**: paste a snippet (FAQ, policy text, etc.).
+- **Q&A**: explicit question/answer pairs that override RAG retrieval.
 
 Sources are processed in the background. Status moves from **Pending → Processing → Ingested** (or **Failed**). Your team can keep working while ingestion finishes.
 
 ![SCREENSHOT — sources overview](/screenshots/sources-overview.png)
+
+Chativ.ai is not limited to 
 
 ## 4. Test it in the Playground
 

@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "클립보드에 복사되었습니다",
                 "agent_id_copied": "에이전트 ID가 클립보드에 복사되었습니다",
                 "code_copied": "코드가 클립보드에 복사되었습니다!",
-                "code_copy_error": "코드 복사에 실패했습니다. 다시 시도해 주세요."
+                "code_copy_error": "코드 복사에 실패했습니다. 다시 시도해 주세요.",
+                "privacy_saved": "개인정보 처리방침 링크가 저장되었습니다",
+                "privacy_error": "개인정보 처리방침 링크를 저장하지 못했습니다"
             },
             "settings": {
                 "composer_title": "입력창 옵션",
@@ -1961,7 +1963,10 @@
                 "models_context": "컨텍스트 윈도우:",
                 "models_location_us": "🇺🇸 미국",
                 "models_location_eu": "🇪🇺 유럽",
-                "models_location_cn": "🇨🇳 중국"
+                "models_location_cn": "🇨🇳 중국",
+                "appearance_privacy_url": "개인정보 처리방침 URL",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "방문자에게 “채팅하면 당사의 개인정보 처리방침에 동의하는 것입니다.”로 표시됩니다. 숨기려면 비워 두세요."
             }
         },
         "team": {

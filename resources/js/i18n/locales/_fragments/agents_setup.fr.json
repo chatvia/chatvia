@@ -58,7 +58,9 @@
                 "copied_clipboard": "Copié dans le presse-papier",
                 "agent_id_copied": "ID de l'agent copié dans le presse-papier",
                 "code_copied": "Code copié dans le presse-papier !",
-                "code_copy_error": "Échec de la copie du code. Veuillez réessayer."
+                "code_copy_error": "Échec de la copie du code. Veuillez réessayer.",
+                "privacy_saved": "Lien de la politique de confidentialité enregistré",
+                "privacy_error": "Impossible d'enregistrer le lien de la politique de confidentialité"
             },
             "settings": {
                 "composer_title": "Options du compositeur",
@@ -294,7 +296,10 @@
                 "models_context": "Fenêtre de contexte :",
                 "models_location_us": "🇺🇸 États-Unis",
                 "models_location_eu": "🇪🇺 Europe",
-                "models_location_cn": "🇨🇳 Chine"
+                "models_location_cn": "🇨🇳 Chine",
+                "appearance_privacy_url": "URL de la politique de confidentialité",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Affiché aux visiteurs sous la forme « En discutant, vous acceptez notre politique de confidentialité. » Laissez vide pour le masquer."
             }
         }
     }

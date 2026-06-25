@@ -8,7 +8,8 @@ import AgentLayout from '@/layouts/AgentLayout.vue';
 import type { FormKitSchemaDefinition } from '@formkit/core';
 import { FormKit, FormKitSchema } from '@formkit/vue';
 import { Link, router } from '@inertiajs/vue3';
-import { FileText, Plus, Trash2 } from 'lucide-vue-next';
+import axios from 'axios';
+import { FileText, Plus, Sparkles, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -50,6 +51,27 @@ const OPTION_TYPES = ['select', 'radio', 'multicheckbox'];
 
 const editing = ref<FormDef | null>(null);
 const saving = ref(false);
+const rewriting = ref(false);
+
+// Ask the LLM to turn the rough "when to show" note into a precise, intent-based
+// trigger. The suggestion only fills the textarea — it's saved with the form.
+async function rewriteDescription(): Promise<void> {
+    if (!editing.value || rewriting.value) return;
+    rewriting.value = true;
+    try {
+        const { data } = await axios.post(route('agents.forms.rewrite-description', props.agent.external_id), {
+            description: editing.value.description,
+            name: editing.value.name,
+            form_type: editing.value.form_type,
+        });
+        editing.value.description = data.description;
+        toast.success(t('agents.forms.rewrite_done'));
+    } catch {
+        toast.error(t('agents.forms.rewrite_failed'));
+    } finally {
+        rewriting.value = false;
+    }
+}
 
 function blankForm(): FormDef {
     return {
@@ -297,7 +319,18 @@ function destroy(form: FormDef): void {
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="text-sm font-medium">{{ t('agents.forms.description') }}</label>
+                            <div class="flex items-center justify-between gap-2">
+                                <label class="text-sm font-medium">{{ t('agents.forms.description') }}</label>
+                                <button
+                                    type="button"
+                                    class="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                                    :disabled="rewriting"
+                                    @click="rewriteDescription"
+                                >
+                                    <Sparkles class="h-3.5 w-3.5" :class="{ 'animate-pulse': rewriting }" />
+                                    {{ rewriting ? t('agents.forms.rewriting') : t('agents.forms.rewrite') }}
+                                </button>
+                            </div>
                             <Textarea v-model="editing.description" :placeholder="t('agents.forms.description_placeholder')" rows="2" />
                             <p class="text-muted-foreground text-xs">{{ t('agents.forms.description_hint') }}</p>
                         </div>

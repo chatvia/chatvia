@@ -310,6 +310,8 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('forms', [AgentFormController::class, 'index'])->name('forms.index');
         Route::post('forms', [AgentFormController::class, 'store'])
             ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.store');
+        Route::post('forms/rewrite-description', [AgentFormController::class, 'rewriteDescription'])
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.rewrite-description');
         Route::put('forms/{form}', [AgentFormController::class, 'update'])
             ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.update');
         Route::delete('forms/{form}', [AgentFormController::class, 'destroy'])

@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: "Chatvia"
-  text: "The AI workspace for your business"
+  text: ""
   tagline: A privacy-first, EU-hosted platform where your team builds, governs, and ships AI agents grounded in your business knowledge.
   image:
     src: /logo.svg

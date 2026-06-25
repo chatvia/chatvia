@@ -58,7 +58,9 @@
                 "copied_clipboard": "Kopiert til utklippstavlen",
                 "agent_id_copied": "Agent-ID kopiert til utklippstavlen",
                 "code_copied": "Kode kopiert til utklippstavlen!",
-                "code_copy_error": "Kunne ikke kopiere koden. Prøv igjen."
+                "code_copy_error": "Kunne ikke kopiere koden. Prøv igjen.",
+                "privacy_saved": "Lenke til personvernerklæring lagret",
+                "privacy_error": "Kunne ikke lagre lenke til personvernerklæring"
             },
             "settings": {
                 "composer_title": "Skrivefeltinnstillinger",
@@ -294,7 +296,10 @@
                 "models_context": "Kontekstvindu:",
                 "models_location_us": "🇺🇸 USA",
                 "models_location_eu": "🇪🇺 Europa",
-                "models_location_cn": "🇨🇳 Kina"
+                "models_location_cn": "🇨🇳 Kina",
+                "appearance_privacy_url": "URL til personvernerklæring",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Vises for besøkende som “Ved å chatte godtar du personvernerklæringen vår.” La feltet stå tomt for å skjule det."
             }
         }
     }

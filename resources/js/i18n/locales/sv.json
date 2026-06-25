@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "Kopierat till urklipp",
                 "agent_id_copied": "Agent-ID kopierat till urklipp",
                 "code_copied": "Kod kopierad till urklipp!",
-                "code_copy_error": "Det gick inte att kopiera koden. Försök igen."
+                "code_copy_error": "Det gick inte att kopiera koden. Försök igen.",
+                "privacy_saved": "Länk till integritetspolicy sparad",
+                "privacy_error": "Det gick inte att spara länken till integritetspolicyn"
             },
             "settings": {
                 "composer_title": "Kompositoralternativ",
@@ -1961,7 +1963,10 @@
                 "models_context": "Kontextfönster:",
                 "models_location_us": "🇺🇸 USA",
                 "models_location_eu": "🇪🇺 Europa",
-                "models_location_cn": "🇨🇳 Kina"
+                "models_location_cn": "🇨🇳 Kina",
+                "appearance_privacy_url": "URL till integritetspolicy",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Visas för besökare som “Genom att chatta godkänner du vår integritetspolicy.” Lämna tomt för att dölja."
             }
         },
         "team": {

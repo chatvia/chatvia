@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "Скопировано в буфер обмена",
                 "agent_id_copied": "ID агента скопирован в буфер обмена",
                 "code_copied": "Код скопирован в буфер обмена!",
-                "code_copy_error": "Не удалось скопировать код. Попробуйте ещё раз."
+                "code_copy_error": "Не удалось скопировать код. Попробуйте ещё раз.",
+                "privacy_saved": "Ссылка на политику конфиденциальности сохранена",
+                "privacy_error": "Не удалось сохранить ссылку на политику конфиденциальности"
             },
             "settings": {
                 "composer_title": "Параметры поля ввода",
@@ -1961,7 +1963,10 @@
                 "models_context": "Контекстное окно:",
                 "models_location_us": "🇺🇸 США",
                 "models_location_eu": "🇪🇺 Европа",
-                "models_location_cn": "🇨🇳 Китай"
+                "models_location_cn": "🇨🇳 Китай",
+                "appearance_privacy_url": "URL политики конфиденциальности",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Показывается посетителям как «Начиная чат, вы соглашаетесь с нашей политикой конфиденциальности». Оставьте пустым, чтобы скрыть."
             }
         },
         "team": {

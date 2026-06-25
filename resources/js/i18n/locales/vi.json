@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "Đã sao chép vào bộ nhớ tạm",
                 "agent_id_copied": "Đã sao chép ID trợ lý AI vào bộ nhớ tạm",
                 "code_copied": "Đã sao chép mã vào bộ nhớ tạm!",
-                "code_copy_error": "Sao chép mã thất bại. Vui lòng thử lại."
+                "code_copy_error": "Sao chép mã thất bại. Vui lòng thử lại.",
+                "privacy_saved": "Đã lưu liên kết chính sách quyền riêng tư",
+                "privacy_error": "Không thể lưu liên kết chính sách quyền riêng tư"
             },
             "settings": {
                 "composer_title": "Tùy chọn ô soạn tin",
@@ -1961,7 +1963,10 @@
                 "models_context": "Cửa sổ ngữ cảnh:",
                 "models_location_us": "🇺🇸 Hoa Kỳ",
                 "models_location_eu": "🇪🇺 Châu Âu",
-                "models_location_cn": "🇨🇳 Trung Quốc"
+                "models_location_cn": "🇨🇳 Trung Quốc",
+                "appearance_privacy_url": "URL chính sách quyền riêng tư",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Hiển thị cho khách truy cập dưới dạng “Bằng cách trò chuyện, bạn đồng ý với chính sách quyền riêng tư của chúng tôi.” Để trống để ẩn."
             }
         },
         "team": {

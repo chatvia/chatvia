@@ -194,6 +194,7 @@ return [
             'tables' => 'mistral-small-3.2-24b-instruct-2506',
             'chunker' => 'llama-3.1-70b-instruct',
             'title' => 'mistral-small-3.2-24b-instruct-2506',
+            'form_description' => 'mistral-small-3.2-24b-instruct-2506',
             'subdomain' => 'mistral-small-3.2-24b-instruct-2506',
             'tone' => 'mistral-small-3.2-24b-instruct-2506',
             'topic' => 'mistral-small-3.2-24b-instruct-2506',

@@ -17,7 +17,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsOpenWorld;
 
-#[Description('Render a fillable form inline in the chat (lead capture, booking, qualification, or a custom form the agent admin built). The visitor fills and submits it; the form stores the answers itself. Optionally pass the form `slug` to choose a specific form; otherwise the agent\'s default active form is shown.')]
+#[Description('Render a fillable form inline in the chat (lead capture, booking, qualification, or a custom form the agent admin built). The visitor fills and submits it; the form stores the answers itself. Pass the form `slug` returned by find-forms to choose a specific form; omit it to show the agent\'s default active form. Call find-forms first to discover which forms exist and which fits the visitor\'s intent.')]
 #[IsOpenWorld]
 class RenderFormTool extends Tool
 {
@@ -74,6 +74,17 @@ class RenderFormTool extends Tool
             // form from the existing Leads field settings so forms work out of
             // the box before any custom form is built.
             $definition = $query->orderBy('id')->first() ?? app(DefaultLeadForm::class)->forAgent($agent);
+        }
+
+        // Don't re-render a form this visitor already completed. Scoped to the
+        // session (the visitor's identity across conversations), so a booking made
+        // earlier in the same session still counts — the agent acknowledges it
+        // instead of showing the form again.
+        if ($conversation->chat_session_id !== null
+            && FormSubmission::submittedFormIdsForSession((int) $conversation->chat_session_id, [$definition->id]) !== []) {
+            return Response::make(Response::text(
+                "The visitor has already submitted the \"{$definition->name}\" form. Do not show it again — let them know their submission was already received and continue helping."
+            ));
         }
 
         $submission = FormSubmission::create([

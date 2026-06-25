@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "Skopiowano do schowka",
                 "agent_id_copied": "ID agenta skopiowane do schowka",
                 "code_copied": "Kod skopiowany do schowka!",
-                "code_copy_error": "Nie udało się skopiować kodu. Spróbuj ponownie."
+                "code_copy_error": "Nie udało się skopiować kodu. Spróbuj ponownie.",
+                "privacy_saved": "Zapisano link do polityki prywatności",
+                "privacy_error": "Nie udało się zapisać linku do polityki prywatności"
             },
             "settings": {
                 "composer_title": "Opcje kompozytora",
@@ -1961,7 +1963,10 @@
                 "models_context": "Okno kontekstu:",
                 "models_location_us": "🇺🇸 Stany Zjednoczone",
                 "models_location_eu": "🇪🇺 Europa",
-                "models_location_cn": "🇨🇳 Chiny"
+                "models_location_cn": "🇨🇳 Chiny",
+                "appearance_privacy_url": "Adres URL polityki prywatności",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Wyświetlane odwiedzającym jako „Rozpoczynając czat, akceptujesz naszą politykę prywatności.” Pozostaw puste, aby ukryć."
             }
         },
         "team": {

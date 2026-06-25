@@ -58,7 +58,9 @@
                 "copied_clipboard": "Kopieret til udklipsholderen",
                 "agent_id_copied": "Agent-ID kopieret til udklipsholderen",
                 "code_copied": "Kode kopieret til udklipsholderen!",
-                "code_copy_error": "Kunne ikke kopiere koden. Prøv igen."
+                "code_copy_error": "Kunne ikke kopiere koden. Prøv igen.",
+                "privacy_saved": "Link til privatlivspolitik gemt",
+                "privacy_error": "Kunne ikke gemme link til privatlivspolitik"
             },
             "settings": {
                 "composer_title": "Composer-indstillinger",
@@ -294,7 +296,10 @@
                 "models_context": "Kontekstvindue:",
                 "models_location_us": "🇺🇸 USA",
                 "models_location_eu": "🇪🇺 Europa",
-                "models_location_cn": "🇨🇳 Kina"
+                "models_location_cn": "🇨🇳 Kina",
+                "appearance_privacy_url": "URL til privatlivspolitik",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Vises for besøgende som “Ved at chatte accepterer du vores privatlivspolitik.” Lad feltet stå tomt for at skjule det."
             }
         }
     }

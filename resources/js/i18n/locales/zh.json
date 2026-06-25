@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "已复制到剪贴板",
                 "agent_id_copied": "智能体 ID 已复制到剪贴板",
                 "code_copied": "代码已复制到剪贴板！",
-                "code_copy_error": "复制代码失败，请重试。"
+                "code_copy_error": "复制代码失败，请重试。",
+                "privacy_saved": "隐私政策链接已保存",
+                "privacy_error": "无法保存隐私政策链接"
             },
             "settings": {
                 "composer_title": "输入框选项",
@@ -1961,7 +1963,10 @@
                 "models_context": "上下文窗口：",
                 "models_location_us": "🇺🇸 美国",
                 "models_location_eu": "🇪🇺 欧洲",
-                "models_location_cn": "🇨🇳 中国"
+                "models_location_cn": "🇨🇳 中国",
+                "appearance_privacy_url": "隐私政策网址",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "向访客显示为“继续聊天即表示您同意我们的隐私政策。”留空则不显示。"
             }
         },
         "team": {

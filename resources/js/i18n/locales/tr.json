@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "Panoya kopyalandı",
                 "agent_id_copied": "Asistan kimliği panoya kopyalandı",
                 "code_copied": "Kod panoya kopyalandı!",
-                "code_copy_error": "Kod kopyalanamadı. Lütfen tekrar deneyin."
+                "code_copy_error": "Kod kopyalanamadı. Lütfen tekrar deneyin.",
+                "privacy_saved": "Gizlilik politikası bağlantısı kaydedildi",
+                "privacy_error": "Gizlilik politikası bağlantısı kaydedilemedi"
             },
             "settings": {
                 "composer_title": "Yazma alanı seçenekleri",
@@ -1961,7 +1963,10 @@
                 "models_context": "Bağlam penceresi:",
                 "models_location_us": "🇺🇸 Amerika Birleşik Devletleri",
                 "models_location_eu": "🇪🇺 Avrupa",
-                "models_location_cn": "🇨🇳 Çin"
+                "models_location_cn": "🇨🇳 Çin",
+                "appearance_privacy_url": "Gizlilik politikası URL'si",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Ziyaretçilere “Sohbet ederek gizlilik politikamızı kabul etmiş olursunuz.” şeklinde gösterilir. Gizlemek için boş bırakın."
             }
         },
         "team": {

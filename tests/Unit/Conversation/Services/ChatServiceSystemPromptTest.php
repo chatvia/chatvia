@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
  * buildSystemPrompt is private — it's the only producer of the system message,
  * so reach it via reflection to cover the chatter-identity gating directly.
  */
-function systemPromptFor(Agent $agent, ?string $chatterName): string
+function systemPromptFor(Agent $agent, ?string $chatterName, ?string $source = null): string
 {
     $data = new StreamRequestData(
         agent: $agent,
@@ -22,6 +22,7 @@ function systemPromptFor(Agent $agent, ?string $chatterName): string
         externalSessionId: (string) Str::uuid(),
         conversationId: (string) Str::uuid(),
         chatterName: $chatterName,
+        source: $source,
     );
 
     $service = app(ChatService::class);
@@ -81,4 +82,19 @@ it('omits the forms block when the Forms capability is not enabled', function ()
     FormDefinition::factory()->forAgent($agent)->create(['slug' => 'book-demo']);
 
     expect(systemPromptFor($agent, null))->not->toContain('book-demo');
+});
+
+it('omits the forms block on messaging channels — they cannot render the inline form', function (): void {
+    $agent = formsAgent();
+    $server = $agent->user->mcpServers()->create([
+        'connector_slug' => 'forms', 'category' => 'builtin', 'name' => 'Forms',
+        'slug' => 'forms', 'url' => config('app.url').'/mcp/forms', 'auth_type' => 'none', 'is_enabled' => true,
+    ]);
+    $agent->mcpServers()->attach($server->id);
+    FormDefinition::factory()->forAgent($agent)->create(['slug' => 'book-demo']);
+
+    // Web surfaces still get it; only the text-only channels are excluded.
+    expect(systemPromptFor($agent, null, 'widget'))->toContain('book-demo');
+    expect(systemPromptFor($agent, null, 'telegram'))->not->toContain('book-demo');
+    expect(systemPromptFor($agent, null, 'slack'))->not->toContain('book-demo');
 });

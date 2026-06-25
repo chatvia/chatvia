@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "در کلیپ‌بورد کپی شد",
                 "agent_id_copied": "شناسه عامل در کلیپ‌بورد کپی شد",
                 "code_copied": "کد در کلیپ‌بورد کپی شد!",
-                "code_copy_error": "کپی کد ناموفق بود. لطفاً دوباره تلاش کنید."
+                "code_copy_error": "کپی کد ناموفق بود. لطفاً دوباره تلاش کنید.",
+                "privacy_saved": "پیوند سیاست حفظ حریم خصوصی ذخیره شد",
+                "privacy_error": "ذخیره پیوند سیاست حفظ حریم خصوصی ناموفق بود"
             },
             "settings": {
                 "composer_title": "گزینه‌های نویسنده",
@@ -1961,7 +1963,10 @@
                 "models_context": "پنجره متن:",
                 "models_location_us": "🇺🇸 ایالات متحده",
                 "models_location_eu": "🇪🇺 اروپا",
-                "models_location_cn": "🇨🇳 چین"
+                "models_location_cn": "🇨🇳 چین",
+                "appearance_privacy_url": "نشانی سیاست حفظ حریم خصوصی",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "به بازدیدکنندگان به این صورت نشان داده می‌شود: «با گفتگو، شما با سیاست حفظ حریم خصوصی ما موافقت می‌کنید». برای پنهان کردن، خالی بگذارید."
             }
         },
         "team": {

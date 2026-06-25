@@ -58,7 +58,9 @@
                 "copied_clipboard": "In die Zwischenablage kopiert",
                 "agent_id_copied": "Agenten-ID in die Zwischenablage kopiert",
                 "code_copied": "Code in die Zwischenablage kopiert!",
-                "code_copy_error": "Code konnte nicht kopiert werden. Bitte versuchen Sie es erneut."
+                "code_copy_error": "Code konnte nicht kopiert werden. Bitte versuchen Sie es erneut.",
+                "privacy_saved": "Datenschutz-Link gespeichert",
+                "privacy_error": "Datenschutz-Link konnte nicht gespeichert werden"
             },
             "settings": {
                 "composer_title": "Composer-Optionen",
@@ -294,7 +296,10 @@
                 "models_context": "Kontextfenster:",
                 "models_location_us": "🇺🇸 Vereinigte Staaten",
                 "models_location_eu": "🇪🇺 Europa",
-                "models_location_cn": "🇨🇳 China"
+                "models_location_cn": "🇨🇳 China",
+                "appearance_privacy_url": "URL der Datenschutzerklärung",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Wird Besuchern angezeigt als „Indem du chattest, stimmst du unserer Datenschutzerklärung zu.“ Leer lassen, um es auszublenden."
             }
         }
     }

@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "クリップボードにコピーしました",
                 "agent_id_copied": "エージェント ID をクリップボードにコピーしました",
                 "code_copied": "コードをクリップボードにコピーしました！",
-                "code_copy_error": "コードのコピーに失敗しました。もう一度お試しください。"
+                "code_copy_error": "コードのコピーに失敗しました。もう一度お試しください。",
+                "privacy_saved": "プライバシーポリシーのリンクを保存しました",
+                "privacy_error": "プライバシーポリシーのリンクを保存できませんでした"
             },
             "settings": {
                 "composer_title": "入力欄のオプション",
@@ -1961,7 +1963,10 @@
                 "models_context": "コンテキストウィンドウ:",
                 "models_location_us": "🇺🇸 アメリカ合衆国",
                 "models_location_eu": "🇪🇺 ヨーロッパ",
-                "models_location_cn": "🇨🇳 中国"
+                "models_location_cn": "🇨🇳 中国",
+                "appearance_privacy_url": "プライバシーポリシーのURL",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "訪問者には「チャットすることで、プライバシーポリシーに同意したものとみなされます。」と表示されます。非表示にするには空欄のままにします。"
             }
         },
         "team": {

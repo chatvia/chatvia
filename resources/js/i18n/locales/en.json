@@ -2315,7 +2315,11 @@
             "deleted": "Form deleted",
             "submissions": "Submissions",
             "description_placeholder": "e.g. Show when the visitor wants a quote, a demo, or to be contacted",
-            "description_hint": "The agent uses this to decide when to render this form in a conversation."
+            "description_hint": "The agent uses this to decide when to render this form in a conversation.",
+            "rewrite": "Rewrite using AI",
+            "rewriting": "Rewriting…",
+            "rewrite_done": "Description rewritten",
+            "rewrite_failed": "Could not rewrite the description"
         },
         "submissions": {
             "page_title": "Submissions",

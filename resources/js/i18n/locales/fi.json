@@ -1725,7 +1725,9 @@
                 "copied_clipboard": "Kopioitu leikepöydälle",
                 "agent_id_copied": "Agentin tunnus kopioitu leikepöydälle",
                 "code_copied": "Koodi kopioitu leikepöydälle!",
-                "code_copy_error": "Koodin kopiointi epäonnistui. Yritä uudelleen."
+                "code_copy_error": "Koodin kopiointi epäonnistui. Yritä uudelleen.",
+                "privacy_saved": "Tietosuojakäytännön linkki tallennettu",
+                "privacy_error": "Tietosuojakäytännön linkkiä ei voitu tallentaa"
             },
             "settings": {
                 "composer_title": "Kirjoittajan asetukset",
@@ -1961,7 +1963,10 @@
                 "models_context": "Konteksti-ikkuna:",
                 "models_location_us": "🇺🇸 Yhdysvallat",
                 "models_location_eu": "🇪🇺 Eurooppa",
-                "models_location_cn": "🇨🇳 Kiina"
+                "models_location_cn": "🇨🇳 Kiina",
+                "appearance_privacy_url": "Tietosuojakäytännön URL-osoite",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "Näytetään kävijöille muodossa “Keskustelemalla hyväksyt tietosuojakäytäntömme.” Jätä tyhjäksi piilottaaksesi."
             }
         },
         "team": {

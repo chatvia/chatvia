@@ -20,6 +20,7 @@ use App\Http\Controllers\Widget\Sessions\SessionInitController;
 use App\Http\Controllers\Widget\Settings\WidgetSettingsController;
 use App\Http\Controllers\Widget\Stream\StreamController;
 use App\Http\Middleware\Widget\EnsureWidgetIsAccessible;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void {
@@ -67,9 +68,13 @@ Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void
 
         // Inline-form submit (anonymous visitor). {formInstance} binds
         // FormSubmission by external_id; WidgetVerification binds it to the
-        // agent + chatter in the controller.
-        Route::post('/forms/{formInstance}/submit', SubmitInlineFormController::class)
-            ->middleware('throttle:widget-stream')->name('widget.forms.submit');
+        // agent + chatter in the controller. SubstituteBindings is applied
+        // explicitly here: the widget routes live outside the web/api group, so
+        // they don't inherit it — without it {formInstance} would reach the
+        // controller as an empty model (agent_id null) and 404 on the guard.
+        Route::post('/forms/{formInstance:external_id}/submit', SubmitInlineFormController::class)
+            ->middleware(['throttle:widget-stream', SubstituteBindings::class])
+            ->name('widget.forms.submit');
 
         // WebSocket / handoff endpoints
         Route::post('/broadcasting/auth', BroadcastAuthController::class)->name('widget.broadcasting.auth');

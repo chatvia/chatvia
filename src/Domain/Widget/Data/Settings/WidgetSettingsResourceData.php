@@ -52,6 +52,12 @@ class WidgetSettingsResourceData extends Data
         // thread is empty). The widget previously fell back to `welcome_message`
         // here, which surfaced a full greeting inside the tiny input.
         public ?string $composer_placeholder,
+        // Optional link to the workspace's own privacy policy. When non-empty,
+        // the widget shows a "By chatting, you agree to our privacy policy"
+        // consent notice linking here; when null it shows nothing. The URL the
+        // owner sets in Setup → Info — an extra layer of data-protection
+        // transparency the customer controls per agent.
+        public ?string $privacy_policy_url,
         // Whether visitors can hand off to a human (Live Chat). Widget-only; the
         // widget hides the "Talk to a human" affordance when false. Already
         // ANDed with the workspace's handoff capability on the server.

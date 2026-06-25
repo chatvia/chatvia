@@ -76,6 +76,12 @@ return [
                 'welcome_message' => 'What can I help with? ',
                 'chat_window_title' => 'Chat',
                 'composer_placeholder' => 'Ask anything...',
+                // Optional link to the workspace's own privacy policy. When set,
+                // the chat surfaces (widget, hosted chat, bar) show a "By
+                // chatting, you agree to our privacy policy" consent notice that
+                // links here. Empty = no notice. Shared content, so all surfaces
+                // read the same value.
+                'privacy_policy_url' => null,
                 // Composer affordances. File uploads default off — most agents
                 // don't need visitors attaching files, and owners can opt in
                 // from Setup when the use case calls for it. Voice input stays
@@ -211,6 +217,7 @@ return [
             'welcome_message' => ['nullable', 'string'],
             'chat_window_title' => ['nullable', 'string'],
             'composer_placeholder' => ['nullable', 'string'],
+            'privacy_policy_url' => ['nullable', 'url', 'max:2048'],
             'allow_file_uploads' => ['nullable', 'boolean'],
             'allow_voice_input' => ['nullable', 'boolean'],
             'show_branding' => ['nullable', 'boolean'],

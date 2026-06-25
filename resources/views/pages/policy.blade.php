@@ -328,10 +328,21 @@
                         </p>
                         <ul class="list-disc list-inside text-gray-700 space-y-2 ml-4">
                             <li><strong>Account Data:</strong> Retained while your account is active</li>
-                            <li><strong>Chat History:</strong> Retained according to your settings</li>
+                            <li><strong>Chat Messages:</strong> Conversation messages are retained for 90 days, then
+                                permanently deleted</li>
                             <li><strong>Uploaded Documents:</strong> Retained until you delete them</li>
                             <li><strong>Usage Logs:</strong> Retained until you delete your account</li>
                         </ul>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h4 class="font-semibold text-blue-800 mb-2">90-Day Message Retention</h4>
+                            <p class="text-blue-700 text-sm">
+                                Messages exchanged in your conversations are retained for 90 days by default, after which
+                                they are automatically and permanently deleted from our systems. You can also delete
+                                conversations at any time before then. (Customers on higher plans may configure a longer
+                                retention period; where this applies, the period in effect for your workspace governs.)
+                            </p>
+                        </div>
 
                         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                             <h4 class="font-semibold text-green-800 mb-2">Easy Data Deletion</h4>

@@ -4,6 +4,7 @@ namespace App\Http\Middleware\Chat;
 
 use Closure;
 use Domain\Agent\Services\AgentLocator;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,13 @@ class EnsureChatIsAccessible
         $agent = AgentLocator::resolveAgentFromSubdomain($slug);
 
         if (! $agent) {
+            return Inertia::render('agents/chat/AgentNotFound');
+        }
+
+        // A disabled Hosted Chat surface behaves as if the agent doesn't exist —
+        // same not-found page the owner gets a 404-style screen for. The Widget /
+        // Bar surfaces are gated separately (BuildWidgetSettingsAction).
+        if (! $agent->surfaceEnabled(ConversationSource::HostedChat)) {
             return Inertia::render('agents/chat/AgentNotFound');
         }
 

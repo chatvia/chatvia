@@ -37,7 +37,13 @@
             "save": "حفظ",
             "sites_saved": "تم تحديث المواقع المسموح بها",
             "sites_error": "تعذّر الحفظ — حاول مرة أخرى",
-            "api_docs": "واجهة JavaScript البرمجية"
+            "api_docs": "واجهة JavaScript البرمجية",
+            "enabled": "مُفعّل",
+            "disabled": "مُعطّل",
+            "toggle_surface": "تفعيل أو تعطيل هذا السطح",
+            "surface_enabled": "تم تفعيل السطح",
+            "surface_disabled": "تم تعطيل السطح — لن يكون متاحًا",
+            "surface_error": "تعذّر التحديث — حاول مرة أخرى"
         }
     }
 }

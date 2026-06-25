@@ -4,6 +4,7 @@ namespace Domain\Widget\Actions;
 
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
 use Domain\Widget\Data\Settings\WidgetSettingsResourceData;
 
@@ -19,7 +20,7 @@ class BuildWidgetSettingsAction
         // Single round-trip for all settings groups + starters; previously
         // ran separate SELECTs on every widget boot.
         $agent->loadMissing(['starterSet', 'team.owner']);
-        $agent->loadSettingsGroups(['widget', 'appearance', 'bar']);
+        $agent->loadSettingsGroups(['widget', 'appearance', 'bar', 'surfaces']);
 
         $widget = $agent->settings('widget');
         $appearance = $agent->settings('appearance');
@@ -32,6 +33,11 @@ class BuildWidgetSettingsAction
 
         return new WidgetSettingsResourceData(
             protected: $agent->is_public === false,
+            // Per-surface kill switches. The embed reads its own mode (bubble →
+            // widget_enabled, bar → bar_enabled) and doesn't mount when its
+            // surface is off, so disabling one stops it showing on the host page.
+            widget_enabled: $agent->surfaceEnabled(ConversationSource::Widget),
+            bar_enabled: $agent->surfaceEnabled(ConversationSource::Bar),
             title: (string) ($appearance['chat_window_title'] ?? ''),
             logo_url: (string) ($appearance['logo'] ?? ''),
             avatar_url: $appearance['avatar'] ?? null,

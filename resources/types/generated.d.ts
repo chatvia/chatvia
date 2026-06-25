@@ -879,6 +879,8 @@ logo_url: string;
 };
 export type WidgetSettingsResourceData = {
 protected: boolean;
+widget_enabled: boolean;
+bar_enabled: boolean;
 title: string;
 logo_url: string;
 avatar_url: string | null;

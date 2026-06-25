@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
 import xml from 'highlight.js/lib/languages/xml';
@@ -51,9 +52,39 @@ const props = defineProps<{
     defaultWidget: Settings;
     barSettings: Settings;
     defaultBar: Settings;
+    surfaces: Settings;
 }>();
 
 const { t } = useI18n();
+
+// ── Per-surface enable/disable. Each surface defaults ON; only an explicit
+// `false` disables it. Toggling posts all three to the settings endpoint
+// (group: surfaces); the change is reverted in the UI if the request fails. ──
+type SurfaceKey = 'hosted_chat' | 'widget' | 'bar';
+const surfaceEnabled = reactive<Record<SurfaceKey, boolean>>({
+    hosted_chat: props.surfaces?.hosted_chat !== false,
+    widget: props.surfaces?.widget !== false,
+    bar: props.surfaces?.bar !== false,
+});
+const savingSurfaces = ref(false);
+const toggleSurface = (key: SurfaceKey, value: boolean): void => {
+    surfaceEnabled[key] = value;
+    savingSurfaces.value = true;
+    router.post(
+        route('agents.settings.update', { agent: props.agent.external_id, group: 'surfaces' }),
+        { ...surfaceEnabled },
+        {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => toast.success(value ? t('agents.deploy.surface_enabled') : t('agents.deploy.surface_disabled')),
+            onError: () => {
+                surfaceEnabled[key] = !value;
+                toast.error(t('agents.deploy.surface_error'));
+            },
+            onFinish: () => (savingSurfaces.value = false),
+        },
+    );
+};
 
 // Private agents embed with a server-minted JWT — the snippets carry a
 // `data-auth` placeholder and we nudge the operator to make it public.
@@ -234,8 +265,19 @@ const copyApiCode = async (code: string): Promise<void> => {
                             <h2 class="text-base font-semibold">{{ t('agents.deploy.widget.title') }}</h2>
                             <p class="text-muted-foreground mt-0.5 text-sm">{{ t('agents.deploy.widget.description') }}</p>
                         </div>
+                        <div class="ms-auto flex shrink-0 items-center gap-2">
+                            <span class="text-muted-foreground text-xs">{{
+                                surfaceEnabled.widget ? t('agents.deploy.enabled') : t('agents.deploy.disabled')
+                            }}</span>
+                            <Switch
+                                :model-value="surfaceEnabled.widget"
+                                :disabled="savingSurfaces"
+                                :aria-label="t('agents.deploy.toggle_surface')"
+                                @update:model-value="(v) => toggleSurface('widget', v)"
+                            />
+                        </div>
                     </div>
-                    <div class="space-y-4 p-5">
+                    <div class="space-y-4 p-5" :class="{ 'pointer-events-none opacity-50': !surfaceEnabled.widget }">
                         <div class="bg-muted space-y-3 rounded-lg p-4">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-muted-foreground text-sm">{{ t('agents.deploy.install_label') }}</p>
@@ -297,8 +339,19 @@ const copyApiCode = async (code: string): Promise<void> => {
                             <h2 class="text-base font-semibold">{{ t('agents.deploy.chat.title') }}</h2>
                             <p class="text-muted-foreground mt-0.5 text-sm">{{ t('agents.deploy.chat.description') }}</p>
                         </div>
+                        <div class="ms-auto flex shrink-0 items-center gap-2">
+                            <span class="text-muted-foreground text-xs">{{
+                                surfaceEnabled.hosted_chat ? t('agents.deploy.enabled') : t('agents.deploy.disabled')
+                            }}</span>
+                            <Switch
+                                :model-value="surfaceEnabled.hosted_chat"
+                                :disabled="savingSurfaces"
+                                :aria-label="t('agents.deploy.toggle_surface')"
+                                @update:model-value="(v) => toggleSurface('hosted_chat', v)"
+                            />
+                        </div>
                     </div>
-                    <div class="space-y-5 p-5">
+                    <div class="space-y-5 p-5" :class="{ 'pointer-events-none opacity-50': !surfaceEnabled.hosted_chat }">
                         <!-- Share URL -->
                         <div class="space-y-2">
                             <Label class="text-sm font-medium">{{ t('agents.deploy.chat.url_label') }}</Label>
@@ -382,8 +435,19 @@ const copyApiCode = async (code: string): Promise<void> => {
                             <h2 class="text-base font-semibold">{{ t('agents.deploy.bar.title') }}</h2>
                             <p class="text-muted-foreground mt-0.5 text-sm">{{ t('agents.deploy.bar.description') }}</p>
                         </div>
+                        <div class="ms-auto flex shrink-0 items-center gap-2">
+                            <span class="text-muted-foreground text-xs">{{
+                                surfaceEnabled.bar ? t('agents.deploy.enabled') : t('agents.deploy.disabled')
+                            }}</span>
+                            <Switch
+                                :model-value="surfaceEnabled.bar"
+                                :disabled="savingSurfaces"
+                                :aria-label="t('agents.deploy.toggle_surface')"
+                                @update:model-value="(v) => toggleSurface('bar', v)"
+                            />
+                        </div>
                     </div>
-                    <div class="space-y-4 p-5">
+                    <div class="space-y-4 p-5" :class="{ 'pointer-events-none opacity-50': !surfaceEnabled.bar }">
                         <div class="bg-muted space-y-3 rounded-lg p-4">
                             <div class="flex items-center justify-between gap-2">
                                 <p class="text-muted-foreground text-sm">{{ t('agents.deploy.install_label') }}</p>

@@ -14,6 +14,12 @@ class WidgetSettingsResourceData extends Data
 {
     public function __construct(
         public bool $protected,
+        // Per-surface kill switches. The embed mounts only when its own surface is
+        // enabled: bubble mode checks `widget_enabled`, bar mode checks
+        // `bar_enabled`. Both default true server-side, so an older cached bundle
+        // that ignores them behaves exactly as before.
+        public bool $widget_enabled,
+        public bool $bar_enabled,
         public string $title,
         public string $logo_url,
         public ?string $avatar_url,

@@ -96,6 +96,17 @@ return [
                 // the Setup → Branding toggle lets them opt back in.
                 'show_branding' => false,
             ],
+            // Per-surface on/off switch. Each of the three web surfaces (Hosted
+            // Chat, Widget, Command Bar) can be disabled independently from the
+            // Deploy page. All default ON, so existing agents are unaffected.
+            // Disabled Hosted Chat 404s (EnsureChatIsAccessible); disabled Widget
+            // / Bar stop the embed from mounting (BuildWidgetSettingsAction exposes
+            // the flags, the embedded widget honours them).
+            'surfaces' => [
+                'hosted_chat' => true,
+                'widget' => true,
+                'bar' => true,
+            ],
             // Bar surface — surface-specific behaviour only (text/branding now
             // come from `appearance`). Single model lives on `agents.llm_id`.
             'bar' => [
@@ -222,8 +233,12 @@ return [
             'allow_voice_input' => ['nullable', 'boolean'],
             'show_branding' => ['nullable', 'boolean'],
         ],
+        'surfaces' => [
+            'hosted_chat' => ['nullable', 'boolean'],
+            'widget' => ['nullable', 'boolean'],
+            'bar' => ['nullable', 'boolean'],
+        ],
         'widget' => [
-            'enabled' => ['nullable', 'boolean'],
             'sites' => ['nullable', 'array'],
             'theme' => ['nullable', 'in:auto,light,dark'],
             'theme_color' => ['nullable', 'string'],

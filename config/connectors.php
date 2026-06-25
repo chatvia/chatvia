@@ -15,6 +15,10 @@ return [
     'perplexity' => [
         'slug' => 'perplexity',
         'name' => 'Perplexity',
+        // Shown as the transient activity line in the chat while a tool from
+        // this connector runs (SSE tool `start`). Keep it a short present-tense
+        // phrase. Falls back to "Connecting to {name}…" in the widget when null.
+        'activity_label' => 'Searching the web…',
         'description' => 'Search the live web with Perplexity Sonar — news, prices, recent events — with cited sources.',
         'category' => 'Utilities',
         'icon' => 'perplexity',
@@ -37,6 +41,7 @@ return [
     'weather' => [
         'slug' => 'weather',
         'name' => 'Weather',
+        'activity_label' => 'Checking the weather…',
         'description' => 'Live weather (temperature, conditions, humidity, wind) for any city, powered by OpenWeatherMap.',
         'category' => 'Utilities',
         'icon' => 'weather',
@@ -58,6 +63,7 @@ return [
     'currency' => [
         'slug' => 'currency',
         'name' => 'Currency Converter',
+        'activity_label' => 'Converting currency…',
         'description' => 'Convert amounts between any two currencies using current exchange rates (exchangerate-api).',
         'category' => 'Utilities',
         'icon' => 'currency',
@@ -79,6 +85,7 @@ return [
     'charts' => [
         'slug' => 'charts',
         'name' => 'Interactive charts',
+        'activity_label' => 'Building the chart…',
         'description' => 'Render interactive charts inline in the chat — bar, line, pie, scatter, radar, gauge, heatmap, and more.',
         'category' => 'Utilities',
         'icon' => 'charts',
@@ -104,6 +111,7 @@ return [
     'leads' => [
         'slug' => 'leads',
         'name' => 'Leads',
+        'activity_label' => 'Saving your details…',
         'description' => 'Capture visitor contact details (name, email, phone, and more)',
         'category' => 'Sales',
         'icon' => 'leads',
@@ -126,6 +134,7 @@ return [
     'forms' => [
         'slug' => 'forms',
         'name' => 'Forms',
+        'activity_label' => 'Preparing your form…',
         'description' => 'Capture leads with a real, fillable form in the chat — plus booking and qualification forms. Validated and stored automatically; falls back to conversational capture on channels that can\'t show a form.',
         'category' => 'Sales',
         'icon' => 'forms',

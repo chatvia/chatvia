@@ -204,7 +204,7 @@ Separately from ingestion, a user can drop a PDF *into a conversation* and ask a
 
 ---
 
-## Embeddings, and why I store them as halfvec
+## Embeddings, and why I store them as halfvec?
 
 Every chunk gets embedded with **Qwen3-Embedding** into a **1024-dimensional** vector. Multiply that out: the `chunks` table is the largest table in the system, and it carries up to **four** vectors per row — a dense embedding of the chunk, a dense embedding of its questions, and two corresponding BM25 sparse vectors.
 
@@ -213,10 +213,6 @@ A `vector(1024)` in pgvector is fp32: 4 bytes × 1024 = **4 KB per vector**. Wit
 So I store the dense embeddings as **`halfvec`** (fp16) instead of `vector` (fp32):
 
 ```php
-// halfvec (fp16), not vector (fp32): embeddings are unit-normalized API
-// outputs and the reranker re-scores from text, so fp16 loss is negligible
-// for ANN ranking — at ~4 KB/row saved per vector this halves the heap +
-// vchordrq index volume of the largest table.
 $table->halfvec('embedding', 1024);
 $table->bm25vector('embedding_bm25');
 

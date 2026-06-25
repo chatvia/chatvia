@@ -192,6 +192,74 @@ readonly class ConversationManager
         $this->cache->flush();
     }
 
+    /**
+     * Clear a single conversation from the *visitor's* widget — a view reset,
+     * not erasure. The DB row stays alive (deleted_at IS NULL) with its message
+     * content intact, so the customer keeps full chat-log + analytics
+     * visibility; only the visitor stops seeing it. `cleared_at` is the marker
+     * {@see loadConversationsFromDatabase()} filters on so a cold-cache rebuild
+     * doesn't resurrect the thread into the widget list.
+     *
+     * Contrast {@see deleteConversation()}, which nulls content and soft-deletes
+     * — that is erasure and stays reserved for the admin/owner delete path.
+     */
+    public function clearConversationForVisitor(string $conversationId): void
+    {
+        $conversation = Conversation::where('external_id', $conversationId)->first();
+
+        if ($conversation === null) {
+            return;
+        }
+
+        // `deleted_by = 'user'` records WHO hid it (varchar(10)); the customer
+        // UI can surface a "cleared by visitor" marker off this + cleared_at.
+        $conversation->update([
+            'cleared_at' => now(),
+            'deleted_by' => 'user',
+        ]);
+
+        // Drop the live turn state / cached messages so the visitor truly starts
+        // fresh — the persisted record in Postgres is the customer's copy.
+        $this->cache->flushConversation($conversationId);
+
+        $conversations = $this->getConversationsFromSession();
+
+        foreach ($conversations as $key => $existing) {
+            if ($existing['id'] === $conversationId) {
+                unset($conversations[$key]);
+            }
+        }
+
+        $this->saveSessionData(array_values($conversations));
+    }
+
+    /**
+     * Clear every conversation in the current session from the visitor's widget.
+     * Same view-reset semantics as {@see clearConversationForVisitor()} — content
+     * and attachments are preserved for the customer; nothing is soft-deleted.
+     */
+    public function clearAllConversationsForVisitor(): void
+    {
+        $sessionId = Session::query()->where('external_id', $this->sessionId)->value('id');
+
+        if (! $sessionId) {
+            $this->cache->flush();
+
+            return;
+        }
+
+        Conversation::query()
+            ->where('chat_session_id', $sessionId)
+            ->whereNull('cleared_at')
+            ->update([
+                'cleared_at' => now(),
+                'deleted_by' => 'user',
+                'updated_at' => now(),
+            ]);
+
+        $this->cache->flush();
+    }
+
     public function getConversationById(string $conversationId): ?array
     {
         return collect($this->getConversationsForSession(onlyVisible: true))
@@ -238,7 +306,12 @@ readonly class ConversationManager
             return [];
         }
 
+        // Exclude visitor-cleared threads — they stay in the DB for the customer
+        // but must not rebuild into the widget's conversation list. This filter
+        // is intentionally only on the visitor read; the customer's chat log
+        // queries Conversation::forAgent() directly and is unaffected.
         return $session->conversations()
+            ->whereNull('cleared_at')
             ->orderBy('id')
             ->get()
             ->map(fn (Conversation $conversation): array => (new ConversationData(

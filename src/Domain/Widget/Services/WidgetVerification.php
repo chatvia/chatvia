@@ -100,7 +100,13 @@ class WidgetVerification
             return null;
         }
 
-        $query = Conversation::where('external_id', $conversationId);
+        // Visitor-cleared threads are hidden from the widget: once a visitor
+        // clears a conversation it must not resurface on the read side (message
+        // fetch, bootstrap restore, form submit) even if the id is replayed.
+        // The row stays alive in the DB for the customer's chat log, which reads
+        // through a separate Conversation::forAgent() query.
+        $query = Conversation::where('external_id', $conversationId)
+            ->whereNull('cleared_at');
 
         if ($agent !== null || $user !== null) {
             $query->whereHas('session', function ($q) use ($agent, $user): void {

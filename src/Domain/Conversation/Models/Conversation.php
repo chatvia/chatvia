@@ -118,6 +118,7 @@ use Support\Localization\Language\Models\Language;
     'last_activity_at',
     'expires_at',
     'deleted_by',
+    'cleared_at',
 ])]
 #[Table(name: 'chat_conversations')]
 class Conversation extends Model
@@ -145,6 +146,7 @@ class Conversation extends Model
             'last_activity_at' => 'datetime',
             'expires_at' => 'datetime',
             'analyzed_at' => 'datetime',
+            'cleared_at' => 'datetime',
             'is_visible' => 'boolean',
         ];
     }

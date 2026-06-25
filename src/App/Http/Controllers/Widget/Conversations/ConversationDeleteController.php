@@ -52,10 +52,15 @@ class ConversationDeleteController
             $chatMemory = $memory->setConversationId($conversationId);
 
             if ($chatMemory->conversationExists()) {
-                $chatMemory->deleteConversation(deletedBy: 'user');
+                // Visitor-facing "clear" is a view reset, NOT erasure: the
+                // persisted conversation stays intact so the customer can still
+                // see what was discussed in their chat log. The owner/admin
+                // delete path (AdminDeleteConversationAction) is what actually
+                // erases content.
+                $chatMemory->clearConversationForVisitor();
             }
         } else {
-            $memory->deleteAllConversations();
+            $memory->clearAllConversationsForVisitor();
         }
 
         return new WidgetAckData;

@@ -127,6 +127,33 @@ class ChatMemory
     }
 
     /**
+     * Clear the current conversation from the visitor's widget without erasing
+     * it — a view reset that preserves the customer's persisted record (message
+     * content, attachments, chat-log + analytics visibility). Use this for the
+     * widget "clear chats" action; reserve {@see deleteConversation()} for the
+     * owner/admin erasure path.
+     */
+    public function clearConversationForVisitor(): void
+    {
+        $this->requireConversationId();
+        $this->ensureInitialized();
+
+        $this->conversationManager->clearConversationForVisitor($this->conversationId);
+    }
+
+    /**
+     * Clear every conversation in the current session from the visitor's widget,
+     * with the same view-reset (non-erasing) semantics as
+     * {@see clearConversationForVisitor()}.
+     */
+    public function clearAllConversationsForVisitor(): void
+    {
+        $this->ensureInitialized();
+
+        $this->conversationManager->clearAllConversationsForVisitor();
+    }
+
+    /**
      * Check if the current conversation exists.
      */
     public function conversationExists(): bool

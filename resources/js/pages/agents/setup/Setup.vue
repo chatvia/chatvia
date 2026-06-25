@@ -393,6 +393,26 @@ const saveBrandingVisibility = (value: boolean) => {
     brandingForm.show_branding = value;
     postBranding('agents.setup.toasts.branding_saved');
 };
+
+// ── Privacy policy link → appearance group. When set, the chat surfaces show a
+// "By chatting, you agree to our privacy policy" consent notice linking here.
+// Its own form + Save button so it doesn't ride the color/badge writes.
+const privacyForm = useForm({
+    privacy_policy_url: str(a.privacy_policy_url, str(ad.privacy_policy_url)),
+});
+const isSavingPrivacy = ref(false);
+const savePrivacyUrl = () => {
+    isSavingPrivacy.value = true;
+    privacyForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success(t('agents.setup.toasts.privacy_saved'));
+            bumpPreview();
+        },
+        onError: () => toast.error(t('agents.setup.toasts.privacy_error')),
+        onFinish: () => (isSavingPrivacy.value = false),
+    });
+};
 const uploadImage = (key: 'avatar' | 'logo', file: File) => {
     const upload = useForm({ [key]: file });
     upload.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
@@ -1201,14 +1221,18 @@ const copyApiCode = async (code: string) => {
                                     <BrandingSection
                                         v-model:color-theme="brandingForm.color_theme"
                                         v-model:color-shade="brandingForm.color_shade"
+                                        v-model:privacy-policy-url="privacyForm.privacy_policy_url"
                                         :avatar-preview="avatarPreview"
                                         :logo-preview="logoPreview"
                                         :can-hide-branding="canHideBranding"
                                         :show-branding="brandingForm.show_branding"
                                         :errors="brandingForm.errors as Record<string, string>"
+                                        :privacy-error="privacyForm.errors.privacy_policy_url"
+                                        :saving-privacy="isSavingPrivacy"
                                         :disabled="locked || isSavingBranding"
                                         @color-apply="saveBranding"
                                         @update:show-branding="saveBrandingVisibility"
+                                        @privacy-url-apply="savePrivacyUrl"
                                         @avatar-select="(file: File) => uploadImage('avatar', file)"
                                         @avatar-remove="() => removeImage('avatar')"
                                         @logo-select="(file: File) => uploadImage('logo', file)"

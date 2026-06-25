@@ -55,6 +55,7 @@ class BuildWidgetSettingsAction
             keyboard_trigger: $bar['trigger'] ?? null,
             bar_placement: $bar['placement'] ?? null,
             composer_placeholder: $appearance['composer_placeholder'] ?? null,
+            privacy_policy_url: $appearance['privacy_policy_url'] ?? null,
             handoff_enabled: ($widget['handoff_enabled'] ?? true) && ($agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false),
             allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true),
             allow_voice_input: (bool) ($appearance['allow_voice_input'] ?? true),

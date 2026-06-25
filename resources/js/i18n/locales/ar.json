@@ -1750,7 +1750,9 @@
                 "copied_clipboard": "تم النسخ إلى الحافظة",
                 "agent_id_copied": "تم نسخ معرّف الوكيل إلى الحافظة",
                 "code_copied": "تم نسخ الكود إلى الحافظة!",
-                "code_copy_error": "تعذّر نسخ الكود. حاول مرة أخرى."
+                "code_copy_error": "تعذّر نسخ الكود. حاول مرة أخرى.",
+                "privacy_saved": "تم حفظ رابط سياسة الخصوصية",
+                "privacy_error": "تعذّر حفظ رابط سياسة الخصوصية"
             },
             "settings": {
                 "composer_title": "خيارات المحرر",
@@ -1986,7 +1988,10 @@
                 "models_context": "نافذة السياق:",
                 "models_location_us": "🇺🇸 الولايات المتحدة",
                 "models_location_eu": "🇪🇺 أوروبا",
-                "models_location_cn": "🇨🇳 الصين"
+                "models_location_cn": "🇨🇳 الصين",
+                "appearance_privacy_url": "رابط سياسة الخصوصية",
+                "appearance_privacy_url_placeholder": "https://example.com/privacy",
+                "appearance_privacy_url_hint": "يظهر للزوار بصيغة «بالمحادثة، فإنك توافق على سياسة الخصوصية». اتركه فارغًا للإخفاء."
             }
         },
         "team": {

@@ -29,7 +29,6 @@ const UNTESTED_ACTIONS_ALLOWLIST = [
     'AttachWebsiteToAgentAction',
     'BroadcastChatTypingAction',
     'BuildConversationPulseAction',
-    'BuildWidgetSettingsAction',
     'BuyExtraMessageCreditsAction',
     'CrawlWebsiteAction',
     'CreateAgentFunctionAction',

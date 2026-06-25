@@ -1,0 +1,11 @@
+{
+    "chat": {
+        "forms": {
+            "submit": "Absenden",
+            "default_success": "Danke – Ihre Angaben sind eingegangen.",
+            "submit_failed": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+            "expired": "Dieses Formular ist abgelaufen.",
+            "unavailable": "Dieses Formular kann hier nicht gesendet werden."
+        }
+    }
+}

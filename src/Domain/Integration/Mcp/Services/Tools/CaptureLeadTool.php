@@ -4,7 +4,8 @@ namespace Domain\Integration\Mcp\Services\Tools;
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
-use Domain\Lead\Models\Lead;
+use Domain\Form\Actions\RecordConversationalSubmissionAction;
+use Domain\Form\Data\CaptureLeadData;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Log;
@@ -96,42 +97,25 @@ class CaptureLeadTool extends Tool
             return Response::error("Cannot capture this lead yet — the following required fields are missing: {$list}. Ask the visitor for these and try again.");
         }
 
-        $existing = ! empty($validated['email'])
-            ? $agent->leads()->where('email_hash', Lead::hashEmail($validated['email']))->first()
-            : null;
-
-        $payload = [];
-        foreach (self::FIELDS as $key) {
-            $payload[$key] = $validated[$key] ?? null;
-        }
-
         try {
-            if ($existing) {
-                // Upsert: merge only the fields the visitor provided this time so
-                // we never blank out previously-captured data with nulls.
-                $updates = array_filter(
-                    $payload,
-                    static fn ($value): bool => $value !== null && $value !== '',
-                );
-
-                $existing->fill([
-                    ...$updates,
-                    'chat_conversation_id' => $conversation->id,
-                    'ip_address' => $http->ip(),
-                    'user_agent' => $http->userAgent(),
-                ])->save();
-
-                $lead = $existing;
-            } else {
-                $lead = $agent->leads()->create([
-                    ...$payload,
-                    'chat_conversation_id' => $conversation->id,
-                    'ip_address' => $http->ip(),
-                    'user_agent' => $http->userAgent(),
-                ]);
-            }
+            $submission = app(RecordConversationalSubmissionAction::class)->execute(
+                $agent,
+                $conversation,
+                new CaptureLeadData(
+                    name: $validated['name'] ?? null,
+                    email: $validated['email'] ?? null,
+                    phone: $validated['phone'] ?? null,
+                    job_title: $validated['job_title'] ?? null,
+                    company: $validated['company'] ?? null,
+                    location: $validated['location'] ?? null,
+                    message: $validated['message'] ?? null,
+                    ip: $http->ip(),
+                    userAgent: $http->userAgent(),
+                    source: 'tool',
+                ),
+            );
         } catch (Throwable $e) {
-            Log::warning('CaptureLeadTool failed to persist lead', [
+            Log::warning('CaptureLeadTool failed to persist submission', [
                 'agent_id' => $agent->id,
                 'conversation_id' => $conversation->id,
                 'error' => $e->getMessage(),
@@ -145,8 +129,8 @@ class CaptureLeadTool extends Tool
 
         return Response::make(Response::text($successMessage))
             ->withStructuredContent([
-                'created' => $existing === null,
-                'lead_id' => $lead->id,
+                'created' => true,
+                'submission_id' => $submission->id,
             ]);
     }
 

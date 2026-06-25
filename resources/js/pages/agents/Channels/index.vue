@@ -35,7 +35,7 @@ import {
     Unplug,
     X,
 } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import CopyField from './CopyField.vue';
@@ -75,7 +75,16 @@ interface Props {
         graph_version: string;
     };
     msteams: { connected: boolean; app_id: string | null; webhook_url: string | null; enabled: boolean };
-    instagram: { connected: boolean; username: string | null; enabled: boolean; pick: { ig_id: string; ig_username: string; page_name: string }[] | null };
+    instagram: {
+        connected: boolean;
+        username: string | null;
+        enabled: boolean;
+        pick: { ig_id: string; ig_username: string; page_name: string }[] | null;
+    };
+    // Channel slide-over to auto-open on load — set after the Messenger/Instagram
+    // OAuth round-trip (a full-page redirect) so the picker/result is visible
+    // immediately instead of behind a closed sheet.
+    open: ChannelKind | null;
 }
 
 const props = defineProps<Props>();
@@ -177,6 +186,21 @@ const openChannel = (item: ChannelItem) => {
 
     sheetOpen.value = true;
 };
+
+// Re-open the slide-over the server asked for (Messenger/Instagram land here via
+// a full-page OAuth redirect, so the sheet would otherwise start closed and hide
+// the account picker / error). Strip `?open=` from the URL afterwards so a manual
+// refresh doesn't keep re-opening it.
+onMounted(() => {
+    const item = props.open ? items.value.find((i) => i.kind === props.open) : undefined;
+    if (!item) return;
+
+    openChannel(item);
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete('open');
+    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+});
 
 // ── Telegram connect ----------------------------------------------------------
 const telegramForm = useForm({ bot_token: '' });

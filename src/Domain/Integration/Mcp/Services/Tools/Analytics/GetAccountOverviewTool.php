@@ -66,8 +66,9 @@ class GetAccountOverviewTool extends AnalyticsTool
             ->when($scope['agent'], fn ($q) => $q->where('agent_id', $scope['agent']->id))
             ->count();
 
-        $leads = DB::table('leads')
+        $leads = DB::table('form_submissions')
             ->whereIn('agent_id', $scope['ids'])
+            ->where('status', 'submitted')
             ->whereBetween('created_at', [$period->start, $period->end])
             ->count();
 

@@ -4,6 +4,7 @@ namespace Domain\Conversation\Services\Tooling\Approval;
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Tooling\Routing\ToolRouter;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -38,6 +39,7 @@ class ToolApprovalPolicy
     public function __construct(
         private readonly ToolRouter $router,
         private readonly McpToolPermissionResolver $permissions,
+        private readonly ConnectorCatalog $catalog,
     ) {}
 
     public function requiresApproval(Agent $agent, string $toolName): bool
@@ -60,6 +62,12 @@ class ToolApprovalPolicy
     {
         [$slug, $tool] = $this->parsePrefixedName($toolName);
         if ($slug === null || $tool === null) {
+            return false;
+        }
+
+        // First-party builtin capabilities (charts, forms, leads) run directly —
+        // they are safe, no-auth Chatvia tools and never gate on approval.
+        if ($this->catalog->isBuiltinSlug($slug)) {
             return false;
         }
 

@@ -5,7 +5,7 @@ namespace Domain\Agent\Data\Resources\ChatLog\Messages;
 use Domain\Agent\Data\Resources\ChatLog\Handoff\ChatLogHandoffStatusData;
 use Domain\Agent\Data\Resources\ChatLog\Handoff\ChatLogLeadData;
 use Domain\Conversation\Models\Message;
-use Domain\Lead\Models\Lead;
+use Domain\Form\Models\FormSubmission;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -23,7 +23,7 @@ class ChatLogMessagesResourceData extends Data
     public static function fromPaginator(
         LengthAwarePaginator $messages,
         ChatLogHandoffStatusData $handoff,
-        ?Lead $lead = null,
+        ?FormSubmission $lead = null,
     ): self {
         $conversationTitle = null;
         if ($messages->isNotEmpty()) {

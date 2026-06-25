@@ -1,0 +1,11 @@
+{
+    "chat": {
+        "forms": {
+            "submit": "제출",
+            "default_success": "감사합니다 — 정보가 접수되었습니다.",
+            "submit_failed": "문제가 발생했습니다. 다시 시도해 주세요.",
+            "expired": "이 양식은 만료되었습니다.",
+            "unavailable": "이 양식은 여기서 제출할 수 없습니다."
+        }
+    }
+}

@@ -86,7 +86,14 @@
         "message_limit_reached": "你已达到消息上限",
         "upgrade_prompt": "请升级套餐以继续聊天",
         "regenerate_failed": "无法重新生成回复,请重试。",
-        "loading_conversation": "正在加载对话"
+        "loading_conversation": "正在加载对话",
+        "forms": {
+            "submit": "提交",
+            "default_success": "谢谢 — 我们已收到您的信息。",
+            "submit_failed": "出了点问题，请重试。",
+            "expired": "此表单已过期。",
+            "unavailable": "此表单无法在此提交。"
+        }
     },
     "messages": {
         "send": "发送",

@@ -86,7 +86,14 @@
         "message_limit_reached": "Mesaj sınırına ulaştınız",
         "upgrade_prompt": "Sohbete devam etmek için lütfen planınızı yükseltin",
         "regenerate_failed": "Yanıt yeniden oluşturulamadı. Lütfen tekrar deneyin.",
-        "loading_conversation": "Konuşma yükleniyor"
+        "loading_conversation": "Konuşma yükleniyor",
+        "forms": {
+            "submit": "Gönder",
+            "default_success": "Teşekkürler — bilgileriniz alındı.",
+            "submit_failed": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+            "expired": "Bu formun süresi doldu.",
+            "unavailable": "Bu form burada gönderilemez."
+        }
     },
     "messages": {
         "send": "Gönder",

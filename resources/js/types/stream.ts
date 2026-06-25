@@ -63,10 +63,26 @@ export interface StreamDoneData {
  * renderers switch on it.
  */
 export interface ToolArtifact {
-    /** Discriminator. `echarts_option` mounts <EChartBlock>. Add more as you add widget types. */
-    kind: 'echarts_option' | string;
+    /** Discriminator. `echarts_option` mounts <EChartBlock>, `form` mounts <InlineFormBlock>. */
+    kind: 'echarts_option' | 'form' | string;
     /** Free-form payload — interpretation is up to the kind-specific renderer. */
     data: unknown;
+}
+
+/**
+ * `form` artifact payload (RenderFormTool). The schema is FormKit-ready,
+ * built server-side from the form definition's normalized fields.
+ */
+export interface FormArtifactData {
+    form_instance_id: string;
+    definition_slug: string;
+    form_type: string;
+    title?: string;
+    schema: Record<string, unknown>[];
+    submit_label?: string;
+    success_message?: string;
+    status?: 'pending' | 'submitted' | 'expired';
+    expires_at?: string | null;
 }
 
 export interface StreamToolData {

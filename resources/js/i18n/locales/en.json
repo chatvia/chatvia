@@ -86,7 +86,14 @@
         "message_limit_reached": "You've reached your message limit",
         "upgrade_prompt": "Please upgrade your plan to continue chatting",
         "regenerate_failed": "Could not regenerate the response. Please try again.",
-        "loading_conversation": "Loading conversation"
+        "loading_conversation": "Loading conversation",
+        "forms": {
+            "submit": "Submit",
+            "default_success": "Thanks — your details have been received.",
+            "submit_failed": "Something went wrong. Please try again.",
+            "expired": "This form has expired.",
+            "unavailable": "This form can't be submitted here."
+        }
     },
     "messages": {
         "send": "Send",
@@ -1613,7 +1620,9 @@
             "deploy": "Deploy",
             "deploy_tooltip": "Embed your agent — chat widget, hosted chat, or command bar",
             "capabilities": "Capabilities",
-            "capabilities_tooltip": "Add rich features to the chat — like interactive charts"
+            "capabilities_tooltip": "Add rich features to the chat — like interactive charts",
+            "forms": "Forms",
+            "forms_tooltip": "Build forms your agent shows in the chat"
         },
         "create_modal": {
             "title": "Create Agent",
@@ -2265,6 +2274,53 @@
             "empty": "No capabilities are available yet.",
             "enable_failed": "Could not turn on this capability",
             "disable_failed": "Could not turn off this capability"
+        },
+        "forms": {
+            "page_title": "Forms",
+            "title": "Forms",
+            "description": "When to show this form",
+            "new": "New form",
+            "empty": "No forms yet. Create one to get started.",
+            "fields": "fields",
+            "inactive": "Inactive",
+            "edit": "Edit",
+            "type_lead": "Lead capture",
+            "type_qualification": "Qualification",
+            "type_booking": "Booking",
+            "type_generic": "Generic",
+            "edit_form": "Edit form",
+            "new_form": "New form",
+            "form_name": "Form name",
+            "form_name_placeholder": "e.g. Get a quote",
+            "form_type": "Form type",
+            "add_field": "Add field",
+            "field_label": "Field label",
+            "required": "Required",
+            "maps_to": "Maps to",
+            "options_placeholder": "One option per line. Use value|label for separate values.",
+            "success_message": "Success message",
+            "success_placeholder": "Shown after the visitor submits.",
+            "active": "Active",
+            "save": "Save",
+            "cancel": "Cancel",
+            "preview": "Preview",
+            "name_required": "Please give the form a name.",
+            "saved": "Form saved",
+            "save_failed": "Could not save the form",
+            "deleted": "Form deleted",
+            "submissions": "Submissions",
+            "description_placeholder": "e.g. Show when the visitor wants a quote, a demo, or to be contacted",
+            "description_hint": "The agent uses this to decide when to render this form in a conversation."
+        },
+        "submissions": {
+            "page_title": "Submissions",
+            "back_to_forms": "Back to forms",
+            "count": "{n} submissions",
+            "export": "Export CSV",
+            "search": "Search submissions",
+            "empty": "No submissions yet.",
+            "submitted_at": "Submitted",
+            "deleted": "Submission deleted"
         }
     },
     "auth": {

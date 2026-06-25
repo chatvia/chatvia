@@ -88,11 +88,7 @@ defineEmits<{
                     <Label>{{ t('agents.setup.sections.branding_badge') }}</Label>
                     <p class="text-muted-foreground mt-1 text-xs">{{ t('agents.setup.sections.branding_badge_hint') }}</p>
                 </div>
-                <Switch
-                    :model-value="showBranding"
-                    :disabled="disabled"
-                    @update:model-value="$emit('update:showBranding', $event)"
-                />
+                <Switch :model-value="showBranding" :disabled="disabled" @update:model-value="$emit('update:showBranding', $event)" />
             </div>
         </template>
     </div>

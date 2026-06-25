@@ -86,7 +86,14 @@
         "message_limit_reached": "Du har nået din beskedgrænse",
         "upgrade_prompt": "Opgradér din plan for at fortsætte med at chatte",
         "regenerate_failed": "Kunne ikke gendanne svaret. Prøv igen.",
-        "loading_conversation": "Indlæser samtale"
+        "loading_conversation": "Indlæser samtale",
+        "forms": {
+            "submit": "Send",
+            "default_success": "Tak — dine oplysninger er modtaget.",
+            "submit_failed": "Noget gik galt. Prøv igen.",
+            "expired": "Denne formular er udløbet.",
+            "unavailable": "Denne formular kan ikke sendes her."
+        }
     },
     "messages": {
         "send": "Send",

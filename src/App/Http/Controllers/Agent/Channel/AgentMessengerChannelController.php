@@ -168,7 +168,10 @@ class AgentMessengerChannelController
             return redirect()->route('agents.index');
         }
 
-        $redirect = redirect()->route('agents.channels', $agent);
+        // `open=messenger` re-opens the Messenger slide-over on the reloaded page
+        // — the OAuth hop is a full-page redirect (not an Inertia XHR), so the
+        // sheet would otherwise land closed and hide the Page picker / error.
+        $redirect = redirect()->route('agents.channels', ['agent' => $agent, 'open' => 'messenger']);
 
         return $error === null ? $redirect : $redirect->withErrors(['messenger' => $error]);
     }

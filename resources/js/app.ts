@@ -1,5 +1,7 @@
 import '../css/app.css';
 
+import '@formkit/themes/genesis';
+import { defaultConfig as formKitConfig, plugin as formKitPlugin } from '@formkit/vue';
 import { createInertiaApp, router } from '@inertiajs/vue3';
 import { configureEcho } from '@laravel/echo-vue';
 import 'primeicons/primeicons.css';
@@ -58,6 +60,7 @@ createInertiaApp({
             .use(i18n)
             .use(ZiggyVue)
             .use(Vue3ColorPicker)
+            .use(formKitPlugin, formKitConfig())
             .provide('chatEventBus', chatEventBus)
             .mount(el as Element);
     },

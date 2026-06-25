@@ -87,7 +87,7 @@ it('rejects a phone number already connected to another agent', function (): voi
 });
 
 it('surfaces an error when Meta cannot complete the connection', function (): void {
-    $this->app->instance(MetaOAuthClient::class, tap(new FakeWhatsappOAuthClient, fn ($c) => $c->token = null));
+    $this->app->instance(MetaOAuthClient::class, tap(new FakeWhatsappOAuthClient, fn ($c): null => $c->token = null));
 
     postWhatsappConnect($this, $this->agent)->assertSessionHasErrors('whatsapp');
 

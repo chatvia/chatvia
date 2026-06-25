@@ -86,7 +86,14 @@
         "message_limit_reached": "메시지 한도에 도달했습니다",
         "upgrade_prompt": "채팅을 계속하려면 요금제를 업그레이드하세요",
         "regenerate_failed": "응답을 다시 생성할 수 없습니다. 다시 시도하세요.",
-        "loading_conversation": "대화를 불러오는 중"
+        "loading_conversation": "대화를 불러오는 중",
+        "forms": {
+            "submit": "제출",
+            "default_success": "감사합니다 — 정보가 접수되었습니다.",
+            "submit_failed": "문제가 발생했습니다. 다시 시도해 주세요.",
+            "expired": "이 양식은 만료되었습니다.",
+            "unavailable": "이 양식은 여기서 제출할 수 없습니다."
+        }
     },
     "messages": {
         "send": "보내기",

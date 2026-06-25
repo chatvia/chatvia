@@ -86,7 +86,14 @@
         "message_limit_reached": "Vous avez atteint votre limite de messages",
         "upgrade_prompt": "Veuillez passer à un plan supérieur pour continuer à discuter",
         "regenerate_failed": "Impossible de régénérer la réponse. Veuillez réessayer.",
-        "loading_conversation": "Chargement de la conversation"
+        "loading_conversation": "Chargement de la conversation",
+        "forms": {
+            "submit": "Envoyer",
+            "default_success": "Merci — vos informations ont bien été reçues.",
+            "submit_failed": "Une erreur s'est produite. Veuillez réessayer.",
+            "expired": "Ce formulaire a expiré.",
+            "unavailable": "Ce formulaire ne peut pas être envoyé ici."
+        }
     },
     "messages": {
         "send": "Envoyer",

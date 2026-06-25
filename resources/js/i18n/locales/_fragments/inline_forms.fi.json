@@ -1,0 +1,11 @@
+{
+    "chat": {
+        "forms": {
+            "submit": "Lähetä",
+            "default_success": "Kiitos — tietosi on vastaanotettu.",
+            "submit_failed": "Jokin meni vikaan. Yritä uudelleen.",
+            "expired": "Tämä lomake on vanhentunut.",
+            "unavailable": "Tätä lomaketta ei voi lähettää täällä."
+        }
+    }
+}

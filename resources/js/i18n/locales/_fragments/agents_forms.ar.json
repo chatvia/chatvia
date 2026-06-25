@@ -1,0 +1,55 @@
+{
+    "agents": {
+        "nav": {
+            "forms": "النماذج",
+            "forms_tooltip": "أنشئ نماذج يعرضها وكيلك في المحادثة"
+        },
+        "forms": {
+            "page_title": "النماذج",
+            "title": "النماذج",
+            "description": "متى يُعرض هذا النموذج",
+            "new": "نموذج جديد",
+            "empty": "لا توجد نماذج بعد. أنشئ واحدًا للبدء.",
+            "fields": "حقول",
+            "inactive": "غير مُفعّل",
+            "edit": "تعديل",
+            "type_lead": "التقاط عميل محتمل",
+            "type_qualification": "تأهيل",
+            "type_booking": "حجز",
+            "type_generic": "عام",
+            "edit_form": "تعديل النموذج",
+            "new_form": "نموذج جديد",
+            "form_name": "اسم النموذج",
+            "form_name_placeholder": "مثال: اطلب عرض سعر",
+            "form_type": "نوع النموذج",
+            "add_field": "إضافة حقل",
+            "field_label": "تسمية الحقل",
+            "required": "مطلوب",
+            "maps_to": "يرتبط بـ",
+            "options_placeholder": "خيار واحد في كل سطر. استخدم value|label لقيم منفصلة.",
+            "success_message": "رسالة النجاح",
+            "success_placeholder": "تظهر بعد إرسال الزائر.",
+            "active": "مُفعّل",
+            "save": "حفظ",
+            "cancel": "إلغاء",
+            "preview": "معاينة",
+            "name_required": "يرجى إعطاء النموذج اسمًا.",
+            "saved": "تم حفظ النموذج",
+            "save_failed": "تعذّر حفظ النموذج",
+            "deleted": "تم حذف النموذج",
+            "submissions": "الإرساليات",
+            "description_placeholder": "مثال: اعرضه عندما يريد الزائر عرض سعر أو عرضًا توضيحيًا أو أن يتم التواصل معه",
+            "description_hint": "يستخدم الوكيل هذا لتحديد متى يعرض هذا النموذج في المحادثة."
+        },
+        "submissions": {
+            "page_title": "الإرساليات",
+            "back_to_forms": "العودة إلى النماذج",
+            "count": "{n} إرسالية",
+            "export": "تصدير CSV",
+            "search": "ابحث في الإرساليات",
+            "empty": "لا توجد إرساليات بعد.",
+            "submitted_at": "أُرسلت",
+            "deleted": "تم حذف الإرسالية"
+        }
+    }
+}

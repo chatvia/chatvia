@@ -35,6 +35,10 @@ use Domain\Conversation\Services\Streaming\Transformers\OpenAiCompatibleTransfor
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Dispatcher\RoutingToolDispatcher;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
+use Domain\Form\Events\FormSubmitted;
+use Domain\Form\Listeners\PushSubmissionToCrm;
+use Domain\Form\Models\FormDefinition;
+use Domain\Form\Observers\FormDefinitionObserver;
 use Domain\Guardrail\Events\GuardrailTriggered;
 use Domain\Guardrail\Listeners\RecordGuardrailEvent;
 use Domain\Integration\Function\Models\AgentFunction;
@@ -149,6 +153,7 @@ class DomainServiceProvider extends ServiceProvider
         User::observe(UserObserver::class);
         Agent::observe(AgentObserver::class);
         AgentFunction::observe(AgentFunctionObserver::class);
+        FormDefinition::observe(FormDefinitionObserver::class);
         AgentMcpServer::observe(AgentMcpServerObserver::class);
         SourceFile::observe(SourceFileObserver::class);
         SourceText::observe(AgentTextObserver::class);
@@ -187,6 +192,7 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(GuardrailTriggered::class, RecordGuardrailEvent::class);
         Event::listen(McpToolInvoked::class, UpdateMcpInvocationCounters::class);
         Event::listen(AgentRateLimitExceeded::class, SendAgentRateLimitNotification::class);
+        Event::listen(FormSubmitted::class, PushSubmissionToCrm::class);
 
         Event::subscribe(RecordAnalytics::class);
     }

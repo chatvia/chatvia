@@ -32,19 +32,19 @@ beforeEach(function (): void {
     ]);
 });
 
-it('renders the capabilities page with charts and leads, none enabled', function (): void {
+it('renders the capabilities page with charts and forms (leads folded into forms)', function (): void {
     $this->actingAs($this->user)
         ->get(route('agents.capabilities', $this->agent->external_id))
         ->assertOk()
         ->assertInertia(
-            fn (Assert $page) => $page
+            fn (Assert $page): \Inertia\Testing\AssertableInertia => $page
                 ->component('agents/Capabilities/index')
                 ->has('capabilities', 2)
-                // Ordered by catalog priority: charts (30) before leads (40).
+                // Ordered by catalog priority: charts (30), forms (40). Leads is
+                // hidden (visible:false) — it's a companion of forms now.
                 ->where('capabilities.0.connector.slug', 'charts')
                 ->where('capabilities.0.enabled', false)
-                ->where('capabilities.1.connector.slug', 'leads')
-                ->where('capabilities.1.enabled', false),
+                ->where('capabilities.1.connector.slug', 'forms'),
         );
 });
 

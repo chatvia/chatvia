@@ -17,6 +17,7 @@ use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatchResult;
 use Domain\Conversation\Services\Tooling\Registry\ToolDisplayResolver;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use GuzzleHttp\Psr7\Response;
@@ -173,6 +174,7 @@ function tlrRunner(
         displayResolver: tlrDisplayResolver(),
         accessPolicy: new ToolAccessPolicy($policy, new ToolRateLimiter),
         approvalStore: $store ?? new ToolApprovalStore,
+        catalog: app(ConnectorCatalog::class),
     );
 }
 

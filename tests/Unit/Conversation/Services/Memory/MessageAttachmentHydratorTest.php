@@ -1,6 +1,13 @@
 <?php
 
+use App\Identity\Workspace\Models\User;
+use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
+use Domain\Form\Models\FormDefinition;
+use Domain\Form\Models\FormSubmission;
+use Domain\Membership\Team\Services\TeamService;
 
 /**
  * Unit tests for the orphan-attachment clustering decision. Pure logic, no DB —
@@ -45,4 +52,34 @@ it('clusters an orphan with an unknown upload time defensively onto the last use
 
 it('clusters an orphan when the last user timestamp is unknown', function (): void {
     expect($this->hydrator->resolveOwner(null, 2_500, [], 'last-user', null))->toBe('last-user');
+});
+
+it('overwrites a form artifact status with the live submission status on reload', function (): void {
+    $user = User::factory()->create();
+    app(TeamService::class)->createDefaultTeam($user);
+    $agent = makeTeamAgent($user, 'Bot');
+    $session = Session::create(['agent_id' => $agent->id, 'user_id' => null]);
+    $conversation = Conversation::create([
+        'chat_session_id' => $session->id,
+        'agent_id' => $agent->id,
+        'source' => ConversationSource::HostedChat,
+        'title' => 't',
+    ]);
+    $definition = FormDefinition::factory()->forAgent($agent)->create();
+    $submission = FormSubmission::factory()->forDefinition($definition)->submitted()->create([
+        'chat_conversation_id' => $conversation->id,
+    ]);
+
+    // Persisted metadata still says 'pending' (the on-submit flip raced / never landed).
+    $messages = [[
+        'id' => 'msg-1',
+        'role' => 'assistant',
+        'metadata' => ['artifacts' => [
+            ['kind' => 'form', 'data' => ['form_instance_id' => $submission->external_id, 'status' => 'pending']],
+        ]],
+    ]];
+
+    $hydrated = (new MessageAttachmentHydrator)->hydrate($messages, $conversation);
+
+    expect($hydrated[0]['metadata']['artifacts'][0]['data']['status'])->toBe('submitted');
 });

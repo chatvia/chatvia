@@ -86,7 +86,14 @@
         "message_limit_reached": "Viestiraja on saavutettu",
         "upgrade_prompt": "Päivitä tilaussuunnitelmasi jatkaaksesi keskustelua",
         "regenerate_failed": "Vastausta ei voitu luoda uudelleen. Yritä uudelleen.",
-        "loading_conversation": "Ladataan keskustelua"
+        "loading_conversation": "Ladataan keskustelua",
+        "forms": {
+            "submit": "Lähetä",
+            "default_success": "Kiitos — tietosi on vastaanotettu.",
+            "submit_failed": "Jokin meni vikaan. Yritä uudelleen.",
+            "expired": "Tämä lomake on vanhentunut.",
+            "unavailable": "Tätä lomaketta ei voi lähettää täällä."
+        }
     },
     "messages": {
         "send": "Lähetä",

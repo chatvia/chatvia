@@ -174,6 +174,7 @@ watch(
                 :artifacts="props.artifacts"
                 :is-streaming="isStreaming ?? false"
                 :is-rtl="isRTL ?? false"
+                :message-id="message.id ? String(message.id) : undefined"
             />
             <!-- Empty body: show the "still working" indicator. WaitingIndicator
                  if the model is just thinking; branded tool-call icon stack if

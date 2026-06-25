@@ -8,7 +8,7 @@ use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session as ChatSession;
 use Domain\Conversation\Services\Memory\ChatCache;
-use Domain\Lead\Models\Lead;
+use Domain\Form\Models\FormSubmission;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
@@ -140,7 +140,7 @@ it('deletes leads captured from the chatter conversations and leaves other chatt
         'source' => ConversationSource::HostedChat,
         'title' => 'Lead chat',
     ]);
-    $lead = Lead::factory()->forAgent($agent)->withConversation($conversation)->create();
+    $lead = FormSubmission::factory()->forAgent($agent)->create(['chat_conversation_id' => $conversation->id]);
 
     // A sibling chatter's lead on a different conversation must survive.
     $siblingSession = ChatSession::create(['agent_id' => $agent->id, 'user_id' => $sibling->id]);
@@ -150,10 +150,10 @@ it('deletes leads captured from the chatter conversations and leaves other chatt
         'source' => ConversationSource::HostedChat,
         'title' => 'Sibling chat',
     ]);
-    $siblingLead = Lead::factory()->forAgent($agent)->withConversation($siblingConversation)->create();
+    $siblingLead = FormSubmission::factory()->forAgent($agent)->create(['chat_conversation_id' => $siblingConversation->id]);
 
     app(DeleteChatterAction::class)->execute($chatter);
 
-    expect(Lead::whereKey($lead->id)->exists())->toBeFalse()
-        ->and(Lead::whereKey($siblingLead->id)->exists())->toBeTrue();
+    expect(FormSubmission::whereKey($lead->id)->exists())->toBeFalse()
+        ->and(FormSubmission::whereKey($siblingLead->id)->exists())->toBeTrue();
 });

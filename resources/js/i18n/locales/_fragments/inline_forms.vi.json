@@ -1,0 +1,11 @@
+{
+    "chat": {
+        "forms": {
+            "submit": "Gửi",
+            "default_success": "Cảm ơn — chúng tôi đã nhận được thông tin của bạn.",
+            "submit_failed": "Đã xảy ra lỗi. Vui lòng thử lại.",
+            "expired": "Biểu mẫu này đã hết hạn.",
+            "unavailable": "Không thể gửi biểu mẫu này tại đây."
+        }
+    }
+}

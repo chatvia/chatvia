@@ -1,0 +1,11 @@
+{
+    "chat": {
+        "forms": {
+            "submit": "Submit",
+            "default_success": "Thanks — your details have been received.",
+            "submit_failed": "Something went wrong. Please try again.",
+            "expired": "This form has expired.",
+            "unavailable": "This form can't be submitted here."
+        }
+    }
+}

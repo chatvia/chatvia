@@ -5,7 +5,7 @@ namespace Domain\Agent\Data\Resources\ChatLog\Conversations;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
-use Domain\Lead\Models\Lead;
+use Domain\Form\Models\FormSubmission;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
@@ -89,7 +89,7 @@ class ChatLogConversationsResourceData extends Data
         // leads.agent_id pins the row to this agent, so chat_conversation_id is
         // guaranteed to belong to one of the agent's conversations. No need to
         // pre-resolve every conversation id client-side.
-        return Lead::query()
+        return FormSubmission::query()
             ->where('agent_id', $agent->id)
             ->whereNotNull('chat_conversation_id')
             ->pluck('chat_conversation_id');

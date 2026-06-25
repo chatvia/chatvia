@@ -10,13 +10,25 @@ import { router, usePage } from '@inertiajs/vue3';
 import { useScroll } from '@vueuse/core';
 import axios from 'axios';
 import { ChevronDown } from 'lucide-vue-next';
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 
 const chatEventBus = inject('chatEventBus');
+
+// Inline-form submit transport for this surface. InlineFormBlock (rendered deep
+// inside assistant messages) injects this so it stays transport-agnostic — the
+// widget surface provides its own. axios rejects on 4xx (409 already-submitted,
+// 410 expired), which the form block handles.
+provide('inlineFormSubmit', async (formInstanceId, fields, assistantMessageId) => {
+    const response = await axios.post(route('chat.forms.submit', { formInstance: formInstanceId }), {
+        fields,
+        assistant_message_id: assistantMessageId,
+    });
+    return response.data;
+});
 
 // Per-chat upload ceiling — sourced from `agent.files.upload.max_files`
 // via Inertia shared props (ChatHandleInertiaRequests). Falls back to 2

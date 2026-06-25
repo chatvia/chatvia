@@ -98,6 +98,33 @@ it('gates an unknown MCP tool (stale catalog is treated as risky)', function ():
     expect(app(ToolApprovalPolicy::class)->requiresApproval($agent, 'mcp__test__not_catalogued'))->toBeTrue();
 });
 
+it('runs a builtin capability tool directly, never gating it', function (): void {
+    [$user, $agent] = approvalAgent();
+
+    // A builtin server (slug 'forms') whose tool is seeded as Approval — the
+    // first-party builtin carve-out must still auto-run it.
+    $server = AgentMcpServer::create([
+        'user_id' => $user->id,
+        'category' => 'builtin',
+        'connector_slug' => 'forms',
+        'name' => 'Forms',
+        'slug' => 'forms',
+        'url' => config('app.url').'/mcp/forms',
+        'auth_type' => 'none',
+        'is_enabled' => true,
+    ]);
+    McpTool::create([
+        'mcp_server_id' => $server->id,
+        'name' => 'render_form',
+        'description' => 'Render a form',
+        'input_schema' => ['type' => 'object', 'properties' => []],
+        'permission' => McpToolPermission::Approval,
+        'fetched_at' => now(),
+    ]);
+
+    expect(app(ToolApprovalPolicy::class)->requiresApproval($agent, 'mcp__forms__render_form'))->toBeFalse();
+});
+
 it('gates a function based on its own requires_approval flag', function (): void {
     [$user, $agent] = approvalAgent();
     makeApprovalFunction($user, requiresApproval: true);

@@ -115,11 +115,35 @@ return [
         // First-party builtin, but NOT synced as a global always-on row, so it
         // stays per-agent opt-in (lead capture is an agent-specific choice).
         'server_category' => 'builtin',
-        // Surfaced on the per-agent Capabilities page alongside Interactive
-        // Charts, not in the Connectors list. UI-surface flag only — the
-        // builtin MCP server it provisions is unchanged.
-        'is_capability' => true,
+        // Hidden from BOTH the Capabilities and Connectors lists: lead capture
+        // is now owned by the `forms` capability, which companions this server
+        // for conversational `capture-lead` off-web. Still resolvable by slug
+        // (find()) for the companion attach + any legacy per-agent attachments.
+        'visible' => false,
         'mcp_url' => env('APP_URL').'/mcp/leads',
+    ],
+
+    'forms' => [
+        'slug' => 'forms',
+        'name' => 'Forms',
+        'description' => 'Capture leads with a real, fillable form in the chat — plus booking and qualification forms. Validated and stored automatically; falls back to conversational capture on channels that can\'t show a form.',
+        'category' => 'Sales',
+        'icon' => 'forms',
+        'brand_color' => '6366F1',
+        'logo_url' => '/images/logos/connectors/forms.svg',
+        'provider' => 'chatvia',
+        'priority' => 40,
+        'auth_strategy' => 'none',
+        // First-party builtin capability (per-agent opt-in). The agent renders
+        // forms the admin defined on the Forms page; submissions store a Lead
+        // and/or a FormSubmission. Surfaced on the Capabilities page.
+        // Companions the hidden `leads` server so conversational `capture-lead`
+        // is available off-web (messaging channels) where a form can't render —
+        // this is why "Leads" is no longer a separate capability.
+        'server_category' => 'builtin',
+        'is_capability' => true,
+        'companions' => ['leads'],
+        'mcp_url' => env('APP_URL').'/mcp/forms',
     ],
 
     'stripe' => [

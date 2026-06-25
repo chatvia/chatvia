@@ -38,8 +38,8 @@ class ConnectorClassifier
     /**
      * The connector slugs the message should route to.
      *
-     * @return list<string>|null  Picked slugs (subset of reachable), or null when
-     *                            the router declined / failed — meaning "don't prune".
+     * @return list<string>|null Picked slugs (subset of reachable), or null when
+     *                           the router declined / failed — meaning "don't prune".
      */
     public function classify(Agent $agent, string $userMessage): ?array
     {

@@ -7,7 +7,7 @@ use Domain\Agent\Data\Resources\ChatLog\Messages\ChatLogMessagesResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
-use Domain\Lead\Models\Lead;
+use Domain\Form\Models\FormSubmission;
 
 /**
  * Paginated messages for a chat-log conversation plus its handoff state and
@@ -23,9 +23,10 @@ class ListConversationMessagesAction
             ->orderByRaw("CASE WHEN role = 'user' THEN 0 ELSE 1 END")
             ->paginate(50, page: $page);
 
-        $lead = Lead::query()
+        $lead = FormSubmission::query()
             ->where('agent_id', $agent->id)
             ->where('chat_conversation_id', $conversation->id)
+            ->latest('id')
             ->first();
 
         return ChatLogMessagesResourceData::fromPaginator(

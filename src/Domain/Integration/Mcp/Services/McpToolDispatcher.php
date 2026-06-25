@@ -199,6 +199,14 @@ class McpToolDispatcher implements ToolDispatcherInterface
             ];
         }
 
+        // Inline form descriptor (RenderFormTool) → rendered as a FormKit form.
+        if (isset($structured['form']) && is_array($structured['form'])) {
+            $artifacts[] = [
+                'kind' => 'form',
+                'data' => $structured['form'],
+            ];
+        }
+
         return $artifacts;
     }
 

@@ -1,0 +1,11 @@
+{
+    "chat": {
+        "forms": {
+            "submit": "Enviar",
+            "default_success": "Gracias — hemos recibido tus datos.",
+            "submit_failed": "Algo salió mal. Inténtalo de nuevo.",
+            "expired": "Este formulario ha caducado.",
+            "unavailable": "Este formulario no se puede enviar aquí."
+        }
+    }
+}

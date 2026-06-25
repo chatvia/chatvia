@@ -16,6 +16,9 @@ use Inertia\Response;
  */
 class AgentChannelsController
 {
+    /** @var list<string> Channel kinds the page knows how to render a slide-over for. */
+    private const CHANNELS = ['telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram'];
+
     public function __invoke(Request $request, Agent $agent, TelegramCommandRouter $commands): Response
     {
         $bot = $agent->telegramBot;
@@ -25,8 +28,16 @@ class AgentChannelsController
         $teams = $agent->teamsBot;
         $instagram = $agent->instagramAccount;
 
+        // Which channel slide-over to auto-open on load. Set after the
+        // Messenger/Instagram OAuth round-trip (a full-page redirect) so the
+        // page picker / error doesn't land in a closed sheet. Allow-listed so a
+        // hand-crafted `?open=` can't open an unknown channel.
+        $open = (string) $request->query('open');
+        $open = in_array($open, self::CHANNELS, true) ? $open : null;
+
         return Inertia::render('agents/Channels/index', [
             'agent' => AgentResourceData::fromModel($agent),
+            'open' => $open,
             'telegram' => $bot !== null
                 ? ['connected' => true, 'bot_username' => $bot->bot_username, 'enabled' => $bot->enabled, 'commands' => $commands->forEditing($bot)]
                 : ['connected' => false, 'bot_username' => null, 'enabled' => false, 'commands' => []],

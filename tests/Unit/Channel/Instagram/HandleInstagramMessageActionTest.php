@@ -8,7 +8,6 @@ use Domain\Channel\Instagram\Services\InstagramReplyRunner;
 use Domain\Channel\Instagram\Services\InstagramThreadResolver;
 use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Conversation\Services\Memory\ChatMemory;
-use Illuminate\Support\Str;
 use Tests\Support\Instagram\FakeInstagramClient;
 
 /**

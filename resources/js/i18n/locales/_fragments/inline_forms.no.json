@@ -1,0 +1,11 @@
+{
+    "chat": {
+        "forms": {
+            "submit": "Send",
+            "default_success": "Takk — opplysningene dine er mottatt.",
+            "submit_failed": "Noe gikk galt. Prøv igjen.",
+            "expired": "Dette skjemaet er utløpt.",
+            "unavailable": "Dette skjemaet kan ikke sendes her."
+        }
+    }
+}

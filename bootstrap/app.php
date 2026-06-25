@@ -79,7 +79,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             //            ContentSecurityPolicy::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
-//            ForceWww::class,
+            //            ForceWww::class,
         ]);
 
         $middleware->group('chat', [

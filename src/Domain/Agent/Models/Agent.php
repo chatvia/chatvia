@@ -16,13 +16,13 @@ use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Conversation\Topic\Models\Topic;
+use Domain\Form\Models\FormSubmission;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
-use Domain\Lead\Models\Lead;
 use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
@@ -78,8 +78,8 @@ use Support\Traits\HasSettings;
  * @property-read Collection<int, SourceFile> $files
  * @property-read int|null $files_count
  * @property-read Collection<int, AgentFunction> $functions
- * @property-read Collection<int, Lead> $leads
- * @property-read int|null $leads_count
+ * @property-read Collection<int, FormSubmission> $submissions
+ * @property-read int|null $submissions_count
  * @property-read Collection<int, AgentMcpServer> $mcpServers
  * @property-read Collection<int, ModelSetting> $modelSettings
  * @property-read int|null $model_settings_count
@@ -444,6 +444,15 @@ class Agent extends Model
     }
 
     /**
+     * Whether the built-in Forms connector is attached and enabled — gates the
+     * inline-form rendering and the forms list injected into the system prompt.
+     */
+    public function isFormsEnabled(): bool
+    {
+        return $this->mcpServers()->where('slug', 'forms')->where('is_enabled', true)->exists();
+    }
+
+    /**
      * One row holding this agent's ordered conversation starters (JSON `starters`).
      *
      * @return HasOne<AgentStarter, $this>
@@ -477,11 +486,11 @@ class Agent extends Model
     }
 
     /**
-     * @return HasMany<Lead, $this>
+     * @return HasMany<FormSubmission, $this>
      */
-    public function leads(): HasMany
+    public function submissions(): HasMany
     {
-        return $this->hasMany(Lead::class);
+        return $this->hasMany(FormSubmission::class);
     }
 
     /**

@@ -154,6 +154,14 @@ return [
                 'success' => [
                     'message' => 'Your information has been received and someone will get back to you soon.',
                 ],
+                // Optional per-agent CRM webhook. When enabled, every captured
+                // lead (conversational tool OR inline form) is delivered as an
+                // HMAC-signed JSON POST. SSRF-guarded at save and at dispatch.
+                'crm' => [
+                    'webhook_url' => null,
+                    'webhook_secret' => null,
+                    'webhook_enabled' => false,
+                ],
             ],
             'business' => [
                 'email' => null,

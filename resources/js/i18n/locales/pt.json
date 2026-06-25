@@ -86,7 +86,14 @@
         "message_limit_reached": "Você atingiu o limite de mensagens",
         "upgrade_prompt": "Atualize seu plano para continuar conversando",
         "regenerate_failed": "Não foi possível regenerar a resposta. Tente novamente.",
-        "loading_conversation": "Carregando conversa"
+        "loading_conversation": "Carregando conversa",
+        "forms": {
+            "submit": "Enviar",
+            "default_success": "Obrigado — os seus dados foram recebidos.",
+            "submit_failed": "Algo correu mal. Tente novamente.",
+            "expired": "Este formulário expirou.",
+            "unavailable": "Este formulário não pode ser enviado aqui."
+        }
     },
     "messages": {
         "send": "Enviar",

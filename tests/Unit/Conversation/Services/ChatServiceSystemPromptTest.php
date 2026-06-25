@@ -1,10 +1,13 @@
 <?php
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Data\StreamRequestData;
 use Domain\Conversation\Services\Data\StreamRequestMessageData;
+use Domain\Form\Models\FormDefinition;
 use Domain\Llm\Models\Llm;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 
 /**
@@ -44,4 +47,38 @@ it('omits the identity block when no chatter is signed in', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
 
     expect(systemPromptFor($agent, null))->not->toContain('signed-in user');
+});
+
+function formsAgent(): Agent
+{
+    $user = User::factory()->create();
+    app(TeamService::class)->createDefaultTeam($user);
+
+    return makeTeamAgent($user, 'Bot');
+}
+
+it('lists active forms (slug + description) when the Forms capability is enabled', function (): void {
+    $agent = formsAgent();
+    $server = $agent->user->mcpServers()->create([
+        'connector_slug' => 'forms', 'category' => 'builtin', 'name' => 'Forms',
+        'slug' => 'forms', 'url' => config('app.url').'/mcp/forms', 'auth_type' => 'none', 'is_enabled' => true,
+    ]);
+    $agent->mcpServers()->attach($server->id);
+
+    FormDefinition::factory()->forAgent($agent)->create([
+        'name' => 'Book a demo',
+        'slug' => 'book-demo',
+        'description' => 'Show when the visitor wants to schedule a demo.',
+    ]);
+
+    expect(systemPromptFor($agent, null))
+        ->toContain('book-demo')
+        ->toContain('Show when the visitor wants to schedule a demo');
+});
+
+it('omits the forms block when the Forms capability is not enabled', function (): void {
+    $agent = formsAgent();
+    FormDefinition::factory()->forAgent($agent)->create(['slug' => 'book-demo']);
+
+    expect(systemPromptFor($agent, null))->not->toContain('book-demo');
 });

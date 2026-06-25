@@ -1,0 +1,11 @@
+{
+    "chat": {
+        "forms": {
+            "submit": "Skicka",
+            "default_success": "Tack — dina uppgifter har tagits emot.",
+            "submit_failed": "Något gick fel. Försök igen.",
+            "expired": "Det här formuläret har gått ut.",
+            "unavailable": "Det här formuläret kan inte skickas här."
+        }
+    }
+}

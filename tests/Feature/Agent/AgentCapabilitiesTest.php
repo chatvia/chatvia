@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Services\TeamService;
+use Inertia\Testing\AssertableInertia;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function (): void {
@@ -37,7 +38,7 @@ it('renders the capabilities page with charts and forms (leads folded into forms
         ->get(route('agents.capabilities', $this->agent->external_id))
         ->assertOk()
         ->assertInertia(
-            fn (Assert $page): \Inertia\Testing\AssertableInertia => $page
+            fn (Assert $page): AssertableInertia => $page
                 ->component('agents/Capabilities/index')
                 ->has('capabilities', 2)
                 // Ordered by catalog priority: charts (30), forms (40). Leads is

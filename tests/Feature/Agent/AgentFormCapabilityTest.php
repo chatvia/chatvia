@@ -6,6 +6,7 @@ use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Testing\TestResponse;
+use Inertia\Testing\AssertableInertia;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /**
@@ -94,7 +95,7 @@ it('lists each form with its submitted-submission count', function (): void {
     $this->actingAs($this->user)
         ->get(route('agents.forms.index', $this->agent->external_id))
         ->assertOk()
-        ->assertInertia(fn (Assert $page): \Inertia\Testing\AssertableInertia => $page
+        ->assertInertia(fn (Assert $page): AssertableInertia => $page
             ->component('agents/Forms/index')
             ->where('forms.0.submissions_count', 2));
 });

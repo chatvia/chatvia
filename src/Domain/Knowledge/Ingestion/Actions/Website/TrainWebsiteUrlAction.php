@@ -14,6 +14,7 @@ use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Services\Firecrawl;
+use Domain\Knowledge\Source\Web\Services\WebPageMarkdownCache;
 use Domain\Llm\Services\TikToken;
 use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Cache;
@@ -28,6 +29,7 @@ class TrainWebsiteUrlAction
         private readonly Firecrawl $firecrawl,
         private readonly ChunkFitClient $chunker,
         private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly WebPageMarkdownCache $markdownCache,
     ) {}
 
     public function execute(AgentWebsiteUrl $websiteUrl, Agent $agent): void
@@ -37,7 +39,13 @@ class TrainWebsiteUrlAction
         // non-public targets before spending a scrape credit on them.
         SafeUrl::assert($websiteUrl->url);
 
-        $markdown = trim($this->firecrawl->scrape($websiteUrl->url)['markdown']);
+        // Stage 1's crawl already rendered this page; reuse that Markdown and
+        // only spend a fresh scrape credit on a cache miss (expired entry, or a
+        // single-URL retrain that never went through a crawl).
+        $markdown = trim(
+            $this->markdownCache->get($websiteUrl->url)
+            ?? $this->firecrawl->scrape($websiteUrl->url)['markdown']
+        );
 
         // Nothing scrapable (empty page, blocked, JS-only with no content).
         if ($markdown === '') {

@@ -49,6 +49,30 @@ class AudioDurationExtractor
             );
         }
 
+        $duration = $this->probeContainerDuration($filePath);
+
+        // Browser MediaRecorder blobs (audio/webm, audio/mp4) are written as a live,
+        // non-seekable stream, so the total duration is never stamped into the
+        // container header and ffprobe reports "N/A". Fall back to decoding the
+        // whole stream, which always yields a real duration.
+        if (! is_numeric($duration)) {
+            $duration = $this->decodeDuration($filePath);
+        }
+
+        if (! is_numeric($duration)) {
+            throw new RuntimeException(
+                "Invalid duration value returned: {$duration}"
+            );
+        }
+
+        return (float) $duration;
+    }
+
+    /**
+     * Fast path: read the duration straight from the container metadata.
+     */
+    private function probeContainerDuration(string $filePath): string
+    {
         // Use ffprobe to extract duration (more efficient than ffmpeg for metadata)
         $result = Process::run([
             $this->ffprobePath(),
@@ -64,19 +88,43 @@ class AudioDurationExtractor
             );
         }
 
-        $duration = trim($result->output());
+        return trim($result->output());
+    }
 
-        if (! is_numeric($duration)) {
-            throw new RuntimeException(
-                "Invalid duration value returned: {$duration}"
-            );
+    /**
+     * Robust path: decode the entire stream and read the elapsed time ffmpeg
+     * reports. Works for header-less streamed containers (e.g. MediaRecorder
+     * WebM/MP4) where the container duration is missing.
+     */
+    private function decodeDuration(string $filePath): string
+    {
+        $result = Process::run([
+            $this->ffmpegPath(),
+            '-v', 'error',
+            '-stats',
+            '-i', $filePath,
+            '-f', 'null',
+            '-',
+        ]);
+
+        // `-stats` prints a running "time=HH:MM:SS.ms" line to stderr; the last one
+        // is the total duration decoded. ffmpeg exits 0 while writing to stderr.
+        if (preg_match_all('/time=(\d+):(\d{2}):(\d{2}(?:\.\d+)?)/', $result->errorOutput(), $matches, PREG_SET_ORDER) === 0) {
+            return 'N/A';
         }
 
-        return (float) $duration;
+        [, $hours, $minutes, $seconds] = end($matches);
+
+        return (string) ((int) $hours * 3600 + (int) $minutes * 60 + (float) $seconds);
     }
 
     private function ffprobePath(): string
     {
         return config('services.bin.ffprobe');
+    }
+
+    private function ffmpegPath(): string
+    {
+        return config('services.bin.ffmpeg');
     }
 }

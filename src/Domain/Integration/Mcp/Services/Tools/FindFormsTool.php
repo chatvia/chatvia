@@ -47,10 +47,10 @@ class FindFormsTool extends Tool
 
         // Forms only render on the web surfaces. On messaging channels (Telegram,
         // Slack, …) there's no inline-form artifact, so don't surface forms at all —
-        // steer the model to conversational capture, mirroring RenderFormTool.
+        // keep the model helping conversationally, mirroring RenderFormTool.
         if ($conversation && ! $conversation->source->isWeb()) {
             return Response::make(Response::text(
-                'This channel cannot display forms. Collect any details the visitor wants to share conversationally and call capture-lead.'
+                'This channel cannot display forms. Keep helping the visitor conversationally.'
             ))->withStructuredContent(['forms' => []]);
         }
 

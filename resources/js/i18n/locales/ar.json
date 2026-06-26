@@ -86,6 +86,7 @@
         "message_limit_reached": "لقد وصلت إلى الحد الأقصى للرسائل",
         "upgrade_prompt": "يرجى ترقية باقتك للاستمرار في المحادثة",
         "regenerate_failed": "تعذر إعادة توليد الرد. يرجى المحاولة مرة أخرى.",
+        "conversation_gone": "لم تعد هذه المحادثة موجودة.",
         "loading_conversation": "جارٍ تحميل المحادثة",
         "forms": {
             "submit": "إرسال",

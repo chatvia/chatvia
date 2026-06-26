@@ -37,32 +37,6 @@ it('attaches an already-provisioned capability without re-provisioning', functio
         ->and(AgentMcpServer::query()->where('connector_slug', 'charts')->count())->toBe(1);
 });
 
-it('also attaches companion servers (Forms companions the hidden leads server)', function (): void {
-    // Pre-provision both rows so no remote provisioning happens.
-    foreach (['forms', 'leads'] as $slug) {
-        $this->user->mcpServers()->create([
-            'connector_slug' => $slug,
-            'category' => 'builtin',
-            'name' => ucfirst($slug),
-            'slug' => $slug,
-            'url' => config('app.url').'/mcp/'.$slug,
-            'auth_type' => 'none',
-            'is_enabled' => true,
-        ]);
-    }
-
-    $this->mock(TokenConnectorAuthorizer::class)->shouldReceive('connect')->never();
-
-    $forms = app(ConnectorCatalog::class)->capabilities()->get('forms');
-    expect($forms->companions)->toBe(['leads']);
-
-    app(EnableAgentCapabilityAction::class)->execute($this->agent, $this->user, $forms);
-
-    expect($this->agent->mcpServers()->where('connector_slug', 'forms')->exists())->toBeTrue()
-        ->and($this->agent->mcpServers()->where('connector_slug', 'leads')->exists())->toBeTrue()
-        ->and($this->agent->isLeadsEnabled())->toBeTrue(); // → Leads inbox/settings now visible
-});
-
 it('provisions the capability on first enable, then attaches it', function (): void {
     // No 'charts' row exists, so the action's own query finds nothing and it
     // provisions via the authorizer. The persisted row carries a null

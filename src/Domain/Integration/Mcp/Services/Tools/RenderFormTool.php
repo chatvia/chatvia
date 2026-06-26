@@ -52,10 +52,10 @@ class RenderFormTool extends Tool
             return Response::error('Conversation not found or does not belong to this agent.');
         }
 
-        // Messaging channels can't render an inline form — steer the model to
-        // conversational capture instead.
+        // Messaging channels can't render an inline form — keep the model helping
+        // conversationally instead.
         if (! $conversation->source->isWeb()) {
-            return Response::error('This channel cannot display a form. Ask the visitor for the details conversationally and call capture-lead instead.');
+            return Response::error('This channel cannot display a form. Keep helping the visitor conversationally instead.');
         }
 
         $validated = $request->validate([

@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Gates Chatvia's OWN built-in MCP servers (/mcp/weather, /mcp/currency,
- * /mcp/charts, /mcp/leads, /mcp/perplexity). These are public HTTP routes but
+ * /mcp/charts, /mcp/forms, /mcp/perplexity). These are public HTTP routes but
  * must only ever be driven by Chatvia's server-side tool loop.
  *
  * Two checks:

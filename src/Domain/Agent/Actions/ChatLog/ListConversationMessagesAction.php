@@ -23,9 +23,13 @@ class ListConversationMessagesAction
             ->orderByRaw("CASE WHEN role = 'user' THEN 0 ELSE 1 END")
             ->paginate(50, page: $page);
 
+        // The conversation's most recent SUBMITTED form (keyed by internal
+        // chat_conversation_id). Pending rows — a form rendered but never filled
+        // — are not leads and must not surface the Lead panel.
         $lead = FormSubmission::query()
             ->where('agent_id', $agent->id)
             ->where('chat_conversation_id', $conversation->id)
+            ->where('status', FormSubmission::STATUS_SUBMITTED)
             ->latest('id')
             ->first();
 

@@ -5,7 +5,6 @@ use Domain\Integration\Mcp\Services\Servers\AccountAnalyticsServer;
 use Domain\Integration\Mcp\Services\Servers\ChartsServer;
 use Domain\Integration\Mcp\Services\Servers\CurrencyConverterServer;
 use Domain\Integration\Mcp\Services\Servers\FormsServer;
-use Domain\Integration\Mcp\Services\Servers\LeadsServer;
 use Domain\Integration\Mcp\Services\Servers\PerplexityServer;
 use Domain\Integration\Mcp\Services\Servers\WeatherServer;
 use Laravel\Mcp\Facades\Mcp;
@@ -25,7 +24,6 @@ use Laravel\Mcp\Facades\Mcp;
 Mcp::web('/mcp/weather', WeatherServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
 Mcp::web('/mcp/currency', CurrencyConverterServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
 Mcp::web('/mcp/charts', ChartsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
-Mcp::web('/mcp/leads', LeadsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
 Mcp::web('/mcp/forms', FormsServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
 Mcp::web('/mcp/perplexity', PerplexityServer::class)->middleware([VerifyInternalMcpRequest::class, 'throttle:builtin-mcp']);
 

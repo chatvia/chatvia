@@ -42,13 +42,6 @@ class ConnectorData extends Data
         // instead of the Connectors list. Purely a UI-surface flag — the MCP
         // server it provisions is identical to any other builtin connector.
         public bool $isCapability = false,
-        // Slugs of other (often hidden) builtin servers that are attached
-        // together with this capability — e.g. the Forms capability companions
-        // the `leads` server so conversational capture-lead works off-web,
-        // without exposing Leads as its own toggle. Resolved via find(), so a
-        // companion may be visible:false.
-        /** @var array<int, string> */
-        public array $companions = [],
         // When true, this is an OAuth connector whose client is registered
         // per-workspace (no global app / no DCR) — the workspace supplies its
         // own client_id at connect time (e.g. Salesforce External Client App).
@@ -99,7 +92,6 @@ class ConnectorData extends Data
             requiresUrl: (bool) ($entry['requires_url'] ?? false),
             comingSoon: (bool) ($entry['coming_soon'] ?? false),
             isCapability: (bool) ($entry['is_capability'] ?? false),
-            companions: array_values((array) ($entry['companions'] ?? [])),
             requiresClientId: (bool) ($entry['requires_client_id'] ?? false),
             oauthClientId: $entry['oauth_client_id'] ?? null,
             oauthClientSecret: $entry['oauth_client_secret'] ?? null,

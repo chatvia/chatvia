@@ -447,17 +447,8 @@ class Agent extends Model
     }
 
     /**
-     * Whether the built-in Leads connector is attached and enabled — gates the
-     * Leads UI in the dashboard.
-     */
-    public function isLeadsEnabled(): bool
-    {
-        return $this->mcpServers()->where('slug', 'leads')->where('is_enabled', true)->exists();
-    }
-
-    /**
      * Whether the built-in Forms connector is attached and enabled — gates the
-     * inline-form rendering and the forms list injected into the system prompt.
+     * inline-form rendering and the captured-leads UI in the dashboard.
      */
     public function isFormsEnabled(): bool
     {

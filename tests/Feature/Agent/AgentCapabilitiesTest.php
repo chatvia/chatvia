@@ -41,8 +41,7 @@ it('renders the capabilities page with charts and forms (leads folded into forms
             fn (Assert $page): AssertableInertia => $page
                 ->component('agents/Capabilities/index')
                 ->has('capabilities', 2)
-                // Ordered by catalog priority: charts (30), forms (40). Leads is
-                // hidden (visible:false) — it's a companion of forms now.
+                // Ordered by catalog priority: charts (30), forms (40).
                 ->where('capabilities.0.connector.slug', 'charts')
                 ->where('capabilities.0.enabled', false)
                 ->where('capabilities.1.connector.slug', 'forms'),
@@ -81,5 +80,5 @@ it('excludes capabilities from the agent connectors list', function (): void {
         ->json('featured.*.connector.slug');
 
     expect($slugs)->not->toContain('charts')
-        ->and($slugs)->not->toContain('leads');
+        ->and($slugs)->not->toContain('forms');
 });

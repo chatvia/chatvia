@@ -70,10 +70,6 @@ const title = computed(() =>
     conversationTitle.value ? t('agents.chatlog.title_with_conversation', { title: conversationTitle.value }) : t('agents.chatlog.title'),
 );
 
-// Lead capture is an opt-in MCP server (slug `leads`) on the agent. When it's
-// off, no leads are ever captured, so the Lead button is hidden entirely.
-const leadsEnabled = computed(() => Boolean(agent.value?.leads_mcp_enabled));
-
 // Lead panel
 const showLeadPanel = ref(false);
 function openLeadPanel() {
@@ -299,13 +295,12 @@ watch(liveChatAvailable, (available) => {
                                     <Trash2 class="h-4 w-4" />
                                 </Button>
 
-                                <!-- Lead Button -->
+                                <!-- Lead Button — shown only when this conversation has a submitted form -->
                                 <Button
-                                    v-if="leadsEnabled"
+                                    v-if="hasLeadForCurrentConversation"
                                     size="sm"
                                     class="ms-auto h-9"
-                                    :variant="hasLeadForCurrentConversation ? 'default' : 'outline'"
-                                    :disabled="!hasLeadForCurrentConversation"
+                                    variant="default"
                                     @click="openLeadPanel"
                                 >
                                     <UserCheck class="me-1.5 h-4 w-4" /> {{ t('agents.chatlog.lead') }}

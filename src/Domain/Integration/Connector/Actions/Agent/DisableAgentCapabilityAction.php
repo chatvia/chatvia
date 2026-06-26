@@ -11,23 +11,19 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
  * {@see EnableAgentCapabilityAction}.
  *
  * Disable = detach the pivot only. The account-level server row is left in
- * place (it may back other agents), so re-enabling is a pure re-attach. Detaches
- * the capability and any companions it attached (e.g. Forms → the hidden `leads`
- * server).
+ * place (it may back other agents), so re-enabling is a pure re-attach.
  */
 class DisableAgentCapabilityAction
 {
     public function execute(Agent $agent, ConnectorData $capability): void
     {
-        foreach ([$capability->slug, ...$capability->companions] as $detachSlug) {
-            $server = AgentMcpServer::query()
-                ->ownedBySameAccountAs($agent)
-                ->where('connector_slug', $detachSlug)
-                ->first();
+        $server = AgentMcpServer::query()
+            ->ownedBySameAccountAs($agent)
+            ->where('connector_slug', $capability->slug)
+            ->first();
 
-            if ($server !== null) {
-                $agent->detachConnector($server);
-            }
+        if ($server !== null) {
+            $agent->detachConnector($server);
         }
     }
 }

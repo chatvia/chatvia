@@ -54,7 +54,7 @@ created_at: string;
 updated_at: string;
 total_messages: number | null;
 total_members: number | null;
-leads_mcp_enabled: boolean;
+forms_enabled: boolean;
 };
 }
 declare namespace Domain.Agent.Data.Resources.ChatLog.Conversations {

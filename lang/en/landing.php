@@ -34,7 +34,7 @@ return [
         ],
         'title_line1' => 'Privacy-first',
         'title_line2' => 'AI Agents',
-        'subtitle' => 'Built AI Agents that are hosted in Europe on European-owned infrastructure. Your data never leaves for the U.S. — and will never be used to train AI models. 🇪🇺',
+        'subtitle' => 'Build no-code AI agents with your own data — they answer customers, book meetings, send emails, and act in your tools. All on European-owned infrastructure, and your data is never used to train AI models. 🇪🇺',
         'no_code' => 'No code, no engineers.',
         'eu_hosting' => 'Hosted in the EU · GDPR by default · No US sub-processors · DPA included',
         'gdpr_alt' => 'GDPR Compliant',

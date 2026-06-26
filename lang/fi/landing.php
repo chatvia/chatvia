@@ -34,7 +34,7 @@ return [
         ],
         'title_line1' => 'Yksityisyys edellä',
         'title_line2' => 'Tekoälyagentit',
-        'subtitle' => 'Tekoälyagentit, jotka on rakennettu ja isännöity Euroopassa eurooppalaisomisteisella infrastruktuurilla. Tietosi eivät koskaan päädy Yhdysvaltoihin — eikä niitä koskaan käytetä tekoälymallien kouluttamiseen. 🇪🇺',
+        'subtitle' => 'Rakenna no-code-tekoälyagentteja omilla tiedoillasi — ne vastaavat asiakkaille, varaavat tapaamisia, lähettävät sähköposteja ja toimivat työkaluissasi. Kaikki eurooppalaisomisteisella infrastruktuurilla, eikä tietojasi koskaan käytetä tekoälymallien kouluttamiseen. 🇪🇺',
         'no_code' => 'Ei koodia, ei insinöörejä.',
         'eu_hosting' => 'Isännöity EU:ssa · GDPR oletuksena · Ei yhdysvaltalaisia alihankkijoita · DPA mukana',
         'gdpr_alt' => 'GDPR-yhteensopiva',

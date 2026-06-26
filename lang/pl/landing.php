@@ -34,7 +34,7 @@ return [
         ],
         'title_line1' => 'Prywatność przede wszystkim',
         'title_line2' => 'Agenci AI',
-        'subtitle' => 'Agenci AI tworzeni i hostowani w Europie, na infrastrukturze należącej do Europy. Twoje dane nigdy nie trafiają do USA — i nigdy nie posłużą do trenowania modeli AI. 🇪🇺',
+        'subtitle' => 'Twórz agentów AI bez kodu na podstawie własnych danych — odpowiadają klientom, umawiają spotkania, wysyłają e-maile i działają w Twoich narzędziach. Wszystko na infrastrukturze należącej do Europy, a Twoje dane nigdy nie są używane do trenowania modeli AI. 🇪🇺',
         'no_code' => 'Bez kodu, bez programistów.',
         'eu_hosting' => 'Hostowani w UE · GDPR domyślnie · Bez amerykańskich podprocesorów · DPA w cenie',
         'gdpr_alt' => 'Zgodność z GDPR',

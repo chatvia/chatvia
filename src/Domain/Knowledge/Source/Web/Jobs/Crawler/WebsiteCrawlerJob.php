@@ -34,12 +34,14 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
         $this->onQueue('ingestion.website');
     }
 
-    public function handle(Firecrawl $firecrawl): void
+    public function handle(Firecrawl $firecrawl, Crawler $crawler): void
     {
         $crawlId = $firecrawl->startCrawl(
             $this->data->url,
             $this->data->limit ?? Crawler::DEFAULT_LIMIT,
             $this->data->slow_crawling,
+            $crawler->firecrawlPatterns($this->data->include_paths),
+            $crawler->firecrawlPatterns($this->data->exclude_paths),
         );
 
         PollWebsiteCrawlJob::dispatch(

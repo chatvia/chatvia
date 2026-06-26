@@ -34,7 +34,7 @@ return [
         ],
         'title_line1' => 'Personvern først',
         'title_line2' => 'AI-agenter',
-        'subtitle' => 'AI-agenter bygget og driftet i Europa på europeisk-eid infrastruktur. Dataene dine forlater aldri Europa til USA — og brukes aldri til å trene AI-modeller. 🇪🇺',
+        'subtitle' => 'Bygg no-code AI-agenter med dine egne data — de svarer kunder, booker møter, sender e-poster og handler i verktøyene dine. Alt på europeisk-eid infrastruktur, og dataene dine brukes aldri til å trene AI-modeller. 🇪🇺',
         'no_code' => 'Ingen kode, ingen utviklere.',
         'eu_hosting' => 'Driftet i EU · GDPR som standard · Ingen amerikanske underleverandører · DPA inkludert',
         'gdpr_alt' => 'GDPR-kompatibel',

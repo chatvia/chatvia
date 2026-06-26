@@ -21,6 +21,39 @@ final class Crawler
     public const DEFAULT_LIMIT = 1000;
 
     /**
+     * Translate a comma-separated glob list (e.g. "blog/*, dev/*") into the regex
+     * patterns FireCrawl's `/crawl` includePaths/excludePaths expect, so the crawl
+     * is scoped at the source — FireCrawl never fetches the unwanted sections and
+     * the link budget isn't spent on them — instead of only being trimmed locally
+     * afterwards. FireCrawl matches each pattern against the URL pathname, so we
+     * anchor at the path start and tolerate an optional leading slash. filterPages()
+     * still applies the exact glob semantics as the final authority, so a looser
+     * regex flavour on FireCrawl's side can only over-fetch, never drop a wanted page.
+     *
+     * @return list<string>
+     */
+    public function firecrawlPatterns(?string $paths): array
+    {
+        if ($paths === null || trim($paths) === '') {
+            return [];
+        }
+
+        $patterns = [];
+
+        foreach (array_map('trim', explode(',', $paths)) as $pattern) {
+            $pattern = ltrim($pattern, '/');
+
+            if ($pattern === '') {
+                continue;
+            }
+
+            $patterns[] = '^/?'.$this->globToRegexBody($pattern);
+        }
+
+        return $patterns;
+    }
+
+    /**
      * Reduce raw crawl pages to the final ingest set, preserving each URL's
      * Markdown so the caller can warm the scrape cache in one pass.
      *
@@ -108,13 +141,20 @@ final class Crawler
 
     private function convertGlobToRegex(string $pattern): string
     {
-        // Escape special regex characters except *
+        // Wrap the shared glob body in PHP delimiters and a start anchor.
+        return '#^'.$this->globToRegexBody($pattern).'#';
+    }
+
+    /**
+     * Glob → regex core shared by the local PHP filter and the FireCrawl patterns:
+     * escape regex metacharacters, then turn the glob `*` back into `.*`. Returns a
+     * bare, undelimited, unanchored body so each caller can wrap it for its own
+     * engine (`#^…#` for preg_match, `^/?…` for FireCrawl).
+     */
+    private function globToRegexBody(string $pattern): string
+    {
         $escaped = preg_quote($pattern, '#');
 
-        // Convert * to regex equivalent
-        $regex = str_replace('\*', '.*', $escaped);
-
-        // Wrap in delimiters and anchors
-        return '#^'.$regex.'#';
+        return str_replace('\*', '.*', $escaped);
     }
 }

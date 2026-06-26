@@ -48,9 +48,23 @@ class Firecrawl
      * as /ar, /fa, /en hanging off the root — exactly the missing-language
      * symptom. `scrapeOptions` mirror the stage-2 `/scrape` call so the Markdown
      * captured here is equivalent to what a later scrape would produce.
+     *
+     * `$includePaths` / `$excludePaths` are regex patterns (already translated
+     * from the UI's path globs by Crawler::firecrawlPatterns) matched against each
+     * URL's pathname, so the crawl is scoped at the source rather than only being
+     * trimmed locally afterwards — FireCrawl never fetches the unwanted sections
+     * and the link budget isn't spent on them.
+     *
+     * @param  list<string>  $includePaths
+     * @param  list<string>  $excludePaths
      */
-    public function startCrawl(string $url, ?int $limit = null, bool $slowCrawling = false): string
-    {
+    public function startCrawl(
+        string $url,
+        ?int $limit = null,
+        bool $slowCrawling = false,
+        array $includePaths = [],
+        array $excludePaths = [],
+    ): string {
         $scrapeOptions = [
             'formats' => ['markdown'],
             'onlyMainContent' => true,
@@ -73,6 +87,14 @@ class Firecrawl
 
         if ($limit !== null) {
             $payload['limit'] = $limit;
+        }
+
+        if ($includePaths !== []) {
+            $payload['includePaths'] = $includePaths;
+        }
+
+        if ($excludePaths !== []) {
+            $payload['excludePaths'] = $excludePaths;
         }
 
         if ($slowCrawling) {

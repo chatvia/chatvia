@@ -32,9 +32,9 @@ return [
         'badges' => [
             'main' => 'Datenschutzorientierte KI-Agenten, vollständig in der EU gehostet',
         ],
-        'title_line1' => 'Datenschutz zuerst',
-        'title_line2' => 'KI-Agenten',
-        'subtitle' => 'Erstellen Sie No-Code-KI-Agenten mit Ihren eigenen Daten — sie beantworten Kundenanfragen, buchen Meetings, versenden E-Mails und handeln in Ihren Tools. Alles auf Infrastruktur in europäischem Besitz, und Ihre Daten werden niemals zum Training von KI-Modellen verwendet. 🇪🇺',
+        'title_line1' => 'Erstellen Sie',
+        'title_line2' => 'datenschutzkonforme KI-Agenten in Minuten',
+        'subtitle' => 'KI-Agenten, trainiert mit Ihren eigenen Daten, die Meetings buchen, E-Mails versenden und in Ihren Tools handeln — alles auf Infrastruktur in europäischem Besitz. 🇪🇺',
         'no_code' => 'Kein Code, keine Entwickler.',
         'eu_hosting' => 'In der EU gehostet · GDPR ab Werk · Keine US-Unterauftragsverarbeiter · DPA inklusive',
         'gdpr_alt' => 'GDPR-konform',

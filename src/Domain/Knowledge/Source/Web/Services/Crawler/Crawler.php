@@ -3,39 +3,53 @@
 namespace Domain\Knowledge\Source\Web\Services\Crawler;
 
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
-use Domain\Knowledge\Source\Web\Services\Firecrawl;
 
 /**
- * Stage 1 URL discovery. Backed by FireCrawl's `/map` endpoint — it returns the
- * site's URLs in a single cheap call instead of a headless-browser crawl. The
- * include/exclude path globs are applied locally because `/map` has no glob
- * filter of its own.
+ * Stage-1 URL selection. The actual discovery is done by FireCrawl's async
+ * `/crawl` (see Firecrawl::startCrawl / fetchCrawl); this class narrows the raw
+ * crawl results down to the set we ingest — applying the include/exclude path
+ * globs locally (FireCrawl's own filters are regex, so we keep the existing glob
+ * semantics here) and dropping trailing-slash duplicates.
  */
 final class Crawler
 {
     /**
-     * Safety cap mirroring the previous headless crawler's total limit, so a
-     * sprawling sitemap can't balloon into thousands of URL rows. The UI can
-     * still pass a smaller explicit limit.
+     * Safety cap on how many URLs a single crawl may surface, so a sprawling
+     * sitemap can't balloon into thousands of URL rows. The UI can still pass a
+     * smaller explicit limit via CrawlerData.
      */
-    private const DEFAULT_LIMIT = 1000;
+    public const DEFAULT_LIMIT = 1000;
 
-    public function __construct(
-        private readonly Firecrawl $firecrawl,
-    ) {}
-
-    public function crawl(CrawlerData $data): array
+    /**
+     * Reduce raw crawl pages to the final ingest set, preserving each URL's
+     * Markdown so the caller can warm the scrape cache in one pass.
+     *
+     * @param  array<string, string>  $pages  url => markdown, as returned by Firecrawl::fetchCrawl()
+     * @return array<string, string> filtered & de-duplicated url => markdown
+     */
+    public function filterPages(CrawlerData $data, array $pages): array
     {
-        $links = $this->firecrawl->map($data->url, $data->limit ?? self::DEFAULT_LIMIT);
+        $links = array_keys($pages);
 
         if ($data->include_paths || $data->exclude_paths) {
             $links = $this->filterUrls($links, $data->include_paths, $data->exclude_paths);
         }
 
-        return collect($links)
-            ->unique(static fn (string $link): string => rtrim($link, '/'))
-            ->values()
-            ->all();
+        $result = [];
+        $seen = [];
+
+        foreach ($links as $link) {
+            $normalized = rtrim($link, '/');
+
+            if (isset($seen[$normalized])) {
+                continue;
+            }
+
+            $seen[$normalized] = true;
+            $result[$link] = $pages[$link];
+        }
+
+        return $result;
     }
 
     private function filterUrls(array $links, ?string $includePaths = null, ?string $excludePaths = null): array

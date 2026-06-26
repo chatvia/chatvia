@@ -169,9 +169,20 @@ return [
         // AJAX / client-rendered content is captured). `wait_for` is an extra
         // settle delay in MS for content that loads after the initial render;
         // `timeout` (MS) caps a slow render. Both env-tunable; keep them well
-        // under the HTTP client timeout in Firecrawl::client().
+        // under the HTTP client timeout in Firecrawl::client(). These also
+        // drive `scrapeOptions` on the stage-1 crawl below.
         'wait_for' => (int) env('FIRECRAWL_WAIT_FOR', 2000),
         'timeout' => (int) env('FIRECRAWL_SCRAPE_TIMEOUT', 60000),
+
+        // Stage-1 discovery uses the async `/crawl` endpoint (a full recursive
+        // crawl, not the shallow `/map`). WebsiteCrawlerJob starts the crawl;
+        // PollWebsiteCrawlJob then re-checks status every `crawl_poll_seconds`,
+        // up to `crawl_max_polls` times, before giving up. The markdown FireCrawl
+        // fetches during the crawl is cached for `markdown_cache_hours` so
+        // stage-2 training reuses it instead of re-scraping every page.
+        'crawl_poll_seconds' => (int) env('FIRECRAWL_CRAWL_POLL_SECONDS', 10),
+        'crawl_max_polls' => (int) env('FIRECRAWL_CRAWL_MAX_POLLS', 120),
+        'markdown_cache_hours' => (int) env('FIRECRAWL_MARKDOWN_CACHE_HOURS', 48),
     ],
 
     'voyageai' => [

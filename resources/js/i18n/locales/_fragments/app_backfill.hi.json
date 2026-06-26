@@ -1,0 +1,155 @@
+{
+    "sidebar": {
+        "search_chats": "चैट खोजें",
+        "search_placeholder": "चैट खोजें...",
+        "search_no_results": "कोई चैट नहीं मिली",
+        "search_group_today": "आज",
+        "search_group_yesterday": "कल",
+        "search_group_previous_7_days": "पिछले 7 दिन",
+        "search_group_previous_30_days": "पिछले 30 दिन",
+        "search_group_older": "पुराने"
+    },
+    "chat": {
+        "conversation_gone": "यह बातचीत अब मौजूद नहीं है।"
+    },
+    "agents": {
+        "channels": {
+            "setup": {
+                "messenger": {
+                    "oauth_intro": "एक Facebook Page कनेक्ट करें ताकि यह एजेंट Messenger बातचीत का जवाब दे सके — आप Facebook से साइन इन करेंगे, फिर चुनेंगे कि कौन-सा Page उपयोग करना है।",
+                    "connect_facebook": "Facebook से कनेक्ट करें",
+                    "pick_title": "एक Facebook Page चुनें",
+                    "pick_button": "यह Page कनेक्ट करें"
+                },
+                "whatsapp": {
+                    "oauth_intro": "अपना WhatsApp Business नंबर कनेक्ट करें ताकि यह एजेंट WhatsApp संदेशों का जवाब दे सके — आप Facebook से साइन इन करेंगे और इसे एक ही चरण में सेट कर लेंगे।",
+                    "connect_facebook": "Facebook से कनेक्ट करें",
+                    "not_configured": "इस Chatvia इंस्टेंस पर WhatsApp अभी सेट नहीं किया गया है। कृपया सहायता से संपर्क करें।",
+                    "finish_number": "पॉपअप में अपने WhatsApp Business Account में एक फ़ोन नंबर जोड़ें, फिर दोबारा प्रयास करें।",
+                    "connect_failed": "हम Facebook से आपका WhatsApp खाता नहीं पढ़ सके। कृपया दोबारा कनेक्ट करने का प्रयास करें।"
+                },
+                "instagram": {
+                    "oauth_intro": "एक Instagram प्रोफ़ेशनल खाता कनेक्ट करें ताकि यह एजेंट DMs का जवाब दे सके — आप Facebook से साइन इन करेंगे, फिर चुनेंगे कि कौन-सा खाता उपयोग करना है।",
+                    "connect_facebook": "Facebook से कनेक्ट करें",
+                    "pick_title": "एक Instagram खाता चुनें",
+                    "pick_button": "यह खाता कनेक्ट करें"
+                }
+            }
+        },
+        "evals": {
+            "index": {
+                "table": {
+                    "actor": "कर्ता"
+                },
+                "case_dialog": {
+                    "expected_tool": "अपेक्षित टूल",
+                    "expected_tool_placeholder": "उदा. send_email",
+                    "expected_tool_hint": "वह टूल जिसे एजेंट को कॉल करना चाहिए। यह eval एजेंट के चुनाव की जांच करता है — यह कभी टूल को नहीं चलाता। किसी MCP टूल के लिए, पूरा नाम (mcp__slack__send_message) या केवल टूल का अपना नाम उपयोग करें।",
+                    "expected_arguments": "अपेक्षित आर्ग्युमेंट (वैकल्पिक)",
+                    "expected_arguments_hint": "उन आर्ग्युमेंट का एक JSON ऑब्जेक्ट जो कॉल में शामिल होने ही चाहिए। अतिरिक्त आर्ग्युमेंट अनदेखा कर दिए जाते हैं। केवल टूल का नाम जांचने के लिए इसे खाली छोड़ दें।"
+                },
+                "scorers": {
+                    "tool_call": {
+                        "label": "टूल कॉल",
+                        "help": "जांचता है कि एजेंट अपेक्षित टूल को कॉल करता है — इसे चलाए बिना।"
+                    }
+                }
+            },
+            "scorers": {
+                "tool_call": "टूल कॉल"
+            }
+        },
+        "nav": {
+            "forms": "फ़ॉर्म",
+            "forms_tooltip": "ऐसे फ़ॉर्म बनाएं जो आपका एजेंट चैट में दिखाता है"
+        },
+        "setup": {
+            "toasts": {
+                "branding_saved": "ब्रांडिंग अपडेट की गई"
+            },
+            "sections": {
+                "branding_badge": "\"Powered by Chatvia\" बैज दिखाएं",
+                "branding_badge_hint": "इस एजेंट की चैट और विजेट पर Chatvia बैज दिखाएं।"
+            }
+        },
+        "deploy": {
+            "enabled": "सक्षम",
+            "disabled": "अक्षम",
+            "toggle_surface": "इस सतह को सक्षम या अक्षम करें",
+            "surface_enabled": "सतह सक्षम की गई",
+            "surface_disabled": "सतह अक्षम — यह पहुंच योग्य नहीं रहेगी",
+            "surface_error": "अपडेट नहीं किया जा सका — कृपया दोबारा प्रयास करें"
+        },
+        "forms": {
+            "page_title": "फ़ॉर्म",
+            "title": "फ़ॉर्म",
+            "description": "यह फ़ॉर्म कब दिखाना है",
+            "new": "नया फ़ॉर्म",
+            "empty": "अभी कोई फ़ॉर्म नहीं है। शुरू करने के लिए एक बनाएं।",
+            "fields": "फ़ील्ड",
+            "inactive": "निष्क्रिय",
+            "edit": "संपादित करें",
+            "type_lead": "लीड कैप्चर",
+            "type_qualification": "योग्यता",
+            "type_booking": "बुकिंग",
+            "type_generic": "सामान्य",
+            "edit_form": "फ़ॉर्म संपादित करें",
+            "new_form": "नया फ़ॉर्म",
+            "form_name": "फ़ॉर्म का नाम",
+            "form_name_placeholder": "उदा. कोटेशन पाएं",
+            "form_type": "फ़ॉर्म का प्रकार",
+            "add_field": "फ़ील्ड जोड़ें",
+            "field_label": "फ़ील्ड लेबल",
+            "required": "आवश्यक",
+            "maps_to": "मैप करता है",
+            "options_placeholder": "प्रति पंक्ति एक विकल्प। अलग मानों के लिए value|label उपयोग करें।",
+            "success_message": "सफलता संदेश",
+            "success_placeholder": "विज़िटर के सबमिट करने के बाद दिखाया जाता है।",
+            "active": "सक्रिय",
+            "save": "सहेजें",
+            "cancel": "रद्द करें",
+            "preview": "पूर्वावलोकन",
+            "name_required": "कृपया फ़ॉर्म को एक नाम दें।",
+            "saved": "फ़ॉर्म सहेजा गया",
+            "save_failed": "फ़ॉर्म सहेजा नहीं जा सका",
+            "deleted": "फ़ॉर्म हटाया गया",
+            "submissions": "सबमिशन",
+            "description_placeholder": "उदा. तब दिखाएं जब विज़िटर कोटेशन, डेमो, या संपर्क किया जाना चाहता हो",
+            "description_hint": "एजेंट इसका उपयोग यह तय करने के लिए करता है कि बातचीत में यह फ़ॉर्म कब दिखाना है।",
+            "rewrite": "AI से दोबारा लिखें",
+            "rewriting": "दोबारा लिखा जा रहा है…",
+            "rewrite_done": "विवरण दोबारा लिखा गया",
+            "rewrite_failed": "विवरण दोबारा नहीं लिखा जा सका",
+            "maps_to_aria": "“मैप करता है” का क्या मतलब है?",
+            "maps_to_help_title": "एक संपर्क फ़ील्ड से मैप करता है",
+            "maps_to_help_1": "इस फ़ील्ड को एक मानक संपर्क विशेषता के रूप में टैग करता है — नाम, ईमेल, फ़ोन, इत्यादि। विज़िटर जो मान दर्ज करता है उसे फिर उस संपर्क जानकारी के रूप में पहचाना जाता है, न कि केवल एक गुमनाम उत्तर के रूप में।",
+            "maps_to_help_2": "मैप किए गए फ़ील्ड लीड के विवरण भरते हैं — लीड सूची, डुप्लिकेट पहचान, और CSV एक्सपोर्ट को सक्षम करते हैं। उत्तर को बिना टैग किए कैप्चर करने के लिए इसे “—” पर ही छोड़ दें।"
+        },
+        "submissions": {
+            "page_title": "सबमिशन",
+            "back_to_forms": "फ़ॉर्म पर वापस जाएं",
+            "count": "{n} सबमिशन",
+            "export": "CSV एक्सपोर्ट करें",
+            "search": "सबमिशन खोजें",
+            "empty": "अभी कोई सबमिशन नहीं है।",
+            "submitted_at": "सबमिट किया गया",
+            "deleted": "सबमिशन हटाया गया"
+        }
+    },
+    "teams": {
+        "permissions_meta": {
+            "groups": {
+                "channels": {
+                    "label": "चैनल",
+                    "description": "एजेंट को मैसेजिंग ऐप्स से कनेक्ट करें।"
+                }
+            },
+            "codes": {
+                "agent_channels": {
+                    "label": "चैनल प्रबंधित करें",
+                    "description": "मैसेजिंग चैनल कनेक्ट और डिस्कनेक्ट करें (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
+                }
+            }
+        }
+    }
+}

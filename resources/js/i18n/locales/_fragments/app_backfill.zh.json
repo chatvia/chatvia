@@ -1,0 +1,155 @@
+{
+    "sidebar": {
+        "search_chats": "搜索会话",
+        "search_placeholder": "搜索会话…",
+        "search_no_results": "未找到会话",
+        "search_group_today": "今天",
+        "search_group_yesterday": "昨天",
+        "search_group_previous_7_days": "过去 7 天",
+        "search_group_previous_30_days": "过去 30 天",
+        "search_group_older": "更早"
+    },
+    "chat": {
+        "conversation_gone": "该会话已不存在。"
+    },
+    "agents": {
+        "channels": {
+            "setup": {
+                "messenger": {
+                    "oauth_intro": "连接一个 Facebook 主页，使该智能体能够回复 Messenger 会话——你将使用 Facebook 登录，然后选择要使用的主页。",
+                    "connect_facebook": "使用 Facebook 连接",
+                    "pick_title": "选择一个 Facebook 主页",
+                    "pick_button": "连接此主页"
+                },
+                "whatsapp": {
+                    "oauth_intro": "连接你的 WhatsApp Business 号码，使该智能体能够回复 WhatsApp 消息——你将使用 Facebook 登录并一步完成设置。",
+                    "connect_facebook": "使用 Facebook 连接",
+                    "not_configured": "此 Chatvia 实例尚未配置 WhatsApp。请联系支持团队。",
+                    "finish_number": "请在弹出窗口中为你的 WhatsApp Business Account 添加一个电话号码，然后重试。",
+                    "connect_failed": "我们无法从 Facebook 读取你的 WhatsApp 账户。请重新尝试连接。"
+                },
+                "instagram": {
+                    "oauth_intro": "连接一个 Instagram 专业账户，使该智能体能够回复 DMs——你将使用 Facebook 登录，然后选择要使用的账户。",
+                    "connect_facebook": "使用 Facebook 连接",
+                    "pick_title": "选择一个 Instagram 账户",
+                    "pick_button": "连接此账户"
+                }
+            }
+        },
+        "evals": {
+            "index": {
+                "table": {
+                    "actor": "执行者"
+                },
+                "case_dialog": {
+                    "expected_tool": "预期工具",
+                    "expected_tool_placeholder": "例如 send_email",
+                    "expected_tool_hint": "智能体应调用的工具。评测仅检查智能体的选择——它不会实际运行该工具。对于 MCP 工具，请使用完整名称（mcp__slack__send_message）或仅使用该工具自身的名称。",
+                    "expected_arguments": "预期参数（可选）",
+                    "expected_arguments_hint": "调用必须包含的参数的 JSON 对象。多余的参数会被忽略。留空则仅检查工具名称。"
+                },
+                "scorers": {
+                    "tool_call": {
+                        "label": "工具调用",
+                        "help": "检查智能体是否调用了预期工具——但不实际运行它。"
+                    }
+                }
+            },
+            "scorers": {
+                "tool_call": "工具调用"
+            }
+        },
+        "nav": {
+            "forms": "表单",
+            "forms_tooltip": "构建智能体在聊天中展示的表单"
+        },
+        "setup": {
+            "toasts": {
+                "branding_saved": "品牌已更新"
+            },
+            "sections": {
+                "branding_badge": "显示 \"Powered by Chatvia\" 徽标",
+                "branding_badge_hint": "在该智能体的聊天和挂件上显示 Chatvia 徽标。"
+            }
+        },
+        "deploy": {
+            "enabled": "已启用",
+            "disabled": "已停用",
+            "toggle_surface": "启用或停用此渠道入口",
+            "surface_enabled": "渠道入口已启用",
+            "surface_disabled": "渠道入口已停用——将无法访问",
+            "surface_error": "更新失败——请重试"
+        },
+        "forms": {
+            "page_title": "表单",
+            "title": "表单",
+            "description": "何时显示此表单",
+            "new": "新建表单",
+            "empty": "暂无表单。创建一个以开始使用。",
+            "fields": "字段",
+            "inactive": "未启用",
+            "edit": "编辑",
+            "type_lead": "线索收集",
+            "type_qualification": "资格筛选",
+            "type_booking": "预约",
+            "type_generic": "通用",
+            "edit_form": "编辑表单",
+            "new_form": "新建表单",
+            "form_name": "表单名称",
+            "form_name_placeholder": "例如：获取报价",
+            "form_type": "表单类型",
+            "add_field": "添加字段",
+            "field_label": "字段标签",
+            "required": "必填",
+            "maps_to": "映射至",
+            "options_placeholder": "每行一个选项。使用 value|label 设置不同的值。",
+            "success_message": "成功提示",
+            "success_placeholder": "访客提交后显示。",
+            "active": "已启用",
+            "save": "保存",
+            "cancel": "取消",
+            "preview": "预览",
+            "name_required": "请为表单填写一个名称。",
+            "saved": "表单已保存",
+            "save_failed": "无法保存表单",
+            "deleted": "表单已删除",
+            "submissions": "提交记录",
+            "description_placeholder": "例如：当访客想要报价、演示或希望被联系时显示",
+            "description_hint": "智能体根据此说明判断何时在会话中呈现该表单。",
+            "rewrite": "使用 AI 改写",
+            "rewriting": "改写中…",
+            "rewrite_done": "说明已改写",
+            "rewrite_failed": "无法改写说明",
+            "maps_to_aria": "“映射至”是什么意思？",
+            "maps_to_help_title": "映射到联系人字段",
+            "maps_to_help_1": "将此字段标记为标准的联系人属性——姓名、邮箱、电话等。访客输入的值便会被识别为相应的联系信息，而不仅仅是一条匿名答案。",
+            "maps_to_help_2": "已映射的字段会填充线索的详细信息——为线索列表、重复检测和 CSV 导出提供支持。保留为“—”即可记录答案而不进行标记。"
+        },
+        "submissions": {
+            "page_title": "提交记录",
+            "back_to_forms": "返回表单",
+            "count": "{n} 条提交",
+            "export": "导出 CSV",
+            "search": "搜索提交记录",
+            "empty": "暂无提交记录。",
+            "submitted_at": "提交时间",
+            "deleted": "提交记录已删除"
+        }
+    },
+    "teams": {
+        "permissions_meta": {
+            "groups": {
+                "channels": {
+                    "label": "渠道",
+                    "description": "将智能体连接到消息应用。"
+                }
+            },
+            "codes": {
+                "agent_channels": {
+                    "label": "管理渠道",
+                    "description": "连接和断开消息渠道（Telegram、Slack、Messenger、WhatsApp、Microsoft Teams、Instagram）"
+                }
+            }
+        }
+    }
+}

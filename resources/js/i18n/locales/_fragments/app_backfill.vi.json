@@ -1,0 +1,155 @@
+{
+    "sidebar": {
+        "search_chats": "Tìm cuộc trò chuyện",
+        "search_placeholder": "Tìm cuộc trò chuyện...",
+        "search_no_results": "Không tìm thấy cuộc trò chuyện nào",
+        "search_group_today": "Hôm nay",
+        "search_group_yesterday": "Hôm qua",
+        "search_group_previous_7_days": "7 ngày trước",
+        "search_group_previous_30_days": "30 ngày trước",
+        "search_group_older": "Cũ hơn"
+    },
+    "chat": {
+        "conversation_gone": "Cuộc trò chuyện này không còn tồn tại."
+    },
+    "agents": {
+        "channels": {
+            "setup": {
+                "messenger": {
+                    "oauth_intro": "Kết nối một Trang Facebook để trợ lý AI này có thể trả lời các cuộc trò chuyện trên Messenger — bạn sẽ đăng nhập bằng Facebook, sau đó chọn Trang muốn dùng.",
+                    "connect_facebook": "Kết nối với Facebook",
+                    "pick_title": "Chọn một Trang Facebook",
+                    "pick_button": "Kết nối Trang này"
+                },
+                "whatsapp": {
+                    "oauth_intro": "Kết nối số WhatsApp Business của bạn để trợ lý AI này có thể trả lời các tin nhắn WhatsApp — bạn sẽ đăng nhập bằng Facebook và thiết lập trong một bước.",
+                    "connect_facebook": "Kết nối với Facebook",
+                    "not_configured": "WhatsApp chưa được thiết lập trên phiên bản Chatvia này. Vui lòng liên hệ bộ phận hỗ trợ.",
+                    "finish_number": "Thêm một số điện thoại vào WhatsApp Business Account của bạn trong cửa sổ bật lên, sau đó thử lại.",
+                    "connect_failed": "Chúng tôi không thể đọc tài khoản WhatsApp của bạn từ Facebook. Vui lòng thử kết nối lại."
+                },
+                "instagram": {
+                    "oauth_intro": "Kết nối một tài khoản Instagram chuyên nghiệp để trợ lý AI này có thể trả lời các DMs — bạn sẽ đăng nhập bằng Facebook, sau đó chọn tài khoản muốn dùng.",
+                    "connect_facebook": "Kết nối với Facebook",
+                    "pick_title": "Chọn một tài khoản Instagram",
+                    "pick_button": "Kết nối tài khoản này"
+                }
+            }
+        },
+        "evals": {
+            "index": {
+                "table": {
+                    "actor": "Tác nhân"
+                },
+                "case_dialog": {
+                    "expected_tool": "Công cụ mong đợi",
+                    "expected_tool_placeholder": "ví dụ: send_email",
+                    "expected_tool_hint": "Công cụ mà trợ lý AI nên gọi. Bài đánh giá kiểm tra lựa chọn của trợ lý AI — nó không bao giờ chạy công cụ. Đối với công cụ MCP, dùng tên đầy đủ (mcp__slack__send_message) hoặc chỉ tên riêng của công cụ.",
+                    "expected_arguments": "Tham số mong đợi (tùy chọn)",
+                    "expected_arguments_hint": "Một đối tượng JSON gồm các tham số mà lệnh gọi phải bao gồm. Các tham số thừa sẽ bị bỏ qua. Để trống để chỉ kiểm tra tên công cụ."
+                },
+                "scorers": {
+                    "tool_call": {
+                        "label": "Lệnh gọi công cụ",
+                        "help": "Kiểm tra xem trợ lý AI có gọi đúng công cụ mong đợi không — mà không chạy nó."
+                    }
+                }
+            },
+            "scorers": {
+                "tool_call": "Lệnh gọi công cụ"
+            }
+        },
+        "nav": {
+            "forms": "Biểu mẫu",
+            "forms_tooltip": "Tạo các biểu mẫu mà trợ lý AI của bạn hiển thị trong cuộc trò chuyện"
+        },
+        "setup": {
+            "toasts": {
+                "branding_saved": "Đã cập nhật thương hiệu"
+            },
+            "sections": {
+                "branding_badge": "Hiển thị huy hiệu \"Powered by Chatvia\"",
+                "branding_badge_hint": "Hiển thị huy hiệu Chatvia trên trang trò chuyện và widget của trợ lý AI này."
+            }
+        },
+        "deploy": {
+            "enabled": "Đã bật",
+            "disabled": "Đã tắt",
+            "toggle_surface": "Bật hoặc tắt bề mặt này",
+            "surface_enabled": "Đã bật bề mặt",
+            "surface_disabled": "Đã tắt bề mặt — sẽ không thể truy cập được",
+            "surface_error": "Không thể cập nhật — vui lòng thử lại"
+        },
+        "forms": {
+            "page_title": "Biểu mẫu",
+            "title": "Biểu mẫu",
+            "description": "Khi nào hiển thị biểu mẫu này",
+            "new": "Biểu mẫu mới",
+            "empty": "Chưa có biểu mẫu nào. Tạo một biểu mẫu để bắt đầu.",
+            "fields": "trường",
+            "inactive": "Không hoạt động",
+            "edit": "Chỉnh sửa",
+            "type_lead": "Thu thập khách hàng tiềm năng",
+            "type_qualification": "Đánh giá tiêu chí",
+            "type_booking": "Đặt lịch",
+            "type_generic": "Chung",
+            "edit_form": "Chỉnh sửa biểu mẫu",
+            "new_form": "Biểu mẫu mới",
+            "form_name": "Tên biểu mẫu",
+            "form_name_placeholder": "ví dụ: Nhận báo giá",
+            "form_type": "Loại biểu mẫu",
+            "add_field": "Thêm trường",
+            "field_label": "Nhãn trường",
+            "required": "Bắt buộc",
+            "maps_to": "Ánh xạ tới",
+            "options_placeholder": "Mỗi tùy chọn trên một dòng. Dùng giá_trị|nhãn để tách giá trị riêng.",
+            "success_message": "Thông báo thành công",
+            "success_placeholder": "Hiển thị sau khi khách truy cập gửi.",
+            "active": "Hoạt động",
+            "save": "Lưu",
+            "cancel": "Hủy",
+            "preview": "Xem trước",
+            "name_required": "Vui lòng đặt tên cho biểu mẫu.",
+            "saved": "Đã lưu biểu mẫu",
+            "save_failed": "Không thể lưu biểu mẫu",
+            "deleted": "Đã xóa biểu mẫu",
+            "submissions": "Lượt gửi",
+            "description_placeholder": "ví dụ: Hiển thị khi khách truy cập muốn nhận báo giá, bản demo, hoặc được liên hệ",
+            "description_hint": "Trợ lý AI dùng thông tin này để quyết định khi nào hiển thị biểu mẫu này trong cuộc trò chuyện.",
+            "rewrite": "Viết lại bằng AI",
+            "rewriting": "Đang viết lại…",
+            "rewrite_done": "Đã viết lại mô tả",
+            "rewrite_failed": "Không thể viết lại mô tả",
+            "maps_to_aria": "“Ánh xạ tới” nghĩa là gì?",
+            "maps_to_help_title": "Ánh xạ tới một trường liên hệ",
+            "maps_to_help_1": "Gắn thẻ trường này là một thuộc tính liên hệ tiêu chuẩn — Tên, Email, Số điện thoại, v.v. Giá trị mà khách truy cập nhập sẽ được nhận diện là thông tin liên hệ đó, chứ không chỉ là một câu trả lời ẩn danh.",
+            "maps_to_help_2": "Các trường được ánh xạ sẽ điền vào chi tiết của khách hàng tiềm năng — hỗ trợ danh sách khách hàng tiềm năng, phát hiện trùng lặp và xuất CSV. Để là “—” để thu thập câu trả lời mà không gắn thẻ."
+        },
+        "submissions": {
+            "page_title": "Lượt gửi",
+            "back_to_forms": "Quay lại biểu mẫu",
+            "count": "{n} lượt gửi",
+            "export": "Xuất CSV",
+            "search": "Tìm lượt gửi",
+            "empty": "Chưa có lượt gửi nào.",
+            "submitted_at": "Đã gửi",
+            "deleted": "Đã xóa lượt gửi"
+        }
+    },
+    "teams": {
+        "permissions_meta": {
+            "groups": {
+                "channels": {
+                    "label": "Kênh",
+                    "description": "Kết nối trợ lý AI với các ứng dụng nhắn tin."
+                }
+            },
+            "codes": {
+                "agent_channels": {
+                    "label": "Quản lý kênh",
+                    "description": "Kết nối và ngắt kết nối các kênh nhắn tin (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
+                }
+            }
+        }
+    }
+}

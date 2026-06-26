@@ -1,0 +1,155 @@
+{
+    "sidebar": {
+        "search_chats": "Rechercher des conversations",
+        "search_placeholder": "Rechercher des conversations...",
+        "search_no_results": "Aucune conversation trouvée",
+        "search_group_today": "Aujourd'hui",
+        "search_group_yesterday": "Hier",
+        "search_group_previous_7_days": "7 derniers jours",
+        "search_group_previous_30_days": "30 derniers jours",
+        "search_group_older": "Plus ancien"
+    },
+    "chat": {
+        "conversation_gone": "Cette conversation n'existe plus."
+    },
+    "agents": {
+        "channels": {
+            "setup": {
+                "messenger": {
+                    "oauth_intro": "Connectez une Page Facebook pour que cet agent puisse répondre aux conversations Messenger — vous vous connecterez avec Facebook, puis choisirez la Page à utiliser.",
+                    "connect_facebook": "Se connecter avec Facebook",
+                    "pick_title": "Choisissez une Page Facebook",
+                    "pick_button": "Connecter cette Page"
+                },
+                "whatsapp": {
+                    "oauth_intro": "Connectez votre numéro WhatsApp Business pour que cet agent puisse répondre aux messages WhatsApp — vous vous connecterez avec Facebook et le configurerez en une seule étape.",
+                    "connect_facebook": "Se connecter avec Facebook",
+                    "not_configured": "WhatsApp n'est pas encore configuré sur cette instance Chatvia. Veuillez contacter le support.",
+                    "finish_number": "Ajoutez un numéro de téléphone à votre WhatsApp Business Account dans la fenêtre, puis réessayez.",
+                    "connect_failed": "Impossible de lire votre compte WhatsApp depuis Facebook. Veuillez réessayer de vous connecter."
+                },
+                "instagram": {
+                    "oauth_intro": "Connectez un compte professionnel Instagram pour que cet agent puisse répondre aux DMs — vous vous connecterez avec Facebook, puis choisirez le compte à utiliser.",
+                    "connect_facebook": "Se connecter avec Facebook",
+                    "pick_title": "Choisissez un compte Instagram",
+                    "pick_button": "Connecter ce compte"
+                }
+            }
+        },
+        "evals": {
+            "index": {
+                "table": {
+                    "actor": "Acteur"
+                },
+                "case_dialog": {
+                    "expected_tool": "Outil attendu",
+                    "expected_tool_placeholder": "ex. send_email",
+                    "expected_tool_hint": "L'outil que l'agent doit appeler. L'évaluation vérifie le choix de l'agent — elle n'exécute jamais l'outil. Pour un outil MCP, utilisez le nom complet (mcp__slack__send_message) ou simplement le nom propre de l'outil.",
+                    "expected_arguments": "Arguments attendus (facultatif)",
+                    "expected_arguments_hint": "Un objet JSON d'arguments que l'appel doit inclure. Les arguments supplémentaires sont ignorés. Laissez vide pour ne vérifier que le nom de l'outil."
+                },
+                "scorers": {
+                    "tool_call": {
+                        "label": "Appel d'outil",
+                        "help": "Vérifie que l'agent appelle l'outil attendu — sans l'exécuter."
+                    }
+                }
+            },
+            "scorers": {
+                "tool_call": "Appel d'outil"
+            }
+        },
+        "nav": {
+            "forms": "Formulaires",
+            "forms_tooltip": "Créez des formulaires que votre agent affiche dans la conversation"
+        },
+        "setup": {
+            "toasts": {
+                "branding_saved": "Image de marque mise à jour"
+            },
+            "sections": {
+                "branding_badge": "Afficher le badge « Powered by Chatvia »",
+                "branding_badge_hint": "Affichez le badge Chatvia sur le chat et le widget de cet agent."
+            }
+        },
+        "deploy": {
+            "enabled": "Activé",
+            "disabled": "Désactivé",
+            "toggle_surface": "Activer ou désactiver cette surface",
+            "surface_enabled": "Surface activée",
+            "surface_disabled": "Surface désactivée — elle ne sera pas accessible",
+            "surface_error": "Impossible de mettre à jour — veuillez réessayer"
+        },
+        "forms": {
+            "page_title": "Formulaires",
+            "title": "Formulaires",
+            "description": "Quand afficher ce formulaire",
+            "new": "Nouveau formulaire",
+            "empty": "Aucun formulaire pour l'instant. Créez-en un pour commencer.",
+            "fields": "champs",
+            "inactive": "Inactif",
+            "edit": "Modifier",
+            "type_lead": "Capture de prospects",
+            "type_qualification": "Qualification",
+            "type_booking": "Réservation",
+            "type_generic": "Générique",
+            "edit_form": "Modifier le formulaire",
+            "new_form": "Nouveau formulaire",
+            "form_name": "Nom du formulaire",
+            "form_name_placeholder": "ex. Obtenir un devis",
+            "form_type": "Type de formulaire",
+            "add_field": "Ajouter un champ",
+            "field_label": "Libellé du champ",
+            "required": "Obligatoire",
+            "maps_to": "Associé à",
+            "options_placeholder": "Une option par ligne. Utilisez valeur|libellé pour des valeurs distinctes.",
+            "success_message": "Message de confirmation",
+            "success_placeholder": "Affiché après l'envoi par le visiteur.",
+            "active": "Actif",
+            "save": "Enregistrer",
+            "cancel": "Annuler",
+            "preview": "Aperçu",
+            "name_required": "Veuillez donner un nom au formulaire.",
+            "saved": "Formulaire enregistré",
+            "save_failed": "Impossible d'enregistrer le formulaire",
+            "deleted": "Formulaire supprimé",
+            "submissions": "Soumissions",
+            "description_placeholder": "ex. Afficher lorsque le visiteur souhaite un devis, une démo ou être contacté",
+            "description_hint": "L'agent s'en sert pour décider quand afficher ce formulaire dans une conversation.",
+            "rewrite": "Réécrire avec l'IA",
+            "rewriting": "Réécriture…",
+            "rewrite_done": "Description réécrite",
+            "rewrite_failed": "Impossible de réécrire la description",
+            "maps_to_aria": "Que signifie « Associé à » ?",
+            "maps_to_help_title": "Associé à un champ de contact",
+            "maps_to_help_1": "Marque ce champ comme un attribut de contact standard — Nom, E-mail, Téléphone, etc. La valeur saisie par le visiteur est alors reconnue comme cette information de contact, et non comme une simple réponse anonyme.",
+            "maps_to_help_2": "Les champs associés renseignent les détails du prospect — alimentant la liste des prospects, la détection des doublons et l'export CSV. Laissez « — » pour capturer la réponse sans l'étiqueter."
+        },
+        "submissions": {
+            "page_title": "Soumissions",
+            "back_to_forms": "Retour aux formulaires",
+            "count": "{n} soumissions",
+            "export": "Exporter en CSV",
+            "search": "Rechercher des soumissions",
+            "empty": "Aucune soumission pour l'instant.",
+            "submitted_at": "Envoyé le",
+            "deleted": "Soumission supprimée"
+        }
+    },
+    "teams": {
+        "permissions_meta": {
+            "groups": {
+                "channels": {
+                    "label": "Canaux",
+                    "description": "Connectez l'agent aux applications de messagerie."
+                }
+            },
+            "codes": {
+                "agent_channels": {
+                    "label": "Gérer les canaux",
+                    "description": "Connectez et déconnectez les canaux de messagerie (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
+                }
+            }
+        }
+    }
+}

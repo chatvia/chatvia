@@ -1,0 +1,155 @@
+{
+    "sidebar": {
+        "search_chats": "Sohbetlerde ara",
+        "search_placeholder": "Sohbetlerde ara...",
+        "search_no_results": "Sohbet bulunamadı",
+        "search_group_today": "Bugün",
+        "search_group_yesterday": "Dün",
+        "search_group_previous_7_days": "Önceki 7 gün",
+        "search_group_previous_30_days": "Önceki 30 gün",
+        "search_group_older": "Daha eski"
+    },
+    "chat": {
+        "conversation_gone": "Bu konuşma artık mevcut değil."
+    },
+    "agents": {
+        "channels": {
+            "setup": {
+                "messenger": {
+                    "oauth_intro": "Bu asistanın Messenger konuşmalarını yanıtlayabilmesi için bir Facebook Sayfası bağlayın — Facebook ile giriş yapacak, ardından kullanılacak Sayfayı seçeceksiniz.",
+                    "connect_facebook": "Facebook ile bağlan",
+                    "pick_title": "Bir Facebook Sayfası seçin",
+                    "pick_button": "Bu Sayfayı bağla"
+                },
+                "whatsapp": {
+                    "oauth_intro": "Bu asistanın WhatsApp mesajlarını yanıtlayabilmesi için WhatsApp Business numaranızı bağlayın — Facebook ile giriş yapacak ve tek adımda kuracaksınız.",
+                    "connect_facebook": "Facebook ile bağlan",
+                    "not_configured": "WhatsApp bu Chatvia örneğinde henüz kurulmadı. Lütfen destekle iletişime geçin.",
+                    "finish_number": "Açılır pencerede WhatsApp Business Account hesabınıza bir telefon numarası ekleyin, ardından tekrar deneyin.",
+                    "connect_failed": "WhatsApp hesabınızı Facebook'tan okuyamadık. Lütfen tekrar bağlanmayı deneyin."
+                },
+                "instagram": {
+                    "oauth_intro": "Bu asistanın DM'leri yanıtlayabilmesi için bir Instagram profesyonel hesabı bağlayın — Facebook ile giriş yapacak, ardından kullanılacak hesabı seçeceksiniz.",
+                    "connect_facebook": "Facebook ile bağlan",
+                    "pick_title": "Bir Instagram hesabı seçin",
+                    "pick_button": "Bu hesabı bağla"
+                }
+            }
+        },
+        "evals": {
+            "index": {
+                "table": {
+                    "actor": "Aktör"
+                },
+                "case_dialog": {
+                    "expected_tool": "Beklenen araç",
+                    "expected_tool_placeholder": "ör. send_email",
+                    "expected_tool_hint": "Asistanın çağırması gereken araç. Değerlendirme, asistanın seçimini denetler — aracı asla çalıştırmaz. Bir MCP aracı için tam adı (mcp__slack__send_message) ya da yalnızca aracın kendi adını kullanın.",
+                    "expected_arguments": "Beklenen argümanlar (isteğe bağlı)",
+                    "expected_arguments_hint": "Çağrının içermesi gereken argümanlardan oluşan bir JSON nesnesi. Fazladan argümanlar yok sayılır. Yalnızca araç adını denetlemek için boş bırakın."
+                },
+                "scorers": {
+                    "tool_call": {
+                        "label": "Araç çağrısı",
+                        "help": "Asistanın beklenen aracı çağırdığını denetler — onu çalıştırmadan."
+                    }
+                }
+            },
+            "scorers": {
+                "tool_call": "Araç çağrısı"
+            }
+        },
+        "nav": {
+            "forms": "Formlar",
+            "forms_tooltip": "Asistanınızın sohbette gösterdiği formları oluşturun"
+        },
+        "setup": {
+            "toasts": {
+                "branding_saved": "Marka güncellendi"
+            },
+            "sections": {
+                "branding_badge": "\"Powered by Chatvia\" rozetini göster",
+                "branding_badge_hint": "Chatvia rozetini bu asistanın sohbetinde ve widget'ında göster."
+            }
+        },
+        "deploy": {
+            "enabled": "Etkin",
+            "disabled": "Devre dışı",
+            "toggle_surface": "Bu yüzeyi etkinleştir veya devre dışı bırak",
+            "surface_enabled": "Yüzey etkin",
+            "surface_disabled": "Yüzey devre dışı — erişilebilir olmayacak",
+            "surface_error": "Güncellenemedi — lütfen tekrar deneyin"
+        },
+        "forms": {
+            "page_title": "Formlar",
+            "title": "Formlar",
+            "description": "Bu form ne zaman gösterilsin",
+            "new": "Yeni form",
+            "empty": "Henüz form yok. Başlamak için bir tane oluşturun.",
+            "fields": "alan",
+            "inactive": "Pasif",
+            "edit": "Düzenle",
+            "type_lead": "Potansiyel müşteri toplama",
+            "type_qualification": "Niteleme",
+            "type_booking": "Rezervasyon",
+            "type_generic": "Genel",
+            "edit_form": "Formu düzenle",
+            "new_form": "Yeni form",
+            "form_name": "Form adı",
+            "form_name_placeholder": "ör. Teklif al",
+            "form_type": "Form türü",
+            "add_field": "Alan ekle",
+            "field_label": "Alan etiketi",
+            "required": "Zorunlu",
+            "maps_to": "Eşlenir",
+            "options_placeholder": "Her satıra bir seçenek. Ayrı değerler için değer|etiket kullanın.",
+            "success_message": "Başarı mesajı",
+            "success_placeholder": "Ziyaretçi gönderdikten sonra gösterilir.",
+            "active": "Aktif",
+            "save": "Kaydet",
+            "cancel": "İptal",
+            "preview": "Önizleme",
+            "name_required": "Lütfen forma bir ad verin.",
+            "saved": "Form kaydedildi",
+            "save_failed": "Form kaydedilemedi",
+            "deleted": "Form silindi",
+            "submissions": "Gönderimler",
+            "description_placeholder": "ör. Ziyaretçi teklif, demo veya iletişime geçilmek istediğinde göster",
+            "description_hint": "Asistan, bu formu bir konuşmada ne zaman göstereceğine karar vermek için bunu kullanır.",
+            "rewrite": "AI ile yeniden yaz",
+            "rewriting": "Yeniden yazılıyor…",
+            "rewrite_done": "Açıklama yeniden yazıldı",
+            "rewrite_failed": "Açıklama yeniden yazılamadı",
+            "maps_to_aria": "“Eşlenir” ne anlama geliyor?",
+            "maps_to_help_title": "Bir iletişim alanına eşlenir",
+            "maps_to_help_1": "Bu alanı standart bir iletişim özniteliği olarak etiketler — Ad, E-posta, Telefon vb. Ziyaretçinin girdiği değer, böylece anonim bir yanıt olarak değil, o iletişim bilgisi parçası olarak tanınır.",
+            "maps_to_help_2": "Eşlenen alanlar, potansiyel müşterinin ayrıntılarını doldurur — potansiyel müşteri listesini, yinelenen kayıt tespitini ve CSV dışa aktarımını besler. Yanıtı etiketlemeden yakalamak için “—” olarak bırakın."
+        },
+        "submissions": {
+            "page_title": "Gönderimler",
+            "back_to_forms": "Formlara dön",
+            "count": "{n} gönderim",
+            "export": "CSV olarak dışa aktar",
+            "search": "Gönderimlerde ara",
+            "empty": "Henüz gönderim yok.",
+            "submitted_at": "Gönderildi",
+            "deleted": "Gönderim silindi"
+        }
+    },
+    "teams": {
+        "permissions_meta": {
+            "groups": {
+                "channels": {
+                    "label": "Kanallar",
+                    "description": "Asistanı mesajlaşma uygulamalarına bağlayın."
+                }
+            },
+            "codes": {
+                "agent_channels": {
+                    "label": "Kanalları yönet",
+                    "description": "Mesajlaşma kanallarını bağlayın ve bağlantısını kesin (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
+                }
+            }
+        }
+    }
+}

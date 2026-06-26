@@ -80,7 +80,15 @@
         "loading_agents": "Laster agenter...",
         "no_agents": "Ingen agenter funnet.",
         "switching_agent": "Bytter...",
-        "switch_to_agent": "Bytt til {name}"
+        "switch_to_agent": "Bytt til {name}",
+        "search_chats": "Søk i samtaler",
+        "search_placeholder": "Søk i samtaler...",
+        "search_no_results": "Ingen samtaler funnet",
+        "search_group_today": "I dag",
+        "search_group_yesterday": "I går",
+        "search_group_previous_7_days": "Siste 7 dager",
+        "search_group_previous_30_days": "Siste 30 dager",
+        "search_group_older": "Eldre"
     },
     "chat": {
         "message_limit_reached": "Du har nådd meldingsgrensen din",
@@ -93,7 +101,8 @@
             "submit_failed": "Noe gikk galt. Prøv igjen.",
             "expired": "Dette skjemaet er utløpt.",
             "unavailable": "Dette skjemaet kan ikke sendes her."
-        }
+        },
+        "conversation_gone": "Denne samtalen finnes ikke lenger."
     },
     "messages": {
         "send": "Send",
@@ -279,7 +288,11 @@
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
                     "product": "Engage with customers on Messenger",
-                    "permissions_path": "Use cases → Customize → Permissions and features"
+                    "permissions_path": "Use cases → Customize → Permissions and features",
+                    "oauth_intro": "Koble til en Facebook-side slik at denne agenten kan svare på Messenger-samtaler — du logger inn med Facebook og velger deretter hvilken side du vil bruke.",
+                    "connect_facebook": "Koble til med Facebook",
+                    "pick_title": "Velg en Facebook-side",
+                    "pick_button": "Koble til denne siden"
                 },
                 "whatsapp": {
                     "steps": {
@@ -290,7 +303,12 @@
                     },
                     "configuration_path": "WhatsApp → Configuration",
                     "use_case": "Kommuniser med kunder via WhatsApp",
-                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                    "basic_setup_path": "Use cases → Customize → Basic setup",
+                    "oauth_intro": "Koble til WhatsApp Business-nummeret ditt slik at denne agenten kan svare på WhatsApp-meldinger — du logger inn med Facebook og setter det opp i ett trinn.",
+                    "connect_facebook": "Koble til med Facebook",
+                    "not_configured": "WhatsApp er ikke satt opp på denne Chatvia-instansen ennå. Kontakt support.",
+                    "finish_number": "Legg til et telefonnummer i WhatsApp Business Account i popup-vinduet, og prøv igjen.",
+                    "connect_failed": "Vi kunne ikke lese WhatsApp-kontoen din fra Facebook. Prøv å koble til på nytt."
                 },
                 "msteams": {
                     "app_id_label": "App-{id}",
@@ -321,7 +339,11 @@
                     "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
                     "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
                     "api_setup_path": "Instagram → API setup with Instagram login",
-                    "product": "Instagram"
+                    "product": "Instagram",
+                    "oauth_intro": "Koble til en profesjonell Instagram-konto slik at denne agenten kan svare på DMs — du logger inn med Facebook og velger deretter hvilken konto du vil bruke.",
+                    "connect_facebook": "Koble til med Facebook",
+                    "pick_title": "Velg en Instagram-konto",
+                    "pick_button": "Koble til denne kontoen"
                 }
             },
             "security": "Sikkerhet",
@@ -757,7 +779,8 @@
                     "pass_rate": "Bestått-rate",
                     "passed_failed": "Bestått / Ikke bestått",
                     "avg_score": "Gjennomsnittspoeng",
-                    "when": "Tidspunkt"
+                    "when": "Tidspunkt",
+                    "actor": "Aktør"
                 },
                 "status_active": "Aktiv",
                 "status_inactive": "Inaktiv",
@@ -789,7 +812,12 @@
                     "expected_answer": "Forventet svar",
                     "reference_answer": "Referansesvar (valgfritt)",
                     "active_label": "Aktiv (inkludert i kjøringer)",
-                    "save": "Lagre"
+                    "save": "Lagre",
+                    "expected_tool": "Forventet verktøy",
+                    "expected_tool_placeholder": "f.eks. send_email",
+                    "expected_tool_hint": "Verktøyet agenten skal kalle. Evalueringen sjekker agentens valg — den kjører aldri verktøyet. For et MCP-verktøy bruker du det fulle navnet (mcp__slack__send_message) eller bare verktøyets eget navn.",
+                    "expected_arguments": "Forventede argumenter (valgfritt)",
+                    "expected_arguments_hint": "Et JSON-objekt med argumenter som kallet må inneholde. Ekstra argumenter ignoreres. La feltet stå tomt for å sjekke kun verktøynavnet."
                 },
                 "knowledge_dialog": {
                     "title": "Legg til saker fra kunnskapsbase",
@@ -828,6 +856,10 @@
                     "llm_judge": {
                         "label": "AI-dommer",
                         "help": "En åpen modell vurderer svaret mot kriteriene dine."
+                    },
+                    "tool_call": {
+                        "label": "Verktøykall",
+                        "help": "Sjekker at agenten kaller det forventede verktøyet — uten å kjøre det."
                     }
                 },
                 "toasts": {
@@ -847,7 +879,8 @@
                 "regex": "Regex",
                 "exact": "Eksakt samsvar",
                 "json_schema": "JSON-skjema",
-                "llm_judge": "LLM-dommer"
+                "llm_judge": "LLM-dommer",
+                "tool_call": "Verktøykall"
             }
         },
         "identity_verification": {
@@ -1597,7 +1630,9 @@
             "deploy": "Distribuer",
             "deploy_tooltip": "Bygg inn agenten din — chat-widget, vertsbasert chat eller kommandolinje",
             "capabilities": "Kapabiliteter",
-            "capabilities_tooltip": "Legg til avanserte muligheter i chatten — som interaktive diagrammer"
+            "capabilities_tooltip": "Legg til avanserte muligheter i chatten — som interaktive diagrammer",
+            "forms": "Skjemaer",
+            "forms_tooltip": "Bygg skjemaer agenten din viser i chatten"
         },
         "create_modal": {
             "title": "Opprett agent",
@@ -1727,7 +1762,8 @@
                 "code_copied": "Kode kopiert til utklippstavlen!",
                 "code_copy_error": "Kunne ikke kopiere koden. Prøv igjen.",
                 "privacy_saved": "Lenke til personvernerklæring lagret",
-                "privacy_error": "Kunne ikke lagre lenke til personvernerklæring"
+                "privacy_error": "Kunne ikke lagre lenke til personvernerklæring",
+                "branding_saved": "Merkevare oppdatert"
             },
             "settings": {
                 "composer_title": "Skrivefeltinnstillinger",
@@ -1966,7 +2002,9 @@
                 "models_location_cn": "🇨🇳 Kina",
                 "appearance_privacy_url": "URL til personvernerklæring",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
-                "appearance_privacy_url_hint": "Vises for besøkende som “Ved å chatte godtar du personvernerklæringen vår.” La feltet stå tomt for å skjule det."
+                "appearance_privacy_url_hint": "Vises for besøkende som “Ved å chatte godtar du personvernerklæringen vår.” La feltet stå tomt for å skjule det.",
+                "branding_badge": "Vis «Powered by Chatvia»-merket",
+                "branding_badge_hint": "Vis Chatvia-merket på denne agentens chat og widget."
             }
         },
         "team": {
@@ -2175,7 +2213,13 @@
             "save": "Lagre",
             "sites_saved": "Tillatte nettsteder oppdatert",
             "sites_error": "Kunne ikke lagre — prøv igjen",
-            "api_docs": "JavaScript API"
+            "api_docs": "JavaScript API",
+            "enabled": "Aktivert",
+            "disabled": "Deaktivert",
+            "toggle_surface": "Aktiver eller deaktiver denne flaten",
+            "surface_enabled": "Flate aktivert",
+            "surface_disabled": "Flate deaktivert — den vil ikke være tilgjengelig",
+            "surface_error": "Kunne ikke oppdatere — prøv igjen"
         },
         "chatters": {
             "title": "Chattere",
@@ -2251,6 +2295,61 @@
             "empty": "Ingen kapabiliteter er tilgjengelige ennå.",
             "enable_failed": "Kunne ikke slå på denne kapabiliteten",
             "disable_failed": "Kunne ikke slå av denne kapabiliteten"
+        },
+        "forms": {
+            "page_title": "Skjemaer",
+            "title": "Skjemaer",
+            "description": "Når dette skjemaet skal vises",
+            "new": "Nytt skjema",
+            "empty": "Ingen skjemaer ennå. Opprett ett for å komme i gang.",
+            "fields": "felter",
+            "inactive": "Inaktiv",
+            "edit": "Rediger",
+            "type_lead": "Lead-fangst",
+            "type_qualification": "Kvalifisering",
+            "type_booking": "Booking",
+            "type_generic": "Generisk",
+            "edit_form": "Rediger skjema",
+            "new_form": "Nytt skjema",
+            "form_name": "Skjemanavn",
+            "form_name_placeholder": "f.eks. Få et tilbud",
+            "form_type": "Skjematype",
+            "add_field": "Legg til felt",
+            "field_label": "Feltetikett",
+            "required": "Påkrevd",
+            "maps_to": "Tilordnes til",
+            "options_placeholder": "Ett alternativ per linje. Bruk verdi|etikett for separate verdier.",
+            "success_message": "Suksessmelding",
+            "success_placeholder": "Vises etter at den besøkende har sendt inn.",
+            "active": "Aktiv",
+            "save": "Lagre",
+            "cancel": "Avbryt",
+            "preview": "Forhåndsvis",
+            "name_required": "Gi skjemaet et navn.",
+            "saved": "Skjema lagret",
+            "save_failed": "Kunne ikke lagre skjemaet",
+            "deleted": "Skjema slettet",
+            "submissions": "Innsendinger",
+            "description_placeholder": "f.eks. Vis når den besøkende ønsker et tilbud, en demo eller å bli kontaktet",
+            "description_hint": "Agenten bruker dette til å avgjøre når den skal vise dette skjemaet i en samtale.",
+            "rewrite": "Skriv om med AI",
+            "rewriting": "Skriver om…",
+            "rewrite_done": "Beskrivelse omskrevet",
+            "rewrite_failed": "Kunne ikke skrive om beskrivelsen",
+            "maps_to_aria": "Hva betyr «Tilordnes til»?",
+            "maps_to_help_title": "Tilordnes til et kontaktfelt",
+            "maps_to_help_1": "Merker dette feltet som et standard kontaktattributt — Navn, E-post, Telefon og så videre. Verdien den besøkende skriver inn, gjenkjennes da som den aktuelle kontaktinformasjonen, ikke bare som et anonymt svar.",
+            "maps_to_help_2": "Tilordnede felter fyller ut lead-ens detaljer — og driver lead-listen, gjenkjenning av duplikater og CSV-eksport. La det stå som «—» for å fange opp svaret uten å merke det."
+        },
+        "submissions": {
+            "page_title": "Innsendinger",
+            "back_to_forms": "Tilbake til skjemaer",
+            "count": "{n} innsendinger",
+            "export": "Eksporter CSV",
+            "search": "Søk i innsendinger",
+            "empty": "Ingen innsendinger ennå.",
+            "submitted_at": "Sendt inn",
+            "deleted": "Innsending slettet"
         }
     },
     "auth": {
@@ -3181,6 +3280,10 @@
                 "governance": {
                     "label": "Styring",
                     "description": "Revider og kontroller alle handlinger agentene dine utfører via verktøy og koblinger."
+                },
+                "channels": {
+                    "label": "Kanaler",
+                    "description": "Koble agenten til meldingsapper."
                 }
             },
             "codes": {
@@ -3335,6 +3438,10 @@
                 "account_governance": {
                     "label": "Styring",
                     "description": "Vis revisjonsloggen for verktøykall og tilgangskontroller"
+                },
+                "agent_channels": {
+                    "label": "Administrer kanaler",
+                    "description": "Koble til og fra meldingskanaler (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
                 }
             }
         }

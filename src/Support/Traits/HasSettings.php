@@ -93,7 +93,7 @@ trait HasSettings
                 $value = match ($item->data_type) {
                     'string' => (string) $item->value,
                     'integer' => (int) $item->value,
-                    'file' => Storage::url($item->value),
+                    'file' => Storage::disk('assets')->url($item->value),
                     'boolean' => (bool) $item->value,
                     'array' => json_decode($item->value, true, 512, JSON_THROW_ON_ERROR),
                     default => $item->value,
@@ -113,7 +113,9 @@ trait HasSettings
         if ($value instanceof UploadedFile) {
             $data = Image::read($value->getContent())->scale(height: 128)->toPng()->toString();
             $file = new File(create_temp_file($value->getFilename(), $data));
-            $value = Storage::putFile('users/'.$this->getUserExternalId().'/settings/'.$group.'/'.$this->external_id, $file, ['visibility' => 'public']);
+            // Brand assets (widget logo/avatar) are public and CDN-served, so
+            // they go to the `assets` disk and read back via its pull-zone URL.
+            $value = Storage::disk('assets')->putFile('users/'.$this->getUserExternalId().'/settings/'.$group.'/'.$this->external_id, $file);
         }
 
         if ($dataType === 'array') {

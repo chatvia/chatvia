@@ -1,0 +1,155 @@
+{
+    "sidebar": {
+        "search_chats": "Hae keskusteluja",
+        "search_placeholder": "Hae keskusteluja...",
+        "search_no_results": "Keskusteluja ei löytynyt",
+        "search_group_today": "Tänään",
+        "search_group_yesterday": "Eilen",
+        "search_group_previous_7_days": "Edelliset 7 päivää",
+        "search_group_previous_30_days": "Edelliset 30 päivää",
+        "search_group_older": "Vanhemmat"
+    },
+    "chat": {
+        "conversation_gone": "Tätä keskustelua ei ole enää olemassa."
+    },
+    "agents": {
+        "channels": {
+            "setup": {
+                "messenger": {
+                    "oauth_intro": "Yhdistä Facebook-sivu, jotta tämä agentti voi vastata Messenger-keskusteluihin — kirjaudut sisään Facebookilla ja valitset sitten käytettävän sivun.",
+                    "connect_facebook": "Yhdistä Facebookilla",
+                    "pick_title": "Valitse Facebook-sivu",
+                    "pick_button": "Yhdistä tämä sivu"
+                },
+                "whatsapp": {
+                    "oauth_intro": "Yhdistä WhatsApp Business -numerosi, jotta tämä agentti voi vastata WhatsApp-viesteihin — kirjaudut sisään Facebookilla ja teet käyttöönoton yhdellä kertaa.",
+                    "connect_facebook": "Yhdistä Facebookilla",
+                    "not_configured": "WhatsAppia ei ole vielä otettu käyttöön tässä Chatvia-ympäristössä. Ota yhteyttä tukeen.",
+                    "finish_number": "Lisää puhelinnumero WhatsApp Business Account -tilillesi ponnahdusikkunassa ja yritä sitten uudelleen.",
+                    "connect_failed": "Emme onnistuneet lukemaan WhatsApp-tiliäsi Facebookista. Yritä yhdistämistä uudelleen."
+                },
+                "instagram": {
+                    "oauth_intro": "Yhdistä Instagram-ammattitili, jotta tämä agentti voi vastata DM-viesteihin — kirjaudut sisään Facebookilla ja valitset sitten käytettävän tilin.",
+                    "connect_facebook": "Yhdistä Facebookilla",
+                    "pick_title": "Valitse Instagram-tili",
+                    "pick_button": "Yhdistä tämä tili"
+                }
+            }
+        },
+        "evals": {
+            "index": {
+                "table": {
+                    "actor": "Toimija"
+                },
+                "case_dialog": {
+                    "expected_tool": "Odotettu työkalu",
+                    "expected_tool_placeholder": "esim. send_email",
+                    "expected_tool_hint": "Työkalu, jota agentin tulisi kutsua. Arviointi tarkistaa agentin valinnan — se ei koskaan suorita työkalua. MCP-työkalulle käytä koko nimeä (mcp__slack__send_message) tai pelkkää työkalun omaa nimeä.",
+                    "expected_arguments": "Odotetut argumentit (valinnainen)",
+                    "expected_arguments_hint": "JSON-objekti argumenteista, jotka kutsun on sisällettävä. Ylimääräiset argumentit jätetään huomiotta. Jätä tyhjäksi, jos haluat tarkistaa vain työkalun nimen."
+                },
+                "scorers": {
+                    "tool_call": {
+                        "label": "Työkalukutsu",
+                        "help": "Tarkistaa, että agentti kutsuu odotettua työkalua — suorittamatta sitä."
+                    }
+                }
+            },
+            "scorers": {
+                "tool_call": "Työkalukutsu"
+            }
+        },
+        "nav": {
+            "forms": "Lomakkeet",
+            "forms_tooltip": "Luo lomakkeita, jotka agenttisi näyttää keskustelussa"
+        },
+        "setup": {
+            "toasts": {
+                "branding_saved": "Brändäys päivitetty"
+            },
+            "sections": {
+                "branding_badge": "Näytä \"Powered by Chatvia\" -merkki",
+                "branding_badge_hint": "Näytä Chatvia-merkki tämän agentin keskustelussa ja widgetissä."
+            }
+        },
+        "deploy": {
+            "enabled": "Käytössä",
+            "disabled": "Ei käytössä",
+            "toggle_surface": "Ota tämä pinta käyttöön tai poista käytöstä",
+            "surface_enabled": "Pinta otettu käyttöön",
+            "surface_disabled": "Pinta poistettu käytöstä — se ei ole tavoitettavissa",
+            "surface_error": "Päivitys epäonnistui — yritä uudelleen"
+        },
+        "forms": {
+            "page_title": "Lomakkeet",
+            "title": "Lomakkeet",
+            "description": "Milloin tämä lomake näytetään",
+            "new": "Uusi lomake",
+            "empty": "Ei vielä lomakkeita. Luo lomake aloittaaksesi.",
+            "fields": "kenttää",
+            "inactive": "Ei aktiivinen",
+            "edit": "Muokkaa",
+            "type_lead": "Liidin keruu",
+            "type_qualification": "Kelpuutus",
+            "type_booking": "Varaus",
+            "type_generic": "Yleinen",
+            "edit_form": "Muokkaa lomaketta",
+            "new_form": "Uusi lomake",
+            "form_name": "Lomakkeen nimi",
+            "form_name_placeholder": "esim. Pyydä tarjous",
+            "form_type": "Lomaketyyppi",
+            "add_field": "Lisää kenttä",
+            "field_label": "Kentän nimi",
+            "required": "Pakollinen",
+            "maps_to": "Yhdistyy kenttään",
+            "options_placeholder": "Yksi vaihtoehto riviä kohden. Käytä muotoa arvo|nimi erottaaksesi arvot.",
+            "success_message": "Onnistumisviesti",
+            "success_placeholder": "Näytetään, kun kävijä lähettää lomakkeen.",
+            "active": "Aktiivinen",
+            "save": "Tallenna",
+            "cancel": "Peruuta",
+            "preview": "Esikatselu",
+            "name_required": "Anna lomakkeelle nimi.",
+            "saved": "Lomake tallennettu",
+            "save_failed": "Lomakkeen tallentaminen epäonnistui",
+            "deleted": "Lomake poistettu",
+            "submissions": "Lähetykset",
+            "description_placeholder": "esim. Näytä, kun kävijä haluaa tarjouksen, esittelyn tai yhteydenoton",
+            "description_hint": "Agentti käyttää tätä päättääkseen, milloin tämä lomake näytetään keskustelussa.",
+            "rewrite": "Kirjoita uudelleen tekoälyllä",
+            "rewriting": "Kirjoitetaan uudelleen…",
+            "rewrite_done": "Kuvaus kirjoitettu uudelleen",
+            "rewrite_failed": "Kuvauksen uudelleenkirjoitus epäonnistui",
+            "maps_to_aria": "Mitä “Yhdistyy kenttään” tarkoittaa?",
+            "maps_to_help_title": "Yhdistyy yhteystietokenttään",
+            "maps_to_help_1": "Merkitsee tämän kentän vakiomuotoiseksi yhteystietoattribuutiksi — nimi, sähköposti, puhelin ja niin edelleen. Kävijän syöttämä arvo tunnistetaan tällöin kyseiseksi yhteystiedoksi, ei vain nimettömäksi vastaukseksi.",
+            "maps_to_help_2": "Yhdistetyt kentät täyttävät liidin tiedot — ne tukevat liidilistaa, kaksoiskappaleiden tunnistusta ja CSV-vientiä. Jätä asetukseksi “—”, jos haluat kerätä vastauksen merkitsemättä sitä."
+        },
+        "submissions": {
+            "page_title": "Lähetykset",
+            "back_to_forms": "Takaisin lomakkeisiin",
+            "count": "{n} lähetystä",
+            "export": "Vie CSV",
+            "search": "Hae lähetyksiä",
+            "empty": "Ei vielä lähetyksiä.",
+            "submitted_at": "Lähetetty",
+            "deleted": "Lähetys poistettu"
+        }
+    },
+    "teams": {
+        "permissions_meta": {
+            "groups": {
+                "channels": {
+                    "label": "Kanavat",
+                    "description": "Yhdistä agentti viestisovelluksiin."
+                }
+            },
+            "codes": {
+                "agent_channels": {
+                    "label": "Hallinnoi kanavia",
+                    "description": "Yhdistä ja katkaise viestikanavia (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
+                }
+            }
+        }
+    }
+}

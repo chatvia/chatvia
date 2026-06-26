@@ -2,6 +2,7 @@
 
 namespace Domain\Form\Actions;
 
+use Domain\Form\Data\RewriteFormDescriptionData;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Operations\Query\TitleGenerator;
 use Illuminate\Support\Str;
@@ -16,12 +17,12 @@ class RewriteFormDescriptionAction
 {
     public function __construct(private readonly LlmProviderInterface $provider) {}
 
-    public function execute(?string $description, ?string $name = null, ?string $formType = null): string
+    public function execute(RewriteFormDescriptionData $data): string
     {
         $context = collect([
-            'Form name: '.(filled($name) ? trim($name) : '(unnamed)'),
-            'Form type: '.(filled($formType) ? trim($formType) : 'generic'),
-            'Current instruction: '.(filled($description) ? trim($description) : '(empty)'),
+            'Form name: '.(filled($data->name) ? trim($data->name) : '(unnamed)'),
+            'Form type: '.(filled($data->form_type) ? trim($data->form_type) : 'generic'),
+            'Current instruction: '.(filled($data->description) ? trim($data->description) : '(empty)'),
         ])->implode("\n");
 
         $content = $this->provider->completion([

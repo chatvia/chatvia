@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agent\Form;
 
+use App\Http\Requests\Agent\Form\RewriteFormDescriptionRequest;
 use App\Http\Requests\Agent\Form\SaveFormDefinitionRequest;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
@@ -80,23 +81,13 @@ class AgentFormController
      * suggestion as JSON for the editor to drop into the textarea — it isn't saved
      * until the owner saves the form.
      */
-    public function rewriteDescription(Request $request, Agent $agent, RewriteFormDescriptionAction $action): JsonResponse
+    public function rewriteDescription(RewriteFormDescriptionRequest $request, Agent $agent, RewriteFormDescriptionAction $action): JsonResponse
     {
         abort_if($request->user()->cannot('update', $agent), 404);
 
-        $validated = $request->validate([
-            'description' => ['nullable', 'string', 'max:2000'],
-            'name' => ['nullable', 'string', 'max:255'],
-            'form_type' => ['nullable', 'string', 'max:50'],
-        ]);
-
         $description = app(TokenUsageContext::class)->track(
             $agent->user_id,
-            fn (): string => $action->execute(
-                $validated['description'] ?? null,
-                $validated['name'] ?? null,
-                $validated['form_type'] ?? null,
-            ),
+            fn (): string => $action->execute($request->toData()),
             'form',
         );
 

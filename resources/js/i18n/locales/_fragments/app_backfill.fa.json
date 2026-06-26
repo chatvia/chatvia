@@ -1,0 +1,155 @@
+{
+    "sidebar": {
+        "search_chats": "جستجوی گفتگوها",
+        "search_placeholder": "جستجوی گفتگوها...",
+        "search_no_results": "گفتگویی یافت نشد",
+        "search_group_today": "امروز",
+        "search_group_yesterday": "دیروز",
+        "search_group_previous_7_days": "۷ روز گذشته",
+        "search_group_previous_30_days": "۳۰ روز گذشته",
+        "search_group_older": "قدیمی‌تر"
+    },
+    "chat": {
+        "conversation_gone": "این گفتگو دیگر وجود ندارد."
+    },
+    "agents": {
+        "channels": {
+            "setup": {
+                "messenger": {
+                    "oauth_intro": "یک صفحه Facebook متصل کنید تا این عامل بتواند به گفتگوهای Messenger پاسخ دهد — با Facebook وارد می‌شوید و سپس صفحه‌ای را که می‌خواهید انتخاب می‌کنید.",
+                    "connect_facebook": "اتصال با Facebook",
+                    "pick_title": "یک صفحه Facebook انتخاب کنید",
+                    "pick_button": "اتصال این صفحه"
+                },
+                "whatsapp": {
+                    "oauth_intro": "شماره WhatsApp Business خود را متصل کنید تا این عامل بتواند به پیام‌های WhatsApp پاسخ دهد — با Facebook وارد می‌شوید و همه چیز را در یک مرحله تنظیم می‌کنید.",
+                    "connect_facebook": "اتصال با Facebook",
+                    "not_configured": "WhatsApp هنوز روی این نمونه Chatvia تنظیم نشده است. لطفاً با پشتیبانی تماس بگیرید.",
+                    "finish_number": "در پنجره بازشو یک شماره تلفن به WhatsApp Business Account خود اضافه کنید و سپس دوباره تلاش کنید.",
+                    "connect_failed": "نتوانستیم حساب WhatsApp شما را از Facebook بخوانیم. لطفاً دوباره برای اتصال تلاش کنید."
+                },
+                "instagram": {
+                    "oauth_intro": "یک حساب حرفه‌ای Instagram متصل کنید تا این عامل بتواند به DMها پاسخ دهد — با Facebook وارد می‌شوید و سپس حسابی را که می‌خواهید انتخاب می‌کنید.",
+                    "connect_facebook": "اتصال با Facebook",
+                    "pick_title": "یک حساب Instagram انتخاب کنید",
+                    "pick_button": "اتصال این حساب"
+                }
+            }
+        },
+        "evals": {
+            "index": {
+                "table": {
+                    "actor": "بازیگر"
+                },
+                "case_dialog": {
+                    "expected_tool": "ابزار مورد انتظار",
+                    "expected_tool_placeholder": "مثلاً send_email",
+                    "expected_tool_hint": "ابزاری که عامل باید فراخوانی کند. این ارزیابی انتخاب عامل را بررسی می‌کند — هرگز خود ابزار را اجرا نمی‌کند. برای یک ابزار MCP، از نام کامل (mcp__slack__send_message) یا فقط نام خود ابزار استفاده کنید.",
+                    "expected_arguments": "آرگومان‌های مورد انتظار (اختیاری)",
+                    "expected_arguments_hint": "یک شیء JSON از آرگومان‌هایی که فراخوانی باید شامل آن‌ها باشد. آرگومان‌های اضافی نادیده گرفته می‌شوند. برای بررسی فقط نام ابزار، این بخش را خالی بگذارید."
+                },
+                "scorers": {
+                    "tool_call": {
+                        "label": "فراخوانی ابزار",
+                        "help": "بررسی می‌کند که عامل ابزار مورد انتظار را فراخوانی می‌کند — بدون اجرای آن."
+                    }
+                }
+            },
+            "scorers": {
+                "tool_call": "فراخوانی ابزار"
+            }
+        },
+        "nav": {
+            "forms": "فرم‌ها",
+            "forms_tooltip": "فرم‌هایی بسازید که عامل شما در گفتگو نمایش می‌دهد"
+        },
+        "setup": {
+            "toasts": {
+                "branding_saved": "برندینگ به‌روزرسانی شد"
+            },
+            "sections": {
+                "branding_badge": "نمایش نشان «Powered by Chatvia»",
+                "branding_badge_hint": "نشان Chatvia را در گفتگو و ویجت این عامل نمایش دهید."
+            }
+        },
+        "deploy": {
+            "enabled": "فعال",
+            "disabled": "غیرفعال",
+            "toggle_surface": "فعال یا غیرفعال کردن این سطح",
+            "surface_enabled": "سطح فعال شد",
+            "surface_disabled": "سطح غیرفعال شد — قابل دسترسی نخواهد بود",
+            "surface_error": "به‌روزرسانی ممکن نشد — لطفاً دوباره تلاش کنید"
+        },
+        "forms": {
+            "page_title": "فرم‌ها",
+            "title": "فرم‌ها",
+            "description": "زمان نمایش این فرم",
+            "new": "فرم جدید",
+            "empty": "هنوز هیچ فرمی وجود ندارد. برای شروع یکی ایجاد کنید.",
+            "fields": "فیلد",
+            "inactive": "غیرفعال",
+            "edit": "ویرایش",
+            "type_lead": "ثبت سرنخ",
+            "type_qualification": "ارزیابی صلاحیت",
+            "type_booking": "رزرو",
+            "type_generic": "عمومی",
+            "edit_form": "ویرایش فرم",
+            "new_form": "فرم جدید",
+            "form_name": "نام فرم",
+            "form_name_placeholder": "مثلاً دریافت قیمت",
+            "form_type": "نوع فرم",
+            "add_field": "افزودن فیلد",
+            "field_label": "برچسب فیلد",
+            "required": "الزامی",
+            "maps_to": "نگاشت به",
+            "options_placeholder": "هر گزینه در یک خط. برای مقادیر جداگانه از value|label استفاده کنید.",
+            "success_message": "پیام موفقیت",
+            "success_placeholder": "پس از ارسال توسط بازدیدکننده نمایش داده می‌شود.",
+            "active": "فعال",
+            "save": "ذخیره",
+            "cancel": "لغو",
+            "preview": "پیش‌نمایش",
+            "name_required": "لطفاً برای فرم یک نام انتخاب کنید.",
+            "saved": "فرم ذخیره شد",
+            "save_failed": "ذخیره فرم ممکن نشد",
+            "deleted": "فرم حذف شد",
+            "submissions": "ارسال‌ها",
+            "description_placeholder": "مثلاً زمانی نمایش بده که بازدیدکننده قیمت، دمو یا تماس می‌خواهد",
+            "description_hint": "عامل از این توضیح برای تصمیم‌گیری درباره زمان نمایش این فرم در یک گفتگو استفاده می‌کند.",
+            "rewrite": "بازنویسی با هوش مصنوعی",
+            "rewriting": "در حال بازنویسی…",
+            "rewrite_done": "توضیح بازنویسی شد",
+            "rewrite_failed": "بازنویسی توضیح ممکن نشد",
+            "maps_to_aria": "«نگاشت به» یعنی چه؟",
+            "maps_to_help_title": "نگاشت به یک فیلد مخاطب",
+            "maps_to_help_1": "این فیلد را به عنوان یک ویژگی استاندارد مخاطب برچسب‌گذاری می‌کند — نام، ایمیل، تلفن و مانند آن. مقداری که بازدیدکننده وارد می‌کند آنگاه به‌عنوان همان بخش از اطلاعات مخاطب شناخته می‌شود، نه فقط یک پاسخ بی‌نام.",
+            "maps_to_help_2": "فیلدهای نگاشت‌شده اطلاعات سرنخ را پر می‌کنند — و فهرست سرنخ‌ها، تشخیص موارد تکراری و خروجی CSV را تأمین می‌کنند. برای ثبت پاسخ بدون برچسب‌گذاری، آن را روی «—» بگذارید."
+        },
+        "submissions": {
+            "page_title": "ارسال‌ها",
+            "back_to_forms": "بازگشت به فرم‌ها",
+            "count": "{n} ارسال",
+            "export": "خروجی CSV",
+            "search": "جستجوی ارسال‌ها",
+            "empty": "هنوز هیچ ارسالی وجود ندارد.",
+            "submitted_at": "ارسال‌شده",
+            "deleted": "ارسال حذف شد"
+        }
+    },
+    "teams": {
+        "permissions_meta": {
+            "groups": {
+                "channels": {
+                    "label": "کانال‌ها",
+                    "description": "عامل را به اپ‌های پیام‌رسان متصل کنید."
+                }
+            },
+            "codes": {
+                "agent_channels": {
+                    "label": "مدیریت کانال‌ها",
+                    "description": "اتصال و قطع اتصال کانال‌های پیام‌رسان (Telegram، Slack، Messenger، WhatsApp، Microsoft Teams، Instagram)"
+                }
+            }
+        }
+    }
+}

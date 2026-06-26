@@ -1,0 +1,155 @@
+{
+    "sidebar": {
+        "search_chats": "Pesquisar conversas",
+        "search_placeholder": "Pesquisar conversas...",
+        "search_no_results": "Nenhuma conversa encontrada",
+        "search_group_today": "Hoje",
+        "search_group_yesterday": "Ontem",
+        "search_group_previous_7_days": "Últimos 7 dias",
+        "search_group_previous_30_days": "Últimos 30 dias",
+        "search_group_older": "Mais antigas"
+    },
+    "chat": {
+        "conversation_gone": "Esta conversa já não existe."
+    },
+    "agents": {
+        "channels": {
+            "setup": {
+                "messenger": {
+                    "oauth_intro": "Ligue uma Página do Facebook para que este agente possa responder a conversas no Messenger — vai iniciar sessão com o Facebook e depois escolher que Página utilizar.",
+                    "connect_facebook": "Ligar com o Facebook",
+                    "pick_title": "Escolha uma Página do Facebook",
+                    "pick_button": "Ligar esta Página"
+                },
+                "whatsapp": {
+                    "oauth_intro": "Ligue o seu número do WhatsApp Business para que este agente possa responder a mensagens do WhatsApp — vai iniciar sessão com o Facebook e configurá-lo num único passo.",
+                    "connect_facebook": "Ligar com o Facebook",
+                    "not_configured": "O WhatsApp ainda não está configurado nesta instância do Chatvia. Contacte o suporte.",
+                    "finish_number": "Adicione um número de telefone à sua WhatsApp Business Account na janela emergente e, em seguida, tente novamente.",
+                    "connect_failed": "Não foi possível ler a sua conta do WhatsApp a partir do Facebook. Tente ligar novamente."
+                },
+                "instagram": {
+                    "oauth_intro": "Ligue uma conta profissional do Instagram para que este agente possa responder a DMs — vai iniciar sessão com o Facebook e depois escolher que conta utilizar.",
+                    "connect_facebook": "Ligar com o Facebook",
+                    "pick_title": "Escolha uma conta do Instagram",
+                    "pick_button": "Ligar esta conta"
+                }
+            }
+        },
+        "evals": {
+            "index": {
+                "table": {
+                    "actor": "Interveniente"
+                },
+                "case_dialog": {
+                    "expected_tool": "Ferramenta esperada",
+                    "expected_tool_placeholder": "ex.: send_email",
+                    "expected_tool_hint": "A ferramenta que o agente deve invocar. A avaliação verifica a escolha do agente — nunca executa a ferramenta. Para uma ferramenta MCP, utilize o nome completo (mcp__slack__send_message) ou apenas o nome da própria ferramenta.",
+                    "expected_arguments": "Argumentos esperados (opcional)",
+                    "expected_arguments_hint": "Um objeto JSON com os argumentos que a chamada deve incluir. Argumentos adicionais são ignorados. Deixe em branco para verificar apenas o nome da ferramenta."
+                },
+                "scorers": {
+                    "tool_call": {
+                        "label": "Chamada de ferramenta",
+                        "help": "Verifica se o agente invoca a ferramenta esperada — sem a executar."
+                    }
+                }
+            },
+            "scorers": {
+                "tool_call": "Chamada de ferramenta"
+            }
+        },
+        "nav": {
+            "forms": "Formulários",
+            "forms_tooltip": "Crie formulários que o seu agente mostra na conversa"
+        },
+        "setup": {
+            "toasts": {
+                "branding_saved": "Marca atualizada"
+            },
+            "sections": {
+                "branding_badge": "Mostrar o distintivo \"Powered by Chatvia\"",
+                "branding_badge_hint": "Apresentar o distintivo do Chatvia na conversa e no widget deste agente."
+            }
+        },
+        "deploy": {
+            "enabled": "Ativado",
+            "disabled": "Desativado",
+            "toggle_surface": "Ativar ou desativar esta superfície",
+            "surface_enabled": "Superfície ativada",
+            "surface_disabled": "Superfície desativada — deixará de estar acessível",
+            "surface_error": "Não foi possível atualizar — tente novamente"
+        },
+        "forms": {
+            "page_title": "Formulários",
+            "title": "Formulários",
+            "description": "Quando mostrar este formulário",
+            "new": "Novo formulário",
+            "empty": "Ainda não há formulários. Crie um para começar.",
+            "fields": "campos",
+            "inactive": "Inativo",
+            "edit": "Editar",
+            "type_lead": "Captação de leads",
+            "type_qualification": "Qualificação",
+            "type_booking": "Marcação",
+            "type_generic": "Genérico",
+            "edit_form": "Editar formulário",
+            "new_form": "Novo formulário",
+            "form_name": "Nome do formulário",
+            "form_name_placeholder": "ex.: Obter um orçamento",
+            "form_type": "Tipo de formulário",
+            "add_field": "Adicionar campo",
+            "field_label": "Etiqueta do campo",
+            "required": "Obrigatório",
+            "maps_to": "Associa a",
+            "options_placeholder": "Uma opção por linha. Utilize valor|etiqueta para valores separados.",
+            "success_message": "Mensagem de sucesso",
+            "success_placeholder": "Mostrada depois de o visitante submeter.",
+            "active": "Ativo",
+            "save": "Guardar",
+            "cancel": "Cancelar",
+            "preview": "Pré-visualizar",
+            "name_required": "Atribua um nome ao formulário.",
+            "saved": "Formulário guardado",
+            "save_failed": "Não foi possível guardar o formulário",
+            "deleted": "Formulário eliminado",
+            "submissions": "Submissões",
+            "description_placeholder": "ex.: Mostrar quando o visitante pretende um orçamento, uma demonstração ou ser contactado",
+            "description_hint": "O agente utiliza isto para decidir quando apresentar este formulário numa conversa.",
+            "rewrite": "Reescrever com IA",
+            "rewriting": "A reescrever…",
+            "rewrite_done": "Descrição reescrita",
+            "rewrite_failed": "Não foi possível reescrever a descrição",
+            "maps_to_aria": "O que significa “Associa a”?",
+            "maps_to_help_title": "Associa a um campo de contacto",
+            "maps_to_help_1": "Marca este campo como um atributo de contacto padrão — Nome, E-mail, Telefone, e por aí adiante. O valor que o visitante introduz passa então a ser reconhecido como essa informação de contacto, e não apenas como uma resposta anónima.",
+            "maps_to_help_2": "Os campos associados preenchem os dados do lead — alimentando a lista de contactos, a deteção de duplicados e a exportação para CSV. Deixe em “—” para captar a resposta sem a marcar."
+        },
+        "submissions": {
+            "page_title": "Submissões",
+            "back_to_forms": "Voltar aos formulários",
+            "count": "{n} submissões",
+            "export": "Exportar CSV",
+            "search": "Pesquisar submissões",
+            "empty": "Ainda não há submissões.",
+            "submitted_at": "Submetido",
+            "deleted": "Submissão eliminada"
+        }
+    },
+    "teams": {
+        "permissions_meta": {
+            "groups": {
+                "channels": {
+                    "label": "Canais",
+                    "description": "Ligue o agente a aplicações de mensagens."
+                }
+            },
+            "codes": {
+                "agent_channels": {
+                    "label": "Gerir canais",
+                    "description": "Ligar e desligar canais de mensagens (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
+                }
+            }
+        }
+    }
+}

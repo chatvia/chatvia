@@ -53,7 +53,7 @@ class DeleteChatterAction
         // never fires the S3-wiping observer) and captured leads (chat_conversation_id
         // is SET NULL, so a lead would otherwise outlive the chatter and keep its PII).
         // Capture the external id before the row is gone — the chatter's avatar
-        // lives on the public bucket at users/{external_id}/profile-photos/….
+        // lives on the assets disk at users/{external_id}/profile-photos/….
         $chatterExternalId = $chatter->external_id;
 
         $this->wipeAttachmentFiles($conversationIds);
@@ -61,9 +61,26 @@ class DeleteChatterAction
 
         $chatter->delete();
 
-        Storage::disk('public')->deleteDirectory('users/'.$chatterExternalId);
+        $this->wipeAvatar($chatterExternalId);
 
         $this->flushChatMemory($sessions);
+    }
+
+    /**
+     * Wipe the chatter's avatar tree on the assets disk (CDN). Best-effort: the
+     * chatter row is already gone, so a briefly-unreachable CDN must not fail the
+     * deletion — mirrors {@see DeleteUserAccountAction::wipeWorkspaceStorage()}.
+     */
+    private function wipeAvatar(string $externalId): void
+    {
+        try {
+            Storage::disk('assets')->deleteDirectory('users/'.$externalId);
+        } catch (Throwable $e) {
+            Log::warning('Chatter deletion: failed to wipe avatar tree on the assets disk.', [
+                'external_id' => $externalId,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

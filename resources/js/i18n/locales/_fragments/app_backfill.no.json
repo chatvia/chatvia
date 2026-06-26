@@ -1,0 +1,155 @@
+{
+    "sidebar": {
+        "search_chats": "Søk i samtaler",
+        "search_placeholder": "Søk i samtaler...",
+        "search_no_results": "Ingen samtaler funnet",
+        "search_group_today": "I dag",
+        "search_group_yesterday": "I går",
+        "search_group_previous_7_days": "Siste 7 dager",
+        "search_group_previous_30_days": "Siste 30 dager",
+        "search_group_older": "Eldre"
+    },
+    "chat": {
+        "conversation_gone": "Denne samtalen finnes ikke lenger."
+    },
+    "agents": {
+        "channels": {
+            "setup": {
+                "messenger": {
+                    "oauth_intro": "Koble til en Facebook-side slik at denne agenten kan svare på Messenger-samtaler — du logger inn med Facebook og velger deretter hvilken side du vil bruke.",
+                    "connect_facebook": "Koble til med Facebook",
+                    "pick_title": "Velg en Facebook-side",
+                    "pick_button": "Koble til denne siden"
+                },
+                "whatsapp": {
+                    "oauth_intro": "Koble til WhatsApp Business-nummeret ditt slik at denne agenten kan svare på WhatsApp-meldinger — du logger inn med Facebook og setter det opp i ett trinn.",
+                    "connect_facebook": "Koble til med Facebook",
+                    "not_configured": "WhatsApp er ikke satt opp på denne Chatvia-instansen ennå. Kontakt support.",
+                    "finish_number": "Legg til et telefonnummer i WhatsApp Business Account i popup-vinduet, og prøv igjen.",
+                    "connect_failed": "Vi kunne ikke lese WhatsApp-kontoen din fra Facebook. Prøv å koble til på nytt."
+                },
+                "instagram": {
+                    "oauth_intro": "Koble til en profesjonell Instagram-konto slik at denne agenten kan svare på DMs — du logger inn med Facebook og velger deretter hvilken konto du vil bruke.",
+                    "connect_facebook": "Koble til med Facebook",
+                    "pick_title": "Velg en Instagram-konto",
+                    "pick_button": "Koble til denne kontoen"
+                }
+            }
+        },
+        "evals": {
+            "index": {
+                "table": {
+                    "actor": "Aktør"
+                },
+                "case_dialog": {
+                    "expected_tool": "Forventet verktøy",
+                    "expected_tool_placeholder": "f.eks. send_email",
+                    "expected_tool_hint": "Verktøyet agenten skal kalle. Evalueringen sjekker agentens valg — den kjører aldri verktøyet. For et MCP-verktøy bruker du det fulle navnet (mcp__slack__send_message) eller bare verktøyets eget navn.",
+                    "expected_arguments": "Forventede argumenter (valgfritt)",
+                    "expected_arguments_hint": "Et JSON-objekt med argumenter som kallet må inneholde. Ekstra argumenter ignoreres. La feltet stå tomt for å sjekke kun verktøynavnet."
+                },
+                "scorers": {
+                    "tool_call": {
+                        "label": "Verktøykall",
+                        "help": "Sjekker at agenten kaller det forventede verktøyet — uten å kjøre det."
+                    }
+                }
+            },
+            "scorers": {
+                "tool_call": "Verktøykall"
+            }
+        },
+        "nav": {
+            "forms": "Skjemaer",
+            "forms_tooltip": "Bygg skjemaer agenten din viser i chatten"
+        },
+        "setup": {
+            "toasts": {
+                "branding_saved": "Merkevare oppdatert"
+            },
+            "sections": {
+                "branding_badge": "Vis «Powered by Chatvia»-merket",
+                "branding_badge_hint": "Vis Chatvia-merket på denne agentens chat og widget."
+            }
+        },
+        "deploy": {
+            "enabled": "Aktivert",
+            "disabled": "Deaktivert",
+            "toggle_surface": "Aktiver eller deaktiver denne flaten",
+            "surface_enabled": "Flate aktivert",
+            "surface_disabled": "Flate deaktivert — den vil ikke være tilgjengelig",
+            "surface_error": "Kunne ikke oppdatere — prøv igjen"
+        },
+        "forms": {
+            "page_title": "Skjemaer",
+            "title": "Skjemaer",
+            "description": "Når dette skjemaet skal vises",
+            "new": "Nytt skjema",
+            "empty": "Ingen skjemaer ennå. Opprett ett for å komme i gang.",
+            "fields": "felter",
+            "inactive": "Inaktiv",
+            "edit": "Rediger",
+            "type_lead": "Lead-fangst",
+            "type_qualification": "Kvalifisering",
+            "type_booking": "Booking",
+            "type_generic": "Generisk",
+            "edit_form": "Rediger skjema",
+            "new_form": "Nytt skjema",
+            "form_name": "Skjemanavn",
+            "form_name_placeholder": "f.eks. Få et tilbud",
+            "form_type": "Skjematype",
+            "add_field": "Legg til felt",
+            "field_label": "Feltetikett",
+            "required": "Påkrevd",
+            "maps_to": "Tilordnes til",
+            "options_placeholder": "Ett alternativ per linje. Bruk verdi|etikett for separate verdier.",
+            "success_message": "Suksessmelding",
+            "success_placeholder": "Vises etter at den besøkende har sendt inn.",
+            "active": "Aktiv",
+            "save": "Lagre",
+            "cancel": "Avbryt",
+            "preview": "Forhåndsvis",
+            "name_required": "Gi skjemaet et navn.",
+            "saved": "Skjema lagret",
+            "save_failed": "Kunne ikke lagre skjemaet",
+            "deleted": "Skjema slettet",
+            "submissions": "Innsendinger",
+            "description_placeholder": "f.eks. Vis når den besøkende ønsker et tilbud, en demo eller å bli kontaktet",
+            "description_hint": "Agenten bruker dette til å avgjøre når den skal vise dette skjemaet i en samtale.",
+            "rewrite": "Skriv om med AI",
+            "rewriting": "Skriver om…",
+            "rewrite_done": "Beskrivelse omskrevet",
+            "rewrite_failed": "Kunne ikke skrive om beskrivelsen",
+            "maps_to_aria": "Hva betyr «Tilordnes til»?",
+            "maps_to_help_title": "Tilordnes til et kontaktfelt",
+            "maps_to_help_1": "Merker dette feltet som et standard kontaktattributt — Navn, E-post, Telefon og så videre. Verdien den besøkende skriver inn, gjenkjennes da som den aktuelle kontaktinformasjonen, ikke bare som et anonymt svar.",
+            "maps_to_help_2": "Tilordnede felter fyller ut lead-ens detaljer — og driver lead-listen, gjenkjenning av duplikater og CSV-eksport. La det stå som «—» for å fange opp svaret uten å merke det."
+        },
+        "submissions": {
+            "page_title": "Innsendinger",
+            "back_to_forms": "Tilbake til skjemaer",
+            "count": "{n} innsendinger",
+            "export": "Eksporter CSV",
+            "search": "Søk i innsendinger",
+            "empty": "Ingen innsendinger ennå.",
+            "submitted_at": "Sendt inn",
+            "deleted": "Innsending slettet"
+        }
+    },
+    "teams": {
+        "permissions_meta": {
+            "groups": {
+                "channels": {
+                    "label": "Kanaler",
+                    "description": "Koble agenten til meldingsapper."
+                }
+            },
+            "codes": {
+                "agent_channels": {
+                    "label": "Administrer kanaler",
+                    "description": "Koble til og fra meldingskanaler (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
+                }
+            }
+        }
+    }
+}

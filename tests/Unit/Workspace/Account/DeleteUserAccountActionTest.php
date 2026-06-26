@@ -16,10 +16,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
-    // The teardown wipes users/{external_id} on both the default and public
-    // disks; fake both so the assertions stay hermetic and never hit real S3.
+    // The teardown wipes users/{external_id} on the default, public and
+    // assets disks; fake all three so the assertions stay hermetic and never
+    // hit real S3 / CDN storage.
     Storage::fake();
     Storage::fake('public');
+    Storage::fake('assets');
 });
 
 it('hard-deletes the user row', function (): void {

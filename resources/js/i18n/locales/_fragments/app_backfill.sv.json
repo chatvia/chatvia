@@ -1,0 +1,155 @@
+{
+    "sidebar": {
+        "search_chats": "Sök i chattar",
+        "search_placeholder": "Sök i chattar...",
+        "search_no_results": "Inga chattar hittades",
+        "search_group_today": "Idag",
+        "search_group_yesterday": "Igår",
+        "search_group_previous_7_days": "Senaste 7 dagarna",
+        "search_group_previous_30_days": "Senaste 30 dagarna",
+        "search_group_older": "Äldre"
+    },
+    "chat": {
+        "conversation_gone": "Den här konversationen finns inte längre."
+    },
+    "agents": {
+        "channels": {
+            "setup": {
+                "messenger": {
+                    "oauth_intro": "Anslut en Facebook-sida så att den här agenten kan svara på Messenger-konversationer — du loggar in med Facebook och väljer sedan vilken sida som ska användas.",
+                    "connect_facebook": "Anslut med Facebook",
+                    "pick_title": "Välj en Facebook-sida",
+                    "pick_button": "Anslut den här sidan"
+                },
+                "whatsapp": {
+                    "oauth_intro": "Anslut ditt WhatsApp Business-nummer så att den här agenten kan svara på WhatsApp-meddelanden — du loggar in med Facebook och ställer in allt i ett steg.",
+                    "connect_facebook": "Anslut med Facebook",
+                    "not_configured": "WhatsApp är inte konfigurerat på den här Chatvia-instansen ännu. Kontakta supporten.",
+                    "finish_number": "Lägg till ett telefonnummer i ditt WhatsApp Business Account i popup-fönstret och försök sedan igen.",
+                    "connect_failed": "Vi kunde inte läsa ditt WhatsApp-konto från Facebook. Försök ansluta igen."
+                },
+                "instagram": {
+                    "oauth_intro": "Anslut ett Instagram-proffskonto så att den här agenten kan svara på DMs — du loggar in med Facebook och väljer sedan vilket konto som ska användas.",
+                    "connect_facebook": "Anslut med Facebook",
+                    "pick_title": "Välj ett Instagram-konto",
+                    "pick_button": "Anslut det här kontot"
+                }
+            }
+        },
+        "evals": {
+            "index": {
+                "table": {
+                    "actor": "Aktör"
+                },
+                "case_dialog": {
+                    "expected_tool": "Förväntat verktyg",
+                    "expected_tool_placeholder": "t.ex. send_email",
+                    "expected_tool_hint": "Verktyget som agenten ska anropa. Utvärderingen kontrollerar agentens val — den kör aldrig verktyget. För ett MCP-verktyg, använd det fullständiga namnet (mcp__slack__send_message) eller bara verktygets eget namn.",
+                    "expected_arguments": "Förväntade argument (valfritt)",
+                    "expected_arguments_hint": "Ett JSON-objekt med argument som anropet måste innehålla. Extra argument ignoreras. Lämna tomt för att endast kontrollera verktygsnamnet."
+                },
+                "scorers": {
+                    "tool_call": {
+                        "label": "Verktygsanrop",
+                        "help": "Kontrollerar att agenten anropar det förväntade verktyget — utan att köra det."
+                    }
+                }
+            },
+            "scorers": {
+                "tool_call": "Verktygsanrop"
+            }
+        },
+        "nav": {
+            "forms": "Formulär",
+            "forms_tooltip": "Bygg formulär som din agent visar i chatten"
+        },
+        "setup": {
+            "toasts": {
+                "branding_saved": "Varumärke uppdaterat"
+            },
+            "sections": {
+                "branding_badge": "Visa \"Powered by Chatvia\"-märket",
+                "branding_badge_hint": "Visa Chatvia-märket i den här agentens chatt och widget."
+            }
+        },
+        "deploy": {
+            "enabled": "Aktiverad",
+            "disabled": "Inaktiverad",
+            "toggle_surface": "Aktivera eller inaktivera den här ytan",
+            "surface_enabled": "Yta aktiverad",
+            "surface_disabled": "Yta inaktiverad — den går inte att nå",
+            "surface_error": "Kunde inte uppdatera — försök igen"
+        },
+        "forms": {
+            "page_title": "Formulär",
+            "title": "Formulär",
+            "description": "När det här formuläret ska visas",
+            "new": "Nytt formulär",
+            "empty": "Inga formulär ännu. Skapa ett för att komma igång.",
+            "fields": "fält",
+            "inactive": "Inaktivt",
+            "edit": "Redigera",
+            "type_lead": "Leadinsamling",
+            "type_qualification": "Kvalificering",
+            "type_booking": "Bokning",
+            "type_generic": "Generiskt",
+            "edit_form": "Redigera formulär",
+            "new_form": "Nytt formulär",
+            "form_name": "Formulärnamn",
+            "form_name_placeholder": "t.ex. Få en offert",
+            "form_type": "Formulärtyp",
+            "add_field": "Lägg till fält",
+            "field_label": "Fältetikett",
+            "required": "Obligatoriskt",
+            "maps_to": "Kopplas till",
+            "options_placeholder": "Ett alternativ per rad. Använd värde|etikett för separata värden.",
+            "success_message": "Bekräftelsemeddelande",
+            "success_placeholder": "Visas efter att besökaren skickat in.",
+            "active": "Aktivt",
+            "save": "Spara",
+            "cancel": "Avbryt",
+            "preview": "Förhandsvisa",
+            "name_required": "Ge formuläret ett namn.",
+            "saved": "Formulär sparat",
+            "save_failed": "Kunde inte spara formuläret",
+            "deleted": "Formulär raderat",
+            "submissions": "Inskick",
+            "description_placeholder": "t.ex. Visa när besökaren vill ha en offert, en demo eller bli kontaktad",
+            "description_hint": "Agenten använder detta för att avgöra när formuläret ska visas i en konversation.",
+            "rewrite": "Skriv om med AI",
+            "rewriting": "Skriver om…",
+            "rewrite_done": "Beskrivning omskriven",
+            "rewrite_failed": "Kunde inte skriva om beskrivningen",
+            "maps_to_aria": "Vad betyder ”Kopplas till”?",
+            "maps_to_help_title": "Kopplas till ett kontaktfält",
+            "maps_to_help_1": "Märker det här fältet som ett standardattribut för kontakter — Namn, E-post, Telefon och så vidare. Värdet som besökaren anger känns då igen som den kontaktuppgiften, inte bara som ett anonymt svar.",
+            "maps_to_help_2": "Kopplade fält fyller i leadens uppgifter — och driver leadlistan, dubblettidentifiering och CSV-export. Lämna det som ”—” för att fånga svaret utan att märka det."
+        },
+        "submissions": {
+            "page_title": "Inskick",
+            "back_to_forms": "Tillbaka till formulär",
+            "count": "{n} inskick",
+            "export": "Exportera CSV",
+            "search": "Sök bland inskick",
+            "empty": "Inga inskick ännu.",
+            "submitted_at": "Inskickat",
+            "deleted": "Inskick raderat"
+        }
+    },
+    "teams": {
+        "permissions_meta": {
+            "groups": {
+                "channels": {
+                    "label": "Kanaler",
+                    "description": "Anslut agenten till meddelandeappar."
+                }
+            },
+            "codes": {
+                "agent_channels": {
+                    "label": "Hantera kanaler",
+                    "description": "Anslut och koppla från meddelandekanaler (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
+                }
+            }
+        }
+    }
+}

@@ -10,10 +10,9 @@ use Domain\Knowledge\Source\Web\Services\Crawler\Crawler;
 use Domain\Knowledge\Source\Web\Services\WebPageMarkdownCache;
 
 /**
- * Finalises a completed FireCrawl crawl: narrows the raw pages to the ingest
- * set, warms the scrape cache so stage-2 training reuses the crawled Markdown,
- * and persists one URL row per page. Invoked by PollWebsiteCrawlJob once the
- * async crawl reports `completed`.
+ * Finalises FireCrawl discovery: narrows the discovered pages to the ingest set,
+ * warms the scrape cache for any page that arrived with Markdown, and persists
+ * one URL row per page. Invoked by WebsiteCrawlerJob once `/map` returns.
  */
 class CrawlWebsiteAction
 {
@@ -23,8 +22,8 @@ class CrawlWebsiteAction
     ) {}
 
     /**
-     * @param  array<string, string>  $pages  url => markdown from Firecrawl::fetchCrawl()
-     * @param  int  $startedAt  epoch seconds the crawl was kicked off, for the duration figure
+     * @param  array<string, string>  $pages  url => markdown (markdown is '' for `/map` discovery)
+     * @param  int  $startedAt  epoch seconds discovery was kicked off, for the duration figure
      */
     public function execute(
         SourceWebsite $website,
@@ -36,10 +35,18 @@ class CrawlWebsiteAction
     ): void {
         $selected = $this->crawler->filterPages($data, $pages);
 
-        // Stage 2 reads this back instead of re-scraping each page.
+        // Stage 2 reads this back instead of re-scraping each page. `/map`
+        // discovery carries no Markdown (empty string), so there is nothing to
+        // cache — stage 2 scrapes those on demand.
         foreach ($selected as $url => $markdown) {
-            $this->markdownCache->put($url, $markdown);
+            if ($markdown !== '') {
+                $this->markdownCache->put($url, $markdown);
+            }
         }
+
+        // Idempotent: a retried job or a re-crawl must not stack duplicate URL
+        // rows on top of a previous discovery.
+        $website->urls()->delete();
 
         $website->update([
             'status' => 'crawled',

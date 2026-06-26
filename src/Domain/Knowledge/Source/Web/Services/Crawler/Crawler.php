@@ -21,36 +21,26 @@ final class Crawler
     public const DEFAULT_LIMIT = 1000;
 
     /**
-     * Translate a comma-separated glob list (e.g. "blog/*, dev/*") into the regex
-     * patterns FireCrawl's `/crawl` includePaths/excludePaths expect, so the crawl
-     * is scoped at the source — FireCrawl never fetches the unwanted sections and
-     * the link budget isn't spent on them — instead of only being trimmed locally
-     * afterwards. FireCrawl matches each pattern against the URL pathname, so we
-     * anchor at the path start and tolerate an optional leading slash. filterPages()
-     * still applies the exact glob semantics as the final authority, so a looser
-     * regex flavour on FireCrawl's side can only over-fetch, never drop a wanted page.
+     * Reduce a seed URL to its origin (scheme://host[:port]) for discovery.
      *
-     * @return list<string>
+     * FireCrawl's `/map` scopes discovery to the seed's path subtree, so a seed
+     * like `https://site.com/en` returns nothing when the site keeps no `/en/*`
+     * pages (a default-locale-at-root layout). We always map the whole site and
+     * let filterPages() narrow it by path, so a pasted deep link still discovers
+     * the full site instead of an empty subtree.
      */
-    public function firecrawlPatterns(?string $paths): array
+    public function rootUrl(string $url): string
     {
-        if ($paths === null || trim($paths) === '') {
-            return [];
+        $parts = parse_url($url);
+
+        if (empty($parts['host'])) {
+            return $url;
         }
 
-        $patterns = [];
+        $scheme = $parts['scheme'] ?? 'https';
+        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
 
-        foreach (array_map('trim', explode(',', $paths)) as $pattern) {
-            $pattern = ltrim($pattern, '/');
-
-            if ($pattern === '') {
-                continue;
-            }
-
-            $patterns[] = '^/?'.$this->globToRegexBody($pattern);
-        }
-
-        return $patterns;
+        return $scheme.'://'.$parts['host'].$port;
     }
 
     /**
@@ -141,20 +131,13 @@ final class Crawler
 
     private function convertGlobToRegex(string $pattern): string
     {
-        // Wrap the shared glob body in PHP delimiters and a start anchor.
-        return '#^'.$this->globToRegexBody($pattern).'#';
-    }
-
-    /**
-     * Glob → regex core shared by the local PHP filter and the FireCrawl patterns:
-     * escape regex metacharacters, then turn the glob `*` back into `.*`. Returns a
-     * bare, undelimited, unanchored body so each caller can wrap it for its own
-     * engine (`#^…#` for preg_match, `^/?…` for FireCrawl).
-     */
-    private function globToRegexBody(string $pattern): string
-    {
+        // Escape special regex characters except *
         $escaped = preg_quote($pattern, '#');
 
-        return str_replace('\*', '.*', $escaped);
+        // Convert * to regex equivalent
+        $regex = str_replace('\*', '.*', $escaped);
+
+        // Wrap in delimiters and anchors
+        return '#^'.$regex.'#';
     }
 }

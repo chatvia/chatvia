@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Http\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Laravel\Facades\Image;
 use InvalidArgumentException;
+use RuntimeException;
+use Throwable;
 
 trait HasSettings
 {
@@ -43,7 +46,7 @@ trait HasSettings
             $value = match ($item->data_type) {
                 'string' => (string) $item->value,
                 'integer' => (int) $item->value,
-                'file' => Storage::url($item->value),
+                'file' => Storage::disk('assets')->url($item->value),
                 'boolean' => (bool) $item->value,
                 'array' => json_decode($item->value, true, 512, JSON_THROW_ON_ERROR),
                 default => $item->value,
@@ -111,11 +114,40 @@ trait HasSettings
         $dataType = $this->settingType($value);
 
         if ($value instanceof UploadedFile) {
+            // Mirror ProfilePhotoStorage: process and upload first, and only let
+            // the new path reach the database once the upload succeeds — a failed
+            // upload throws and leaves the existing image untouched. Brand assets
+            // (widget logo/avatar) are public + CDN-served, so they live on the
+            // `assets` disk and read back via its pull-zone URL.
+            $disk = Storage::disk('assets');
+            $previousPath = $this->modelSettings()->where('key', $key)->where('group', $group)->value('value');
+
             $data = Image::read($value->getContent())->scale(height: 128)->toPng()->toString();
             $file = new File(create_temp_file($value->getFilename(), $data));
-            // Brand assets (widget logo/avatar) are public and CDN-served, so
-            // they go to the `assets` disk and read back via its pull-zone URL.
-            $value = Storage::disk('assets')->putFile('users/'.$this->getUserExternalId().'/settings/'.$group.'/'.$this->external_id, $file);
+
+            $uploadedPath = $disk->putFile('users/'.$this->getUserExternalId().'/settings/'.$group.'/'.$this->external_id, $file);
+
+            // putFile returns false on failure when a disk doesn't throw — never
+            // overwrite the saved value with a non-path. (The assets disk has
+            // throw => true, so this is defence in depth.)
+            if (! is_string($uploadedPath)) {
+                throw new RuntimeException("Failed to upload the '{$key}' image to the assets disk.");
+            }
+
+            // Delete the replaced file only after the new one is safely stored,
+            // best-effort: a stale CDN object must not fail an otherwise-good save.
+            if (is_string($previousPath) && $previousPath !== '' && $previousPath !== $uploadedPath) {
+                try {
+                    $disk->delete($previousPath);
+                } catch (Throwable $e) {
+                    Log::warning('Setting image: failed to delete the replaced file on the assets disk.', [
+                        'path' => $previousPath,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            $value = $uploadedPath;
         }
 
         if ($dataType === 'array') {

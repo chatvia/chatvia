@@ -33,12 +33,11 @@ use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 // Public marketing + legal pages. Wrapped in the locale group so every page is
-// also reachable under `/ar` (Arabic, right-to-left). `localeSessionRedirect`
-// forwards a visitor to the language their browser asks for (Accept-Language) on
-// first visit and remembers it; `localizationRedirect` drops the redundant `/en`
-// prefix since English is the hidden default. OAuth callbacks, every POST endpoint,
-// and the trial/Stripe flow stay OUTSIDE this group — their URLs must not be
-// locale-prefixed or redirected.
+// served under an explicit locale segment (e.g. `/en`, `/ar`). `localeSessionRedirect`
+// forwards a visitor to a remembered/preferred locale; `localizationRedirect`
+// redirects an un-prefixed URL like `/` to the default-locale URL `/en`. OAuth
+// callbacks, every POST endpoint, and the trial/Stripe flow stay OUTSIDE this group —
+// their URLs must not be locale-prefixed or redirected.
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),
     'middleware' => [ResolveLandingLocale::class, 'localeSessionRedirect', 'localizationRedirect'],

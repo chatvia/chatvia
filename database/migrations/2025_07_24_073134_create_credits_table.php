@@ -29,8 +29,7 @@ return new class extends Migration
             $table->unsignedInteger('messages')->default(0);
             $table->unsignedInteger('credits')->default(0);
             $table->unsignedInteger('messages_exceeded')->default(0);
-            // Tokens consumed this billing period (prompt + completion from the
-            // provider usage; TikToken estimate as a fallback). Accumulator only.
+
             $table->unsignedBigInteger('tokens')->default(0);
             $table->timestamps();
         });

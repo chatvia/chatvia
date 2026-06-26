@@ -19,14 +19,10 @@ return new class extends Migration
             $table->text('two_factor_recovery_codes')->nullable();
             $table->timestamp('two_factor_confirmed_at')->nullable();
 
-            // Filament panel multi-factor auth (app authenticator + recovery
-            // codes). Stored encrypted by the InteractsWithAppAuthentication*
-            // traits — separate from Fortify's two_factor_* columns above, which
-            // back the Inertia/Vue dashboard's 2FA.
             $table->text('app_authentication_secret')->nullable();
             $table->text('app_authentication_recovery_codes')->nullable();
             $table->enum('type', ['admin', 'workspace', 'employee', 'chatter'])->default('workspace')->index();
-            $table->enum('source', ['dashboard', 'api'])->default('dashboard'); // two-value enum — never filtered, so no index
+            $table->enum('source', ['dashboard', 'api'])->default('dashboard');
             $table->rememberToken();
 
             $table->foreignId('workspace_id')->nullable()->constrained('users')->nullOnDelete();
@@ -39,7 +35,7 @@ return new class extends Migration
             $table->index(['workspace_id', 'type']);
 
             $table->ipAddress('registered_ip')->nullable();
-            $table->string('registered_country_code', 2)->nullable(); // ISO-2
+            $table->string('registered_country_code', 2)->nullable();
 
             $table->string('domain')->nullable();
 
@@ -50,13 +46,8 @@ return new class extends Migration
             $table->timestamp('deactivated_at')->nullable();
             $table->timestamp('last_login_at')->nullable();
 
-            // Preferred date display format across the dashboard
-            // (Settings → Date & time). Null falls back to the ISO default —
-            // see Support\Enums\User\DateFormat.
             $table->string('date_format')->nullable();
 
-            // Preferred UI locale (e.g. `en`, `de`, `fr`); null falls back to the
-            // app default. Shared to the SPA via auth.user.
             $table->string('locale', 5)->nullable();
 
             $table->timestamps();
@@ -70,7 +61,7 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable(); // covered by the composite below
+            $table->foreignId('user_id')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('payload');

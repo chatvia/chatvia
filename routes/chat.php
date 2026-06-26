@@ -13,6 +13,7 @@ use App\Http\Controllers\Chat\Conversations\ConversationController;
 use App\Http\Controllers\Chat\Conversations\ConversationCreateController;
 use App\Http\Controllers\Chat\Conversations\ConversationDeleteController;
 use App\Http\Controllers\Chat\Conversations\ConversationMessageController;
+use App\Http\Controllers\Chat\Conversations\ConversationSearchController;
 use App\Http\Controllers\Chat\Conversations\ConversationUpdate;
 use App\Http\Controllers\Chat\Conversations\GenerateConversationTitleController;
 use App\Http\Controllers\Chat\Conversations\MessageAttachmentDeleteController;
@@ -75,6 +76,7 @@ Route::prefix('/chat')
         Route::get('/conversations/{conversationId}/messages', ConversationMessageController::class)->name('conversations.messages');
         Route::post('/conversations/{conversationId}/title', GenerateConversationTitleController::class)->name('conversations.title');
         Route::get('/conversations', ConversationController::class)->name('conversations.index');
+        Route::get('/conversations/search', ConversationSearchController::class)->name('conversations.search');
         Route::patch('/conversations/{conversationId}', ConversationUpdate::class)->name('conversations.update');
         Route::delete('/conversations/{conversationId}', ConversationDeleteController::class)->name('conversations.delete');
         Route::delete('/conversations/{conversationId}/attachments/{attachment}', MessageAttachmentDeleteController::class)

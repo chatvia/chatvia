@@ -27,7 +27,6 @@ return new class extends Migration
             $table->index(['source_website_id', 'status']);
         });
 
-        // trgm: serves the crawled-URL search's unanchored ILIKE.
         DB::statement('CREATE INDEX source_website_urls_url_trgm_idx ON source_website_urls USING gin (url gin_trgm_ops)');
     }
 

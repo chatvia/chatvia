@@ -4,14 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * One WhatsApp Business number per agent (the agent's WhatsApp "channel").
- * The Cloud API access token and the Meta app secret are stored encrypted
- * (the token can send messages as the number; the secret authenticates
- * inbound webhooks). `webhook_secret` is the random value in the public
- * Callback URL — it routes an incoming event to the right agent and doubles
- * as the verify token Meta echoes during the GET webhook handshake.
- */
 return new class extends Migration
 {
     public function up(): void
@@ -20,10 +12,10 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
             $table->foreignId('agent_id')->unique()->constrained()->cascadeOnDelete();
-            $table->text('access_token'); // encrypted at the model layer
-            $table->text('app_secret'); // encrypted at the model layer
-            $table->string('phone_number_id'); // Cloud API phone number id — the send endpoint AND the inbound routing key
-            $table->string('waba_id'); // WhatsApp Business Account id — the app must be subscribed to it or webhooks never fire
+            $table->text('access_token');
+            $table->text('app_secret');
+            $table->string('phone_number_id');
+            $table->string('waba_id');
             $table->string('display_phone_number')->nullable();
             $table->string('verified_name')->nullable();
             $table->string('webhook_secret', 64)->unique();

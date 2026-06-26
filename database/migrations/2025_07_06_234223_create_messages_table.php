@@ -52,7 +52,7 @@ return new class extends Migration
             $table->index(['agent_id', 'created_at']);
             $table->index(['agent_id', 'last_activity_at']);
             $table->index(['user_id', 'created_at']);
-            $table->index(['agent_id', 'country_id']); // chat-log country dropdown/filter
+            $table->index(['agent_id', 'country_id']);
         });
 
         Schema::create('chat_conversations', function (Blueprint $table) {
@@ -60,20 +60,17 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
 
             $table->foreignId('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
-            // Denormalized from the session (a conversation never changes agent).
+
             $table->foreignId('agent_id')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Language::class)->nullable()->index()->constrained()->nullOnDelete();
 
             $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram']);
             $table->boolean('is_visible')->default(false);
-            $table->text('title')->nullable(); // encrypted at rest (Conversation::casts)
+            $table->text('title')->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
             $table->enum('tone', ToneEnum::values())->nullable();
 
-            // Stamped by the scheduled consolidated analysis pass (app:analyze-conversations)
-            // ~6h after creation. Its presence means "analysis done" — the idempotency marker
-            // that keeps the batch from re-processing a conversation.
             $table->timestamp('analyzed_at')->nullable();
 
             $table->foreignIdFor(User::class, 'handoff_user_id')->nullable()->index()->constrained('users')->nullOnDelete();
@@ -82,22 +79,16 @@ return new class extends Migration
             $table->timestamp('handoff_at')->nullable();
             $table->timestamp('last_activity_at')->nullable();
 
-            // Conversation-level retention horizon. Stamped on create from the
-            // owning team's plan (see BillingPackageCapabilitiesData::retentionDays);
-            // the daily prune command soft-deletes anything past it, cascading
-            // through Conversation::booted to messages, attachments, S3.
             $table->timestamp('expires_at')->nullable();
 
             $table->string('deleted_by', 10)->nullable();
+            $table->timestamp('cleared_at')->nullable();
             $table->softDeletes();
             $table->timestamps();
 
             $table->index(['chat_session_id', 'created_at']);
             $table->index(['chat_session_id', 'updated_at']);
-            // Full (non-partial) agent_id index. The conversations_agent_visible_idx
-            // below is partial (is_visible + not-deleted), so it can't serve the
-            // agent_id FK cascade delete or agent-scoped scans that include hidden /
-            // trashed rows — those would otherwise seq-scan. Mirrors chat_sessions.
+
             $table->index(['agent_id', 'created_at']);
         });
 
@@ -117,6 +108,8 @@ return new class extends Migration
             $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram'])->nullable();
 
             $table->text('content')->nullable();
+
+            $table->bm25vector('content_bm25')->nullable();
             $table->jsonb('metadata')->nullable();
 
             $table->enum('role', ['user', 'assistant', 'agent']);
@@ -148,31 +141,21 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
 
-            // Nullable so the upload endpoint can persist a row before the
-            // conversation exists (Home.vue path: upload → conversation
-            // create → claim). The hosted-chat / widget paths set this
-            // straight away. Cascades to file delete via the model observer.
             $table->foreignId('chat_conversation_id')->nullable()->constrained('chat_conversations')->cascadeOnDelete();
-            // Optional link to the user message that introduced this file —
-            // populated by ChatService once the user turn is saved so chips
-            // can render on the right bubble. Cascades on delete to match
-            // Message::booted(), which already removes a message's attachments
-            // (and their S3 objects) when the message is deleted.
+
             $table->foreignId('chat_message_id')->nullable()->constrained('chat_messages')->cascadeOnDelete();
 
             $table->string('filepath', 2048);
             $table->string('filename');
             $table->string('mime_type', 100)->default('application/octet-stream');
             $table->unsignedBigInteger('size_bytes')->default(0);
-            // PDF page count, captured at upload via pdfinfo. Drives page-based
-            // billing (1 message per page, on top of the base turn message) and
-            // is null for non-PDFs / files pdfinfo couldn't read.
+
             $table->unsignedInteger('pages')->nullable();
 
             $table->timestamps();
 
             $table->index(['chat_conversation_id', 'mime_type']);
-            $table->index('chat_message_id'); // FK cascade needs this
+            $table->index('chat_message_id');
         });
 
         $this->createPartialIndexes();
@@ -184,15 +167,17 @@ return new class extends Migration
         DB::statement("CREATE INDEX messages_user_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'user'");
         DB::statement('CREATE INDEX messages_feedback_date_idx ON chat_messages (feedback, created_at) WHERE feedback IS NOT NULL');
 
+        DB::statement('CREATE INDEX chat_messages_content_bm25 ON chat_messages USING bm25 (content_bm25 bm25_catalog.bm25_ops)');
+
         DB::statement("CREATE INDEX conversations_handoff_pending_idx ON chat_conversations (created_at) WHERE handoff_status = 'pending'");
         DB::statement("CREATE INDEX conversations_handoff_human_idx ON chat_conversations (last_activity_at) WHERE handoff_status = 'human'");
 
         DB::statement('CREATE INDEX conversations_visible_active_idx ON chat_conversations (chat_session_id, updated_at) WHERE is_visible = true AND deleted_at IS NULL');
-        // Drives the per-agent chat-log list (agent_id filter, ORDER BY updated_at).
+
         DB::statement('CREATE INDEX conversations_agent_visible_idx ON chat_conversations (agent_id, updated_at) WHERE is_visible = true AND deleted_at IS NULL');
-        // Drives the daily prune query (`WHERE expires_at < now() AND deleted_at IS NULL`).
+
         DB::statement('CREATE INDEX conversations_expires_cleanup_idx ON chat_conversations (expires_at) WHERE expires_at IS NOT NULL AND deleted_at IS NULL');
-        // Drives the consolidated-analysis scan (`WHERE analyzed_at IS NULL AND created_at < ? AND deleted_at IS NULL`).
+
         DB::statement('CREATE INDEX conversations_pending_analysis_idx ON chat_conversations (created_at) WHERE analyzed_at IS NULL AND deleted_at IS NULL');
     }
 
@@ -202,6 +187,7 @@ return new class extends Migration
             'messages_assistant_active_idx',
             'messages_user_active_idx',
             'messages_feedback_date_idx',
+            'chat_messages_content_bm25',
             'conversations_handoff_pending_idx',
             'conversations_handoff_human_idx',
             'conversations_visible_active_idx',

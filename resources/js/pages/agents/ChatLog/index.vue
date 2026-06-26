@@ -296,13 +296,7 @@ watch(liveChatAvailable, (available) => {
                                 </Button>
 
                                 <!-- Lead Button — shown only when this conversation has a submitted form -->
-                                <Button
-                                    v-if="hasLeadForCurrentConversation"
-                                    size="sm"
-                                    class="ms-auto h-9"
-                                    variant="default"
-                                    @click="openLeadPanel"
-                                >
+                                <Button v-if="hasLeadForCurrentConversation" size="sm" class="ms-auto h-9" variant="default" @click="openLeadPanel">
                                     <UserCheck class="me-1.5 h-4 w-4" /> {{ t('agents.chatlog.lead') }}
                                 </Button>
                             </div>

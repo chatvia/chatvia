@@ -21,7 +21,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Expression index matching phraseSearch's to_tsvector('simple', …) @@ predicate.
         DB::statement("CREATE INDEX agent_question_answers_questions_fts_idx ON agent_question_answers USING gin (to_tsvector('simple', questions))");
     }
 

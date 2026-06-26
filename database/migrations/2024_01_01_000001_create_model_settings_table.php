@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('model_settings', function (Blueprint $table) {
             $table->id();
-            // no morphs(): its (model_type, model_id) index is a prefix of the composite below
+
             $table->string('model_type');
             $table->unsignedBigInteger('model_id');
             $table->string('group')->index();

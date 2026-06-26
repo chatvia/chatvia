@@ -4,14 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\PermissionRegistrar;
 
-/**
- * The Channels page used to ride on the `agent.setup` permission; it now has its
- * own `agent.channels` grant. To avoid silently revoking channel access from
- * existing teammate roles on deploy, every role that already holds `agent.setup`
- * also gets `agent.channels`. Owners are unaffected either way — ownership
- * bypasses stored role permissions — and an owner can revoke `agent.channels`
- * per role from the role editor afterwards.
- */
 return new class extends Migration
 {
     public function up(): void
@@ -21,7 +13,6 @@ return new class extends Migration
         $permissionKey = config('permission.column_names.permission_pivot_key') ?? 'permission_id';
         $roleKey = config('permission.column_names.role_pivot_key') ?? 'role_id';
 
-        // Ensure the new permission row exists (same shape TeamService writes).
         $channelsId = DB::table($permissionsTable)
             ->where('name', 'agent.channels')->where('guard_name', 'web')->value('id')
             ?? DB::table($permissionsTable)->insertGetId(['name' => 'agent.channels', 'guard_name' => 'web']);
@@ -29,7 +20,6 @@ return new class extends Migration
         $setupId = DB::table($permissionsTable)
             ->where('name', 'agent.setup')->where('guard_name', 'web')->value('id');
 
-        // No role can reference agent.setup if the row doesn't exist yet.
         if ($setupId !== null) {
             $roleIds = DB::table($pivotTable)
                 ->where($permissionKey, $setupId)

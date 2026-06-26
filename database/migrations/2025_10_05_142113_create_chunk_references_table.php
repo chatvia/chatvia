@@ -11,8 +11,7 @@ return new class extends Migration
     {
         Schema::create('chunk_references', function (Blueprint $table) {
             $table->foreignIdFor(Chunk::class)->constrained()->cascadeOnDelete();
-            // Currently single-type (only AgentWebsiteUrl is ever stored); kept
-            // polymorphic to allow future reference types without a schema change.
+
             $table->numericMorphs('referenceable');
 
             $table->primary(['chunk_id', 'referenceable_type', 'referenceable_id'], 'chunk_references_pkey');

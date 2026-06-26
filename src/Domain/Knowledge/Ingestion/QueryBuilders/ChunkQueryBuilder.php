@@ -194,7 +194,7 @@ SQL;
      * Like questionsForAgent, but keeps each question's owning chunk — the
      * Evals "From knowledge" picker needs the linkage to fetch the chunk text
      * as a reference answer at case-creation time. Splitting happens in PHP
-     * because `questions` is an encrypted cast.
+     * because each chunk holds a newline-delimited block of questions.
      *
      * @return list<array{chunk_id: int, question: string, source_type: string}>
      */

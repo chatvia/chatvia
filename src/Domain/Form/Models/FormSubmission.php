@@ -18,9 +18,9 @@ use Support\Concerns\HasExternalId;
  * A form submission — the single store for every captured contact. Created
  * `pending` when an agent renders a form (the unique external_id is the
  * idempotency / form_instance_id key), or directly `submitted` for the
- * conversational capture path. `values` holds the answers and is ENCRYPTED at
- * rest (it carries PII). The named accessors (name/email/…) read decrypted
- * `values` so lead-shaped readers keep working.
+ * conversational capture path. `values` holds the answers as plaintext JSON.
+ * The named accessors (name/email/…) read `values` so lead-shaped readers keep
+ * working.
  *
  * @property int $id
  * @property string $external_id
@@ -62,7 +62,7 @@ class FormSubmission extends Model
     protected function casts(): array
     {
         return [
-            'values' => 'encrypted:array',
+            'values' => 'array',
             'expires_at' => 'datetime',
             'submitted_at' => 'datetime',
         ];
@@ -74,12 +74,12 @@ class FormSubmission extends Model
     }
 
     /**
-     * Plaintext fingerprint of an answer set, for de-duplication. The `values`
-     * column is encrypted with a random IV so identical answers can't be matched
-     * on it directly; this HMAC over the canonical (recursively key-sorted) JSON
-     * is stable for identical answers and unguessable without the app key (it
-     * digests PII, like the retired `leads.email_hash`). Returns null for an
-     * empty answer set (pending rows, blank captures) — those never de-dupe.
+     * Fingerprint of an answer set, for de-duplication. This HMAC over the
+     * canonical (recursively key-sorted) JSON is stable for identical answers
+     * and unguessable without the app key (it digests PII, like the retired
+     * `leads.email_hash`), so the de-dupe index matches without exposing the
+     * answers. Returns null for an empty answer set (pending rows, blank
+     * captures) — those never de-dupe.
      *
      * @param  array<string, mixed>|null  $values
      */

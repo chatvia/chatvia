@@ -27,7 +27,7 @@ use Illuminate\Support\Str;
  *   POST agents.sources.text.store
  *     → CreateAgentSourceTextAction (quota gate, storage write, pivot attach)
  *     → TextIngestionJob → IngestTextAction → Bus::batch(TextChunkIngestionJob)
- *     → CreateSourceChunkAction → Chunk rows (encrypted, morph-aliased)
+ *     → CreateSourceChunkAction → Chunk rows (plaintext, morph-aliased)
  *     → KnowledgeBase::search (4-channel hybrid RRF over pgvector + bm25)
  *
  * The embeddings provider is faked at the container boundary (house style — no
@@ -232,7 +232,7 @@ it('rejects the upload as a validation error when the page quota is exhausted', 
     Bus::assertNotDispatched(TextIngestionJob::class);
 });
 
-it('ingests an uploaded text into encrypted chunks stored under the source_text morph alias', function (): void {
+it('ingests an uploaded text into plaintext chunks stored under the source_text morph alias', function (): void {
     // Fake ONLY the LLM-bound enrichment jobs; TextIngestionJob and the
     // chunking batch run for real on the sync queue, driving the full
     // upload → split → embed → chunk-row path.
@@ -269,9 +269,9 @@ it('ingests an uploaded text into encrypted chunks stored under the source_text 
     $pivotType = DB::table('agent_sources')->where('agent_id', $agent->id)->value('sourceable_type');
     expect($pivotType)->toBe($chunks->first()->chunkable_type);
 
-    // Content is ciphertext at rest — only the Eloquent cast decrypts it.
+    // Content is stored as plaintext at rest.
     $rawChunk = DB::table('chunks')->where('id', $chunks->first()->id)->value('chunk');
-    expect($rawChunk)->not->toContain('refund');
+    expect($rawChunk)->toContain('refund');
 
     // The enrichment legs were handed to the queue, one enhance per chunk.
     Queue::assertPushed(SummaryIngestionJob::class, 1);

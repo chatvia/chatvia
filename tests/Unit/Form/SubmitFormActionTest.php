@@ -12,6 +12,7 @@ use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
 beforeEach(function (): void {
@@ -40,7 +41,7 @@ function pendingFormSubmission(object $test, ?Carbon $expiresAt = null): FormSub
     ]);
 }
 
-it('submits a form: claims and stores the (encrypted) answers', function (): void {
+it('submits a form: claims and stores the answers as plaintext', function (): void {
     Event::fake([FormSubmitted::class]);
     $submission = pendingFormSubmission($this);
 
@@ -55,8 +56,12 @@ it('submits a form: claims and stores the (encrypted) answers', function (): voi
     $submission->refresh();
     expect($submission->status)->toBe(FormSubmission::STATUS_SUBMITTED)
         ->and($submission->submitted_at)->not->toBeNull()
-        ->and($submission->email)->toBe('jane@acme.com')   // accessor over decrypted values
+        ->and($submission->email)->toBe('jane@acme.com')
         ->and($submission->name)->toBe('Jane');
+
+    // Answers are stored as plaintext JSON — no encryption cast.
+    $raw = DB::table('form_submissions')->where('id', $submission->id)->value('values');
+    expect(json_decode($raw, true))->toMatchArray(['name' => 'Jane', 'email' => 'jane@acme.com']);
 
     Event::assertDispatchedTimes(FormSubmitted::class, 1);
 });

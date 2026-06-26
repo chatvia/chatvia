@@ -17,13 +17,11 @@ return new class extends Migration
             $table->unsignedBigInteger('agent_id');
             $table->unsignedBigInteger('workspace_id');
             $table->date('bucket_day');
-            // Keyed by (server_slug, tool_name) rather than mcp_tool_id so the
-            // rollup is stable across catalog re-syncs (tool ids churn) and
-            // survives tool/server deletion.
+
             $table->string('server_slug');
             $table->string('tool_name');
             $table->unsignedInteger('invocation_count')->default(0);
-            // Denormalised labels captured at invocation time.
+
             $table->text('tool_description')->nullable();
             $table->string('server_name')->nullable();
             $table->string('connector_slug')->nullable();

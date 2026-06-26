@@ -31,9 +31,6 @@ return new class extends Migration
             $table->enum('auth_type', ['none', 'bearer', 'header', 'hmac'])->default('none');
             $table->text('auth_config')->nullable();
 
-            // Per-function human-in-the-loop switch. A function is a single
-            // tool, so this is its per-tool toggle. Seeded from webhook_method
-            // at create (GET → false, write verbs → true), then user-editable.
             $table->boolean('requires_approval')->default(true);
 
             $table->unsignedInteger('timeout_ms')->default(10000);
@@ -41,10 +38,6 @@ return new class extends Migration
 
             $table->boolean('is_enabled')->default(true);
 
-            // Full fp32 vector (not halfvec like chunks) — see connector_tools:
-            // tiny catalog, and ToolHybridSearch hard-codes `<-> ?::vector(1024)`
-            // against a vector_l2_ops vchordrq index, so fp32 is required here to
-            // avoid a type/ops-class mismatch that would drop the index.
             $table->vector('embedding', 1024)->nullable();
             $table->bm25vector('embedding_bm25')->nullable();
 

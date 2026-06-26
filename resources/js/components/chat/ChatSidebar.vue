@@ -2,8 +2,25 @@
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import isMobile from 'is-mobile';
-import { Bot, Check, Edit, Eye, EyeOff, Loader2, Lock, LogOut, Mail, MoreVertical, PanelLeft, Trash2, Upload, User, X } from 'lucide-vue-next';
-import { computed, inject, nextTick, onMounted, ref, watch } from 'vue';
+import {
+    Bot,
+    Check,
+    Edit,
+    Eye,
+    EyeOff,
+    Loader2,
+    Lock,
+    LogOut,
+    Mail,
+    MoreVertical,
+    PanelLeft,
+    Search,
+    Trash2,
+    Upload,
+    User,
+    X,
+} from 'lucide-vue-next';
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
@@ -27,6 +44,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator'; // TODO: Implement agent switching functionality
 
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import ChatSearchDialog from '@/components/chat/ChatSearchDialog.vue';
 import InputError from '@/components/InputError.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { getInitials } from '@/composables/useInitials';
@@ -34,6 +52,8 @@ import { getInitials } from '@/composables/useInitials';
 interface Conversation {
     id: string | number;
     title: string;
+    // Unix seconds — sent by conversations.index; used by the search dialog's date buckets.
+    timestamp?: number;
 }
 
 interface Agent {
@@ -70,6 +90,7 @@ const chatEventBus = inject('chatEventBus') as any;
 const { t } = useI18n();
 const emit = defineEmits(['update:open']);
 const isSidebarOpen = ref(props.open);
+const searchDialogOpen = ref(false);
 const editingId = ref<string | number | null>(null);
 const editingTitle = ref('');
 const deleteDialogOpen = ref(false);
@@ -113,6 +134,13 @@ const loadConversations = () => {
         conversations.value = response.data;
         isLoadingConversations.value = false;
     });
+};
+
+// Server search for the command palette: matches conversation titles and
+// message content (BM25). Returns the same shape as conversations.index.
+const searchConversations = async (q: string): Promise<Conversation[]> => {
+    const response = await axios.get(route('conversations.search'), { params: { q } });
+    return response.data;
 };
 
 watch(
@@ -165,11 +193,16 @@ onMounted(() => {
         windowWidth.value = window.innerWidth;
     };
     window.addEventListener('resize', handleResize);
+    window.addEventListener('keydown', handleSearchShortcut);
 
     // Clean up on unmount
     return () => {
         window.removeEventListener('resize', handleResize);
     };
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleSearchShortcut);
 });
 
 const newConversation = () => {
@@ -182,6 +215,24 @@ const newConversation = () => {
         preserveState: false,
         preserveScroll: false,
     });
+};
+
+// Open a conversation picked from the search dialog.
+const goToConversation = (id: string | number) => {
+    if (isMobileDevice) {
+        localStorage.setItem('sidebarOpen', String(false));
+        isSidebarOpen.value = false;
+    }
+
+    router.visit(route('chat.show', { conversationId: id }));
+};
+
+// Cmd/Ctrl+K opens the chat search anywhere in the surface (ChatGPT-style).
+const handleSearchShortcut = (event: KeyboardEvent) => {
+    if ((event.metaKey || event.ctrlKey) && (event.key === 'k' || event.key === 'K')) {
+        event.preventDefault();
+        searchDialogOpen.value = true;
+    }
 };
 
 const deleteAllConversations = async () => {
@@ -487,14 +538,20 @@ const switchToSelectedAgent = () => {
                 <!-- Collapse the sidebar (ChatGPT-style). On desktop this slides
                      it away and the reopen control appears in the top bar; on
                      mobile it closes the drawer. -->
-                <button
-                    :aria-label="t('header.toggle_sidebar')"
-                    :title="t('header.toggle_sidebar')"
-                    class="text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg p-2 transition-colors"
-                    @click="toggleSidebar"
-                >
-                    <PanelLeft class="h-5 w-5 rtl:scale-x-[-1]" />
-                </button>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <button
+                                :aria-label="t('header.toggle_sidebar')"
+                                class="text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer rounded-lg p-2 transition-colors"
+                                @click="toggleSidebar"
+                            >
+                                <PanelLeft class="h-5 w-5 rtl:scale-x-[-1]" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">{{ t('header.toggle_sidebar') }}</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
 
             <!-- Menu Items -->
@@ -505,6 +562,13 @@ const switchToSelectedAgent = () => {
                 >
                     <Edit class="h-5 w-5" />
                     <span>{{ t('sidebar.new_chat') }}</span>
+                </button>
+                <button
+                    @click="searchDialogOpen = true"
+                    class="text-foreground hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
+                >
+                    <Search class="h-5 w-5" />
+                    <span>{{ t('sidebar.search_chats') }}</span>
                 </button>
             </nav>
 
@@ -675,6 +739,15 @@ const switchToSelectedAgent = () => {
             </div>
         </div>
     </div>
+
+    <!-- Search chats (ChatGPT-style command palette) -->
+    <ChatSearchDialog
+        v-model:open="searchDialogOpen"
+        :conversations="conversations"
+        :search="searchConversations"
+        @select="goToConversation"
+        @new-chat="newConversation"
+    />
 
     <!-- Delete Conversation Confirmation Dialog -->
     <AlertDialog v-model:open="deleteDialogOpen">

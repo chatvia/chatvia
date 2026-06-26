@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('workspace_id');
             $table->timestamp('started_at');
             $table->timestamp('ended_at')->nullable();
-            // First user/assistant turn, upserted by RecordMessageSentAction; feeds avg first-response.
+
             $table->timestamp('first_user_at')->nullable();
             $table->timestamp('first_assistant_at')->nullable();
             $table->unsignedInteger('message_count')->default(0);

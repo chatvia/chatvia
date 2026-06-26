@@ -13,9 +13,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignIdFor(Agent::class)->unique()->constrained()->cascadeOnDelete();
-            // Ordered list of conversation starters, each `{ text, icon }` where
-            // `icon` is an optional Heroicons (outline) export name, e.g.
-            // `ChatBubbleLeftRightIcon`, or null for a text-only chip.
+
             $table->jsonb('starters');
             $table->timestamps();
         });

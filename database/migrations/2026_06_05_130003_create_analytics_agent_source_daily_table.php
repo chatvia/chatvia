@@ -20,9 +20,7 @@ return new class extends Migration
             $table->string('sourceable_type', 64);
             $table->unsignedBigInteger('sourceable_id');
             $table->unsignedInteger('retrieval_count')->default(0);
-            // Display label + mime captured at retrieval time (refreshed on each
-            // retrieval) so insights survive source deletion — the rollup has no
-            // FK to the source tables, which may live on a separate database.
+
             $table->string('source_name')->nullable();
             $table->string('source_mime')->nullable();
 

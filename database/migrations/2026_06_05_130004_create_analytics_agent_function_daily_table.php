@@ -19,9 +19,7 @@ return new class extends Migration
             $table->date('bucket_day');
             $table->unsignedBigInteger('function_id');
             $table->unsignedInteger('invocation_count')->default(0);
-            // Denormalised label captured at invocation time (refreshed each
-            // call) so usage insights survive function deletion — no FK to the
-            // functions table, which may live on a separate database.
+
             $table->string('function_name')->nullable();
             $table->text('function_description')->nullable();
 

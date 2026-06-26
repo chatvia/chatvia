@@ -5,6 +5,7 @@ namespace Domain\Conversation\Models;
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\MessageQueryBuilder;
 use Domain\Form\Models\FormSubmission;
+use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -27,6 +28,7 @@ use Support\Concerns\HasExternalId;
  * @property int $message_credits
  * @property string|null $source
  * @property string|null $content
+ * @property string|null $content_bm25
  * @property array<array-key, mixed>|null $metadata
  * @property string $role
  * @property float|null $confidence_score
@@ -115,7 +117,6 @@ class Message extends Model
     protected function casts(): array
     {
         return [
-            'content' => 'encrypted',
             'confidence_score' => 'float',
             'metadata' => 'array',
             'read_at' => 'datetime',
@@ -141,6 +142,27 @@ class Message extends Model
      */
     protected static function booted(): void
     {
+        // Keep the searchable BM25 vector in sync with `content` on every write
+        // path (StoreMessageAction, handoff, factories, updates) — content_bm25
+        // is a pure function of content, so deriving it on the model avoids each
+        // caller having to remember. Tokenized DB-side with the same llmlingua2
+        // model the query side uses (see MessageQueryBuilder::searchContent).
+        static::saving(static function (Message $message): void {
+            if (! $message->isDirty('content')) {
+                return;
+            }
+
+            // setAttribute (not `->content_bm25 =`) so the raw tokenize()
+            // Expression goes through the attributes bag like Chunk's bm25
+            // columns do — the typed property only ever reads back a string.
+            $message->setAttribute(
+                'content_bm25',
+                ($message->content !== null && $message->content !== '')
+                    ? Bm25Tokenizer::expression($message->content)
+                    : null,
+            );
+        });
+
         static::deleting(static function (Message $message): void {
             $message->cascadeAttachmentDeletes();
         });

@@ -13,18 +13,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->unique()->constrained('users')->cascadeOnDelete();
             $table->string('stripe_id')->nullable();
-            // Denormalised current plan key (starter/standard/pro) for admin
-            // and reporting. The synced Cashier subscription (stripe_price on
-            // the `subscriptions` row) is the runtime source of truth; this is
-            // written alongside it by HandleStripeWebhook::grantSubscription().
+
             $table->string('plan')->nullable();
             $table->string('pm_type')->nullable();
             $table->string('pm_last_four', 4)->nullable();
             $table->timestamp('trial_ends_at')->nullable();
 
-            // Mirrors the address Stripe stores on the customer record. Kept
-            // locally so the billing settings page can render it without a
-            // round-trip to Stripe; written by UpdateBillingInformationAction.
             $table->jsonb('billing_address')->nullable();
 
             $table->boolean('auto_recharge_enabled')->default(false);

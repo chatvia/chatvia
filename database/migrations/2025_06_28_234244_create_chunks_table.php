@@ -27,10 +27,6 @@ return new class extends Migration
             $table->unsignedBigInteger('cost_in_micro_cents')->default(0);
             $table->unsignedInteger('tokens');
 
-            // halfvec (fp16), not vector (fp32): embeddings are unit-normalized
-            // API outputs and the reranker re-scores from text, so fp16 loss is
-            // negligible for ANN ranking — at ~4 KB/row saved per vector this
-            // halves the heap + vchordrq index volume of the largest table.
             $table->halfvec('embedding', 1024);
             $table->bm25vector('embedding_bm25');
 
@@ -56,9 +52,6 @@ return new class extends Migration
 
         DB::statement('CREATE INDEX chunks_metadata_gin_idx ON chunks USING GIN (metadata)');
 
-        // Aggressive autoanalyze so the vchordrq prefilter sees fresh
-        // reltuples after ingestion bursts; the threshold floor covers
-        // small/new deployments.
         DB::statement(<<<'SQL'
 ALTER TABLE chunks SET (
     autovacuum_analyze_scale_factor = 0.01,
@@ -77,12 +70,6 @@ SQL);
     {
         $buildThreads = (int) config('chatvia.vector.build_threads', 4);
 
-        // lists=4096 matches the runtime tuning (probes=64 in
-        // config/chatvia.php is calibrated for it; ~4*sqrt(rows) at 1-10M
-        // rows). NOTE: this CREATE runs against an EMPTY table, so the
-        // k-means partitioning is a placeholder — run `vector:reindex` after
-        // the first bulk ingestion (and after each ~10x row growth) to
-        // retrain the centroids on real vectors; it's also scheduled weekly.
         $options = <<<EOT
 residual_quantization = true
 [build.internal]

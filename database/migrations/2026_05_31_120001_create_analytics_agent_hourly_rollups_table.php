@@ -15,9 +15,7 @@ return new class extends Migration
     {
         Schema::connection($this->getConnection())->create('analytics_agent_hourly_rollups', function (Blueprint $table): void {
             $table->unsignedBigInteger('agent_id');
-            // Workspace owner, denormalised from the agent so rollups stay
-            // attributable — and queryable for account-wide stats — even after
-            // the agent is deleted.
+
             $table->unsignedBigInteger('workspace_id');
             $table->timestamp('bucket_hour');
 

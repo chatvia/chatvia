@@ -77,3 +77,13 @@ Schedule::command('app:flush-token-usage-buffer')->everyMinute();
 // unblocked; weekly is a safety net during the growth phase — run it manually
 // after any large bulk ingestion.
 Schedule::command('vector:reindex')->sundays()->at('04:30');
+
+// Off-host database backup: pg_dump (custom/compressed format) streamed to the
+// private Scaleway bucket, keeping the newest 14 (~7 days at this cadence).
+// Every 12 hours, offset from the 03:00–05:00 prune cluster. withoutOverlapping
+// guards against a slow dump colliding with the next run; runInBackground keeps
+// it off the scheduler's critical path.
+Schedule::command('app:backup-database')
+    ->twiceDaily(1, 13)
+    ->withoutOverlapping()
+    ->runInBackground();

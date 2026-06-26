@@ -6,11 +6,13 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Embeddings\EmbedMcpToolsAction;
 use Domain\Conversation\Jobs\EmbedConnectorToolsJob;
 use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
+use Domain\Conversation\Services\Tooling\Routing\ToolHybridSearch;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
+use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
 use Domain\Integration\Mcp\Services\Servers\FormsServer;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -34,7 +36,7 @@ use ReflectionClass;
  *
  *  - GLOBAL builtins (config('mcp.builtin'): charts, account-analytics) also get a
  *    GLOBAL (user_id IS NULL) `mcp_servers` row, so the owner analytics "Ask your
- *    data" chat can route over them ({@see \Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter}).
+ *    data" chat can route over them ({@see BuiltinToolRouter}).
  *  - CAPABILITY connectors ({@see self::CAPABILITY_CONNECTORS}: forms) are per-agent
  *    opt-in and get NO global row — a global Builtin-category row would surface
  *    their tools inside the owner analytics chat (it routes over global rows of
@@ -42,7 +44,7 @@ use ReflectionClass;
  *
  * The per-workspace membership reconcile is the load-bearing part: an agent's tool
  * reachability is gated by its PER-WORKSPACE server's memberships (see
- * {@see \Domain\Conversation\Services\Tooling\Routing\ToolHybridSearch}), so a tool
+ * {@see ToolHybridSearch}), so a tool
  * newly added in code (e.g. `find-forms` joining `render-form`) only reaches
  * already-provisioned workspaces once this runs — the lazy per-workspace HTTP
  * refresh otherwise fires just on first enable / manual Refresh.

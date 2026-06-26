@@ -38,5 +38,7 @@
     id="chatbot-embed-script"
     src="{{ config('chatvia.widget.script_url_embed') }}"
     data-agent-id="{{ config('chatvia.widget.chatvia_widget_id') }}"
-    defer>
+    data-language="{{ app()->currentLocale() }}"
+    defer
+    >
 </script>

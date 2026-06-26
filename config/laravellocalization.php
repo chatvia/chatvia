@@ -33,11 +33,12 @@ return [
     // sticky session that fights the switcher.
     'useAcceptLanguageHeader' => false,
 
-    // The default locale (`en`) has no URL segment: `/` IS the English site, while
-    // every other locale is served under `/{code}` (e.g. `/ar`, `/fr`). Combined
-    // with the `localizationRedirect` middleware, `/en/...` redirects to `/...` so
-    // there is one canonical URL per page (no SEO duplicate content).
-    'hideDefaultLocaleInURL' => true,
+    // Every locale — including the default `en` — has a URL segment: the English
+    // site is served under `/en` (e.g. `/en/pricing`), German under `/de`, and so
+    // on. Combined with the `localizationRedirect` middleware, an un-prefixed URL
+    // like `/` redirects to `/en`, so there is one canonical, locale-explicit URL
+    // per page (no SEO duplicate content).
+    'hideDefaultLocaleInURL' => false,
 
     // Order shown in the language dropdown — mirrors the dashboard switcher
     // (resources/js/i18n `LOCALES`): EU majors, EU/EEA Nordic + Polish, then RTL.

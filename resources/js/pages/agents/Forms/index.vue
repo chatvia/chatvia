@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import AgentLayout from '@/layouts/AgentLayout.vue';
@@ -9,7 +10,7 @@ import type { FormKitSchemaDefinition } from '@formkit/core';
 import { FormKit, FormKitSchema } from '@formkit/vue';
 import { Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
-import { FileText, Plus, Sparkles, Trash2 } from 'lucide-vue-next';
+import { CircleHelp, FileText, Plus, Sparkles, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -363,7 +364,26 @@ function destroy(form: FormDef): void {
                                         {{ t('agents.forms.required') }}
                                     </label>
                                     <label v-if="isLeadBound" class="flex items-center gap-2 text-sm">
-                                        {{ t('agents.forms.maps_to') }}
+                                        <span class="flex items-center gap-1.5">
+                                            {{ t('agents.forms.maps_to') }}
+                                            <Popover>
+                                                <PopoverTrigger as-child>
+                                                    <button
+                                                        type="button"
+                                                        class="text-muted-foreground hover:text-foreground cursor-pointer rounded-full transition-colors"
+                                                        :aria-label="t('agents.forms.maps_to_aria')"
+                                                        @click.prevent
+                                                    >
+                                                        <CircleHelp class="h-3.5 w-3.5" />
+                                                    </button>
+                                                </PopoverTrigger>
+                                                <PopoverContent align="start" class="w-80 text-xs leading-relaxed">
+                                                    <p class="text-foreground font-medium">{{ t('agents.forms.maps_to_help_title') }}</p>
+                                                    <p class="text-muted-foreground mt-1.5">{{ t('agents.forms.maps_to_help_1') }}</p>
+                                                    <p class="text-muted-foreground mt-1.5">{{ t('agents.forms.maps_to_help_2') }}</p>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </span>
                                         <select v-model="field.leadField" class="border-input bg-background h-8 rounded-md border px-2 text-sm">
                                             <option :value="undefined">—</option>
                                             <option v-for="lf in leadFields" :key="lf.key" :value="lf.key">{{ lf.label }}</option>

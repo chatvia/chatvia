@@ -469,7 +469,10 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return Attribute::get(fn () => $this->getCurrentPackage()['id']);
     }
 
-    public const PROFILE_IMAGE_DISK = 'public';
+    // Profile photos are public, small and read-heavy, so they live on the
+    // CDN-backed `assets` disk (served via the pull zone) rather than the
+    // Scaleway origin bucket.
+    public const PROFILE_IMAGE_DISK = 'assets';
 
     public function avatar(): Attribute
     {

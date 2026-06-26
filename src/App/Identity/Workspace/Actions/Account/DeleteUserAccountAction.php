@@ -166,11 +166,12 @@ class DeleteUserAccountAction
 
     /**
      * Wipe each user's entity-first storage tree (`users/{external_id}/…`) on
-     * both buckets: the default disk (knowledge files, audio, websites, text,
-     * chunk images) and the public disk (chat attachments, profile photos). The
-     * FK cascade drops the rows without firing the per-file Eloquent observers,
-     * so without this the objects would leak. Best-effort — a teardown must not
-     * fail because remote storage is briefly unreachable.
+     * every bucket: the default disk (knowledge files, audio, websites, text,
+     * chunk images), the public disk (chat attachments), and the assets disk
+     * (profile photos + widget brand assets). The FK cascade drops the rows
+     * without firing the per-file Eloquent observers, so without this the
+     * objects would leak. Best-effort — a teardown must not fail because remote
+     * storage is briefly unreachable.
      *
      * @param  array<int, string>  $externalIds
      */
@@ -180,6 +181,7 @@ class DeleteUserAccountAction
             try {
                 Storage::deleteDirectory('users/'.$externalId);
                 Storage::disk('public')->deleteDirectory('users/'.$externalId);
+                Storage::disk('assets')->deleteDirectory('users/'.$externalId);
             } catch (Throwable $e) {
                 Log::warning('Account deletion: failed to wipe workspace storage tree.', [
                     'external_id' => $externalId,

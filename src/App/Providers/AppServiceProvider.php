@@ -431,16 +431,17 @@ class AppServiceProvider extends ServiceProvider
 
     private function registerBunnyCdnDriver(): void
     {
-        Storage::extend('bunnycdn', function ($app, $config) {
-            $bunnyConfig = config('filesystems.disks.bunnycdn');
-
+        Storage::extend('bunnycdn', function ($app, array $config) {
+            // Build from the per-disk $config Laravel passes, so any disk using
+            // the bunnycdn driver (e.g. the semantic 'assets' disk) resolves to
+            // its own storage/pull zone rather than a hardcoded one.
             $adapter = new BunnyCDNAdapter(
                 new BunnyCDNClient(
-                    $bunnyConfig['storage_zone'],
-                    $bunnyConfig['api_key'],
-                    $bunnyConfig['region'],
+                    $config['storage_zone'],
+                    $config['api_key'],
+                    $config['region'],
                 ),
-                $bunnyConfig['pull_zone'],
+                $config['pull_zone'],
             );
 
             return new FilesystemAdapter(

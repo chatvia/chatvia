@@ -80,7 +80,15 @@
         "loading_agents": "エージェントを読み込み中…",
         "no_agents": "エージェントが見つかりません。",
         "switching_agent": "切り替え中…",
-        "switch_to_agent": "{name} に切り替え"
+        "switch_to_agent": "{name} に切り替え",
+        "search_chats": "チャットを検索",
+        "search_placeholder": "チャットを検索...",
+        "search_no_results": "チャットが見つかりません",
+        "search_group_today": "今日",
+        "search_group_yesterday": "昨日",
+        "search_group_previous_7_days": "過去7日間",
+        "search_group_previous_30_days": "過去30日間",
+        "search_group_older": "それ以前"
     },
     "chat": {
         "message_limit_reached": "メッセージの上限に達しました",
@@ -93,7 +101,8 @@
             "submit_failed": "問題が発生しました。もう一度お試しください。",
             "expired": "このフォームは有効期限が切れています。",
             "unavailable": "このフォームはここでは送信できません。"
-        }
+        },
+        "conversation_gone": "この会話はすでに存在しません。"
     },
     "messages": {
         "send": "送信",
@@ -279,7 +288,11 @@
                     "api_settings_path": "ユースケース → カスタマイズ → Messenger API 設定",
                     "app_settings_basic": "アプリ設定 → 基本",
                     "product": "Messenger で顧客とつながる",
-                    "permissions_path": "ユースケース → カスタマイズ → 権限と機能"
+                    "permissions_path": "ユースケース → カスタマイズ → 権限と機能",
+                    "oauth_intro": "Facebook ページを接続すると、このエージェントが Messenger の会話に返信できるようになります。Facebook でサインインし、使用するページを選択してください。",
+                    "connect_facebook": "Facebook で接続",
+                    "pick_title": "Facebook ページを選択",
+                    "pick_button": "このページを接続"
                 },
                 "whatsapp": {
                     "steps": {
@@ -290,7 +303,12 @@
                     },
                     "configuration_path": "WhatsApp → 設定",
                     "use_case": "WhatsApp で顧客とつながる",
-                    "basic_setup_path": "ユースケース → カスタマイズ → 基本設定"
+                    "basic_setup_path": "ユースケース → カスタマイズ → 基本設定",
+                    "oauth_intro": "WhatsApp Business の電話番号を接続すると、このエージェントが WhatsApp のメッセージに返信できるようになります。Facebook でサインインすれば、ワンステップで設定できます。",
+                    "connect_facebook": "Facebook で接続",
+                    "not_configured": "この Chatvia インスタンスでは WhatsApp がまだ設定されていません。サポートにお問い合わせください。",
+                    "finish_number": "ポップアップで WhatsApp Business Account に電話番号を追加してから、もう一度お試しください。",
+                    "connect_failed": "Facebook から WhatsApp アカウントを読み取れませんでした。もう一度接続してください。"
                 },
                 "msteams": {
                     "app_id_label": "アプリ {id}",
@@ -321,7 +339,11 @@
                     "webhooks_path": "Instagram → Instagram ログインによる API setup → Webhook を設定",
                     "message_controls_path": "設定 → メッセージとストーリーへの返信 → メッセージコントロール → 連携済みツール",
                     "api_setup_path": "Instagram → Instagram ログインによる API setup",
-                    "product": "Instagram"
+                    "product": "Instagram",
+                    "oauth_intro": "Instagram のプロアカウントを接続すると、このエージェントが DMs に返信できるようになります。Facebook でサインインし、使用するアカウントを選択してください。",
+                    "connect_facebook": "Facebook で接続",
+                    "pick_title": "Instagram アカウントを選択",
+                    "pick_button": "このアカウントを接続"
                 }
             },
             "security": "セキュリティ",
@@ -757,7 +779,8 @@
                     "pass_rate": "合格率",
                     "passed_failed": "合格 / 不合格",
                     "avg_score": "平均スコア",
-                    "when": "日時"
+                    "when": "日時",
+                    "actor": "アクター"
                 },
                 "status_active": "有効",
                 "status_inactive": "無効",
@@ -789,7 +812,12 @@
                     "expected_answer": "期待される回答",
                     "reference_answer": "参照回答 (任意)",
                     "active_label": "有効 (実行に含める)",
-                    "save": "保存"
+                    "save": "保存",
+                    "expected_tool": "想定されるツール",
+                    "expected_tool_placeholder": "例：send_email",
+                    "expected_tool_hint": "エージェントが呼び出すべきツールです。評価ではエージェントの選択をチェックするだけで、ツールを実行することはありません。MCP ツールの場合は、フルネーム（mcp__slack__send_message）またはツール自体の名前を使用してください。",
+                    "expected_arguments": "想定される引数（任意）",
+                    "expected_arguments_hint": "呼び出しに含まれている必要がある引数を表す JSON オブジェクトです。余分な引数は無視されます。空欄のままにすると、ツール名のみをチェックします。"
                 },
                 "knowledge_dialog": {
                     "title": "ナレッジからケースを追加",
@@ -828,6 +856,10 @@
                     "llm_judge": {
                         "label": "AI 審査員",
                         "help": "オープンウェイトのモデルがあなたの基準に対して回答を採点します。"
+                    },
+                    "tool_call": {
+                        "label": "ツール呼び出し",
+                        "help": "エージェントが想定どおりのツールを呼び出すかをチェックします。実際には実行しません。"
                     }
                 },
                 "toasts": {
@@ -847,7 +879,8 @@
                 "regex": "正規表現",
                 "exact": "完全一致",
                 "json_schema": "JSON スキーマ",
-                "llm_judge": "LLM 審査員"
+                "llm_judge": "LLM 審査員",
+                "tool_call": "ツール呼び出し"
             }
         },
         "identity_verification": {
@@ -1597,7 +1630,9 @@
             "deploy": "デプロイ",
             "deploy_tooltip": "エージェントを埋め込む — チャットウィジェット、ホスト型チャット、コマンドバー",
             "capabilities": "能力",
-            "capabilities_tooltip": "高度な機能をチャットに追加 — インタラクティブなチャートなど"
+            "capabilities_tooltip": "高度な機能をチャットに追加 — インタラクティブなチャートなど",
+            "forms": "フォーム",
+            "forms_tooltip": "エージェントがチャットに表示するフォームを作成"
         },
         "create_modal": {
             "title": "エージェントを作成",
@@ -1727,7 +1762,8 @@
                 "code_copied": "コードをクリップボードにコピーしました！",
                 "code_copy_error": "コードのコピーに失敗しました。もう一度お試しください。",
                 "privacy_saved": "プライバシーポリシーのリンクを保存しました",
-                "privacy_error": "プライバシーポリシーのリンクを保存できませんでした"
+                "privacy_error": "プライバシーポリシーのリンクを保存できませんでした",
+                "branding_saved": "ブランディングを更新しました"
             },
             "settings": {
                 "composer_title": "入力欄のオプション",
@@ -1966,7 +2002,9 @@
                 "models_location_cn": "🇨🇳 中国",
                 "appearance_privacy_url": "プライバシーポリシーのURL",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
-                "appearance_privacy_url_hint": "訪問者には「チャットすることで、プライバシーポリシーに同意したものとみなされます。」と表示されます。非表示にするには空欄のままにします。"
+                "appearance_privacy_url_hint": "訪問者には「チャットすることで、プライバシーポリシーに同意したものとみなされます。」と表示されます。非表示にするには空欄のままにします。",
+                "branding_badge": "「Powered by Chatvia」バッジを表示",
+                "branding_badge_hint": "このエージェントのチャットとウィジェットに Chatvia バッジを表示します。"
             }
         },
         "team": {
@@ -2175,7 +2213,13 @@
             "save": "保存",
             "sites_saved": "許可サイトを更新しました",
             "sites_error": "保存できませんでした — もう一度お試しください",
-            "api_docs": "JavaScript API"
+            "api_docs": "JavaScript API",
+            "enabled": "有効",
+            "disabled": "無効",
+            "toggle_surface": "この画面を有効または無効にする",
+            "surface_enabled": "画面を有効にしました",
+            "surface_disabled": "画面を無効にしました — アクセスできなくなります",
+            "surface_error": "更新できませんでした — もう一度お試しください"
         },
         "chatters": {
             "title": "チャッター",
@@ -2251,6 +2295,61 @@
             "empty": "利用できる能力はまだありません。",
             "enable_failed": "この能力を有効にできませんでした",
             "disable_failed": "この能力を無効にできませんでした"
+        },
+        "forms": {
+            "page_title": "フォーム",
+            "title": "フォーム",
+            "description": "このフォームを表示するタイミング",
+            "new": "新しいフォーム",
+            "empty": "フォームはまだありません。作成して始めましょう。",
+            "fields": "項目",
+            "inactive": "無効",
+            "edit": "編集",
+            "type_lead": "リード獲得",
+            "type_qualification": "適格性評価",
+            "type_booking": "予約",
+            "type_generic": "汎用",
+            "edit_form": "フォームを編集",
+            "new_form": "新しいフォーム",
+            "form_name": "フォーム名",
+            "form_name_placeholder": "例：見積もりを取得",
+            "form_type": "フォームの種類",
+            "add_field": "項目を追加",
+            "field_label": "項目ラベル",
+            "required": "必須",
+            "maps_to": "マッピング先",
+            "options_placeholder": "1行に1つの選択肢を入力。値とラベルを分ける場合は value|label を使用します。",
+            "success_message": "完了メッセージ",
+            "success_placeholder": "訪問者が送信した後に表示されます。",
+            "active": "有効",
+            "save": "保存",
+            "cancel": "キャンセル",
+            "preview": "プレビュー",
+            "name_required": "フォーム名を入力してください。",
+            "saved": "フォームを保存しました",
+            "save_failed": "フォームを保存できませんでした",
+            "deleted": "フォームを削除しました",
+            "submissions": "送信内容",
+            "description_placeholder": "例：訪問者が見積もり、デモ、または連絡を希望したときに表示",
+            "description_hint": "エージェントはこれをもとに、会話中にこのフォームを表示するタイミングを判断します。",
+            "rewrite": "AI で書き換える",
+            "rewriting": "書き換え中…",
+            "rewrite_done": "説明を書き換えました",
+            "rewrite_failed": "説明を書き換えられませんでした",
+            "maps_to_aria": "「マッピング先」とは？",
+            "maps_to_help_title": "連絡先フィールドへのマッピング",
+            "maps_to_help_1": "この項目を、名前・メール・電話番号などの標準的な連絡先属性としてタグ付けします。これにより、訪問者が入力した値は単なる匿名の回答ではなく、その連絡先情報として認識されます。",
+            "maps_to_help_2": "マッピングされた項目はリードの詳細情報を埋め、リード一覧、重複検出、CSV エクスポートを支えます。タグ付けせずに回答だけを取得したい場合は「—」のままにしてください。"
+        },
+        "submissions": {
+            "page_title": "送信内容",
+            "back_to_forms": "フォームに戻る",
+            "count": "{n} 件の送信",
+            "export": "CSV をエクスポート",
+            "search": "送信内容を検索",
+            "empty": "送信内容はまだありません。",
+            "submitted_at": "送信日時",
+            "deleted": "送信内容を削除しました"
         }
     },
     "auth": {
@@ -3181,6 +3280,10 @@
                 "governance": {
                     "label": "ガバナンス",
                     "description": "エージェントがツールやコネクタを通じて行うすべての操作を監査・制御します。"
+                },
+                "channels": {
+                    "label": "チャネル",
+                    "description": "エージェントをメッセージングアプリに接続します。"
                 }
             },
             "codes": {
@@ -3335,6 +3438,10 @@
                 "account_governance": {
                     "label": "ガバナンス",
                     "description": "ツール呼び出し監査ログとアクセス制御を表示します"
+                },
+                "agent_channels": {
+                    "label": "チャネルを管理",
+                    "description": "メッセージングチャネル（Telegram、Slack、Messenger、WhatsApp、Microsoft Teams、Instagram）を接続・切断します"
                 }
             }
         }

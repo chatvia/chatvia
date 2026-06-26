@@ -1,0 +1,29 @@
+{
+    "sidebar": {
+        "search_chats": "البحث في المحادثات",
+        "search_placeholder": "البحث في المحادثات...",
+        "search_no_results": "لا توجد محادثات",
+        "search_group_today": "اليوم",
+        "search_group_yesterday": "الأمس",
+        "search_group_previous_7_days": "آخر 7 أيام",
+        "search_group_previous_30_days": "آخر 30 يوماً",
+        "search_group_older": "أقدم"
+    },
+    "agents": {
+        "setup": {
+            "toasts": {
+                "branding_saved": "تم تحديث العلامة التجارية"
+            },
+            "sections": {
+                "branding_badge": "إظهار شارة \"Powered by Chatvia\"",
+                "branding_badge_hint": "اعرض شارة Chatvia على دردشة هذا الوكيل وأداته."
+            }
+        },
+        "forms": {
+            "maps_to_aria": "ماذا يعني ”التعيين إلى“؟",
+            "maps_to_help_title": "التعيين إلى حقل جهة اتصال",
+            "maps_to_help_1": "يضع علامة على هذا الحقل كسمة قياسية لجهة الاتصال — الاسم والبريد الإلكتروني والهاتف وما إلى ذلك. عندئذٍ يُعرف القيمة التي يُدخلها الزائر على أنها معلومة الاتصال تلك، لا مجرد إجابة مجهولة.",
+            "maps_to_help_2": "تملأ الحقول المعيَّنة بيانات العميل المحتمل — مما يشغّل قائمة العملاء المحتملين وكشف التكرار والتصدير إلى CSV. اتركه على ”—“ لالتقاط الإجابة دون وضع علامة عليها."
+        }
+    }
+}

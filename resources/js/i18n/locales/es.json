@@ -80,7 +80,15 @@
         "loading_agents": "Cargando agentes...",
         "no_agents": "No se encontraron agentes.",
         "switching_agent": "Cambiando...",
-        "switch_to_agent": "Cambiar a {name}"
+        "switch_to_agent": "Cambiar a {name}",
+        "search_chats": "Buscar chats",
+        "search_placeholder": "Buscar chats...",
+        "search_no_results": "No se encontraron chats",
+        "search_group_today": "Hoy",
+        "search_group_yesterday": "Ayer",
+        "search_group_previous_7_days": "Últimos 7 días",
+        "search_group_previous_30_days": "Últimos 30 días",
+        "search_group_older": "Más antiguos"
     },
     "chat": {
         "message_limit_reached": "Alcanzaste el límite de mensajes",
@@ -93,7 +101,8 @@
             "submit_failed": "Algo salió mal. Inténtalo de nuevo.",
             "expired": "Este formulario ha caducado.",
             "unavailable": "Este formulario no se puede enviar aquí."
-        }
+        },
+        "conversation_gone": "Esta conversación ya no existe."
     },
     "messages": {
         "send": "Enviar",
@@ -279,7 +288,11 @@
                     "api_settings_path": "Messenger → Configuración de API",
                     "app_settings_basic": "Configuración de la app → Básico",
                     "product": "Messenger",
-                    "permissions_path": "Casos de uso → Personalizar → Permisos y funciones"
+                    "permissions_path": "Casos de uso → Personalizar → Permisos y funciones",
+                    "oauth_intro": "Conecta una página de Facebook para que este agente pueda responder a las conversaciones de Messenger: inicia sesión con Facebook y luego elige qué página usar.",
+                    "connect_facebook": "Conectar con Facebook",
+                    "pick_title": "Elige una página de Facebook",
+                    "pick_button": "Conectar esta página"
                 },
                 "whatsapp": {
                     "steps": {
@@ -290,7 +303,12 @@
                     },
                     "configuration_path": "WhatsApp → Configuración",
                     "use_case": "Conéctate con clientes a través de WhatsApp",
-                    "basic_setup_path": "Casos de uso → Personalizar → Configuración básica"
+                    "basic_setup_path": "Casos de uso → Personalizar → Configuración básica",
+                    "oauth_intro": "Conecta tu número de WhatsApp Business para que este agente pueda responder a los mensajes de WhatsApp: inicia sesión con Facebook y configúralo en un solo paso.",
+                    "connect_facebook": "Conectar con Facebook",
+                    "not_configured": "WhatsApp aún no está configurado en esta instancia de Chatvia. Por favor, contacta con soporte.",
+                    "finish_number": "Añade un número de teléfono a tu WhatsApp Business Account en la ventana emergente y vuelve a intentarlo.",
+                    "connect_failed": "No pudimos leer tu cuenta de WhatsApp desde Facebook. Por favor, intenta conectar de nuevo."
                 },
                 "msteams": {
                     "app_id_label": "App {id}",
@@ -321,7 +339,11 @@
                     "webhooks_path": "Instagram → Configuración de API con inicio de sesión de Instagram → Configurar webhooks",
                     "message_controls_path": "Configuración → Mensajes y respuestas a historias → Controles de mensajes → Herramientas conectadas",
                     "api_setup_path": "Instagram → Configuración de API con inicio de sesión de Instagram",
-                    "product": "Instagram"
+                    "product": "Instagram",
+                    "oauth_intro": "Conecta una cuenta profesional de Instagram para que este agente pueda responder a los DMs: inicia sesión con Facebook y luego elige qué cuenta usar.",
+                    "connect_facebook": "Conectar con Facebook",
+                    "pick_title": "Elige una cuenta de Instagram",
+                    "pick_button": "Conectar esta cuenta"
                 }
             },
             "security": "Seguridad",
@@ -757,7 +779,8 @@
                     "pass_rate": "Tasa de aprobación",
                     "passed_failed": "Aprobados / Fallidos",
                     "avg_score": "Puntuación promedio",
-                    "when": "Cuándo"
+                    "when": "Cuándo",
+                    "actor": "Actor"
                 },
                 "status_active": "Activo",
                 "status_inactive": "Inactivo",
@@ -789,7 +812,12 @@
                     "expected_answer": "Respuesta esperada",
                     "reference_answer": "Respuesta de referencia (opcional)",
                     "active_label": "Activo (incluido en las ejecuciones)",
-                    "save": "Guardar"
+                    "save": "Guardar",
+                    "expected_tool": "Herramienta esperada",
+                    "expected_tool_placeholder": "p. ej. send_email",
+                    "expected_tool_hint": "La herramienta que el agente debería invocar. La evaluación comprueba la elección del agente, pero nunca ejecuta la herramienta. Para una herramienta MCP, usa el nombre completo (mcp__slack__send_message) o solo el nombre propio de la herramienta.",
+                    "expected_arguments": "Argumentos esperados (opcional)",
+                    "expected_arguments_hint": "Un objeto JSON con los argumentos que la llamada debe incluir. Los argumentos adicionales se ignoran. Déjalo vacío para comprobar solo el nombre de la herramienta."
                 },
                 "knowledge_dialog": {
                     "title": "Agregar casos desde la base de conocimiento",
@@ -828,6 +856,10 @@
                     "llm_judge": {
                         "label": "Juez de IA",
                         "help": "Un modelo de código abierto califica la respuesta según tus criterios."
+                    },
+                    "tool_call": {
+                        "label": "Llamada a herramienta",
+                        "help": "Comprueba que el agente invoca la herramienta esperada, sin ejecutarla."
                     }
                 },
                 "toasts": {
@@ -847,7 +879,8 @@
                 "regex": "Regex",
                 "exact": "Coincidencia exacta",
                 "json_schema": "JSON schema",
-                "llm_judge": "LLM judge"
+                "llm_judge": "LLM judge",
+                "tool_call": "Llamada a herramienta"
             }
         },
         "identity_verification": {
@@ -1597,7 +1630,9 @@
             "deploy": "Desplegar",
             "deploy_tooltip": "Integra tu agente: widget de chat, chat alojado o barra de comandos",
             "capabilities": "Capacidades",
-            "capabilities_tooltip": "Añade funciones avanzadas al chat — como gráficos interactivos"
+            "capabilities_tooltip": "Añade funciones avanzadas al chat — como gráficos interactivos",
+            "forms": "Formularios",
+            "forms_tooltip": "Crea formularios que tu agente muestra en el chat"
         },
         "create_modal": {
             "title": "Crear agente",
@@ -1727,7 +1762,8 @@
                 "code_copied": "¡Código copiado al portapapeles!",
                 "code_copy_error": "Error al copiar el código. Inténtalo de nuevo.",
                 "privacy_saved": "Enlace de la política de privacidad guardado",
-                "privacy_error": "No se pudo guardar el enlace de la política de privacidad"
+                "privacy_error": "No se pudo guardar el enlace de la política de privacidad",
+                "branding_saved": "Marca actualizada"
             },
             "settings": {
                 "composer_title": "Opciones del compositor",
@@ -1966,7 +2002,9 @@
                 "models_location_cn": "🇨🇳 China",
                 "appearance_privacy_url": "URL de la política de privacidad",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
-                "appearance_privacy_url_hint": "Se muestra a los visitantes como “Al chatear, aceptas nuestra política de privacidad.” Déjalo vacío para ocultarlo."
+                "appearance_privacy_url_hint": "Se muestra a los visitantes como “Al chatear, aceptas nuestra política de privacidad.” Déjalo vacío para ocultarlo.",
+                "branding_badge": "Mostrar la insignia \"Powered by Chatvia\"",
+                "branding_badge_hint": "Muestra la insignia de Chatvia en el chat y el widget de este agente."
             }
         },
         "team": {
@@ -2175,7 +2213,13 @@
             "save": "Guardar",
             "sites_saved": "Sitios permitidos actualizados",
             "sites_error": "No se pudo guardar: inténtalo de nuevo",
-            "api_docs": "API de JavaScript"
+            "api_docs": "API de JavaScript",
+            "enabled": "Activada",
+            "disabled": "Desactivada",
+            "toggle_surface": "Activar o desactivar esta superficie",
+            "surface_enabled": "Superficie activada",
+            "surface_disabled": "Superficie desactivada: no será accesible",
+            "surface_error": "No se pudo actualizar. Por favor, inténtalo de nuevo"
         },
         "chatters": {
             "title": "Chatters",
@@ -2251,6 +2295,61 @@
             "empty": "Aún no hay capacidades disponibles.",
             "enable_failed": "No se pudo activar esta capacidad",
             "disable_failed": "No se pudo desactivar esta capacidad"
+        },
+        "forms": {
+            "page_title": "Formularios",
+            "title": "Formularios",
+            "description": "Cuándo mostrar este formulario",
+            "new": "Nuevo formulario",
+            "empty": "Aún no hay formularios. Crea uno para empezar.",
+            "fields": "campos",
+            "inactive": "Inactivo",
+            "edit": "Editar",
+            "type_lead": "Captura de leads",
+            "type_qualification": "Calificación",
+            "type_booking": "Reserva",
+            "type_generic": "Genérico",
+            "edit_form": "Editar formulario",
+            "new_form": "Nuevo formulario",
+            "form_name": "Nombre del formulario",
+            "form_name_placeholder": "p. ej. Solicitar un presupuesto",
+            "form_type": "Tipo de formulario",
+            "add_field": "Añadir campo",
+            "field_label": "Etiqueta del campo",
+            "required": "Obligatorio",
+            "maps_to": "Asignar a",
+            "options_placeholder": "Una opción por línea. Usa valor|etiqueta para separar valores y etiquetas.",
+            "success_message": "Mensaje de éxito",
+            "success_placeholder": "Se muestra después de que el visitante envía el formulario.",
+            "active": "Activo",
+            "save": "Guardar",
+            "cancel": "Cancelar",
+            "preview": "Vista previa",
+            "name_required": "Por favor, dale un nombre al formulario.",
+            "saved": "Formulario guardado",
+            "save_failed": "No se pudo guardar el formulario",
+            "deleted": "Formulario eliminado",
+            "submissions": "Envíos",
+            "description_placeholder": "p. ej. Mostrar cuando el visitante quiera un presupuesto, una demostración o que lo contacten",
+            "description_hint": "El agente usa esto para decidir cuándo mostrar este formulario en una conversación.",
+            "rewrite": "Reescribir con IA",
+            "rewriting": "Reescribiendo…",
+            "rewrite_done": "Descripción reescrita",
+            "rewrite_failed": "No se pudo reescribir la descripción",
+            "maps_to_aria": "¿Qué significa «Asignar a»?",
+            "maps_to_help_title": "Asignar a un campo de contacto",
+            "maps_to_help_1": "Etiqueta este campo como un atributo de contacto estándar: nombre, correo electrónico, teléfono, etc. El valor que introduce el visitante se reconoce entonces como ese dato de contacto, no como una simple respuesta anónima.",
+            "maps_to_help_2": "Los campos asignados completan los datos del lead, lo que alimenta la lista de leads, la detección de duplicados y la exportación a CSV. Déjalo como «—» para capturar la respuesta sin etiquetarla."
+        },
+        "submissions": {
+            "page_title": "Envíos",
+            "back_to_forms": "Volver a formularios",
+            "count": "{n} envíos",
+            "export": "Exportar CSV",
+            "search": "Buscar envíos",
+            "empty": "Aún no hay envíos.",
+            "submitted_at": "Enviado",
+            "deleted": "Envío eliminado"
         }
     },
     "auth": {
@@ -3181,6 +3280,10 @@
                 "governance": {
                     "label": "Gobernanza",
                     "description": "Auditar y controlar cada acción que tus agentes realizan mediante herramientas y conectores."
+                },
+                "channels": {
+                    "label": "Canales",
+                    "description": "Conecta el agente a aplicaciones de mensajería."
                 }
             },
             "codes": {
@@ -3335,6 +3438,10 @@
                 "account_governance": {
                     "label": "Gobernanza",
                     "description": "Ver el registro de auditoría de llamadas a herramientas y los controles de acceso"
+                },
+                "agent_channels": {
+                    "label": "Gestionar canales",
+                    "description": "Conecta y desconecta canales de mensajería (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
                 }
             }
         }

@@ -413,18 +413,32 @@ const savePrivacyUrl = () => {
         onFinish: () => (isSavingPrivacy.value = false),
     });
 };
-const uploadImage = (key: 'avatar' | 'logo', file: File) => {
-    const upload = useForm({ [key]: file });
-    upload.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
-        preserveScroll: true,
-        forceFormData: true,
-        onSuccess: () => {
-            toast.success(key === 'avatar' ? t('agents.setup.toasts.avatar_updated') : t('agents.setup.toasts.logo_updated'));
-            router.reload({ only: ['appearanceSettings'] });
-            bumpPreview();
-        },
-        onError: () => toast.error(t('agents.setup.toasts.upload_error', { key })),
-    });
+const uploadImage = async (key: 'avatar' | 'logo', file: File) => {
+    // The settings endpoint returns no Inertia response, so a `useForm().post()`
+    // never fires `onSuccess` — mirror `removeImage` and drive it with axios.
+    // Show the picked image right away (optimistic), then reconcile to the stored
+    // URL once the upload is saved, so the change reflects without a refresh.
+    const previousPreview = key === 'avatar' ? avatarPreview.value : logoPreview.value;
+    const objectUrl = URL.createObjectURL(file);
+    if (key === 'avatar') avatarPreview.value = objectUrl;
+    else logoPreview.value = objectUrl;
+    bumpPreview();
+
+    const data = new FormData();
+    data.append(key, file);
+    try {
+        await axios.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), data);
+        toast.success(key === 'avatar' ? t('agents.setup.toasts.avatar_updated') : t('agents.setup.toasts.logo_updated'));
+        router.reload({ only: ['appearanceSettings'] });
+        bumpPreview();
+    } catch {
+        // Roll back the optimistic preview if the upload failed.
+        if (key === 'avatar') avatarPreview.value = previousPreview;
+        else logoPreview.value = previousPreview;
+        URL.revokeObjectURL(objectUrl);
+        bumpPreview();
+        toast.error(t('agents.setup.toasts.upload_error', { key }));
+    }
 };
 const removeImage = async (key: 'avatar' | 'logo') => {
     try {

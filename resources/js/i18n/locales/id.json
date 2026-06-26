@@ -80,7 +80,15 @@
         "loading_agents": "Memuat agen…",
         "no_agents": "Tidak ada agen ditemukan.",
         "switching_agent": "Beralih…",
-        "switch_to_agent": "Beralih ke {name}"
+        "switch_to_agent": "Beralih ke {name}",
+        "search_chats": "Cari obrolan",
+        "search_placeholder": "Cari obrolan...",
+        "search_no_results": "Tidak ada obrolan ditemukan",
+        "search_group_today": "Hari ini",
+        "search_group_yesterday": "Kemarin",
+        "search_group_previous_7_days": "7 hari sebelumnya",
+        "search_group_previous_30_days": "30 hari sebelumnya",
+        "search_group_older": "Lebih lama"
     },
     "chat": {
         "message_limit_reached": "Anda telah mencapai batas pesan",
@@ -93,7 +101,8 @@
             "submit_failed": "Terjadi kesalahan. Silakan coba lagi.",
             "expired": "Formulir ini sudah kedaluwarsa.",
             "unavailable": "Formulir ini tidak dapat dikirim di sini."
-        }
+        },
+        "conversation_gone": "Percakapan ini sudah tidak ada lagi."
     },
     "messages": {
         "send": "Kirim",
@@ -279,7 +288,11 @@
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
                     "product": "Engage with customers on Messenger",
-                    "permissions_path": "Use cases → Customize → Permissions and features"
+                    "permissions_path": "Use cases → Customize → Permissions and features",
+                    "oauth_intro": "Hubungkan Halaman Facebook agar agen ini dapat membalas percakapan Messenger — Anda akan masuk dengan Facebook, lalu pilih Halaman yang akan digunakan.",
+                    "connect_facebook": "Hubungkan dengan Facebook",
+                    "pick_title": "Pilih Halaman Facebook",
+                    "pick_button": "Hubungkan Halaman ini"
                 },
                 "whatsapp": {
                     "steps": {
@@ -290,7 +303,12 @@
                     },
                     "configuration_path": "WhatsApp → Configuration",
                     "use_case": "Connect with customers through WhatsApp",
-                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                    "basic_setup_path": "Use cases → Customize → Basic setup",
+                    "oauth_intro": "Hubungkan nomor WhatsApp Business Anda agar agen ini dapat membalas pesan WhatsApp — Anda akan masuk dengan Facebook dan menyiapkannya dalam satu langkah.",
+                    "connect_facebook": "Hubungkan dengan Facebook",
+                    "not_configured": "WhatsApp belum disiapkan pada instansi Chatvia ini. Silakan hubungi dukungan.",
+                    "finish_number": "Tambahkan nomor telepon ke WhatsApp Business Account Anda di popup, lalu coba lagi.",
+                    "connect_failed": "Kami tidak dapat membaca akun WhatsApp Anda dari Facebook. Silakan coba hubungkan lagi."
                 },
                 "msteams": {
                     "app_id_label": "App {id}",
@@ -321,7 +339,11 @@
                     "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
                     "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
                     "api_setup_path": "Instagram → API setup with Instagram login",
-                    "product": "Instagram"
+                    "product": "Instagram",
+                    "oauth_intro": "Hubungkan akun profesional Instagram agar agen ini dapat membalas DMs — Anda akan masuk dengan Facebook, lalu pilih akun yang akan digunakan.",
+                    "connect_facebook": "Hubungkan dengan Facebook",
+                    "pick_title": "Pilih akun Instagram",
+                    "pick_button": "Hubungkan akun ini"
                 }
             },
             "security": "Keamanan",
@@ -757,7 +779,8 @@
                     "pass_rate": "Tingkat kelulusan",
                     "passed_failed": "Lulus / Gagal",
                     "avg_score": "Skor rata-rata",
-                    "when": "Kapan"
+                    "when": "Kapan",
+                    "actor": "Aktor"
                 },
                 "status_active": "Aktif",
                 "status_inactive": "Nonaktif",
@@ -789,7 +812,12 @@
                     "expected_answer": "Jawaban yang diharapkan",
                     "reference_answer": "Jawaban acuan (opsional)",
                     "active_label": "Aktif (disertakan dalam eksekusi)",
-                    "save": "Simpan"
+                    "save": "Simpan",
+                    "expected_tool": "Alat yang diharapkan",
+                    "expected_tool_placeholder": "mis. send_email",
+                    "expected_tool_hint": "Alat yang seharusnya dipanggil oleh agen. Eval memeriksa pilihan agen — tidak pernah menjalankan alat tersebut. Untuk alat MCP, gunakan nama lengkapnya (mcp__slack__send_message) atau cukup nama alat itu sendiri.",
+                    "expected_arguments": "Argumen yang diharapkan (opsional)",
+                    "expected_arguments_hint": "Objek JSON berisi argumen yang harus disertakan dalam pemanggilan. Argumen tambahan akan diabaikan. Biarkan kosong untuk memeriksa hanya nama alat."
                 },
                 "knowledge_dialog": {
                     "title": "Tambah kasus dari pengetahuan",
@@ -828,6 +856,10 @@
                     "llm_judge": {
                         "label": "Juri AI",
                         "help": "Model open-weight menilai jawaban terhadap kriteria Anda."
+                    },
+                    "tool_call": {
+                        "label": "Pemanggilan alat",
+                        "help": "Memeriksa apakah agen memanggil alat yang diharapkan — tanpa menjalankannya."
                     }
                 },
                 "toasts": {
@@ -847,7 +879,8 @@
                 "regex": "Regex",
                 "exact": "Kecocokan persis",
                 "json_schema": "Skema JSON",
-                "llm_judge": "Juri LLM"
+                "llm_judge": "Juri LLM",
+                "tool_call": "Pemanggilan alat"
             }
         },
         "identity_verification": {
@@ -1597,7 +1630,9 @@
             "deploy": "Terapkan",
             "deploy_tooltip": "Sematkan agen Anda — widget obrolan, obrolan terhosting, atau bilah perintah",
             "capabilities": "Kemampuan",
-            "capabilities_tooltip": "Tambahkan fitur canggih ke obrolan — seperti grafik interaktif"
+            "capabilities_tooltip": "Tambahkan fitur canggih ke obrolan — seperti grafik interaktif",
+            "forms": "Formulir",
+            "forms_tooltip": "Buat formulir yang ditampilkan agen Anda di dalam obrolan"
         },
         "create_modal": {
             "title": "Buat Agen",
@@ -1727,7 +1762,8 @@
                 "code_copied": "Kode disalin ke papan klip!",
                 "code_copy_error": "Gagal menyalin kode. Silakan coba lagi.",
                 "privacy_saved": "Tautan kebijakan privasi disimpan",
-                "privacy_error": "Tidak dapat menyimpan tautan kebijakan privasi"
+                "privacy_error": "Tidak dapat menyimpan tautan kebijakan privasi",
+                "branding_saved": "Branding diperbarui"
             },
             "settings": {
                 "composer_title": "Opsi penyusun",
@@ -1966,7 +2002,9 @@
                 "models_location_cn": "🇨🇳 Tiongkok",
                 "appearance_privacy_url": "URL kebijakan privasi",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
-                "appearance_privacy_url_hint": "Ditampilkan kepada pengunjung sebagai “Dengan mengobrol, Anda menyetujui kebijakan privasi kami.” Biarkan kosong untuk menyembunyikan."
+                "appearance_privacy_url_hint": "Ditampilkan kepada pengunjung sebagai “Dengan mengobrol, Anda menyetujui kebijakan privasi kami.” Biarkan kosong untuk menyembunyikan.",
+                "branding_badge": "Tampilkan lencana \"Powered by Chatvia\"",
+                "branding_badge_hint": "Tampilkan lencana Chatvia pada obrolan dan widget agen ini."
             }
         },
         "team": {
@@ -2175,7 +2213,13 @@
             "save": "Simpan",
             "sites_saved": "Situs yang diizinkan diperbarui",
             "sites_error": "Tidak dapat menyimpan — silakan coba lagi",
-            "api_docs": "JavaScript API"
+            "api_docs": "JavaScript API",
+            "enabled": "Aktif",
+            "disabled": "Nonaktif",
+            "toggle_surface": "Aktifkan atau nonaktifkan permukaan ini",
+            "surface_enabled": "Permukaan diaktifkan",
+            "surface_disabled": "Permukaan dinonaktifkan — tidak akan dapat diakses",
+            "surface_error": "Tidak dapat memperbarui — silakan coba lagi"
         },
         "chatters": {
             "title": "Chatter",
@@ -2251,6 +2295,61 @@
             "empty": "Belum ada kemampuan yang tersedia.",
             "enable_failed": "Tidak dapat mengaktifkan kemampuan ini",
             "disable_failed": "Tidak dapat menonaktifkan kemampuan ini"
+        },
+        "forms": {
+            "page_title": "Formulir",
+            "title": "Formulir",
+            "description": "Kapan harus menampilkan formulir ini",
+            "new": "Formulir baru",
+            "empty": "Belum ada formulir. Buat satu untuk memulai.",
+            "fields": "kolom",
+            "inactive": "Nonaktif",
+            "edit": "Edit",
+            "type_lead": "Penangkapan prospek",
+            "type_qualification": "Kualifikasi",
+            "type_booking": "Pemesanan",
+            "type_generic": "Umum",
+            "edit_form": "Edit formulir",
+            "new_form": "Formulir baru",
+            "form_name": "Nama formulir",
+            "form_name_placeholder": "mis. Dapatkan penawaran",
+            "form_type": "Jenis formulir",
+            "add_field": "Tambah kolom",
+            "field_label": "Label kolom",
+            "required": "Wajib diisi",
+            "maps_to": "Dipetakan ke",
+            "options_placeholder": "Satu opsi per baris. Gunakan value|label untuk memisahkan nilai.",
+            "success_message": "Pesan keberhasilan",
+            "success_placeholder": "Ditampilkan setelah pengunjung mengirim.",
+            "active": "Aktif",
+            "save": "Simpan",
+            "cancel": "Batal",
+            "preview": "Pratinjau",
+            "name_required": "Silakan beri nama pada formulir.",
+            "saved": "Formulir disimpan",
+            "save_failed": "Tidak dapat menyimpan formulir",
+            "deleted": "Formulir dihapus",
+            "submissions": "Pengiriman",
+            "description_placeholder": "mis. Tampilkan saat pengunjung ingin penawaran, demo, atau ingin dihubungi",
+            "description_hint": "Agen menggunakan ini untuk menentukan kapan menampilkan formulir ini dalam percakapan.",
+            "rewrite": "Tulis ulang dengan AI",
+            "rewriting": "Menulis ulang…",
+            "rewrite_done": "Deskripsi ditulis ulang",
+            "rewrite_failed": "Tidak dapat menulis ulang deskripsi",
+            "maps_to_aria": "Apa arti “Dipetakan ke”?",
+            "maps_to_help_title": "Dipetakan ke kolom kontak",
+            "maps_to_help_1": "Menandai kolom ini sebagai atribut kontak standar — Nama, Email, Telepon, dan seterusnya. Nilai yang dimasukkan pengunjung kemudian dikenali sebagai informasi kontak tersebut, bukan sekadar jawaban anonim.",
+            "maps_to_help_2": "Kolom yang dipetakan mengisi detail prospek — menggerakkan daftar prospek, deteksi duplikat, dan ekspor CSV. Biarkan sebagai “—” untuk menangkap jawaban tanpa menandainya."
+        },
+        "submissions": {
+            "page_title": "Pengiriman",
+            "back_to_forms": "Kembali ke formulir",
+            "count": "{n} pengiriman",
+            "export": "Ekspor CSV",
+            "search": "Cari pengiriman",
+            "empty": "Belum ada pengiriman.",
+            "submitted_at": "Dikirim",
+            "deleted": "Pengiriman dihapus"
         }
     },
     "auth": {
@@ -3181,6 +3280,10 @@
                 "governance": {
                     "label": "Tata Kelola",
                     "description": "Audit dan kendalikan setiap tindakan yang dilakukan agen Anda melalui alat dan konektor."
+                },
+                "channels": {
+                    "label": "Saluran",
+                    "description": "Hubungkan agen ke aplikasi perpesanan."
                 }
             },
             "codes": {
@@ -3335,6 +3438,10 @@
                 "account_governance": {
                     "label": "Tata Kelola",
                     "description": "Lihat log audit panggilan alat dan kontrol akses"
+                },
+                "agent_channels": {
+                    "label": "Kelola saluran",
+                    "description": "Hubungkan dan putuskan saluran perpesanan (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
                 }
             }
         }

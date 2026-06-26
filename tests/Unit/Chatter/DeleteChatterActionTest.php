@@ -13,9 +13,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
-    // Chatter deletion wipes the avatar tree on the public bucket; fake it so
-    // the assertions stay hermetic and never hit real S3.
+    // Chatter deletion wipes the avatar tree on the assets disk and attachment
+    // files on the public bucket; fake both so the assertions stay hermetic and
+    // never hit real S3 / CDN storage.
     Storage::fake('public');
+    Storage::fake('assets');
 });
 
 it('hard-deletes the chatter row', function (): void {
@@ -115,14 +117,14 @@ it('wipes the deleted chatter profile photo on S3', function (): void {
     $chatter = User::factory()->chatter($workspace)->create();
 
     $photoPath = 'users/'.$chatter->external_id.'/profile-photos/avatar.jpg';
-    Storage::disk('public')->put($photoPath, 'img');
+    Storage::disk('assets')->put($photoPath, 'img');
     $chatter->update(['profile_image_path' => $photoPath]);
 
-    Storage::disk('public')->assertExists($photoPath);
+    Storage::disk('assets')->assertExists($photoPath);
 
     app(DeleteChatterAction::class)->execute($chatter);
 
-    Storage::disk('public')->assertMissing($photoPath);
+    Storage::disk('assets')->assertMissing($photoPath);
 });
 
 it('deletes leads captured from the chatter conversations and leaves other chatters leads intact', function (): void {

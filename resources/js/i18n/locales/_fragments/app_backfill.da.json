@@ -1,0 +1,155 @@
+{
+    "sidebar": {
+        "search_chats": "Søg i chats",
+        "search_placeholder": "Søg i chats...",
+        "search_no_results": "Ingen chats fundet",
+        "search_group_today": "I dag",
+        "search_group_yesterday": "I går",
+        "search_group_previous_7_days": "Seneste 7 dage",
+        "search_group_previous_30_days": "Seneste 30 dage",
+        "search_group_older": "Ældre"
+    },
+    "chat": {
+        "conversation_gone": "Denne samtale findes ikke længere."
+    },
+    "agents": {
+        "channels": {
+            "setup": {
+                "messenger": {
+                    "oauth_intro": "Tilslut en Facebook-side, så denne agent kan svare på Messenger-samtaler – du logger ind med Facebook og vælger derefter, hvilken side der skal bruges.",
+                    "connect_facebook": "Tilslut med Facebook",
+                    "pick_title": "Vælg en Facebook-side",
+                    "pick_button": "Tilslut denne side"
+                },
+                "whatsapp": {
+                    "oauth_intro": "Tilslut dit WhatsApp Business-nummer, så denne agent kan svare på WhatsApp-beskeder – du logger ind med Facebook og sætter det op i ét trin.",
+                    "connect_facebook": "Tilslut med Facebook",
+                    "not_configured": "WhatsApp er ikke sat op på denne Chatvia-instans endnu. Kontakt venligst support.",
+                    "finish_number": "Tilføj et telefonnummer til din WhatsApp Business Account i popup-vinduet, og prøv derefter igen.",
+                    "connect_failed": "Vi kunne ikke læse din WhatsApp-konto fra Facebook. Prøv venligst at tilslutte igen."
+                },
+                "instagram": {
+                    "oauth_intro": "Tilslut en professionel Instagram-konto, så denne agent kan svare på DMs – du logger ind med Facebook og vælger derefter, hvilken konto der skal bruges.",
+                    "connect_facebook": "Tilslut med Facebook",
+                    "pick_title": "Vælg en Instagram-konto",
+                    "pick_button": "Tilslut denne konto"
+                }
+            }
+        },
+        "evals": {
+            "index": {
+                "table": {
+                    "actor": "Aktør"
+                },
+                "case_dialog": {
+                    "expected_tool": "Forventet værktøj",
+                    "expected_tool_placeholder": "f.eks. send_email",
+                    "expected_tool_hint": "Værktøjet agenten bør kalde. Evalueringen tjekker agentens valg – den kører aldrig værktøjet. For et MCP-værktøj bruges det fulde navn (mcp__slack__send_message) eller blot værktøjets eget navn.",
+                    "expected_arguments": "Forventede argumenter (valgfrit)",
+                    "expected_arguments_hint": "Et JSON-objekt med argumenter, som kaldet skal indeholde. Ekstra argumenter ignoreres. Lad feltet være tomt for kun at tjekke værktøjets navn."
+                },
+                "scorers": {
+                    "tool_call": {
+                        "label": "Værktøjskald",
+                        "help": "Tjekker, at agenten kalder det forventede værktøj – uden at køre det."
+                    }
+                }
+            },
+            "scorers": {
+                "tool_call": "Værktøjskald"
+            }
+        },
+        "nav": {
+            "forms": "Formularer",
+            "forms_tooltip": "Byg formularer, som din agent viser i chatten"
+        },
+        "setup": {
+            "toasts": {
+                "branding_saved": "Branding opdateret"
+            },
+            "sections": {
+                "branding_badge": "Vis \"Powered by Chatvia\"-badge",
+                "branding_badge_hint": "Vis Chatvia-badget på denne agents chat og widget."
+            }
+        },
+        "deploy": {
+            "enabled": "Aktiveret",
+            "disabled": "Deaktiveret",
+            "toggle_surface": "Aktivér eller deaktivér denne overflade",
+            "surface_enabled": "Overflade aktiveret",
+            "surface_disabled": "Overflade deaktiveret – den vil ikke være tilgængelig",
+            "surface_error": "Kunne ikke opdatere – prøv venligst igen"
+        },
+        "forms": {
+            "page_title": "Formularer",
+            "title": "Formularer",
+            "description": "Hvornår denne formular skal vises",
+            "new": "Ny formular",
+            "empty": "Ingen formularer endnu. Opret en for at komme i gang.",
+            "fields": "felter",
+            "inactive": "Inaktiv",
+            "edit": "Rediger",
+            "type_lead": "Lead-indsamling",
+            "type_qualification": "Kvalificering",
+            "type_booking": "Booking",
+            "type_generic": "Generisk",
+            "edit_form": "Rediger formular",
+            "new_form": "Ny formular",
+            "form_name": "Formularnavn",
+            "form_name_placeholder": "f.eks. Få et tilbud",
+            "form_type": "Formulartype",
+            "add_field": "Tilføj felt",
+            "field_label": "Feltetiket",
+            "required": "Påkrævet",
+            "maps_to": "Knyttes til",
+            "options_placeholder": "Én mulighed pr. linje. Brug værdi|etiket for separate værdier.",
+            "success_message": "Bekræftelsesbesked",
+            "success_placeholder": "Vises, efter den besøgende har sendt formularen.",
+            "active": "Aktiv",
+            "save": "Gem",
+            "cancel": "Annuller",
+            "preview": "Forhåndsvisning",
+            "name_required": "Giv venligst formularen et navn.",
+            "saved": "Formular gemt",
+            "save_failed": "Kunne ikke gemme formularen",
+            "deleted": "Formular slettet",
+            "submissions": "Indsendelser",
+            "description_placeholder": "f.eks. Vis, når den besøgende ønsker et tilbud, en demo eller at blive kontaktet",
+            "description_hint": "Agenten bruger dette til at afgøre, hvornår denne formular skal vises i en samtale.",
+            "rewrite": "Omskriv med AI",
+            "rewriting": "Omskriver…",
+            "rewrite_done": "Beskrivelse omskrevet",
+            "rewrite_failed": "Kunne ikke omskrive beskrivelsen",
+            "maps_to_aria": "Hvad betyder “Knyttes til”?",
+            "maps_to_help_title": "Knyttes til et kontaktfelt",
+            "maps_to_help_1": "Markerer dette felt som en standard kontaktattribut – navn, e-mail, telefon og så videre. Den værdi, den besøgende indtaster, genkendes derefter som netop den kontaktoplysning og ikke blot som et anonymt svar.",
+            "maps_to_help_2": "Knyttede felter udfylder lead'ets oplysninger – og driver lead-listen, dublettregistrering og CSV-eksport. Lad det stå som “—” for at indsamle svaret uden at markere det."
+        },
+        "submissions": {
+            "page_title": "Indsendelser",
+            "back_to_forms": "Tilbage til formularer",
+            "count": "{n} indsendelser",
+            "export": "Eksporter CSV",
+            "search": "Søg i indsendelser",
+            "empty": "Ingen indsendelser endnu.",
+            "submitted_at": "Indsendt",
+            "deleted": "Indsendelse slettet"
+        }
+    },
+    "teams": {
+        "permissions_meta": {
+            "groups": {
+                "channels": {
+                    "label": "Kanaler",
+                    "description": "Tilslut agenten til beskedapps."
+                }
+            },
+            "codes": {
+                "agent_channels": {
+                    "label": "Administrér kanaler",
+                    "description": "Tilslut og frakobl beskedkanaler (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)"
+                }
+            }
+        }
+    }
+}

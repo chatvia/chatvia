@@ -80,7 +80,15 @@
         "loading_agents": "에이전트를 불러오는 중…",
         "no_agents": "에이전트를 찾을 수 없습니다.",
         "switching_agent": "전환 중…",
-        "switch_to_agent": "{name}(으)로 전환"
+        "switch_to_agent": "{name}(으)로 전환",
+        "search_chats": "채팅 검색",
+        "search_placeholder": "채팅 검색...",
+        "search_no_results": "채팅을 찾을 수 없습니다",
+        "search_group_today": "오늘",
+        "search_group_yesterday": "어제",
+        "search_group_previous_7_days": "지난 7일",
+        "search_group_previous_30_days": "지난 30일",
+        "search_group_older": "이전"
     },
     "chat": {
         "message_limit_reached": "메시지 한도에 도달했습니다",
@@ -93,7 +101,8 @@
             "submit_failed": "문제가 발생했습니다. 다시 시도해 주세요.",
             "expired": "이 양식은 만료되었습니다.",
             "unavailable": "이 양식은 여기서 제출할 수 없습니다."
-        }
+        },
+        "conversation_gone": "이 대화는 더 이상 존재하지 않습니다."
     },
     "messages": {
         "send": "보내기",
@@ -279,7 +288,11 @@
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
                     "product": "Engage with customers on Messenger",
-                    "permissions_path": "Use cases → Customize → Permissions and features"
+                    "permissions_path": "Use cases → Customize → Permissions and features",
+                    "oauth_intro": "이 에이전트가 Messenger 대화에 답변할 수 있도록 Facebook 페이지를 연결하세요 — Facebook으로 로그인한 다음 사용할 페이지를 선택합니다.",
+                    "connect_facebook": "Facebook으로 연결",
+                    "pick_title": "Facebook 페이지 선택",
+                    "pick_button": "이 페이지 연결"
                 },
                 "whatsapp": {
                     "steps": {
@@ -290,7 +303,12 @@
                     },
                     "configuration_path": "WhatsApp → Configuration",
                     "use_case": "Connect with customers through WhatsApp",
-                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                    "basic_setup_path": "Use cases → Customize → Basic setup",
+                    "oauth_intro": "이 에이전트가 WhatsApp 메시지에 답변할 수 있도록 WhatsApp Business 번호를 연결하세요 — Facebook으로 로그인하고 한 번에 설정합니다.",
+                    "connect_facebook": "Facebook으로 연결",
+                    "not_configured": "이 Chatvia 인스턴스에는 아직 WhatsApp이 설정되지 않았습니다. 지원팀에 문의해 주세요.",
+                    "finish_number": "팝업에서 WhatsApp Business Account에 전화번호를 추가한 다음 다시 시도하세요.",
+                    "connect_failed": "Facebook에서 WhatsApp 계정을 읽을 수 없습니다. 다시 연결을 시도해 주세요."
                 },
                 "msteams": {
                     "app_id_label": "App {id}",
@@ -321,7 +339,11 @@
                     "webhooks_path": "Instagram → Instagram 로그인 API 설정 → 웹훅 구성",
                     "message_controls_path": "설정 → 메시지 및 스토리 답글 → 메시지 제어 → 연결된 도구",
                     "api_setup_path": "Instagram → Instagram 로그인 API 설정",
-                    "product": "Instagram"
+                    "product": "Instagram",
+                    "oauth_intro": "이 에이전트가 DMs에 답변할 수 있도록 Instagram 프로페셔널 계정을 연결하세요 — Facebook으로 로그인한 다음 사용할 계정을 선택합니다.",
+                    "connect_facebook": "Facebook으로 연결",
+                    "pick_title": "Instagram 계정 선택",
+                    "pick_button": "이 계정 연결"
                 }
             },
             "security": "보안",
@@ -757,7 +779,8 @@
                     "pass_rate": "통과율",
                     "passed_failed": "통과 / 실패",
                     "avg_score": "평균 점수",
-                    "when": "시점"
+                    "when": "시점",
+                    "actor": "행위자"
                 },
                 "status_active": "활성",
                 "status_inactive": "비활성",
@@ -789,7 +812,12 @@
                     "expected_answer": "예상 답변",
                     "reference_answer": "기준 답변 (선택 사항)",
                     "active_label": "활성 (실행에 포함)",
-                    "save": "저장"
+                    "save": "저장",
+                    "expected_tool": "예상 도구",
+                    "expected_tool_placeholder": "예: send_email",
+                    "expected_tool_hint": "에이전트가 호출해야 하는 도구입니다. 평가는 에이전트의 선택을 확인할 뿐 도구를 실행하지는 않습니다. MCP 도구의 경우 전체 이름(mcp__slack__send_message)을 사용하거나 도구 자체의 이름만 사용하세요.",
+                    "expected_arguments": "예상 인수 (선택 사항)",
+                    "expected_arguments_hint": "호출에 포함되어야 하는 인수의 JSON 객체입니다. 추가 인수는 무시됩니다. 도구 이름만 확인하려면 비워 두세요."
                 },
                 "knowledge_dialog": {
                     "title": "지식에서 케이스 추가",
@@ -828,6 +856,10 @@
                     "llm_judge": {
                         "label": "AI 심사",
                         "help": "오픈 웨이트 모델이 사용자의 기준에 따라 답변을 채점합니다."
+                    },
+                    "tool_call": {
+                        "label": "도구 호출",
+                        "help": "에이전트가 예상 도구를 호출하는지 확인합니다 — 실행하지는 않습니다."
                     }
                 },
                 "toasts": {
@@ -847,7 +879,8 @@
                 "regex": "정규식",
                 "exact": "정확히 일치",
                 "json_schema": "JSON 스키마",
-                "llm_judge": "LLM 심사"
+                "llm_judge": "LLM 심사",
+                "tool_call": "도구 호출"
             }
         },
         "identity_verification": {
@@ -1597,7 +1630,9 @@
             "deploy": "배포",
             "deploy_tooltip": "에이전트를 임베드합니다 — 채팅 위젯, 호스티드 챗 또는 커맨드 바",
             "capabilities": "능력",
-            "capabilities_tooltip": "풍부한 기능을 채팅에 추가합니다 — 대화형 차트 등"
+            "capabilities_tooltip": "풍부한 기능을 채팅에 추가합니다 — 대화형 차트 등",
+            "forms": "양식",
+            "forms_tooltip": "에이전트가 채팅에 표시하는 양식을 만드세요"
         },
         "create_modal": {
             "title": "에이전트 만들기",
@@ -1727,7 +1762,8 @@
                 "code_copied": "코드가 클립보드에 복사되었습니다!",
                 "code_copy_error": "코드 복사에 실패했습니다. 다시 시도해 주세요.",
                 "privacy_saved": "개인정보 처리방침 링크가 저장되었습니다",
-                "privacy_error": "개인정보 처리방침 링크를 저장하지 못했습니다"
+                "privacy_error": "개인정보 처리방침 링크를 저장하지 못했습니다",
+                "branding_saved": "브랜딩이 업데이트되었습니다"
             },
             "settings": {
                 "composer_title": "입력창 옵션",
@@ -1966,7 +2002,9 @@
                 "models_location_cn": "🇨🇳 중국",
                 "appearance_privacy_url": "개인정보 처리방침 URL",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
-                "appearance_privacy_url_hint": "방문자에게 “채팅하면 당사의 개인정보 처리방침에 동의하는 것입니다.”로 표시됩니다. 숨기려면 비워 두세요."
+                "appearance_privacy_url_hint": "방문자에게 “채팅하면 당사의 개인정보 처리방침에 동의하는 것입니다.”로 표시됩니다. 숨기려면 비워 두세요.",
+                "branding_badge": "\"Powered by Chatvia\" 배지 표시",
+                "branding_badge_hint": "이 에이전트의 채팅 및 위젯에 Chatvia 배지를 표시합니다."
             }
         },
         "team": {
@@ -2175,7 +2213,13 @@
             "save": "저장",
             "sites_saved": "허용 사이트가 업데이트되었습니다",
             "sites_error": "저장하지 못했습니다 — 다시 시도해 주세요",
-            "api_docs": "JavaScript API"
+            "api_docs": "JavaScript API",
+            "enabled": "사용",
+            "disabled": "사용 안 함",
+            "toggle_surface": "이 화면을 사용하거나 사용 안 함으로 설정",
+            "surface_enabled": "화면이 사용 설정되었습니다",
+            "surface_disabled": "화면이 사용 안 함으로 설정되어 접근할 수 없습니다",
+            "surface_error": "업데이트할 수 없습니다 — 다시 시도해 주세요"
         },
         "chatters": {
             "title": "채터",
@@ -2251,6 +2295,61 @@
             "empty": "아직 사용할 수 있는 능력이 없습니다.",
             "enable_failed": "이 능력을 켤 수 없습니다",
             "disable_failed": "이 능력을 끌 수 없습니다"
+        },
+        "forms": {
+            "page_title": "양식",
+            "title": "양식",
+            "description": "이 양식을 표시할 시점",
+            "new": "새 양식",
+            "empty": "아직 양식이 없습니다. 하나 만들어 시작하세요.",
+            "fields": "필드",
+            "inactive": "비활성",
+            "edit": "편집",
+            "type_lead": "리드 수집",
+            "type_qualification": "자격 확인",
+            "type_booking": "예약",
+            "type_generic": "일반",
+            "edit_form": "양식 편집",
+            "new_form": "새 양식",
+            "form_name": "양식 이름",
+            "form_name_placeholder": "예: 견적 받기",
+            "form_type": "양식 유형",
+            "add_field": "필드 추가",
+            "field_label": "필드 레이블",
+            "required": "필수",
+            "maps_to": "매핑 대상",
+            "options_placeholder": "한 줄에 옵션 하나씩. 값과 레이블을 분리하려면 value|label 형식을 사용하세요.",
+            "success_message": "성공 메시지",
+            "success_placeholder": "방문자가 제출한 후 표시됩니다.",
+            "active": "활성",
+            "save": "저장",
+            "cancel": "취소",
+            "preview": "미리보기",
+            "name_required": "양식 이름을 입력해 주세요.",
+            "saved": "양식이 저장되었습니다",
+            "save_failed": "양식을 저장할 수 없습니다",
+            "deleted": "양식이 삭제되었습니다",
+            "submissions": "제출 내역",
+            "description_placeholder": "예: 방문자가 견적, 데모 또는 연락을 원할 때 표시",
+            "description_hint": "에이전트는 이를 사용해 대화에서 이 양식을 표시할 시점을 결정합니다.",
+            "rewrite": "AI로 다시 작성",
+            "rewriting": "다시 작성 중…",
+            "rewrite_done": "설명이 다시 작성되었습니다",
+            "rewrite_failed": "설명을 다시 작성할 수 없습니다",
+            "maps_to_aria": "“매핑 대상”이란 무엇인가요?",
+            "maps_to_help_title": "연락처 필드에 매핑",
+            "maps_to_help_1": "이 필드를 이름, 이메일, 전화번호 등 표준 연락처 속성으로 태그합니다. 그러면 방문자가 입력한 값이 단순한 익명 답변이 아니라 해당 연락처 정보로 인식됩니다.",
+            "maps_to_help_2": "매핑된 필드는 리드의 세부 정보를 채워 리드 목록, 중복 감지, CSV 내보내기를 지원합니다. 태그하지 않고 답변만 수집하려면 “—”로 두세요."
+        },
+        "submissions": {
+            "page_title": "제출 내역",
+            "back_to_forms": "양식으로 돌아가기",
+            "count": "제출 {n}건",
+            "export": "CSV 내보내기",
+            "search": "제출 내역 검색",
+            "empty": "아직 제출 내역이 없습니다.",
+            "submitted_at": "제출됨",
+            "deleted": "제출 내역이 삭제되었습니다"
         }
     },
     "auth": {
@@ -3181,6 +3280,10 @@
                 "governance": {
                     "label": "거버넌스",
                     "description": "에이전트가 도구와 커넥터를 통해 수행하는 모든 작업을 감사하고 제어합니다."
+                },
+                "channels": {
+                    "label": "채널",
+                    "description": "에이전트를 메시징 앱에 연결합니다."
                 }
             },
             "codes": {
@@ -3335,6 +3438,10 @@
                 "account_governance": {
                     "label": "거버넌스",
                     "description": "도구 호출 감사 로그와 접근 제어를 확인합니다"
+                },
+                "agent_channels": {
+                    "label": "채널 관리",
+                    "description": "메시징 채널(Telegram, Slack, Messenger, WhatsApp, Microsoft Teams, Instagram)을 연결하고 연결 해제합니다"
                 }
             }
         }

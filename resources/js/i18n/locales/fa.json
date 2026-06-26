@@ -80,7 +80,15 @@
         "loading_agents": "در حال بارگذاری ایجنت‌ها…",
         "no_agents": "ایجنتی یافت نشد.",
         "switching_agent": "در حال تعویض…",
-        "switch_to_agent": "تعویض به {name}"
+        "switch_to_agent": "تعویض به {name}",
+        "search_chats": "جستجوی گفتگوها",
+        "search_placeholder": "جستجوی گفتگوها...",
+        "search_no_results": "گفتگویی یافت نشد",
+        "search_group_today": "امروز",
+        "search_group_yesterday": "دیروز",
+        "search_group_previous_7_days": "۷ روز گذشته",
+        "search_group_previous_30_days": "۳۰ روز گذشته",
+        "search_group_older": "قدیمی‌تر"
     },
     "chat": {
         "message_limit_reached": "به سقف پیام‌های خود رسیده‌اید",
@@ -93,7 +101,8 @@
             "submit_failed": "خطایی رخ داد. لطفاً دوباره تلاش کنید.",
             "expired": "این فرم منقضی شده است.",
             "unavailable": "این فرم را نمی‌توان اینجا ارسال کرد."
-        }
+        },
+        "conversation_gone": "این گفتگو دیگر وجود ندارد."
     },
     "messages": {
         "send": "ارسال",
@@ -279,7 +288,11 @@
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
                     "product": "Engage with customers on Messenger",
-                    "permissions_path": "Use cases → Customize → Permissions and features"
+                    "permissions_path": "Use cases → Customize → Permissions and features",
+                    "oauth_intro": "یک صفحه Facebook متصل کنید تا این عامل بتواند به گفتگوهای Messenger پاسخ دهد — با Facebook وارد می‌شوید و سپس صفحه‌ای را که می‌خواهید انتخاب می‌کنید.",
+                    "connect_facebook": "اتصال با Facebook",
+                    "pick_title": "یک صفحه Facebook انتخاب کنید",
+                    "pick_button": "اتصال این صفحه"
                 },
                 "whatsapp": {
                     "steps": {
@@ -290,7 +303,12 @@
                     },
                     "configuration_path": "WhatsApp → Configuration",
                     "use_case": "ارتباط با مشتریان از طریق WhatsApp",
-                    "basic_setup_path": "Use cases → Customize → Basic setup"
+                    "basic_setup_path": "Use cases → Customize → Basic setup",
+                    "oauth_intro": "شماره WhatsApp Business خود را متصل کنید تا این عامل بتواند به پیام‌های WhatsApp پاسخ دهد — با Facebook وارد می‌شوید و همه چیز را در یک مرحله تنظیم می‌کنید.",
+                    "connect_facebook": "اتصال با Facebook",
+                    "not_configured": "WhatsApp هنوز روی این نمونه Chatvia تنظیم نشده است. لطفاً با پشتیبانی تماس بگیرید.",
+                    "finish_number": "در پنجره بازشو یک شماره تلفن به WhatsApp Business Account خود اضافه کنید و سپس دوباره تلاش کنید.",
+                    "connect_failed": "نتوانستیم حساب WhatsApp شما را از Facebook بخوانیم. لطفاً دوباره برای اتصال تلاش کنید."
                 },
                 "msteams": {
                     "app_id_label": "App {id}",
@@ -321,7 +339,11 @@
                     "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
                     "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
                     "api_setup_path": "Instagram → API setup with Instagram login",
-                    "product": "Instagram"
+                    "product": "Instagram",
+                    "oauth_intro": "یک حساب حرفه‌ای Instagram متصل کنید تا این عامل بتواند به DMها پاسخ دهد — با Facebook وارد می‌شوید و سپس حسابی را که می‌خواهید انتخاب می‌کنید.",
+                    "connect_facebook": "اتصال با Facebook",
+                    "pick_title": "یک حساب Instagram انتخاب کنید",
+                    "pick_button": "اتصال این حساب"
                 }
             },
             "security": "امنیت",
@@ -757,7 +779,8 @@
                     "pass_rate": "نرخ قبولی",
                     "passed_failed": "قبول / رد",
                     "avg_score": "میانگین نمره",
-                    "when": "زمان"
+                    "when": "زمان",
+                    "actor": "بازیگر"
                 },
                 "status_active": "فعال",
                 "status_inactive": "غیرفعال",
@@ -789,7 +812,12 @@
                     "expected_answer": "پاسخ مورد انتظار",
                     "reference_answer": "پاسخ مرجع (اختیاری)",
                     "active_label": "فعال (در اجراها لحاظ می‌شود)",
-                    "save": "ذخیره"
+                    "save": "ذخیره",
+                    "expected_tool": "ابزار مورد انتظار",
+                    "expected_tool_placeholder": "مثلاً send_email",
+                    "expected_tool_hint": "ابزاری که عامل باید فراخوانی کند. این ارزیابی انتخاب عامل را بررسی می‌کند — هرگز خود ابزار را اجرا نمی‌کند. برای یک ابزار MCP، از نام کامل (mcp__slack__send_message) یا فقط نام خود ابزار استفاده کنید.",
+                    "expected_arguments": "آرگومان‌های مورد انتظار (اختیاری)",
+                    "expected_arguments_hint": "یک شیء JSON از آرگومان‌هایی که فراخوانی باید شامل آن‌ها باشد. آرگومان‌های اضافی نادیده گرفته می‌شوند. برای بررسی فقط نام ابزار، این بخش را خالی بگذارید."
                 },
                 "knowledge_dialog": {
                     "title": "افزودن موارد از پایگاه دانش",
@@ -828,6 +856,10 @@
                     "llm_judge": {
                         "label": "قاضی هوش مصنوعی",
                         "help": "یک مدل متن‌باز پاسخ را بر اساس معیارهای شما نمره‌دهی می‌کند."
+                    },
+                    "tool_call": {
+                        "label": "فراخوانی ابزار",
+                        "help": "بررسی می‌کند که عامل ابزار مورد انتظار را فراخوانی می‌کند — بدون اجرای آن."
                     }
                 },
                 "toasts": {
@@ -847,7 +879,8 @@
                 "regex": "عبارت منظم",
                 "exact": "تطابق کامل",
                 "json_schema": "JSON schema",
-                "llm_judge": "قاضی هوش مصنوعی"
+                "llm_judge": "قاضی هوش مصنوعی",
+                "tool_call": "فراخوانی ابزار"
             }
         },
         "identity_verification": {
@@ -1597,7 +1630,9 @@
             "deploy": "استقرار",
             "deploy_tooltip": "تعبیه عامل — ویجت گفتگو، گفتگوی میزبانی‌شده یا نوار فرمان",
             "capabilities": "قابلیت‌ها",
-            "capabilities_tooltip": "افزودن امکانات پیشرفته به گفتگو — مانند نمودارهای تعاملی"
+            "capabilities_tooltip": "افزودن امکانات پیشرفته به گفتگو — مانند نمودارهای تعاملی",
+            "forms": "فرم‌ها",
+            "forms_tooltip": "فرم‌هایی بسازید که عامل شما در گفتگو نمایش می‌دهد"
         },
         "create_modal": {
             "title": "ایجاد دستیار",
@@ -1727,7 +1762,8 @@
                 "code_copied": "کد در کلیپ‌بورد کپی شد!",
                 "code_copy_error": "کپی کد ناموفق بود. لطفاً دوباره تلاش کنید.",
                 "privacy_saved": "پیوند سیاست حفظ حریم خصوصی ذخیره شد",
-                "privacy_error": "ذخیره پیوند سیاست حفظ حریم خصوصی ناموفق بود"
+                "privacy_error": "ذخیره پیوند سیاست حفظ حریم خصوصی ناموفق بود",
+                "branding_saved": "برندینگ به‌روزرسانی شد"
             },
             "settings": {
                 "composer_title": "گزینه‌های نویسنده",
@@ -1966,7 +2002,9 @@
                 "models_location_cn": "🇨🇳 چین",
                 "appearance_privacy_url": "نشانی سیاست حفظ حریم خصوصی",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
-                "appearance_privacy_url_hint": "به بازدیدکنندگان به این صورت نشان داده می‌شود: «با گفتگو، شما با سیاست حفظ حریم خصوصی ما موافقت می‌کنید». برای پنهان کردن، خالی بگذارید."
+                "appearance_privacy_url_hint": "به بازدیدکنندگان به این صورت نشان داده می‌شود: «با گفتگو، شما با سیاست حفظ حریم خصوصی ما موافقت می‌کنید». برای پنهان کردن، خالی بگذارید.",
+                "branding_badge": "نمایش نشان «Powered by Chatvia»",
+                "branding_badge_hint": "نشان Chatvia را در گفتگو و ویجت این عامل نمایش دهید."
             }
         },
         "team": {
@@ -2175,7 +2213,13 @@
             "save": "ذخیره",
             "sites_saved": "سایت‌های مجاز به‌روز شد",
             "sites_error": "ذخیره‌سازی ناموفق بود — لطفاً دوباره تلاش کنید",
-            "api_docs": "JavaScript API"
+            "api_docs": "JavaScript API",
+            "enabled": "فعال",
+            "disabled": "غیرفعال",
+            "toggle_surface": "فعال یا غیرفعال کردن این سطح",
+            "surface_enabled": "سطح فعال شد",
+            "surface_disabled": "سطح غیرفعال شد — قابل دسترسی نخواهد بود",
+            "surface_error": "به‌روزرسانی ممکن نشد — لطفاً دوباره تلاش کنید"
         },
         "chatters": {
             "title": "چت‌کنندگان",
@@ -2265,6 +2309,61 @@
             "empty": "هنوز هیچ قابلیتی در دسترس نیست.",
             "enable_failed": "روشن‌کردن این قابلیت ممکن نشد",
             "disable_failed": "خاموش‌کردن این قابلیت ممکن نشد"
+        },
+        "forms": {
+            "page_title": "فرم‌ها",
+            "title": "فرم‌ها",
+            "description": "زمان نمایش این فرم",
+            "new": "فرم جدید",
+            "empty": "هنوز هیچ فرمی وجود ندارد. برای شروع یکی ایجاد کنید.",
+            "fields": "فیلد",
+            "inactive": "غیرفعال",
+            "edit": "ویرایش",
+            "type_lead": "ثبت سرنخ",
+            "type_qualification": "ارزیابی صلاحیت",
+            "type_booking": "رزرو",
+            "type_generic": "عمومی",
+            "edit_form": "ویرایش فرم",
+            "new_form": "فرم جدید",
+            "form_name": "نام فرم",
+            "form_name_placeholder": "مثلاً دریافت قیمت",
+            "form_type": "نوع فرم",
+            "add_field": "افزودن فیلد",
+            "field_label": "برچسب فیلد",
+            "required": "الزامی",
+            "maps_to": "نگاشت به",
+            "options_placeholder": "هر گزینه در یک خط. برای مقادیر جداگانه از value|label استفاده کنید.",
+            "success_message": "پیام موفقیت",
+            "success_placeholder": "پس از ارسال توسط بازدیدکننده نمایش داده می‌شود.",
+            "active": "فعال",
+            "save": "ذخیره",
+            "cancel": "لغو",
+            "preview": "پیش‌نمایش",
+            "name_required": "لطفاً برای فرم یک نام انتخاب کنید.",
+            "saved": "فرم ذخیره شد",
+            "save_failed": "ذخیره فرم ممکن نشد",
+            "deleted": "فرم حذف شد",
+            "submissions": "ارسال‌ها",
+            "description_placeholder": "مثلاً زمانی نمایش بده که بازدیدکننده قیمت، دمو یا تماس می‌خواهد",
+            "description_hint": "عامل از این توضیح برای تصمیم‌گیری درباره زمان نمایش این فرم در یک گفتگو استفاده می‌کند.",
+            "rewrite": "بازنویسی با هوش مصنوعی",
+            "rewriting": "در حال بازنویسی…",
+            "rewrite_done": "توضیح بازنویسی شد",
+            "rewrite_failed": "بازنویسی توضیح ممکن نشد",
+            "maps_to_aria": "«نگاشت به» یعنی چه؟",
+            "maps_to_help_title": "نگاشت به یک فیلد مخاطب",
+            "maps_to_help_1": "این فیلد را به عنوان یک ویژگی استاندارد مخاطب برچسب‌گذاری می‌کند — نام، ایمیل، تلفن و مانند آن. مقداری که بازدیدکننده وارد می‌کند آنگاه به‌عنوان همان بخش از اطلاعات مخاطب شناخته می‌شود، نه فقط یک پاسخ بی‌نام.",
+            "maps_to_help_2": "فیلدهای نگاشت‌شده اطلاعات سرنخ را پر می‌کنند — و فهرست سرنخ‌ها، تشخیص موارد تکراری و خروجی CSV را تأمین می‌کنند. برای ثبت پاسخ بدون برچسب‌گذاری، آن را روی «—» بگذارید."
+        },
+        "submissions": {
+            "page_title": "ارسال‌ها",
+            "back_to_forms": "بازگشت به فرم‌ها",
+            "count": "{n} ارسال",
+            "export": "خروجی CSV",
+            "search": "جستجوی ارسال‌ها",
+            "empty": "هنوز هیچ ارسالی وجود ندارد.",
+            "submitted_at": "ارسال‌شده",
+            "deleted": "ارسال حذف شد"
         }
     },
     "auth": {
@@ -3195,6 +3294,10 @@
                 "governance": {
                     "label": "حاکمیت",
                     "description": "حسابرسی و کنترل تمام اقداماتی که عامل‌های شما از طریق ابزارها و رابط‌ها انجام می‌دهند."
+                },
+                "channels": {
+                    "label": "کانال‌ها",
+                    "description": "عامل را به اپ‌های پیام‌رسان متصل کنید."
                 }
             },
             "codes": {
@@ -3349,6 +3452,10 @@
                 "account_governance": {
                     "label": "حاکمیت",
                     "description": "مشاهده گزارش حسابرسی فراخوانی ابزار و کنترل دسترسی‌ها"
+                },
+                "agent_channels": {
+                    "label": "مدیریت کانال‌ها",
+                    "description": "اتصال و قطع اتصال کانال‌های پیام‌رسان (Telegram، Slack، Messenger، WhatsApp، Microsoft Teams، Instagram)"
                 }
             }
         }

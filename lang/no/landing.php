@@ -32,9 +32,9 @@ return [
         'badges' => [
             'main' => 'Personvern først — AI-agenter fullt driftet i EU',
         ],
-        'title_line1' => 'Personvern først',
-        'title_line2' => 'AI-agenter',
-        'subtitle' => 'Bygg no-code AI-agenter med dine egne data — de svarer kunder, booker møter, sender e-poster og handler i verktøyene dine. Alt på europeisk-eid infrastruktur, og dataene dine brukes aldri til å trene AI-modeller. 🇪🇺',
+        'title_line1' => 'Bygg AI-agenter',
+        'title_line2' => 'med personvern først på minutter',
+        'subtitle' => 'AI-agenter trent på dine egne data som booker møter, sender e-poster og handler i verktøyene dine — alt på europeisk-eid infrastruktur. 🇪🇺',
         'no_code' => 'Ingen kode, ingen utviklere.',
         'eu_hosting' => 'Driftet i EU · GDPR som standard · Ingen amerikanske underleverandører · DPA inkludert',
         'gdpr_alt' => 'GDPR-kompatibel',

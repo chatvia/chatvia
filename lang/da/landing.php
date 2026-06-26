@@ -32,9 +32,9 @@ return [
         'badges' => [
             'main' => 'Privacy-first AI-agenter, fuldt hostet i EU',
         ],
-        'title_line1' => 'Privatliv først',
-        'title_line2' => 'AI-agenter',
-        'subtitle' => 'Byg no-code AI-agenter med dine egne data — de svarer kunder, booker møder, sender e-mails og handler i dine værktøjer. Alt sammen på europæisk-ejet infrastruktur, og dine data bruges aldrig til at træne AI-modeller. 🇪🇺',
+        'title_line1' => 'Byg AI-agenter',
+        'title_line2' => 'med privatliv først på få minutter',
+        'subtitle' => 'AI-agenter trænet på dine egne data, der booker møder, sender e-mails og handler i dine værktøjer — alt sammen på europæisk-ejet infrastruktur. 🇪🇺',
         'no_code' => 'Ingen kode, ingen udviklere.',
         'eu_hosting' => 'Hostet i EU · GDPR som standard · Ingen amerikanske underleverandører · DPA inkluderet',
         'gdpr_alt' => 'GDPR-compliant',

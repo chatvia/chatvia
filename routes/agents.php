@@ -119,13 +119,12 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
 
     Route::get('countries/list', CountriesListController::class)->name('countries.list');
 
-    // Facebook's OAuth redirect lands here (the agent rides in the signed
-    // `state`, not the URL), so it sits in the `my/` group — authenticated but
-    // outside the per-{agent} binding. Register this URL as the redirect URI in
-    // the Chatvia Meta app's Login settings.
-    Route::get('channels/messenger/oauth/callback', [AgentMessengerChannelController::class, 'callback'])->name('channels.messenger.callback');
-    Route::get('channels/instagram/oauth/callback', [AgentInstagramChannelController::class, 'callback'])->name('channels.instagram.callback');
-
+    // NOTE: the Messenger/Instagram OAuth *callbacks* (`channels.messenger.callback`,
+    // `channels.instagram.callback`) are registered UN-prefixed in routes/web.php —
+    // the Meta app whitelists a single fixed redirect URI, so they can't live under
+    // the `/{locale}` prefix this file now inherits. The user-initiated redirect/
+    // select routes below stay here (locale-prefixed) and reference those callbacks
+    // by name, which resolves to the un-prefixed URL.
     Route::prefix('agents/{agent}')->name('agents.')->middleware('can.access.agent')->group(function (): void {
         Route::get('home', AgentManagerController::class)->name('manager');
         Route::get('analytics', AgentAnalyticsController::class)->name('analytics');

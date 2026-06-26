@@ -32,9 +32,9 @@ return [
         'badges' => [
             'main' => 'Agenci AI w pełni hostowani w UE, z prywatnością na pierwszym miejscu',
         ],
-        'title_line1' => 'Prywatność przede wszystkim',
-        'title_line2' => 'Agenci AI',
-        'subtitle' => 'Twórz agentów AI bez kodu na podstawie własnych danych — odpowiadają klientom, umawiają spotkania, wysyłają e-maile i działają w Twoich narzędziach. Wszystko na infrastrukturze należącej do Europy, a Twoje dane nigdy nie są używane do trenowania modeli AI. 🇪🇺',
+        'title_line1' => 'Twórz agentów AI',
+        'title_line2' => 'dbających o prywatność w kilka minut',
+        'subtitle' => 'Agenci AI trenowani na Twoich własnych danych, którzy umawiają spotkania, wysyłają e-maile i działają w Twoich narzędziach — wszystko na infrastrukturze należącej do Europy. 🇪🇺',
         'no_code' => 'Bez kodu, bez programistów.',
         'eu_hosting' => 'Hostowani w UE · GDPR domyślnie · Bez amerykańskich podprocesorów · DPA w cenie',
         'gdpr_alt' => 'Zgodność z GDPR',

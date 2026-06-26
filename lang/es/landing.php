@@ -32,9 +32,9 @@ return [
         'badges' => [
             'main' => 'Agentes de IA con la privacidad por delante, totalmente alojados en la UE',
         ],
-        'title_line1' => 'Privacidad primero',
-        'title_line2' => 'Agentes de IA',
-        'subtitle' => 'Crea agentes de IA sin código con tus propios datos — responden a los clientes, agendan reuniones, envían correos y actúan en tus herramientas. Todo sobre infraestructura de propiedad europea, y tus datos nunca se usan para entrenar modelos de IA. 🇪🇺',
+        'title_line1' => 'Crea agentes de IA',
+        'title_line2' => 'centrados en la privacidad en minutos',
+        'subtitle' => 'Agentes de IA entrenados con tus propios datos que agendan reuniones, envían correos y actúan en tus herramientas — todo sobre infraestructura de propiedad europea. 🇪🇺',
         'no_code' => 'Sin código, sin ingenieros.',
         'eu_hosting' => 'Alojado en la UE · GDPR por defecto · Sin subprocesadores en EE. UU. · DPA incluido',
         'gdpr_alt' => 'Conforme con el GDPR',

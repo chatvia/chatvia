@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Agent\Channel\AgentInstagramChannelController;
+use App\Http\Controllers\Agent\Channel\AgentMessengerChannelController;
 use App\Http\Controllers\Agent\Chunks\AgentChunkImageViewController;
 use App\Http\Controllers\Auth\Social\GithubAuthController;
 use App\Http\Controllers\Auth\Social\GithubCallbackAuthController;
@@ -32,12 +34,11 @@ use App\Http\Middleware\Web\ResolveLandingLocale;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
-// Public marketing + legal pages. Wrapped in the locale group so every page is
-// served under an explicit locale segment (e.g. `/en`, `/ar`). `localeSessionRedirect`
-// forwards a visitor to a remembered/preferred locale; `localizationRedirect`
-// redirects an un-prefixed URL like `/` to the default-locale URL `/en`. OAuth
-// callbacks, every POST endpoint, and the trial/Stripe flow stay OUTSIDE this group —
-// their URLs must not be locale-prefixed or redirected.
+// Public marketing + legal pages, served under an explicit locale segment
+// (e.g. `/en`, `/ar`). `localeSessionRedirect` forwards a visitor to a remembered/
+// preferred locale; `localizationRedirect` redirects an un-prefixed URL like `/`
+// to `/en`. OAuth callbacks, every POST endpoint, and the trial/Stripe flow stay
+// OUTSIDE this group — their URLs must not be locale-prefixed or redirected.
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),
     'middleware' => [ResolveLandingLocale::class, 'localeSessionRedirect', 'localizationRedirect'],
@@ -59,6 +60,23 @@ Route::group([
     Route::get('contact', [ContactController::class, 'show'])->name('contact');
     Route::get('/use-cases/{case}', UseCaseController::class)->name('use-cases');
     Route::get('free-tools/chat-with-pdf', ChatPdfController::class)->name('free-tools.chat-with-pdf');
+});
+
+// Authenticated dashboard, served under the same `/{locale}` prefix so every app
+// URL is locale-explicit. Only `localeSessionRedirect` (forwards an un-prefixed
+// `/dashboard` to `/en/dashboard`) — NOT `ResolveLandingLocale`, which would
+// persist the URL locale onto the account on every request. The rendered language
+// still follows the signed-in user's saved `users.locale`. Each required file
+// keeps its own auth/permission middleware.
+Route::group([
+    'prefix' => LaravelLocalization::setLocale(),
+    'middleware' => ['localeSessionRedirect'],
+], function (): void {
+    require __DIR__.'/dashboard.php';
+    require __DIR__.'/account.php';
+    require __DIR__.'/workspace.php';
+    require __DIR__.'/agents.php';
+    require __DIR__.'/billing.php';
 });
 
 Route::get('/legal/dpa/download', [DpaController::class, 'download'])->name('dpa.download');
@@ -103,12 +121,20 @@ Route::get(
     ConnectorOAuthCallbackController::class,
 )->middleware(['web', 'auth'])->name('connectors.oauth.callback');
 
-require __DIR__.'/dashboard.php';
-require __DIR__.'/account.php';
-require __DIR__.'/workspace.php';
+// Meta (Messenger/Instagram) channel OAuth callbacks. The Meta app whitelists a
+// single fixed redirect URI, so these MUST stay un-prefixed — the agent rides in
+// the signed OAuth `state`, not the URL. Mirrors the middleware of the `my/` group
+// in agents.php (which is itself now locale-prefixed inside the group above).
+Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'])
+    ->prefix('my')
+    ->group(function (): void {
+        Route::get('channels/messenger/oauth/callback', [AgentMessengerChannelController::class, 'callback'])->name('channels.messenger.callback');
+        Route::get('channels/instagram/oauth/callback', [AgentInstagramChannelController::class, 'callback'])->name('channels.instagram.callback');
+    });
+
+// Un-prefixed surfaces: the end-user chat (its own widget i18n + iframe embedding),
+// transactional/email + invitation links (auth.php), and webhook/dev endpoints.
 require __DIR__.'/auth.php';
 require __DIR__.'/chat.php';
-require __DIR__.'/agents.php';
-require __DIR__.'/billing.php';
 require __DIR__.'/ingestion.php';
 require __DIR__.'/local.php';

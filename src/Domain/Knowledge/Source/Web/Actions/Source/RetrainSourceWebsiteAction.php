@@ -18,7 +18,6 @@ class RetrainSourceWebsiteAction
 
             $crawlerData = CrawlerData::from([
                 'url' => $website->url,
-                'slow_crawling' => $website->options['slow_crawling'] ?? false,
                 'include_paths' => $website->options['include_paths'] ?? null,
                 'exclude_paths' => $website->options['exclude_paths'] ?? null,
             ]);

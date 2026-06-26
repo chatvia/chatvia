@@ -370,8 +370,6 @@
                 "include_paths_hint": "Use wildcards (*) to match patterns. Leave empty to include all paths.",
                 "exclude_paths_label": "Exclude paths",
                 "exclude_paths_hint": "Use wildcards (*) to match patterns. These paths will be skipped.",
-                "slow_crawling_label": "Slow Crawling",
-                "slow_crawling_hint": "Uses longer delays for more respectful crawling",
                 "crawling_title": "Crawling...",
                 "crawling_count": "{count} website currently being crawled. | {count} websites currently being crawled.",
                 "tooltip_crawling": "Currently crawling...",

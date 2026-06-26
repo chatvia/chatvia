@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Source\Web\Jobs\Crawler;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Web\Actions\Crawl\CrawlWebsiteAction;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
@@ -17,11 +18,10 @@ use Illuminate\Queue\SerializesModels;
 use Throwable;
 
 /**
- * Kicks off FireCrawl's async `/crawl` and hands the job id to
- * PollWebsiteCrawlJob, which polls until the crawl finishes. This job itself
- * only fires the request, so it stays well within the queue's retry window —
- * the long wait lives in the poll chain, where each run is a single fast status
- * check.
+ * Discovers a website's URLs via FireCrawl's synchronous `/map` and persists
+ * them through CrawlWebsiteAction. `/map` returns in a single fast call, so —
+ * unlike the old async `/crawl` flow — there is no job id to poll: this one job
+ * does discovery end to end.
  */
 class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 {
@@ -34,25 +34,31 @@ class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
         $this->onQueue('ingestion.website');
     }
 
-    public function handle(Firecrawl $firecrawl, Crawler $crawler): void
+    public function handle(Firecrawl $firecrawl, CrawlWebsiteAction $action, Crawler $crawler): void
     {
-        $crawlId = $firecrawl->startCrawl(
-            $this->data->url,
+        $startedAt = time();
+
+        // Map the whole site, not the seed's path subtree — `/map` would return
+        // nothing for a deep link like `…/en` on a default-locale-at-root site.
+        $links = $firecrawl->map(
+            $crawler->rootUrl($this->data->url),
+            $this->data->country,
+            $this->data->languages,
             $this->data->limit ?? Crawler::DEFAULT_LIMIT,
-            $this->data->slow_crawling,
-            $crawler->firecrawlPatterns($this->data->include_paths),
-            $crawler->firecrawlPatterns($this->data->exclude_paths),
         );
 
-        PollWebsiteCrawlJob::dispatch(
+        // `/map` yields URLs only — no Markdown to warm the scrape cache with, so
+        // each URL maps to an empty string and stage 2 scrapes it on demand.
+        $pages = array_fill_keys($links, '');
+
+        $action->execute(
             $this->website,
             $this->data,
+            $pages,
             $this->agent,
-            $crawlId,
-            time(),
-            $this->job->getJobId(),
-            1,
-        )->delay(now()->addSeconds(PollWebsiteCrawlJob::pollSeconds()));
+            $startedAt,
+            $this->job?->getJobId(),
+        );
     }
 
     public function uniqueId(): string

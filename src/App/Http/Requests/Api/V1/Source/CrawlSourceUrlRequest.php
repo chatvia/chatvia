@@ -20,7 +20,6 @@ class CrawlSourceUrlRequest extends FormRequest
     {
         return [
             'url' => ['required', 'url', new SafeWebhookUrl],
-            'slow_crawling' => ['sometimes', 'boolean'],
             'include_paths' => ['sometimes', 'nullable', 'string'],
             'exclude_paths' => ['sometimes', 'nullable', 'string'],
         ];
@@ -28,9 +27,6 @@ class CrawlSourceUrlRequest extends FormRequest
 
     public function toData(): CrawlerData
     {
-        $validated = $this->validated();
-        $validated['slow_crawling'] = $validated['slow_crawling'] ?? false;
-
-        return CrawlerData::from($validated);
+        return CrawlerData::from($this->validated());
     }
 }

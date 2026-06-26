@@ -38,7 +38,6 @@ import { toast } from 'vue-sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Switch } from '@/components/ui/switch';
 
 import AttachWebsiteDialog from '@/components/ui/AttachWebsiteDialog.vue';
 import InfoBanner from '@/components/ui/InfoBanner.vue';
@@ -64,7 +63,6 @@ interface WebSource {
         include_paths?: string;
         exclude_paths?: string;
         robots?: boolean;
-        slow_crawling?: boolean;
     };
 }
 interface DiscoveredLink {
@@ -115,7 +113,6 @@ const websiteForm = useForm({
     robots: true as boolean,
     include_paths: '',
     exclude_paths: '',
-    slow_crawling: false as boolean,
 });
 
 // Protocol selection state
@@ -154,7 +151,6 @@ const settingsExpanded = ref(false);
 
 // Crawl settings state
 const crawlSettings = ref({
-    slow_crawling: false,
     include_paths: '',
     exclude_paths: '',
 });
@@ -162,7 +158,6 @@ const crawlSettings = ref({
 // Sync crawl settings with form data
 const syncFormWithSettings = () => {
     websiteForm.robots = true; // Always respect robots.txt
-    websiteForm.slow_crawling = crawlSettings.value.slow_crawling;
     websiteForm.include_paths = crawlSettings.value.include_paths;
     websiteForm.exclude_paths = crawlSettings.value.exclude_paths;
 };
@@ -563,7 +558,6 @@ const addWebsite = () => {
         websiteForm.robots = true; // Always respect robots.txt
         websiteForm.include_paths = crawlSettings.value.include_paths;
         websiteForm.exclude_paths = crawlSettings.value.exclude_paths;
-        websiteForm.slow_crawling = crawlSettings.value.slow_crawling;
 
         // Use the main form for submission with the full URL
         websiteForm.url = getFullUrl.value;
@@ -612,9 +606,6 @@ const addWebsite = () => {
                 } else if (errors.exclude_paths) {
                     // Exclude paths error
                     toast.error(t('agents.sources.web.error_exclude_paths_prefixed', { error: errors.exclude_paths }));
-                } else if (errors.slow_crawling) {
-                    // Slow crawling error
-                    toast.error(t('agents.sources.web.error_settings_prefixed', { error: errors.slow_crawling }));
                 } else if (typeof errors === 'string') {
                     // General string error
                     toast.error(errors);
@@ -1865,25 +1856,6 @@ onUnmounted(() => {
                                         <InputError :message="websiteForm.errors.exclude_paths" />
                                         <div class="text-muted-foreground text-xs">
                                             {{ t('agents.sources.web.exclude_paths_hint') }}
-                                        </div>
-                                    </div>
-
-                                    <!-- Switches -->
-                                    <div class="space-y-3">
-                                        <div class="flex items-center justify-between">
-                                            <div class="space-y-0.5">
-                                                <Label for="slow-crawling">{{ t('agents.sources.web.slow_crawling_label') }}</Label>
-                                                <div class="text-muted-foreground text-xs">{{ t('agents.sources.web.slow_crawling_hint') }}</div>
-                                            </div>
-                                            <Switch
-                                                id="slow-crawling"
-                                                :model-value="crawlSettings.slow_crawling"
-                                                @update:model-value="
-                                                    (value) => {
-                                                        crawlSettings.slow_crawling = Boolean(value);
-                                                    }
-                                                "
-                                            />
                                         </div>
                                     </div>
                                 </div>

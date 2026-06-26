@@ -28,7 +28,6 @@ class StartAgentWebsiteCrawlRequest extends FormRequest
     {
         return [
             'url' => ['required', 'url', new SafeWebhookUrl],
-            'slow_crawling' => ['required', 'boolean'],
             'include_paths' => ['nullable'],
             'exclude_paths' => ['nullable'],
         ];

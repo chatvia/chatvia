@@ -30,7 +30,7 @@ Schedule::command('app:prune-tool-approvals')->dailyAt('03:45');
 // Removes abandoned inline-form placeholders: pending `form_submissions` rows
 // whose TTL has lapsed (the visitor never submitted). Once expired they can no
 // longer be claimed and hold no captured answers, so they only bloat the table.
-Schedule::command('app:prune-expired-forms')->dailyAt('03:50');
+Schedule::command('app:prune-expired-forms')->everyTenMinutes();
 
 // Governance audit retention: trims tool-call audit rows in `agent_activity`
 // past config('chatvia.governance.retention_days') (default 90).

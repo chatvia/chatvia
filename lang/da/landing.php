@@ -34,7 +34,7 @@ return [
         ],
         'title_line1' => 'Privatliv først',
         'title_line2' => 'AI-agenter',
-        'subtitle' => 'AI-agenter bygget og hostet i Europa på europæisk-ejet infrastruktur. Dine data forlader aldrig Europa til USA — og bruges aldrig til at træne AI-modeller. 🇪🇺',
+        'subtitle' => 'Byg no-code AI-agenter med dine egne data — de svarer kunder, booker møder, sender e-mails og handler i dine værktøjer. Alt sammen på europæisk-ejet infrastruktur, og dine data bruges aldrig til at træne AI-modeller. 🇪🇺',
         'no_code' => 'Ingen kode, ingen udviklere.',
         'eu_hosting' => 'Hostet i EU · GDPR som standard · Ingen amerikanske underleverandører · DPA inkluderet',
         'gdpr_alt' => 'GDPR-compliant',

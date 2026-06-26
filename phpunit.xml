@@ -46,5 +46,11 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- laravel-localization registers the landing routes once per boot under
+             the locale this env names. Now that the default locale is explicit in
+             the URL (hideDefaultLocaleInURL=false), force `en` so route('home') and
+             friends resolve to /en in the harness, matching production. A test that
+             needs un-prefixed (first-visit) registration reboots with this cleared. -->
+        <env name="ROUTING_LOCALE" value="en"/>
     </php>
 </phpunit>

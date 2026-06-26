@@ -164,7 +164,9 @@ describe('User Logout', function (): void {
 
         $response = $this->actingAs($user)->post(route('logout'));
 
-        $response->assertRedirect(route('home'));
+        // Fortify logs out to the site root, which the locale middleware then
+        // forwards to the localized home (/en).
+        $response->assertRedirect('/');
         $this->assertGuest();
     });
 

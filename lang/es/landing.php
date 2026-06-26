@@ -34,7 +34,7 @@ return [
         ],
         'title_line1' => 'Privacidad primero',
         'title_line2' => 'Agentes de IA',
-        'subtitle' => 'Agentes de IA creados y alojados en Europa, sobre infraestructura de propiedad europea. Tus datos nunca salen hacia EE. UU. — y nunca se usarán para entrenar modelos de IA. 🇪🇺',
+        'subtitle' => 'Crea agentes de IA sin código con tus propios datos — responden a los clientes, agendan reuniones, envían correos y actúan en tus herramientas. Todo sobre infraestructura de propiedad europea, y tus datos nunca se usan para entrenar modelos de IA. 🇪🇺',
         'no_code' => 'Sin código, sin ingenieros.',
         'eu_hosting' => 'Alojado en la UE · GDPR por defecto · Sin subprocesadores en EE. UU. · DPA incluido',
         'gdpr_alt' => 'Conforme con el GDPR',

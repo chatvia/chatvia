@@ -57,3 +57,19 @@ it('drops excluded paths', function (): void {
 
     expect($result)->toBe(['https://x.test/blog/a' => 'a']);
 });
+
+it('translates a comma-separated glob list into anchored FireCrawl regex patterns', function (): void {
+    expect((new Crawler)->firecrawlPatterns('blog/*, /dev/*, admin*'))->toBe([
+        '^/?blog/.*',
+        '^/?dev/.*',
+        '^/?admin.*',
+    ]);
+});
+
+it('returns no FireCrawl patterns for empty or whitespace-only path lists', function (): void {
+    $crawler = new Crawler;
+
+    expect($crawler->firecrawlPatterns(null))->toBe([])
+        ->and($crawler->firecrawlPatterns(''))->toBe([])
+        ->and($crawler->firecrawlPatterns('  ,  '))->toBe([]);
+});

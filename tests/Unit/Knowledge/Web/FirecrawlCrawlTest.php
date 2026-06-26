@@ -37,7 +37,28 @@ it('startCrawl() asks FireCrawl to crawl the entire domain and returns the job i
             && ($body['scrapeOptions']['formats'] ?? null) === ['markdown']
             && ($body['scrapeOptions']['onlyMainContent'] ?? null) === true
             && ($body['scrapeOptions']['waitFor'] ?? null) === 2000
-            && ! array_key_exists('delay', $body);
+            && ! array_key_exists('delay', $body)
+            && ! array_key_exists('includePaths', $body)
+            && ! array_key_exists('excludePaths', $body);
+    });
+});
+
+it('startCrawl() forwards include/exclude path patterns to FireCrawl so the crawl is scoped at the source', function (): void {
+    Http::fake(['https://firecrawl.test/v2/crawl' => Http::response(['id' => 'job-3'], 200)]);
+
+    app(Firecrawl::class)->startCrawl(
+        'https://example.com',
+        1000,
+        false,
+        ['^/?blog/.*'],
+        ['^/?admin.*'],
+    );
+
+    Http::assertSent(function (Request $request): bool {
+        $body = $request->data();
+
+        return ($body['includePaths'] ?? null) === ['^/?blog/.*']
+            && ($body['excludePaths'] ?? null) === ['^/?admin.*'];
     });
 });
 

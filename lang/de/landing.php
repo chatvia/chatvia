@@ -34,7 +34,7 @@ return [
         ],
         'title_line1' => 'Datenschutz zuerst',
         'title_line2' => 'KI-Agenten',
-        'subtitle' => 'KI-Agenten, entwickelt und gehostet in Europa auf Infrastruktur in europäischem Besitz. Ihre Daten verlassen Europa nie in Richtung USA — und werden niemals zum Training von KI-Modellen verwendet. 🇪🇺',
+        'subtitle' => 'Erstellen Sie No-Code-KI-Agenten mit Ihren eigenen Daten — sie beantworten Kundenanfragen, buchen Meetings, versenden E-Mails und handeln in Ihren Tools. Alles auf Infrastruktur in europäischem Besitz, und Ihre Daten werden niemals zum Training von KI-Modellen verwendet. 🇪🇺',
         'no_code' => 'Kein Code, keine Entwickler.',
         'eu_hosting' => 'In der EU gehostet · GDPR ab Werk · Keine US-Unterauftragsverarbeiter · DPA inklusive',
         'gdpr_alt' => 'GDPR-konform',

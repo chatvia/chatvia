@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Schema;
  * The preset/builtin path stores each connector's tool definitions + embeddings
  * ONCE in the shared `connector_tools` catalog (keyed by connector_slug), with a
  * thin per-workspace `mcp_server_tool` membership carrying that workspace's
- * permission. No matter how many workspaces connect "leads", the catalog holds
+ * permission. No matter how many workspaces connect "weather", the catalog holds
  * one row set.
  *
  * Only servers fetched from the connector's CANONICAL URL may share the catalog:
@@ -61,15 +61,15 @@ it('stores one shared catalog row per (connector_slug, name) regardless of how m
     Queue::fake();
     $this->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(presetTools()));
 
-    $internalUrl = rtrim((string) config('app.url'), '/').'/mcp/leads';
-    $a = presetServer('leads', $internalUrl, McpServerCategory::Builtin);
-    $b = presetServer('leads', $internalUrl, McpServerCategory::Builtin);
+    $internalUrl = rtrim((string) config('app.url'), '/').'/mcp/weather';
+    $a = presetServer('weather', $internalUrl, McpServerCategory::Builtin);
+    $b = presetServer('weather', $internalUrl, McpServerCategory::Builtin);
 
     app(McpCatalog::class)->refresh($a);
     app(McpCatalog::class)->refresh($b);
 
     // Two workspaces, but the catalog holds exactly one row per tool.
-    expect(ConnectorTool::where('connector_slug', 'leads')->count())->toBe(2);
+    expect(ConnectorTool::where('connector_slug', 'weather')->count())->toBe(2);
 
     // Each workspace gets its own membership rows.
     expect(McpServerTool::where('mcp_server_id', $a->id)->count())->toBe(2)
@@ -80,12 +80,12 @@ it('seeds membership permission from the catalog default — read tools Allow, w
     Queue::fake();
     $this->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(presetTools()));
 
-    $server = presetServer('leads', rtrim((string) config('app.url'), '/').'/mcp/leads', McpServerCategory::Builtin);
+    $server = presetServer('weather', rtrim((string) config('app.url'), '/').'/mcp/weather', McpServerCategory::Builtin);
 
     app(McpCatalog::class)->refresh($server);
 
     $permissionOf = function (string $name) use ($server): McpToolPermission {
-        $toolId = ConnectorTool::where('connector_slug', 'leads')->where('name', $name)->value('id');
+        $toolId = ConnectorTool::where('connector_slug', 'weather')->where('name', $name)->value('id');
 
         return McpServerTool::where('mcp_server_id', $server->id)->where('connector_tool_id', $toolId)->first()->permission;
     };
@@ -93,7 +93,7 @@ it('seeds membership permission from the catalog default — read tools Allow, w
     expect($permissionOf('read_thing'))->toBe(McpToolPermission::Allow)
         ->and($permissionOf('write_thing'))->toBe(McpToolPermission::Approval)
         // The shared catalog default mirrors the seed.
-        ->and(ConnectorTool::where('connector_slug', 'leads')->where('name', 'read_thing')->value('default_permission'))
+        ->and(ConnectorTool::where('connector_slug', 'weather')->where('name', 'read_thing')->value('default_permission'))
         ->toBe(McpToolPermission::Allow);
 });
 
@@ -101,10 +101,10 @@ it('does not clobber a workspace permission toggle on a re-sync', function (): v
     Queue::fake();
     $this->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(presetTools()));
 
-    $server = presetServer('leads', rtrim((string) config('app.url'), '/').'/mcp/leads', McpServerCategory::Builtin);
+    $server = presetServer('weather', rtrim((string) config('app.url'), '/').'/mcp/weather', McpServerCategory::Builtin);
     app(McpCatalog::class)->refresh($server);
 
-    $writeId = ConnectorTool::where('connector_slug', 'leads')->where('name', 'write_thing')->value('id');
+    $writeId = ConnectorTool::where('connector_slug', 'weather')->where('name', 'write_thing')->value('id');
 
     // Workspace flips the write tool to Allow.
     McpServerTool::where('mcp_server_id', $server->id)->where('connector_tool_id', $writeId)
@@ -120,7 +120,7 @@ it('reconciles membership when the server stops advertising a tool', function ()
     Queue::fake();
     $client = $this->mock(McpClient::class);
 
-    $server = presetServer('leads', rtrim((string) config('app.url'), '/').'/mcp/leads', McpServerCategory::Builtin);
+    $server = presetServer('weather', rtrim((string) config('app.url'), '/').'/mcp/weather', McpServerCategory::Builtin);
 
     $client->shouldReceive('fetchTools')->once()->andReturn(presetTools());
     app(McpCatalog::class)->refresh($server);
@@ -136,17 +136,17 @@ it('queues a connector-scoped embed job after a preset refresh', function (): vo
     Queue::fake();
     $this->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(presetTools()));
 
-    $server = presetServer('leads', rtrim((string) config('app.url'), '/').'/mcp/leads', McpServerCategory::Builtin);
+    $server = presetServer('weather', rtrim((string) config('app.url'), '/').'/mcp/weather', McpServerCategory::Builtin);
     app(McpCatalog::class)->refresh($server);
 
-    Queue::assertPushed(EmbedConnectorToolsJob::class, fn (EmbedConnectorToolsJob $job): bool => $job->connectorSlug === 'leads');
+    Queue::assertPushed(EmbedConnectorToolsJob::class, fn (EmbedConnectorToolsJob $job): bool => $job->connectorSlug === 'weather');
 });
 
 it('persists the storage shape on refresh — canonical URL → central catalog', function (): void {
     Queue::fake();
     $this->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(presetTools()));
 
-    $server = presetServer('leads', rtrim((string) config('app.url'), '/').'/mcp/leads', McpServerCategory::Builtin);
+    $server = presetServer('weather', rtrim((string) config('app.url'), '/').'/mcp/weather', McpServerCategory::Builtin);
     expect($server->usesCentralCatalog())->toBeFalse();
 
     app(McpCatalog::class)->refresh($server);
@@ -189,10 +189,10 @@ it('prunes catalog rows no server advertises anymore, after the staleness window
     Queue::fake();
     $this->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(presetTools()));
 
-    $orphanStale = ConnectorTool::factory()->create(['connector_slug' => 'leads', 'name' => 'gone_tool', 'fetched_at' => now()->subDays(8)]);
-    $orphanFresh = ConnectorTool::factory()->create(['connector_slug' => 'leads', 'name' => 'new_tool', 'fetched_at' => now()]);
+    $orphanStale = ConnectorTool::factory()->create(['connector_slug' => 'weather', 'name' => 'gone_tool', 'fetched_at' => now()->subDays(8)]);
+    $orphanFresh = ConnectorTool::factory()->create(['connector_slug' => 'weather', 'name' => 'new_tool', 'fetched_at' => now()]);
 
-    $server = presetServer('leads', rtrim((string) config('app.url'), '/').'/mcp/leads', McpServerCategory::Builtin);
+    $server = presetServer('weather', rtrim((string) config('app.url'), '/').'/mcp/weather', McpServerCategory::Builtin);
     app(McpCatalog::class)->refresh($server);
 
     expect(ConnectorTool::whereKey($orphanStale->id)->exists())->toBeFalse()

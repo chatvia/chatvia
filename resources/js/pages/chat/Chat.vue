@@ -902,6 +902,14 @@ async function reissue({ userMessageId, assistantMessageId, overrideContent = nu
             assistant_message_id: assistantMessageId,
         });
     } catch (error) {
+        // 404 = the conversation was deleted elsewhere (e.g. another tab), so
+        // there's nothing server-side to regenerate. Tell the user it's gone
+        // and fall back to a fresh chat rather than logging a scary error.
+        if (error?.response?.status === 404) {
+            toast.error(t('chat.conversation_gone'));
+            router.visit(route(props.newChatRoute));
+            return;
+        }
         console.error('Failed to reissue message:', error);
         toast.error(t('chat.regenerate_failed'));
         return;
@@ -1085,11 +1093,11 @@ const handleScrollToBottomClick = () => {
                 </div>
 
                 <!-- Scroll to bottom button -->
-                <div class="pointer-events-none absolute start-0 end-0 bottom-32 z-10 flex justify-center">
+                <div class="pointer-events-none absolute start-0 end-0 bottom-36 z-10 flex justify-center">
                     <Transition name="scale-fade">
                         <button
                             v-if="showScrollToBottom && messages.length > 0"
-                            class="bg-foreground/90 text-background hover:bg-foreground pointer-events-auto flex h-9 w-9 cursor-pointer items-center justify-center rounded-full shadow-lg transition-colors"
+                            class="bg-card text-foreground hover:bg-muted ring-border pointer-events-auto flex h-9 w-9 cursor-pointer items-center justify-center rounded-full shadow-lg ring-1 transition-colors"
                             @click="handleScrollToBottomClick"
                         >
                             <ChevronDown class="h-4 w-4" />

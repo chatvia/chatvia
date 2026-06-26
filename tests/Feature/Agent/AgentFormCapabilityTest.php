@@ -12,8 +12,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 /**
  * The Forms management page is reachable regardless of the capability toggle, so
  * the controller keeps the capability in step with form existence: the first
- * form turns it on (and attaches the hidden `leads` companion); deleting the
- * last form turns it back off.
+ * form turns it on; deleting the last form turns it back off.
  */
 beforeEach(function (): void {
     $this->user = User::factory()->create();
@@ -29,19 +28,17 @@ beforeEach(function (): void {
     $this->user->refresh();
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
 
-    // Pre-provision the account-level forms + leads rows so enabling is a pure
-    // attach (no remote tools/list during the test).
-    foreach (['forms', 'leads'] as $slug) {
-        $this->user->mcpServers()->create([
-            'connector_slug' => $slug,
-            'category' => 'builtin',
-            'name' => ucfirst($slug),
-            'slug' => $slug,
-            'url' => config('app.url').'/mcp/'.$slug,
-            'auth_type' => 'none',
-            'is_enabled' => true,
-        ]);
-    }
+    // Pre-provision the account-level forms row so enabling is a pure attach
+    // (no remote tools/list during the test).
+    $this->user->mcpServers()->create([
+        'connector_slug' => 'forms',
+        'category' => 'builtin',
+        'name' => 'Forms',
+        'slug' => 'forms',
+        'url' => config('app.url').'/mcp/forms',
+        'auth_type' => 'none',
+        'is_enabled' => true,
+    ]);
 });
 
 function storeForm(User $user, Agent $agent, string $name = 'Contact', string $fieldKey = 'email'): TestResponse
@@ -54,13 +51,12 @@ function storeForm(User $user, Agent $agent, string $name = 'Contact', string $f
     ]);
 }
 
-it('enables the Forms capability (and the leads companion) when the first form is created', function (): void {
+it('enables the Forms capability when the first form is created', function (): void {
     expect($this->agent->isFormsEnabled())->toBeFalse();
 
     storeForm($this->user, $this->agent)->assertRedirect();
 
-    expect($this->agent->isFormsEnabled())->toBeTrue()
-        ->and($this->agent->isLeadsEnabled())->toBeTrue();
+    expect($this->agent->isFormsEnabled())->toBeTrue();
 });
 
 it('disables the Forms capability when the last form is deleted', function (): void {

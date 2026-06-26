@@ -146,7 +146,7 @@ it('routes a question to the relevant global tools + a name→url map', function
     }
 })->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
 
-it('does not make charts ambient — an unattached agent gets neither charts nor leads', function (): void {
+it('does not make charts ambient — an unattached agent gets neither charts nor forms', function (): void {
     bindFakeEmbeddings();
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
 
@@ -157,9 +157,9 @@ it('does not make charts ambient — an unattached agent gets neither charts nor
         app(ToolRegistry::class)->for($agent),
     );
 
-    // Charts is now opt-in (like leads): not attached → not in the pool.
+    // Charts is now opt-in (like forms): not attached → not in the pool.
     expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__charts__')))->toBeFalse();
-    expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__leads__')))->toBeFalse();
+    expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__forms__')))->toBeFalse();
 })->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
 
 it('surfaces charts tools once the agent attaches the connector', function (): void {
@@ -187,8 +187,8 @@ it('403s an unattached agent on the charts route, allows it once attached', func
 
     // Charts is opt-in now: an agent that hasn't enabled it is gated like any other connector.
     $this->withHeaders($sign())->postJson('/mcp/charts', $call('render-bar-chart'))->assertStatus(403);
-    // Leads (also opt-in, not attached) → still gated.
-    $this->withHeaders($sign())->postJson('/mcp/leads', $call('capture-lead'))->assertStatus(403);
+    // Forms (also opt-in, not attached) → still gated.
+    $this->withHeaders($sign())->postJson('/mcp/forms', $call('find-forms'))->assertStatus(403);
 
     // Once charts is attached, the per-agent enablement check passes (no longer 403).
     attachCharts($agent);

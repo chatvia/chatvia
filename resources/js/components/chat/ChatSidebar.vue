@@ -141,9 +141,6 @@ const isLoadingConversations = ref(true);
 
 // Add window width tracking
 const windowWidth = ref(window.innerWidth);
-const showMobileClose = computed(() => {
-    return isMobileDevice || windowWidth.value < 768;
-});
 
 onMounted(() => {
     loadConversations();
@@ -453,17 +450,6 @@ const switchToSelectedAgent = () => {
 </script>
 
 <template>
-    <Button
-        v-if="!isSidebarOpen"
-        :aria-label="t('sidebar.open_sidebar')"
-        class="bg-background/80 fixed start-4 top-4 z-50 shadow-sm backdrop-blur-sm"
-        size="icon"
-        variant="ghost"
-        @click="toggleSidebar"
-    >
-        <PanelLeft class="h-4 w-4 rtl:scale-x-[-1]" />
-    </Button>
-
     <!-- Sidebar overlay (mobile only) -->
     <Transition
         name="backdrop"
@@ -498,14 +484,16 @@ const switchToSelectedAgent = () => {
                         </span>
                     </template>
                 </Link>
-                <!-- Close button for mobile only -->
+                <!-- Collapse the sidebar (ChatGPT-style). On desktop this slides
+                     it away and the reopen control appears in the top bar; on
+                     mobile it closes the drawer. -->
                 <button
-                    v-if="showMobileClose"
-                    :aria-label="t('common.close')"
-                    class="hover:bg-accent rounded-lg p-2 transition-colors"
+                    :aria-label="t('header.toggle_sidebar')"
+                    :title="t('header.toggle_sidebar')"
+                    class="text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg p-2 transition-colors"
                     @click="toggleSidebar"
                 >
-                    <X class="h-5 w-5" />
+                    <PanelLeft class="h-5 w-5 rtl:scale-x-[-1]" />
                 </button>
             </div>
 

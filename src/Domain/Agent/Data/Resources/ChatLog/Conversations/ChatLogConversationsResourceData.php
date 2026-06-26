@@ -86,12 +86,15 @@ class ChatLogConversationsResourceData extends Data
      */
     private static function getLeadConversationIds(Agent $agent): Collection
     {
-        // leads.agent_id pins the row to this agent, so chat_conversation_id is
-        // guaranteed to belong to one of the agent's conversations. No need to
-        // pre-resolve every conversation id client-side.
+        // The internal chat_conversation_id of every conversation with a SUBMITTED
+        // form. agent_id pins the row to this agent, so the id is guaranteed to
+        // belong to one of its conversations. Pending rows (a form rendered but
+        // never filled) are not leads, so they're excluded.
         return FormSubmission::query()
             ->where('agent_id', $agent->id)
+            ->where('status', FormSubmission::STATUS_SUBMITTED)
             ->whereNotNull('chat_conversation_id')
+            ->distinct()
             ->pluck('chat_conversation_id');
     }
 }

@@ -196,7 +196,7 @@ const adjustTextareaHeight = (event?: Event) => {
     if (!textarea || !textarea.style) return;
 
     textarea.style.height = 'auto';
-    textarea.style.height = Math.min(160, textarea.scrollHeight) + 'px';
+    textarea.style.height = Math.min(200, textarea.scrollHeight) + 'px';
 };
 
 watch(userInput, () => {
@@ -274,26 +274,29 @@ const toggleRecording = async () => {
 <template>
     <div class="w-full">
         <TooltipProvider :delay-duration="200">
+            <!-- Single-row composer with a constant 26px radius. Empty, it reads
+                 as a compact pill; as the textarea wraps it grows into a rounded
+                 rectangle with the same corners — no pill→box morph. items-end
+                 keeps the buttons aligned to the last line as the text grows. -->
             <div
-                class="bg-card relative border transition-all duration-200"
+                class="bg-card relative flex flex-col rounded-[26px] border transition-[border-color,box-shadow] duration-200"
                 :class="[
-                    attachments.length > 0 || isUploading ? 'rounded-3xl' : 'rounded-full',
-                    disabled ? 'cursor-not-allowed opacity-50' : '',
+                    disabled ? 'cursor-not-allowed opacity-60' : '',
                     isFocused && !disabled
                         ? 'border-primary/40 ring-primary/10 shadow-lg ring-1'
                         : 'dark:border-input hover:border-muted-foreground/40 border-[#dcdcdc] shadow-[0_2px_8px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.04)]',
-                    isThinking ? 'border-primary/40' : '',
+                    isThinking && !isFocused ? 'border-primary/40' : '',
                 ]"
             >
-                <!-- Attachment chips -->
+                <!-- Attachment chips sit above the input row when present. -->
                 <div v-if="attachments.length > 0 || isUploading" class="flex flex-wrap gap-2 px-4 pt-3">
                     <div
                         v-for="att in attachments"
                         :key="att.id"
-                        class="bg-muted text-foreground flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs"
+                        class="bg-muted/70 text-foreground flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs"
                     >
                         <FileText class="text-muted-foreground h-3.5 w-3.5 shrink-0" />
-                        <span class="max-w-[180px] truncate">{{ att.filename }}</span>
+                        <span class="max-w-[180px] truncate font-medium">{{ att.filename }}</span>
                         <span class="text-muted-foreground">{{ formatBytes(att.size_bytes) }}</span>
                         <span v-if="att.pages" class="text-muted-foreground">
                             · {{ t('composer.pdf_pages', { count: att.pages }, { plural: att.pages }) }}
@@ -301,67 +304,66 @@ const toggleRecording = async () => {
                         <button
                             type="button"
                             @click="removeAttachment(att.id)"
-                            class="text-muted-foreground hover:text-foreground -me-1 rounded p-0.5"
+                            class="text-muted-foreground hover:bg-background hover:text-foreground -me-1 rounded-md p-0.5 transition-colors"
                             :aria-label="t('composer.remove_attachment', 'Remove attachment')"
                         >
                             <X class="h-3.5 w-3.5" />
                         </button>
                     </div>
-                    <div v-if="isUploading" class="text-muted-foreground bg-muted flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs">
+                    <div v-if="isUploading" class="text-muted-foreground bg-muted/70 flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs">
                         <Loader2 class="h-3.5 w-3.5 animate-spin" />
                         {{ t('composer.uploading', 'Uploading…') }}
                     </div>
                 </div>
 
-                <div class="flex items-center">
+                <!-- Input row: attach · textarea · voice + send/stop, all on one
+                     line. The textarea (flex-1) pushes the actions to the end. -->
+                <div class="flex items-end gap-1 p-2">
                     <!-- Left: file upload "+" button. Hidden when the agent disables
-                     uploads or while streaming. Disabled (greyed) once the local
-                     attachments list hits the per-chat ceiling; the click handler
-                     also re-checks and surfaces a toast as a fallback. -->
-                    <div v-if="showUploadButton" class="flex items-center py-2 ps-2">
-                        <Tooltip>
-                            <TooltipTrigger as-child>
-                                <Button
-                                    @click="triggerFilePicker"
-                                    :disabled="isUploading || !canUploadMore"
-                                    size="icon"
-                                    variant="ghost"
-                                    class="hover:bg-muted text-muted-foreground hover:text-foreground h-10 w-10 shrink-0 rounded-full transition-all duration-200"
-                                    :aria-label="t('composer.attach_file', 'Attach a PDF')"
-                                >
-                                    <Plus class="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top">
-                                {{
-                                    !canUploadMore
-                                        ? t('composer.upload_limit_reached', { count: maxFiles }, `You can attach up to ${maxFiles} files.`)
-                                        : t('composer.attach_file', 'Attach a PDF')
-                                }}
-                            </TooltipContent>
-                        </Tooltip>
-                    </div>
+                         uploads or while streaming. Disabled (greyed) once the local
+                         attachments list hits the per-chat ceiling; the click handler
+                         also re-checks and surfaces a toast as a fallback. -->
+                    <Tooltip v-if="showUploadButton">
+                        <TooltipTrigger as-child>
+                            <Button
+                                @click="triggerFilePicker"
+                                :disabled="isUploading || !canUploadMore"
+                                size="icon"
+                                variant="ghost"
+                                class="hover:bg-muted text-muted-foreground hover:text-foreground h-9 w-9 shrink-0 rounded-full transition-colors"
+                                :aria-label="t('composer.attach_file', 'Attach a PDF')"
+                            >
+                                <Plus class="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                            {{
+                                !canUploadMore
+                                    ? t('composer.upload_limit_reached', { count: maxFiles }, `You can attach up to ${maxFiles} files.`)
+                                    : t('composer.attach_file', 'Attach a PDF')
+                            }}
+                        </TooltipContent>
+                    </Tooltip>
                     <input ref="fileInput" type="file" :accept="uploadAccept" class="hidden" @change="handleFileSelected" />
 
-                    <!-- Middle: textarea. Left padding fills in when the "+" button is hidden. -->
-                    <div class="min-w-0 flex-1">
-                        <Textarea
-                            ref="messageInput"
-                            v-model="userInput"
-                            @keydown.enter="handleEnterKey"
-                            @input="adjustTextareaHeight"
-                            @focus="handleFocus"
-                            @blur="handleBlur"
-                            :placeholder="disabled ? t('composer.disabled') : placeholder || t('composer.default_placeholder')"
-                            class="text-foreground placeholder:text-muted-foreground/50 max-h-[160px] min-h-[28px] w-full resize-none !border-0 !bg-transparent py-4 pe-2 text-sm !shadow-none focus-visible:!border-0 focus-visible:ring-0 focus-visible:outline-none dark:!bg-transparent"
-                            :class="showUploadButton ? 'ps-2' : 'ps-4'"
-                            :disabled="isThinking || disabled"
-                            rows="1"
-                        />
-                    </div>
+                    <!-- Middle: textarea. Grows in place; the row stays single-line
+                         until the text actually wraps. -->
+                    <Textarea
+                        ref="messageInput"
+                        v-model="userInput"
+                        @keydown.enter="handleEnterKey"
+                        @input="adjustTextareaHeight"
+                        @focus="handleFocus"
+                        @blur="handleBlur"
+                        :placeholder="disabled ? t('composer.disabled') : placeholder || t('composer.default_placeholder')"
+                        class="text-foreground placeholder:text-muted-foreground/50 max-h-[200px] min-h-[24px] flex-1 resize-none !border-0 !bg-transparent py-2 text-[15px] leading-relaxed !shadow-none focus-visible:!border-0 focus-visible:ring-0 focus-visible:outline-none dark:!bg-transparent"
+                        :class="showUploadButton ? 'px-1' : 'px-3'"
+                        :disabled="isThinking || disabled"
+                        rows="1"
+                    />
 
-                    <!-- Right: Mic and Send/Stop buttons -->
-                    <div class="flex items-center gap-1.5 p-3">
+                    <!-- Right: voice + send/stop. -->
+                    <div class="flex items-center gap-1">
                         <!-- Voice recording button — hidden when the agent disables voice. -->
                         <Tooltip v-if="allowVoiceInput && isVoiceSupported && !isThinking && !disabled">
                             <TooltipTrigger as-child>
@@ -370,7 +372,7 @@ const toggleRecording = async () => {
                                     :disabled="isTranscribing"
                                     size="icon"
                                     variant="ghost"
-                                    class="h-10 w-10 shrink-0 rounded-full transition-all duration-200"
+                                    class="h-9 w-9 shrink-0 rounded-full transition-colors"
                                     :class="[
                                         isRecording
                                             ? 'animate-pulse bg-red-500 text-white hover:bg-red-600'
@@ -387,8 +389,14 @@ const toggleRecording = async () => {
                             </TooltipContent>
                         </Tooltip>
 
-                        <Button v-if="isThinking" @click="stopStreaming" size="icon" variant="destructive" class="h-10 w-10 shrink-0 rounded-full">
-                            <Square class="h-5 w-5" />
+                        <Button
+                            v-if="isThinking"
+                            @click="stopStreaming"
+                            size="icon"
+                            class="bg-foreground text-background hover:bg-foreground/90 h-9 w-9 shrink-0 rounded-full"
+                            :aria-label="t('composer.stop_streaming', 'Stop generating')"
+                        >
+                            <Square class="h-4 w-4 fill-current" />
                         </Button>
 
                         <Button
@@ -396,10 +404,11 @@ const toggleRecording = async () => {
                             @click="sendMessage"
                             :disabled="!canSend()"
                             size="icon"
-                            class="h-10 w-10 shrink-0 rounded-full transition-all duration-200"
+                            class="h-9 w-9 shrink-0 rounded-full transition-all duration-200"
                             :class="[
-                                canSend() ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md' : 'bg-muted text-muted-foreground',
+                                canSend() ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm' : 'bg-muted text-muted-foreground',
                             ]"
+                            :aria-label="t('composer.send_message', 'Send message')"
                         >
                             <ArrowUp class="h-5 w-5" :class="{ 'stroke-[2.5px]': canSend() }" />
                         </Button>

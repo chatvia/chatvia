@@ -3,7 +3,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { updateTheme } from '@/composables/useAppearance';
-import { Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen, Trash2 } from 'lucide-vue-next';
+import { Maximize2, Minimize2, PanelLeft, Trash2 } from 'lucide-vue-next';
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -93,17 +93,18 @@ function toggleChatExpand() {
     <header class="bg-background/95 border-border/60 sticky top-0 z-10 w-full border-b backdrop-blur-sm">
         <div class="flex h-14 items-center justify-between px-4">
             <div class="flex items-center gap-1">
-                <!-- Collapse/Expand sidebar -->
+                <!-- Reopen sidebar. The collapse control now lives inside the
+                     sidebar header (ChatGPT-style); this top-bar button only
+                     appears once the sidebar is collapsed, to bring it back. -->
                 <Button
-                    v-if="!removeSidebar"
+                    v-if="!removeSidebar && !isSidebarOpen"
                     variant="ghost"
                     @click="toggleSidebar"
                     size="icon"
                     class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-9 w-9 rounded-lg transition-colors"
                     :title="t('header.toggle_sidebar')"
                 >
-                    <PanelLeftClose v-if="isSidebarOpen" class="h-[18px] w-[18px]" />
-                    <PanelLeftOpen v-else class="h-[18px] w-[18px]" />
+                    <PanelLeft class="h-[18px] w-[18px] rtl:scale-x-[-1]" />
                 </Button>
 
                 <!-- Expand/Collapse chat content -->

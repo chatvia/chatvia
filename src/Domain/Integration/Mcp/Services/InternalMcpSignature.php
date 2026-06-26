@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 
 /**
  * Proof-of-origin for calls to Chatvia's OWN built-in MCP servers
- * (/mcp/weather, /mcp/currency, /mcp/charts, /mcp/leads, /mcp/perplexity).
+ * (/mcp/weather, /mcp/currency, /mcp/charts, /mcp/forms, /mcp/perplexity).
  *
  * These run as public HTTP routes but must only be reachable by Chatvia's own
  * server-side tool loop (McpClient). We attach a short-lived HMAC over a

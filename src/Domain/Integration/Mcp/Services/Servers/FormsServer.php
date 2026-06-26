@@ -26,11 +26,10 @@ Two tools:
 
 Flow: when a visitor expresses such an intent, call find-forms first. If it returns a
 form that fits, call render-form with that slug. If it returns nothing, or none fit,
-keep helping conversationally — do NOT invent a form. Do NOT also call capture-lead in
-the same turn as render-form; the form persists the data on submit. After rendering,
-briefly tell the visitor the form is shown below. If render-form reports the surface
-can't display a form, fall back to collecting details conversationally and call
-capture-lead.
+keep helping conversationally — do NOT invent a form. The form persists the data itself
+on submit. After rendering, briefly tell the visitor the form is shown below. Forms
+render only on the web chat surfaces; if render-form reports the surface can't display a
+form, just keep helping the visitor conversationally.
 TXT)]
 class FormsServer extends Server
 {

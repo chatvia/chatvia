@@ -150,22 +150,22 @@ function handleStarterClick(text) {
         <Head title="ChatVia" />
         <template #content>
             <div class="flex h-full items-center justify-center px-4 py-8">
-                <div class="mx-auto w-full max-w-3xl">
+                <div class="mx-auto -mt-8 w-full max-w-3xl">
                     <!-- Logo -->
-                    <div class="mb-4 flex justify-center">
-                        <div class="h-10 w-10 overflow-hidden">
+                    <div class="mb-5 flex justify-center">
+                        <div class="flex h-12 w-12 items-center justify-center overflow-hidden">
                             <img
                                 v-if="props.appearance.logo"
                                 :src="props.appearance.logo"
                                 :alt="t('home.logo_alt')"
                                 class="h-full w-full object-contain"
                             />
-                            <AppLogoIcon v-else class="h-full w-full" />
+                            <AppLogoIcon v-else class="h-9 w-9" />
                         </div>
                     </div>
 
                     <!-- Welcome message -->
-                    <h1 class="text-foreground mb-8 text-center text-2xl font-semibold tracking-tight sm:text-3xl">
+                    <h1 class="text-foreground mb-7 text-center text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
                         {{ props.appearance?.welcome_message || t('home.welcome_message') }}
                     </h1>
 
@@ -196,17 +196,17 @@ function handleStarterClick(text) {
                         </div>
 
                         <!-- Conversation Starters -->
-                        <div v-if="canSendMessages && starters.length > 0" class="mt-5 flex flex-wrap justify-center gap-2.5">
+                        <div v-if="canSendMessages && starters.length > 0" class="mt-6 flex flex-wrap justify-center gap-2.5">
                             <button
                                 v-for="(starter, index) in starters"
                                 :key="index"
                                 @click="handleStarterClick(starter.text)"
-                                class="group border-border bg-card hover:bg-muted flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-2.5 text-start transition-colors duration-150"
+                                class="group border-border bg-card hover:border-muted-foreground/30 hover:bg-muted/60 flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-2.5 text-start shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-md"
                             >
                                 <HeroIcon
                                     v-if="starter.icon"
                                     :name="starter.icon"
-                                    class="text-muted-foreground group-hover:text-foreground h-4 w-4 shrink-0"
+                                    class="text-muted-foreground group-hover:text-primary h-4 w-4 shrink-0 transition-colors"
                                 />
                                 <span class="text-foreground/80 group-hover:text-foreground line-clamp-2 max-w-[280px] text-sm leading-snug">
                                     {{ starter.text }}

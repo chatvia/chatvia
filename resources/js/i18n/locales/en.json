@@ -86,6 +86,7 @@
         "message_limit_reached": "You've reached your message limit",
         "upgrade_prompt": "Please upgrade your plan to continue chatting",
         "regenerate_failed": "Could not regenerate the response. Please try again.",
+        "conversation_gone": "This conversation no longer exists.",
         "loading_conversation": "Loading conversation",
         "forms": {
             "submit": "Submit",

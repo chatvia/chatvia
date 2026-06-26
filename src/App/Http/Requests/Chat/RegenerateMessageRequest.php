@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\Auth;
  * belong to the current agent, and on a protected agent the authenticated
  * chatter must own it — otherwise a chatter could erase turns from another
  * visitor's thread by guessing its UUID.
+ *
+ * A conversation that's missing/deleted or owned by another agent is a 404
+ * ("gone"), while a real ownership-gate failure is a 403 — the two are kept
+ * distinct so a stale tab acting on a deleted thread reports the honest
+ * status instead of a misleading "forbidden".
  */
 class RegenerateMessageRequest extends FormRequest
 {
@@ -34,8 +39,14 @@ class RegenerateMessageRequest extends FormRequest
             ->where('external_id', $conversationId)
             ->first();
 
+        // A missing/deleted conversation (the SoftDeletes scope hides a
+        // soft-deleted row), or one belonging to another agent, is a "gone"
+        // resource — not an authorization failure. Surface it as 404 so a
+        // stale tab regenerating a thread that was deleted elsewhere doesn't
+        // read as a forbidden (or CSRF) error. The genuine ownership gate
+        // below still returns 403.
         if ($conversation === null || $conversation->session?->agent_id !== $agent->id) {
-            return false;
+            abort(404, 'Conversation not found.');
         }
 
         // Mirrors EnsureChatIsAccessible's protected-agent gate: an

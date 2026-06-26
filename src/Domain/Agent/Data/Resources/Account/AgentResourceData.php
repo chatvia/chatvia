@@ -28,7 +28,7 @@ class AgentResourceData extends Data
         public CarbonInterface $updated_at,
         public ?int $total_messages = null,
         public ?int $total_members = null,
-        public bool $leads_mcp_enabled = false,
+        public bool $forms_enabled = false,
     ) {}
 
     public static function fromModel(Agent $agent): self
@@ -48,7 +48,7 @@ class AgentResourceData extends Data
             chat_embed_url: $agent->chat_embed_url,
             created_at: $agent->created_at,
             updated_at: $agent->updated_at,
-            leads_mcp_enabled: $agent->isLeadsEnabled(),
+            forms_enabled: $agent->isFormsEnabled(),
         );
     }
 

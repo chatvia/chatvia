@@ -108,29 +108,6 @@ return [
         'mcp_url' => env('APP_URL').'/mcp/charts',
     ],
 
-    'leads' => [
-        'slug' => 'leads',
-        'name' => 'Leads',
-        'activity_label' => 'Saving your details…',
-        'description' => 'Capture visitor contact details (name, email, phone, and more)',
-        'category' => 'Sales',
-        'icon' => 'leads',
-        'brand_color' => 'F59E0B',
-        'logo_url' => '/images/logos/connectors/leads.svg',
-        'provider' => 'chatvia',
-        'priority' => 40,
-        'auth_strategy' => 'none',
-        // First-party builtin, but NOT synced as a global always-on row, so it
-        // stays per-agent opt-in (lead capture is an agent-specific choice).
-        'server_category' => 'builtin',
-        // Hidden from BOTH the Capabilities and Connectors lists: lead capture
-        // is now owned by the `forms` capability, which companions this server
-        // for conversational `capture-lead` off-web. Still resolvable by slug
-        // (find()) for the companion attach + any legacy per-agent attachments.
-        'visible' => false,
-        'mcp_url' => env('APP_URL').'/mcp/leads',
-    ],
-
     'forms' => [
         'slug' => 'forms',
         'name' => 'Forms',
@@ -144,20 +121,18 @@ return [
         'priority' => 40,
         'auth_strategy' => 'none',
         // First-party builtin capability (per-agent opt-in). The agent renders
-        // forms the admin defined on the Forms page; submissions store a Lead
-        // and/or a FormSubmission. Surfaced on the Capabilities page.
-        // Companions the hidden `leads` server so conversational `capture-lead`
-        // is available off-web (messaging channels) where a form can't render —
-        // this is why "Leads" is no longer a separate capability.
+        // forms the admin defined on the Forms page; submissions are stored as
+        // FormSubmission rows. Surfaced on the Capabilities page. Forms render
+        // only on the web surfaces — there is no off-web (messaging) fallback.
         'server_category' => 'builtin',
         'is_capability' => true,
-        'companions' => ['leads'],
         'mcp_url' => env('APP_URL').'/mcp/forms',
     ],
 
     'stripe' => [
         'slug' => 'stripe',
         'name' => 'Stripe',
+        'activity_label' => 'Searching Stripe…',
         'description' => 'Search transactions, customers, products, and payments in your Stripe account.',
         'category' => 'Payments',
         'icon' => 'stripe',
@@ -171,6 +146,7 @@ return [
     'github' => [
         'slug' => 'github',
         'name' => 'GitHub',
+        'activity_label' => 'Searching GitHub…',
         'description' => 'Read repos, issues, PRs, and code from any account you have access to.',
         'category' => 'Developer Tools',
         'icon' => 'github',
@@ -193,6 +169,7 @@ return [
     'notion' => [
         'slug' => 'notion',
         'name' => 'Notion',
+        'activity_label' => 'Searching Notion…',
         'description' => 'Read pages, databases, and comments from your Notion workspace.',
         'category' => 'Productivity',
         'icon' => 'notion',
@@ -206,6 +183,7 @@ return [
     'linear' => [
         'slug' => 'linear',
         'name' => 'Linear',
+        'activity_label' => 'Searching Linear…',
         'description' => 'Search issues, projects, and cycles across your Linear workspace.',
         'category' => 'Productivity',
         'icon' => 'linear',
@@ -219,6 +197,7 @@ return [
     'atlassian' => [
         'slug' => 'atlassian',
         'name' => 'Atlassian',
+        'activity_label' => 'Searching Atlassian…',
         'description' => 'Jira issues, Confluence pages, and workflows from your Atlassian sites.',
         'category' => 'Productivity',
         'icon' => 'atlassian',
@@ -239,6 +218,7 @@ return [
     'gmail' => [
         'slug' => 'gmail',
         'name' => 'Gmail',
+        'activity_label' => 'Searching Gmail…',
         'description' => 'Search messages, read threads, and draft replies from your Gmail inbox.',
         'category' => 'Communication',
         'icon' => 'gmail',
@@ -262,6 +242,7 @@ return [
     'google-calendar' => [
         'slug' => 'google-calendar',
         'name' => 'Google Calendar',
+        'activity_label' => 'Checking your calendar…',
         'description' => 'Read and create events across your Google Calendars.',
         'category' => 'Productivity',
         'icon' => 'google-calendar',
@@ -280,6 +261,7 @@ return [
     'google-drive' => [
         'slug' => 'google-drive',
         'name' => 'Google Drive',
+        'activity_label' => 'Searching Google Drive…',
         'description' => 'Read files and folders from your Google Drive.',
         'category' => 'Productivity',
         'icon' => 'google-drive',
@@ -299,6 +281,7 @@ return [
     'slack' => [
         'slug' => 'slack',
         'name' => 'Slack',
+        'activity_label' => 'Searching Slack…',
         'description' => 'Search messages, post replies, and read channel history across your Slack workspace.',
         'category' => 'Communication',
         'icon' => 'slack',
@@ -320,6 +303,7 @@ return [
     'calendly' => [
         'slug' => 'calendly',
         'name' => 'Calendly',
+        'activity_label' => 'Checking Calendly…',
         'description' => 'Let visitors book meetings on your Calendly, and let agents read your scheduled events.',
         'category' => 'Productivity',
         'icon' => 'calendly',
@@ -335,6 +319,7 @@ return [
     'todoist' => [
         'slug' => 'todoist',
         'name' => 'Todoist',
+        'activity_label' => 'Checking Todoist…',
         'description' => 'Manage tasks, projects, and labels across your Todoist account.',
         'category' => 'Productivity',
         'icon' => 'todoist',
@@ -350,6 +335,7 @@ return [
     'zapier' => [
         'slug' => 'zapier',
         'name' => 'Zapier',
+        'activity_label' => 'Running Zapier…',
         'description' => 'Trigger Zapier actions across 9,000+ connected apps.',
         'category' => 'Automation',
         'icon' => 'zapier',
@@ -366,6 +352,7 @@ return [
     'zendesk' => [
         'slug' => 'zendesk',
         'name' => 'Zendesk',
+        'activity_label' => 'Searching Zendesk…',
         'description' => 'Read tickets, users, and Help Center articles from your Zendesk Support account.',
         'category' => 'Communication',
         'icon' => 'zendesk',
@@ -389,6 +376,7 @@ return [
     'hubspot' => [
         'slug' => 'hubspot',
         'name' => 'HubSpot',
+        'activity_label' => 'Searching HubSpot…',
         'description' => 'Read and update contacts, companies, deals, and tickets in your HubSpot CRM.',
         'category' => 'Sales',
         'icon' => 'hubspot',
@@ -412,6 +400,7 @@ return [
     'salesforce' => [
         'slug' => 'salesforce',
         'name' => 'Salesforce',
+        'activity_label' => 'Searching Salesforce…',
         'description' => 'Read and update accounts, contacts, opportunities, and cases from your Salesforce org.',
         'category' => 'Sales',
         'icon' => 'salesforce',
@@ -437,6 +426,7 @@ return [
     'box' => [
         'slug' => 'box',
         'name' => 'Box',
+        'activity_label' => 'Searching Box…',
         'description' => 'Search and read files, folders, and metadata from your Box account.',
         'category' => 'Productivity',
         'icon' => 'box',
@@ -459,6 +449,7 @@ return [
     'asana' => [
         'slug' => 'asana',
         'name' => 'Asana',
+        'activity_label' => 'Searching Asana…',
         'description' => 'Read and update tasks, projects, and portfolios across your Asana workspace.',
         'category' => 'Productivity',
         'icon' => 'asana',
@@ -481,6 +472,7 @@ return [
     'sentry' => [
         'slug' => 'sentry',
         'name' => 'Sentry',
+        'activity_label' => 'Checking Sentry…',
         'description' => 'Read issues, errors, and releases from your Sentry projects.',
         'category' => 'Developer Tools',
         'icon' => 'sentry',
@@ -496,6 +488,7 @@ return [
     'fireflies' => [
         'slug' => 'fireflies',
         'name' => 'Fireflies',
+        'activity_label' => 'Searching Fireflies…',
         'description' => 'Search meeting transcripts, summaries, and action items from Fireflies.ai.',
         'category' => 'Productivity',
         'icon' => 'fireflies',
@@ -515,6 +508,7 @@ return [
     'amplitude' => [
         'slug' => 'amplitude',
         'name' => 'Amplitude',
+        'activity_label' => 'Querying Amplitude…',
         'description' => 'Query product analytics — events, charts, and cohorts — from your Amplitude project.',
         'category' => 'Analytics',
         'icon' => 'amplitude',
@@ -530,6 +524,7 @@ return [
     'serpapi' => [
         'slug' => 'serpapi',
         'name' => 'SerpApi',
+        'activity_label' => 'Searching the web…',
         'description' => 'Search Google, Bing, YouTube, and other engines for live results — news, prices, locations — powered by SerpApi.',
         'category' => 'Utilities',
         'icon' => 'serpapi',

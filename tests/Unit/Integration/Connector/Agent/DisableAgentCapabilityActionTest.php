@@ -11,35 +11,30 @@ beforeEach(function (): void {
     app(TeamService::class)->createDefaultTeam($this->user);
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
 
-    foreach (['forms', 'leads'] as $slug) {
-        $server = $this->user->mcpServers()->create([
-            'connector_slug' => $slug,
-            'category' => 'builtin',
-            'name' => ucfirst($slug),
-            'slug' => $slug,
-            'url' => config('app.url').'/mcp/'.$slug,
-            'auth_type' => 'none',
-            'is_enabled' => true,
-        ]);
-        $this->agent->mcpServers()->attach($server->id);
-    }
+    $server = $this->user->mcpServers()->create([
+        'connector_slug' => 'forms',
+        'category' => 'builtin',
+        'name' => 'Forms',
+        'slug' => 'forms',
+        'url' => config('app.url').'/mcp/forms',
+        'auth_type' => 'none',
+        'is_enabled' => true,
+    ]);
+    $this->agent->mcpServers()->attach($server->id);
 });
 
-it('detaches the capability and its companions from the agent', function (): void {
-    expect($this->agent->isFormsEnabled())->toBeTrue()
-        ->and($this->agent->isLeadsEnabled())->toBeTrue();
+it('detaches the capability from the agent', function (): void {
+    expect($this->agent->isFormsEnabled())->toBeTrue();
 
     $forms = app(ConnectorCatalog::class)->capabilities()->get('forms');
     app(DisableAgentCapabilityAction::class)->execute($this->agent, $forms);
 
-    expect($this->agent->mcpServers()->where('connector_slug', 'forms')->exists())->toBeFalse()
-        ->and($this->agent->mcpServers()->where('connector_slug', 'leads')->exists())->toBeFalse();
+    expect($this->agent->mcpServers()->where('connector_slug', 'forms')->exists())->toBeFalse();
 });
 
 it('leaves the account-level server rows intact (detaches the pivot only)', function (): void {
     $forms = app(ConnectorCatalog::class)->capabilities()->get('forms');
     app(DisableAgentCapabilityAction::class)->execute($this->agent, $forms);
 
-    expect(AgentMcpServer::query()->where('connector_slug', 'forms')->where('user_id', $this->user->id)->exists())->toBeTrue()
-        ->and(AgentMcpServer::query()->where('connector_slug', 'leads')->where('user_id', $this->user->id)->exists())->toBeTrue();
+    expect(AgentMcpServer::query()->where('connector_slug', 'forms')->where('user_id', $this->user->id)->exists())->toBeTrue();
 });

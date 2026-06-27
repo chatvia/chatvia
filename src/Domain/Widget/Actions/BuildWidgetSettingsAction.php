@@ -44,6 +44,7 @@ class BuildWidgetSettingsAction
         // fallback (older cached bundles + languages with no translation).
         $textTranslations = $this->buildTextTranslations($appearance);
         $starters = $this->buildStarters($agent, $effectiveLocale);
+        [$bubbleTexts, $bubbleTranslations] = $this->buildBubbles($agent, $effectiveLocale);
 
         // Workspace-wide: the "remove branding" add-on hides the badge across
         // every agent. Drives both the legacy branding.enabled flag (so cached
@@ -63,7 +64,8 @@ class BuildWidgetSettingsAction
             welcome_message: $text['welcome_message'] ?? null,
             color_theme: $appearance['color_theme'] ?? null,
             color_shade: $appearance['color_shade'] ?? null,
-            bubbles: $agent->resolvedBubblesForLocale($effectiveLocale),
+            bubbles: $bubbleTexts,
+            bubble_translations: $bubbleTranslations,
             position: $widget['position'] ?? null,
             show_on_load: $widget['show_on_load'] ?? null,
             show_on_load_delay: $widget['show_on_load_delay'] ?? null,
@@ -165,5 +167,61 @@ class BuildWidgetSettingsAction
         }
 
         return $starters;
+    }
+
+    /**
+     * Floating message bubbles for the widget payload. `bubbles` stays a plain
+     * string[] (resolved for the visitor's language) so older cached bundles —
+     * which render it as text — keep working; the parallel `bubble_translations`
+     * array (same index) lets the current widget localize each bubble to its
+     * active language. Empty bubbles are dropped from BOTH so indexes align.
+     *
+     * @return array{0: array<int, string>, 1: array<int, array<string, string>>}
+     */
+    private function buildBubbles(Agent $agent, ?string $locale): array
+    {
+        $loc = $locale !== null ? strtolower(trim($locale)) : '';
+        $loc = ($loc === '' || $loc === 'auto') ? null : substr($loc, 0, 2);
+
+        $texts = [];
+        $maps = [];
+
+        foreach ($agent->normalizedBubbles() as $bubble) {
+            $base = (string) ($bubble['text'] ?? '');
+            $translations = (array) ($bubble['translations'] ?? []);
+            $overrides = (array) ($bubble['overrides'] ?? []);
+
+            $resolved = $base;
+
+            if ($loc !== null) {
+                $override = $overrides[$loc] ?? null;
+                $translation = $translations[$loc] ?? null;
+
+                $resolved = match (true) {
+                    is_string($override) && $override !== '' => $override,
+                    is_string($translation) && $translation !== '' => $translation,
+                    default => $base,
+                };
+            }
+
+            if ($resolved === '') {
+                continue;
+            }
+
+            $map = [];
+
+            foreach (array_unique(array_merge(array_keys($translations), array_keys($overrides))) as $code) {
+                $value = $overrides[$code] ?? $translations[$code] ?? null;
+
+                if (is_string($value) && $value !== '') {
+                    $map[(string) $code] = $value;
+                }
+            }
+
+            $texts[] = $resolved;
+            $maps[] = $map;
+        }
+
+        return [$texts, $maps];
     }
 }

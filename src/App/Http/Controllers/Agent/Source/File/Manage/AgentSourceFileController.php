@@ -38,9 +38,13 @@ class AgentSourceFileController
                 default => throw new Exception('Invalid file type'),
             };
         } else {
-            // Return only PDF and Word files for the unified Files page (excluding audio/video)
+            // Unified Files page: every document the OCR pipeline accepts — PDF,
+            // Word, PowerPoint, Excel, text, Markdown, EPUB, images, … — i.e.
+            // everything EXCEPT audio/video, which have their own nav pages.
+            // (Whitelisting pdf+word previously hid markdown/spreadsheet/etc:
+            // they uploaded fine but never showed in the list.)
             $files = $agent->files()
-                ->whereIn('mime_type', array_merge(MimeType::group('pdf'), MimeType::group('word')))
+                ->whereNotIn('mime_type', array_merge(MimeType::group('audio'), MimeType::group('video')))
                 ->withCount(['agents', 'chunks'])
                 ->get();
         }

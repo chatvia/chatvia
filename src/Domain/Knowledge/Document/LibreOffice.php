@@ -74,7 +74,16 @@ class LibreOffice
         $convertedFilePath = $this->cacheDir.'/libreoffice/files/'.$fileInfo['filename'].'.'.$format;
 
         if (! File::exists($convertedFilePath)) {
-            throw new RuntimeException("Could not find converted file: {$convertedFilePath}");
+            // soffice exits 0 even when it fails to load/convert a file (corrupt,
+            // password-protected, mislabeled extension, or under resource/concurrency
+            // pressure). The exit code is useless here — surface its actual output so
+            // the failure is diagnosable instead of a bare "file not found".
+            throw new RuntimeException(sprintf(
+                'Could not find converted file: %s. soffice stdout: %s | stderr: %s',
+                $convertedFilePath,
+                trim($result->output()) ?: '(empty)',
+                trim($result->errorOutput()) ?: '(empty)',
+            ));
         }
 
         File::deleteDirectory($this->profileDir);

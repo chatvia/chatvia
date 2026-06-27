@@ -45,3 +45,28 @@ it('reflects a disabled widget surface in the payload while the bar stays on', f
     expect($settings->widget_enabled)->toBeFalse()
         ->and($settings->bar_enabled)->toBeTrue();
 });
+
+it('exposes per-locale text maps so the widget can localize client-side', function (): void {
+    $agent = createAgent(User::factory()->create());
+    $agent->setSetting('welcome_message', 'Hello', 'appearance');
+    $agent->setSetting('text_translations', ['welcome_message' => ['de' => 'Hallo']], 'appearance');
+    $agent->setSetting('text_overrides', ['welcome_message' => ['fr' => 'Salut']], 'appearance');
+
+    $settings = app(BuildWidgetSettingsAction::class)->execute($agent->fresh());
+
+    expect($settings->text_translations['welcome_message']['de'] ?? null)->toBe('Hallo')
+        // A manual override wins over the AI translation in the exported map.
+        ->and($settings->text_translations['welcome_message']['fr'] ?? null)->toBe('Salut');
+});
+
+it('ships each starter with its per-locale translation map', function (): void {
+    $agent = createAgent(User::factory()->create());
+    $agent->starterSet()->create(['starters' => [
+        ['id' => 's1', 'text' => 'Hello?', 'icon' => null, 'translations' => ['de' => 'Hallo?'], 'overrides' => []],
+    ]]);
+
+    $settings = app(BuildWidgetSettingsAction::class)->execute($agent->fresh());
+
+    expect($settings->starters[0]['text'])->toBe('Hello?')
+        ->and($settings->starters[0]['translations']['de'] ?? null)->toBe('Hallo?');
+});

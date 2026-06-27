@@ -2,9 +2,11 @@
 
 namespace Domain\Knowledge\Ingestion\Jobs\Website;
 
+use DateTimeInterface;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Website\TrainWebsiteUrlAction;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
+use Domain\Knowledge\Source\Web\Middleware\ThrottleFirecrawl;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Llm\Usage\AttributesTokenUsage;
 use Domain\Llm\Usage\TracksTokenUsage;
@@ -21,7 +23,14 @@ class WebsiteUrlTrainJob implements AttributesTokenUsage, ShouldBeUnique, Should
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
 
-    public int $tries = 3;
+    /**
+     * Cap on genuine processing errors (scrape/embedding failures). FireCrawl
+     * rate-limit releases from {@see ThrottleFirecrawl} go back to the queue
+     * without throwing, so they don't count here — they're bounded by
+     * {@see retryUntil()} instead. Keeps a throttled URL from being marked
+     * "failed" just because the budget was busy.
+     */
+    public int $maxExceptions = 3;
 
     /** @var array<int, int> */
     public array $backoff = [10, 60, 300];
@@ -33,6 +42,24 @@ class WebsiteUrlTrainJob implements AttributesTokenUsage, ShouldBeUnique, Should
     public function __construct(public AgentWebsiteUrl $websiteUrl, public Agent $agent)
     {
         $this->onQueue('ingestion.website');
+    }
+
+    /** @return array<int, object> */
+    public function middleware(): array
+    {
+        return [new ThrottleFirecrawl];
+    }
+
+    /**
+     * Throttle releases ({@see ThrottleFirecrawl}) re-queue the job repeatedly
+     * while the FireCrawl budget is saturated, so a fixed `$tries` would burn
+     * out before a busy URL ever ran. Bound retries by wall-clock instead — long
+     * enough to drain even a large site at the configured per-minute rate — and
+     * let `$maxExceptions` cap real failures.
+     */
+    public function retryUntil(): DateTimeInterface
+    {
+        return now()->addHours(6);
     }
 
     public function tokenWorkspaceId(): ?int

@@ -69,17 +69,20 @@ it('keeps IP-derived city/region when the IP geo agrees with the country', funct
         ->and($session->region)->toBe('Washington');
 });
 
-it('falls back to the IP geo country when no Cloudflare country is supplied', function (): void {
-    // Dev / no-CF: the connecting IP is the real visitor, so geo it.
-    fakeIpLocation(['ip' => '198.51.100.7', 'country_code' => 'US', 'city_name' => 'Seattle']);
+it('never stamps a country from IP geo when no Cloudflare country is supplied', function (): void {
+    // No trusted request-time country. The stored IP may be the Cloudflare edge
+    // PoP, so geo-locating it for country would stamp the wrong place (the
+    // Bulgaria bug). Leave country_id null — Request::country() already geo-
+    // locates the real visitor at request time for the genuine dev/no-CF case.
+    fakeIpLocation(['ip' => '203.0.113.10', 'country_code' => 'BG', 'city_name' => 'Sofia']);
 
-    $session = Session::factory()->create(['ip_address' => '198.51.100.7', 'country_id' => null, 'city' => null]);
+    $session = Session::factory()->create(['ip_address' => '203.0.113.10', 'country_id' => null, 'city' => null]);
 
     locate($session, null);
 
     $session->refresh();
-    expect($session->country_id)->toBe(Country::where('code', 'us')->value('id'))
-        ->and($session->city)->toBe('Seattle');
+    expect($session->country_id)->toBeNull()
+        ->and($session->city)->toBeNull();
 });
 
 it('does nothing when neither a country nor a resolvable IP is available', function (): void {

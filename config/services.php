@@ -174,6 +174,14 @@ return [
         'wait_for' => (int) env('FIRECRAWL_WAIT_FOR', 2000),
         'timeout' => (int) env('FIRECRAWL_SCRAPE_TIMEOUT', 60000),
 
+        // Global ceiling on FireCrawl requests per minute, enforced across every
+        // queue worker by the ThrottleFirecrawl job middleware. Website
+        // ingestion fans a scrape job out per URL across up to 100 Horizon
+        // processes; without this they burst past the plan's rate limit (429
+        // "Rate limit exceeded"). Set to ~80% of your plan's per-minute scrape
+        // limit. 0 disables throttling.
+        'rate_per_minute' => (int) env('FIRECRAWL_SCRAPE_RATE_PER_MINUTE', 60),
+
         // Stage-1 discovery uses the async `/crawl` endpoint (a full recursive
         // crawl, not the shallow `/map`). WebsiteCrawlerJob starts the crawl;
         // PollWebsiteCrawlJob then re-checks status every `crawl_poll_seconds`,

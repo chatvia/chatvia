@@ -8,6 +8,7 @@ use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
 use Domain\Widget\Data\Settings\WidgetSettingsResourceData;
+use Illuminate\Support\Collection;
 
 /**
  * Assemble the settings payload the embedded widget loads at boot —
@@ -35,6 +36,14 @@ class BuildWidgetSettingsAction
         $effectiveLocale = ($widget['language'] ?? 'auto') !== 'auto' ? $widget['language'] : $visitorLocale;
 
         $text = $this->appearanceText->resolve($appearance, $effectiveLocale);
+
+        // The widget resolves its OWN display language client-side (data-language
+        // / browser), which can differ from the server's Accept-Language. So we
+        // also ship the per-locale maps and let the widget localize the agent
+        // strings to that active language. The resolved scalars above stay as the
+        // fallback (older cached bundles + languages with no translation).
+        $textTranslations = $this->buildTextTranslations($appearance);
+        $starters = $this->buildStarters($agent, $effectiveLocale);
 
         // Workspace-wide: the "remove branding" add-on hides the badge across
         // every agent. Drives both the legacy branding.enabled flag (so cached
@@ -65,7 +74,8 @@ class BuildWidgetSettingsAction
                 logo_url: asset('images/logo.svg'),
             ),
             chatvia_branding: $showsBranding,
-            starters: $agent->resolvedStartersForLocale($effectiveLocale),
+            starters: $starters,
+            text_translations: $textTranslations,
             window_size: $widget['window_size'] ?? null,
             theme: $widget['theme'] ?? null,
             keyboard_trigger: $bar['trigger'] ?? null,
@@ -77,5 +87,83 @@ class BuildWidgetSettingsAction
             allow_voice_input: (bool) ($appearance['allow_voice_input'] ?? true),
             max_files_per_chat: (int) config('chatvia.agent.files.upload.max_files'),
         );
+    }
+
+    /**
+     * Per-locale maps for the three appearance strings, keyed by the widget's
+     * payload field names (title / welcome_message / composer_placeholder). Each
+     * map holds the effective text per locale (a manual override winning over the
+     * AI translation). The widget resolves these to its active language.
+     *
+     * @param  Collection<string, mixed>  $appearance
+     * @return array<string, array<string, string>>
+     */
+    private function buildTextTranslations(Collection $appearance): array
+    {
+        $translations = (array) ($appearance['text_translations'] ?? []);
+        $overrides = (array) ($appearance['text_overrides'] ?? []);
+
+        $fields = [
+            'chat_window_title' => 'title',
+            'welcome_message' => 'welcome_message',
+            'composer_placeholder' => 'composer_placeholder',
+        ];
+
+        $out = [];
+
+        foreach ($fields as $source => $target) {
+            $locales = array_unique(array_merge(
+                array_keys($translations[$source] ?? []),
+                array_keys($overrides[$source] ?? []),
+            ));
+
+            foreach ($locales as $locale) {
+                $value = $overrides[$source][$locale] ?? $translations[$source][$locale] ?? null;
+
+                if (is_string($value) && $value !== '') {
+                    $out[$target][(string) $locale] = $value;
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Starters for the widget payload: the base text resolved for the visitor's
+     * language (fallback for older bundles) + icon + the per-locale map the
+     * current widget resolves client-side to its active language.
+     *
+     * @return array<int, array{text: string, icon: string|null, translations: array<string, string>}>
+     */
+    private function buildStarters(Agent $agent, ?string $locale): array
+    {
+        $resolved = $agent->resolvedStartersForLocale($locale);
+        $raw = array_values($agent->resolvedStarters());
+
+        $starters = [];
+
+        foreach ($raw as $i => $starter) {
+            $translations = (array) ($starter['translations'] ?? []);
+            $overrides = (array) ($starter['overrides'] ?? []);
+
+            $map = [];
+
+            foreach (array_unique(array_merge(array_keys($translations), array_keys($overrides))) as $loc) {
+                $value = $overrides[$loc] ?? $translations[$loc] ?? null;
+
+                if (is_string($value) && $value !== '') {
+                    $map[(string) $loc] = $value;
+                }
+            }
+
+            $starters[] = [
+                'text' => $resolved[$i]['text'] ?? (string) ($starter['text'] ?? ''),
+                'icon' => $starter['icon'] ?? null,
+                'translations' => $map,
+            ];
+        }
+
+        return $starters;
     }
 }

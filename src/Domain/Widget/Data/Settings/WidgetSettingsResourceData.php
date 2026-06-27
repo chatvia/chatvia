@@ -39,6 +39,12 @@ class WidgetSettingsResourceData extends Data
         public bool $chatvia_branding,
         /** @var array<int, mixed> */
         public array $starters,
+        // Per-locale maps for the agent strings (title / welcome_message /
+        // composer_placeholder), shape { field: { locale: text } }. The widget
+        // resolves its active display language against these and falls back to
+        // the resolved scalar fields above when a language has no translation.
+        /** @var array<string, array<string, string>> */
+        public array $text_translations,
         public ?string $window_size,
         public ?string $theme,
         // Bar-mode keyboard launcher shortcut. One of:

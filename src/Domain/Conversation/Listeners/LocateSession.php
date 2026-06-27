@@ -18,18 +18,20 @@ class LocateSession implements ShouldQueue
             return;
         }
 
-        // IP geo is best-effort enrichment for city/region/timezone. Behind
-        // Cloudflare the stored IP is the edge PoP, so its country is unreliable
-        // (Middle-East traffic geo-locates to e.g. Bulgaria) — we only consult it
-        // for the finer fields, and only when it agrees with the trusted country.
-        $location = $session->ip_address ? IP2Country::getLocationByIP($session->ip_address) : null;
-
-        // Prefer the request-time country (Cloudflare's CF-IPCountry, captured
-        // when the request still existed); fall back to IP geo for dev/no-CF.
-        $countryCode = $event->countryCode ?: $location?->countryCode;
+        // Country comes ONLY from the request-time signal (Request::country() —
+        // Cloudflare's CF-IPCountry, else a geo lookup of the real visitor IP).
+        // Never geo-locate the stored connecting IP for country: behind
+        // Cloudflare that IP is the edge PoP and resolves to the wrong country
+        // (e.g. Bulgaria for Middle-East traffic). With no trusted country we
+        // leave country_id null rather than stamp the PoP's country.
+        $countryCode = $event->countryCode;
         if (! $countryCode) {
             return;
         }
+
+        // IP geo is best-effort enrichment for city/region/timezone only, and
+        // only when it agrees with the trusted country (see stamp()).
+        $location = $session->ip_address ? IP2Country::getLocationByIP($session->ip_address) : null;
 
         $this->stamp($session, strtolower($countryCode), $location);
     }

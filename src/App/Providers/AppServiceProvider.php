@@ -151,7 +151,8 @@ class AppServiceProvider extends ServiceProvider
         // PoP's country (e.g. Bulgaria for Middle-East traffic) rather than the
         // visitor's, and avoids a third-party IP lookup entirely. CF's
         // non-country sentinels (`XX` unknown, `T1` Tor) and a missing header
-        // (local/dev, no CF) fall back to a geo-IP lookup of the connecting IP.
+        // (local/dev, no CF) fall back to a geo-IP lookup of the REAL visitor
+        // IP — CF-Connecting-IP behind the proxy, never the edge PoP.
         Request::macro('country', function (): ?string {
             $cf = strtoupper(trim((string) $this->header('CF-IPCountry')));
 
@@ -159,7 +160,16 @@ class AppServiceProvider extends ServiceProvider
                 return strtolower($cf);
             }
 
-            $country = app(NetworkAccessGuard::class)->countryFor((string) $this->ip());
+            // CF-IPCountry was missing or a sentinel (e.g. the zone's IP
+            // Geolocation toggle is off, or the request didn't come through CF).
+            // Geo-locate the REAL visitor IP, NOT $this->ip(): behind Cloudflare
+            // the connecting IP is the edge PoP and resolves to the serving
+            // PoP's country (the Bulgaria bug). CF-Connecting-IP is the actual
+            // visitor and is trustworthy here — the origin only accepts
+            // CF-proxied traffic, so it can't be spoofed from off-network.
+            $clientIp = $this->header('CF-Connecting-IP') ?: (string) $this->ip();
+
+            $country = app(NetworkAccessGuard::class)->countryFor($clientIp);
 
             return $country !== null ? strtolower($country) : null;
         });

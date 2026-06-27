@@ -12,8 +12,10 @@ use Illuminate\Foundation\Events\Dispatchable;
  *
  * `$countryCode` is the lowercase ISO alpha-2 resolved at request time
  * (CF-aware via Request::country()) — the trusted country signal the queued
- * listener can't recompute, since it runs without the request. Null falls the
- * listener back to a geo-IP lookup of the stored connecting IP.
+ * listener can't recompute, since it runs without the request. When null the
+ * country stays unresolved: the listener never geo-locates the stored IP for
+ * country (behind Cloudflare it's the edge PoP, which resolves to the wrong
+ * country), it only uses the IP for city/region when one is available.
  */
 class SessionLocationUnknown
 {

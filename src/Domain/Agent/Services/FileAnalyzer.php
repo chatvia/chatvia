@@ -8,6 +8,7 @@ use Domain\Knowledge\Ingestion\Services\Media\AudioDurationExtractor;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use LogicException;
 use Throwable;
 
@@ -52,17 +53,34 @@ class FileAnalyzer
         // LibreOffice-convertible (Word, PowerPoint, Excel, ODT, RTF, txt, html)
         // → render to PDF and count pages exactly.
         if (in_array($extension, config('mimes.ocr.office'), true)) {
-            // PHP stores uploads in an extensionless temp file (/tmp/phpXXXXXX).
-            // LibreOffice picks its import filter from the extension, so the raw
-            // upload path makes it silently produce nothing (exit 0, no PDF).
-            // Copy to a temp file that keeps the original extension first.
-            $input = $file instanceof UploadedFile
-                ? create_temp_file("source.{$extension}", File::get($filePath))
-                : $filePath;
+            try {
+                // PHP stores uploads in an extensionless temp file (/tmp/phpXXXXXX).
+                // LibreOffice picks its import filter from the extension, so the raw
+                // upload path makes it silently produce nothing (exit 0, no PDF).
+                // Copy to a temp file that keeps the original extension first.
+                $input = $file instanceof UploadedFile
+                    ? create_temp_file("source.{$extension}", File::get($filePath))
+                    : $filePath;
 
-            $pdf = office()->toPdf($input);
+                $pdf = office()->toPdf($input);
 
-            return app(PdfInfo::class)->getInfo($pdf);
+                return app(PdfInfo::class)->getInfo($pdf);
+            } catch (Throwable $e) {
+                // This count is only a pre-flight quota estimate — Mistral OCR returns
+                // the true page count during ingestion. LibreOffice can fail to render
+                // an individual file (corrupt, password-protected, soffice exits 0 with
+                // no output), but that must not 500 the upload. Fall back to a rough
+                // size-based estimate and let ingestion correct it later.
+                Log::warning('FileAnalyzer: LibreOffice page count failed, using size estimate', [
+                    'extension' => $extension,
+                    'exception' => $e->getMessage(),
+                ]);
+
+                return new FileAnalysisData(
+                    length: max(1, (int) ceil((File::size($filePath) ?: 0) / 3000)),
+                    metadata: [],
+                );
+            }
         }
 
         // Pandoc-only text formats → estimate pages from the extracted word count.

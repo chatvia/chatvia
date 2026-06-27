@@ -15,6 +15,7 @@ import { useI18n } from 'vue-i18n';
 interface FormArtifact {
     form_instance_id: string;
     title?: string;
+    subtitle?: string;
     schema: FormKitSchemaDefinition;
     submit_label?: string;
     success_message?: string;
@@ -74,7 +75,10 @@ async function onSubmit(fields: Record<string, unknown>): Promise<void> {
         </div>
 
         <div v-else>
-            <p v-if="form.title" class="mb-3 font-medium">{{ form.title }}</p>
+            <div v-if="form.title || form.subtitle" class="mb-3 border-b pb-3">
+                <p v-if="form.title" class="text-base font-semibold">{{ form.title }}</p>
+                <p v-if="form.subtitle" class="text-muted-foreground mt-1 text-sm">{{ form.subtitle }}</p>
+            </div>
             <FormKit type="form" :submit-label="form.submit_label ?? t('chat.forms.submit')" :disabled="pending" @submit="onSubmit">
                 <FormKitSchema :schema="form.schema" />
             </FormKit>

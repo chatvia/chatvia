@@ -16,7 +16,7 @@ it('writes the dense and sparse vectors for a form', function (): void {
     $form = FormDefinition::factory()->forAgent($agent)->create([
         'name' => 'Refund request',
         'slug' => 'refund-request',
-        'description' => 'Show when the visitor wants their money back.',
+        'agent_instructions' => 'Show when the visitor wants their money back.',
     ]);
 
     // Clear what the create-observer populated, then re-embed explicitly.

@@ -1,7 +1,7 @@
 {
     "agents": {
         "chatters": {
-            "title": "Chatters",
+            "title": "Chattare",
             "description": "Dina chatters. De med tillgång till den här agenten visas först – ge valfri annan chatter tillgång med ett klick.",
             "public_title": "Den här agenten är offentlig",
             "public_description": "Vem som helst med länken kan chatta med den här agenten, så chatter-tilldelningar gäller inte. Aktivera skydd på agenten via fliken Säkerhet om du vill använda chatters.",

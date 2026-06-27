@@ -43,7 +43,7 @@
         "train": "Tren"
     },
     "support": {
-        "title": "Support",
+        "title": "Støtte",
         "subtitle": "Se dine saker eller opprett en ny.",
         "create_ticket": "Opprett ny sak",
         "your_tickets": "Dine saker",
@@ -84,7 +84,7 @@
         "submit": "Send inn"
     },
     "ticket": {
-        "support": "Support",
+        "support": "Støtte",
         "title": "Sak #{id}",
         "created_at": "Opprettet {date}",
         "back_to_support": "Tilbake til support",

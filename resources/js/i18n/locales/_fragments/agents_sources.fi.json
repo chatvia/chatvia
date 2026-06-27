@@ -25,7 +25,7 @@
                 "youtube": "YouTube",
                 "qa": "K&V",
                 "markdown": "Markdown",
-                "connectors": "Connectors"
+                "connectors": "Liittimet"
             },
             "overview": {
                 "coming_soon": "{type} tulossa pian",
@@ -260,13 +260,13 @@
                 "load_failed": "Connectorien lataaminen epäonnistui",
                 "attach_failed": "Liittäminen epäonnistui",
                 "detach_failed": "Irrottaminen epäonnistui",
-                "title": "Connectors",
+                "title": "Liittimet",
                 "description_prefix": "Liitä tilitason connectorit tähän agenttiin. Yhdistä tai lisää uusia connectoreita",
                 "settings_link": "Asetukset → Connectors",
                 "search_placeholder": "Hae connectoreita",
                 "loading": "Ladataan connectoreita",
                 "custom_title": "Mukautetut connectorit",
-                "column_connector": "Connector",
+                "column_connector": "Liitin",
                 "column_tools": "Työkalut",
                 "column_enabled": "Käytössä",
                 "no_match": "Connectoreita ei löydy.",

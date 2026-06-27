@@ -212,6 +212,15 @@ return [
             // Small "middle model" that routes a turn to the relevant connector(s)
             // for the experimental tool connector_classifier (off by default).
             'connector_router' => 'mistral-small-3.2-24b-instruct-2506',
+
+            // Localizes the agent's three appearance strings (chat title /
+            // welcome message / composer placeholder) into every supported
+            // language in one structured-JSON call when the owner saves them.
+            'translator' => 'mistral-small-3.2-24b-instruct-2506',
+
+            // Suggests conversation starters from a sample of the agent's
+            // knowledge-base content (Setup → Starters → "Generate with AI").
+            'starters' => 'mistral-small-3.2-24b-instruct-2506',
         ],
 
         'query' => [

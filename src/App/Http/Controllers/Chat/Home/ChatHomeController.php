@@ -23,6 +23,10 @@ class ChatHomeController
             'enableThemeSwitcher' => $embed?->get('enable_theme_switcher'),
             'defaultTheme' => $embed?->get('default_theme'),
             'enableChatExpand' => $embed?->get('enable_chat_expand'),
+            'enableLanguageSwitcher' => (bool) ($embed?->get('show_language_switcher') ?? true),
+            // Codes the owner enabled in Setup → Languages — restricts the
+            // header switcher. Empty ⇒ all platform languages.
+            'enabledLanguages' => $agent ? array_keys($agent->enabledLanguages()) : [],
             'locale' => $embed?->get('language') ?: 'auto',
             'chatviaBranding' => $agent?->showsChatviaBranding() ?? true,
         ]);

@@ -220,7 +220,7 @@
                 },
                 "shared": {
                     "subscribe_webhook": "Webhook を {field} フィールドに登録します",
-                    "messages_field": "messages",
+                    "messages_field": "メッセージ",
                     "create_meta_app_at": "{link} でアプリを作成します",
                     "copy_app_secret_both": "{section} からアプリシークレットをコピーし、両方を以下に貼り付けます",
                     "copy_app_secret_all": "{section} からアプリシークレットをコピーし、すべてを以下に貼り付けます",
@@ -321,8 +321,8 @@
                         "connect_3": "両方を以下に貼り付けます。シングルテナントのボットの場合は {tenant_id} も追加します"
                     },
                     "azure_portal": "Azure ポータル",
-                    "configuration": "Configuration",
-                    "channels": "Channels",
+                    "configuration": "設定",
+                    "channels": "チャンネル",
                     "azure_bot": "Azure Bot",
                     "microsoft_app_id": "Microsoft アプリ ID",
                     "manage_password": "パスワードの管理 → 証明書とシークレット",
@@ -423,9 +423,9 @@
                 "satisfied": "満足"
             },
             "source": {
-                "hosted_chat": "Hosted Chat",
-                "widget": "Chat Widget",
-                "bar": "Command Bar",
+                "hosted_chat": "ホステッドチャット",
+                "widget": "チャットウィジェット",
+                "bar": "コマンドバー",
                 "telegram": "Telegram",
                 "slack": "Slack",
                 "messenger": "Messenger",
@@ -714,9 +714,9 @@
                 "mobile": "モバイル"
             },
             "tabs": {
-                "chat": "Hosted Chat",
-                "widget": "Chat Widget",
-                "bar": "Command Bar"
+                "chat": "ホステッドチャット",
+                "widget": "チャットウィジェット",
+                "bar": "コマンドバー"
             }
         },
         "evals": {
@@ -3785,7 +3785,7 @@
                 "optional": "（任意）",
                 "consumer_secret_placeholder": "PKCE パブリックアプリの場合は空欄のまま",
                 "mcp_server": "MCP サーバー",
-                "my_domain": "My Domain",
+                "my_domain": "マイドメイン",
                 "my_domain_hint": "login.salesforce.com 経由でサインインする場合は空欄のままにします。組織で My Domain を強制している場合は必須です。",
                 "continue": "Salesforce に進む",
                 "error": "接続を開始できませんでした。内容を確認してもう一度お試しください。",

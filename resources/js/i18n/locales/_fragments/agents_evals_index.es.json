@@ -107,7 +107,7 @@
                 "contains": "Contiene",
                 "regex": "Regex",
                 "exact": "Coincidencia exacta",
-                "json_schema": "JSON schema",
+                "json_schema": "Esquema JSON",
                 "llm_judge": "LLM judge"
             }
         }

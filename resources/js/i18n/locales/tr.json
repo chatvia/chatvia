@@ -220,7 +220,7 @@
                 },
                 "shared": {
                     "subscribe_webhook": "Webhook'u {field} alanına abone edin",
-                    "messages_field": "messages",
+                    "messages_field": "mesajlar",
                     "create_meta_app_at": "{link} adresinde bir uygulama oluşturun",
                     "copy_app_secret_both": "Uygulama gizli anahtarını {section} bölümünden kopyalayıp her ikisini de aşağıya yapıştırın",
                     "copy_app_secret_all": "Uygulama gizli anahtarını {section} bölümünden kopyalayıp tümünü aşağıya yapıştırın",
@@ -287,7 +287,7 @@
                     "webhooks_path": "Use cases → Customize → Messenger API Settings",
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Engage with customers on Messenger",
+                    "product": "Messenger üzerinden müşterilerle etkileşime geçin",
                     "permissions_path": "Use cases → Customize → Permissions and features",
                     "oauth_intro": "Bu asistanın Messenger konuşmalarını yanıtlayabilmesi için bir Facebook Sayfası bağlayın — Facebook ile giriş yapacak, ardından kullanılacak Sayfayı seçeceksiniz.",
                     "connect_facebook": "Facebook ile bağlan",
@@ -302,7 +302,7 @@
                         "connect_2": "{basic_setup} adımını tamamlayın, ardından telefon numarası kimliğini, WhatsApp Business Hesap Kimliğini ve bir erişim token'ını kopyalayın"
                     },
                     "configuration_path": "WhatsApp → Configuration",
-                    "use_case": "Connect with customers through WhatsApp",
+                    "use_case": "WhatsApp üzerinden müşterilerle bağlantı kurun",
                     "basic_setup_path": "Use cases → Customize → Basic setup",
                     "oauth_intro": "Bu asistanın WhatsApp mesajlarını yanıtlayabilmesi için WhatsApp Business numaranızı bağlayın — Facebook ile giriş yapacak ve tek adımda kuracaksınız.",
                     "connect_facebook": "Facebook ile bağlan",
@@ -321,12 +321,12 @@
                         "connect_3": "Her ikisini de aşağıya yapıştırın — Tek Kiracılı bot için {tenant_id} değerinizi de ekleyin"
                     },
                     "azure_portal": "Azure portalı",
-                    "configuration": "Configuration",
-                    "channels": "Channels",
+                    "configuration": "Yapılandırma",
+                    "channels": "Kanallar",
                     "azure_bot": "Azure Bot",
                     "microsoft_app_id": "Microsoft Uygulama Kimliği",
                     "manage_password": "Manage password → Certificates & secrets",
-                    "directory_tenant_id": "Directory (tenant) ID",
+                    "directory_tenant_id": "Dizin (kiracı) kimliği",
                     "open_chat_in_teams": "Teams'te botunuzla bir sohbet açın"
                 },
                 "instagram": {
@@ -714,9 +714,9 @@
                 "mobile": "Mobil"
             },
             "tabs": {
-                "chat": "Hosted Chat",
+                "chat": "Barındırılan Sohbet",
                 "widget": "Chat Widget",
-                "bar": "Command Bar"
+                "bar": "Komut Çubuğu"
             }
         },
         "evals": {

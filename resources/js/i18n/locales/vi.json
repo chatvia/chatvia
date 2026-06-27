@@ -188,8 +188,8 @@
                 "labels": {
                     "bot_token": "Token của bot",
                     "signing_secret": "Khóa bí mật ký",
-                    "request_url": "Request URL",
-                    "callback_url": "Callback URL",
+                    "request_url": "URL yêu cầu",
+                    "callback_url": "URL callback",
                     "verify_token": "Token xác minh",
                     "page_access_token": "Token truy cập trang",
                     "app_secret": "Khóa bí mật ứng dụng",
@@ -287,7 +287,7 @@
                     "webhooks_path": "Use cases → Customize → Messenger API Settings",
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Engage with customers on Messenger",
+                    "product": "Tương tác với khách hàng qua Messenger",
                     "permissions_path": "Use cases → Customize → Permissions and features",
                     "oauth_intro": "Kết nối một Trang Facebook để trợ lý AI này có thể trả lời các cuộc trò chuyện trên Messenger — bạn sẽ đăng nhập bằng Facebook, sau đó chọn Trang muốn dùng.",
                     "connect_facebook": "Kết nối với Facebook",
@@ -302,7 +302,7 @@
                         "connect_2": "Hoàn tất {basic_setup}, rồi sao chép ID số điện thoại, ID Tài khoản WhatsApp Business và một token truy cập"
                     },
                     "configuration_path": "WhatsApp → Configuration",
-                    "use_case": "Connect with customers through WhatsApp",
+                    "use_case": "Kết nối với khách hàng qua WhatsApp",
                     "basic_setup_path": "Use cases → Customize → Basic setup",
                     "oauth_intro": "Kết nối số WhatsApp Business của bạn để trợ lý AI này có thể trả lời các tin nhắn WhatsApp — bạn sẽ đăng nhập bằng Facebook và thiết lập trong một bước.",
                     "connect_facebook": "Kết nối với Facebook",
@@ -321,8 +321,8 @@
                         "connect_3": "Dán cả hai vào bên dưới — với bot Single Tenant cũng cần thêm {tenant_id} của bạn"
                     },
                     "azure_portal": "cổng Azure",
-                    "configuration": "Configuration",
-                    "channels": "Channels",
+                    "configuration": "Cấu hình",
+                    "channels": "Kênh",
                     "azure_bot": "Azure Bot",
                     "microsoft_app_id": "Microsoft App ID",
                     "manage_password": "Manage password → Certificates & secrets",
@@ -3777,7 +3777,7 @@
             "salesforce": {
                 "description": "Salesforce sử dụng ứng dụng OAuth riêng cho từng tổ chức. Tạo một External Client App trong tổ chức của bạn, sau đó nhập Consumer Key bên dưới — bạn sẽ phê duyệt quyền truy cập trên Salesforce ở bước tiếp theo.",
                 "environment": "Môi trường",
-                "production": "Production",
+                "production": "Sản xuất",
                 "sandbox": "Sandbox",
                 "consumer_key": "Consumer Key",
                 "help_link": "Cách tạo External Client App",

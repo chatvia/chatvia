@@ -78,6 +78,7 @@ export interface FormArtifactData {
     definition_slug: string;
     form_type: string;
     title?: string;
+    subtitle?: string;
     schema: Record<string, unknown>[];
     submit_label?: string;
     success_message?: string;

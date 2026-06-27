@@ -220,7 +220,7 @@
                 },
                 "shared": {
                     "subscribe_webhook": "اشترك بـ webhook في حقل {field}",
-                    "messages_field": "messages",
+                    "messages_field": "الرسائل",
                     "create_meta_app_at": "أنشئ تطبيقاً على {link}",
                     "copy_app_secret_both": "انسخ سر التطبيق من {section} والصقهما أدناه",
                     "copy_app_secret_all": "انسخ سر التطبيق من {section} والصق كل شيء أدناه",
@@ -287,7 +287,7 @@
                     "webhooks_path": "Use cases → Customize → Messenger API Settings",
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Engage with customers on Messenger",
+                    "product": "تواصل مع العملاء عبر Messenger",
                     "permissions_path": "Use cases → Customize → Permissions and features",
                     "oauth_intro": "اربط صفحة فيسبوك ليتمكن هذا الوكيل من الرد على محادثات ماسنجر — ستسجّل الدخول عبر فيسبوك ثم تختار الصفحة التي تريد استخدامها.",
                     "connect_facebook": "الاتصال عبر فيسبوك",
@@ -302,7 +302,7 @@
                         "connect_2": "أكمل {basic_setup}، ثم انسخ معرّف رقم الهاتف ومعرّف حساب WhatsApp Business ورمز وصول"
                     },
                     "configuration_path": "WhatsApp → Configuration",
-                    "use_case": "Connect with customers through WhatsApp",
+                    "use_case": "تواصل مع العملاء عبر WhatsApp",
                     "basic_setup_path": "Use cases → Customize → Basic setup",
                     "oauth_intro": "اربط رقم WhatsApp Business الخاص بك ليتمكن هذا الوكيل من الرد على رسائل WhatsApp — سجّل الدخول عبر Facebook وأكمل الإعداد في خطوة واحدة.",
                     "connect_facebook": "الاتصال عبر Facebook",
@@ -321,8 +321,8 @@
                         "connect_3": "الصقهما أدناه — لبوت Single Tenant أضف أيضاً {tenant_id}"
                     },
                     "azure_portal": "بوابة Azure",
-                    "configuration": "Configuration",
-                    "channels": "Channels",
+                    "configuration": "الإعداد",
+                    "channels": "القنوات",
                     "azure_bot": "Azure Bot",
                     "microsoft_app_id": "Microsoft App ID",
                     "manage_password": "Manage password → Certificates & secrets",
@@ -1715,7 +1715,9 @@
                 "behavior": "السلوك",
                 "settings": "الإعدادات",
                 "embed": "التضمين",
-                "domain": "النطاق"
+                "domain": "النطاق",
+                "languages": "اللغات",
+                "bubbles": "فقاعات الدردشة"
             },
             "view_only_title": "عرض فقط",
             "view_only_description": "ليس لديك إذن لتعديل الإعداد.",
@@ -1760,7 +1762,11 @@
                 "code_copy_error": "تعذّر نسخ الكود. حاول مرة أخرى.",
                 "privacy_saved": "تم حفظ رابط سياسة الخصوصية",
                 "privacy_error": "تعذّر حفظ رابط سياسة الخصوصية",
-                "branding_saved": "تم تحديث العلامة التجارية"
+                "branding_saved": "تم تحديث العلامة التجارية",
+                "translations_saved": "تم تحديث الترجمات",
+                "translations_error": "تعذّر حفظ الترجمات",
+                "languages_saved": "تم حفظ اللغات",
+                "languages_error": "تعذّر حفظ اللغات"
             },
             "settings": {
                 "composer_title": "خيارات المحرر",
@@ -1803,7 +1809,7 @@
                 "topics_hint": "اكتشف واجمع تلقائياً ما يسأل عنه الزوار."
             },
             "bubbles_title": "فقاعات الدردشة",
-            "bubbles_description": "رسائل سريعة بجانب فقاعة الأداة. اضغط Enter لإضافة كل واحدة.",
+            "bubbles_description": "رسائل سريعة تظهر بجانب مُشغّل الأداة.",
             "bubbles_placeholder": "مثال: كيف يمكنني مساعدتك؟",
             "model_title": "أسلوب الإجابة",
             "model_description": "اضبط مدى تركيز أو إبداع إجابات وكيلك. القيم المنخفضة تجعل الردود دقيقة ومتسقة؛ القيم الأعلى تسمح بمزيد من التنوع.",
@@ -1836,7 +1842,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "يُسمح لهذه المصادر فقط بتحميل الأداة.",
                 "keyboard_trigger": "مفتاح الاختصار",
-                "placement": "الموضع"
+                "placement": "الموضع",
+                "language_switcher": "مُبدّل اللغة"
             },
             "embed": {
                 "agent_url_title": "رابط الوكيل",
@@ -2001,8 +2008,40 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "يظهر للزوار بصيغة «بالمحادثة، فإنك توافق على سياسة الخصوصية». اتركه فارغًا للإخفاء.",
                 "branding_badge": "إظهار شارة \"Powered by Chatvia\"",
-                "branding_badge_hint": "اعرض شارة Chatvia على دردشة هذا الوكيل وأداته."
-            }
+                "branding_badge_hint": "اعرض شارة Chatvia على دردشة هذا الوكيل وأداته.",
+                "appearance_translations_manage": "إدارة الترجمات",
+                "appearance_translations_hint": "يُترجَم النص المحفوظ إلى كل اللغات تلقائيًا. افتح عَلَمًا لتعديل تلك اللغة، وسيتم الاحتفاظ بتعديلاتك.",
+                "appearance_translations_title": "الترجمات",
+                "appearance_translations_desc": "اختر لغة وعدّل الترجمة التلقائية. اترك الحقل فارغًا لاستخدام الترجمة التلقائية.",
+                "appearance_translations_language": "اللغة",
+                "appearance_translations_reset": "إعادة تعيين",
+                "appearance_translations_auto": "تلقائي",
+                "appearance_translations_default": "الافتراضية",
+                "appearance_translations_default_tip": "النص الذي تكتبه — يُترجَم تلقائيًا إلى كل اللغات.",
+                "appearance_translations_default_hint": "هذا هو النص الذي تكتبه. عند الحفظ يُترجَم تلقائيًا إلى كل اللغات، ويظهر عندما لا تكون لغة الزائر ضمن القائمة.",
+                "appearance_translations_lang_hint": "عدّل هذه اللغة هنا. اترك الحقل فارغًا لاستخدام الترجمة التلقائية، وتُحفَظ تعديلاتك دائمًا.",
+                "starters_generate": "إنشاء بالذكاء الاصطناعي",
+                "starters_generate_title": "إنشاء أمثلة بالذكاء الاصطناعي",
+                "starters_generate_description": "اختر العدد المراد إنشاؤه من قاعدة معرفتك، ثم اختر ما تريد إضافته.",
+                "starters_generate_count": "كم العدد؟",
+                "starters_generate_button": "إنشاء",
+                "starters_generating": "جارٍ الإنشاء…",
+                "starters_generate_hint": "اختر عددًا ثم أنشئ اقتراحات من قاعدة معرفتك.",
+                "starters_translate_empty": "أضف الأمثلة في تبويب الافتراضية أولًا، ثم ترجمها هنا."
+            },
+            "languages": {
+                "title": "لغات الواجهة",
+                "description": "اختر اللغات التي يدعمها هذا الوكيل. تظهر اللغات المُفعّلة في مبدّل اللغة بالدردشة المُستضافة، وتحصل على حقول خاصة بكل لغة في المعلومات والبادئات.",
+                "select_all": "تحديد الكل",
+                "clear_all": "مسح الكل",
+                "count": "{count} من {total} محدّدة",
+                "hint": "لإخفاء مبدّل اللغة للزائر تمامًا، أوقفه من قسم السلوك.",
+                "min_required": "يجب تحديد لغة واحدة على الأقل."
+            },
+            "bubbles_add": "إضافة فقاعة",
+            "bubbles_remove": "إزالة الفقاعة",
+            "bubbles_empty": "لا توجد فقاعات دردشة بعد.",
+            "bubbles_translate_empty": "أضف فقاعة أولًا لترجمتها."
         },
         "team": {
             "title": "إدارة الفريق",
@@ -2336,7 +2375,10 @@
             "maps_to_aria": "ماذا يعني ”التعيين إلى“؟",
             "maps_to_help_title": "التعيين إلى حقل جهة اتصال",
             "maps_to_help_1": "يضع علامة على هذا الحقل كسمة قياسية لجهة الاتصال — الاسم والبريد الإلكتروني والهاتف وما إلى ذلك. عندئذٍ يُعرف القيمة التي يُدخلها الزائر على أنها معلومة الاتصال تلك، لا مجرد إجابة مجهولة.",
-            "maps_to_help_2": "تملأ الحقول المعيَّنة بيانات العميل المحتمل — مما يشغّل قائمة العملاء المحتملين وكشف التكرار والتصدير إلى CSV. اتركه على ”—“ لالتقاط الإجابة دون وضع علامة عليها."
+            "maps_to_help_2": "تملأ الحقول المعيَّنة بيانات العميل المحتمل — مما يشغّل قائمة العملاء المحتملين وكشف التكرار والتصدير إلى CSV. اتركه على ”—“ لالتقاط الإجابة دون وضع علامة عليها.",
+            "subtitle": "الوصف",
+            "subtitle_placeholder": "مثال: أخبرنا عن شركتك وسنتواصل معك.",
+            "subtitle_hint": "يظهر للزائر أسفل عنوان النموذج."
         },
         "submissions": {
             "page_title": "الإرساليات",

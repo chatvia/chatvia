@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import AgentPersonaEditor from '@/components/agents/AgentPersonaEditor.vue';
+import AppearanceTextEditor from '@/components/agents/AppearanceTextEditor.vue';
 import BrandingSection from '@/components/agents/sections/BrandingSection.vue';
+import BubblesSection from '@/components/agents/sections/BubblesSection.vue';
 import StartersSection from '@/components/agents/sections/StartersSection.vue';
-import TextSection from '@/components/agents/sections/TextSection.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +15,6 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/componen
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { TagsInput, TagsInputInput, TagsInputItem, TagsInputItemDelete, TagsInputItemText } from '@/components/ui/tags-input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Link, router, useForm } from '@inertiajs/vue3';
@@ -38,6 +39,7 @@ import {
     MapPin,
     Maximize2,
     MessageSquare,
+    MessagesSquare,
     Monitor,
     MoveHorizontal,
     MoveVertical,
@@ -75,8 +77,9 @@ interface PromptOption {
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData & { id?: number | string };
     authToken: string | null;
-    starters: { text: string; icon: string | null }[];
-    knowledgeQuestions: string[];
+    starters: { id?: string; text: string; icon: string | null; translations?: Record<string, string>; overrides?: Record<string, string> }[];
+    bubbles: { text: string; translations?: Record<string, string>; overrides?: Record<string, string> }[];
+    hasKnowledgeBase: boolean;
     prompts: PromptOption[];
     hasPermission: boolean;
     canUseHandoff: boolean;
@@ -145,7 +148,7 @@ const surfaceTabs = computed(() => [
 ]);
 
 // ── Left sidebar
-type MenuValue = 'info' | 'persona' | 'starters' | 'model' | 'branding' | 'behavior' | 'settings' | 'embed' | 'domain';
+type MenuValue = 'info' | 'persona' | 'starters' | 'bubbles' | 'languages' | 'model' | 'branding' | 'behavior' | 'settings' | 'embed' | 'domain';
 const activeTab = ref<MenuValue>('info');
 
 const menuItems = computed(() => {
@@ -153,12 +156,22 @@ const menuItems = computed(() => {
         { value: 'info', label: t('agents.setup.menu.info'), icon: Type },
         { value: 'persona', label: t('agents.setup.menu.persona'), icon: Bot },
         { value: 'starters', label: t('agents.setup.menu.starters'), icon: MessageSquare },
+    ];
+
+    // Chat Bubbles are a widget-only launcher affordance, so the section only
+    // shows on the Widget preview tab (right below Starters).
+    if (previewSurface.value === 'widget') {
+        items.push({ value: 'bubbles', label: t('agents.setup.menu.bubbles'), icon: MessagesSquare });
+    }
+
+    items.push(
+        { value: 'languages', label: t('agents.setup.menu.languages'), icon: Languages },
         { value: 'model', label: t('agents.setup.menu.model'), icon: Sparkles },
         { value: 'branding', label: t('agents.setup.menu.branding'), icon: ImageIcon },
         { value: 'behavior', label: t('agents.setup.menu.behavior'), icon: Settings },
         { value: 'settings', label: t('agents.setup.menu.settings'), icon: SlidersHorizontal },
         // Embed/install moved to its own top-level "Deploy" page (agents.deploy).
-    ];
+    );
 
     if (previewSurface.value === 'hosted_chat') {
         items.push({ value: 'domain', label: t('agents.setup.menu.domain'), icon: Globe });
@@ -173,6 +186,9 @@ watch(previewSurface, (next) => {
     if (next !== 'hosted_chat' && activeTab.value === 'domain') {
         activeTab.value = 'info';
     }
+    if (next !== 'widget' && activeTab.value === 'bubbles') {
+        activeTab.value = 'info';
+    }
 });
 
 // ── Info (text fields) → appearance group
@@ -181,18 +197,47 @@ const textForm = useForm({
     chat_window_title: str(a.chat_window_title, str(ad.chat_window_title)),
     composer_placeholder: str(a.composer_placeholder, str(ad.composer_placeholder)),
 });
+
+// Per-language copies of the three strings above. Saving auto-translates the
+// text into every supported language (text_translations); owners hand-edit any
+// language in the dialog below (text_overrides, which win over the auto output).
+type LocaleMap = Record<string, Record<string, string>>;
+const textTranslations = ref<LocaleMap>((a.text_translations as LocaleMap) ?? {});
+const textOverrides = ref<LocaleMap>((a.text_overrides as LocaleMap) ?? {});
+
 const isSavingText = ref(false);
-const saveText = () => {
+const saveText = async () => {
     isSavingText.value = true;
-    textForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
-        preserveScroll: true,
-        onSuccess: () => {
-            toast.success(t('agents.setup.toasts.text_saved'));
-            bumpPreview();
-        },
-        onError: () => toast.error(t('agents.setup.toasts.text_error')),
-        onFinish: () => (isSavingText.value = false),
-    });
+    textForm.clearErrors();
+    try {
+        const { data } = await axios.post(route('agents.appearance.text', { agent: props.agent.external_id }), {
+            chat_window_title: textForm.chat_window_title,
+            welcome_message: textForm.welcome_message,
+            composer_placeholder: textForm.composer_placeholder,
+        });
+        textTranslations.value = (data?.translations && typeof data.translations === 'object' ? data.translations : {}) as LocaleMap;
+
+        // Persist the per-language manual edits made in the flag tabs.
+        const { data: ov } = await axios.put(route('agents.appearance.translations.update', { agent: props.agent.external_id }), {
+            overrides: textOverrides.value,
+        });
+        textOverrides.value = (ov?.overrides && typeof ov.overrides === 'object' ? ov.overrides : {}) as LocaleMap;
+
+        toast.success(t('agents.setup.toasts.text_saved'));
+        bumpPreview();
+    } catch (err) {
+        const e = err as { response?: { status?: number; data?: { errors?: Record<string, string[]> } } };
+        if (e.response?.status === 422 && e.response.data?.errors) {
+            const mapped: Record<string, string> = {};
+            for (const [field, messages] of Object.entries(e.response.data.errors)) {
+                mapped[field] = Array.isArray(messages) ? messages[0] : String(messages);
+            }
+            textForm.setError(mapped);
+        }
+        toast.error(t('agents.setup.toasts.text_error'));
+    } finally {
+        isSavingText.value = false;
+    }
 };
 
 // ── Settings › Composer affordances — default on. Owners can turn either off
@@ -288,16 +333,21 @@ const saveAnalytics = () => {
 // is a self-contained widget that saves via agents.update on its own. Name +
 // sub_domain stay editable via the agent's Rename dialog at the top-level.
 
-// ── Starters → agents.starters.update (agent-level)
-const starters = ref<{ text: string; icon: string | null }[]>([...props.starters]);
+// ── Starters → agents.starters.update (agent-level). Each starter carries its
+// per-language translations (AI) + overrides (manual); saving auto-translates
+// the base text and returns the enriched items.
+type StarterItem = { id?: string; text: string; icon: string | null; translations?: Record<string, string>; overrides?: Record<string, string> };
+const starters = ref<StarterItem[]>([...(props.starters as StarterItem[])]);
 const isSavingStarters = ref(false);
 const saveStarters = async () => {
     isSavingStarters.value = true;
     // Drop blank/whitespace-only lines so empty fields never persist as starters.
-    const cleaned = starters.value.map((s) => ({ text: s.text.trim(), icon: s.icon })).filter((s) => s.text);
+    const cleaned = starters.value
+        .map((s) => ({ id: s.id, text: s.text.trim(), icon: s.icon, overrides: s.overrides ?? {} }))
+        .filter((s) => s.text);
     try {
-        await axios.put(route('agents.starters.update', { agent: props.agent.external_id }), { starters: cleaned });
-        starters.value = cleaned;
+        const { data } = await axios.put(route('agents.starters.update', { agent: props.agent.external_id }), { starters: cleaned });
+        starters.value = (Array.isArray(data?.starters) ? data.starters : cleaned) as StarterItem[];
         toast.success(t('agents.setup.toasts.starters_saved'));
         bumpPreview();
     } catch {
@@ -306,6 +356,56 @@ const saveStarters = async () => {
         isSavingStarters.value = false;
     }
 };
+
+// ── Languages (appearance group) — the agent's supported UI languages. Drives
+// the hosted-chat switcher list, the per-language flag tabs in Info + Starters,
+// and which locales get auto-translated. An empty stored list means "all" (the
+// off-switch for the hosted switcher is Behavior › show_language_switcher), so
+// "all selected" persists as [] to auto-include any future platform language.
+const allLanguageCodes = Object.keys(props.availableLanguages).filter((c) => c !== 'auto');
+const savedEnabledLanguages = arr<string>(a.enabled_languages, []);
+const languagesForm = useForm({
+    enabled_languages: savedEnabledLanguages.length ? savedEnabledLanguages : [...allLanguageCodes],
+});
+const isSavingLanguages = ref(false);
+const toggleLanguage = (code: string, on: boolean) => {
+    const set = new Set(languagesForm.enabled_languages);
+    if (on) set.add(code);
+    else set.delete(code);
+    // Keep stable platform order so the stored list is deterministic.
+    languagesForm.enabled_languages = allLanguageCodes.filter((c) => set.has(c));
+};
+const selectAllLanguages = () => (languagesForm.enabled_languages = [...allLanguageCodes]);
+const clearLanguages = () => (languagesForm.enabled_languages = []);
+// At least one language must stay enabled — an agent with zero UI languages has
+// nothing to render. ("Select all" stored as [] still resolves to every language.)
+const canSaveLanguages = computed(() => languagesForm.enabled_languages.length > 0);
+const saveLanguages = () => {
+    if (!canSaveLanguages.value) return;
+    isSavingLanguages.value = true;
+    const isAll = languagesForm.enabled_languages.length === allLanguageCodes.length;
+    languagesForm
+        .transform((data) => ({ enabled_languages: isAll ? [] : data.enabled_languages }))
+        .post(route('agents.settings.update', { agent: props.agent.external_id, group: 'appearance' }), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success(t('agents.setup.toasts.languages_saved'));
+                bumpPreview();
+            },
+            onError: () => toast.error(t('agents.setup.toasts.languages_error')),
+            onFinish: () => (isSavingLanguages.value = false),
+        });
+};
+
+// The language map (code => name) the Info + Starters editors expose flag tabs
+// for — the enabled subset, or all when nothing is narrowed (live, pre-save).
+const enabledLanguageMap = computed<Record<string, string>>(() => {
+    const codes = languagesForm.enabled_languages;
+    if (!codes.length) return props.availableLanguages;
+    const out: Record<string, string> = {};
+    for (const c of codes) if (props.availableLanguages[c]) out[c] = props.availableLanguages[c];
+    return out;
+});
 
 // ── Answer temperature → agents.temperature.update. The model itself is
 // platform-managed and intentionally never exposed or editable here; owners
@@ -463,6 +563,7 @@ const hostedBehaviorForm = useForm({
     enable_theme_switcher: bool(e.enable_theme_switcher, bool(ed.enable_theme_switcher, true)),
     default_theme: str(e.default_theme, str(ed.default_theme, 'auto')),
     enable_chat_expand: bool(e.enable_chat_expand, bool(ed.enable_chat_expand, true)),
+    show_language_switcher: bool(e.show_language_switcher, bool(ed.show_language_switcher, true)),
     language: str(e.language, str(ed.language, 'auto')),
 });
 const isSavingHostedBehavior = ref(false);
@@ -493,22 +594,26 @@ const widgetBehaviorForm = useForm({
     handoff_enabled: bool(w.handoff_enabled, bool(wd.handoff_enabled, true)),
 });
 
-// ── Chat Bubbles — quick-message prompts shown next to the widget bubble.
-// Lives in the widget settings group but edited on the Starters tab since
-// it's conceptually a sibling to conversation starters.
-const bubblesForm = useForm({ bubbles: arr<string>(w.bubbles, arr<string>(wd.bubbles)) });
+// ── Chat Bubbles — quick-message prompts shown next to the widget launcher.
+// Their own Setup section (widget surface only); each prompt is translated into
+// every enabled language like starters, and saved via the dedicated endpoint.
+type BubbleItem = { text: string; translations?: Record<string, string>; overrides?: Record<string, string> };
+const bubbles = ref<BubbleItem[]>([...(props.bubbles as BubbleItem[])]);
 const isSavingBubbles = ref(false);
-const saveBubbles = () => {
+const saveBubbles = async () => {
     isSavingBubbles.value = true;
-    bubblesForm.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'widget' }), {
-        preserveScroll: true,
-        onSuccess: () => {
-            toast.success(t('agents.setup.toasts.bubbles_saved'));
-            bumpPreview();
-        },
-        onError: () => toast.error(t('agents.setup.toasts.bubbles_error')),
-        onFinish: () => (isSavingBubbles.value = false),
-    });
+    // Drop blank rows so empty fields never persist as bubbles.
+    const cleaned = bubbles.value.map((b) => ({ text: b.text.trim(), overrides: b.overrides ?? {} })).filter((b) => b.text);
+    try {
+        const { data } = await axios.put(route('agents.bubbles.update', { agent: props.agent.external_id }), { bubbles: cleaned });
+        bubbles.value = (Array.isArray(data?.bubbles) ? data.bubbles : cleaned) as BubbleItem[];
+        toast.success(t('agents.setup.toasts.bubbles_saved'));
+        bumpPreview();
+    } catch {
+        toast.error(t('agents.setup.toasts.bubbles_error'));
+    } finally {
+        isSavingBubbles.value = false;
+    }
 };
 const isSavingWidgetBehavior = ref(false);
 const saveWidgetBehavior = () => {
@@ -571,11 +676,11 @@ const placementOptions = computed(() => [
     { value: 'bottom', label: t('agents.setup.options.placement_bottom') },
     { value: 'bottom-right', label: t('agents.setup.options.placement_bottom_right') },
 ]);
+// Launcher only supports the two bottom corners — the widget pins it to the
+// bottom of the viewport (top-* fall back to bottom-right), so don't offer them.
 const positionOptions = computed(() => [
     { value: 'bottom-right', label: t('agents.setup.options.position_bottom_right') },
     { value: 'bottom-left', label: t('agents.setup.options.position_bottom_left') },
-    { value: 'top-right', label: t('agents.setup.options.position_top_right') },
-    { value: 'top-left', label: t('agents.setup.options.position_top_left') },
 ]);
 const windowSizeOptions = computed(() => [
     { value: 'small', label: t('agents.setup.options.size_small') },
@@ -857,12 +962,16 @@ const copyApiCode = async (code: string) => {
                                 <!-- Info -->
                                 <div v-if="activeTab === 'info'" class="space-y-6 p-6">
                                     <form @submit.prevent="saveText" class="space-y-6">
-                                        <TextSection
+                                        <AppearanceTextEditor
                                             v-model:welcome-message="textForm.welcome_message"
                                             v-model:chat-window-title="textForm.chat_window_title"
                                             v-model:composer-placeholder="textForm.composer_placeholder"
+                                            :translations="textTranslations"
+                                            :overrides="textOverrides"
+                                            :languages="enabledLanguageMap"
                                             :errors="textForm.errors as Record<string, string>"
                                             :disabled="locked"
+                                            @update:overrides="textOverrides = $event"
                                         />
 
                                         <div v-if="!locked" class="border-t pt-4">
@@ -1145,8 +1254,73 @@ const copyApiCode = async (code: string) => {
                                 </div>
 
                                 <!-- Starters -->
+                                <!-- Languages — the agent's supported UI languages. Drives the
+                                     hosted-chat switcher list, the per-language tabs in Info +
+                                     Starters, and which locales get auto-translated. -->
+                                <div v-if="activeTab === 'languages'" class="max-w-3xl space-y-5 p-6">
+                                    <div>
+                                        <h3 class="text-sm font-medium">{{ t('agents.setup.languages.title') }}</h3>
+                                        <p class="text-muted-foreground mt-1 text-xs">{{ t('agents.setup.languages.description') }}</p>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <Button type="button" variant="outline" size="sm" :disabled="locked" @click="selectAllLanguages">
+                                            {{ t('agents.setup.languages.select_all') }}
+                                        </Button>
+                                        <Button type="button" variant="outline" size="sm" :disabled="locked" @click="clearLanguages">
+                                            {{ t('agents.setup.languages.clear_all') }}
+                                        </Button>
+                                        <span class="text-muted-foreground ms-auto text-xs">
+                                            {{
+                                                t('agents.setup.languages.count', {
+                                                    count: languagesForm.enabled_languages.length,
+                                                    total: allLanguageCodes.length,
+                                                })
+                                            }}
+                                        </span>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-x-6 gap-y-1 rounded-md border p-3 sm:grid-cols-3">
+                                        <label
+                                            v-for="code in allLanguageCodes"
+                                            :key="code"
+                                            class="hover:bg-muted/50 flex cursor-pointer items-center gap-2 rounded px-1.5 py-1.5 text-sm"
+                                        >
+                                            <Checkbox
+                                                :model-value="languagesForm.enabled_languages.includes(code)"
+                                                :disabled="locked"
+                                                @update:model-value="(v: boolean | 'indeterminate') => toggleLanguage(code, v === true)"
+                                            />
+                                            <span class="truncate">{{ availableLanguages[code] }}</span>
+                                        </label>
+                                    </div>
+
+                                    <p v-if="!canSaveLanguages" class="text-destructive text-xs">
+                                        {{ t('agents.setup.languages.min_required') }}
+                                    </p>
+                                    <p class="text-muted-foreground text-xs">{{ t('agents.setup.languages.hint') }}</p>
+
+                                    <div v-if="!locked" class="border-t pt-4">
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            :disabled="!canEdit || isSavingLanguages || !canSaveLanguages"
+                                            @click="saveLanguages"
+                                        >
+                                            <Save class="me-2 h-4 w-4" />
+                                            {{ isSavingLanguages ? t('agents.setup.saving') : t('common.save') }}
+                                        </Button>
+                                    </div>
+                                </div>
+
                                 <div v-if="activeTab === 'starters'" class="space-y-6 p-6">
-                                    <StartersSection v-model:starters="starters" :knowledge-questions="knowledgeQuestions" :disabled="locked" />
+                                    <StartersSection
+                                        v-model:starters="starters"
+                                        :languages="enabledLanguageMap"
+                                        :has-knowledge-base="hasKnowledgeBase"
+                                        :agent-external-id="props.agent.external_id"
+                                        :disabled="locked"
+                                    />
                                     <div v-if="!locked">
                                         <Button type="button" size="sm" :disabled="!canEdit || isSavingStarters" @click="saveStarters">
                                             <Save class="me-2 h-4 w-4" />
@@ -1154,39 +1328,18 @@ const copyApiCode = async (code: string) => {
                                         </Button>
                                     </div>
 
-                                    <!-- Chat Bubbles — widget surface only. Hosted Chat and Bar don't
-                                         render quick-message bubbles next to the launcher, so the field
-                                         would just be dead settings noise on those tabs. -->
-                                    <template v-if="previewSurface === 'widget'">
-                                        <Separator />
+                                </div>
 
-                                        <div class="space-y-4">
-                                            <div>
-                                                <h3 class="text-sm font-medium">{{ t('agents.setup.bubbles_title') }}</h3>
-                                                <p class="text-muted-foreground mt-1 text-xs">
-                                                    {{ t('agents.setup.bubbles_description') }}
-                                                </p>
-                                            </div>
-
-                                            <TagsInput v-model="bubblesForm.bubbles" :disabled="locked" class="w-full">
-                                                <TagsInputItem v-for="(bubble, index) in bubblesForm.bubbles" :key="index" :value="bubble">
-                                                    <TagsInputItemText />
-                                                    <TagsInputItemDelete />
-                                                </TagsInputItem>
-                                                <TagsInputInput add-on-blur :placeholder="t('agents.setup.bubbles_placeholder')" />
-                                            </TagsInput>
-                                            <p v-if="bubblesForm.errors.bubbles" class="text-destructive text-sm">
-                                                {{ bubblesForm.errors.bubbles }}
-                                            </p>
-
-                                            <div v-if="!locked">
-                                                <Button type="button" size="sm" :disabled="!canEdit || isSavingBubbles" @click="saveBubbles">
-                                                    <Save class="me-2 h-4 w-4" />
-                                                    {{ isSavingBubbles ? t('agents.setup.saving') : t('common.save') }}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </template>
+                                <!-- Chat Bubbles — widget-only quick-message prompts shown next to the
+                                     launcher; localized per enabled language like starters. -->
+                                <div v-if="activeTab === 'bubbles'" class="space-y-6 p-6">
+                                    <BubblesSection v-model:bubbles="bubbles" :languages="enabledLanguageMap" :disabled="locked" />
+                                    <div v-if="!locked" class="border-t pt-4">
+                                        <Button type="button" size="sm" :disabled="!canEdit || isSavingBubbles" @click="saveBubbles">
+                                            <Save class="me-2 h-4 w-4" />
+                                            {{ isSavingBubbles ? t('agents.setup.saving') : t('common.save') }}
+                                        </Button>
+                                    </div>
                                 </div>
 
                                 <!-- Model — answer temperature only (the model is platform-managed) -->
@@ -1347,6 +1500,16 @@ const copyApiCode = async (code: string) => {
                                                     <Switch
                                                         id="hosted-chat-expand"
                                                         v-model="hostedBehaviorForm.enable_chat_expand"
+                                                        :disabled="locked"
+                                                    />
+                                                </div>
+                                                <div class="flex items-center justify-between gap-3 px-4 py-3">
+                                                    <Label for="hosted-language-switcher" class="cursor-pointer text-sm font-medium">{{
+                                                        t('agents.setup.behavior.language_switcher')
+                                                    }}</Label>
+                                                    <Switch
+                                                        id="hosted-language-switcher"
+                                                        v-model="hostedBehaviorForm.show_language_switcher"
                                                         :disabled="locked"
                                                     />
                                                 </div>

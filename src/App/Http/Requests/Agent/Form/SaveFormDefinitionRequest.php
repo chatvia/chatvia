@@ -24,9 +24,10 @@ class SaveFormDefinitionRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:120'],
+            'subtitle' => ['nullable', 'string', 'max:300'],
             'form_type' => ['required', Rule::enum(FormType::class)],
             'success_message' => ['nullable', 'string', 'max:500'],
-            'description' => ['nullable', 'string', 'max:500'],
+            'agent_instructions' => ['nullable', 'string', 'max:500'],
             'is_active' => ['boolean'],
 
             'schema' => ['required', 'array', 'min:1', 'max:30'],
@@ -52,11 +53,12 @@ class SaveFormDefinitionRequest extends FormRequest
             external_id: null,
             slug: null,
             name: $validated['name'],
+            subtitle: $validated['subtitle'] ?? null,
             form_type: $validated['form_type'],
             schema: $validated['schema'],
             lead_field_map: $validated['lead_field_map'] ?? null,
             success_message: $validated['success_message'] ?? null,
-            description: $validated['description'] ?? null,
+            agent_instructions: $validated['agent_instructions'] ?? null,
             is_active: $validated['is_active'] ?? true,
         );
     }

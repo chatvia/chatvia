@@ -158,7 +158,7 @@
             "table": {
                 "name": "Namn",
                 "messages": "Meddelanden",
-                "members": "Chatters",
+                "members": "Chattare",
                 "created": "Skapad"
             }
         },
@@ -265,7 +265,7 @@
                     "steps": {
                         "connected_1": "I {link}, öppna {event_subscriptions}, aktivera det och klistra in begärans-URL:en ovan",
                         "connected_2": "Prenumerera på bot-händelserna {mention} och {im}, spara sedan",
-                        "connected_3": "Bjud in boten till en kanal med {invite} och @omnämn den {live}",
+                        "connected_3": "Bjud in boten till en kanal med {invite} och {'@'}omnämn den {live}",
                         "connect_1": "Skapa en app på {link} i din arbetsyta",
                         "connect_2": "Under {oauth}, lägg till bot-behörigheterna {scope1}, {scope2}, {scope3}, installera sedan appen och kopiera bot-token",
                         "connect_3": "Kopiera signeringshemligheten från {basic_info} och klistra in båda nedan"
@@ -1595,7 +1595,7 @@
             "functions_tooltip": "Hantera anpassade funktioner som din agent kan anropa",
             "connectors": "Kopplingar",
             "connectors_tooltip": "Koppla ihop kontakter så att din agent kan använda externa verktyg",
-            "members": "Chatters",
+            "members": "Chattare",
             "members_tooltip": "Chatters som beviljats åtkomst att chatta med den här agenten",
             "security": "Säkerhet",
             "security_tooltip": "Åtkomstkontroll, signeringshemlig och hastighetsbegränsningar för den här agenten",
@@ -2201,7 +2201,7 @@
                 "iframe_title": "Chatta med {name}",
                 "width": "Bredd",
                 "height": "Höjd",
-                "preset_full": "Full",
+                "preset_full": "Fullskärm",
                 "preset_large": "Stor",
                 "preset_medium": "Medel",
                 "preset_small": "Liten"
@@ -2222,7 +2222,7 @@
             "surface_error": "Kunde inte uppdatera — försök igen"
         },
         "chatters": {
-            "title": "Chatters",
+            "title": "Chattare",
             "description": "Dina chatters. De med tillgång till den här agenten visas först – ge valfri annan chatter tillgång med ett klick.",
             "public_title": "Den här agenten är offentlig",
             "public_description": "Vem som helst med länken kan chatta med den här agenten, så chatter-tilldelningar gäller inte. Aktivera skydd på agenten via fliken Säkerhet om du vill använda chatters.",
@@ -3432,7 +3432,7 @@
                     "description": "Hantera det delade promptbiblioteket"
                 },
                 "account_members_manage": {
-                    "label": "Chatters",
+                    "label": "Chattare",
                     "description": "Visa, återställ lösenord och ta bort chatters i hela arbetsytan"
                 },
                 "account_governance": {
@@ -3809,8 +3809,8 @@
             }
         },
         "members": {
-            "breadcrumb": "Chatters",
-            "title": "Chatters",
+            "breadcrumb": "Chattare",
+            "title": "Chattare",
             "description": "Alla du har gett åtkomst att chatta med dina agenter. Skicka en länk för lösenordsåterställning eller ta bort en chatter helt.",
             "search_placeholder": "Sök chatters...",
             "count": "{shown} av {total} chatter | {shown} av {total} chatters",
@@ -3896,7 +3896,7 @@
             "functions": "Funktioner",
             "api_keys": "API-nycklar",
             "prompts": "Prompter",
-            "members": "Chatters",
+            "members": "Chattare",
             "audit_log": "Granskningslogg",
             "security": "Säkerhet",
             "security_audit": "Säkerhetsgranskning",
@@ -3986,7 +3986,7 @@
             "previous": "Föregående",
             "next": "Nästa",
             "target": "Mål",
-            "user_agent": "User agent",
+            "user_agent": "Användaragent",
             "metadata": "Detaljer",
             "integrity": "Integritetshash registrerad",
             "teaser": {

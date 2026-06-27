@@ -37,7 +37,7 @@ it('returns the agent\'s forms with their slug for a matching intent', function 
     $agent = Agent::factory()->create();
     FormDefinition::factory()->forAgent($agent)->create([
         'name' => 'Book a demo', 'slug' => 'book-a-demo', 'is_active' => true,
-        'description' => 'Show this when the visitor wants to book a demo or talk to sales.',
+        'agent_instructions' => 'Show this when the visitor wants to book a demo or talk to sales.',
     ]);
 
     asAgent($agent);
@@ -82,7 +82,7 @@ it('flags a form the visitor already submitted in this session', function (): vo
     $agent = Agent::factory()->create();
     $form = FormDefinition::factory()->forAgent($agent)->create([
         'name' => 'Book a demo', 'slug' => 'book-a-demo', 'is_active' => true,
-        'description' => 'Show this when the visitor wants to book a demo.',
+        'agent_instructions' => 'Show this when the visitor wants to book a demo.',
     ]);
     $session = Session::factory()->create(['agent_id' => $agent->id]);
     $conversation = Conversation::factory()->create([

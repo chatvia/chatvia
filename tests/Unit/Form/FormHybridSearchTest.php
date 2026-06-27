@@ -23,7 +23,7 @@ function makeForm(Agent $agent, string $name, string $slug, ?string $description
     return FormDefinition::factory()->forAgent($agent)->create([
         'name' => $name,
         'slug' => $slug,
-        'description' => $description,
+        'agent_instructions' => $description,
         'is_active' => true,
     ]);
 }

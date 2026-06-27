@@ -3,13 +3,15 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
 import HeroIcon from '@/components/ui/HeroIcon.vue';
+import { normalizeLocale, resolveLocale, setI18nLocale } from '@/i18n';
+import { resolveAppearanceText, resolveStarters } from '@/lib/appearanceText';
 import { useColorTheme } from '@/composables/useColorTheme';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+const { t, locale: i18nLocale } = useI18n();
 
 // Per-chat upload ceiling — sourced from `agent.files.upload.max_files`
 // via Inertia shared props (ChatHandleInertiaRequests). Falls back to 2
@@ -66,6 +68,36 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    // Owner's pinned chat language ('auto' = detect from the visitor).
+    locale: {
+        type: String,
+        default: 'auto',
+    },
+    // Whether to show the visitor language switcher in the header.
+    enableLanguageSwitcher: {
+        type: Boolean,
+        default: false,
+    },
+    // Language codes the owner enabled in Setup → Languages. Empty ⇒ all locales.
+    enabledLanguages: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+// The three appearance strings localized to the active UI locale (the header
+// language switcher changes it, re-resolving these from the payload's maps).
+const resolvedAppearance = computed(() => ({
+    ...props.appearance,
+    ...resolveAppearanceText(props.appearance, normalizeLocale(i18nLocale.value)),
+}));
+
+// Starters localized to the active language (re-resolves when the visitor
+// switches language); each item carries its own translations/overrides.
+const resolvedStarters = computed(() => resolveStarters(starters.value, normalizeLocale(i18nLocale.value)));
+
+onMounted(() => {
+    void setI18nLocale(resolveLocale(props.locale));
 });
 
 const selectedStarter = ref('');
@@ -139,12 +171,14 @@ function handleStarterClick(text) {
 
 <template>
     <ChatLayout
-        :appearance="props.appearance"
+        :appearance="resolvedAppearance"
         :removeSidebar="props.removeSidebar"
         :hideSidebarOnPageLoad="props.hideSidebarOnPageLoad"
         :enableThemeSwitcher="props.enableThemeSwitcher"
         :defaultTheme="props.defaultTheme"
         :enableChatExpand="props.enableChatExpand"
+        :enableLanguageSwitcher="props.enableLanguageSwitcher"
+        :enabledLanguages="props.enabledLanguages"
         :newChatRoute="props.newChatRoute"
     >
         <Head title="ChatVia" />
@@ -166,7 +200,7 @@ function handleStarterClick(text) {
 
                     <!-- Welcome message -->
                     <h1 class="text-foreground mb-7 text-center text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-                        {{ props.appearance?.welcome_message || t('home.welcome_message') }}
+                        {{ resolvedAppearance.welcome_message || t('home.welcome_message') }}
                     </h1>
 
                     <div class="mx-auto w-full max-w-2xl">
@@ -174,7 +208,7 @@ function handleStarterClick(text) {
                         <ChatComposer
                             v-if="canSendMessages"
                             :text="selectedStarter"
-                            :placeholder="appearance.composer_placeholder"
+                            :placeholder="resolvedAppearance.composer_placeholder"
                             :allow-file-uploads="appearance.allow_file_uploads !== false"
                             :allow-voice-input="appearance.allow_voice_input !== false"
                             :max-files="maxFilesPerChat"
@@ -196,9 +230,9 @@ function handleStarterClick(text) {
                         </div>
 
                         <!-- Conversation Starters -->
-                        <div v-if="canSendMessages && starters.length > 0" class="mt-6 flex flex-wrap justify-center gap-2.5">
+                        <div v-if="canSendMessages && resolvedStarters.length > 0" class="mt-6 flex flex-wrap justify-center gap-2.5">
                             <button
-                                v-for="(starter, index) in starters"
+                                v-for="(starter, index) in resolvedStarters"
                                 :key="index"
                                 @click="handleStarterClick(starter.text)"
                                 class="group border-border bg-card hover:border-muted-foreground/30 hover:bg-muted/60 flex cursor-pointer items-center gap-2 rounded-2xl border px-4 py-2.5 text-start shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-md"

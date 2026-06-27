@@ -158,7 +158,7 @@
             "table": {
                 "name": "Nombre",
                 "messages": "Mensajes",
-                "members": "Chatters",
+                "members": "Usuarios",
                 "created": "Creado"
             }
         },
@@ -220,7 +220,7 @@
                 },
                 "shared": {
                     "subscribe_webhook": "Suscribe el webhook al campo {field}",
-                    "messages_field": "messages",
+                    "messages_field": "mensajes",
                     "create_meta_app_at": "Crea una app en {link}",
                     "copy_app_secret_both": "Copia el secreto de la app desde {section} y pega ambos a continuación",
                     "copy_app_secret_all": "Copia el secreto de la app desde {section} y pega todo a continuación",
@@ -679,7 +679,7 @@
             "locked_description": "Los guardrails están disponibles en los planes Standard y Pro. Mejora tu plan para controlar de qué puede hablar tu agente y cómo maneja el contenido sensible."
         },
         "persona": {
-            "title": "Persona",
+            "title": "Personalidad",
             "card_title": "Persona del agente",
             "card_description": "Define el nombre, subdominio e instrucciones de sistema de tu agente.",
             "name_label": "Nombre",
@@ -878,7 +878,7 @@
                 "contains": "Contiene",
                 "regex": "Regex",
                 "exact": "Coincidencia exacta",
-                "json_schema": "JSON schema",
+                "json_schema": "Esquema JSON",
                 "llm_judge": "LLM judge",
                 "tool_call": "Llamada a herramienta"
             }
@@ -1595,7 +1595,7 @@
             "functions_tooltip": "Gestionar funciones personalizadas que tu agente puede invocar",
             "connectors": "Conectores",
             "connectors_tooltip": "Conecta conectores para que tu agente pueda usar herramientas externas",
-            "members": "Chatters",
+            "members": "Usuarios",
             "members_tooltip": "Chatters con acceso para chatear con este agente",
             "security": "Seguridad",
             "security_tooltip": "Control de acceso, secreto de firma y límites de velocidad para este agente",
@@ -1710,8 +1710,8 @@
                 "bar": "Barra de comandos"
             },
             "menu": {
-                "info": "Info",
-                "persona": "Persona",
+                "info": "Información",
+                "persona": "Personalidad",
                 "starters": "Iniciadores",
                 "model": "Modelo",
                 "branding": "Marca",
@@ -2222,7 +2222,7 @@
             "surface_error": "No se pudo actualizar. Por favor, inténtalo de nuevo"
         },
         "chatters": {
-            "title": "Chatters",
+            "title": "Usuarios",
             "description": "Tus chatters. Los chatters con acceso a este agente aparecen primero; otorga acceso a cualquier otro chatter con un solo clic.",
             "public_title": "Este agente es público",
             "public_description": "Cualquier persona con el enlace puede chatear con este agente, por lo que los permisos de chatters no aplican. Para usar chatters, configura el agente como protegido desde su pestaña de Seguridad.",
@@ -3432,7 +3432,7 @@
                     "description": "Gestionar la biblioteca de prompts compartidos"
                 },
                 "account_members_manage": {
-                    "label": "Chatters",
+                    "label": "Usuarios",
                     "description": "Ver, restablecer contraseña y eliminar chatters en todo el espacio de trabajo"
                 },
                 "account_governance": {
@@ -3553,7 +3553,7 @@
         "save": "Guardar",
         "replies": "Respuestas ({count})",
         "no_replies": "Aún no hay respuestas.",
-        "role_staff": "Staff",
+        "role_staff": "Personal",
         "role_user": "Usuario",
         "resolved_notice": "Este ticket ha sido resuelto. Si el problema persiste, abre un nuevo ticket desde la página de Soporte.",
         "add_reply": "Agregar una respuesta",
@@ -3809,8 +3809,8 @@
             }
         },
         "members": {
-            "breadcrumb": "Chatters",
-            "title": "Chatters",
+            "breadcrumb": "Usuarios",
+            "title": "Usuarios",
             "description": "Todas las personas a las que has concedido acceso para chatear con tus agentes. Envía un enlace para restablecer contraseña o elimina un chatter por completo.",
             "search_placeholder": "Buscar chatters...",
             "count": "{shown} de {total} chatter | {shown} de {total} chatters",
@@ -3896,7 +3896,7 @@
             "functions": "Funciones",
             "api_keys": "Claves API",
             "prompts": "Prompts",
-            "members": "Chatters",
+            "members": "Usuarios",
             "audit_log": "Registro de auditoría",
             "security": "Seguridad",
             "security_audit": "Auditoría de seguridad",

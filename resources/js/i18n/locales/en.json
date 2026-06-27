@@ -1715,7 +1715,9 @@
                 "behavior": "Behavior",
                 "settings": "Settings",
                 "embed": "Embed",
-                "domain": "Domain"
+                "domain": "Domain",
+                "languages": "Languages",
+                "bubbles": "Chat Bubbles"
             },
             "view_only_title": "View Only",
             "view_only_description": "You don't have permission to edit Setup.",
@@ -1760,7 +1762,11 @@
                 "code_copy_error": "Failed to copy code. Please try again.",
                 "branding_saved": "Branding updated",
                 "privacy_saved": "Privacy policy link saved",
-                "privacy_error": "Could not save privacy policy link"
+                "privacy_error": "Could not save privacy policy link",
+                "translations_saved": "Translations updated",
+                "translations_error": "Could not save translations",
+                "languages_saved": "Languages saved",
+                "languages_error": "Could not save languages"
             },
             "settings": {
                 "composer_title": "Composer options",
@@ -1803,7 +1809,7 @@
                 "topics_hint": "Automatically detect and group what visitors ask about."
             },
             "bubbles_title": "Chat Bubbles",
-            "bubbles_description": "Quick message prompts shown next to the widget bubble. Press Enter to add each one.",
+            "bubbles_description": "Quick message prompts shown next to the widget launcher.",
             "bubbles_placeholder": "e.g., How can I help you?",
             "model_title": "Answer style",
             "model_description": "Tune how focused or creative your agent's answers are. Lower keeps replies precise and consistent; higher allows more variety.",
@@ -1836,7 +1842,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "Only these origins are allowed to load the widget.",
                 "keyboard_trigger": "Keyboard trigger",
-                "placement": "Placement"
+                "placement": "Placement",
+                "language_switcher": "Language switcher"
             },
             "embed": {
                 "agent_url_title": "Agent URL",
@@ -2001,8 +2008,40 @@
                 "branding_badge_hint": "Display the Chatvia badge on this agent's chat and widget.",
                 "appearance_privacy_url": "Privacy Policy URL",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
-                "appearance_privacy_url_hint": "Shown to visitors as “By chatting, you agree to our privacy policy.” Leave empty to hide."
-            }
+                "appearance_privacy_url_hint": "Shown to visitors as “By chatting, you agree to our privacy policy.” Leave empty to hide.",
+                "appearance_translations_manage": "Manage translations",
+                "appearance_translations_hint": "Saved text is translated into every language automatically. Open a flag to edit that language — your edits are kept.",
+                "appearance_translations_title": "Translations",
+                "appearance_translations_desc": "Pick a language and adjust the automatic translation. Leave a field empty to use the automatic translation.",
+                "appearance_translations_language": "Language",
+                "appearance_translations_reset": "Reset",
+                "appearance_translations_auto": "Automatic",
+                "appearance_translations_default": "Default",
+                "appearance_translations_default_tip": "The text you write — automatically translated into every language.",
+                "appearance_translations_default_hint": "This is the text you write. When you save, it is translated into every language automatically, and it is shown whenever a visitor's language is not in the list.",
+                "appearance_translations_lang_hint": "Edit this language here. Leave a field empty to use the automatic translation — your edits are always kept.",
+                "starters_generate": "Generate with AI",
+                "starters_generate_title": "Generate starters with AI",
+                "starters_generate_description": "Choose how many to generate from your knowledge base, then pick which to add.",
+                "starters_generate_count": "How many?",
+                "starters_generate_button": "Generate",
+                "starters_generating": "Generating…",
+                "starters_generate_hint": "Choose a number and generate suggestions from your knowledge base.",
+                "starters_translate_empty": "Add starters on the Default tab first, then translate them here."
+            },
+            "languages": {
+                "title": "UI languages",
+                "description": "Choose which languages this agent supports. Enabled languages appear in the hosted-chat language switcher and get their own per-language fields in Info and Starters.",
+                "select_all": "Select all",
+                "clear_all": "Clear all",
+                "count": "{count} of {total} selected",
+                "hint": "To hide the visitor language switcher entirely, turn it off under Behavior.",
+                "min_required": "At least one language is required."
+            },
+            "bubbles_add": "Add bubble",
+            "bubbles_remove": "Remove bubble",
+            "bubbles_empty": "No chat bubbles yet.",
+            "bubbles_translate_empty": "Add a bubble first to translate it."
         },
         "team": {
             "title": "Team Management",
@@ -2336,7 +2375,10 @@
             "maps_to_aria": "What does “Maps to” mean?",
             "maps_to_help_title": "Maps to a contact field",
             "maps_to_help_1": "Tags this field as a standard contact attribute — Name, Email, Phone, and so on. The value the visitor enters is then recognised as that piece of contact info, not just an anonymous answer.",
-            "maps_to_help_2": "Mapped fields fill the lead’s details — powering the leads list, duplicate detection, and CSV export. Leave it as “—” to capture the answer without tagging it."
+            "maps_to_help_2": "Mapped fields fill the lead’s details — powering the leads list, duplicate detection, and CSV export. Leave it as “—” to capture the answer without tagging it.",
+            "subtitle": "Description",
+            "subtitle_placeholder": "e.g. Tell us about your company and we'll get in touch.",
+            "subtitle_hint": "Shown to the visitor under the form title."
         },
         "submissions": {
             "page_title": "Submissions",

@@ -46,7 +46,7 @@
                 },
                 "shared": {
                     "subscribe_webhook": "Suscribe el webhook al campo {field}",
-                    "messages_field": "messages",
+                    "messages_field": "mensajes",
                     "create_meta_app_at": "Crea una app en {link}",
                     "copy_app_secret_both": "Copia el secreto de la app desde {section} y pega ambos a continuación",
                     "copy_app_secret_all": "Copia el secreto de la app desde {section} y pega todo a continuación",

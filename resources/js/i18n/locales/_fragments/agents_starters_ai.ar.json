@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate": "إنشاء بالذكاء الاصطناعي",
+                "starters_generate_title": "إنشاء أمثلة بالذكاء الاصطناعي",
+                "starters_generate_description": "اختر العدد المراد إنشاؤه من قاعدة معرفتك، ثم اختر ما تريد إضافته.",
+                "starters_generate_count": "كم العدد؟",
+                "starters_generate_button": "إنشاء",
+                "starters_generating": "جارٍ الإنشاء…",
+                "starters_generate_hint": "اختر عددًا ثم أنشئ اقتراحات من قاعدة معرفتك.",
+                "starters_translate_empty": "أضف الأمثلة في تبويب الافتراضية أولًا، ثم ترجمها هنا."
+            }
+        }
+    }
+}

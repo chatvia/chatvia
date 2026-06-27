@@ -477,6 +477,125 @@ class Agent extends Model
     }
 
     /**
+     * Starters resolved for a visitor locale: each entry's text is its manual
+     * override, else its AI translation, else the base text. Returns the lean
+     * `{ text, icon }` shape the chat surfaces render (used server-side for the
+     * embedded widget; the hosted chat resolves client-side for live switching).
+     *
+     * @return array<int, array{text: string, icon: string|null}>
+     */
+    public function resolvedStartersForLocale(?string $locale): array
+    {
+        $loc = $locale !== null ? strtolower(trim($locale)) : '';
+        $loc = ($loc === '' || $loc === 'auto') ? null : substr($loc, 0, 2);
+
+        return array_map(function (array $starter) use ($loc): array {
+            $text = (string) ($starter['text'] ?? '');
+
+            if ($loc !== null) {
+                $override = $starter['overrides'][$loc] ?? null;
+                $translation = $starter['translations'][$loc] ?? null;
+
+                $text = match (true) {
+                    is_string($override) && $override !== '' => $override,
+                    is_string($translation) && $translation !== '' => $translation,
+                    default => $text,
+                };
+            }
+
+            return ['text' => $text, 'icon' => $starter['icon'] ?? null];
+        }, $this->resolvedStarters());
+    }
+
+    /**
+     * The widget chat-bubble prompts in editor shape — `{ text, translations,
+     * overrides }` per bubble. Coerces the legacy plain-string list (bubbles
+     * were a `string[]` before they became translatable) so old data still
+     * loads in the Setup editor.
+     *
+     * @return array<int, array{text: string, translations: array<string, string>, overrides: array<string, string>}>
+     */
+    public function normalizedBubbles(): array
+    {
+        return array_values(array_map(static function ($bubble): array {
+            if (is_string($bubble)) {
+                return ['text' => $bubble, 'translations' => [], 'overrides' => []];
+            }
+
+            $bubble = (array) $bubble;
+
+            return [
+                'text' => (string) ($bubble['text'] ?? ''),
+                'translations' => is_array($bubble['translations'] ?? null) ? $bubble['translations'] : [],
+                'overrides' => is_array($bubble['overrides'] ?? null) ? $bubble['overrides'] : [],
+            ];
+        }, (array) $this->settings('widget')->get('bubbles', [])));
+    }
+
+    /**
+     * Bubble prompts resolved for a visitor locale: each bubble's manual
+     * override, else its AI translation, else the base text. Returns the plain
+     * `string[]` the widget renders (and tolerates the legacy plain-string shape).
+     *
+     * @return array<int, string>
+     */
+    public function resolvedBubblesForLocale(?string $locale): array
+    {
+        $loc = $locale !== null ? strtolower(trim($locale)) : '';
+        $loc = ($loc === '' || $loc === 'auto') ? null : substr($loc, 0, 2);
+
+        $resolved = array_map(function ($bubble) use ($loc): string {
+            if (is_string($bubble)) {
+                return $bubble;
+            }
+
+            $bubble = (array) $bubble;
+            $text = (string) ($bubble['text'] ?? '');
+
+            if ($loc !== null) {
+                $override = $bubble['overrides'][$loc] ?? null;
+                $translation = $bubble['translations'][$loc] ?? null;
+
+                $text = match (true) {
+                    is_string($override) && $override !== '' => $override,
+                    is_string($translation) && $translation !== '' => $translation,
+                    default => $text,
+                };
+            }
+
+            return $text;
+        }, (array) $this->settings('widget')->get('bubbles', []));
+
+        return array_values(array_filter($resolved, static fn (string $t): bool => $t !== ''));
+    }
+
+    /**
+     * The UI languages this agent supports (code => display name) — the owner's
+     * curated subset of config('chatvia.languages'). An empty/unset selection
+     * means "all" (minus the 'auto' sentinel), so existing agents keep every
+     * language. Single source of truth for the hosted-chat switcher list, the
+     * Setup per-language editors, and which locales get auto-translated.
+     *
+     * @return array<string, string>
+     */
+    public function enabledLanguages(): array
+    {
+        $all = (array) config('chatvia.languages', []);
+        unset($all['auto']);
+
+        $codes = array_values(array_filter(
+            (array) ($this->settings('appearance')->get('enabled_languages') ?? []),
+            'is_string',
+        ));
+
+        if ($codes === []) {
+            return $all;
+        }
+
+        return array_intersect_key($all, array_flip($codes));
+    }
+
+    /**
      * The single LLM that answers every chat for this agent. Nullable so a
      * just-created agent without one yet won't break; AgentObserver seeds it
      * to the user's default on create.

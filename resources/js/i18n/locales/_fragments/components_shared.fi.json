@@ -59,9 +59,20 @@
             "export_text": "Teksti",
             "generated_by": "Luonut {model}"
         },
-        "image_upload": { "upload": "Lataa", "remove": "Poista" },
-        "color_picker": { "color_intensity": "Värin intensiteetti", "light": "Vaalea", "dark": "Tumma" },
-        "color_theme_picker": { "title": "Valitse väriteema", "description": "Valitse väri ja sävy agentin pääteemaksi", "apply": "Käytä" },
+        "image_upload": {
+            "upload": "Lataa",
+            "remove": "Poista"
+        },
+        "color_picker": {
+            "color_intensity": "Värin intensiteetti",
+            "light": "Vaalea",
+            "dark": "Tumma"
+        },
+        "color_theme_picker": {
+            "title": "Valitse väriteema",
+            "description": "Valitse väri ja sävy agentin pääteemaksi",
+            "apply": "Käytä"
+        },
         "icon_picker": {
             "search_placeholder": "Hae kuvakkeita...",
             "choose_icon": "Valitse kuvake",

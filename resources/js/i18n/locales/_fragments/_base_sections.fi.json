@@ -2,7 +2,7 @@
     "approval": {
         "badge": "Odottaa hyväksyntää",
         "prompt": "Haluatko jatkaa?",
-        "mcp_tool": "MCP tool",
+        "mcp_tool": "MCP-työkalu",
         "function": "Funktio",
         "approve": "Hyväksy",
         "deny": "Hylkää"

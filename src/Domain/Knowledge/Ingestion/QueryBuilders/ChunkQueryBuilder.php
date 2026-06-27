@@ -239,6 +239,49 @@ SQL;
     }
 
     /**
+     * Whether the agent has any ingested knowledge-base content (chunks). Gates
+     * the Setup → Starters "Generate with AI" button.
+     */
+    public function hasContentForAgent(int $agentId): bool
+    {
+        return $this->getModel()->newQuery()
+            ->whereExists(function ($query) use ($agentId): void {
+                $query->select(DB::raw(1))
+                    ->from('agent_sources as s')
+                    ->whereColumn('s.sourceable_id', 'chunks.chunkable_id')
+                    ->whereColumn('s.sourceable_type', 'chunks.chunkable_type')
+                    ->where('s.agent_id', $agentId);
+            })
+            ->exists();
+    }
+
+    /**
+     * A representative text sample of the agent's knowledge base — each chunk's
+     * summary, falling back to its body — for grounding LLM starter generation.
+     * Each entry is capped so the combined sample stays within one LLM call.
+     *
+     * @return array<int, string>
+     */
+    public function contentSampleForAgent(int $agentId, int $limit = 30): array
+    {
+        return $this->getModel()->newQuery()
+            ->whereExists(function ($query) use ($agentId): void {
+                $query->select(DB::raw(1))
+                    ->from('agent_sources as s')
+                    ->whereColumn('s.sourceable_id', 'chunks.chunkable_id')
+                    ->whereColumn('s.sourceable_type', 'chunks.chunkable_type')
+                    ->where('s.agent_id', $agentId);
+            })
+            ->limit($limit)
+            ->get(['summary', 'chunk'])
+            ->map(fn ($row): string => trim((string) ($row->summary ?: $row->chunk)))
+            ->filter()
+            ->map(fn (string $text): string => mb_substr($text, 0, 600))
+            ->values()
+            ->all();
+    }
+
+    /**
      * Set vchordrq runtime params for the current transaction. `SET LOCAL`
      * needs an explicit transaction — otherwise values leak on pooled
      * connections (pgbouncer / Octane).

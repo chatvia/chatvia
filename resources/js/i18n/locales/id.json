@@ -194,12 +194,12 @@
                     "page_access_token": "Page access token",
                     "app_secret": "App secret",
                     "access_token": "Access token",
-                    "phone_number_id": "Phone number ID",
-                    "waba_id": "WhatsApp Business Account ID",
+                    "phone_number_id": "ID nomor telepon",
+                    "waba_id": "ID Akun WhatsApp Business",
                     "microsoft_app_id": "Microsoft App ID",
                     "client_secret": "Client secret",
                     "tenant_id": "Tenant ID",
-                    "messaging_endpoint": "Messaging endpoint"
+                    "messaging_endpoint": "Endpoint pesan"
                 },
                 "hints": {
                     "tenant_single_only": "(Hanya bot Single Tenant)"
@@ -287,7 +287,7 @@
                     "webhooks_path": "Use cases → Customize → Messenger API Settings",
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Engage with customers on Messenger",
+                    "product": "Terhubung dengan pelanggan melalui Messenger",
                     "permissions_path": "Use cases → Customize → Permissions and features",
                     "oauth_intro": "Hubungkan Halaman Facebook agar agen ini dapat membalas percakapan Messenger — Anda akan masuk dengan Facebook, lalu pilih Halaman yang akan digunakan.",
                     "connect_facebook": "Hubungkan dengan Facebook",
@@ -302,7 +302,7 @@
                         "connect_2": "Selesaikan {basic_setup}, lalu salin phone number ID, WhatsApp Business Account ID, dan sebuah access token"
                     },
                     "configuration_path": "WhatsApp → Configuration",
-                    "use_case": "Connect with customers through WhatsApp",
+                    "use_case": "Terhubung dengan pelanggan melalui WhatsApp",
                     "basic_setup_path": "Use cases → Customize → Basic setup",
                     "oauth_intro": "Hubungkan nomor WhatsApp Business Anda agar agen ini dapat membalas pesan WhatsApp — Anda akan masuk dengan Facebook dan menyiapkannya dalam satu langkah.",
                     "connect_facebook": "Hubungkan dengan Facebook",
@@ -321,8 +321,8 @@
                         "connect_3": "Tempelkan keduanya di bawah — untuk bot Single Tenant tambahkan juga {tenant_id} Anda"
                     },
                     "azure_portal": "portal Azure",
-                    "configuration": "Configuration",
-                    "channels": "Channels",
+                    "configuration": "Konfigurasi",
+                    "channels": "Saluran",
                     "azure_bot": "Azure Bot",
                     "microsoft_app_id": "Microsoft App ID",
                     "manage_password": "Manage password → Certificates & secrets",
@@ -2656,9 +2656,9 @@
             "placeholders": {
                 "name": "John Doe",
                 "email": "john{'@'}example.com",
-                "line1": "123 Main Street",
+                "line1": "Jl. Sudirman No. 123",
                 "line2": "Apt, suite, dll.",
-                "city": "New York",
+                "city": "Jakarta",
                 "state": "NY",
                 "postal_code": "10001",
                 "country": "Pilih negara..."

@@ -25,9 +25,9 @@ class EmbedFormDefinitionAction
         }
 
         try {
-            // The name and the description are what the visitor's intent is
-            // matched against, so they are the embedded text.
-            $text = trim($form->name."\n\n".(string) $form->description);
+            // The name and the agent instructions are what the visitor's intent
+            // is matched against, so they are the embedded text.
+            $text = trim($form->name."\n\n".(string) $form->agent_instructions);
             $form->forceFill([
                 'embedding' => embed($text),
                 'embedding_bm25' => Bm25Tokenizer::expression($text),

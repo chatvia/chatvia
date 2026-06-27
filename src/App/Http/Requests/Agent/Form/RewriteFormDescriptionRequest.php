@@ -19,7 +19,7 @@ class RewriteFormDescriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'description' => ['nullable', 'string', 'max:2000'],
+            'agent_instructions' => ['nullable', 'string', 'max:2000'],
             'name' => ['nullable', 'string', 'max:255'],
             'form_type' => ['nullable', 'string', 'max:50'],
         ];
@@ -30,7 +30,7 @@ class RewriteFormDescriptionRequest extends FormRequest
         $validated = $this->validated();
 
         return new RewriteFormDescriptionData(
-            description: $validated['description'] ?? null,
+            agent_instructions: $validated['agent_instructions'] ?? null,
             name: $validated['name'] ?? null,
             form_type: $validated['form_type'] ?? null,
         );

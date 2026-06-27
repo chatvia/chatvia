@@ -59,8 +59,15 @@
             "export_text": "Texto",
             "generated_by": "Gerado por {model}"
         },
-        "image_upload": { "upload": "Carregar", "remove": "Remover" },
-        "color_picker": { "color_intensity": "Intensidade da cor", "light": "Claro", "dark": "Escuro" },
+        "image_upload": {
+            "upload": "Carregar",
+            "remove": "Remover"
+        },
+        "color_picker": {
+            "color_intensity": "Intensidade da cor",
+            "light": "Claro",
+            "dark": "Escuro"
+        },
         "color_theme_picker": {
             "title": "Escolher tema de cores",
             "description": "Selecione uma cor e tonalidade para o tema principal do seu agente",

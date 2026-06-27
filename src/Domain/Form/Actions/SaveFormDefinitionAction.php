@@ -18,11 +18,12 @@ class SaveFormDefinitionAction
     {
         $attributes = [
             'name' => $data->name,
+            'subtitle' => $data->subtitle,
             'form_type' => FormType::from($data->form_type),
             'schema' => array_values($data->schema),
             'lead_field_map' => $data->lead_field_map ?: null,
             'success_message' => $data->success_message,
-            'description' => $data->description,
+            'agent_instructions' => $data->agent_instructions,
             'is_active' => $data->is_active,
         ];
 

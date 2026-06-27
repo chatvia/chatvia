@@ -1,4 +1,5 @@
 <script setup>
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -39,6 +40,18 @@ const props = defineProps({
     enableChatExpand: {
         type: Boolean,
         default: true,
+    },
+    // Visitor-facing language picker. Off for the dashboard/playground; on for
+    // the hosted/embedded chat surfaces (gated by embed.show_language_switcher).
+    enableLanguageSwitcher: {
+        type: Boolean,
+        default: false,
+    },
+    // Allow-list of language codes for the switcher (Setup → Languages). Empty ⇒
+    // every platform locale.
+    enabledLanguages: {
+        type: Array,
+        default: () => [],
     },
 });
 
@@ -171,6 +184,9 @@ function toggleChatExpand() {
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
+
+                    <!-- Visitor language switcher -->
+                    <LanguageSwitcher v-if="enableLanguageSwitcher" :codes="enabledLanguages" />
 
                     <!-- Theme switcher -->
                     <ThemeSwitcher v-if="enableThemeSwitcher" />

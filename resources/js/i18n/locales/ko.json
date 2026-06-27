@@ -287,7 +287,7 @@
                     "webhooks_path": "Use cases → Customize → Messenger API Settings",
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Engage with customers on Messenger",
+                    "product": "Messenger로 고객과 소통하기",
                     "permissions_path": "Use cases → Customize → Permissions and features",
                     "oauth_intro": "이 에이전트가 Messenger 대화에 답변할 수 있도록 Facebook 페이지를 연결하세요 — Facebook으로 로그인한 다음 사용할 페이지를 선택합니다.",
                     "connect_facebook": "Facebook으로 연결",
@@ -302,7 +302,7 @@
                         "connect_2": "{basic_setup}을(를) 완료한 다음 전화번호 ID, WhatsApp Business 계정 ID, 액세스 토큰을 복사하세요"
                     },
                     "configuration_path": "WhatsApp → Configuration",
-                    "use_case": "Connect with customers through WhatsApp",
+                    "use_case": "WhatsApp으로 고객과 연결하기",
                     "basic_setup_path": "Use cases → Customize → Basic setup",
                     "oauth_intro": "이 에이전트가 WhatsApp 메시지에 답변할 수 있도록 WhatsApp Business 번호를 연결하세요 — Facebook으로 로그인하고 한 번에 설정합니다.",
                     "connect_facebook": "Facebook으로 연결",
@@ -321,12 +321,12 @@
                         "connect_3": "아래 두 항목에 붙여넣으세요 — 단일 테넌트 봇의 경우 {tenant_id}도 추가하세요"
                     },
                     "azure_portal": "Azure 포털",
-                    "configuration": "Configuration",
-                    "channels": "Channels",
+                    "configuration": "구성",
+                    "channels": "채널",
                     "azure_bot": "Azure Bot",
                     "microsoft_app_id": "Microsoft App ID",
                     "manage_password": "Manage password → Certificates & secrets",
-                    "directory_tenant_id": "Directory (tenant) ID",
+                    "directory_tenant_id": "디렉터리(테넌트) ID",
                     "open_chat_in_teams": "Teams에서 봇과의 채팅을 여세요"
                 },
                 "instagram": {
@@ -423,9 +423,9 @@
                 "satisfied": "만족"
             },
             "source": {
-                "hosted_chat": "Hosted Chat",
-                "widget": "Chat Widget",
-                "bar": "Command Bar",
+                "hosted_chat": "호스팅 채팅",
+                "widget": "채팅 위젯",
+                "bar": "커맨드 바",
                 "telegram": "Telegram",
                 "slack": "Slack",
                 "messenger": "Messenger",
@@ -2189,11 +2189,11 @@
             "protected_description": "임베드에는 서명된 토큰이 필요하며, 그렇지 않으면 스니펫을 가진 누구나 잠금 화면을 보게 됩니다. 공개로 설정하거나 다음에서 인증을 연동하세요",
             "open_security": "보안 설정",
             "widget": {
-                "title": "Chat Widget",
+                "title": "채팅 위젯",
                 "description": "모든 페이지 모서리에 떠 있는 채팅 버블 — 클래식한 어시스턴트입니다."
             },
             "chat": {
-                "title": "Hosted Chat",
+                "title": "호스팅 채팅",
                 "description": "전용 링크에서 제공되는 전체 페이지 채팅입니다. 직접 공유하거나 페이지에 임베드하세요.",
                 "url_label": "에이전트 URL",
                 "open": "열기",
@@ -2207,7 +2207,7 @@
                 "preset_small": "작게"
             },
             "bar": {
-                "title": "Command Bar",
+                "title": "커맨드 바",
                 "description": "⌘K 명령 팔레트 오버레이입니다. 문서, 대시보드, 앱에 적합합니다."
             },
             "save": "저장",
@@ -2966,7 +2966,7 @@
                             "sentiment": "감정 분석",
                             "tone": "어조 분석",
                             "topics": "주제 분석",
-                            "pulse": "Conversation Pulse",
+                            "pulse": "대화 Pulse",
                             "handoff": "상담원 연결",
                             "mcp": "MCP",
                             "function_calling": "Function Calling",
@@ -2986,7 +2986,7 @@
                             "sentiment": "감정 분석",
                             "tone": "어조 분석",
                             "topics": "주제 분석",
-                            "pulse": "Conversation Pulse",
+                            "pulse": "대화 Pulse",
                             "handoff": "상담원 연결",
                             "mcp": "MCP",
                             "function_calling": "Function Calling",
@@ -3012,7 +3012,7 @@
                             "sentiment": "감정 분석",
                             "tone": "어조 분석",
                             "topics": "주제 분석",
-                            "pulse": "Conversation Pulse",
+                            "pulse": "대화 Pulse",
                             "handoff": "상담원 연결",
                             "mcp": "MCP",
                             "function_calling": "Function Calling",
@@ -3037,7 +3037,7 @@
                             "sentiment": "감정 분석",
                             "tone": "어조 분석",
                             "topics": "주제 분석",
-                            "pulse": "Conversation Pulse",
+                            "pulse": "대화 Pulse",
                             "handoff": "상담원 연결",
                             "mcp": "MCP",
                             "function_calling": "Function Calling",

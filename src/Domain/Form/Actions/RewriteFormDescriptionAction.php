@@ -22,7 +22,7 @@ class RewriteFormDescriptionAction
         $context = collect([
             'Form name: '.(filled($data->name) ? trim($data->name) : '(unnamed)'),
             'Form type: '.(filled($data->form_type) ? trim($data->form_type) : 'generic'),
-            'Current instruction: '.(filled($data->description) ? trim($data->description) : '(empty)'),
+            'Current instruction: '.(filled($data->agent_instructions) ? trim($data->agent_instructions) : '(empty)'),
         ])->implode("\n");
 
         $content = $this->provider->completion([

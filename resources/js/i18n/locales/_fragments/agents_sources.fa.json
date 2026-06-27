@@ -30,13 +30,34 @@
             "overview": {
                 "coming_soon": "{type} به زودی",
                 "under_development": "این ویژگی در حال توسعه است.",
-                "files": { "label": "فایل‌ها", "description": "آپلود و مدیریت اسناد (PDF، Word و غیره)" },
-                "text": { "label": "متن", "description": "افزودن محتوای متنی و یادداشت‌های سفارشی به صورت مستقیم" },
-                "web": { "label": "وب‌سایت", "description": "خزش وب‌سایت‌ها و صفحات وب برای دانش" },
-                "audio": { "label": "صدا", "description": "آپلود فایل‌های صوتی و پادکست‌ها برای رونویسی" },
-                "video": { "label": "ویدیو", "description": "آپلود فایل‌های ویدیویی برای رونویسی و تحلیل" },
-                "youtube": { "label": "YouTube", "description": "وارد کردن ویدیوهای YouTube و استخراج متن" },
-                "qa": { "label": "پرسش و پاسخ", "description": "تهیه پاسخ برای سوالات کلیدی" }
+                "files": {
+                    "label": "فایل‌ها",
+                    "description": "آپلود و مدیریت اسناد (PDF، Word و غیره)"
+                },
+                "text": {
+                    "label": "متن",
+                    "description": "افزودن محتوای متنی و یادداشت‌های سفارشی به صورت مستقیم"
+                },
+                "web": {
+                    "label": "وب‌سایت",
+                    "description": "خزش وب‌سایت‌ها و صفحات وب برای دانش"
+                },
+                "audio": {
+                    "label": "صدا",
+                    "description": "آپلود فایل‌های صوتی و پادکست‌ها برای رونویسی"
+                },
+                "video": {
+                    "label": "ویدیو",
+                    "description": "آپلود فایل‌های ویدیویی برای رونویسی و تحلیل"
+                },
+                "youtube": {
+                    "label": "YouTube",
+                    "description": "وارد کردن ویدیوهای YouTube و استخراج متن"
+                },
+                "qa": {
+                    "label": "پرسش و پاسخ",
+                    "description": "تهیه پاسخ برای سوالات کلیدی"
+                }
             },
             "audio": {
                 "recording_uploaded": "ضبط با موفقیت آپلود شد!",
@@ -131,7 +152,13 @@
                 "processing_success_description": "متن با موفقیت به پایگاه دانش اضافه شد.",
                 "processing_failed": "پردازش ناموفق بود",
                 "processing_failed_description": "در هنگام پردازش متن شما خطایی رخ داد.",
-                "status": { "trained": "آموزش‌دیده", "pending": "در انتظار", "training": "در حال آموزش", "failed": "ناموفق", "unknown": "ناشناخته" },
+                "status": {
+                    "trained": "آموزش‌دیده",
+                    "pending": "در انتظار",
+                    "training": "در حال آموزش",
+                    "failed": "ناموفق",
+                    "unknown": "ناشناخته"
+                },
                 "title": "دانش متنی",
                 "description": "محتوای متنی سفارشی را مستقیماً به پایگاه دانش دستیار خود اضافه کنید. مناسب برای سوالات متداول، سیاست‌ها و اطلاعات ساختاریافته.",
                 "add_text": "افزودن متن",
@@ -171,7 +198,12 @@
                 "unlinked": "پرسش و پاسخ با موفقیت جدا شد",
                 "unlink_failed": "جداسازی پرسش و پاسخ ناموفق بود",
                 "load_entries_failed": "بارگذاری موارد پرسش و پاسخ ناموفق بود",
-                "status": { "ingested": "پردازش شده", "ingesting": "در حال پردازش", "failed": "ناموفق", "pending": "در انتظار" },
+                "status": {
+                    "ingested": "پردازش شده",
+                    "ingesting": "در حال پردازش",
+                    "failed": "ناموفق",
+                    "pending": "در انتظار"
+                },
                 "title": "پایگاه دانش پرسش و پاسخ",
                 "description": "پاسخ‌هایی برای سوالات کلیدی تهیه کنید تا هوش مصنوعی شما اطلاعات مرتبط را به اشتراک بگذارد.",
                 "add": "افزودن پرسش و پاسخ",
@@ -203,7 +235,12 @@
                 "delete_failed": "حذف ویدیو ناموفق بود",
                 "retrain_started": "بازآموزی ویدیوی YouTube آغاز شد",
                 "retrain_failed": "بازآموزی ویدیو ناموفق بود",
-                "status": { "completed": "تکمیل شده", "processing": "در حال پردازش", "pending": "در انتظار", "failed": "ناموفق" },
+                "status": {
+                    "completed": "تکمیل شده",
+                    "processing": "در حال پردازش",
+                    "pending": "در انتظار",
+                    "failed": "ناموفق"
+                },
                 "add_title": "افزودن ویدیوی YouTube",
                 "add_description": "یک آدرس ویدیوی YouTube وارد کنید تا متن آن استخراج شده و به پایگاه دانش دستیار شما اضافه شود.",
                 "url_label": "آدرس YouTube",

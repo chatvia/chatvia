@@ -71,8 +71,6 @@ defineEmits<{
                     <SelectContent>
                         <SelectItem value="bottom-right">{{ t('agents.setup.options.position_bottom_right') }}</SelectItem>
                         <SelectItem value="bottom-left">{{ t('agents.setup.options.position_bottom_left') }}</SelectItem>
-                        <SelectItem value="top-right">{{ t('agents.setup.options.position_top_right') }}</SelectItem>
-                        <SelectItem value="top-left">{{ t('agents.setup.options.position_top_left') }}</SelectItem>
                     </SelectContent>
                 </Select>
                 <p class="text-muted-foreground text-xs">{{ t('agents.setup.sections.behavior_position_hint') }}</p>

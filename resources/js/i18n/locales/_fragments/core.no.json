@@ -11,7 +11,7 @@
     },
     "nav": {
         "account": "Konto",
-        "workspace": "Workspace",
+        "workspace": "Arbeidsområde",
         "logout": "Logg ut",
         "language": "Språk"
     },
@@ -124,7 +124,7 @@
     },
     "workspace": {
         "layout": {
-            "heading": "Workspace",
+            "heading": "Arbeidsområde",
             "description": "Administrer integrasjoner, personer og styring"
         }
     }

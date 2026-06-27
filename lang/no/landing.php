@@ -367,6 +367,7 @@ return [
         'privacy' => 'Personvern',
         'refund' => 'Refusjonspolicy',
         'subprocessors' => 'Underleverandører',
+        'contact' => 'Kontakt',
         'made_with_love' => 'Laget med ❤️ i Danmark',
     ],
 

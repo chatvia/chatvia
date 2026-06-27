@@ -339,6 +339,7 @@ return [
         'privacy' => 'Privacy',
         'refund' => 'Refund Policy',
         'subprocessors' => 'Sub-processors',
+        'contact' => 'Contact',
         'made_with_love' => 'Made with ❤️ in Denmark',
     ],
 

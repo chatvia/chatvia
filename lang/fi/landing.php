@@ -367,6 +367,7 @@ return [
         'privacy' => 'Tietosuoja',
         'refund' => 'Palautuskäytäntö',
         'subprocessors' => 'Alikäsittelijät',
+        'contact' => 'Yhteystiedot',
         'made_with_love' => 'Tehty ❤️ Tanskassa',
     ],
 

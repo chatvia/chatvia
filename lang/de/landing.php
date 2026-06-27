@@ -367,6 +367,7 @@ return [
         'privacy' => 'Datenschutz',
         'refund' => 'Rückerstattungsrichtlinie',
         'subprocessors' => 'Unterauftragsverarbeiter',
+        'contact' => 'Kontakt',
         'made_with_love' => 'Mit ❤️ in Dänemark entwickelt',
     ],
 

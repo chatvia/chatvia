@@ -85,13 +85,13 @@ class AgentFormController
     {
         abort_if($request->user()->cannot('update', $agent), 404);
 
-        $description = app(TokenUsageContext::class)->track(
+        $agentInstructions = app(TokenUsageContext::class)->track(
             $agent->user_id,
             fn (): string => $action->execute($request->toData()),
             'form',
         );
 
-        return response()->json(['description' => $description]);
+        return response()->json(['agent_instructions' => $agentInstructions]);
     }
 
     public function update(SaveFormDefinitionRequest $request, Agent $agent, FormDefinition $form, SaveFormDefinitionAction $action): RedirectResponse

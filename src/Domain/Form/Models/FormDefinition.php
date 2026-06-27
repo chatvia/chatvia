@@ -24,12 +24,13 @@ use Support\Concerns\HasExternalId;
  * @property string $external_id
  * @property int $agent_id
  * @property string $name
+ * @property string|null $subtitle
  * @property string $slug
  * @property FormType $form_type
  * @property array<int, array<string, mixed>> $schema
  * @property array<string, string>|null $lead_field_map
  * @property string|null $success_message
- * @property string|null $description
+ * @property string|null $agent_instructions
  * @property bool $is_active
  * @property Vector|null $embedding
  * @property string|null $embedding_bm25

@@ -287,7 +287,7 @@
                     "webhooks_path": "Use cases → Customize → Messenger API Settings",
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Engage with customers on Messenger",
+                    "product": "Messenger पर ग्राहकों से जुड़ें",
                     "permissions_path": "Use cases → Customize → Permissions and features",
                     "oauth_intro": "एक Facebook Page कनेक्ट करें ताकि यह एजेंट Messenger बातचीत का जवाब दे सके — आप Facebook से साइन इन करेंगे, फिर चुनेंगे कि कौन-सा Page उपयोग करना है।",
                     "connect_facebook": "Facebook से कनेक्ट करें",
@@ -302,7 +302,7 @@
                         "connect_2": "{basic_setup} पूरा करें, फिर फ़ोन नंबर ID, WhatsApp Business Account ID, और एक एक्सेस टोकन कॉपी करें"
                     },
                     "configuration_path": "WhatsApp → Configuration",
-                    "use_case": "Connect with customers through WhatsApp",
+                    "use_case": "WhatsApp के ज़रिए ग्राहकों से जुड़ें",
                     "basic_setup_path": "Use cases → Customize → Basic setup",
                     "oauth_intro": "अपना WhatsApp Business नंबर कनेक्ट करें ताकि यह एजेंट WhatsApp संदेशों का जवाब दे सके — आप Facebook से साइन इन करेंगे और इसे एक ही चरण में सेट कर लेंगे।",
                     "connect_facebook": "Facebook से कनेक्ट करें",
@@ -321,8 +321,8 @@
                         "connect_3": "दोनों को नीचे पेस्ट करें — Single Tenant बॉट के लिए अपना {tenant_id} भी जोड़ें"
                     },
                     "azure_portal": "Azure पोर्टल",
-                    "configuration": "Configuration",
-                    "channels": "Channels",
+                    "configuration": "कॉन्फ़िगरेशन",
+                    "channels": "चैनल",
                     "azure_bot": "Azure Bot",
                     "microsoft_app_id": "Microsoft App ID",
                     "manage_password": "Manage password → Certificates & secrets",
@@ -423,9 +423,9 @@
                 "satisfied": "संतुष्ट"
             },
             "source": {
-                "hosted_chat": "Hosted Chat",
+                "hosted_chat": "होस्टेड चैट",
                 "widget": "Chat Widget",
-                "bar": "Command Bar",
+                "bar": "कमांड बार",
                 "telegram": "Telegram",
                 "slack": "Slack",
                 "messenger": "Messenger",

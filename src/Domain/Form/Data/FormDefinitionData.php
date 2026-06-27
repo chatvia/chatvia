@@ -17,13 +17,15 @@ class FormDefinitionData extends Data
         public ?string $external_id,
         public ?string $slug,
         public string $name,
+        // Visitor-facing blurb shown under the title in the rendered form.
+        public ?string $subtitle,
         public string $form_type,
         /** @var array<int, array<string, mixed>> */
         public array $schema,
         /** @var array<string, string>|null */
         public ?array $lead_field_map,
         public ?string $success_message,
-        public ?string $description,
+        public ?string $agent_instructions,
         public bool $is_active,
         // Number of submitted entries — surfaced on the Forms list. Defaulted so
         // the save-input construction (toData) and tests don't have to pass it;
@@ -37,11 +39,12 @@ class FormDefinitionData extends Data
             external_id: $form->external_id,
             slug: $form->slug,
             name: $form->name,
+            subtitle: $form->subtitle,
             form_type: $form->form_type->value,
             schema: $form->schema,
             lead_field_map: $form->lead_field_map,
             success_message: $form->success_message,
-            description: $form->description,
+            agent_instructions: $form->agent_instructions,
             is_active: $form->is_active,
             submissions_count: (int) ($form->submissions_count ?? 0),
         );

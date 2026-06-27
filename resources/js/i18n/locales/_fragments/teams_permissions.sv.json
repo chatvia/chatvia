@@ -219,7 +219,7 @@
                     "description": "Hantera det delade promptbiblioteket"
                 },
                 "account_members_manage": {
-                    "label": "Chatters",
+                    "label": "Chattare",
                     "description": "Visa, återställ lösenord och ta bort chatters i hela arbetsytan"
                 },
                 "account_governance": {

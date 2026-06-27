@@ -34,6 +34,14 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    enableLanguageSwitcher: {
+        type: Boolean,
+        default: false,
+    },
+    enabledLanguages: {
+        type: Array,
+        default: () => [],
+    },
     newChatRoute: {
         type: String,
         default: 'chat.home',
@@ -158,6 +166,8 @@ const handleToggleIncognito = (value: boolean) => {
                 :enableThemeSwitcher="enableThemeSwitcher"
                 :defaultTheme="defaultTheme"
                 :enableChatExpand="enableChatExpand"
+                :enableLanguageSwitcher="enableLanguageSwitcher"
+                :enabledLanguages="enabledLanguages"
             />
 
             <main class="flex-1 overflow-hidden">

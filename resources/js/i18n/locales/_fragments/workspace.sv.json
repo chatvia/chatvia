@@ -219,8 +219,8 @@
             }
         },
         "members": {
-            "breadcrumb": "Chatters",
-            "title": "Chatters",
+            "breadcrumb": "Chattare",
+            "title": "Chattare",
             "description": "Alla du har gett åtkomst att chatta med dina agenter. Skicka en länk för lösenordsåterställning eller ta bort en chatter helt.",
             "search_placeholder": "Sök chatters...",
             "count": "{shown} av {total} chatter | {shown} av {total} chatters",
@@ -302,7 +302,7 @@
             "functions": "Funktioner",
             "api_keys": "API-nycklar",
             "prompts": "Prompter",
-            "members": "Chatters",
+            "members": "Chattare",
             "audit_log": "Granskningslogg"
         }
     }

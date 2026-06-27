@@ -18,13 +18,14 @@ function leadFormData(string $name = 'Get a quote'): FormDefinitionData
         external_id: null,
         slug: null,
         name: $name,
+        subtitle: null,
         form_type: 'lead',
         schema: [
             ['key' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true],
         ],
         lead_field_map: ['email' => 'email'],
         success_message: 'Thanks!',
-        description: 'Show when the visitor wants a quote.',
+        agent_instructions: 'Show when the visitor wants a quote.',
         is_active: true,
     );
 }
@@ -36,7 +37,7 @@ it('creates a form definition with a derived slug', function (): void {
         ->and($form->slug)->toBe('get-a-quote')
         ->and($form->form_type->value)->toBe('lead')
         ->and($form->schema)->toHaveCount(1)
-        ->and($form->description)->toBe('Show when the visitor wants a quote.')
+        ->and($form->agent_instructions)->toBe('Show when the visitor wants a quote.')
         ->and($form->lead_field_map)->toBe(['email' => 'email']);
 });
 
@@ -52,7 +53,7 @@ it('updates an existing definition and keeps its slug', function (): void {
 
     $updated = app(SaveFormDefinitionAction::class)->execute(
         $this->agent,
-        new FormDefinitionData(null, null, 'Contact renamed', 'qualification', [
+        new FormDefinitionData(null, null, 'Contact renamed', null, 'qualification', [
             ['key' => 'company', 'label' => 'Company', 'type' => 'text', 'required' => false],
         ], null, null, null, false),
         $form,

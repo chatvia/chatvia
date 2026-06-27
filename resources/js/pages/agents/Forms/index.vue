@@ -29,11 +29,12 @@ interface FormDef {
     external_id?: string | null;
     slug?: string | null;
     name: string;
+    subtitle: string | null;
     form_type: string;
     schema: Field[];
     lead_field_map: Record<string, string> | null;
     success_message: string | null;
-    description: string | null;
+    agent_instructions: string | null;
     is_active: boolean;
     submissions_count: number;
 }
@@ -61,11 +62,11 @@ async function rewriteDescription(): Promise<void> {
     rewriting.value = true;
     try {
         const { data } = await axios.post(route('agents.forms.rewrite-description', props.agent.external_id), {
-            description: editing.value.description,
+            agent_instructions: editing.value.agent_instructions,
             name: editing.value.name,
             form_type: editing.value.form_type,
         });
-        editing.value.description = data.description;
+        editing.value.agent_instructions = data.agent_instructions;
         toast.success(t('agents.forms.rewrite_done'));
     } catch {
         toast.error(t('agents.forms.rewrite_failed'));
@@ -77,11 +78,12 @@ async function rewriteDescription(): Promise<void> {
 function blankForm(): FormDef {
     return {
         name: '',
+        subtitle: null,
         form_type: 'lead',
         schema: [{ key: 'name', label: 'Name', type: 'text', required: true, leadField: 'name' }],
         lead_field_map: null,
         success_message: null,
-        description: null,
+        agent_instructions: null,
         is_active: true,
         submissions_count: 0,
     };
@@ -218,9 +220,10 @@ function save(): void {
 
     const payload = {
         name: form.name,
+        subtitle: form.subtitle,
         form_type: form.form_type,
         success_message: form.success_message,
-        description: form.description,
+        agent_instructions: form.agent_instructions,
         is_active: form.is_active,
         schema: form.schema.map((f) => ({
             key: f.key,
@@ -313,6 +316,12 @@ function destroy(form: FormDef): void {
                         </div>
 
                         <div class="space-y-1.5">
+                            <label class="text-sm font-medium">{{ t('agents.forms.subtitle') }}</label>
+                            <Textarea v-model="editing.subtitle" :placeholder="t('agents.forms.subtitle_placeholder')" rows="2" />
+                            <p class="text-muted-foreground text-xs">{{ t('agents.forms.subtitle_hint') }}</p>
+                        </div>
+
+                        <div class="space-y-1.5">
                             <label class="text-sm font-medium">{{ t('agents.forms.form_type') }}</label>
                             <select v-model="editing.form_type" class="border-input bg-background h-9 w-full rounded-md border px-3 text-sm">
                                 <option v-for="ft in FORM_TYPES" :key="ft" :value="ft">{{ formTypeLabel(ft) }}</option>
@@ -332,7 +341,7 @@ function destroy(form: FormDef): void {
                                     {{ rewriting ? t('agents.forms.rewriting') : t('agents.forms.rewrite') }}
                                 </button>
                             </div>
-                            <Textarea v-model="editing.description" :placeholder="t('agents.forms.description_placeholder')" rows="2" />
+                            <Textarea v-model="editing.agent_instructions" :placeholder="t('agents.forms.description_placeholder')" rows="2" />
                             <p class="text-muted-foreground text-xs">{{ t('agents.forms.description_hint') }}</p>
                         </div>
 
@@ -423,6 +432,10 @@ function destroy(form: FormDef): void {
                         ><CardTitle>{{ t('agents.forms.preview') }}</CardTitle></CardHeader
                     >
                     <CardContent>
+                        <div v-if="editing.name || editing.subtitle" class="mb-4 border-b pb-3">
+                            <p v-if="editing.name" class="text-base font-semibold">{{ editing.name }}</p>
+                            <p v-if="editing.subtitle" class="text-muted-foreground mt-1 text-sm">{{ editing.subtitle }}</p>
+                        </div>
                         <FormKit type="form" :actions="false">
                             <FormKitSchema :schema="previewSchema" />
                         </FormKit>

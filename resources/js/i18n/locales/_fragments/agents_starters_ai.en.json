@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "starters_generate": "Generate with AI",
+                "starters_generate_title": "Generate starters with AI",
+                "starters_generate_description": "Choose how many to generate from your knowledge base, then pick which to add.",
+                "starters_generate_count": "How many?",
+                "starters_generate_button": "Generate",
+                "starters_generating": "Generating…",
+                "starters_generate_hint": "Choose a number and generate suggestions from your knowledge base.",
+                "starters_translate_empty": "Add starters on the Default tab first, then translate them here."
+            }
+        }
+    }
+}

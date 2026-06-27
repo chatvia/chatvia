@@ -54,7 +54,7 @@
             "functions_tooltip": "Hantera anpassade funktioner som din agent kan anropa",
             "connectors": "Kopplingar",
             "connectors_tooltip": "Koppla ihop kontakter så att din agent kan använda externa verktyg",
-            "members": "Chatters",
+            "members": "Chattare",
             "members_tooltip": "Chatters som beviljats åtkomst att chatta med den här agenten",
             "security": "Säkerhet",
             "security_tooltip": "Åtkomstkontroll, signeringshemlig och hastighetsbegränsningar för den här agenten",

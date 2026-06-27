@@ -18,6 +18,8 @@ return new class extends Migration
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
 
             $table->string('name');
+            // Visitor-facing blurb shown under the form title in the chat.
+            $table->string('subtitle', 500)->nullable();
             $table->string('slug', 64);
             $table->enum('form_type', ['lead', 'booking', 'qualification', 'generic'])->default('lead');
 
@@ -27,7 +29,9 @@ return new class extends Migration
 
             $table->string('success_message')->nullable();
 
-            $table->text('description')->nullable();
+            // The agent's "when to show this form" trigger instruction — embedded
+            // for intent retrieval, never shown to the visitor.
+            $table->text('agent_instructions')->nullable();
             $table->boolean('is_active')->default(true);
 
             $table->vector('embedding', 1024)->nullable();

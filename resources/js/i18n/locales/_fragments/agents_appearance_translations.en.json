@@ -1,0 +1,26 @@
+{
+    "agents": {
+        "setup": {
+            "sections": {
+                "appearance_translations_default": "Default",
+                "appearance_translations_default_tip": "The text you write — automatically translated into every language.",
+                "appearance_translations_default_hint": "This is the text you write. When you save, it is translated into every language automatically, and it is shown whenever a visitor's language is not in the list.",
+                "appearance_translations_lang_hint": "Edit this language here. Leave a field empty to use the automatic translation — your edits are always kept.",
+                "appearance_translations_manage": "Manage translations",
+                "appearance_translations_hint": "Saved text is translated into every language automatically. Open a flag to edit that language — your edits are kept.",
+                "appearance_translations_title": "Translations",
+                "appearance_translations_desc": "Pick a language and adjust the automatic translation. Leave a field empty to use the automatic translation.",
+                "appearance_translations_language": "Language",
+                "appearance_translations_reset": "Reset",
+                "appearance_translations_auto": "Automatic"
+            },
+            "behavior": {
+                "language_switcher": "Language switcher"
+            },
+            "toasts": {
+                "translations_saved": "Translations updated",
+                "translations_error": "Could not save translations"
+            }
+        }
+    }
+}

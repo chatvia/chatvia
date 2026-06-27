@@ -102,6 +102,7 @@ class RenderFormTool extends Tool
             'definition_slug' => $definition->slug,
             'form_type' => $definition->form_type->value,
             'title' => $definition->name,
+            'subtitle' => $definition->subtitle,
             'schema' => app(FormSchemaBuilder::class)->toFormKitSchema($definition->schema),
             'submit_label' => 'Submit',
             'success_message' => $definition->success_message

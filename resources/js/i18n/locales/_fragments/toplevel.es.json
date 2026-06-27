@@ -106,7 +106,7 @@
         "save": "Guardar",
         "replies": "Respuestas ({count})",
         "no_replies": "Aún no hay respuestas.",
-        "role_staff": "Staff",
+        "role_staff": "Personal",
         "role_user": "Usuario",
         "resolved_notice": "Este ticket ha sido resuelto. Si el problema persiste, abre un nuevo ticket desde la página de Soporte.",
         "add_reply": "Agregar una respuesta",

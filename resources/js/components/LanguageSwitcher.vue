@@ -8,7 +8,16 @@ import { useI18n } from 'vue-i18n';
 
 const { t, locale } = useI18n();
 
+// Optional allow-list of language codes (the agent's Setup → Languages
+// selection). Empty/undefined ⇒ every platform locale (no restriction).
+const props = defineProps<{ codes?: string[] }>();
+
 const activeLocale = computed(() => normalizeLocale(locale.value));
+
+const items = computed(() => {
+    const allow = props.codes ?? [];
+    return allow.length ? LOCALES.filter((l) => allow.includes(l.code)) : LOCALES;
+});
 
 // Standalone switcher for surfaces without a user menu (auth pages, etc.).
 // Persists the choice client-side so it survives navigation + carries into the
@@ -29,7 +38,7 @@ const change = (code: string): void => {
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" class="max-h-80 overflow-y-auto">
-            <DropdownMenuItem v-for="item in LOCALES" :key="item.code" class="cursor-pointer" @select="change(item.code)">
+            <DropdownMenuItem v-for="item in items" :key="item.code" class="cursor-pointer" @select="change(item.code)">
                 <img :src="`/images/flags/${item.flag}.svg`" :alt="item.nativeName" class="me-2 h-4 w-5 shrink-0 rounded-[2px] object-cover" />
                 <span class="flex-1">{{ item.nativeName }}</span>
                 <Check v-if="item.code === activeLocale" class="ms-2 h-4 w-4" />

@@ -14,7 +14,7 @@ use Spatie\LaravelData\Data;
 class RewriteFormDescriptionData extends Data
 {
     public function __construct(
-        public ?string $description,
+        public ?string $agent_instructions,
         public ?string $name,
         public ?string $form_type,
     ) {}

@@ -287,7 +287,7 @@
                     "webhooks_path": "Use cases → Customize → Messenger API Settings",
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Engage with customers on Messenger",
+                    "product": "Nå kunder på Messenger",
                     "permissions_path": "Use cases → Customize → Permissions and features",
                     "oauth_intro": "Koble til en Facebook-side slik at denne agenten kan svare på Messenger-samtaler — du logger inn med Facebook og velger deretter hvilken side du vil bruke.",
                     "connect_facebook": "Koble til med Facebook",
@@ -321,8 +321,8 @@
                         "connect_3": "Lim inn begge nedenfor — for en Single Tenant-bot legger du også til {tenant_id}"
                     },
                     "azure_portal": "Azure-portalen",
-                    "configuration": "Configuration",
-                    "channels": "Channels",
+                    "configuration": "Konfigurasjon",
+                    "channels": "Kanaler",
                     "azure_bot": "Azure Bot",
                     "microsoft_app_id": "Microsoft App-ID",
                     "manage_password": "Manage password → Certificates & secrets",
@@ -741,7 +741,7 @@
                 "table": {
                     "case": "Tilfelle",
                     "result": "Resultat",
-                    "score": "Score",
+                    "score": "Poengsum",
                     "scorer": "Scorer",
                     "latency": "Ventetid",
                     "tokens": "Tokens"
@@ -3490,7 +3490,7 @@
         "train": "Tren"
     },
     "support": {
-        "title": "Support",
+        "title": "Støtte",
         "subtitle": "Se dine saker eller opprett en ny.",
         "create_ticket": "Opprett ny sak",
         "your_tickets": "Dine saker",
@@ -3531,7 +3531,7 @@
         "submit": "Send inn"
     },
     "ticket": {
-        "support": "Support",
+        "support": "Støtte",
         "title": "Sak #{id}",
         "created_at": "Opprettet {date}",
         "back_to_support": "Tilbake til support",
@@ -3882,7 +3882,7 @@
             "description": "Alle handlinger agentene dine utfører gjennom verktøy og koblinger — tillatt, godkjent, avvist eller hastighetsbegrenset — med argumenter, resultat og hvem som utløste det."
         },
         "layout": {
-            "heading": "Workspace",
+            "heading": "Arbeidsområde",
             "description": "Administrer integrasjoner, personer og styring"
         },
         "sections": {
@@ -4017,7 +4017,7 @@
             "usage": "Bruk",
             "ask_your_data": "Spør om dataene dine",
             "billing": "Fakturering",
-            "support": "Support",
+            "support": "Støtte",
             "teams": "Team",
             "documentation": "Dokumentasjon",
             "api": "API",
@@ -4028,7 +4028,7 @@
     },
     "nav": {
         "account": "Konto",
-        "workspace": "Workspace",
+        "workspace": "Arbeidsområde",
         "logout": "Logg ut",
         "language": "Språk",
         "platform": "Plattform"
@@ -4606,7 +4606,7 @@
             "close": "Lukk",
             "more": "Mer",
             "toggle_sidebar": "Slå sidebar av/på",
-            "sidebar": "Sidebar",
+            "sidebar": "Sidepanel",
             "sidebar_description": "Viser mobilsidefeltet."
         }
     },

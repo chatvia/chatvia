@@ -219,8 +219,8 @@
             }
         },
         "members": {
-            "breadcrumb": "Chatters",
-            "title": "Chatters",
+            "breadcrumb": "Usuarios",
+            "title": "Usuarios",
             "description": "Todas las personas a las que has concedido acceso para chatear con tus agentes. Envía un enlace para restablecer contraseña o elimina un chatter por completo.",
             "search_placeholder": "Buscar chatters...",
             "count": "{shown} de {total} chatter | {shown} de {total} chatters",
@@ -302,7 +302,7 @@
             "functions": "Funciones",
             "api_keys": "Claves API",
             "prompts": "Prompts",
-            "members": "Chatters",
+            "members": "Usuarios",
             "audit_log": "Registro de auditoría"
         }
     }

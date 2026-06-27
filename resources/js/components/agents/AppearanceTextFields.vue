@@ -13,8 +13,12 @@ withDefaults(
         composerPlaceholder: string;
         errors?: Record<string, string | undefined>;
         disabled?: boolean;
+        // Optional per-field input placeholders. When set (e.g. the automatic
+        // translation for a language tab), they replace the default static hints
+        // so an empty field clearly means "fall back to this value".
+        placeholders?: { chat_window_title?: string; welcome_message?: string; composer_placeholder?: string };
     }>(),
-    { disabled: false, errors: () => ({}) },
+    { disabled: false, errors: () => ({}), placeholders: () => ({}) },
 );
 
 defineEmits<{
@@ -35,7 +39,7 @@ defineEmits<{
                 <Input
                     id="chat_window_title"
                     :model-value="chatWindowTitle"
-                    :placeholder="t('agents.setup.sections.appearance_chat_title_placeholder')"
+                    :placeholder="placeholders?.chat_window_title || t('agents.setup.sections.appearance_chat_title_placeholder')"
                     :disabled="disabled"
                     class="ps-9"
                     autocomplete="off"
@@ -57,7 +61,7 @@ defineEmits<{
                 <Input
                     id="welcome_message"
                     :model-value="welcomeMessage"
-                    :placeholder="t('agents.setup.sections.appearance_welcome_placeholder')"
+                    :placeholder="placeholders?.welcome_message || t('agents.setup.sections.appearance_welcome_placeholder')"
                     :disabled="disabled"
                     class="ps-9"
                     autocomplete="off"
@@ -79,7 +83,7 @@ defineEmits<{
                 <Input
                     id="composer_placeholder"
                     :model-value="composerPlaceholder"
-                    :placeholder="t('agents.setup.sections.appearance_composer_placeholder')"
+                    :placeholder="placeholders?.composer_placeholder || t('agents.setup.sections.appearance_composer_placeholder')"
                     :disabled="disabled"
                     class="ps-9"
                     autocomplete="off"

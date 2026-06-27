@@ -75,7 +75,7 @@ class FindFormsTool extends Tool
         $forms = $matches->map(fn (FormDefinition $form): array => [
             'slug' => $form->slug,
             'name' => $form->name,
-            'purpose' => $form->description,
+            'purpose' => $form->agent_instructions,
             'already_submitted' => in_array($form->id, $submittedIds, true),
         ])->values()->all();
 

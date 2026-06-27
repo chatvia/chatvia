@@ -219,7 +219,7 @@
                     "description": "Gestionar la biblioteca de prompts compartidos"
                 },
                 "account_members_manage": {
-                    "label": "Chatters",
+                    "label": "Usuarios",
                     "description": "Ver, restablecer contraseña y eliminar chatters en todo el espacio de trabajo"
                 },
                 "account_governance": {

@@ -14,6 +14,10 @@ final class ChatController
         $agent?->loadMissing('team.owner');
         $embed = $agent?->settings('embed');
 
+        // The appearance payload carries the per-language translation maps; the
+        // hosted chat resolves the visitor's language client-side so the header
+        // language switcher can re-localize the title/welcome/placeholder live.
+
         // Attachments live on each message now (rendered under the user
         // bubble by UserChatBubble), so the page render no longer needs a
         // conversation-level chip strip — ConversationMessageController
@@ -28,6 +32,10 @@ final class ChatController
             'enableThemeSwitcher' => $embed?->get('enable_theme_switcher'),
             'defaultTheme' => $embed?->get('default_theme'),
             'enableChatExpand' => $embed?->get('enable_chat_expand'),
+            'enableLanguageSwitcher' => (bool) ($embed?->get('show_language_switcher') ?? true),
+            // Codes the owner enabled in Setup → Languages — restricts the
+            // header switcher. Empty ⇒ all platform languages.
+            'enabledLanguages' => $agent ? array_keys($agent->enabledLanguages()) : [],
             'locale' => $embed?->get('language') ?: 'auto',
             'chatviaBranding' => $agent?->showsChatviaBranding() ?? true,
         ]);

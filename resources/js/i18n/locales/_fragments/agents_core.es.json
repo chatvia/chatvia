@@ -15,7 +15,7 @@
             "table": {
                 "name": "Nombre",
                 "messages": "Mensajes",
-                "members": "Chatters",
+                "members": "Usuarios",
                 "created": "Creado"
             }
         },
@@ -352,7 +352,7 @@
             }
         },
         "persona": {
-            "title": "Persona",
+            "title": "Personalidad",
             "card_title": "Persona del agente",
             "card_description": "Define el nombre, subdominio e instrucciones de sistema de tu agente.",
             "name_label": "Nombre",

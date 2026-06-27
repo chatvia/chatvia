@@ -16,6 +16,6 @@ class WidgetSettingsController
             return response()->json(['error' => 'Domain not allowed'], 403);
         }
 
-        return $build->execute(current_agent_from_widget());
+        return $build->execute(current_agent_from_widget(), $request->header('Accept-Language'));
     }
 }

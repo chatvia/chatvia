@@ -1,7 +1,7 @@
 {
     "agents": {
         "chatters": {
-            "title": "Chatters",
+            "title": "Usuarios",
             "description": "Tus chatters. Los chatters con acceso a este agente aparecen primero; otorga acceso a cualquier otro chatter con un solo clic.",
             "public_title": "Este agente es público",
             "public_description": "Cualquier persona con el enlace puede chatear con este agente, por lo que los permisos de chatters no aplican. Para usar chatters, configura el agente como protegido desde su pestaña de Seguridad.",

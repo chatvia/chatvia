@@ -54,7 +54,7 @@ class FormHybridSearch
             ->where('is_active', true)
             ->orderBy('name')
             ->limit($limit + 1)
-            ->get(['id', 'slug', 'name', 'description']);
+            ->get(['id', 'slug', 'name', 'agent_instructions']);
 
         if ($active->count() <= $limit) {
             return $active;
@@ -164,7 +164,7 @@ SQL;
         $byId = FormDefinition::query()
             ->forAgent($agent)
             ->whereIn('id', $ids)
-            ->get(['id', 'slug', 'name', 'description'])
+            ->get(['id', 'slug', 'name', 'agent_instructions'])
             ->keyBy('id');
 
         return collect($ids)

@@ -414,7 +414,7 @@
                 "table": {
                     "case": "Tilfelle",
                     "result": "Resultat",
-                    "score": "Score",
+                    "score": "Poengsum",
                     "scorer": "Scorer",
                     "latency": "Ventetid",
                     "tokens": "Tokens"

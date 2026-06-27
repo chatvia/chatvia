@@ -46,7 +46,7 @@
                 },
                 "shared": {
                     "subscribe_webhook": "Den Webhook für das Feld {field} abonnieren",
-                    "messages_field": "messages",
+                    "messages_field": "Nachrichten",
                     "create_meta_app_at": "Eine App unter {link} erstellen",
                     "copy_app_secret_both": "Das App-Secret aus {section} kopieren und beides unten einfügen",
                     "copy_app_secret_all": "Das App-Secret aus {section} kopieren und alles unten einfügen",
@@ -106,7 +106,7 @@
                     "api_settings_path": "Anwendungsfälle → Anpassen → Messenger-API-Einstellungen",
                     "permissions_path": "Anwendungsfälle → Anpassen → Berechtigungen und Funktionen",
                     "app_settings_basic": "App-Einstellungen → Allgemein",
-                    "product": "Engage with customers on Messenger"
+                    "product": "Kunden über Messenger erreichen"
                 },
                 "whatsapp": {
                     "steps": {

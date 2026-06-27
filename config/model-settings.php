@@ -95,6 +95,23 @@ return [
                 // so the badge disappears the moment the entitlement is gained;
                 // the Setup → Branding toggle lets them opt back in.
                 'show_branding' => false,
+                // Per-locale copies of the three text strings above
+                // (chat_window_title / welcome_message / composer_placeholder).
+                // The base values stay the source/default; these hold the
+                // localized variants the chat surfaces resolve by visitor
+                // language (AppearanceTextResolver).
+                //   text_translations — AI output, regenerated whenever the
+                //     owner saves changed base text. Shape: { field: { locale: text } }.
+                //   text_overrides   — the owner's manual per-language edits.
+                //     They win over the AI output and a re-translate never
+                //     overwrites them.
+                'text_translations' => [],
+                'text_overrides' => [],
+                // The owner's curated set of UI languages (2-letter codes, a
+                // subset of chatvia.languages). Empty ⇒ "all" everywhere — the
+                // hosted-chat switcher, the Setup per-language editors, and the
+                // auto-translation targets are derived via Agent::enabledLanguages().
+                'enabled_languages' => [],
             ],
             // Per-surface on/off switch. Each of the three web surfaces (Hosted
             // Chat, Widget, Command Bar) can be disabled independently from the
@@ -134,6 +151,10 @@ return [
                 'default_theme' => 'auto',
                 'enable_chat_expand' => true,
                 'language' => 'auto',
+                // Visitor-facing language picker in the hosted/embedded chat
+                // header. On by default so visitors can read the chat (and its
+                // translated title/welcome/placeholder) in their own language.
+                'show_language_switcher' => true,
             ],
             // LLM hyperparameters — shared by every surface, since each agent
             // now has a single LLM (`agents.llm_id`).
@@ -232,6 +253,10 @@ return [
             'allow_file_uploads' => ['nullable', 'boolean'],
             'allow_voice_input' => ['nullable', 'boolean'],
             'show_branding' => ['nullable', 'boolean'],
+            'text_translations' => ['nullable', 'array'],
+            'text_overrides' => ['nullable', 'array'],
+            'enabled_languages' => ['nullable', 'array'],
+            'enabled_languages.*' => ['string', 'max:8'],
         ],
         'surfaces' => [
             'hosted_chat' => ['nullable', 'boolean'],
@@ -243,7 +268,7 @@ return [
             'theme' => ['nullable', 'in:auto,light,dark'],
             'theme_color' => ['nullable', 'string'],
             'theme_shade' => ['nullable', 'integer', 'min:50', 'max:950'],
-            'position' => ['nullable', 'in:bottom-right,bottom-left,top-right,top-left'],
+            'position' => ['nullable', 'in:bottom-right,bottom-left'],
             'window_size' => ['nullable', 'in:small,medium,large'],
             'primary_color' => ['nullable', 'string'],
             'show_theme_switcher' => ['nullable', 'boolean'],
@@ -260,6 +285,7 @@ return [
             'default_theme' => ['nullable', 'in:auto,dark,light'],
             'enable_chat_expand' => ['nullable', 'boolean'],
             'language' => ['nullable', 'string'],
+            'show_language_switcher' => ['nullable', 'boolean'],
         ],
         'business' => [
             'email' => ['nullable', 'email', 'max:255'],

@@ -220,7 +220,7 @@
                 },
                 "shared": {
                     "subscribe_webhook": "Den Webhook für das Feld {field} abonnieren",
-                    "messages_field": "messages",
+                    "messages_field": "Nachrichten",
                     "create_meta_app_at": "Eine App unter {link} erstellen",
                     "copy_app_secret_both": "Das App-Secret aus {section} kopieren und beides unten einfügen",
                     "copy_app_secret_all": "Das App-Secret aus {section} kopieren und alles unten einfügen",
@@ -287,7 +287,7 @@
                     "webhooks_path": "Anwendungsfälle → Anpassen → Messenger-API-Einstellungen",
                     "api_settings_path": "Anwendungsfälle → Anpassen → Messenger-API-Einstellungen",
                     "app_settings_basic": "App-Einstellungen → Allgemein",
-                    "product": "Engage with customers on Messenger",
+                    "product": "Kunden über Messenger erreichen",
                     "permissions_path": "Anwendungsfälle → Anpassen → Berechtigungen und Funktionen",
                     "oauth_intro": "Verbinden Sie eine Facebook-Seite, damit dieser Agent auf Messenger-Unterhaltungen antworten kann – Sie melden sich mit Facebook an und wählen anschließend die zu verwendende Seite aus.",
                     "connect_facebook": "Mit Facebook verbinden",

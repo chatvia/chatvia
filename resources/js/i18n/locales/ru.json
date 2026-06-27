@@ -220,7 +220,7 @@
                 },
                 "shared": {
                     "subscribe_webhook": "Подпишите webhook на поле {field}",
-                    "messages_field": "messages",
+                    "messages_field": "сообщения",
                     "create_meta_app_at": "Создайте приложение на {link}",
                     "copy_app_secret_both": "Скопируйте секрет приложения из {section} и вставьте оба значения ниже",
                     "copy_app_secret_all": "Скопируйте секрет приложения из {section} и вставьте всё ниже",
@@ -287,7 +287,7 @@
                     "webhooks_path": "Use cases → Customize → Messenger API Settings",
                     "api_settings_path": "Use cases → Customize → Messenger API Settings",
                     "app_settings_basic": "App settings → Basic",
-                    "product": "Engage with customers on Messenger",
+                    "product": "Общение с клиентами через Messenger",
                     "permissions_path": "Use cases → Customize → Permissions and features",
                     "oauth_intro": "Подключите страницу Facebook, чтобы этот агент мог отвечать на сообщения в Messenger — вы войдёте через Facebook, а затем выберете нужную страницу.",
                     "connect_facebook": "Подключить через Facebook",
@@ -302,7 +302,7 @@
                         "connect_2": "Завершите {basic_setup}, затем скопируйте ID номера телефона, ID аккаунта WhatsApp Business и токен доступа"
                     },
                     "configuration_path": "WhatsApp → Configuration",
-                    "use_case": "Connect with customers through WhatsApp",
+                    "use_case": "Общение с клиентами через WhatsApp",
                     "basic_setup_path": "Use cases → Customize → Basic setup",
                     "oauth_intro": "Подключите ваш номер WhatsApp Business, чтобы этот агент мог отвечать на сообщения в WhatsApp — вы войдёте через Facebook и настроите всё в один шаг.",
                     "connect_facebook": "Подключить через Facebook",
@@ -321,8 +321,8 @@
                         "connect_3": "Вставьте оба значения ниже — для бота Single Tenant также добавьте ваш {tenant_id}"
                     },
                     "azure_portal": "портал Azure",
-                    "configuration": "Configuration",
-                    "channels": "Channels",
+                    "configuration": "Конфигурация",
+                    "channels": "Каналы",
                     "azure_bot": "Azure Bot",
                     "microsoft_app_id": "Microsoft App ID",
                     "manage_password": "Manage password → Certificates & secrets",
@@ -423,9 +423,9 @@
                 "satisfied": "Довольный"
             },
             "source": {
-                "hosted_chat": "Hosted Chat",
-                "widget": "Chat Widget",
-                "bar": "Command Bar",
+                "hosted_chat": "Размещённый чат",
+                "widget": "Чат-виджет",
+                "bar": "Командная строка",
                 "telegram": "Telegram",
                 "slack": "Slack",
                 "messenger": "Messenger",
@@ -714,9 +714,9 @@
                 "mobile": "Телефон"
             },
             "tabs": {
-                "chat": "Hosted Chat",
-                "widget": "Chat Widget",
-                "bar": "Command Bar"
+                "chat": "Размещённый чат",
+                "widget": "Чат-виджет",
+                "bar": "Командная строка"
             }
         },
         "evals": {
@@ -3777,7 +3777,7 @@
             "salesforce": {
                 "description": "Salesforce использует OAuth-приложение для каждой организации. Создайте External Client App в своей организации, затем введите его Consumer Key ниже — далее вы подтвердите доступ в Salesforce.",
                 "environment": "Среда",
-                "production": "Production",
+                "production": "Продуктивная среда",
                 "sandbox": "Sandbox",
                 "consumer_key": "Consumer Key",
                 "help_link": "Как создать External Client App",

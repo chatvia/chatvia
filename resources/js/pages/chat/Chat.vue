@@ -3,6 +3,8 @@ import AssistantChatBubble from '@/components/chat/AssistantChatBubble.vue';
 import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatErrorBubble from '@/components/chat/ChatErrorBubble.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
+import { normalizeLocale, resolveLocale, setI18nLocale } from '@/i18n';
+import { resolveAppearanceText } from '@/lib/appearanceText';
 import UserChatBubble from '@/components/chat/UserChatBubble.vue';
 import { useChatStream } from '@/composables/useChatStream';
 import { useColorTheme } from '@/composables/useColorTheme';
@@ -14,7 +16,7 @@ import { computed, inject, nextTick, onMounted, onUnmounted, provide, ref, watch
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
-const { t } = useI18n();
+const { t, locale: i18nLocale } = useI18n();
 
 const chatEventBus = inject('chatEventBus');
 
@@ -101,6 +103,35 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    // Owner's pinned chat language ('auto' = detect from the visitor). Seeds the
+    // initial UI + appearance language on mount.
+    locale: {
+        type: String,
+        default: 'auto',
+    },
+    // Whether to show the visitor language switcher in the header.
+    enableLanguageSwitcher: {
+        type: Boolean,
+        default: false,
+    },
+    // Language codes the owner enabled in Setup → Languages. Empty ⇒ all locales.
+    enabledLanguages: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+// The three appearance strings localized to the active UI locale. The language
+// switcher in the header changes the i18n locale, which re-resolves these
+// instantly from the translation maps already in the payload.
+const resolvedAppearance = computed(() => ({
+    ...props.appearance,
+    ...resolveAppearanceText(props.appearance, normalizeLocale(i18nLocale.value)),
+}));
+
+onMounted(() => {
+    // Honor the owner's pinned language, else the visitor's stored/browser choice.
+    void setI18nLocale(resolveLocale(props.locale));
 });
 
 const loadingMessages = ref(true);
@@ -1004,12 +1035,14 @@ const handleScrollToBottomClick = () => {
 
 <template>
     <ChatLayout
-        :appearance="props.appearance"
+        :appearance="resolvedAppearance"
         :removeSidebar="props.removeSidebar"
         :hideSidebarOnPageLoad="props.hideSidebarOnPageLoad"
         :enableThemeSwitcher="props.enableThemeSwitcher"
         :defaultTheme="props.defaultTheme"
         :enableChatExpand="props.enableChatExpand"
+        :enableLanguageSwitcher="props.enableLanguageSwitcher"
+        :enabledLanguages="props.enabledLanguages"
         :newChatRoute="props.newChatRoute"
     >
         <template #content>
@@ -1110,7 +1143,7 @@ const handleScrollToBottomClick = () => {
                     <div class="mx-auto transition-all duration-300" :class="[isChatExpanded ? 'max-w-5xl' : 'max-w-3xl']">
                         <ChatComposer
                             :isThinking="isStreaming"
-                            :placeholder="appearance.composer_placeholder"
+                            :placeholder="resolvedAppearance.composer_placeholder"
                             :allow-file-uploads="appearance.allow_file_uploads !== false"
                             :allow-voice-input="appearance.allow_voice_input !== false"
                             :max-files="maxFilesPerChat"

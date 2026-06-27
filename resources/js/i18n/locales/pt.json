@@ -3821,7 +3821,7 @@
             "remove_title": "Remover {name}",
             "table": {
                 "name": "Nome",
-                "email": "Email",
+                "email": "E-mail",
                 "status": "Estado",
                 "agents": "Agentes",
                 "messages": "Mensagens",

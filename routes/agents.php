@@ -60,6 +60,8 @@ use App\Http\Controllers\Agent\Security\AgentRateLimitController;
 use App\Http\Controllers\Agent\Security\AgentSecurityUpdateController;
 use App\Http\Controllers\Agent\Security\UpdateAgentSecuritySettingsController;
 use App\Http\Controllers\Agent\Settings\AgentSettingsController;
+use App\Http\Controllers\Agent\Settings\AppearanceTextController;
+use App\Http\Controllers\Agent\Settings\UpdateAppearanceTranslationsController;
 use App\Http\Controllers\Agent\Setup\AgentDeployController;
 use App\Http\Controllers\Agent\Setup\SetupController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentDomainController;
@@ -106,6 +108,8 @@ use App\Http\Controllers\Agent\Source\Web\TrainAgentWebsiteController;
 use App\Http\Controllers\Agent\Source\Youtube\AgentYoutubeController;
 use App\Http\Controllers\Agent\Source\Youtube\RetrainAgentYoutubeController;
 use App\Http\Controllers\Agent\Starters\AgentStarterController;
+use App\Http\Controllers\Agent\Starters\GenerateStartersController;
+use App\Http\Controllers\Agent\Widget\AgentBubbleController;
 use App\Http\Controllers\Agent\SubDomain\AgentsGenerateRandomSubDomainController;
 use App\Http\Controllers\Agent\Team\AgentTeamController;
 use App\Http\Controllers\Agent\Topic\AgentTopicController as TopicsResourceController;
@@ -248,6 +252,14 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Starters API endpoint (used by Widget and Embed components)
         Route::put('starters', [AgentStarterController::class, 'update'])
             ->middleware('agent.permission:agent.setup')->name('starters.update');
+
+        // AI-suggest starters from the agent's knowledge base (Setup → Starters).
+        Route::post('starters/generate', GenerateStartersController::class)
+            ->middleware('agent.permission:agent.setup')->name('starters.generate');
+
+        // Widget chat-bubble prompts (Setup → Chat Bubbles) — auto-translated.
+        Route::put('bubbles', [AgentBubbleController::class, 'update'])
+            ->middleware('agent.permission:agent.setup')->name('bubbles.update');
 
         // Submissions live under each form (Forms → a form → Submissions).
         // Field + CRM-webhook settings stay on the shared settings endpoint.
@@ -404,6 +416,15 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('security/rate-limiting', AgentRateLimitController::class)->name('security.rate-limit');
         Route::post('security/settings', UpdateAgentSecuritySettingsController::class)
             ->middleware('agent.permission:agent.identity.manage')->name('security.settings.update');
+
+        // Appearance text (chat title / welcome / composer placeholder). Saving
+        // auto-translates the three strings into every supported language; owners
+        // can then hand-edit any language (stored as overrides that win over the
+        // AI output). Both gate on agent.setup like the generic settings endpoint.
+        Route::post('appearance/text', AppearanceTextController::class)
+            ->middleware('agent.permission:agent.setup')->name('appearance.text');
+        Route::put('appearance/translations', UpdateAppearanceTranslationsController::class)
+            ->middleware('agent.permission:agent.setup')->name('appearance.translations.update');
 
         // Settings (persona / branding / widget / bar / embed / lead-capture …)
         Route::post('settings/{group}', [AgentSettingsController::class, 'update'])

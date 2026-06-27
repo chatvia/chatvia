@@ -54,7 +54,7 @@
             "functions_tooltip": "Gestionar funciones personalizadas que tu agente puede invocar",
             "connectors": "Conectores",
             "connectors_tooltip": "Conecta conectores para que tu agente pueda usar herramientas externas",
-            "members": "Chatters",
+            "members": "Usuarios",
             "members_tooltip": "Chatters con acceso para chatear con este agente",
             "security": "Seguridad",
             "security_tooltip": "Control de acceso, secreto de firma y límites de velocidad para este agente",

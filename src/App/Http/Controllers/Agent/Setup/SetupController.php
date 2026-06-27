@@ -56,10 +56,12 @@ class SetupController
             'agent' => AgentResourceData::fromModel($agent),
             'authToken' => $authToken,
             'starters' => $agent->resolvedStarters(),
-            // Candidate starters mined from the agent's knowledge-base chunks
-            // (LLM-generated questions). Empty when the agent has no ingested
-            // sources — the Setup UI hides the "Add from Knowledge Base" picker.
-            'knowledgeQuestions' => Chunk::query()->questionsForAgent($agent->id),
+            // Widget chat-bubble prompts in editor shape ({ text, translations,
+            // overrides }), coerced from the legacy plain-string list.
+            'bubbles' => $agent->normalizedBubbles(),
+            // Whether the agent has ingested knowledge-base content. Gates the
+            // Setup → Starters "Generate with AI" button (which scans the chunks).
+            'hasKnowledgeBase' => Chunk::query()->hasContentForAgent($agent->id),
             'prompts' => $prompts,
             'hasPermission' => has_permission_to_agent($agent, 'agent.setup'),
             'canUseHandoff' => $agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false,

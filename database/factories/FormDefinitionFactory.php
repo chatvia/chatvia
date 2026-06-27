@@ -23,6 +23,7 @@ class FormDefinitionFactory extends Factory
         return [
             'agent_id' => Agent::inRandomOrder()->first()?->id ?? Agent::factory(),
             'name' => 'Contact us',
+            'subtitle' => 'Tell us a bit about yourself and we will get back to you shortly.',
             'slug' => 'contact-'.Str::lower(Str::random(6)),
             'form_type' => FormType::Lead,
             'schema' => [

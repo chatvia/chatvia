@@ -70,3 +70,26 @@ it('ships each starter with its per-locale translation map', function (): void {
     expect($settings->starters[0]['text'])->toBe('Hello?')
         ->and($settings->starters[0]['translations']['de'] ?? null)->toBe('Hallo?');
 });
+
+it('ships per-bubble translation maps parallel to the resolved bubble text', function (): void {
+    $agent = createAgent(User::factory()->create());
+    $agent->setSetting('bubbles', [
+        ['text' => 'Hi there!', 'translations' => ['de' => 'Hallo!'], 'overrides' => ['fr' => 'Salut !']],
+    ], 'widget');
+
+    $settings = app(BuildWidgetSettingsAction::class)->execute($agent->fresh());
+
+    expect($settings->bubbles[0])->toBe('Hi there!')
+        ->and($settings->bubble_translations[0]['de'] ?? null)->toBe('Hallo!')
+        ->and($settings->bubble_translations[0]['fr'] ?? null)->toBe('Salut !');
+});
+
+it('keeps the legacy plain-string bubble list working', function (): void {
+    $agent = createAgent(User::factory()->create());
+    $agent->setSetting('bubbles', ['Just a string'], 'widget');
+
+    $settings = app(BuildWidgetSettingsAction::class)->execute($agent->fresh());
+
+    expect($settings->bubbles[0])->toBe('Just a string')
+        ->and($settings->bubble_translations[0])->toBe([]);
+});

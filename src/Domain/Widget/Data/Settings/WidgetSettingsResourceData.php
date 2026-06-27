@@ -28,6 +28,11 @@ class WidgetSettingsResourceData extends Data
         public ?string $color_shade,
         /** @var array<int, mixed> */
         public array $bubbles,
+        // Per-bubble per-locale maps, parallel to `bubbles` by index ({ locale:
+        // text }). The widget localizes each bubble against its active language
+        // and falls back to the resolved `bubbles` string above.
+        /** @var array<int, array<string, string>> */
+        public array $bubble_translations,
         public ?string $position,
         public ?bool $show_on_load,
         public ?int $show_on_load_delay,

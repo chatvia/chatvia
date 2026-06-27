@@ -131,6 +131,14 @@ class SourceFile extends Model implements ChunkableContract
         return MimeType::isPdf($this->mime_type);
     }
 
+    public function isMarkdownFile(): bool
+    {
+        // Keyed off the filetype category (set deterministically from the
+        // extension by file_category), not the mime — a .md upload can arrive
+        // as text/markdown, text/plain, or application/octet-stream.
+        return $this->filetype === 'markdown';
+    }
+
     public function isAudioFile(): bool
     {
         return MimeType::isAudio($this->mime_type);

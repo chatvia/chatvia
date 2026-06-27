@@ -493,7 +493,7 @@ readonly class ChatService
     {
         $systemPrompt = $data->agent->resolveSystemInstructions();
 
-        $systemPrompt .= prompt('knowledge/preconditions');
+        $systemPrompt .= prompt('knowledge/grounding');
 
         // Protected agents always know who they're talking to: the chatter had to
         // sign in to reach them. Tell the model their name so it can address them

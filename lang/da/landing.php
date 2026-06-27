@@ -367,6 +367,7 @@ return [
         'privacy' => 'Privatliv',
         'refund' => 'Refunderingspolitik',
         'subprocessors' => 'Underdatabehandlere',
+        'contact' => 'Kontakt',
         'made_with_love' => 'Lavet med ❤️ i Danmark',
     ],
 

@@ -367,6 +367,7 @@ return [
         'privacy' => 'Confidentialité',
         'refund' => 'Politique de remboursement',
         'subprocessors' => 'Sous-traitants',
+        'contact' => 'Contact',
         'made_with_love' => 'Fait avec ❤️ au Danemark',
     ],
 

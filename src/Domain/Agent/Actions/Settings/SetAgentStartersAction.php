@@ -91,7 +91,6 @@ class SetAgentStartersAction
      * True when $translations already holds a non-empty entry for every enabled
      * locale — i.e. there is nothing new to translate for this starter.
      *
-     * @param  mixed  $translations
      * @param  array<int, string>  $locales
      */
     private function covers(mixed $translations, array $locales): bool

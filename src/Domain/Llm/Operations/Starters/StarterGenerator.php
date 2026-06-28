@@ -16,7 +16,7 @@ class StarterGenerator
     public function __construct(public LlmProviderInterface $provider) {}
 
     /**
-     * @param  array<int, string>  $content knowledge-base content samples
+     * @param  array<int, string>  $content  knowledge-base content samples
      * @return array<int, string> suggested starter questions (≤ $count)
      */
     public function generate(array $content, int $count): array

@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Source\Web\Middleware;
 
 use Closure;
+use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlTrainJob;
 use Illuminate\Support\Facades\Redis;
 
 /**
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Redis;
  * per-minute request budget, shared across all workers via a Redis duration
  * limiter.
  *
- * Website ingestion fans a {@see \Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlTrainJob}
+ * Website ingestion fans a {@see WebsiteUrlTrainJob}
  * out per discovered URL, and the `ingestion-medium` Horizon supervisor scales
  * to 100 processes — so a large site would otherwise fire ~100 concurrent
  * `/scrape` calls and blow past FireCrawl's plan rate limit (HTTP 429
@@ -20,7 +21,7 @@ use Illuminate\Support\Facades\Redis;
  * When the per-minute budget is exhausted the job is released back to the queue
  * with a short jittered delay instead of calling FireCrawl. These throttle
  * releases must NOT count against the job's retry budget — the host job uses
- * {@see \Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlTrainJob::retryUntil()}
+ * {@see WebsiteUrlTrainJob::retryUntil()}
  * plus `$maxExceptions` so only genuine errors fail it.
  *
  * A configured rate of 0 disables throttling (the limiter is bypassed entirely).

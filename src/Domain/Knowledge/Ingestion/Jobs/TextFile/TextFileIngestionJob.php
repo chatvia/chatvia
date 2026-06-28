@@ -1,9 +1,9 @@
 <?php
 
-namespace Domain\Knowledge\Ingestion\Jobs\Markdown;
+namespace Domain\Knowledge\Ingestion\Jobs\TextFile;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Ingestion\Actions\Documents\IngestMarkdownAction;
+use Domain\Knowledge\Ingestion\Actions\Documents\IngestTextFileAction;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -15,12 +15,14 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Ingest a Markdown SourceFile by chunking its text directly via chunk.fit —
- * the document/OCR pipeline (DocumentIngestionJob) is bypassed because Markdown
- * is already plain text. Mirrors DocumentIngestionJob's lifecycle handling;
- * the per-chunk embedding work is shared via DocumentChunkIngestionJob.
+ * Ingest a text-based SourceFile (.txt, .md, and the Pandoc-extractable formats:
+ * EPUB, LaTeX, BibTeX, FictionBook, Jupyter, DocBook/JATS XML, OPML, Troff) by
+ * chunking its text directly via chunk.fit — the document/OCR pipeline
+ * (DocumentIngestionJob) is bypassed because these are already text. Mirrors
+ * DocumentIngestionJob's lifecycle handling; the per-chunk embedding work is
+ * shared via DocumentChunkIngestionJob.
  */
-class MarkdownIngestionJob implements ShouldBeUnique, ShouldQueue
+class TextFileIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -36,10 +38,10 @@ class MarkdownIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public function __construct(public SourceFile $sourceFile, public Agent $agent)
     {
-        $this->onQueue('ingestion.markdown');
+        $this->onQueue('ingestion.text');
     }
 
-    public function handle(IngestMarkdownAction $action): void
+    public function handle(IngestTextFileAction $action): void
     {
         if ($this->batch()?->cancelled()) {
             return;
@@ -68,7 +70,7 @@ class MarkdownIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        Log::error('MarkdownIngestionJob failed', [
+        Log::error('TextFileIngestionJob failed', [
             'source_file_id' => $this->sourceFile->id,
             'job_id' => $this->job?->getJobId(),
             'error' => $exception->getMessage(),
@@ -83,7 +85,7 @@ class MarkdownIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public function timeout(): void
     {
-        Log::warning('MarkdownIngestionJob timed out', [
+        Log::warning('TextFileIngestionJob timed out', [
             'source_file_id' => $this->sourceFile->id,
             'job_id' => $this->job?->getJobId() ?? $this->job?->uuid() ?? 'unknown',
         ]);

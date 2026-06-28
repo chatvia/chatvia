@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Actions\Documents;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Document\Pandoc;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
@@ -14,19 +15,24 @@ use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 
 /**
- * Ingest a Markdown SourceFile by chunking its text directly via chunk.fit,
- * bypassing the LibreOffice→PDF→Mistral OCR document pipeline (Markdown is
- * already plain text). chunk.fit's `chunk_by_title` strategy is the same one
- * the website-Markdown path uses, so heading-structured docs chunk cleanly.
+ * Ingest a text-based SourceFile by chunking its text directly via chunk.fit,
+ * bypassing the LibreOffice→PDF→Mistral OCR document pipeline. Handles two
+ * input shapes:
  *
- * Each chunk becomes one PageData and rides the SHARED DocumentChunkIngestionJob
- * batch — identical embedding, enhancement, progress, and completion handling
- * as the OCR path.
+ *   - raw text (.txt, .md/.markdown)        → read as-is
+ *   - Pandoc-extractable (EPUB, LaTeX, BibTeX, FictionBook, Jupyter,
+ *     DocBook/JATS XML, OPML, Troff)        → Pandoc → plain text first
+ *
+ * chunk.fit's `chunk_by_title` strategy (same one the website-Markdown path
+ * uses) then partitions the text. Each chunk becomes one PageData and rides the
+ * SHARED DocumentChunkIngestionJob batch — identical embedding, enhancement,
+ * progress, and completion handling as the OCR path.
  */
-class IngestMarkdownAction
+class IngestTextFileAction
 {
     public function __construct(
         private readonly ChunkFitClient $chunker,
+        private readonly Pandoc $pandoc,
     ) {}
 
     public function execute(SourceFile $sourceFile, Agent $agent, ?string $internalJobId = null): void
@@ -35,7 +41,12 @@ class IngestMarkdownAction
             return;
         }
 
-        $text = $sourceFile->readFile()->getContent();
+        $file = $sourceFile->readFile();
+        $extension = $sourceFile->extension();
+
+        $text = Pandoc::supports($extension)
+            ? $this->pandoc->toText($file->getPathname(), $extension)
+            : $file->getContent();
 
         $pages = collect($this->chunker->splitByTitle($text))
             ->values()
@@ -50,8 +61,8 @@ class IngestMarkdownAction
             'parser' => 'chunkfit',
         ]);
 
-        // Empty/whitespace-only Markdown produces no chunks — finish cleanly so
-        // the UI doesn't hang on "ingesting" waiting for a batch that never runs.
+        // Empty/whitespace-only input produces no chunks — finish cleanly so the
+        // UI doesn't hang on "ingesting" waiting for a batch that never runs.
         if ($pages->isEmpty()) {
             $sourceFile->update([
                 'status' => SourceStatus::Completed->value,
@@ -82,7 +93,7 @@ class IngestMarkdownAction
         $agentExternalId = $agent->external_id;
 
         $batch = Bus::batch($jobs)
-            ->name('Ingestion Agent Markdown File ID: '.$agentFileId)
+            ->name('Ingestion Agent Text File ID: '.$agentFileId)
             ->allowFailures() // one failed chunk must not cancel the batch
             ->finally(function (Batch $batch) use ($agentFileId, $agentExternalId): void {
                 $file = SourceFile::find($agentFileId);

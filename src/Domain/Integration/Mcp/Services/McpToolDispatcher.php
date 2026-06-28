@@ -171,7 +171,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
 
         $artifacts = $this->artifactsFromStructuredContent($result['structuredContent'] ?? null);
 
-        return ToolDispatchResult::withArtifacts($text, $artifacts);
+        return new ToolDispatchResult($text, $artifacts);
     }
 
     /**

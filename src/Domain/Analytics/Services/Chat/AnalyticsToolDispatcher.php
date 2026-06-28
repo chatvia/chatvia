@@ -82,6 +82,6 @@ class AnalyticsToolDispatcher
             $artifacts[] = ['kind' => 'echarts_option', 'data' => $structured['echarts_option']];
         }
 
-        return ToolDispatchResult::withArtifacts($text, $artifacts);
+        return new ToolDispatchResult($text, $artifacts);
     }
 }

@@ -146,101 +146,61 @@ marked
     .use(markedAlert());
 
 /**
- * Render one markdown chunk to sanitized HTML.
+ * When the response carries a rendered artifact (e.g. an ECharts chart),
+ * the model often emits a markdown image placeholder like
+ * `![Bar chart comparing 1000 USD to 6401 DKK]` — it knows a visual is
+ * being shown but has no URL to point at, so the `![alt]` lands without a
+ * trailing `(url)` and marked renders it as raw text. Strip those
+ * orphan placeholders so users don't see leftover bracketed captions
+ * above the actual chart.
  *
- * Assistant/visitor content (and prompt-injected model output) is rendered
- * via v-html in both the live widget AND the privileged admin chat-log /
- * handoff UIs. Sanitize so injected <img onerror=…>, <script>, javascript:
- * hrefs, etc. can never execute. marked v15 does NOT sanitize.
+ * Only runs when there's at least one artifact — without that signal we
+ * can't be sure the `![...]` is a placeholder vs. the user's own copy.
  */
-function renderMarkdown(text: string): string {
-    const result = marked.parse(text);
-    const html = typeof result === 'string' ? result : '';
-    return DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
+const ORPHAN_IMAGE_PLACEHOLDER = /!\[[^\]]*\](?!\()/g;
+
+function stripOrphanImagePlaceholders(content: string): string {
+    return content.replace(ORPHAN_IMAGE_PLACEHOLDER, '').replace(/\n{3,}/g, '\n\n');
 }
 
-/**
- * Artifact anchoring.
- *
- * When a tool renders a visual, the model marks where it belongs by writing
- * a url-less markdown image like `![Five-year share price]` on its own line —
- * it knows a chart is coming but has no URL to point at. We treat each such
- * ON-ITS-OWN-LINE placeholder as an anchor and splice the matching artifact
- * (by order: 1st anchor → 1st artifact) in at that spot, so the visual lands
- * where the model intended instead of always above the whole message.
- *
- * Inline placeholders (mid-sentence, or inside a list/table) are NOT anchors —
- * splitting markdown there would shred the surrounding block — so they're
- * stripped, the same cleanup the old renderer applied to every placeholder.
- * Anchoring only runs when artifacts exist; without that signal a bare
- * `![...]` is left untouched (it may be legitimate copy).
- */
-const ANCHOR_LINE = /^[ \t]*!\[[^\]]*\][ \t]*$/;
-const INLINE_PLACEHOLDER = /!\[[^\]]*\](?!\()/g;
+function formatMessage(content: string): string {
+    const cleaned = renderableArtifacts.value.length > 0 ? stripOrphanImagePlaceholders(content) : content;
+    const result = marked.parse(cleaned);
+    const html = typeof result === 'string' ? result : '';
 
-type RenderBlock = { type: 'html'; html: string } | { type: 'anchor'; index: number };
-
-function buildBlocks(content: string, hasArtifacts: boolean): RenderBlock[] {
-    if (!content) return [];
-    if (!hasArtifacts) return [{ type: 'html', html: renderMarkdown(content) }];
-
-    const blocks: RenderBlock[] = [];
-    let buffer: string[] = [];
-    let anchorIndex = 0;
-
-    const flush = () => {
-        if (buffer.length === 0) return;
-        const text = buffer
-            .join('\n')
-            .replace(INLINE_PLACEHOLDER, '')
-            .replace(/\n{3,}/g, '\n\n');
-        if (text.trim() !== '') blocks.push({ type: 'html', html: renderMarkdown(text) });
-        buffer = [];
-    };
-
-    for (const line of content.split('\n')) {
-        if (ANCHOR_LINE.test(line)) {
-            flush();
-            blocks.push({ type: 'anchor', index: anchorIndex++ });
-        } else {
-            buffer.push(line);
-        }
-    }
-    flush();
-
-    return blocks;
+    // Assistant/visitor content (and prompt-injected model output) is rendered
+    // via v-html in both the live widget AND the privileged admin chat-log /
+    // handoff UIs. Sanitize so injected <img onerror=…>, <script>, javascript:
+    // hrefs, etc. can never execute. marked v15 does NOT sanitize.
+    return DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
 }
 
 // While streaming, debounce reparsing on a trailing edge — markdown +
 // highlight.js is expensive on long responses. 60 ms is under the user
 // perception threshold but caps CPU. When the stream ends or the
 // component renders a stored message, flush immediately.
-const renderBlocks = ref<RenderBlock[]>([]);
+const renderedHtml = ref('');
 let renderDebounce: ReturnType<typeof setTimeout> | null = null;
-
-function rebuild() {
-    renderBlocks.value = buildBlocks(props.content ?? '', renderableArtifacts.value.length > 0);
-}
 
 function flushRender() {
     if (renderDebounce) {
         clearTimeout(renderDebounce);
         renderDebounce = null;
     }
-    rebuild();
+    renderedHtml.value = formatMessage(props.content ?? '');
 }
 
 watch(
     () => props.content,
     () => {
-        if (!props.isStreaming || renderBlocks.value.length === 0) {
+        if (!props.isStreaming || renderedHtml.value === '') {
             flushRender();
             return;
         }
         if (renderDebounce) return;
         renderDebounce = setTimeout(() => {
             renderDebounce = null;
-            rebuild();
+            renderedHtml.value = formatMessage(props.content ?? '');
         }, 60);
     },
     { immediate: true },
@@ -254,65 +214,14 @@ watch(
 );
 
 // Artifacts can arrive AFTER some text has already streamed in (the tool
-// result lands a few tokens late). Re-split when an artifact appears so the
-// model's `![...]` anchors switch from stripped text to live components.
+// result lands a few tokens late). Re-flush when an artifact appears so
+// any orphan `![...]` placeholders the model wrote earlier disappear.
 watch(
     () => renderableArtifacts.value.length,
     (count, prev) => {
         if (count !== prev) flushRender();
     },
 );
-
-/**
- * Flatten blocks + artifacts into the final ordered render list.
- *
- * - No anchor in the text → keep the historical layout (artifacts stacked
- *   above the body). Covers stored messages and replies where the model
- *   marked no position.
- * - Anchored → each artifact drops in at its matching anchor, by order. An
- *   anchor whose artifact hasn't streamed in yet shows a skeleton while
- *   streaming, and is dropped once settled. Surplus artifacts (more than
- *   anchors) append after the body so none is ever silently lost.
- */
-type RenderItem = { type: 'html'; html: string; streaming: boolean } | { type: 'artifact'; artifact: ToolArtifact } | { type: 'skeleton' };
-
-const renderItems = computed<RenderItem[]>(() => {
-    const blocks = renderBlocks.value;
-    const artifacts = renderableArtifacts.value;
-    const anchorCount = blocks.reduce((n, b) => n + (b.type === 'anchor' ? 1 : 0), 0);
-
-    if (anchorCount === 0) {
-        const items: RenderItem[] = artifacts.map((artifact) => ({ type: 'artifact', artifact }));
-        for (const block of blocks) {
-            if (block.type === 'html') items.push({ type: 'html', html: block.html, streaming: props.isStreaming });
-        }
-        return items;
-    }
-
-    // Only the trailing text block is still growing mid-stream; blocks before
-    // an anchor are already settled, so the fade mask shouldn't touch them.
-    let lastHtml = -1;
-    blocks.forEach((block, i) => {
-        if (block.type === 'html') lastHtml = i;
-    });
-
-    const items: RenderItem[] = [];
-    blocks.forEach((block, i) => {
-        if (block.type === 'html') {
-            items.push({ type: 'html', html: block.html, streaming: props.isStreaming && i === lastHtml });
-            return;
-        }
-        const artifact = artifacts[block.index];
-        if (artifact) items.push({ type: 'artifact', artifact });
-        else if (props.isStreaming) items.push({ type: 'skeleton' });
-    });
-
-    for (let k = anchorCount; k < artifacts.length; k++) {
-        items.push({ type: 'artifact', artifact: artifacts[k] });
-    }
-
-    return items;
-});
 
 onUnmounted(() => {
     if (renderDebounce) clearTimeout(renderDebounce);
@@ -361,13 +270,12 @@ function setupCodeBlockCopyButtons() {
     });
 }
 
-// Re-attach copy buttons whenever the rendered blocks change — a code fence
-// can land in any block, and blocks re-render when an artifact arrives.
-// Idempotent: setup skips any <pre> already wired.
 watch(
-    renderItems,
+    () => props.content,
     () => {
-        nextTick(() => setupCodeBlockCopyButtons());
+        if (props.content) {
+            nextTick(() => setupCodeBlockCopyButtons());
+        }
     },
     { immediate: true },
 );
@@ -380,25 +288,25 @@ onMounted(() => {
 </script>
 
 <template>
-    <div id="chat-ai-responses" ref="bodyRef" class="assistant-message-body prose prose-sm dark:prose-invert w-full max-w-none" :data-rtl="isRTL">
-        <!-- One ordered list: markdown text and artifacts (charts, forms)
-             interleaved at the model's `![...]` anchors. When the model marks
-             no position, artifacts stack above the body (legacy layout).
-             See buildBlocks / renderItems. -->
-        <template v-for="(item, i) in renderItems" :key="`item-${i}`">
-            <div v-if="item.type === 'html'" class="streaming-content" :class="{ 'is-streaming': item.streaming }" v-html="item.html" />
-            <component
-                v-else-if="item.type === 'artifact'"
-                :is="ARTIFACT_RENDERERS[item.artifact.kind].component"
-                v-bind="ARTIFACT_RENDERERS[item.artifact.kind].toProps(item.artifact.data)"
-                :message-id="item.artifact.kind === 'form' ? messageId : undefined"
-            />
-            <!-- Anchor whose artifact hasn't streamed in yet. Reserve the
-                 chart's height so the canvas doesn't reflow when it mounts. -->
-            <div v-else class="not-prose bg-card text-muted-foreground my-3 flex items-center justify-center rounded-md border" style="height: 320px">
-                <span class="animate-pulse text-sm">Loading…</span>
-            </div>
-        </template>
+    <div class="assistant-message-body prose prose-sm dark:prose-invert w-full max-w-none" :data-rtl="isRTL">
+        <!-- Artifacts (charts today; tables/maps/etc. tomorrow) render
+             above the markdown so the visualization comes first and the
+             model's caption / commentary follows. -->
+        <component
+            :is="ARTIFACT_RENDERERS[artifact.kind].component"
+            v-for="(artifact, i) in renderableArtifacts"
+            :key="`artifact-${i}`"
+            v-bind="ARTIFACT_RENDERERS[artifact.kind].toProps(artifact.data)"
+            :message-id="artifact.kind === 'form' ? messageId : undefined"
+        />
+        <div
+            v-if="content"
+            id="chat-ai-responses"
+            ref="bodyRef"
+            class="streaming-content"
+            :class="{ 'is-streaming': isStreaming }"
+            v-html="renderedHtml"
+        />
     </div>
 </template>
 

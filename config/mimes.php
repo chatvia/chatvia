@@ -92,19 +92,21 @@ return [
     ],
 
     /*
-     * Extensions Mistral OCR can parse natively (sent to the OCR API as-is).
-     * Keyed by how we page-count the file at upload time — MIME is unreliable
-     * for the exotic text formats (.tex/.bib/.opml → text/plain, .fb2 → xml,
-     * .ipynb → json), so validation/routing/metering key off the extension.
+     * Supported upload extensions, keyed by the ingestion path each takes.
+     * MIME is unreliable for the ebook formats (.fb2 → xml/text), so
+     * validation/routing/metering key off the extension.
      *
-     *   image  → Mistral image_url; counts as 1 page.
-     *   office → LibreOffice → PDF → pdfinfo (exact page count). pdf is here
-     *            for routing convenience; FileAnalyzer skips its LibreOffice hop.
-     *   pandoc → no LibreOffice/LaTeX path; estimate pages from extracted text.
+     *   image  → Mistral OCR image_url; counts as 1 page.
+     *   office → Mistral OCR document_url; page count via LibreOffice → PDF →
+     *            pdfinfo (exact). .txt/.md sit here for page counting but are
+     *            chunked directly (FileAnalyzer skips the OCR step for them).
+     *   pandoc → structured-text ebooks (EPUB, FictionBook). No OCR and no PDF
+     *            engine is installed — Pandoc extracts their text for direct
+     *            chunking, and pages are estimated from the word count.
      */
     'ocr' => [
         'image' => ['jpg', 'jpeg', 'png', 'avif', 'tiff', 'tif', 'gif', 'heic', 'heif', 'bmp', 'webp'],
-        'office' => ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'csv', 'odt', 'ods', 'odp', 'rtf', 'txt', 'html', 'htm', 'md', 'markdown'],
-        'pandoc' => ['epub', 'fb2', 'ipynb', 'xml', 'tex', 'bib', 'opml', '1', 'man'],
+        'office' => ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xlsx', 'csv', 'rtf', 'txt', 'md', 'markdown'],
+        'pandoc' => ['epub', 'fb2'],
     ],
 ];

@@ -33,8 +33,8 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
         if ($sourceFile->isWordFile()) {
             $this->onQueue('ingestion.word');
         } else {
-            // PDF, images, and the other OCR document formats share the
-            // generic OCR queue (ingestion.pdf in the ingestion-medium pool).
+            // PDF, images, and the other OCR formats (PowerPoint, Excel) share
+            // the generic OCR queue (ingestion.pdf in the ingestion-medium pool).
             $this->onQueue('ingestion.pdf');
         }
     }

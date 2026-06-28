@@ -15,16 +15,13 @@ use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 
 /**
- * Ingest a text-based SourceFile by chunking its text directly via chunk.fit,
- * bypassing the LibreOffice→PDF→Mistral OCR document pipeline. Handles two
- * input shapes:
- *
- *   - raw text (.txt, .md/.markdown)        → read as-is
- *   - Pandoc-extractable (EPUB, LaTeX, BibTeX, FictionBook, Jupyter,
- *     DocBook/JATS XML, OPML, Troff)        → Pandoc → plain text first
+ * Ingest a text SourceFile by chunking its content directly via chunk.fit,
+ * bypassing Mistral OCR — the text is already chunk-ready, so OCR would only
+ * add cost and latency. Handles raw text (.txt, .md/.markdown) read as-is and
+ * structured-text ebooks (.epub, .fb2) whose markdown is extracted by Pandoc.
  *
  * chunk.fit's `chunk_by_title` strategy (same one the website-Markdown path
- * uses) then partitions the text. Each chunk becomes one PageData and rides the
+ * uses) partitions the text. Each chunk becomes one PageData and rides the
  * SHARED DocumentChunkIngestionJob batch — identical embedding, enhancement,
  * progress, and completion handling as the OCR path.
  */
@@ -42,10 +39,12 @@ class IngestTextFileAction
         }
 
         $file = $sourceFile->readFile();
-        $extension = $sourceFile->extension();
 
-        $text = Pandoc::supports($extension)
-            ? $this->pandoc->toText($file->getPathname(), $extension)
+        // Ebooks are structured text — extract their markdown with Pandoc so
+        // chunk.fit's title-based splitting has headings to work with. Raw
+        // text files are already chunk-ready and read as-is.
+        $text = $sourceFile->isEbook()
+            ? $this->pandoc->toMarkdown($file->getPathname(), $sourceFile->extension())
             : $file->getContent();
 
         $pages = collect($this->chunker->splitByTitle($text))

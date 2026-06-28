@@ -2,14 +2,14 @@
 
 /**
  * Covers the extension-based OCR helpers that replaced the MIME-only gates.
- * MIME is unreliable for the exotic text formats (.tex/.bib → text/plain,
- * .fb2 → xml, .ipynb → json), so validation/routing/metering key off the
- * file extension — these helpers are that source of truth.
+ * MIME is unreliable for the ebook formats (.fb2 → xml/text), so
+ * validation/routing/metering key off the file extension — these helpers are
+ * that source of truth.
  */
 it('reads the lowercased extension from a path or filename', function (): void {
     expect(file_extension('/tmp/Report.PDF'))->toBe('pdf')
         ->and(file_extension('deck.PPTX'))->toBe('pptx')
-        ->and(file_extension('/var/x/paper.tex'))->toBe('tex')
+        ->and(file_extension('/var/x/book.EPUB'))->toBe('epub')
         ->and(file_extension('noextension'))->toBe('');
 });
 
@@ -33,7 +33,8 @@ it('detects image files by extension only', function (): void {
 it('maps extensions to the metering category stored on filetype', function (): void {
     expect(file_category('a.pdf'))->toBe('pdf')
         ->and(file_category('a.docx'))->toBe('word')
-        ->and(file_category('a.odt'))->toBe('word')
+        ->and(file_category('a.doc'))->toBe('word')
+        ->and(file_category('a.rtf'))->toBe('word')
         ->and(file_category('a.pptx'))->toBe('presentation')
         ->and(file_category('a.xlsx'))->toBe('spreadsheet')
         ->and(file_category('a.csv'))->toBe('spreadsheet')
@@ -42,8 +43,7 @@ it('maps extensions to the metering category stored on filetype', function (): v
         ->and(file_category('a.png'))->toBe('image')
         ->and(file_category('a.heic'))->toBe('image')
         ->and(file_category('a.epub'))->toBe('document')
-        ->and(file_category('a.tex'))->toBe('document')
-        ->and(file_category('a.ipynb'))->toBe('document');
+        ->and(file_category('a.fb2'))->toBe('document');
 });
 
 it('keeps every non-audio/video category inside the billable pages bucket', function (): void {

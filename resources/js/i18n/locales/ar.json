@@ -1107,7 +1107,7 @@
             "files": {
                 "uploader_description_audio": "ارفع الملفات الصوتية لتفريغها نصياً. الصيغ المدعومة: MP3، M4A، WAV، OGG، WebM، FLAC، AAC، WMA، AMR، و3GP. الحد الأقصى لحجم الملف: 200 ميجابايت.",
                 "uploader_description_video": "ارفع ملفات الفيديو لتفريغها نصياً. الصيغ المدعومة: MP4، AVI، MOV، WMV، FLV، WebM، MKV، QuickTime، و3GPP. الحد الأقصى لحجم الملف: 200 ميجابايت.",
-                "uploader_description_default": "المستندات: PDF، Word (.docx، .doc)، PowerPoint (.pptx، .ppt)، Excel (.xlsx، .csv)، نص (.txt)، Markdown (.md)، EPUB، RTF، ODT، XML/DocBook، BibTeX (.bib)، FictionBook (.fb2)، Jupyter (.ipynb)، JATS XML، LaTeX (.tex)، OPML، Troff (.1، .man). الصور: JPEG، PNG، AVIF، TIFF، GIF، HEIC/HEIF، BMP، WebP. الحد الأقصى 50 ميجابايت لكل ملف.",
+                "uploader_description_default": "المستندات: PDF، Word (.docx، .doc)، PowerPoint (.pptx، .ppt)، Excel (.xlsx، .csv)، نص (.txt)، Markdown (.md)، RTF، EPUB، FictionBook (.fb2). الصور: JPEG، PNG، AVIF، TIFF، GIF، HEIC/HEIF، BMP، WebP. الحد الأقصى 50 ميجابايت لكل ملف.",
                 "type_unknown": "غير معروف",
                 "minutes_count": "{count} دقيقة | {count} دقائق",
                 "pages_count": "{count} صفحة | {count} صفحات",

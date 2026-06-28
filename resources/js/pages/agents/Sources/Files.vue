@@ -122,9 +122,9 @@ const fileUploaderDescription = computed(() => {
 
 // File uploader configuration for Knowledge page - dynamic based on file type
 const fileUploaderConfig = computed<FileUploaderConfig>(() => {
-    // Default (unified Files page): every format Mistral OCR can parse.
+    // Default (unified Files page): supported document, ebook, and image formats.
     let acceptedTypes =
-        '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.csv,.txt,.md,.markdown,.epub,.xml,.rtf,.odt,.bib,.fb2,.ipynb,.tex,.opml,.1,.man,.html,.htm,' +
+        '.pdf,.doc,.docx,.ppt,.pptx,.xlsx,.csv,.txt,.md,.markdown,.rtf,.epub,.fb2,' +
         '.jpg,.jpeg,.png,.avif,.tiff,.tif,.gif,.heic,.heif,.bmp,.webp';
     let maxFileSize = 50; // Mistral OCR cap: 50 MB per file
 

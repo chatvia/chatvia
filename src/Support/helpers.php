@@ -289,13 +289,13 @@ if (! function_exists('file_category')) {
     {
         return match (file_extension($file)) {
             'pdf' => 'pdf',
-            'doc', 'docx', 'odt', 'rtf' => 'word',
-            'ppt', 'pptx', 'odp' => 'presentation',
-            'xls', 'xlsx', 'csv', 'ods' => 'spreadsheet',
+            'doc', 'docx', 'rtf' => 'word',
+            'ppt', 'pptx' => 'presentation',
+            'xlsx', 'csv' => 'spreadsheet',
             'txt' => 'text',
             'md', 'markdown' => 'markdown',
             'jpg', 'jpeg', 'png', 'avif', 'tiff', 'tif', 'gif', 'heic', 'heif', 'bmp', 'webp' => 'image',
-            'epub', 'fb2', 'ipynb', 'xml', 'tex', 'bib', 'opml', '1', 'man', 'html', 'htm' => 'document',
+            'epub', 'fb2' => 'document',
             default => get_file_type(
                 $file instanceof UploadedFile ? $file->getMimeType() : File::mimeType($file)
             ),

@@ -6,7 +6,6 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
-use Domain\Knowledge\Document\Pandoc;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Enums\SourceStatus;
@@ -138,16 +137,23 @@ class SourceFile extends Model implements ChunkableContract
     }
 
     /**
-     * Text-based formats are chunked directly via chunk.fit instead of being
-     * routed through Mistral OCR (which is for PDF, Office, OpenDocument and
-     * images). Covers raw text (.txt/.md) read as-is, plus the Pandoc-extractable
-     * formats (EPUB, LaTeX, BibTeX, FictionBook, Jupyter, DocBook/JATS, OPML,
-     * Troff) which are converted to plain text first.
+     * Raw-text formats (.txt, .md) are already chunk-ready, so they're chunked
+     * directly via chunk.fit rather than paying the cost/latency of Mistral OCR.
+     * PDF, Office, and images go through OCR; ebooks take the Pandoc path below.
      */
     public function isDirectChunkable(): bool
     {
-        return in_array($this->extension(), ['txt', 'md', 'markdown'], true)
-            || Pandoc::supports($this->extension());
+        return in_array($this->extension(), ['txt', 'md', 'markdown'], true);
+    }
+
+    /**
+     * EPUB / FictionBook are structured text, not scanned documents — Pandoc
+     * extracts their markdown directly, so they ride the direct-chunk text
+     * pipeline (no Mistral OCR, no LibreOffice, no PDF).
+     */
+    public function isEbook(): bool
+    {
+        return in_array($this->extension(), config('mimes.ocr.pandoc'), true);
     }
 
     public function isAudioFile(): bool

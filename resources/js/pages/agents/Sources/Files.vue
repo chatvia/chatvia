@@ -124,8 +124,7 @@ const fileUploaderDescription = computed(() => {
 const fileUploaderConfig = computed<FileUploaderConfig>(() => {
     // Default (unified Files page): supported document, ebook, and image formats.
     let acceptedTypes =
-        '.pdf,.doc,.docx,.ppt,.pptx,.xlsx,.csv,.txt,.md,.markdown,.rtf,.epub,.fb2,' +
-        '.jpg,.jpeg,.png,.avif,.tiff,.tif,.gif,.heic,.heif,.bmp,.webp';
+        '.pdf,.doc,.docx,.ppt,.pptx,.xlsx,.csv,.txt,.md,.markdown,.rtf,.epub,.fb2,' + '.jpg,.jpeg,.png,.avif,.tiff,.tif,.gif,.heic,.heif,.bmp,.webp';
     let maxFileSize = 50; // Mistral OCR cap: 50 MB per file
 
     if (props.fileType === 'pdf') {

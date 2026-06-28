@@ -305,7 +305,261 @@ Strategic priorities for 2026 include:
 
 ---
 
-## 12. Appendix — Glossary of Key Figures
+## 12. Full-Year Monthly Revenue (FY2025)
+
+The complete month-by-month revenue breakdown for 2025. Quarterly totals reconcile to the figures in Section 3.3.
+
+| Month | Revenue | New Accounts | Churned Accounts | Ending Customers |
+|---|---|---|---|---|
+| January 2025 | $108 million | 142 | 118 | 8,652 |
+| February 2025 | $112 million | 138 | 121 | 8,669 |
+| March 2025 | $122 million | 151 | 109 | 8,711 |
+| April 2025 | $116 million | 134 | 115 | 8,730 |
+| May 2025 | $120 million | 129 | 112 | 8,747 |
+| June 2025 | $125 million | 144 | 108 | 8,783 |
+| July 2025 | $120 million | 131 | 119 | 8,795 |
+| August 2025 | $124 million | 126 | 110 | 8,811 |
+| September 2025 | $134 million | 158 | 102 | 8,867 |
+| October 2025 | $121 million | 119 | 96 | 8,890 |
+| November 2025 | $128 million | 112 | 94 | 8,908 |
+| December 2025 | $152 million | 108 | 76 | 8,940 |
+| **Total** | **$1.482 billion** | **1,592** | **1,280** | **8,940** |
+
+December 2025 set the all-time single-month record at **$152 million**. The slowest month was January 2025 at **$108 million**.
+
+---
+
+## 13. Annual Recurring Revenue (ARR) Progression
+
+Monthly ARR for 2025, in millions. ARR crossed **$1.0 billion** in March 2025 and **$1.1 billion** in October 2025.
+
+| Month | ARR ($M) | Net New ARR ($M) |
+|---|---|---|
+| January 2025 | 968 | 22 |
+| February 2025 | 985 | 17 |
+| March 2025 | 1,008 | 23 |
+| April 2025 | 1,026 | 18 |
+| May 2025 | 1,041 | 15 |
+| June 2025 | 1,060 | 19 |
+| July 2025 | 1,072 | 12 |
+| August 2025 | 1,085 | 13 |
+| September 2025 | 1,098 | 13 |
+| October 2025 | 1,109 | 11 |
+| November 2025 | 1,119 | 10 |
+| December 2025 | 1,130 | 11 |
+
+Full-year net new ARR totaled **$184 million**. ARR grew **22.0%** from **$926 million** in December 2024 to **$1.130 billion** in December 2025.
+
+---
+
+## 14. Subscription Tiers & Pricing
+
+### 14.1 Revenue by Subscription Tier (Cloud Software, FY2025)
+
+| Tier | Price (per user/month) | Customers | Revenue | % of Cloud Revenue |
+|---|---|---|---|---|
+| Free / Trial | $0 | 12,400 | $0 | 0% |
+| Standard | $49 | 5,210 | $186 million | 29.0% |
+| Professional | $89 | 2,480 | $228 million | 35.5% |
+| Enterprise | $129 | 1,250 | $228 million | 35.5% |
+| **Total (paid)** | — | **8,940** | **$642 million** | **100%** |
+
+### 14.2 Average Revenue Per Account (ARPA)
+
+| Year | ARPA (annual) | YoY Growth |
+|---|---|---|
+| 2021 | $9,840 | — |
+| 2022 | $11,200 | 13.8% |
+| 2023 | $13,100 | 17.0% |
+| 2024 | $15,600 | 19.1% |
+| 2025 | $18,400 | 17.9% |
+
+---
+
+## 15. Five-Year Headcount & Hiring
+
+| Year | Total Employees | New Hires | Attrition Rate | Engineering Headcount |
+|---|---|---|---|---|
+| 2021 | 4,210 | 720 | 13.4% | 920 |
+| 2022 | 4,960 | 1,040 | 12.8% | 1,140 |
+| 2023 | 5,580 | 1,180 | 12.1% | 1,360 |
+| 2024 | 6,180 | 1,290 | 11.2% | 1,520 |
+| 2025 | 7,420 | 1,610 | 9.8% | 1,840 |
+
+### 15.1 Employees by Department (FY2025)
+
+| Department | Employees | % of Workforce |
+|---|---|---|
+| Engineering & R&D | 1,840 | 24.8% |
+| Sales | 1,180 | 15.9% |
+| Manufacturing & Operations | 1,640 | 22.1% |
+| Customer Support | 880 | 11.9% |
+| Marketing | 420 | 5.7% |
+| Professional Services | 610 | 8.2% |
+| Finance & Administration | 510 | 6.9% |
+| Human Resources | 180 | 2.4% |
+| Legal & Compliance | 160 | 2.2% |
+| **Total** | **7,420** | **100%** |
+
+---
+
+## 16. Customer Support & Satisfaction
+
+### 16.1 Support Metrics by Quarter (FY2025)
+
+| Quarter | Tickets Opened | Avg. First Response | Avg. Resolution Time | CSAT |
+|---|---|---|---|---|
+| Q1 2025 | 48,200 | 3.2 hours | 18.4 hours | 91% |
+| Q2 2025 | 51,600 | 2.9 hours | 16.8 hours | 92% |
+| Q3 2025 | 54,100 | 2.6 hours | 15.1 hours | 93% |
+| Q4 2025 | 57,800 | 2.1 hours | 13.2 hours | 94% |
+| **Total / Avg** | **211,700** | **2.7 hours** | **15.9 hours** | **92.5%** |
+
+### 16.2 Net Promoter Score (NPS) by Quarter
+
+| Quarter | NPS |
+|---|---|
+| Q1 2025 | 42 |
+| Q2 2025 | 46 |
+| Q3 2025 | 51 |
+| Q4 2025 | 55 |
+
+NPS rose **13 points** over the year, ending at **55** in Q4 2025 — the highest in company history.
+
+---
+
+## 17. Marketing & Lead Generation
+
+### 17.1 Leads by Source (FY2025)
+
+| Channel | Leads Generated | Qualified Leads | Closed Deals | Cost per Lead |
+|---|---|---|---|---|
+| Organic Search | 38,400 | 9,600 | 612 | $18 |
+| Paid Advertising | 29,100 | 6,200 | 488 | $64 |
+| Events & Webinars | 14,200 | 4,800 | 392 | $112 |
+| Referral / Partner | 9,800 | 3,900 | 358 | $41 |
+| Content & Social | 21,600 | 4,100 | 214 | $27 |
+| **Total** | **113,100** | **28,600** | **2,064** | **$46 (avg)** |
+
+### 17.2 Marketing Spend & Efficiency
+
+Total marketing spend was **$312 million** in 2025. Customer acquisition cost (CAC) averaged **$8,400** per new enterprise customer, and the CAC payback period was **14 months**. The marketing-sourced pipeline contributed **58%** of closed-won revenue.
+
+---
+
+## 18. Stock Performance & Shareholder Returns
+
+### 18.1 Share Price History (Year-End Close)
+
+| Year | Year-End Price | Shares Outstanding | Market Cap |
+|---|---|---|---|
+| 2021 | $34.20 | 188 million | $6.4 billion |
+| 2022 | $41.80 | 190 million | $7.9 billion |
+| 2023 | $52.40 | 192 million | $10.1 billion |
+| 2024 | $63.10 | 194 million | $12.2 billion |
+| 2025 | $75.50 | 196 million | $14.8 billion |
+
+The stock price grew **120.8%** over the five-year period, from **$34.20** at the end of 2021 to **$75.50** at the end of 2025.
+
+### 18.2 Dividends & Buybacks
+
+| Year | Dividend per Share | Total Dividends | Share Buybacks |
+|---|---|---|---|
+| 2023 | $0.16 | $30.7 million | $40 million |
+| 2024 | $0.20 | $38.8 million | $65 million |
+| 2025 | $0.245 | $48.0 million | $95 million |
+
+In 2025, Acme Inc. returned a total of **$143 million** to shareholders through **$48 million** in dividends and **$95 million** in share repurchases.
+
+---
+
+## 19. Capital Expenditure & Investments
+
+| Year | CapEx | % of Revenue | Primary Focus |
+|---|---|---|---|
+| 2021 | $58 million | 7.1% | Manufacturing capacity |
+| 2022 | $72 million | 7.6% | Data centers |
+| 2023 | $94 million | 8.6% | Cloud infrastructure |
+| 2024 | $128 million | 10.1% | Cloud + AI compute |
+| 2025 | $156 million | 10.5% | AI compute + Dublin expansion |
+
+Cumulative capital expenditure over five years totaled **$508 million**, with the largest single investment being the **$84 million** AI compute cluster commissioned in **June 2025**.
+
+---
+
+## 20. International Expansion Timeline
+
+| Year | Milestone | Market |
+|---|---|---|
+| 2008 | First international office opened | Toronto, Canada |
+| 2012 | European headquarters established | Dublin, Ireland |
+| 2015 | Entered Asian market | Singapore |
+| 2018 | Latin American sales office opened | São Paulo, Brazil |
+| 2021 | Middle East & Africa expansion | Dubai, UAE |
+| 2025 | Reached 47 countries of operation | Global |
+
+International revenue grew from **$284 million** in 2021 to **$740 million** in 2025, increasing its share of total revenue from **35.0%** to **49.9%**.
+
+---
+
+## 21. Acquisitions History
+
+| Year | Company Acquired | Purpose | Price |
+|---|---|---|---|
+| 2017 | DataWeave Analytics | BI / reporting technology | $42 million |
+| 2019 | CloudBridge Systems | Cloud platform foundation | $128 million |
+| 2021 | SensorWorks Inc. | Industrial IoT sensors | $67 million |
+| 2023 | NeuralStack AI | Machine learning team & IP | $215 million |
+| 2025 | FlowMetric Labs | Workflow automation | $94 million |
+
+The largest acquisition was **NeuralStack AI** in **2023** for **$215 million**, which formed the technical foundation for the AcmeCloud AI Assistant launched in 2025.
+
+---
+
+## 22. Competitive Landscape & Market Share
+
+The cloud workflow automation market was estimated at **$18.4 billion** in 2025. Acme's market share by revenue:
+
+| Company | Estimated Market Share | Estimated Revenue |
+|---|---|---|
+| Initrode Software | 22% | $4.05 billion |
+| Acme Inc. | 14% | $2.58 billion (segment-adjusted) |
+| Cyberdyne Solutions | 12% | $2.21 billion |
+| Vandelay Systems | 9% | $1.66 billion |
+| Others (combined) | 43% | $7.91 billion |
+
+Acme grew its market share from **11%** in 2023 to **14%** in 2025, the fastest share gain among the top four vendors.
+
+---
+
+## 23. Cloud Platform Usage Metrics (FY2025)
+
+| Month | Avg. Daily API Calls | Active Users (M) | Uptime |
+|---|---|---|---|
+| Q1 2025 | 0.92 billion | 2.4 | 99.95% |
+| Q2 2025 | 1.04 billion | 2.7 | 99.97% |
+| Q3 2025 | 1.13 billion | 3.0 | 99.96% |
+| Q4 2025 | 1.24 billion | 3.3 | 99.98% |
+
+Average daily API call volume grew **34.8%** over the year, from **0.92 billion** in Q1 to **1.24 billion** in Q4 2025. Platform uptime averaged **99.965%** for the full year, exceeding the contractual SLA of **99.9%**.
+
+---
+
+## 24. Sustainability Metrics — Five-Year Trend
+
+| Year | Carbon Emissions (kt CO₂e) | Renewable Energy % | Waste Recycled % | Sustainability Investment |
+|---|---|---|---|---|
+| 2021 | 142 | 38% | 61% | $6 million |
+| 2022 | 138 | 44% | 67% | $9 million |
+| 2023 | 131 | 47% | 71% | $14 million |
+| 2024 | 124 | 51% | 75% | $18 million |
+| 2025 | 102 | 64% | 79% | $22 million |
+
+Carbon emissions fell **28.2%** over five years, from **142 kilotons** in 2021 to **102 kilotons** in 2025, while renewable energy sourcing rose from **38%** to **64%**.
+
+---
+
+## 25. Appendix — Glossary of Key Figures
 
 | Term | Value (FY2025) |
 |---|---|
@@ -321,6 +575,17 @@ Strategic priorities for 2026 include:
 | Patents granted (2025) | 89 |
 | Countries of operation | 47 |
 | Facilities worldwide | 11 |
+| Year-end share price | $75.50 |
+| Shares outstanding | 196 million |
+| Dividend per share | $0.245 |
+| Net new ARR (full year) | $184 million |
+| Average revenue per account (ARPA) | $18,400 |
+| Capital expenditure | $156 million |
+| Support tickets (full year) | 211,700 |
+| Net Promoter Score (Q4) | 55 |
+| Average daily API calls (Q4) | 1.24 billion |
+| Carbon emissions | 102 kt CO₂e |
+| Renewable energy | 64% |
 
 ---
 

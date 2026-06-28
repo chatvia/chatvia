@@ -5,6 +5,8 @@ namespace Domain\Knowledge\Ingestion\Jobs\Media;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Sources\IngestMediaAction;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Llm\Usage\AttributesTokenUsage;
+use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -14,9 +16,9 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
+class MediaIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
-    use Batchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
 
     public bool $deleteWhenMissingModels = true;
 
@@ -40,6 +42,11 @@ class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
         }
 
         $action->execute($this->sourceFile, $this->agent, $this->job->getJobId());
+    }
+
+    public function tokenWorkspaceId(): ?int
+    {
+        return $this->sourceFile->user_id;
     }
 
     public function uniqueId(): string

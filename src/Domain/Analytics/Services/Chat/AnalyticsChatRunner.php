@@ -10,7 +10,9 @@ use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Events\LlmTokensConsumed;
 use Domain\Llm\Models\Llm;
+use Domain\Llm\Usage\TokenUsageContext;
 use Generator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -39,6 +41,7 @@ class AnalyticsChatRunner
         private readonly AnalyticsToolset $toolset,
         private readonly AnalyticsToolDispatcher $dispatcher,
         private readonly BuiltinToolRouter $router,
+        private readonly TokenUsageContext $usage,
     ) {}
 
     public function stream(User $workspace, AnalyticsChatRequestData $data): StreamedResponse
@@ -66,13 +69,25 @@ class AnalyticsChatRunner
             // Route to only the relevant built-in tools for this turn from the
             // cached + embedded registry. Falls back to the reflection-built
             // full toolset before the registry is synced (or if routing is empty).
-            $routed = $this->router->route($data->message, [McpServerCategory::Analytics, McpServerCategory::Builtin]);
+            // Routing embeds the query (token cost) — attribute it to the
+            // workspace. The streamed turns below are accounted separately
+            // because their usage arrives out-of-band in the stream.
+            $routed = $this->usage->track(
+                $workspace->id,
+                fn (): array => $this->router->route($data->message, [McpServerCategory::Analytics, McpServerCategory::Builtin]),
+                'analytics_chat',
+            );
             ['definitions' => $tools, 'routes' => $routes] = $routed['definitions'] === []
                 ? $this->toolset->build()
                 : $routed;
             $messages = $this->buildMessages($workspace, $data);
             $modelName = $this->resolveModel();
             $maxIterations = (int) config('chatvia.agent.tools.max_iterations', 5);
+
+            // Sum the streamed completions' token usage across every tool-loop
+            // iteration; recorded once after the loop. The provider forces
+            // `include_usage`, so each stream ends with a usage chunk.
+            $streamTokens = 0;
 
             for ($iteration = 0; $iteration < $maxIterations; $iteration++) {
                 $assistantText = '';
@@ -84,7 +99,7 @@ class AnalyticsChatRunner
                     'tool_choice' => 'auto',
                 ]);
 
-                yield from $this->consume($response, $assistantId, $assistantText, $pending);
+                yield from $this->consume($response, $assistantId, $assistantText, $pending, $streamTokens);
 
                 $calls = array_values($pending);
                 if ($calls === []) {
@@ -106,6 +121,8 @@ class AnalyticsChatRunner
                 }
             }
 
+            $this->recordStreamTokens($workspace, $streamTokens);
+
             yield StreamEvent::done($assistantId, 'complete');
         } catch (Throwable $e) {
             Log::error('Analytics chat stream crashed', ['message' => $e->getMessage()]);
@@ -121,9 +138,10 @@ class AnalyticsChatRunner
      * accumulate any tool-call fragments (which arrive split across chunks).
      *
      * @param  array<int, array{id: string, name: string, arguments: string}>  $pending
+     * @param  int  $streamTokens  Accumulates this stream's token usage (by ref).
      * @return Generator<int, StreamEvent>
      */
-    private function consume(ResponseInterface $response, string $assistantId, string &$assistantText, array &$pending): Generator
+    private function consume(ResponseInterface $response, string $assistantId, string &$assistantText, array &$pending, int &$streamTokens): Generator
     {
         $body = $response->getBody();
         $buffer = '';
@@ -147,6 +165,14 @@ class AnalyticsChatRunner
                 $chunk = json_decode($payload, true);
                 if (! is_array($chunk)) {
                     continue;
+                }
+
+                // The final `include_usage` chunk carries token totals (and an
+                // empty choices array) — accumulate it for analytics.
+                if (isset($chunk['usage']) && is_array($chunk['usage'])) {
+                    $usage = $chunk['usage'];
+                    $streamTokens += (int) ($usage['total_tokens']
+                        ?? (($usage['prompt_tokens'] ?? 0) + ($usage['completion_tokens'] ?? 0)));
                 }
 
                 $delta = $chunk['choices'][0]['delta'] ?? [];
@@ -282,6 +308,25 @@ class AnalyticsChatRunner
 
         Today is {$today}.
         TXT;
+    }
+
+    /**
+     * Record the streamed completions' token usage for the workspace (analytics
+     * only). The streamed reply's usage arrives out-of-band, so it can't ride a
+     * TokenUsageContext scope like the routing embed — dispatch the same event
+     * directly. Swallow failures: analytics must never break the turn.
+     */
+    private function recordStreamTokens(User $workspace, int $tokens): void
+    {
+        if ($tokens <= 0) {
+            return;
+        }
+
+        try {
+            LlmTokensConsumed::dispatch($workspace->id, $tokens, 'analytics_chat');
+        } catch (Throwable) {
+            // ignore — a missed analytics increment is acceptable.
+        }
     }
 
     private function resolveModel(): string

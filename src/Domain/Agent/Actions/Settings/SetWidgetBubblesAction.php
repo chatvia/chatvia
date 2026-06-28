@@ -4,6 +4,7 @@ namespace Domain\Agent\Actions\Settings;
 
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Operations\Translate\TextTranslator;
+use Domain\Llm\Usage\TokenUsageContext;
 
 /**
  * Replace an agent's widget chat-bubble prompts and (re)generate their AI
@@ -16,7 +17,10 @@ use Domain\Llm\Operations\Translate\TextTranslator;
  */
 class SetWidgetBubblesAction
 {
-    public function __construct(private readonly TextTranslator $translator) {}
+    public function __construct(
+        private readonly TextTranslator $translator,
+        private readonly TokenUsageContext $usage,
+    ) {}
 
     /**
      * @param  array<int, array{text: string, overrides?: array<string, string>}>  $bubbles
@@ -58,7 +62,13 @@ class SetWidgetBubblesAction
         }
 
         if ($toTranslate !== [] && $languages !== []) {
-            foreach ($this->translator->translate($toTranslate, $languages) as $key => $map) {
+            $translated = $this->usage->track(
+                $agent->user_id,
+                fn (): array => $this->translator->translate($toTranslate, $languages),
+                'translate',
+            );
+
+            foreach ($translated as $key => $map) {
                 $i = $keyToIndex[$key] ?? null;
 
                 if ($i !== null && isset($items[$i])) {

@@ -5,6 +5,7 @@ namespace Domain\Agent\Actions\Settings;
 use Domain\Agent\Data\Settings\AppearanceTextData;
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Operations\Translate\TextTranslator;
+use Domain\Llm\Usage\TokenUsageContext;
 
 /**
  * Persists the agent's three base appearance strings and (re)generates their
@@ -14,7 +15,10 @@ use Domain\Llm\Operations\Translate\TextTranslator;
  */
 class TranslateAgentAppearanceAction
 {
-    public function __construct(private readonly TextTranslator $translator) {}
+    public function __construct(
+        private readonly TextTranslator $translator,
+        private readonly TokenUsageContext $usage,
+    ) {}
 
     /**
      * @return array<string, array<string, string>> field => (locale => translation)
@@ -51,7 +55,11 @@ class TranslateAgentAppearanceAction
             return $existing;
         }
 
-        $translations = $this->translator->translate($fields, $target);
+        $translations = $this->usage->track(
+            $agent->user_id,
+            fn (): array => $this->translator->translate($fields, $target),
+            'translate',
+        );
 
         $agent->setSetting('text_translations', $translations, 'appearance');
 

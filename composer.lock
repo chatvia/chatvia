@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "334c7a700b19ca8edf9b933ba365378e",
+    "content-hash": "70f75a35acef360b37af2788b959541c",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -13172,16 +13172,16 @@
         },
         {
             "name": "spectra-php/laravel-spectra",
-            "version": "v1.1.0",
+            "version": "v1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spectra-php/laravel-spectra.git",
-                "reference": "0c58167a30be2d2e6c1eb01f5e424bbef56b9355"
+                "reference": "1794f18e17760ab338315003dac294aad5b84b9e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spectra-php/laravel-spectra/zipball/0c58167a30be2d2e6c1eb01f5e424bbef56b9355",
-                "reference": "0c58167a30be2d2e6c1eb01f5e424bbef56b9355",
+                "url": "https://api.github.com/repos/spectra-php/laravel-spectra/zipball/1794f18e17760ab338315003dac294aad5b84b9e",
+                "reference": "1794f18e17760ab338315003dac294aad5b84b9e",
                 "shasum": ""
             },
             "require": {
@@ -13250,7 +13250,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spectra-php/laravel-spectra/issues",
-                "source": "https://github.com/spectra-php/laravel-spectra/tree/v1.1.0"
+                "source": "https://github.com/spectra-php/laravel-spectra/tree/v1.2.0"
             },
             "funding": [
                 {
@@ -13258,7 +13258,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-06-05T04:37:24+00:00"
+            "time": "2026-06-28T11:51:50+00:00"
         },
         {
             "name": "spiral/goridge",
@@ -22257,7 +22257,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.4",
+        "php": "^8.5",
         "ext-dom": "*",
         "ext-fileinfo": "*",
         "ext-intl": "*",

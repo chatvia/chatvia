@@ -11,6 +11,7 @@ use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
+use Domain\Conversation\Services\Streaming\Sources\Concerns\AttributesSpectraTurn;
 use Domain\Conversation\Services\Streaming\Sources\Concerns\InjectsToolSystemNote;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
@@ -21,7 +22,6 @@ use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Spectra\Facades\Spectra;
 use Throwable;
 
 /**
@@ -41,7 +41,7 @@ use Throwable;
  */
 class MistralPdfSource
 {
-    use InjectsToolSystemNote;
+    use AttributesSpectraTurn, InjectsToolSystemNote;
 
     public function __construct(
         private readonly Mistral $mistral,
@@ -60,7 +60,7 @@ class MistralPdfSource
     {
         $assistantId = $context->assistantMessageId;
 
-        Spectra::withTraceId($assistantId);
+        $this->bindSpectraTurn($context);
 
         yield StreamEvent::start($assistantId, [
             'assistant_message_id' => $assistantId,
@@ -145,7 +145,7 @@ class MistralPdfSource
     {
         $assistantId = $context->assistantMessageId;
 
-        Spectra::withTraceId($assistantId);
+        $this->bindSpectraTurn($context);
 
         yield StreamEvent::start($assistantId, [
             'assistant_message_id' => $assistantId,

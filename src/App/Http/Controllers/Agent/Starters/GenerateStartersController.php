@@ -6,6 +6,7 @@ use App\Http\Requests\Agent\Starters\GenerateStartersRequest;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Llm\Operations\Starters\StarterGenerator;
+use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -20,7 +21,11 @@ class GenerateStartersController
     {
         $content = Chunk::query()->contentSampleForAgent($agent->id);
 
-        $suggestions = $generator->generate($content, $request->desiredCount());
+        $suggestions = app(TokenUsageContext::class)->track(
+            $agent->user_id,
+            fn (): array => $generator->generate($content, $request->desiredCount()),
+            'starters',
+        );
 
         return response()->json(['suggestions' => $suggestions]);
     }

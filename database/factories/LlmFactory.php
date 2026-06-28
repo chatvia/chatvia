@@ -39,9 +39,14 @@ class LlmFactory extends Factory
         $modelKey = $this->faker->randomElement(array_keys($models));
         $modelInfo = $models[$modelKey];
 
+        // internal_name and external_name are UNIQUE columns, and the keys above
+        // overlap the seeded llms — so suffix the defaults to avoid collisions
+        // across creates and the seed. Tests needing a specific name override these.
+        $suffix = $this->faker->unique()->numerify('########');
+
         return [
-            'internal_name' => $modelKey,
-            'external_name' => $modelInfo[0],
+            'internal_name' => $modelKey.'-'.$suffix,
+            'external_name' => $modelInfo[0].' '.$suffix,
             'descriptive_name' => $modelInfo[1],
             'description' => $this->faker->paragraph(3),
             'icon' => $modelInfo[2],

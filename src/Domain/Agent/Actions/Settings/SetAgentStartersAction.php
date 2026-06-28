@@ -4,6 +4,7 @@ namespace Domain\Agent\Actions\Settings;
 
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Operations\Translate\TextTranslator;
+use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Str;
 
 /**
@@ -16,7 +17,10 @@ use Illuminate\Support\Str;
  */
 class SetAgentStartersAction
 {
-    public function __construct(private readonly TextTranslator $translator) {}
+    public function __construct(
+        private readonly TextTranslator $translator,
+        private readonly TokenUsageContext $usage,
+    ) {}
 
     /**
      * @param  array<int, array{id?: string|null, text: string, icon?: string|null, overrides?: array<string, string>}>  $starters
@@ -71,7 +75,13 @@ class SetAgentStartersAction
         }
 
         if ($toTranslate !== [] && $languages !== []) {
-            foreach ($this->translator->translate($toTranslate, $languages) as $key => $map) {
+            $translated = $this->usage->track(
+                $agent->user_id,
+                fn (): array => $this->translator->translate($toTranslate, $languages),
+                'translate',
+            );
+
+            foreach ($translated as $key => $map) {
                 $id = $keyToId[$key] ?? null;
 
                 if ($id !== null && isset($items[$id])) {

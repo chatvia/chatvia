@@ -9,23 +9,25 @@ use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
+use Domain\Conversation\Services\Streaming\Sources\Concerns\AttributesSpectraTurn;
 use Domain\Conversation\Services\Streaming\Sources\Concerns\InjectsToolSystemNote;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Usage\TokenUsageContext;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
-use Spectra\Facades\Spectra;
 use Throwable;
 
 class LlmSource
 {
-    use InjectsToolSystemNote;
+    use AttributesSpectraTurn, InjectsToolSystemNote;
 
     public function __construct(
         private readonly LlmProviderInterface $llmProvider,
@@ -56,9 +58,9 @@ class LlmSource
         $assistantId = $context->assistantMessageId;
 
         // Bind every Spectra::stream() record produced during this turn to a
-        // shared trace_id so the whole agentic chain (every tool-loop
-        // iteration's upstream call) is queryable as one logical operation.
-        Spectra::withTraceId($assistantId);
+        // shared trace_id (whole agentic chain = one operation) and to the
+        // owning workspace so anonymous-widget turns are attributed too.
+        $this->bindSpectraTurn($context);
 
         yield StreamEvent::start($assistantId, [
             'assistant_message_id' => $assistantId,
@@ -148,8 +150,9 @@ class LlmSource
         $assistantId = $context->assistantMessageId;
 
         // Keep resumed-turn upstream calls under the same trace_id as the
-        // original paused turn, so the whole approval-gated chain is one trace.
-        Spectra::withTraceId($assistantId);
+        // original paused turn (and the same workspace attribution), so the
+        // whole approval-gated chain is one trace.
+        $this->bindSpectraTurn($context);
 
         yield StreamEvent::start($assistantId, [
             'assistant_message_id' => $assistantId,
@@ -254,7 +257,13 @@ class LlmSource
         // the client to swap what it already streamed live.
         $original = $context->streamedMessage;
         if ($original !== '') {
-            $guard = $this->guardrails->inspectOutput($context->requestData->agent, $original);
+            // The output-guardrail LLM call runs here, outside the context-build
+            // track() scope, so wrap it to attribute its tokens to the workspace.
+            $guard = app(TokenUsageContext::class)->track(
+                $context->requestData->agent->user_id,
+                fn (): GuardResultData => $this->guardrails->inspectOutput($context->requestData->agent, $original),
+                'guardrail',
+            );
             if ($guard->triggered()) {
                 $context->resetStreamedMessage();
                 $context->appendStreamedMessage($guard->text);

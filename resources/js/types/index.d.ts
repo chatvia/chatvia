@@ -87,6 +87,10 @@ export interface User {
     // Preferred UI language key (e.g. `en`, `ar`). Null/undefined follows the
     // browser locale — see resources/js/i18n and the language switcher.
     locale?: string | null;
+    // When the user finished or skipped the first-run welcome tour. Null means
+    // not yet onboarded — the dashboard shows the welcome popup. See
+    // resources/js/components/onboarding and CompleteOnboardingController.
+    onboarded_at?: string | null;
     capabilities?: App.Billing.Data.Resources.Package.BillingPackageCapabilitiesData;
 }
 

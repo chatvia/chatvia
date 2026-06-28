@@ -37,11 +37,45 @@ final readonly class ToolDispatchResult
     }
 
     /**
+     * A result carrying renderable artifacts (charts, forms, …).
+     *
+     * The chat renderer drops each artifact into the reply at the matching
+     * `![...]` marker the model writes (paired by order), and only stacks
+     * artifacts above the text when no marker is present. So we append a short
+     * note — role: tool, never shown to the user — telling the model to emit
+     * one own-line marker per artifact, in order. That nudge is what makes the
+     * visual land where the model intends instead of always on top; if the
+     * model ignores it, the renderer's stack-above fallback still shows every
+     * artifact.
+     *
      * @param  array<int, array<string, mixed>>  $artifacts
      */
     public static function withArtifacts(string $text, array $artifacts): self
     {
-        return new self($text, $artifacts);
+        if ($artifacts === []) {
+            return new self($text, []);
+        }
+
+        return new self(trim($text)."\n\n".self::placementNote($artifacts), $artifacts);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $artifacts
+     */
+    private static function placementNote(array $artifacts): string
+    {
+        $markers = array_map(
+            static fn (array $artifact): string => ($artifact['kind'] ?? null) === 'form' ? '![form]' : '![chart]',
+            $artifacts,
+        );
+
+        $sequence = implode(', then ', $markers);
+        $count = count($markers);
+
+        return '(Display note — the user does not see this message. The visual has been rendered for the user. '
+            ."In your reply, write {$sequence} on its own line at the exact point where it should appear, then continue. "
+            .($count > 1 ? "Place the {$count} markers in this order, one per visual." : 'Write the marker exactly once.')
+            .')';
     }
 
     /**

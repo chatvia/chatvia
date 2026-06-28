@@ -22,6 +22,9 @@ export interface Connector {
     requiresUrl: boolean;
     comingSoon: boolean;
     requiresClientId: boolean;
+    // Surfaces the connector's tools are allowed on (ConversationSource values,
+    // e.g. ['hosted_chat']). Null means every surface.
+    surfaces: string[] | null;
 }
 
 /**

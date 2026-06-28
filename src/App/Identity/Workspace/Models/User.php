@@ -88,6 +88,7 @@ use Support\Traits\HasSettings;
  * @property string|null $deactivated_at
  * @property DateFormat|null $date_format
  * @property Carbon|null $last_login_at
+ * @property Carbon|null $onboarded_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Agent> $accessibleAgents
@@ -199,6 +200,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
+            'onboarded_at' => 'datetime',
             'type' => UserType::class,
             'source' => UserSource::class,
             'date_format' => DateFormat::class,

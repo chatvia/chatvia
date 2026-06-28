@@ -29,6 +29,7 @@ class ToolSelector
         private readonly ToolRegistry $registry,
         private readonly SemanticToolRouter $router,
         private readonly StickyToolResolver $sticky,
+        private readonly SurfaceToolFilter $surfaceFilter,
         private readonly TokenUsageContext $usage,
     ) {}
 
@@ -53,7 +54,10 @@ class ToolSelector
                 'tool-routing',
             );
         } catch (Throwable $e) {
-            $pool = $this->registry->for($agent);
+            // Surface filter still applies on the fallback path — a surface-pinned
+            // connector (e.g. charts on widget) must never leak in just because
+            // routing fell back to the full pool.
+            $pool = $this->surfaceFilter->apply($this->registry->for($agent), $conversationId);
 
             Log::warning('Tool router failed; falling back to full pool', [
                 'agent_id' => $agent->id,
@@ -96,14 +100,19 @@ class ToolSelector
             }
         }
 
+        // Drop tools whose connector isn't allowed on this conversation's surface
+        // (e.g. Interactive Charts outside Hosted Chat). Runs last so a sticky or
+        // routed match can't re-introduce a surface-pinned tool.
+        $shipped = $this->surfaceFilter->apply($routed, $conversationId);
+
         Log::debug('ToolSelector: tools shipped to model', [
             'agent_id' => $agent->id,
             'conversation_id' => $conversationId,
-            'shipped_count' => count($routed),
+            'shipped_count' => count($shipped),
             'sticky_added' => $stickyAdded,
-            'shipped_names' => array_map(static fn (ToolEntry $entry): string => $entry->name, $routed),
+            'shipped_names' => array_map(static fn (ToolEntry $entry): string => $entry->name, $shipped),
         ]);
 
-        return array_map(static fn (ToolEntry $entry): array => $entry->toOpenAiFormat(), $routed);
+        return array_map(static fn (ToolEntry $entry): array => $entry->toOpenAiFormat(), $shipped);
     }
 }

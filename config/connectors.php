@@ -1,5 +1,7 @@
 <?php
 
+use Domain\Conversation\Enums\ConversationSource;
+
 /**
  * MCP Connectors catalog.
  *
@@ -8,6 +10,12 @@
  * or complete an OAuth 2.1 + PKCE flow with Dynamic Client Registration
  * (`auth_strategy: 'oauth'`). Either way, a row in `agent_mcp_servers`
  * gets provisioned pointing at the configured `mcp_url`.
+ *
+ * Optional `surfaces` key: a list of {@see ConversationSource}
+ * values (e.g. `['hosted_chat', 'widget']`) the connector's tools are allowed
+ * on. Omit it (the default) to expose the connector on every surface. When set,
+ * the tool router withholds the connector's tools from the model on any other
+ * surface — used for tools whose artifact only one surface can render.
  */
 
 return [
@@ -105,6 +113,11 @@ return [
         // Engine-wise it stays an ordinary builtin MCP server — only the UI
         // surface that presents it differs.
         'is_capability' => true,
+        // Interactive charts only render on the Hosted Chat surface. The widget
+        // and command bar can't lay out an inline ECharts canvas, so withhold
+        // the render-*-chart tools from the model everywhere else (the router
+        // reads this allow-list and drops them on non-listed surfaces).
+        'surfaces' => ['hosted_chat'],
         'mcp_url' => env('APP_URL').'/mcp/charts',
     ],
 

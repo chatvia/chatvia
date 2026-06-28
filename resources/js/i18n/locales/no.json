@@ -872,7 +872,8 @@
                     "run_deleted": "Kjøring slettet",
                     "history_cleared": "Kjøringshistorikk tømt"
                 },
-                "locked_description": "Evalueringer er tilgjengelig i Standard- og Pro-abonnementene. Oppgrader for å teste og vurdere agentens svar før de når kundene."
+                "locked_description": "Evalueringer er tilgjengelig i Standard- og Pro-abonnementene. Oppgrader for å teste og vurdere agentens svar før de når kundene.",
+                "cost_note": "Å kjøre suiten koster én melding per aktiv sak, så denne kjøringen bruker {count} melding. | Å kjøre suiten koster én melding per aktiv sak, så denne kjøringen bruker {count} meldinger."
             },
             "scorers": {
                 "contains": "Inneholder",

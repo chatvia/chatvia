@@ -768,6 +768,7 @@
                 "run_suite": "运行套件",
                 "cases_heading": "用例",
                 "cases_summary": "共 {total} 个 · {active} 个启用",
+                "cost_note": "运行套件每个活动用例消耗一条消息，因此本次运行将使用 {count} 条消息。 | 运行套件每个活动用例消耗一条消息，因此本次运行将使用 {count} 条消息。",
                 "from_knowledge": "来自知识库",
                 "add_case": "添加用例",
                 "table": {

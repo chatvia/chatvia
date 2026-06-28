@@ -768,6 +768,7 @@
                 "run_suite": "スイートを実行",
                 "cases_heading": "ケース",
                 "cases_summary": "合計 {total} 件 · 有効 {active} 件",
+                "cost_note": "スイートの実行は有効なケースごとに1メッセージかかるため、この実行では{count}メッセージを使用します。 | スイートの実行は有効なケースごとに1メッセージかかるため、この実行では{count}メッセージを使用します。",
                 "from_knowledge": "ナレッジから",
                 "add_case": "ケースを追加",
                 "table": {

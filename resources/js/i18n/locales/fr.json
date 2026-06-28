@@ -872,7 +872,8 @@
                     "run_deleted": "Exécution supprimée",
                     "history_cleared": "Historique des exécutions effacé"
                 },
-                "locked_description": "Les évaluations sont disponibles avec les forfaits Standard et Pro. Passez à la version supérieure pour tester et noter les réponses de cet agent avant qu'elles n'atteignent vos clients."
+                "locked_description": "Les évaluations sont disponibles avec les forfaits Standard et Pro. Passez à la version supérieure pour tester et noter les réponses de cet agent avant qu'elles n'atteignent vos clients.",
+                "cost_note": "Exécuter la suite coûte un message par cas actif, donc cette exécution utilisera {count} message. | Exécuter la suite coûte un message par cas actif, donc cette exécution utilisera {count} messages."
             },
             "scorers": {
                 "contains": "Contient",

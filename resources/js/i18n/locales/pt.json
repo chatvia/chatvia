@@ -872,7 +872,8 @@
                     "run_deleted": "Execução eliminada",
                     "history_cleared": "Histórico de execuções limpo"
                 },
-                "locked_description": "As avaliações estão disponíveis nos planos Standard e Pro. Faça upgrade para testar e classificar as respostas deste agente antes de chegarem aos clientes."
+                "locked_description": "As avaliações estão disponíveis nos planos Standard e Pro. Faça upgrade para testar e classificar as respostas deste agente antes de chegarem aos clientes.",
+                "cost_note": "Executar a suíte custa uma mensagem por caso ativo, então esta execução usará {count} mensagem. | Executar a suíte custa uma mensagem por caso ativo, então esta execução usará {count} mensagens."
             },
             "scorers": {
                 "contains": "Contém",

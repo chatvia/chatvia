@@ -9,6 +9,7 @@
                 "run_suite": "Run suite",
                 "cases_heading": "Cases",
                 "cases_summary": "{total} total · {active} active",
+                "cost_note": "Running the suite costs one message per active case, so this run will use {count} message. | Running the suite costs one message per active case, so this run will use {count} messages.",
                 "from_knowledge": "From knowledge",
                 "add_case": "Add case",
                 "table": {

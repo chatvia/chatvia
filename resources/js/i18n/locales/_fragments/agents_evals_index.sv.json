@@ -8,6 +8,7 @@
                 "run_suite": "Kör svit",
                 "cases_heading": "Testfall",
                 "cases_summary": "{total} totalt · {active} aktiva",
+                "cost_note": "Att köra sviten kostar ett meddelande per aktivt fall, så den här körningen använder {count} meddelande. | Att köra sviten kostar ett meddelande per aktivt fall, så den här körningen använder {count} meddelanden.",
                 "from_knowledge": "Från kunskapsbas",
                 "add_case": "Lägg till testfall",
                 "table": {

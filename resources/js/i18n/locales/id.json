@@ -768,6 +768,7 @@
                 "run_suite": "Jalankan rangkaian",
                 "cases_heading": "Kasus",
                 "cases_summary": "{total} total · {active} aktif",
+                "cost_note": "Menjalankan suite memerlukan satu pesan per kasus aktif, jadi proses ini akan menggunakan {count} pesan. | Menjalankan suite memerlukan satu pesan per kasus aktif, jadi proses ini akan menggunakan {count} pesan.",
                 "from_knowledge": "Dari pengetahuan",
                 "add_case": "Tambah kasus",
                 "table": {

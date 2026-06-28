@@ -872,7 +872,8 @@
                     "run_deleted": "Körning borttagen",
                     "history_cleared": "Körningshistorik rensad"
                 },
-                "locked_description": "Utvärderingar är tillgängliga i Standard- och Pro-planerna. Uppgradera för att testa och betygsätta agentens svar innan de når kunderna."
+                "locked_description": "Utvärderingar är tillgängliga i Standard- och Pro-planerna. Uppgradera för att testa och betygsätta agentens svar innan de når kunderna.",
+                "cost_note": "Att köra sviten kostar ett meddelande per aktivt fall, så den här körningen använder {count} meddelande. | Att köra sviten kostar ett meddelande per aktivt fall, så den här körningen använder {count} meddelanden."
             },
             "scorers": {
                 "contains": "Innehåller",

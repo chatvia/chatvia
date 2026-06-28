@@ -8,6 +8,7 @@
                 "run_suite": "Suite ausführen",
                 "cases_heading": "Testfälle",
                 "cases_summary": "{total} gesamt · {active} aktiv",
+                "cost_note": "Das Ausführen der Suite kostet eine Nachricht pro aktivem Fall, daher verbraucht dieser Lauf {count} Nachricht. | Das Ausführen der Suite kostet eine Nachricht pro aktivem Fall, daher verbraucht dieser Lauf {count} Nachrichten.",
                 "from_knowledge": "Aus Wissensbasis",
                 "add_case": "Testfall hinzufügen",
                 "table": {

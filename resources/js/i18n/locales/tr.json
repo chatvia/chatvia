@@ -768,6 +768,7 @@
                 "run_suite": "Takımı çalıştır",
                 "cases_heading": "Vakalar",
                 "cases_summary": "{total} toplam · {active} etkin",
+                "cost_note": "Paketi çalıştırmak her etkin durum için bir mesaja mal olur, bu nedenle bu çalıştırma {count} mesaj kullanır. | Paketi çalıştırmak her etkin durum için bir mesaja mal olur, bu nedenle bu çalıştırma {count} mesaj kullanır.",
                 "from_knowledge": "Bilgi tabanından",
                 "add_case": "Vaka ekle",
                 "table": {

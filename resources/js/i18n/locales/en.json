@@ -871,7 +871,8 @@
                     "run_deleted": "Run deleted",
                     "history_cleared": "Run history cleared"
                 },
-                "locked_description": "Evals are available on the Standard and Pro plans. Upgrade to test and grade this agent's answers before they reach customers."
+                "locked_description": "Evals are available on the Standard and Pro plans. Upgrade to test and grade this agent's answers before they reach customers.",
+                "cost_note": "Running the suite costs one message per active case, so this run will use {count} message. | Running the suite costs one message per active case, so this run will use {count} messages."
             },
             "scorers": {
                 "contains": "Contains",

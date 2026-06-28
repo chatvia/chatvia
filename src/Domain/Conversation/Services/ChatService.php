@@ -534,20 +534,20 @@ readonly class ChatService
 
         $message = Str::of("### User Question:\n")
             ->append($payload->message_for_llm)
-            ->append("\n\n### Retrieved Context\n");
+            ->append("\n\n### Reference material\n");
 
         // Check if any sources have images
         $hasImages = $sources->contains(fn ($chunk): bool => ! empty($chunk['images']));
 
         if ($hasImages) {
-            $message = $message->append("\n⚠️ CRITICAL INSTRUCTION: This context includes images. You MUST include relevant images in your response using markdown format: ![description](url)\n\n");
+            $message = $message->append("\n⚠️ CRITICAL INSTRUCTION: This material includes images. You MUST include relevant images in your response using markdown format: ![description](url)\n\n");
         }
 
         $message = $message->append($sources->map(function ($chunk, $i) {
-            $text = "Context {$i}:\n".$chunk['content']."\n";
+            $text = "[{$i}]:\n".$chunk['content']."\n";
 
             if (! empty($chunk['images'])) {
-                $text .= "\n📷 IMAGES FOR THIS CONTEXT (REQUIRED - Include in response):\n";
+                $text .= "\n📷 IMAGES FOR THIS ITEM (REQUIRED - Include in response):\n";
 
                 $imageIndex = 0;
                 foreach ($chunk['images'] as $description) {

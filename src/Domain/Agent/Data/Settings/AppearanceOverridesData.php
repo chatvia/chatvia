@@ -12,7 +12,7 @@ use Spatie\LaravelData\Data;
 class AppearanceOverridesData extends Data
 {
     /**
-     * @param  array<string, array<string, string>>  $overrides field => (locale => text)
+     * @param  array<string, array<string, string>>  $overrides  field => (locale => text)
      */
     public function __construct(
         public array $overrides,

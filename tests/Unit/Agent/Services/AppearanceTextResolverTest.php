@@ -1,12 +1,13 @@
 <?php
 
 use Domain\Agent\Services\AppearanceTextResolver;
+use Illuminate\Support\Collection;
 
 /**
  * AppearanceTextResolver picks the right copy for a visitor language:
  * manual override > AI translation > base value.
  */
-function appearanceFixture(): Illuminate\Support\Collection
+function appearanceFixture(): Collection
 {
     return collect([
         'chat_window_title' => 'Chat',

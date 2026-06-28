@@ -58,8 +58,7 @@ const fieldValue = (field: FieldKey): string => {
 };
 
 // Placeholder for a language tab = the automatic translation, else the base.
-const placeholderFor = (field: FieldKey): string =>
-    isDefault.value ? '' : props.translations?.[field]?.[selected.value] || baseFor(field);
+const placeholderFor = (field: FieldKey): string => (isDefault.value ? '' : props.translations?.[field]?.[selected.value] || baseFor(field));
 
 const placeholders = computed(() =>
     isDefault.value
@@ -102,11 +101,7 @@ const hasOverride = (code: string): boolean =>
                 <button
                     type="button"
                     class="flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors"
-                    :class="
-                        isDefault
-                            ? 'border-primary text-foreground'
-                            : 'text-muted-foreground hover:text-foreground border-transparent'
-                    "
+                    :class="isDefault ? 'border-primary text-foreground' : 'text-muted-foreground hover:text-foreground border-transparent'"
                     :title="t('agents.setup.sections.appearance_translations_default_tip')"
                     @click="selected = 'default'"
                 >
@@ -119,9 +114,7 @@ const hasOverride = (code: string): boolean =>
                     type="button"
                     class="flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors"
                     :class="
-                        selected === tab.code
-                            ? 'border-primary text-foreground'
-                            : 'text-muted-foreground hover:text-foreground border-transparent'
+                        selected === tab.code ? 'border-primary text-foreground' : 'text-muted-foreground hover:text-foreground border-transparent'
                     "
                     :title="tab.nativeName"
                     @click="selected = tab.code"

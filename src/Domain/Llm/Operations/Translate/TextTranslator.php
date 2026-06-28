@@ -17,8 +17,8 @@ class TextTranslator
     public function __construct(public LlmProviderInterface $provider) {}
 
     /**
-     * @param  array<string, string>  $fields    caller key => base (source) text
-     * @param  array<string, string>  $languages locale code => language name
+     * @param  array<string, string>  $fields  caller key => base (source) text
+     * @param  array<string, string>  $languages  locale code => language name
      * @return array<string, array<string, string>> key => (locale => translation)
      */
     public function translate(array $fields, array $languages): array

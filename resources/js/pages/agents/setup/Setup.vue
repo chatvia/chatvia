@@ -342,9 +342,7 @@ const isSavingStarters = ref(false);
 const saveStarters = async () => {
     isSavingStarters.value = true;
     // Drop blank/whitespace-only lines so empty fields never persist as starters.
-    const cleaned = starters.value
-        .map((s) => ({ id: s.id, text: s.text.trim(), icon: s.icon, overrides: s.overrides ?? {} }))
-        .filter((s) => s.text);
+    const cleaned = starters.value.map((s) => ({ id: s.id, text: s.text.trim(), icon: s.icon, overrides: s.overrides ?? {} })).filter((s) => s.text);
     try {
         const { data } = await axios.put(route('agents.starters.update', { agent: props.agent.external_id }), { starters: cleaned });
         starters.value = (Array.isArray(data?.starters) ? data.starters : cleaned) as StarterItem[];
@@ -1327,7 +1325,6 @@ const copyApiCode = async (code: string) => {
                                             {{ isSavingStarters ? t('agents.setup.saving') : t('common.save') }}
                                         </Button>
                                     </div>
-
                                 </div>
 
                                 <!-- Chat Bubbles — widget-only quick-message prompts shown next to the

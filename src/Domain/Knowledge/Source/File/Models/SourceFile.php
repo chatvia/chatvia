@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
+use Domain\Knowledge\Document\Pandoc;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Enums\SourceStatus;
@@ -131,12 +132,22 @@ class SourceFile extends Model implements ChunkableContract
         return MimeType::isPdf($this->mime_type);
     }
 
-    public function isMarkdownFile(): bool
+    public function extension(): string
     {
-        // Keyed off the filetype category (set deterministically from the
-        // extension by file_category), not the mime — a .md upload can arrive
-        // as text/markdown, text/plain, or application/octet-stream.
-        return $this->filetype === 'markdown';
+        return strtolower(pathinfo((string) $this->filename, PATHINFO_EXTENSION));
+    }
+
+    /**
+     * Text-based formats are chunked directly via chunk.fit instead of being
+     * routed through Mistral OCR (which is for PDF, Office, OpenDocument and
+     * images). Covers raw text (.txt/.md) read as-is, plus the Pandoc-extractable
+     * formats (EPUB, LaTeX, BibTeX, FictionBook, Jupyter, DocBook/JATS, OPML,
+     * Troff) which are converted to plain text first.
+     */
+    public function isDirectChunkable(): bool
+    {
+        return in_array($this->extension(), ['txt', 'md', 'markdown'], true)
+            || Pandoc::supports($this->extension());
     }
 
     public function isAudioFile(): bool

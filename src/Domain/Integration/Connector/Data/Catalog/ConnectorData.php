@@ -42,6 +42,13 @@ class ConnectorData extends Data
         // instead of the Connectors list. Purely a UI-surface flag — the MCP
         // server it provisions is identical to any other builtin connector.
         public bool $isCapability = false,
+        // Surfaces this connector's tools are allowed on — a list of
+        // ConversationSource values (e.g. ['hosted_chat']). Null (the default)
+        // means every surface. The tool router withholds the connector's tools
+        // from the model on any surface not in this list (e.g. Interactive
+        // Charts only renders on Hosted Chat).
+        /** @var array<int, string>|null */
+        public ?array $surfaces = null,
         // When true, this is an OAuth connector whose client is registered
         // per-workspace (no global app / no DCR) — the workspace supplies its
         // own client_id at connect time (e.g. Salesforce External Client App).
@@ -92,6 +99,7 @@ class ConnectorData extends Data
             requiresUrl: (bool) ($entry['requires_url'] ?? false),
             comingSoon: (bool) ($entry['coming_soon'] ?? false),
             isCapability: (bool) ($entry['is_capability'] ?? false),
+            surfaces: isset($entry['surfaces']) ? array_values((array) $entry['surfaces']) : null,
             requiresClientId: (bool) ($entry['requires_client_id'] ?? false),
             oauthClientId: $entry['oauth_client_id'] ?? null,
             oauthClientSecret: $entry['oauth_client_secret'] ?? null,

@@ -9,6 +9,7 @@ use App\Http\Controllers\Dashboard\DashboardStatsController;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesDownload;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesListController;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesShowController;
+use App\Http\Controllers\Onboarding\CompleteOnboardingController;
 use App\Http\Controllers\Support\SupportController;
 use App\Http\Controllers\Tickets\ChangeTicketPriorityController;
 use App\Http\Controllers\Tickets\ReplyToTicketController;
@@ -18,6 +19,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified', 'can.access.dashboard'])->group(function (): void {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('my/stats', DashboardStatsController::class)->name('dashboard.stats');
+
+    // Marks the signed-in user as onboarded once they finish or skip the
+    // first-run welcome tour shown on the dashboard.
+    Route::post('my/onboarding/complete', CompleteOnboardingController::class)->name('onboarding.complete');
 
     // Owner-facing "Ask your data" analytics chat — ephemeral (stores nothing).
     Route::get('my/ask', AnalyticsChatController::class)->name('analytics.chat');

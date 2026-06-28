@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CreateAgentModal from '@/components/CreateAgentModal.vue';
+import OnboardingWelcome from '@/components/onboarding/OnboardingWelcome.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -298,5 +299,8 @@ const formatNumber = (num: number): string => {
 
         <!-- Create Agent Modal -->
         <CreateAgentModal v-model:open="showCreateAgentModal" @agent-created="refreshDashboardData" />
+
+        <!-- First-run welcome popup + guided tour for new workspace owners -->
+        <OnboardingWelcome @start-create="showCreateAgentModal = true" />
     </AppLayout>
 </template>

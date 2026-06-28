@@ -4781,5 +4781,17 @@
                 "description": "Render interactive charts (bar, line, pie, gauge, scatter, radar, heatmap, …) inline in the chat."
             }
         }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Welcome to Chatvia",
+            "intro": "Let's create your first AI agent. It only takes a minute.",
+            "what_title": "What is an agent?",
+            "what_body": "An agent is an AI assistant you train on your own content. It answers your customers on your website, chat widget, and messaging apps.",
+            "how_title": "How does it work?",
+            "how_body": "First you create an agent and give it a name. Then you train it with your files, websites, and text so it can answer questions.",
+            "start": "Create my first agent",
+            "video_caption": "Watch how it works"
+        }
     }
 }

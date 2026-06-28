@@ -8,6 +8,7 @@
                 "run_suite": "Kjør suite",
                 "cases_heading": "Saker",
                 "cases_summary": "{total} totalt · {active} aktive",
+                "cost_note": "Å kjøre suiten koster én melding per aktiv sak, så denne kjøringen bruker {count} melding. | Å kjøre suiten koster én melding per aktiv sak, så denne kjøringen bruker {count} meldinger.",
                 "from_knowledge": "Fra kunnskapsbase",
                 "add_case": "Legg til sak",
                 "table": {

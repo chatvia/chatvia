@@ -28,6 +28,7 @@ import {
     CircleX,
     Equal,
     FileText,
+    Info,
     LoaderCircle,
     MessageSquare,
     Pencil,
@@ -455,6 +456,10 @@ const knowledgeAddLabel = computed(() => {
                                 <h2 class="text-base font-semibold">{{ t('agents.evals.index.cases_heading') }}</h2>
                                 <p class="text-muted-foreground text-sm">
                                     {{ t('agents.evals.index.cases_summary', { total: props.cases.length, active: activeCases }) }}
+                                </p>
+                                <p v-if="activeCases > 0" class="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
+                                    <Info class="h-3.5 w-3.5 shrink-0" />
+                                    {{ t('agents.evals.index.cost_note', { count: activeCases }, activeCases) }}
                                 </p>
                             </div>
                             <div v-if="canManage" class="flex items-center gap-2">

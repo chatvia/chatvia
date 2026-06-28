@@ -768,6 +768,7 @@
                 "run_suite": "모음 실행",
                 "cases_heading": "케이스",
                 "cases_summary": "총 {total}개 · 활성 {active}개",
+                "cost_note": "스위트를 실행하면 활성 케이스당 메시지 1개가 소모되므로 이번 실행에서는 {count}개의 메시지를 사용합니다. | 스위트를 실행하면 활성 케이스당 메시지 1개가 소모되므로 이번 실행에서는 {count}개의 메시지를 사용합니다.",
                 "from_knowledge": "지식에서 가져오기",
                 "add_case": "케이스 추가",
                 "table": {

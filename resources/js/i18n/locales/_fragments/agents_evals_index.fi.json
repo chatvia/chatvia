@@ -8,6 +8,7 @@
                 "run_suite": "Suorita sarja",
                 "cases_heading": "Tapaukset",
                 "cases_summary": "{total} yhteensä · {active} aktiivista",
+                "cost_note": "Sarjan suorittaminen maksaa yhden viestin aktiivista tapausta kohden, joten tämä suoritus käyttää {count} viestin. | Sarjan suorittaminen maksaa yhden viestin aktiivista tapausta kohden, joten tämä suoritus käyttää {count} viestiä.",
                 "from_knowledge": "Tietämyskannasta",
                 "add_case": "Lisää tapaus",
                 "table": {

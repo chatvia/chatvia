@@ -872,7 +872,8 @@
                     "run_deleted": "Kørsel slettet",
                     "history_cleared": "Kørselshistorik ryddet"
                 },
-                "locked_description": "Evals er tilgængelige på Standard- og Pro-abonnementerne. Opgradér for at teste og bedømme denne agents svar, før de når kunderne."
+                "locked_description": "Evals er tilgængelige på Standard- og Pro-abonnementerne. Opgradér for at teste og bedømme denne agents svar, før de når kunderne.",
+                "cost_note": "Kørsel af testsuiten koster én besked pr. aktiv sag, så denne kørsel bruger {count} besked. | Kørsel af testsuiten koster én besked pr. aktiv sag, så denne kørsel bruger {count} beskeder."
             },
             "scorers": {
                 "contains": "Indeholder",

@@ -872,7 +872,8 @@
                     "run_deleted": "Ausführung gelöscht",
                     "history_cleared": "Ausführungsverlauf gelöscht"
                 },
-                "locked_description": "Evals sind in den Tarifen Standard und Pro verfügbar. Führen Sie ein Upgrade durch, um die Antworten dieses Agents zu testen und zu bewerten, bevor sie Kunden erreichen."
+                "locked_description": "Evals sind in den Tarifen Standard und Pro verfügbar. Führen Sie ein Upgrade durch, um die Antworten dieses Agents zu testen und zu bewerten, bevor sie Kunden erreichen.",
+                "cost_note": "Das Ausführen der Suite kostet eine Nachricht pro aktivem Fall, daher verbraucht dieser Lauf {count} Nachricht. | Das Ausführen der Suite kostet eine Nachricht pro aktivem Fall, daher verbraucht dieser Lauf {count} Nachrichten."
             },
             "scorers": {
                 "contains": "Enthält",

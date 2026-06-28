@@ -8,6 +8,7 @@
                 "run_suite": "Kør suite",
                 "cases_heading": "Testcases",
                 "cases_summary": "{total} i alt · {active} aktive",
+                "cost_note": "Kørsel af testsuiten koster én besked pr. aktiv sag, så denne kørsel bruger {count} besked. | Kørsel af testsuiten koster én besked pr. aktiv sag, så denne kørsel bruger {count} beskeder.",
                 "from_knowledge": "Fra vidensbase",
                 "add_case": "Tilføj case",
                 "table": {

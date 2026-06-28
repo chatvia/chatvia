@@ -872,7 +872,8 @@
                     "run_deleted": "Uruchomienie usunięte",
                     "history_cleared": "Historia uruchomień wyczyszczona"
                 },
-                "locked_description": "Ewaluacje są dostępne w planach Standard i Pro. Przejdź na wyższy plan, aby testować i oceniać odpowiedzi tego agenta, zanim trafią do klientów."
+                "locked_description": "Ewaluacje są dostępne w planach Standard i Pro. Przejdź na wyższy plan, aby testować i oceniać odpowiedzi tego agenta, zanim trafią do klientów.",
+                "cost_note": "Uruchomienie zestawu kosztuje jedną wiadomość na każdy aktywny przypadek, więc to uruchomienie zużyje {count} wiadomość. | Uruchomienie zestawu kosztuje jedną wiadomość na każdy aktywny przypadek, więc to uruchomienie zużyje {count} wiadomości."
             },
             "scorers": {
                 "contains": "Zawiera",

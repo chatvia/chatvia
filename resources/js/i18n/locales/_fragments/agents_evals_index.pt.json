@@ -8,6 +8,7 @@
                 "run_suite": "Executar conjunto",
                 "cases_heading": "Casos",
                 "cases_summary": "{total} total · {active} ativos",
+                "cost_note": "Executar a suíte custa uma mensagem por caso ativo, então esta execução usará {count} mensagem. | Executar a suíte custa uma mensagem por caso ativo, então esta execução usará {count} mensagens.",
                 "from_knowledge": "Da base de conhecimento",
                 "add_case": "Adicionar caso",
                 "table": {

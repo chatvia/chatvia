@@ -8,6 +8,7 @@
                 "run_suite": "Uruchom zestaw",
                 "cases_heading": "Przypadki",
                 "cases_summary": "{total} łącznie · {active} aktywnych",
+                "cost_note": "Uruchomienie zestawu kosztuje jedną wiadomość na każdy aktywny przypadek, więc to uruchomienie zużyje {count} wiadomość. | Uruchomienie zestawu kosztuje jedną wiadomość na każdy aktywny przypadek, więc to uruchomienie zużyje {count} wiadomości.",
                 "from_knowledge": "Z bazy wiedzy",
                 "add_case": "Dodaj przypadek",
                 "table": {

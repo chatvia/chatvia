@@ -8,6 +8,7 @@
                 "run_suite": "Ejecutar suite",
                 "cases_heading": "Casos",
                 "cases_summary": "{total} en total · {active} activos",
+                "cost_note": "Ejecutar la suite cuesta un mensaje por cada caso activo, así que esta ejecución usará {count} mensaje. | Ejecutar la suite cuesta un mensaje por cada caso activo, así que esta ejecución usará {count} mensajes.",
                 "from_knowledge": "Desde la base de conocimiento",
                 "add_case": "Agregar caso",
                 "table": {

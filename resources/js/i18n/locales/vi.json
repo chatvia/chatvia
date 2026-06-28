@@ -768,6 +768,7 @@
                 "run_suite": "Chạy bộ kiểm thử",
                 "cases_heading": "Trường hợp",
                 "cases_summary": "{total} tổng cộng · {active} đang hoạt động",
+                "cost_note": "Chạy bộ kiểm thử tốn một tin nhắn cho mỗi trường hợp đang hoạt động, vì vậy lần chạy này sẽ dùng {count} tin nhắn. | Chạy bộ kiểm thử tốn một tin nhắn cho mỗi trường hợp đang hoạt động, vì vậy lần chạy này sẽ dùng {count} tin nhắn.",
                 "from_knowledge": "Từ kiến thức",
                 "add_case": "Thêm trường hợp",
                 "table": {

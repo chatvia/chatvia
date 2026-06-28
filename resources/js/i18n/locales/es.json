@@ -872,7 +872,8 @@
                     "run_deleted": "Ejecución eliminada",
                     "history_cleared": "Historial de ejecuciones limpiado"
                 },
-                "locked_description": "Las evaluaciones están disponibles en los planes Standard y Pro. Mejora tu plan para probar y calificar las respuestas de este agente antes de que lleguen a los clientes."
+                "locked_description": "Las evaluaciones están disponibles en los planes Standard y Pro. Mejora tu plan para probar y calificar las respuestas de este agente antes de que lleguen a los clientes.",
+                "cost_note": "Ejecutar la suite cuesta un mensaje por cada caso activo, así que esta ejecución usará {count} mensaje. | Ejecutar la suite cuesta un mensaje por cada caso activo, así que esta ejecución usará {count} mensajes."
             },
             "scorers": {
                 "contains": "Contiene",

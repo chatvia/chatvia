@@ -8,6 +8,7 @@
                 "run_suite": "Lancer la suite",
                 "cases_heading": "Cas",
                 "cases_summary": "{total} au total · {active} actifs",
+                "cost_note": "Exécuter la suite coûte un message par cas actif, donc cette exécution utilisera {count} message. | Exécuter la suite coûte un message par cas actif, donc cette exécution utilisera {count} messages.",
                 "from_knowledge": "Depuis les connaissances",
                 "add_case": "Ajouter un cas",
                 "table": {

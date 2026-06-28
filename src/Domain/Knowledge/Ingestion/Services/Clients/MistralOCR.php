@@ -23,7 +23,7 @@ class MistralOCR
     public function fromUrl(string $url, bool $isImage = false): Collection
     {
         // Mistral OCR takes images under image_url and everything else (PDF,
-        // Office, the exotic doc formats) under document_url.
+        // Office) under document_url.
         $document = $isImage
             ? ['type' => 'image_url', 'image_url' => $url]
             : ['type' => 'document_url', 'document_url' => $url];

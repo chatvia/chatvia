@@ -15,12 +15,11 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Ingest a text-based SourceFile (.txt, .md, and the Pandoc-extractable formats:
- * EPUB, LaTeX, BibTeX, FictionBook, Jupyter, DocBook/JATS XML, OPML, Troff) by
- * chunking its text directly via chunk.fit — the document/OCR pipeline
- * (DocumentIngestionJob) is bypassed because these are already text. Mirrors
- * DocumentIngestionJob's lifecycle handling; the per-chunk embedding work is
- * shared via DocumentChunkIngestionJob.
+ * Ingest a text SourceFile (.txt, .md/.markdown, and Pandoc-extracted ebooks
+ * .epub/.fb2) by chunking its content directly via chunk.fit — the document/OCR
+ * pipeline (DocumentIngestionJob) is bypassed because the text is already
+ * chunk-ready. Mirrors DocumentIngestionJob's lifecycle handling; the per-chunk
+ * embedding work is shared via DocumentChunkIngestionJob.
  */
 class TextFileIngestionJob implements ShouldBeUnique, ShouldQueue
 {

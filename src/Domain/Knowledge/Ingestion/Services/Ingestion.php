@@ -24,15 +24,14 @@ class Ingestion
 
         if ($sourceFile->isAudioFile() || $sourceFile->isVideoFile()) {
             dispatch(new MediaIngestionJob($sourceFile, $agent));
-        } elseif ($sourceFile->isDirectChunkable()) {
-            // Text-based formats (.txt, .md, and the Pandoc-extractable exotic
-            // formats: EPUB, LaTeX, BibTeX, FictionBook, Jupyter, DocBook/JATS,
-            // OPML, Troff) are chunked directly via chunk.fit instead of being
-            // round-tripped through LibreOffice→PDF→Mistral OCR.
+        } elseif ($sourceFile->isDirectChunkable() || $sourceFile->isEbook()) {
+            // Raw text (.txt, .md) and structured-text ebooks (.epub, .fb2) are
+            // chunk-ready once their text is extracted — chunk directly via
+            // chunk.fit instead of paying for Mistral OCR. Ebooks have their
+            // text pulled by Pandoc inside the action.
             dispatch(new TextFileIngestionJob($sourceFile, $agent));
         } else {
-            // PDF, Office, OpenDocument, and images go through Mistral OCR via
-            // the document pipeline — it handles their layout/visual structure.
+            // PDF, Office, and images are parsed by Mistral OCR.
             dispatch(new DocumentIngestionJob($sourceFile, $agent));
         }
     }

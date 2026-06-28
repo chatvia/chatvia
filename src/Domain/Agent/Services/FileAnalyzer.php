@@ -20,7 +20,7 @@ use Throwable;
  *   - PDF            → pdfinfo (exact)
  *   - Office/text    → LibreOffice → PDF → pdfinfo (exact)
  *   - Images         → 1 page
- *   - Pandoc-only    → extract text, ~500 words per page (estimate)
+ *   - Ebooks (Pandoc) → extract text, ~500 words per page (estimate)
  *   - Audio/Video    → duration in minutes
  */
 class FileAnalyzer
@@ -50,7 +50,7 @@ class FileAnalyzer
             return new FileAnalysisData(length: 1, metadata: []);
         }
 
-        // LibreOffice-convertible (Word, PowerPoint, Excel, ODT, RTF, txt, html)
+        // LibreOffice-convertible (Word, PowerPoint, Excel, RTF, txt, md)
         // → render to PDF and count pages exactly.
         if (in_array($extension, config('mimes.ocr.office'), true)) {
             try {
@@ -83,7 +83,7 @@ class FileAnalyzer
             }
         }
 
-        // Pandoc-only text formats → estimate pages from the extracted word count.
+        // Ebooks (EPUB, FictionBook) → estimate pages from the extracted word count.
         if (in_array($extension, config('mimes.ocr.pandoc'), true)) {
             return new FileAnalysisData(
                 length: self::estimatePagesFromText($filePath, $extension),
@@ -101,9 +101,9 @@ class FileAnalyzer
 
             return max(1, (int) ceil($words / self::WORDS_PER_PAGE));
         } catch (Throwable) {
-            // Best-effort: Pandoc can't always parse the input (e.g. a JATS file
-            // read as DocBook). Fall back to a rough size-based estimate so the
-            // upload still proceeds; Mistral OCR reports the true count later.
+            // Best-effort: Pandoc can't always parse the input (corrupt or
+            // malformed ebook). Fall back to a rough size-based estimate so the
+            // upload still proceeds; ingestion reports the true count later.
             $bytes = File::size($filePath) ?: 0;
 
             return max(1, (int) ceil($bytes / 3000));

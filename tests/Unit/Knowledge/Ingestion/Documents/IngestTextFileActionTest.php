@@ -12,13 +12,11 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * IngestTextFileAction chunks a text-based SourceFile directly via chunk.fit
- * (no LibreOffice/PDF/OCR) and rides the shared DocumentChunkIngestionJob
- * batch. Raw text (.txt/.md) is read as-is; Pandoc-extractable formats are
- * converted to plain text first. Both collaborators are faked so the test
- * never hits chunk.fit's HTTP surface or the pandoc binary — we assert the
- * orchestration: idempotency, the empty-input terminal broadcast, real-chunk
- * fan-out, and that Pandoc-extractable formats are routed through Pandoc.
+ * IngestTextFileAction chunks a raw-text SourceFile (.txt/.md) directly via
+ * chunk.fit (no OCR) and rides the shared DocumentChunkIngestionJob batch.
+ * The chunk.fit collaborator is faked so the test never hits its HTTP surface
+ * — we assert the orchestration: idempotency, the empty-input terminal
+ * broadcast, and real-chunk fan-out.
  */
 function itfFakeChunkFit(array $chunks): ChunkFitClient
 {
@@ -33,24 +31,22 @@ function itfFakeChunkFit(array $chunks): ChunkFitClient
     };
 }
 
-function itfFakePandoc(string $extracted = ''): Pandoc
+function itfFakePandoc(string $markdown): Pandoc
 {
-    return new class($extracted) extends Pandoc
+    return new class($markdown) extends Pandoc
     {
-        public function __construct(private string $extracted) {}
+        public function __construct(private string $markdown) {}
 
-        public function toText(string $path, string $extension): string
+        public function toMarkdown(string $path, string $extension): string
         {
-            $GLOBALS['itf_pandoc_called'] = true;
-
-            return $this->extracted;
+            return $this->markdown;
         }
     };
 }
 
 function itfAction(ChunkFitClient $chunker, ?Pandoc $pandoc = null): IngestTextFileAction
 {
-    return new IngestTextFileAction($chunker, $pandoc ?? itfFakePandoc());
+    return new IngestTextFileAction($chunker, $pandoc ?? itfFakePandoc(''));
 }
 
 it('is idempotent: an already-ingested SourceFile returns immediately', function (): void {
@@ -112,22 +108,26 @@ it('fans real chunks out through a Bus batch named with the SourceFile id', func
         ->and($sourceFile->fresh()->parser)->toBe('chunkfit');
 });
 
-it('extracts text via Pandoc for a Pandoc-supported format before chunking', function (): void {
+it('extracts ebook (.epub/.fb2) text via Pandoc before chunking', function (): void {
     Bus::fake();
     Storage::fake();
-    $GLOBALS['itf_pandoc_called'] = false;
 
     $agent = Agent::factory()->create();
     $sourceFile = AgentFileFactory::new()->create([
         'status' => 'uploaded',
         'filename' => 'book.epub',
     ]);
-    Storage::put($sourceFile->filepath, 'binary-epub-bytes');
+    // Raw ebook bytes — the Pandoc collaborator is faked, so the action never
+    // reads them; it routes through toMarkdown() instead of getContent().
+    Storage::put($sourceFile->filepath, 'epub-bytes');
     $agent->files()->attach($sourceFile->id);
 
-    itfAction(itfFakeChunkFit(['Chapter one text']), itfFakePandoc('Chapter one text'))
+    $pandoc = itfFakePandoc("# Chapter 1\n\nThe book body.");
+    itfAction(itfFakeChunkFit(['# Chapter 1', 'The book body.']), $pandoc)
         ->execute($sourceFile, $agent);
 
-    expect($GLOBALS['itf_pandoc_called'])->toBeTrue();
     Bus::assertBatched(fn ($batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
+    expect($sourceFile->fresh()->status)->toBe(SourceStatus::Processing->value)
+        ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(2)
+        ->and($sourceFile->fresh()->parser)->toBe('chunkfit');
 });

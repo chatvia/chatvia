@@ -8,14 +8,15 @@ use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * Thin wrapper over the `pandoc` binary, used to extract plain text from the
- * document formats Mistral OCR accepts but LibreOffice can't open (EPUB,
- * LaTeX, BibTeX, FictionBook, Jupyter, DocBook/JATS XML, OPML, Troff).
+ * Thin wrapper over the `pandoc` binary, used to extract text from the
+ * structured-text ebook formats Mistral OCR can't parse (EPUB, FictionBook).
  *
- * We never produce a PDF here — there's no LaTeX/PDF engine installed — only
- * plain text, which FileAnalyzer turns into a page-count estimate for quota.
- * The reader is passed explicitly via `--from` because the uploaded temp file
- * carries no extension for Pandoc to infer the input format from.
+ * These are already text, so there's nothing to OCR: `toMarkdown()` feeds the
+ * direct-chunk ingestion pipeline (titles preserved for chunk.fit) and
+ * `toText()` feeds FileAnalyzer's word-count page estimate. We never produce a
+ * PDF — there's no LaTeX/PDF engine installed. The reader is passed explicitly
+ * via `--from` because the uploaded temp file carries no extension for Pandoc
+ * to infer the input format from.
  */
 class Pandoc
 {
@@ -27,13 +28,6 @@ class Pandoc
     private const READERS = [
         'epub' => 'epub',
         'fb2' => 'fb2',
-        'ipynb' => 'ipynb',
-        'xml' => 'docbook', // ambiguous (DocBook vs JATS); DocBook is the common case
-        'tex' => 'latex',
-        'bib' => 'biblatex',
-        'opml' => 'opml',
-        '1' => 'man',
-        'man' => 'man',
     ];
 
     public function __construct()
@@ -53,6 +47,16 @@ class Pandoc
 
     public function toText(string $path, string $extension): string
     {
+        return $this->convert($path, $extension, 'plain');
+    }
+
+    public function toMarkdown(string $path, string $extension): string
+    {
+        return $this->convert($path, $extension, 'markdown');
+    }
+
+    private function convert(string $path, string $extension, string $to): string
+    {
         if (! File::exists($path)) {
             throw new InvalidArgumentException("Input file does not exist: {$path}");
         }
@@ -66,7 +70,7 @@ class Pandoc
         $result = Process::timeout($this->timeout)->run([
             $this->binPath,
             '--from', $reader,
-            '--to', 'plain',
+            '--to', $to,
             '--wrap', 'none',
             $path,
         ]);

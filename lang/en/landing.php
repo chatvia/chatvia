@@ -42,9 +42,6 @@ return [
         'cta' => 'Start free trial',
         'cta_secondary' => 'Book a 15-min demo',
         'cta_note' => ':days-day free trial · Cancel anytime.',
-        'video' => [
-            'play' => 'Play the product demo video',
-        ],
     ],
 
     'trust' => [

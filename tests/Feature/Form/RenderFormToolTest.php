@@ -71,3 +71,44 @@ it('still renders the form for a different session that has not submitted', func
 
     expect(FormSubmission::where('chat_conversation_id', $convB->id)->where('status', FormSubmission::STATUS_PENDING)->exists())->toBeTrue();
 });
+
+it('refuses an unknown slug instead of fabricating a default form', function (): void {
+    $agent = Agent::factory()->create();
+    // A real, active form exists — but the model asks for a slug that isn't it.
+    FormDefinition::factory()->forAgent($agent)->create(['slug' => 'book-a-demo', 'is_active' => true]);
+    $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::HostedChat]);
+
+    renderAs($agent, $conversation);
+
+    FormsServer::tool(RenderFormTool::class, ['slug' => 'made-up-slug'])
+        ->assertHasErrors();
+
+    // Nothing was rendered: no form minted from a guessed slug or a default fallback.
+    expect(FormSubmission::query()->exists())->toBeFalse();
+});
+
+it('refuses to render anything when no slug is given', function (): void {
+    $agent = Agent::factory()->create();
+    FormDefinition::factory()->forAgent($agent)->create(['slug' => 'book-a-demo', 'is_active' => true]);
+    $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::HostedChat]);
+
+    renderAs($agent, $conversation);
+
+    FormsServer::tool(RenderFormTool::class, [])
+        ->assertHasErrors();
+
+    expect(FormSubmission::query()->exists())->toBeFalse();
+});
+
+it('does not render an inactive form even by its exact slug', function (): void {
+    $agent = Agent::factory()->create();
+    FormDefinition::factory()->forAgent($agent)->create(['slug' => 'book-a-demo', 'is_active' => false]);
+    $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::HostedChat]);
+
+    renderAs($agent, $conversation);
+
+    FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])
+        ->assertHasErrors();
+
+    expect(FormSubmission::query()->exists())->toBeFalse();
+});

@@ -6,7 +6,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
-use Domain\Form\Services\DefaultLeadForm;
 use Domain\Form\Services\FormSchemaBuilder;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Http\Request as HttpRequest;
@@ -17,7 +16,7 @@ use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsOpenWorld;
 
-#[Description('Render a fillable form inline in the chat (lead capture, booking, qualification, or a custom form the agent admin built). The visitor fills and submits it; the form stores the answers itself. Pass the form `slug` returned by find-forms to choose a specific form; omit it to show the agent\'s default active form. Call find-forms first to discover which forms exist and which fits the visitor\'s intent.')]
+#[Description('Render a fillable form inline in the chat (lead capture, booking, qualification, or a custom form the agent admin built). The visitor fills and submits it; the form stores the answers itself. Call find-forms first to discover which forms exist and which fits the visitor\'s intent, then pass the exact `slug` it returned. Only render a slug find-forms returned — never invent a slug or fall back to a default form.')]
 #[IsOpenWorld]
 class RenderFormTool extends Tool
 {
@@ -59,21 +58,27 @@ class RenderFormTool extends Tool
         }
 
         $validated = $request->validate([
-            'slug' => ['nullable', 'string', 'max:64'],
+            'slug' => ['required', 'string', 'max:64'],
         ]);
 
-        $query = FormDefinition::query()->forAgent($agent)->where('is_active', true);
+        // Only ever render a form the model legitimately discovered through
+        // find-forms: an existing, active form for THIS agent matched by exact
+        // slug. No "first form" guess and no auto-provisioned default — handing the
+        // model a form the visitor never asked for is what produces the "let me
+        // show the default form… you already submitted it" nonsense. find-forms is
+        // the single gate: if it surfaced no fitting form, render nothing.
+        $definition = FormDefinition::query()
+            ->forAgent($agent)
+            ->where('is_active', true)
+            ->where('slug', $validated['slug'])
+            ->first();
 
-        if (! empty($validated['slug'])) {
-            $definition = (clone $query)->where('slug', $validated['slug'])->first();
-            if (! $definition) {
-                return Response::error("No active form \"{$validated['slug']}\" is configured for this agent.");
-            }
-        } else {
-            // Default to the agent's first custom form, or auto-provision a lead
-            // form from the existing Leads field settings so forms work out of
-            // the box before any custom form is built.
-            $definition = $query->orderBy('id')->first() ?? app(DefaultLeadForm::class)->forAgent($agent);
+        if (! $definition) {
+            return Response::error(
+                "This agent has no active form with the slug \"{$validated['slug']}\". "
+                .'Only render a slug that find-forms returned — do not guess another slug or fall back to a default form. '
+                .'If find-forms surfaced nothing that fits, keep helping the visitor conversationally without a form.'
+            );
         }
 
         // Don't re-render a form this visitor already completed. Scoped to the
@@ -123,7 +128,8 @@ class RenderFormTool extends Tool
     {
         return [
             'slug' => $schema->string()
-                ->description('Optional slug of the specific form to render. Omit to show the agent\'s default active form.'),
+                ->description('Exact slug of the form to render, as returned by find-forms. Do not invent one or guess a default.')
+                ->required(),
         ];
     }
 }

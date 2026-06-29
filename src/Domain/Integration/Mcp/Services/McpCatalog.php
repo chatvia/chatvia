@@ -39,6 +39,7 @@ class McpCatalog
 {
     public function __construct(
         private readonly McpClient $client,
+        private readonly ConnectorCatalog $catalog,
     ) {}
 
     /**
@@ -90,8 +91,12 @@ class McpCatalog
 
         $now = now();
         $validatedToolIds = [];
+        // First-party builtins (forms, charts, leads) are safe, no-auth Chatvia
+        // tools that must never gate on approval — even their write-scope tools
+        // (e.g. render-form). Mirrors ToolApprovalPolicy's builtin carve-out.
+        $isBuiltin = $this->catalog->isBuiltinSlug((string) ($server->connector_slug ?? $server->slug));
 
-        DB::transaction(function () use ($server, $rawTools, $now, &$validatedToolIds): void {
+        DB::transaction(function () use ($server, $rawTools, $now, $isBuiltin, &$validatedToolIds): void {
             foreach ($rawTools as $tool) {
                 if (! is_array($tool) || ! isset($tool['name']) || ! is_string($tool['name'])) {
                     continue;
@@ -109,8 +114,10 @@ class McpCatalog
                     ? McpToolScope::Read
                     : McpToolScope::Write;
                 // Read-only tools auto-Allow; write/delete tools default to
-                // Approval (human-in-the-loop), regardless of the server's origin.
-                $defaultPermission = $scope === McpToolScope::Read
+                // Approval (human-in-the-loop). Builtins never gate — force Allow
+                // even for their write-scope tools so the stored permission can't
+                // drift from the runtime carve-out.
+                $defaultPermission = ($scope === McpToolScope::Read || $isBuiltin)
                     ? McpToolPermission::Allow
                     : McpToolPermission::Approval;
 

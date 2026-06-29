@@ -97,6 +97,25 @@ it('seeds membership permission from the catalog default — read tools Allow, w
         ->toBe(McpToolPermission::Allow);
 });
 
+it('seeds a builtin write tool to Allow — forms and other builtins never gate on approval', function (): void {
+    Queue::fake();
+    $this->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(presetTools()));
+
+    // `forms` is a first-party builtin (config/connectors.php). Even its
+    // write-scope tool (no readOnlyHint, e.g. render-form) must seed as Allow so
+    // the stored permission can never drift into an approval gate.
+    $server = presetServer('forms', rtrim((string) config('app.url'), '/').'/mcp/forms', McpServerCategory::Builtin);
+
+    app(McpCatalog::class)->refresh($server);
+
+    $writeId = ConnectorTool::where('connector_slug', 'forms')->where('name', 'write_thing')->value('id');
+
+    expect(ConnectorTool::where('connector_slug', 'forms')->where('name', 'write_thing')->value('default_permission'))
+        ->toBe(McpToolPermission::Allow)
+        ->and(McpServerTool::where('mcp_server_id', $server->id)->where('connector_tool_id', $writeId)->first()->permission)
+        ->toBe(McpToolPermission::Allow);
+});
+
 it('does not clobber a workspace permission toggle on a re-sync', function (): void {
     Queue::fake();
     $this->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(presetTools()));

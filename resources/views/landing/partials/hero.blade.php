@@ -103,43 +103,20 @@
 
             </div>
 
-            <!-- Hero Video -->
-            <div class="relative max-w-7xl mx-auto mt-14 sm:mt-16" x-data="{ playing: false }">
+            <!-- Hero Video — autoplays muted on loop, no controls / play bar -->
+            <div class="relative max-w-7xl mx-auto mt-14 sm:mt-16">
                 <!-- Glow behind player -->
                 <div class="absolute -inset-6 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 blur-3xl"></div>
 
                 <!-- 16:9 player container -->
                 <div class="relative overflow-hidden shadow-2xl ring-1 ring-slate-900/10 bg-black" style="padding-top: 56.25%;">
-
-                    <!-- Poster + play button (shown until the visitor hits play) -->
-                    <button type="button" x-show="!playing" @click="playing = true"
-                        class="group absolute inset-0 w-full h-full cursor-pointer"
-                        aria-label="{{ __('landing.hero.video.play') }}">
-                        <img src="{{ asset('images/main.png') }}"
-                            alt="ChatVia Agent Statistics Dashboard - Track conversations, messages, and customer sentiment"
-                            class="absolute inset-0 w-full h-full object-cover object-top" />
-                        <!-- Dim overlay so the play button stands out -->
-                        <span class="absolute inset-0 bg-slate-900/30 transition-colors group-hover:bg-slate-900/40"></span>
-                        <!-- Play badge -->
-                        <span class="absolute inset-0 flex items-center justify-center">
-                            <span class="flex h-20 w-20 items-center justify-center rounded-full bg-white/95 shadow-2xl ring-1 ring-slate-900/10 transition-transform duration-200 group-hover:scale-110 sm:h-24 sm:w-24">
-                                <svg class="ms-1 h-9 w-9 text-indigo-600 sm:h-11 sm:w-11 rtl:-scale-x-100" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M8 5v14l11-7z" />
-                                </svg>
-                            </span>
-                        </span>
-                    </button>
-
-                    <!-- Video (loaded only after the visitor hits play) -->
-                    <template x-if="playing">
-                        <iframe
-                            src="https://iframe.mediadelivery.net/embed/570366/4eb95857-62a4-411d-ad16-c91115ae4f2c?autoplay=true&loop=true&muted=true&preload=true&responsive=true"
-                            loading="lazy"
-                            class="absolute inset-0 h-full w-full"
-                            style="border:0;"
-                            allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen;"
-                            allowfullscreen="true"></iframe>
-                    </template>
+                    <iframe
+                        src="https://iframe.mediadelivery.net/embed/570366/4eb95857-62a4-411d-ad16-c91115ae4f2c?autoplay=true&loop=true&muted=true&preload=true&responsive=true&controls=false"
+                        loading="lazy"
+                        class="absolute inset-0 h-full w-full"
+                        style="border:0;"
+                        allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen;"
+                        allowfullscreen="true"></iframe>
                 </div>
             </div>
 

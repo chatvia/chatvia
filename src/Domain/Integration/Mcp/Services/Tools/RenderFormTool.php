@@ -9,6 +9,7 @@ use Domain\Form\Models\FormSubmission;
 use Domain\Form\Services\FormSchemaBuilder;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Support\Str;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -58,27 +59,41 @@ class RenderFormTool extends Tool
         }
 
         $validated = $request->validate([
-            'slug' => ['required', 'string', 'max:64'],
+            'slug' => ['required', 'string', 'max:120'],
         ]);
 
-        // Only ever render a form the model legitimately discovered through
-        // find-forms: an existing, active form for THIS agent matched by exact
-        // slug. No "first form" guess and no auto-provisioned default — handing the
-        // model a form the visitor never asked for is what produces the "let me
-        // show the default form… you already submitted it" nonsense. find-forms is
-        // the single gate: if it surfaced no fitting form, render nothing.
-        $definition = FormDefinition::query()
+        // Resolve the form the model asked for against THIS agent's real active
+        // forms only — never fabricate a default (that's the "let me show the
+        // default form… you already submitted it" bug). Small models routinely
+        // echo the form's display name ("Book a demo") or a re-slugified guess
+        // instead of the exact slug find-forms returned, so match tolerantly:
+        // exact slug, the slugified value, or the name. find-forms stays the
+        // single catalog gate; if nothing matches, render nothing.
+        $active = FormDefinition::query()
             ->forAgent($agent)
             ->where('is_active', true)
-            ->where('slug', $validated['slug'])
-            ->first();
+            ->get();
+
+        $key = trim($validated['slug']);
+        // Underscores would otherwise be dropped (book_a_demo → bookademo), so
+        // normalize snake_case to spaces before slugifying.
+        $slugified = Str::slug(str_replace('_', ' ', $key));
+
+        $definition = $active->first(fn (FormDefinition $form): bool => $form->slug === $key
+            || $form->slug === $slugified
+            || Str::slug($form->name) === $slugified
+            || mb_strtolower($form->name) === mb_strtolower($key));
 
         if (! $definition) {
-            return Response::error(
-                "This agent has no active form with the slug \"{$validated['slug']}\". "
-                .'Only render a slug that find-forms returned — do not guess another slug or fall back to a default form. '
-                .'If find-forms surfaced nothing that fits, keep helping the visitor conversationally without a form.'
-            );
+            // No fabricated default. If the agent has active forms, name their exact
+            // slugs so the model retries correctly instead of looping; if it has
+            // none, steer it back to conversational help.
+            $hint = $active->isEmpty()
+                ? 'This agent has no active form — keep helping the visitor conversationally and do not render a form.'
+                : 'Call render-form again with one of this agent\'s exact active slugs: '
+                    .$active->take(8)->pluck('slug')->implode(', ').'.';
+
+            return Response::error("No active form matches \"{$key}\". {$hint}");
         }
 
         // Don't re-render a form this visitor already completed. Scoped to the

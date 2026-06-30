@@ -72,6 +72,27 @@ it('still renders the form for a different session that has not submitted', func
     expect(FormSubmission::where('chat_conversation_id', $convB->id)->where('status', FormSubmission::STATUS_PENDING)->exists())->toBeTrue();
 });
 
+it('resolves the form when the model passes its display name instead of the slug', function (string $key): void {
+    $agent = Agent::factory()->create();
+    FormDefinition::factory()->forAgent($agent)->create(['name' => 'Book a demo', 'slug' => 'book-a-demo', 'is_active' => true]);
+    $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::HostedChat]);
+
+    renderAs($agent, $conversation);
+
+    FormsServer::tool(RenderFormTool::class, ['slug' => $key])
+        ->assertOk()
+        ->assertStructuredContent(fn (AssertableJson $json): AssertableJson => $json
+            ->where('form.definition_slug', 'book-a-demo')
+            ->etc());
+
+    expect(FormSubmission::where('chat_conversation_id', $conversation->id)->where('status', FormSubmission::STATUS_PENDING)->exists())->toBeTrue();
+})->with([
+    'display name' => 'Book a demo',
+    'upper-cased name' => 'BOOK A DEMO',
+    'snake_case slug' => 'book_a_demo',
+    'exact slug' => 'book-a-demo',
+]);
+
 it('refuses an unknown slug instead of fabricating a default form', function (): void {
     $agent = Agent::factory()->create();
     // A real, active form exists — but the model asks for a slug that isn't it.

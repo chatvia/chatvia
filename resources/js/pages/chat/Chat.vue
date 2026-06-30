@@ -614,6 +614,7 @@ function buildStreamCallbacks({ userIndex, assistantIndex, isNewConversation = f
                     name: data.name ?? '',
                     kind: data.kind ?? 'function',
                     label: data.label ?? data.name ?? '',
+                    activity_label: data.activity_label ?? null,
                     icon_url: data.icon_url ?? null,
                     brand_color: data.brand_color ?? null,
                     started_at: Date.now(),

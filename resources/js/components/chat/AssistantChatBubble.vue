@@ -28,6 +28,7 @@ interface ActiveCall {
     name: string;
     kind: 'mcp' | 'function';
     label: string;
+    activity_label: string | null;
     icon_url: string | null;
     brand_color: string | null;
     started_at: number;
@@ -82,7 +83,9 @@ const currentCall = computed<ActiveCall | null>(() => {
 const currentCallLabel = computed(() => {
     const call = currentCall.value;
     if (!call) return t('messages.calling_external');
-    return t('messages.calling', { label: call.label });
+    // Prefer the connector's own activity phrase ("Preparing your form…"),
+    // shown verbatim like the embedded widget; fall back to "Calling {label}…".
+    return call.activity_label || t('messages.calling', { label: call.label });
 });
 
 const isRegenerating = ref(false);

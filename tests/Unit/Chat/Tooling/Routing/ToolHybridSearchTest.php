@@ -101,3 +101,29 @@ it('hides a catalog tool whose membership this workspace blocked', function (): 
 
     expect(hybridSearch($agent))->toBe([]);
 });
+
+it('excludes the tools of an always-on connector from recall — they ship on every turn anyway', function (): void {
+    $agent = Agent::factory()->create();
+
+    $make = function (string $slug, bool $alwaysAvailable) use ($agent): void {
+        $server = AgentMcpServer::create([
+            'user_id' => $agent->user_id,
+            'connector_slug' => $slug,
+            'uses_central_catalog' => true,
+            'name' => ucfirst($slug),
+            'slug' => $slug,
+            'url' => "https://example.test/mcp/{$slug}",
+            'transport' => 'streamable_http',
+            'auth_type' => 'none',
+            'is_enabled' => true,
+        ]);
+        catalogToolWithMembership($server, 'capture_lead');
+        DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id, 'always_available' => $alwaysAvailable]);
+    };
+    $make('leads', alwaysAvailable: false);
+    $make('tutor', alwaysAvailable: true);
+
+    $names = array_map(fn (array $row): string => $row['entry']->name, hybridSearch($agent));
+
+    expect($names)->toBe(['mcp__leads__capture_lead']);
+});

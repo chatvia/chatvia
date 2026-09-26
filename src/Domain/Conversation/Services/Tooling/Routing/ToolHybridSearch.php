@@ -64,10 +64,14 @@ WITH reachable_servers AS (
     -- The agent's attached servers (via the agent_mcp_server pivot). A handful
     -- of rows, driven from the agent_mcp_server PK — never from the
     -- membership table, whose size scales with the whole customer base.
+    -- Always-on connectors are excluded: their tools ship on every turn
+    -- anyway (AlwaysAvailableToolResolver), so searching for them would only
+    -- burn candidate slots the routed tools need.
     SELECT s.id, s.slug
     FROM mcp_servers s
     INNER JOIN agent_mcp_server ams ON ams.mcp_server_id = s.id AND ams.agent_id = ?
     WHERE s.is_enabled = true
+      AND ams.always_available = false
 ),
 reachable_preset AS (
     -- Catalog tools those servers advertise with an unblocked membership.
@@ -110,6 +114,7 @@ custom_vector AS (
       AND t.permission != 'blocked'
       AND t.embedding IS NOT NULL
       AND ams.agent_id IS NOT NULL
+      AND ams.always_available = false
     ORDER BY t.embedding <-> ?::vector({$dims})
     LIMIT ?
 ),
@@ -129,6 +134,7 @@ custom_bm25 AS (
       AND t.permission != 'blocked'
       AND t.embedding_bm25 IS NOT NULL
       AND ams.agent_id IS NOT NULL
+      AND ams.always_available = false
     ORDER BY rank
     LIMIT ?
 ),

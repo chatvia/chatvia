@@ -32,10 +32,18 @@ interface FeaturedRow {
     connector: Connector;
     state: FeaturedState;
     server: AgentMcpServer | null;
+    always_available: boolean;
 }
 
-interface CustomRow extends AgentMcpServer {
+interface CustomRow {
+    external_id: string;
+    name: string;
+    slug: string;
+    url: string;
+    is_enabled: boolean;
+    catalog_tools_count: number;
     is_attached: boolean;
+    always_available: boolean;
 }
 
 const loading = ref(true);
@@ -87,7 +95,7 @@ async function toggleFeatured(row: FeaturedRow): Promise<void> {
     if (row.state === 'attached') {
         await detach(row.server.slug, () => {
             const i = featured.value.findIndex((f) => f.connector.slug === row.connector.slug);
-            if (i !== -1) featured.value[i] = { ...featured.value[i], state: 'unattached' };
+            if (i !== -1) featured.value[i] = { ...featured.value[i], state: 'unattached', always_available: false };
         });
     } else {
         await attach(row.server.slug, () => {
@@ -101,7 +109,7 @@ async function toggleCustom(row: CustomRow): Promise<void> {
     if (row.is_attached) {
         await detach(row.slug, () => {
             const i = customConnectors.value.findIndex((c) => c.external_id === row.external_id);
-            if (i !== -1) customConnectors.value[i] = { ...customConnectors.value[i], is_attached: false };
+            if (i !== -1) customConnectors.value[i] = { ...customConnectors.value[i], is_attached: false, always_available: false };
         });
     } else {
         await attach(row.slug, () => {
@@ -129,6 +137,40 @@ async function detach(slug: string, onSuccess: () => void): Promise<void> {
         console.error(err);
         toast.error(t('agents.sources.connectors.detach_failed'));
     }
+}
+
+// "Always on": the connector's tools ship on every turn, bypassing the
+// relevance router. Capped server-side (10 tools per agent) — a breach comes
+// back as a 422 whose message we show verbatim.
+async function setAlwaysAvailable(slug: string, value: boolean, onSuccess: () => void): Promise<void> {
+    try {
+        await axios.put(route('agents.sources.connectors.always_available', { agent: props.agent.external_id, slug }), {
+            always_available: value,
+        });
+        onSuccess();
+    } catch (err) {
+        console.error(err);
+        const message = axios.isAxiosError(err) && err.response?.status === 422 ? err.response.data?.message : null;
+        toast.error(typeof message === 'string' && message !== '' ? message : t('agents.sources.connectors.always_failed'));
+    }
+}
+
+async function toggleFeaturedAlways(row: FeaturedRow): Promise<void> {
+    if (row.state !== 'attached' || !row.server) return;
+    const next = !row.always_available;
+    await setAlwaysAvailable(row.server.slug, next, () => {
+        const i = featured.value.findIndex((f) => f.connector.slug === row.connector.slug);
+        if (i !== -1) featured.value[i] = { ...featured.value[i], always_available: next };
+    });
+}
+
+async function toggleCustomAlways(row: CustomRow): Promise<void> {
+    if (!row.is_attached) return;
+    const next = !row.always_available;
+    await setAlwaysAvailable(row.slug, next, () => {
+        const i = customConnectors.value.findIndex((c) => c.external_id === row.external_id);
+        if (i !== -1) customConnectors.value[i] = { ...customConnectors.value[i], always_available: next };
+    });
 }
 
 onMounted(fetchAll);
@@ -176,7 +218,10 @@ onMounted(fetchAll);
                                             <TableRow>
                                                 <TableHead class="h-11 ps-5">{{ t('agents.sources.connectors.column_connector') }}</TableHead>
                                                 <TableHead class="h-11 w-32">{{ t('agents.sources.connectors.column_tools') }}</TableHead>
-                                                <TableHead class="h-11 w-32 pe-5">{{ t('agents.sources.connectors.column_enabled') }}</TableHead>
+                                                <TableHead class="h-11 w-32">{{ t('agents.sources.connectors.column_enabled') }}</TableHead>
+                                                <TableHead class="h-11 w-36 pe-5" :title="t('agents.sources.connectors.always_hint')">
+                                                    {{ t('agents.sources.connectors.column_always') }}
+                                                </TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -198,8 +243,16 @@ onMounted(fetchAll);
                                                     </div>
                                                 </TableCell>
                                                 <TableCell class="py-4 text-sm">{{ row.catalog_tools_count }}</TableCell>
-                                                <TableCell class="py-4 pe-5" @click.stop>
+                                                <TableCell class="py-4" @click.stop>
                                                     <Switch :model-value="row.is_attached" @update:model-value="toggleCustom(row)" />
+                                                </TableCell>
+                                                <TableCell class="py-4 pe-5" @click.stop>
+                                                    <Switch
+                                                        :model-value="row.always_available"
+                                                        :disabled="!row.is_attached"
+                                                        :title="t('agents.sources.connectors.always_hint')"
+                                                        @update:model-value="toggleCustomAlways(row)"
+                                                    />
                                                 </TableCell>
                                             </TableRow>
                                         </TableBody>
@@ -217,7 +270,10 @@ onMounted(fetchAll);
                                             <TableRow>
                                                 <TableHead class="h-11 ps-5">{{ t('agents.sources.connectors.column_connector') }}</TableHead>
                                                 <TableHead class="h-11 w-32">{{ t('agents.sources.connectors.column_tools') }}</TableHead>
-                                                <TableHead class="h-11 w-32 pe-5">{{ t('agents.sources.connectors.column_enabled') }}</TableHead>
+                                                <TableHead class="h-11 w-32">{{ t('agents.sources.connectors.column_enabled') }}</TableHead>
+                                                <TableHead class="h-11 w-36 pe-5" :title="t('agents.sources.connectors.always_hint')">
+                                                    {{ t('agents.sources.connectors.column_always') }}
+                                                </TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -246,7 +302,7 @@ onMounted(fetchAll);
                                                 <TableCell class="py-4 text-sm">
                                                     {{ row.server ? row.server.catalog_tools_count : '—' }}
                                                 </TableCell>
-                                                <TableCell class="py-4 pe-5" @click.stop>
+                                                <TableCell class="py-4" @click.stop>
                                                     <Badge v-if="row.connector.comingSoon" variant="outline">{{
                                                         t('agents.sources.connectors.soon')
                                                     }}</Badge>
@@ -256,6 +312,15 @@ onMounted(fetchAll);
                                                         :disabled="row.state === 'available'"
                                                         :title="row.state === 'available' ? t('agents.sources.connectors.connect_first') : undefined"
                                                         @update:model-value="toggleFeatured(row)"
+                                                    />
+                                                </TableCell>
+                                                <TableCell class="py-4 pe-5" @click.stop>
+                                                    <Switch
+                                                        v-if="!row.connector.comingSoon"
+                                                        :model-value="row.always_available"
+                                                        :disabled="row.state !== 'attached'"
+                                                        :title="t('agents.sources.connectors.always_hint')"
+                                                        @update:model-value="toggleFeaturedAlways(row)"
                                                     />
                                                 </TableCell>
                                             </TableRow>

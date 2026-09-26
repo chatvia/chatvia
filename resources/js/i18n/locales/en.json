@@ -1318,7 +1318,10 @@
                 "column_enabled": "Enabled",
                 "no_match": "No connectors match.",
                 "soon": "Soon",
-                "connect_first": "Connect this MCP in Settings first"
+                "connect_first": "Connect this MCP in Settings first",
+                "column_always": "Always on",
+                "always_hint": "Offer this connector's tools on every turn, even when the message doesn't obviously need them. At most 10 always-on tools per agent.",
+                "always_failed": "Failed to update the always-on setting"
             },
             "functions": {
                 "load_failed": "Failed to load functions",

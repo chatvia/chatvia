@@ -423,7 +423,8 @@ class Agent extends Model
      */
     public function mcpServers(): BelongsToMany
     {
-        return $this->belongsToMany(AgentMcpServer::class, 'agent_mcp_server', 'agent_id', 'mcp_server_id');
+        return $this->belongsToMany(AgentMcpServer::class, 'agent_mcp_server', 'agent_id', 'mcp_server_id')
+            ->withPivot('always_available');
     }
 
     /**

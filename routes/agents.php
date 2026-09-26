@@ -68,6 +68,7 @@ use App\Http\Controllers\Agent\Setup\UpdateAgentDomainController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentLlmController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentTemperatureController;
 use App\Http\Controllers\Agent\Source\Audio\AgentSourceAudioController;
+use App\Http\Controllers\Agent\Source\Connector\AgentConnectorAlwaysAvailableController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorAttachController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorDisconnectController;
@@ -228,6 +229,10 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
             ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.attach');
         Route::delete('sources/connectors/{slug}', AgentConnectorDisconnectController::class)
             ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.detach');
+        // "Always on": the connector's tools ship on every turn of this agent,
+        // bypassing the relevance router (capped at 10 tools per agent).
+        Route::put('sources/connectors/{slug}/always-available', AgentConnectorAlwaysAvailableController::class)
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.always_available');
         Route::get('sources/connectors/{slug}/tools', AgentConnectorToolController::class)->name('sources.connectors.tools');
         Route::post('sources/connectors/{slug}/refresh', AgentConnectorRefreshController::class)
             ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.refresh');

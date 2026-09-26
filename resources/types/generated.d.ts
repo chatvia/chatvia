@@ -572,6 +572,7 @@ export type AgentConnectorRowData = {
 connector: any;
 state: string;
 server: Domain.Integration.Mcp.Data.Resources.AgentMcpServerData | null;
+always_available: boolean;
 };
 export type AgentConnectorsResourceData = {
 featured: { [key: number]: Domain.Integration.Connector.Data.Agent.AgentConnectorRowData };
@@ -595,9 +596,14 @@ cached_at: string | null;
 }
 declare namespace Domain.Integration.Connector.Data.Custom {
 export type AgentCustomConnectorRowData = {
-id: string;
+external_id: string;
 name: string;
+slug: string;
+url: string;
+is_enabled: boolean;
+catalog_tools_count: number;
 is_attached: boolean;
+always_available: boolean;
 };
 }
 declare namespace Domain.Integration.Function.Data.Resources {

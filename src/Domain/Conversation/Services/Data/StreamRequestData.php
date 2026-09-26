@@ -20,6 +20,11 @@ class StreamRequestData extends Data
         // buildSystemPrompt() can address them by name without a mid-stream query.
         // Only set alongside chatterUserId; null for anonymous/owner/employee senders.
         public ?string $chatterName = null,
+        // The signed-in chatter's opaque public id (users.external_id), stamped
+        // on outbound tool calls as X-Chatvia-Chatter-Id so a customer's MCP or
+        // webhook can tell WHICH end-user is talking — the same id they got from
+        // POST /api/v1/chatters. Null for anonymous/owner/employee senders.
+        public ?string $chatterExternalId = null,
         // The authenticated user who caused this turn — ANY type (chatter, owner,
         // teammate), or null for an anonymous visitor. Unlike chatterUserId this is
         // not filtered to chatters and never affects billing/prompts; it exists so

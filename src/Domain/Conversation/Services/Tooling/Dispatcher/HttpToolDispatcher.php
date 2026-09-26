@@ -15,7 +15,7 @@ use Throwable;
 
 class HttpToolDispatcher implements ToolDispatcherInterface
 {
-    public function dispatch(Agent $agent, string $name, string $arguments, ?string $conversationExternalId = null): ToolDispatchResult
+    public function dispatch(Agent $agent, string $name, string $arguments, ?string $conversationExternalId = null, ?string $chatterExternalId = null): ToolDispatchResult
     {
         $function = AgentFunction::query()
             ->where('user_id', $agent->user_id)
@@ -54,7 +54,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         try {
             $request = Http::timeout(max(1, (int) ceil($function->timeout_ms / 1000)))
                 ->withOptions(SafeUrl::clientOptions())
-                ->withHeaders($this->headers($function, $agent, $conversationExternalId));
+                ->withHeaders($this->headers($function, $agent, $conversationExternalId, $chatterExternalId));
 
             $response = $function->webhook_method === 'GET'
                 ? $request->get($function->webhook_url, $args)
@@ -114,7 +114,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
     /**
      * @return array<string, string>
      */
-    private function headers(AgentFunction $function, Agent $agent, ?string $conversationExternalId = null): array
+    private function headers(AgentFunction $function, Agent $agent, ?string $conversationExternalId = null, ?string $chatterExternalId = null): array
     {
         $headers = [
             'Accept' => 'application/json',
@@ -142,7 +142,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
 
         // Identity headers are stamped last so a customer's webhook_headers
         // can't shadow them.
-        return array_merge($headers, ToolCallerIdentity::headers($agent, $conversationExternalId));
+        return array_merge($headers, ToolCallerIdentity::headers($agent, $conversationExternalId, $chatterExternalId));
     }
 
     private function record(AgentFunction $function, Agent $agent, ?string $error = null): void

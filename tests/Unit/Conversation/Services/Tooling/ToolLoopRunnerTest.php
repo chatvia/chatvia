@@ -102,9 +102,9 @@ function tlrDispatcher(): ToolDispatcherInterface
         /** @var array<int, array<string, mixed>> */
         public array $calls = [];
 
-        public function dispatch(Agent $agent, string $name, string $arguments, ?string $conversationExternalId = null): ToolDispatchResult
+        public function dispatch(Agent $agent, string $name, string $arguments, ?string $conversationExternalId = null, ?string $chatterExternalId = null): ToolDispatchResult
         {
-            $this->calls[] = ['name' => $name, 'arguments' => $arguments, 'conversation' => $conversationExternalId];
+            $this->calls[] = ['name' => $name, 'arguments' => $arguments, 'conversation' => $conversationExternalId, 'chatter' => $chatterExternalId];
 
             return ToolDispatchResult::text("result of {$name}");
         }

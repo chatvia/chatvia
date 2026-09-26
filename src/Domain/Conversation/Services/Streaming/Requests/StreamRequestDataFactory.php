@@ -42,6 +42,7 @@ class StreamRequestDataFactory
             // owner/employee senders.
             chatterUserId: $chatter?->id,
             chatterName: $chatter?->name,
+            chatterExternalId: $chatter?->external_id,
             actorUserId: $actor?->id,
             actorName: $actor?->name,
             saveUserMessageImmediately: $request->boolean('save_user_message_immediately'),
@@ -83,6 +84,7 @@ class StreamRequestDataFactory
             // or their billing user_credits would be mistaken for a chatter cap.
             chatterUserId: $chatter && $chatter->isChatter() ? $chatter->id : null,
             chatterName: $chatter && $chatter->isChatter() ? $chatter->name : null,
+            chatterExternalId: $chatter && $chatter->isChatter() ? $chatter->external_id : null,
             // The audit actor is whoever is signed in — any type (owner/teammate
             // previewing, or a chatter); unlike chatterUserId it is not gated to
             // chatters and never affects billing.

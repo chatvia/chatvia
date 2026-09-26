@@ -97,6 +97,7 @@ final readonly class StreamEvent
         ?string $approvalId = null,
         ?string $reason = null,
         ?array $artifacts = null,
+        bool $internal = false,
     ): self {
         $data = [
             'phase' => $phase,
@@ -137,6 +138,13 @@ final readonly class StreamEvent
         }
         if ($artifacts !== null && $artifacts !== []) {
             $data['artifacts'] = $artifacts;
+        }
+        // First-party builtin capabilities (forms, charts, leads) are internal
+        // plumbing — the client suppresses the "Calling …" activity indicator for
+        // them. Artifacts (end phase) still render; the call is still logged
+        // server-side.
+        if ($internal) {
+            $data['internal'] = true;
         }
 
         return new self(EventType::Tool, $assistantMessageId, $data);

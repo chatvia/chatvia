@@ -1,0 +1,84 @@
+{
+  "widget": {
+    "privacy_consent": "继续聊天即表示您同意我们的{link}。",
+    "privacy_policy": "隐私政策",
+    "open_chat": "打开聊天",
+    "close_chat": "关闭聊天",
+    "expand_chat": "展开聊天",
+    "collapse_chat": "收起聊天",
+    "menu": "菜单",
+    "clear_current_chat": "清除当前聊天",
+    "send_message": "发送消息",
+    "type_message": "输入消息…",
+    "ask_question": "提出问题…",
+    "loading": "加载中",
+    "view_history": "查看聊天记录",
+    "scroll_to_bottom": "滚动到最新消息",
+    "upload_failed": "上传失败。"
+  },
+  "menu": {
+    "new_chat": "开始新聊天",
+    "chat_history": "聊天记录",
+    "clear_current": "清除当前聊天",
+    "clear_all": "全部清除",
+    "theme_toggle": "切换主题"
+  },
+  "conversations": {
+    "no_history": "没有聊天记录。",
+    "new_conversation": "新对话",
+    "unknown_date": "未知日期",
+    "just_now": "刚刚",
+    "minute_ago": "1 分钟前",
+    "minutes_ago": "{count} 分钟前",
+    "hour_ago": "1 小时前",
+    "hours_ago": "{count} 小时前",
+    "yesterday": "昨天",
+    "days_ago": "{count} 天前"
+  },
+  "confirm": {
+    "delete_chat_title": "删除聊天",
+    "delete_chat_message": "你确定要删除这个聊天吗?此操作无法撤销。",
+    "delete_all_title": "删除全部聊天",
+    "delete_all_message": "你确定要删除所有聊天记录吗?此操作无法撤销。",
+    "delete_button": "删除",
+    "delete_all_button": "全部删除",
+    "cancel": "取消"
+  },
+  "messages": {
+    "copy": "复制",
+    "copy_message": "复制消息",
+    "good_response": "回答得不错",
+    "bad_response": "回答不佳",
+    "retry": "重试",
+    "copied": "已复制!"
+  },
+  "handoff": {
+    "talk_to_human": "联系人工客服",
+    "connecting": "正在为你接入客服…",
+    "connected": "已接入 {name}",
+    "disconnected": "客服已离开对话",
+    "returned_to_bot": "对话已返回机器人",
+    "agent_typing": "{name} 正在输入…",
+    "waiting_for_agent": "正在等待空闲客服…",
+    "end_chat": "结束对话",
+    "end_live_chat_title": "结束实时对话",
+    "end_live_chat_message": "你确定要结束与客服的对话吗?",
+    "end_live_chat_tooltip": "结束实时对话"
+  },
+  "tool": {
+    "calling": "正在调用外部工具…"
+  },
+  "errors": {
+    "initialization_failed": "初始化错误,请稍后重试。",
+    "verification_failed": "客户端验证失败。",
+    "session_failed": "会话初始化失败。",
+    "connection_error": "连接错误,请检查你的网络。",
+    "message_send_failed": "消息发送失败,请重试。",
+    "response_failed": "生成回复时出错,请重试。",
+    "auth_required": "此聊天需要登录。"
+  },
+  "disclosure": {
+    "ai_assistant": "AI 助手",
+    "human_agent": "人工客服"
+  }
+}

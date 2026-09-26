@@ -119,7 +119,7 @@ function tlrDisplayResolver(): ToolDisplayResolver
 
         public function resolve(Agent $agent, string $toolName): array
         {
-            return ['kind' => 'function', 'label' => $toolName, 'activity_label' => null, 'icon_url' => null, 'brand_color' => null];
+            return ['kind' => 'function', 'label' => $toolName, 'activity_label' => null, 'is_builtin' => false, 'icon_url' => null, 'brand_color' => null];
         }
     };
 }

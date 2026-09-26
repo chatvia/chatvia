@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Widget Development</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 { color: #333; }
+    h2 { color: #555; margin-top: 30px; }
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover { transform: translateY(-1px); }
+    .btn-primary { background: #4F46E5; color: white; }
+    .btn-primary:hover { background: #4338CA; }
+    .btn-secondary { background: #6B7280; color: white; }
+    .btn-secondary:hover { background: #4B5563; }
+    .btn-success { background: #10B981; color: white; }
+    .btn-success:hover { background: #059669; }
+    .btn-danger { background: #EF4444; color: white; }
+    .btn-danger:hover { background: #DC2626; }
+    .btn-warning { background: #F59E0B; color: white; }
+    .btn-warning:hover { background: #D97706; }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px 15px;
+      border: 1px solid #D1D5DB;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    #event-log {
+      background: #1F2937;
+      color: #10B981;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 13px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+    #event-log .log-entry {
+      margin: 5px 0;
+      padding: 5px 0;
+      border-bottom: 1px solid #374151;
+    }
+    #event-log .log-time { color: #6B7280; }
+    #event-log .log-open { color: #10B981; }
+    #event-log .log-close { color: #EF4444; }
+    #event-log .log-ready { color: #F59E0B; }
+
+    .status {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-open { background: #D1FAE5; color: #065F46; }
+    .status-closed { background: #FEE2E2; color: #991B1B; }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+<h1>🧪 Chat Widget API Test</h1>
+<p>This page demonstrates all available API methods for the chat widget.</p>
+
+<div class="card">
+  <h2>📌 Widget Status</h2>
+  <p>Current state: <span id="status" class="status status-closed">Closed</span></p>
+  <button class="btn-secondary" onclick="checkStatus()">Check Status</button>
+</div>
+
+<div class="card">
+  <h2>🔧 Basic Controls</h2>
+  <div class="button-group">
+    <button class="btn-primary" onclick="chatvia.open()">Open</button>
+    <button class="btn-secondary" onclick="chatvia.close()">Close</button>
+    <button class="btn-warning" onclick="chatvia.toggle()">Toggle</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>💬 Send Message</h2>
+  <div class="input-group">
+    <input type="text" id="message-input" placeholder="Type a message..." value="Hello from API!">
+    <button class="btn-success" onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🔄 Chat Management</h2>
+  <div class="button-group">
+    <button class="btn-primary" onclick="chatvia.newChat()">New Chat</button>
+    <button class="btn-danger" onclick="destroyWidget()">Destroy Widget</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>📡 Event Log</h2>
+  <p>Events are logged below as they occur:</p>
+  <div id="event-log">
+    <div class="log-entry"><span class="log-time">[Waiting for events...]</span></div>
+  </div>
+  <button class="btn-secondary" onclick="clearLog()" style="margin-top: 10px;">Clear Log</button>
+</div>
+
+<div class="card">
+  <h2>📚 API Reference</h2>
+  <table style="width: 100%; border-collapse: collapse;">
+    <tr style="background: #F3F4F6;">
+      <th style="padding: 10px; text-align: left;">Method</th>
+      <th style="padding: 10px; text-align: left;">Description</th>
+    </tr>
+    <tr><td style="padding: 8px; font-family: monospace;">chatvia.open()</td><td style="padding: 8px;">Opens the chat window</td></tr>
+    <tr style="background: #F9FAFB;"><td style="padding: 8px; font-family: monospace;">chatvia.close()</td><td style="padding: 8px;">Closes the chat window</td></tr>
+    <tr><td style="padding: 8px; font-family: monospace;">chatvia.toggle()</td><td style="padding: 8px;">Toggles open/close state</td></tr>
+    <tr style="background: #F9FAFB;"><td style="padding: 8px; font-family: monospace;">chatvia.isOpen()</td><td style="padding: 8px;">Returns boolean if open</td></tr>
+    <tr><td style="padding: 8px; font-family: monospace;">chatvia.send(msg)</td><td style="padding: 8px;">Sends a message programmatically</td></tr>
+    <tr style="background: #F9FAFB;"><td style="padding: 8px; font-family: monospace;">chatvia.newChat()</td><td style="padding: 8px;">Starts a new chat conversation</td></tr>
+    <tr><td style="padding: 8px; font-family: monospace;">chatvia.destroy()</td><td style="padding: 8px;">Destroys widget & cleans up</td></tr>
+    <tr style="background: #F9FAFB;"><td style="padding: 8px; font-family: monospace;">chatvia.on(event, fn)</td><td style="padding: 8px;">Subscribe to events (open, close, ready)</td></tr>
+    <tr><td style="padding: 8px; font-family: monospace;">chatvia.off(event, fn)</td><td style="padding: 8px;">Unsubscribe from events</td></tr>
+  </table>
+</div>
+
+<script>
+  // Helper functions
+  function logEvent(message, type = '') {
+    const log = document.getElementById('event-log');
+    const time = new Date().toLocaleTimeString();
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-${type}">${message}</span>`;
+
+    // Remove "waiting" message if it exists
+    const waiting = log.querySelector('.log-entry:first-child');
+    if (waiting && waiting.textContent.includes('Waiting')) {
+      waiting.remove();
+    }
+
+    log.insertBefore(entry, log.firstChild);
+  }
+
+  function clearLog() {
+    document.getElementById('event-log').innerHTML = '<div class="log-entry"><span class="log-time">[Log cleared]</span></div>';
+  }
+
+  function updateStatus() {
+    const statusEl = document.getElementById('status');
+    if (window.chatvia && typeof window.chatvia.isOpen === 'function') {
+      const isOpen = chatvia.isOpen();
+      statusEl.textContent = isOpen ? 'Open' : 'Closed';
+      statusEl.className = 'status ' + (isOpen ? 'status-open' : 'status-closed');
+    }
+  }
+
+  function checkStatus() {
+    if (window.chatvia && typeof window.chatvia.isOpen === 'function') {
+      const isOpen = chatvia.isOpen();
+      logEvent(`Status check: ${isOpen ? 'OPEN' : 'CLOSED'}`, isOpen ? 'open' : 'close');
+      updateStatus();
+    } else {
+      logEvent('Widget not ready yet');
+    }
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('message-input');
+    const message = input.value.trim();
+    if (message && window.chatvia) {
+      chatvia.send(message);
+      logEvent(`Sent: "${message}"`, 'open');
+      input.value = '';
+    }
+  }
+
+  function destroyWidget() {
+    if (confirm('Are you sure you want to destroy the widget? You will need to refresh to reload it.')) {
+      chatvia.destroy();
+      logEvent('Widget destroyed!', 'close');
+    }
+  }
+
+  // Wait for widget to be ready, then set up event listeners
+  function setupEventListeners() {
+    if (window.chatvia && typeof window.chatvia.on === 'function') {
+      chatvia.on('ready', () => {
+        logEvent('🚀 Widget READY', 'ready');
+        updateStatus();
+      });
+
+      chatvia.on('open', () => {
+        logEvent('📂 Chat OPENED', 'open');
+        updateStatus();
+      });
+
+      chatvia.on('close', () => {
+        logEvent('📁 Chat CLOSED', 'close');
+        updateStatus();
+      });
+
+      logEvent('Event listeners registered');
+    } else {
+      // Widget not ready yet, try again
+      setTimeout(setupEventListeners, 100);
+    }
+  }
+
+  // Load the widget
+  const today = new Date();
+  const dateString = today.toISOString().split('T')[0];
+  const script = document.createElement('script');
+  script.id = 'chatbot-embed-script';
+  script.src = `dist/embed.js?c=${dateString}`;
+  script.defer = true;
+  script.setAttribute('data-agent-id', '407f7fdfa1cf18');
+  script.onload = () => {
+    logEvent('Embed script loaded');
+    setupEventListeners();
+  };
+  document.body.appendChild(script);
+</script>
+</body>
+</html>

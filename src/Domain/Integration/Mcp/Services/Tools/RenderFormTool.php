@@ -132,7 +132,7 @@ class RenderFormTool extends Tool
         ];
 
         return Response::make(Response::text(
-            "A form titled \"{$definition->name}\" has been shown to the visitor below. Wait for them to fill and submit it — do not ask for these fields in text. The form stores the answers itself when submitted."
+            "A form titled \"{$definition->name}\" is now displayed to the visitor. Briefly invite them to fill it in — do NOT say where on screen it appears (it is not necessarily \"below\"), and do not ask for these fields in text. The form stores the answers itself when submitted."
         ))->withStructuredContent(['form' => $artifact]);
     }
 

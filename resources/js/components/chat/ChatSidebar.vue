@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import isMobile from 'is-mobile';
+import { useIsMobile } from '@/composables/useIsMobile';
 import {
     Bot,
     Check,
@@ -83,7 +83,7 @@ const props = defineProps({
     },
 });
 
-const isMobileDevice = isMobile();
+const isMobileDevice = useIsMobile();
 const page = usePage();
 const conversations = ref<Conversation[]>([]);
 const chatEventBus = inject('chatEventBus') as any;
@@ -91,6 +91,11 @@ const { t } = useI18n();
 const emit = defineEmits(['update:open']);
 const isSidebarOpen = ref(props.open);
 const searchDialogOpen = ref(false);
+
+// Platform-aware label for the Cmd/Ctrl+K search shortcut hint.
+const searchShortcutHint = computed(() =>
+    typeof navigator !== 'undefined' && /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent) ? '⌘K' : 'Ctrl K',
+);
 const editingId = ref<string | number | null>(null);
 const editingTitle = ref('');
 const deleteDialogOpen = ref(false);
@@ -173,14 +178,14 @@ const windowWidth = ref(window.innerWidth);
 onMounted(() => {
     loadConversations();
 
-    if (isMobile()) {
+    if (isMobileDevice.value) {
         isSidebarOpen.value = false;
     } else {
         const savedSidebarState = localStorage.getItem('sidebarOpen');
         if (savedSidebarState !== null) {
             isSidebarOpen.value = savedSidebarState === 'true';
         } else {
-            isSidebarOpen.value = !isMobileDevice;
+            isSidebarOpen.value = !isMobileDevice.value;
             localStorage.setItem('sidebarOpen', String(isSidebarOpen.value));
         }
         emit('update:open', isSidebarOpen.value);
@@ -206,7 +211,7 @@ onUnmounted(() => {
 });
 
 const newConversation = () => {
-    if (isMobileDevice) {
+    if (isMobileDevice.value) {
         localStorage.setItem('sidebarOpen', String(false));
         isSidebarOpen.value = false;
     }
@@ -219,7 +224,7 @@ const newConversation = () => {
 
 // Open a conversation picked from the search dialog.
 const goToConversation = (id: string | number) => {
-    if (isMobileDevice) {
+    if (isMobileDevice.value) {
         localStorage.setItem('sidebarOpen', String(false));
         isSidebarOpen.value = false;
     }
@@ -569,6 +574,10 @@ const switchToSelectedAgent = () => {
                 >
                     <Search class="h-5 w-5" />
                     <span>{{ t('sidebar.search_chats') }}</span>
+                    <kbd
+                        class="text-muted-foreground border-border bg-background ms-auto hidden rounded border px-1.5 py-0.5 font-mono text-[10px] leading-none md:inline-block"
+                        >{{ searchShortcutHint }}</kbd
+                    >
                 </button>
             </nav>
 
@@ -1035,7 +1044,7 @@ const switchToSelectedAgent = () => {
 /* Smooth scrollbar */
 :deep(.scroll-area-viewport) {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+    scrollbar-color: color-mix(in srgb, var(--muted-foreground) 20%, transparent) transparent;
 }
 
 :deep(.scroll-area-viewport::-webkit-scrollbar) {
@@ -1047,11 +1056,11 @@ const switchToSelectedAgent = () => {
 }
 
 :deep(.scroll-area-viewport::-webkit-scrollbar-thumb) {
-    background: hsl(var(--muted-foreground) / 0.2);
+    background: color-mix(in srgb, var(--muted-foreground) 20%, transparent);
     border-radius: 4px;
 }
 
 :deep(.scroll-area-viewport::-webkit-scrollbar-thumb:hover) {
-    background: hsl(var(--muted-foreground) / 0.3);
+    background: color-mix(in srgb, var(--muted-foreground) 30%, transparent);
 }
 </style>

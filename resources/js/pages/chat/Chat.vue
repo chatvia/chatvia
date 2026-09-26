@@ -8,6 +8,7 @@ import { resolveAppearanceText } from '@/lib/appearanceText';
 import UserChatBubble from '@/components/chat/UserChatBubble.vue';
 import { useChatStream } from '@/composables/useChatStream';
 import { useColorTheme } from '@/composables/useColorTheme';
+import { useIsMobile } from '@/composables/useIsMobile';
 import { router, usePage } from '@inertiajs/vue3';
 import { useScroll } from '@vueuse/core';
 import axios from 'axios';
@@ -138,6 +139,12 @@ const loadingMessages = ref(true);
 const messages = ref([]);
 
 const isSidebarOpen = ref(false);
+const isMobile = useIsMobile();
+
+// Screen-reader announcer for streaming/agent status. Updated only on discrete
+// events (stream start, each tool call, completion) — never per token — so a
+// polite aria-live region narrates progress without spamming assistive tech.
+const liveAnnouncement = ref('');
 const isAutoScrollEnabled = ref(true);
 const scrollTimeout = ref(null);
 const messagesContainer = ref(null);
@@ -293,7 +300,7 @@ async function messageAdded(message, attachments = []) {
         id: 0,
     });
 
-    if (window.innerWidth < 768 && isSidebarOpen.value) {
+    if (isMobile.value && isSidebarOpen.value) {
         isSidebarOpen.value = false;
     }
 
@@ -348,7 +355,7 @@ function checkScreenSize() {
     if (savedSidebarState !== null) {
         isSidebarOpen.value = savedSidebarState === 'true';
     } else {
-        isSidebarOpen.value = window.innerWidth >= 768;
+        isSidebarOpen.value = !isMobile.value;
         localStorage.setItem('sidebarOpen', isSidebarOpen.value);
     }
 }
@@ -557,6 +564,8 @@ function buildStreamCallbacks({ userIndex, assistantIndex, isNewConversation = f
             // A (resume) stream beginning supersedes any approval cards on this
             // message — the continuation now drives the UI.
             clearApprovalsFor(data.assistant_message_id);
+
+            liveAnnouncement.value = t('messages.responding');
         },
         onDelta: (text) => {
             const msg = findStreamingAssistant(streamingAssistantId.value, assistantIndex);
@@ -609,6 +618,10 @@ function buildStreamCallbacks({ userIndex, assistantIndex, isNewConversation = f
             // yields `tool { phase: 'start' }` before dispatching and
             // `{ phase: 'end' }` after — synchronous + in order with the stream.
             if (data.phase === 'start') {
+                // Builtin capabilities (forms, charts, leads) are internal
+                // plumbing — never surface a "Calling …" indicator for them. The
+                // 'end' phase below still captures any artifacts they return.
+                if (data.internal) return;
                 activeFunctionCalls.value.set(data.tool_call_id, {
                     tool_call_id: data.tool_call_id,
                     name: data.name ?? '',
@@ -619,6 +632,7 @@ function buildStreamCallbacks({ userIndex, assistantIndex, isNewConversation = f
                     brand_color: data.brand_color ?? null,
                     started_at: Date.now(),
                 });
+                liveAnnouncement.value = data.activity_label || t('messages.calling', { label: data.label ?? data.name ?? '' });
             } else if (data.phase === 'end') {
                 activeFunctionCalls.value.delete(data.tool_call_id);
 
@@ -659,6 +673,7 @@ function buildStreamCallbacks({ userIndex, assistantIndex, isNewConversation = f
         onDone: () => {
             streamingAssistantId.value = null;
             activeFunctionCalls.value.clear();
+            liveAnnouncement.value = t('messages.response_complete');
 
             if (isNewConversation) {
                 void generateTitleThenRefresh();
@@ -1047,6 +1062,9 @@ const handleScrollToBottomClick = () => {
         :newChatRoute="props.newChatRoute"
     >
         <template #content>
+            <!-- Screen-reader-only status channel: narrates streaming / tool /
+                 completion state without spamming per token (see liveAnnouncement). -->
+            <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">{{ liveAnnouncement }}</div>
             <div class="relative flex h-full flex-col overflow-hidden">
                 <div
                     id="messages-container"
@@ -1546,11 +1564,15 @@ body,
     contain: layout style;
 }
 
-/* Better focus states */
-:focus-visible {
-    outline: 2px solid hsl(var(--primary));
-    outline-offset: 2px;
-}
+/* NOTE: no global :focus-visible outline here.
+   This block previously used `outline: 2px solid hsl(var(--primary))`, which is
+   invalid (the theme tokens are already full color functions) and was silently
+   dropped — so it never rendered in production. Fixing the token bug activated
+   it as an UNSCOPED global rule, painting a 2px ring on every focused input
+   (the composer, the conversation search). Inputs and buttons own their focus
+   styling; the browser default covers everything else. If a deliberate global
+   keyboard-focus indicator is wanted, add it app-wide (app.css) and test it —
+   not from this page's global style block. */
 
 /* Transitions */
 .fade-enter-active,
@@ -1581,7 +1603,7 @@ body,
 }
 
 .chat-primary-button {
-    background-color: var(--chat-primary-color, hsl(var(--primary))) !important;
+    background-color: var(--chat-primary-color, var(--primary)) !important;
 }
 
 .dark .chat-assistant-bubble {

@@ -1,0 +1,84 @@
+{
+  "widget": {
+    "privacy_consent": "Sohbet ederek {link} kabul etmiş olursunuz.",
+    "privacy_policy": "gizlilik politikamızı",
+    "open_chat": "Sohbeti aç",
+    "close_chat": "Sohbeti kapat",
+    "expand_chat": "Sohbeti büyüt",
+    "collapse_chat": "Sohbeti küçült",
+    "menu": "Menü",
+    "clear_current_chat": "Mevcut sohbeti temizle",
+    "send_message": "Mesajı gönder",
+    "type_message": "Bir mesaj yazın…",
+    "ask_question": "Bir soru sorun…",
+    "loading": "Yükleniyor",
+    "view_history": "Sohbet geçmişini görüntüle",
+    "scroll_to_bottom": "En son mesaja git",
+    "upload_failed": "Yükleme başarısız oldu."
+  },
+  "menu": {
+    "new_chat": "Yeni sohbet başlat",
+    "chat_history": "Sohbet geçmişi",
+    "clear_current": "Mevcut sohbeti temizle",
+    "clear_all": "Tümünü temizle",
+    "theme_toggle": "Temayı değiştir"
+  },
+  "conversations": {
+    "no_history": "Sohbet geçmişi bulunmuyor.",
+    "new_conversation": "Yeni konuşma",
+    "unknown_date": "Bilinmeyen tarih",
+    "just_now": "Şimdi",
+    "minute_ago": "1 dakika önce",
+    "minutes_ago": "{count} dakika önce",
+    "hour_ago": "1 saat önce",
+    "hours_ago": "{count} saat önce",
+    "yesterday": "Dün",
+    "days_ago": "{count} gün önce"
+  },
+  "confirm": {
+    "delete_chat_title": "Sohbeti Sil",
+    "delete_chat_message": "Bu sohbeti silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "delete_all_title": "Tüm Sohbetleri Sil",
+    "delete_all_message": "TÜM sohbet geçmişinizi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+    "delete_button": "Sil",
+    "delete_all_button": "Tümünü Sil",
+    "cancel": "İptal"
+  },
+  "messages": {
+    "copy": "Kopyala",
+    "copy_message": "Mesajı kopyala",
+    "good_response": "İyi yanıt",
+    "bad_response": "Kötü yanıt",
+    "retry": "Yeniden dene",
+    "copied": "Kopyalandı!"
+  },
+  "handoff": {
+    "talk_to_human": "Bir kişiyle konuş",
+    "connecting": "Bir temsilciye bağlanıyorsunuz…",
+    "connected": "{name} ile bağlandınız",
+    "disconnected": "Temsilci konuşmadan ayrıldı",
+    "returned_to_bot": "Konuşma bota geri döndü",
+    "agent_typing": "{name} yazıyor…",
+    "waiting_for_agent": "Uygun bir temsilci bekleniyor…",
+    "end_chat": "Sohbeti Bitir",
+    "end_live_chat_title": "Canlı Sohbeti Bitir",
+    "end_live_chat_message": "Temsilciyle konuşmayı bitirmek istediğinizden emin misiniz?",
+    "end_live_chat_tooltip": "Canlı sohbeti bitir"
+  },
+  "tool": {
+    "calling": "Harici araç çağrılıyor…"
+  },
+  "errors": {
+    "initialization_failed": "Başlatma hatası. Lütfen daha sonra tekrar deneyin.",
+    "verification_failed": "İstemci doğrulaması başarısız oldu.",
+    "session_failed": "Oturum başlatılamadı.",
+    "connection_error": "Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.",
+    "message_send_failed": "Mesaj gönderilemedi. Lütfen tekrar deneyin.",
+    "response_failed": "Yanıt oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.",
+    "auth_required": "Bu sohbet için oturum açmanız gerekiyor."
+  },
+  "disclosure": {
+    "ai_assistant": "Yapay zekâ asistanı",
+    "human_agent": "Canlı temsilci"
+  }
+}

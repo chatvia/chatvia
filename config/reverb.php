@@ -87,6 +87,22 @@ return [
                 'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
                 'max_message_size' => env('REVERB_APP_MAX_MESSAGE_SIZE', 10_000),
             ],
+            ...(env('HEJLY_REVERB_APP_ID') ? [[
+                'key' => env('HEJLY_REVERB_APP_KEY'),
+                'secret' => env('HEJLY_REVERB_APP_SECRET'),
+                'app_id' => env('HEJLY_REVERB_APP_ID'),
+                'options' => [
+                    'host' => 'hejly.dk',
+                    'port' => 443,
+                    'scheme' => 'https',
+                    'useTLS' => true,
+                ],
+                'allowed_origins' => ['hejly.dk', 'www.hejly.dk'],
+                'ping_interval' => 60,
+                'activity_timeout' => 30,
+                'max_message_size' => 10_000,
+                'accept_client_events_from' => 'members',
+            ]] : []),
         ],
 
     ],

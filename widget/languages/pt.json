@@ -1,0 +1,84 @@
+{
+  "widget": {
+    "privacy_consent": "Ao conversar, você concorda com a nossa {link}.",
+    "privacy_policy": "política de privacidade",
+    "open_chat": "Abrir chat",
+    "close_chat": "Fechar chat",
+    "expand_chat": "Expandir chat",
+    "collapse_chat": "Recolher chat",
+    "menu": "Menu",
+    "clear_current_chat": "Limpar chat atual",
+    "send_message": "Enviar mensagem",
+    "type_message": "Digite uma mensagem...",
+    "ask_question": "Faça uma pergunta...",
+    "loading": "Carregando",
+    "view_history": "Ver histórico de chats",
+    "scroll_to_bottom": "Ir para a última mensagem",
+    "upload_failed": "Falha no envio do arquivo."
+  },
+  "menu": {
+    "new_chat": "Iniciar novo chat",
+    "chat_history": "Histórico de chats",
+    "clear_current": "Limpar chat atual",
+    "clear_all": "Limpar tudo",
+    "theme_toggle": "Alternar tema"
+  },
+  "conversations": {
+    "no_history": "Nenhum histórico de chat disponível.",
+    "new_conversation": "Nova conversa",
+    "unknown_date": "Data desconhecida",
+    "just_now": "Agora mesmo",
+    "minute_ago": "há 1 minuto",
+    "minutes_ago": "há {count} minutos",
+    "hour_ago": "há 1 hora",
+    "hours_ago": "há {count} horas",
+    "yesterday": "Ontem",
+    "days_ago": "há {count} dias"
+  },
+  "confirm": {
+    "delete_chat_title": "Excluir chat",
+    "delete_chat_message": "Tem certeza de que deseja excluir este chat? Esta ação não pode ser desfeita.",
+    "delete_all_title": "Excluir todos os chats",
+    "delete_all_message": "Tem certeza de que deseja excluir TODO o seu histórico de chats? Esta ação não pode ser desfeita.",
+    "delete_button": "Excluir",
+    "delete_all_button": "Excluir tudo",
+    "cancel": "Cancelar"
+  },
+  "messages": {
+    "copy": "Copiar",
+    "copy_message": "Copiar mensagem",
+    "good_response": "Boa resposta",
+    "bad_response": "Resposta ruim",
+    "retry": "Tentar novamente",
+    "copied": "Copiado!"
+  },
+  "handoff": {
+    "talk_to_human": "Falar com um atendente",
+    "connecting": "Conectando você a um atendente...",
+    "connected": "Conectado a {name}",
+    "disconnected": "O atendente saiu da conversa",
+    "returned_to_bot": "Conversa devolvida ao bot",
+    "agent_typing": "{name} está digitando...",
+    "waiting_for_agent": "Aguardando um atendente disponível...",
+    "end_chat": "Encerrar chat",
+    "end_live_chat_title": "Encerrar chat ao vivo",
+    "end_live_chat_message": "Tem certeza de que deseja encerrar a conversa com o atendente?",
+    "end_live_chat_tooltip": "Encerrar chat ao vivo"
+  },
+  "tool": {
+    "calling": "Chamando ferramenta externa..."
+  },
+  "errors": {
+    "initialization_failed": "Erro de inicialização. Tente novamente mais tarde.",
+    "verification_failed": "Falha na verificação do cliente.",
+    "session_failed": "Falha na inicialização da sessão.",
+    "connection_error": "Erro de conexão. Verifique sua conexão com a internet.",
+    "message_send_failed": "Falha ao enviar a mensagem. Tente novamente.",
+    "response_failed": "Algo deu errado ao gerar a resposta. Tente novamente.",
+    "auth_required": "Este chat requer login."
+  },
+  "disclosure": {
+    "ai_assistant": "Assistente de IA",
+    "human_agent": "Agente humano"
+  }
+}

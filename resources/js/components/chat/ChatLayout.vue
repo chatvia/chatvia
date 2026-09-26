@@ -4,8 +4,9 @@ import Header from '@/components/chat/Header.vue';
 import { Toaster } from '@/components/ui/sonner';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { vOnClickOutside } from '@vueuse/components';
+import { onKeyStroke } from '@vueuse/core';
 import axios from 'axios';
-import isMobile from 'is-mobile';
+import { useIsMobile } from '@/composables/useIsMobile';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -50,7 +51,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 
-const isMobileDevice = isMobile();
+const isMobileDevice = useIsMobile();
 
 const pageTitle = computed(() => props.appearance?.chat_window_title || t('shared.chat_title_fallback'));
 
@@ -61,25 +62,24 @@ const isIncognitoMode = ref(false);
 
 // Save sidebar state to localStorage when it changes
 watch(isSidebarOpen, (newValue) => {
-    if (!isMobileDevice) {
+    if (!isMobileDevice.value) {
         localStorage.setItem('sidebarOpen', String(newValue));
     }
 });
 
 function checkScreenSize() {
-    const isDesktop = window.innerWidth >= 768;
-    if (isDesktop && !isMobileDevice) {
+    if (!isMobileDevice.value) {
         // Only auto-open on desktop
         isSidebarOpen.value = true;
-    } else if (isMobileDevice) {
-        // Always close on mobile when resizing
+    } else {
+        // Always close on mobile
         isSidebarOpen.value = false;
     }
 }
 
 onMounted(() => {
     // Initialize sidebar state from localStorage or hideSidebarOnPageLoad prop
-    if (!isMobileDevice && !props.removeSidebar) {
+    if (!isMobileDevice.value && !props.removeSidebar) {
         if (props.hideSidebarOnPageLoad) {
             // If hideSidebarOnPageLoad prop is true, start with sidebar closed
             isSidebarOpen.value = false;
@@ -90,7 +90,7 @@ onMounted(() => {
             if (savedSidebarState !== null) {
                 isSidebarOpen.value = savedSidebarState === 'true';
             } else {
-                isSidebarOpen.value = window.innerWidth >= 768;
+                isSidebarOpen.value = !isMobileDevice.value;
                 localStorage.setItem('sidebarOpen', String(isSidebarOpen.value));
             }
         }
@@ -110,7 +110,7 @@ const deleteConversation = (conversationId: string) => {
 };
 
 const closeSidebarOnMobile = () => {
-    if (isMobileDevice) {
+    if (isMobileDevice.value) {
         isSidebarOpen.value = false;
     }
 };
@@ -118,6 +118,14 @@ const closeSidebarOnMobile = () => {
 const toggleSidebar = () => {
     isSidebarOpen.value = !isSidebarOpen.value;
 };
+
+// Cmd/Ctrl+B toggles the conversation sidebar (the convention the shadcn
+// Sidebar primitive uses). Cmd/Ctrl+K (search) is owned by ChatSidebar.
+onKeyStroke('b', (e) => {
+    if (props.removeSidebar || !(e.metaKey || e.ctrlKey)) return;
+    e.preventDefault();
+    toggleSidebar();
+});
 
 const handleToggleIncognito = (value: boolean) => {
     isIncognitoMode.value = value;

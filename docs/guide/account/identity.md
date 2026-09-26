@@ -32,7 +32,7 @@ The token is a standard **JWT signed with HS256** using your signing secret. It 
 
 | Claim | Value |
 | --- | --- |
-| `sub` | The chatter's ID in *your* system (any opaque string). |
+| `sub` | The chatter's **Chatvia ID** — the `id` returned by `POST /api/v1/chatters` when you provisioned them (or shown in **Settings → Members**). Not your own app's user ID: Chatvia can only sign in a chatter it already knows. |
 | `aud` | The agent ID (the same value passed to the widget as `data-agent-id`). |
 | `exp` | Unix expiry timestamp. **Max lifetime is 1 hour** (3600 seconds). |
 
@@ -49,7 +49,7 @@ const SIGNING_SECRET = process.env.CHATVIA_SIGNING_SECRET
 function signChatviaToken(chatterId, agentId, ttlSeconds = 3600) {
   return jwt.sign(
     {
-      sub: chatterId, // the id of the chatter being signed in
+      sub: chatterId, // the chatter's Chatvia id (from POST /api/v1/chatters)
       aud: agentId,   // the agent ID (same as data-agent-id)
     },
     SIGNING_SECRET,
@@ -58,7 +58,7 @@ function signChatviaToken(chatterId, agentId, ttlSeconds = 3600) {
 }
 
 // Pass it to the widget as data-auth.
-const token = signChatviaToken('chatter_123', 'YOUR_AGENT_ID')
+const token = signChatviaToken(user.chatviaChatterId, 'YOUR_AGENT_ID')
 ```
 
 ### PHP
@@ -79,7 +79,7 @@ function sign_chatvia_token(string $secret, string $chatterId, string $agentId, 
     ], $secret, 'HS256');
 }
 
-$token = sign_chatvia_token($secret, 'chatter_123', 'YOUR_AGENT_ID');
+$token = sign_chatvia_token($secret, $user->chatvia_chatter_id, 'YOUR_AGENT_ID');
 ```
 
 ### Python
@@ -96,6 +96,8 @@ def sign_chatvia_token(chatter_id: str, agent_id: str, ttl_seconds: int = 3600) 
         algorithm='HS256',
     )
 ```
+
+Store the chatter ID your backend gets from `POST /api/v1/chatters` next to your own user record, and sign that. The three snippets above read it from the user (`chatviaChatterId` / `chatvia_chatter_id`).
 
 ## Where the token goes
 

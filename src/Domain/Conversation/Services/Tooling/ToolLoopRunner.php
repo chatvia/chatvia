@@ -268,6 +268,7 @@ class ToolLoopRunner
             $pc['name'],
             $pc['arguments'],
             $context->requestData->conversationId,
+            $context->requestData->chatterExternalId,
         );
         $latencyMs = (int) round((microtime(true) - $start) * 1000);
 

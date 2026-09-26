@@ -2,8 +2,10 @@
 
 namespace Domain\Integration\Mcp\Observers;
 
+use Domain\Conversation\Jobs\EmbedMcpToolsJob;
 use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Mcp\Models\McpTool;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -29,6 +31,19 @@ class AgentMcpServerObserver
     public function updated(AgentMcpServer $server): void
     {
         $this->forgetForAllAttachedAgents($server);
+
+        // Per-server tools embed the server's name + description as context, so
+        // renaming or re-describing the server makes every embedding stale.
+        // Null them and queue a re-embed so routing matches the new wording.
+        if ($server->wasChanged(['name', 'description'])) {
+            $stale = McpTool::query()
+                ->where('mcp_server_id', $server->id)
+                ->update(['embedding' => null, 'embedding_bm25' => null]);
+
+            if ($stale > 0) {
+                EmbedMcpToolsJob::dispatch($server->id);
+            }
+        }
     }
 
     public function deleted(AgentMcpServer $server): void

@@ -103,3 +103,31 @@ it('caps always-on tools at ten even if a pinned catalog grew', function (): voi
 
     expect(tsSelector($pool, [])->selectForTurn($this->agent, 'hi', null))->toHaveCount(10);
 });
+
+it('skips the router entirely when every tool in the pool is always-on', function (): void {
+    tsAttach($this->agent, 'tutor', alwaysAvailable: true);
+    $pool = [tsEntry('mcp__tutor__ask'), tsEntry('mcp__tutor__correct')];
+
+    $registry = new class($pool) extends ToolRegistry
+    {
+        /** @param array<int, ToolEntry> $pool */
+        public function __construct(private readonly array $pool) {}
+
+        public function for(Agent $agent): array
+        {
+            return $this->pool;
+        }
+    };
+    $router = new class extends SemanticToolRouter
+    {
+        public function __construct() {}
+
+        public function route(string $userMessage, Agent $agent): array
+        {
+            throw new RuntimeException('router must not run for a fully pinned pool');
+        }
+    };
+    $selector = new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(TokenUsageContext::class), app(AlwaysAvailableToolResolver::class));
+
+    expect(array_column(array_column($selector->selectForTurn($this->agent, 'hi', null), 'function'), 'name'))->toBe(['mcp__tutor__ask', 'mcp__tutor__correct']);
+});

@@ -46,6 +46,30 @@ class ToolSelector
             return [];
         }
 
+        // Always-on connectors ship regardless of the router's verdict — a
+        // dedicated tutor/CRM agent must see its own tools even on "hi". They
+        // are excluded from the search itself (ToolHybridSearch), so when the
+        // whole pool is pinned there is nothing left to search: skip the
+        // router and its embedding call outright.
+        $pinned = $this->alwaysAvailable->resolve($agent, $pool);
+        $pinnedNames = [];
+        foreach ($pinned as $entry) {
+            $pinnedNames[$entry->name] = true;
+        }
+        $searchable = array_filter($pool, static fn (ToolEntry $entry): bool => ! isset($pinnedNames[$entry->name]));
+
+        if ($searchable === []) {
+            $shipped = $this->surfaceFilter->apply($pinned, $conversationId);
+
+            Log::debug('ToolSelector: whole pool is always-on; routing skipped', [
+                'agent_id' => $agent->id,
+                'conversation_id' => $conversationId,
+                'shipped_names' => array_map(static fn (ToolEntry $entry): string => $entry->name, $shipped),
+            ]);
+
+            return array_map(static fn (ToolEntry $entry): array => $entry->toOpenAiFormat(), $shipped);
+        }
+
         try {
             // Tool routing embeds the user message (SemanticToolRouter::route →
             // embedQuery) — and runs inside the streaming generator, after the
@@ -71,14 +95,13 @@ class ToolSelector
             return array_map(static fn (ToolEntry $entry): array => $entry->toOpenAiFormat(), $pool);
         }
 
-        // Always-on connectors ship regardless of the router's verdict — a
-        // dedicated tutor/CRM agent must see its own tools even on "hi".
+        // Union the always-on tools with whatever the router returned.
         $pinnedAdded = [];
         $routedNames = [];
         foreach ($routed as $entry) {
             $routedNames[$entry->name] = true;
         }
-        foreach ($this->alwaysAvailable->resolve($agent, $pool) as $entry) {
+        foreach ($pinned as $entry) {
             if (! isset($routedNames[$entry->name])) {
                 $routed[] = $entry;
                 $routedNames[$entry->name] = true;

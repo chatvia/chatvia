@@ -16,6 +16,7 @@ use Throwable;
  *
  *   - Ask SemanticToolRouter for the ranked tool set (hybrid vector +
  *     BM25 retrieval in SQL).
+ *   - Union the agent's "always on" connector tools (AlwaysAvailableToolResolver).
  *   - Union sticky tools from recent assistant turns of the conversation.
  *   - Flatten the result to the OpenAI `tools` shape LlmSource expects.
  *
@@ -31,6 +32,7 @@ class ToolSelector
         private readonly StickyToolResolver $sticky,
         private readonly SurfaceToolFilter $surfaceFilter,
         private readonly TokenUsageContext $usage,
+        private readonly AlwaysAvailableToolResolver $alwaysAvailable,
     ) {}
 
     /**
@@ -39,7 +41,8 @@ class ToolSelector
     public function selectForTurn(Agent $agent, string $userMessage, ?string $conversationId): array
     {
         // Empty pool: skip the router (it embeds the message before anything else).
-        if ($this->registry->for($agent) === []) {
+        $pool = $this->registry->for($agent);
+        if ($pool === []) {
             return [];
         }
 
@@ -68,6 +71,21 @@ class ToolSelector
             return array_map(static fn (ToolEntry $entry): array => $entry->toOpenAiFormat(), $pool);
         }
 
+        // Always-on connectors ship regardless of the router's verdict — a
+        // dedicated tutor/CRM agent must see its own tools even on "hi".
+        $pinnedAdded = [];
+        $routedNames = [];
+        foreach ($routed as $entry) {
+            $routedNames[$entry->name] = true;
+        }
+        foreach ($this->alwaysAvailable->resolve($agent, $pool) as $entry) {
+            if (! isset($routedNames[$entry->name])) {
+                $routed[] = $entry;
+                $routedNames[$entry->name] = true;
+                $pinnedAdded[] = $entry->name;
+            }
+        }
+
         if ($routed === []) {
             Log::debug('ToolSelector: routing returned no tools', [
                 'agent_id' => $agent->id,
@@ -81,10 +99,6 @@ class ToolSelector
         $stickyAdded = [];
 
         if ($stickyNames !== []) {
-            $routedNames = [];
-            foreach ($routed as $entry) {
-                $routedNames[$entry->name] = true;
-            }
             // Sticky union: pull anything the model used recently back
             // into the set even if the router didn't rank it high enough
             // this turn. Pulls from the full cached pool so it doesn't
@@ -109,6 +123,7 @@ class ToolSelector
             'agent_id' => $agent->id,
             'conversation_id' => $conversationId,
             'shipped_count' => count($shipped),
+            'always_on_added' => $pinnedAdded,
             'sticky_added' => $stickyAdded,
             'shipped_names' => array_map(static fn (ToolEntry $entry): string => $entry->name, $shipped),
         ]);

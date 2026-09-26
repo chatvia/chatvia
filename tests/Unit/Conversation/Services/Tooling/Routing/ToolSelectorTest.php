@@ -1,0 +1,105 @@
+<?php
+
+use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
+use Domain\Conversation\Services\Tooling\Registry\ToolEntry;
+use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
+use Domain\Conversation\Services\Tooling\Routing\AlwaysAvailableToolResolver;
+use Domain\Conversation\Services\Tooling\Routing\SemanticToolRouter;
+use Domain\Conversation\Services\Tooling\Routing\StickyToolResolver;
+use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
+use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Llm\Usage\TokenUsageContext;
+use Illuminate\Support\Facades\DB;
+
+function tsEntry(string $name): ToolEntry
+{
+    return new ToolEntry(kind: str_starts_with($name, 'mcp__') ? 'mcp' : 'function', sourceId: 'x:'.$name, name: $name, description: '', parameters: [], embedding: null);
+}
+
+/** Attach a custom MCP server to the agent, optionally marked always-on. */
+function tsAttach(Agent $agent, string $slug, bool $alwaysAvailable): AgentMcpServer
+{
+    $server = AgentMcpServer::create([
+        'user_id' => $agent->user_id,
+        'name' => ucfirst($slug),
+        'slug' => $slug,
+        'url' => "https://example.test/mcp/{$slug}",
+        'transport' => 'streamable_http',
+        'auth_type' => 'none',
+        'is_enabled' => true,
+    ]);
+
+    DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id, 'always_available' => $alwaysAvailable]);
+
+    return $server;
+}
+
+/**
+ * @param  array<int, ToolEntry>  $pool  the agent's full pool
+ * @param  array<int, ToolEntry>  $routed  what the semantic router would return
+ */
+function tsSelector(array $pool, array $routed): ToolSelector
+{
+    $registry = new class($pool) extends ToolRegistry
+    {
+        /** @param array<int, ToolEntry> $pool */
+        public function __construct(private readonly array $pool) {}
+
+        public function for(Agent $agent): array
+        {
+            return $this->pool;
+        }
+    };
+
+    $router = new class($routed) extends SemanticToolRouter
+    {
+        /** @param array<int, ToolEntry> $routed */
+        public function __construct(private readonly array $routed) {}
+
+        public function route(string $userMessage, Agent $agent): array
+        {
+            return $this->routed;
+        }
+    };
+
+    return new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(TokenUsageContext::class), app(AlwaysAvailableToolResolver::class));
+}
+
+beforeEach(function (): void {
+    $this->agent = createAgent(User::factory()->create());
+});
+
+it('ships always-on connector tools even when routing returns nothing', function (): void {
+    tsAttach($this->agent, 'tutor', alwaysAvailable: true);
+    tsAttach($this->agent, 'crm', alwaysAvailable: false);
+    $pool = [tsEntry('mcp__tutor__ask'), tsEntry('mcp__tutor__correct'), tsEntry('mcp__crm__search'), tsEntry('send_email')];
+
+    $shipped = tsSelector($pool, [])->selectForTurn($this->agent, 'hi', null);
+
+    expect(array_column(array_column($shipped, 'function'), 'name'))->toBe(['mcp__tutor__ask', 'mcp__tutor__correct']);
+});
+
+it('unions always-on tools with the routed set without duplicates', function (): void {
+    tsAttach($this->agent, 'tutor', alwaysAvailable: true);
+    $pool = [tsEntry('mcp__tutor__ask'), tsEntry('mcp__tutor__correct'), tsEntry('send_email')];
+
+    $shipped = tsSelector($pool, [tsEntry('send_email'), tsEntry('mcp__tutor__ask')])->selectForTurn($this->agent, 'email the tutor', null);
+
+    expect(array_column(array_column($shipped, 'function'), 'name'))->toBe(['send_email', 'mcp__tutor__ask', 'mcp__tutor__correct']);
+});
+
+it('ignores an always-on flag on a disabled connector and ships nothing for an unmatched turn', function (): void {
+    $server = tsAttach($this->agent, 'tutor', alwaysAvailable: true);
+    $server->update(['is_enabled' => false]);
+
+    expect(tsSelector([tsEntry('mcp__tutor__ask')], [])->selectForTurn($this->agent, 'hi', null))->toBe([]);
+});
+
+it('caps always-on tools at ten even if a pinned catalog grew', function (): void {
+    tsAttach($this->agent, 'big', alwaysAvailable: true);
+    $pool = array_map(fn (int $i): ToolEntry => tsEntry("mcp__big__tool_{$i}"), range(1, 14));
+
+    expect(tsSelector($pool, [])->selectForTurn($this->agent, 'hi', null))->toHaveCount(10);
+});

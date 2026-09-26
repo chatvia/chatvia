@@ -20,5 +20,7 @@ class AgentConnectorRowData extends Data
         /** @var "attached"|"unattached"|"available" */
         public string $state,
         public ?AgentMcpServerData $server,
+        /** Attached AND marked "always on" for this agent: its tools ship on every turn. */
+        public bool $always_available = false,
     ) {}
 }

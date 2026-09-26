@@ -36,12 +36,13 @@ class ListAgentConnectorsAction
 
         $serverBySlug = $servers->whereNotNull('connector_slug')->keyBy('connector_slug');
 
-        $attachedIds = DB::table('agent_mcp_server')
+        // mcp_server_id => always_available, for every attached server.
+        $alwaysAvailableById = DB::table('agent_mcp_server')
             ->where('agent_id', $agent->id)
-            ->pluck('mcp_server_id')
-            ->flip();
+            ->pluck('always_available', 'mcp_server_id');
+        $attachedIds = $alwaysAvailableById->keys()->flip();
 
-        $featured = $this->catalog->connectors()->values()->map(function ($connector) use ($serverBySlug, $attachedIds): AgentConnectorRowData {
+        $featured = $this->catalog->connectors()->values()->map(function ($connector) use ($serverBySlug, $attachedIds, $alwaysAvailableById): AgentConnectorRowData {
             /** @var AgentMcpServer|null $row */
             $row = $serverBySlug->get($connector->slug);
             $attached = $row !== null && $attachedIds->has($row->id);
@@ -56,6 +57,7 @@ class ListAgentConnectorsAction
                 connector: $connector,
                 state: $state,
                 server: $server,
+                always_available: $attached && (bool) $alwaysAvailableById->get($row->id, false),
             );
         });
 
@@ -63,6 +65,7 @@ class ListAgentConnectorsAction
             fn (AgentMcpServer $server): AgentCustomConnectorRowData => AgentCustomConnectorRowData::fromModel(
                 $server,
                 $attachedIds->has($server->id),
+                (bool) $alwaysAvailableById->get($server->id, false),
             ),
         );
 

@@ -1,0 +1,84 @@
+{
+  "widget": {
+    "privacy_consent": "بمحادثتك، فإنك توافق على {link}.",
+    "privacy_policy": "سياسة الخصوصية",
+    "open_chat": "افتح المحادثة",
+    "close_chat": "أغلق المحادثة",
+    "expand_chat": "وسّع المحادثة",
+    "collapse_chat": "قلّص المحادثة",
+    "menu": "القائمة",
+    "clear_current_chat": "امسح المحادثة الحالية",
+    "send_message": "أرسل رسالة",
+    "type_message": "اكتب رسالة...",
+    "ask_question": "اطرح سؤالاً...",
+    "loading": "جاري التحميل",
+    "view_history": "عرض سجل المحادثات",
+    "scroll_to_bottom": "الانتقال إلى آخر رسالة",
+    "upload_failed": "فشل تحميل الملف."
+  },
+  "menu": {
+    "new_chat": "ابدأ محادثة جديدة",
+    "chat_history": "سجل المحادثات",
+    "clear_current": "امسح المحادثة الحالية",
+    "clear_all": "امسح الكل",
+    "theme_toggle": "تبديل المظهر"
+  },
+  "conversations": {
+    "no_history": "لا يوجد سجل محادثات متاح.",
+    "new_conversation": "محادثة جديدة",
+    "unknown_date": "تاريخ غير معروف",
+    "just_now": "الآن",
+    "minute_ago": "منذ دقيقة",
+    "minutes_ago": "منذ {count} دقائق",
+    "hour_ago": "منذ ساعة",
+    "hours_ago": "منذ {count} ساعات",
+    "yesterday": "أمس",
+    "days_ago": "منذ {count} أيام"
+  },
+  "confirm": {
+    "delete_chat_title": "حذف المحادثة",
+    "delete_chat_message": "هل أنت متأكد من حذف هذه المحادثة؟ لا يمكن التراجع عن هذا الإجراء.",
+    "delete_all_title": "حذف جميع المحادثات",
+    "delete_all_message": "هل أنت متأكد من حذف جميع سجل المحادثات؟ لا يمكن التراجع عن هذا الإجراء.",
+    "delete_button": "حذف",
+    "delete_all_button": "حذف الكل",
+    "cancel": "إلغاء"
+  },
+  "messages": {
+    "copy": "نسخ",
+    "copy_message": "نسخ الرسالة",
+    "good_response": "إجابة جيدة",
+    "bad_response": "إجابة سيئة",
+    "retry": "إعادة المحاولة",
+    "copied": "تم النسخ!"
+  },
+  "handoff": {
+    "talk_to_human": "تحدث مع موظف",
+    "connecting": "جاري توصيلك بأحد الموظفين...",
+    "connected": "متصل مع {name}",
+    "disconnected": "غادر الموظف المحادثة",
+    "returned_to_bot": "تم إرجاع المحادثة للمساعد الآلي",
+    "agent_typing": "{name} يكتب...",
+    "waiting_for_agent": "في انتظار موظف متاح...",
+    "end_chat": "إنهاء المحادثة",
+    "end_live_chat_title": "إنهاء المحادثة المباشرة",
+    "end_live_chat_message": "هل أنت متأكد من أنك تريد إنهاء المحادثة مع الموظف؟",
+    "end_live_chat_tooltip": "إنهاء المحادثة المباشرة"
+  },
+  "tool": {
+    "calling": "جاري استدعاء أداة خارجية..."
+  },
+  "errors": {
+    "initialization_failed": "خطأ في التهيئة. يرجى المحاولة لاحقاً.",
+    "verification_failed": "فشل التحقق من العميل.",
+    "session_failed": "فشل إنشاء الجلسة.",
+    "connection_error": "خطأ في الاتصال. يرجى التحقق من اتصالك بالإنترنت.",
+    "message_send_failed": "فشل إرسال الرسالة. يرجى المحاولة مرة أخرى.",
+    "response_failed": "حدث خطأ أثناء إنشاء الرد. يرجى المحاولة مرة أخرى.",
+    "auth_required": "تتطلب هذه المحادثة تسجيل الدخول."
+  },
+  "disclosure": {
+    "ai_assistant": "مساعد ذكاء اصطناعي",
+    "human_agent": "وكيل بشري"
+  }
+}

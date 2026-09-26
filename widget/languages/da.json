@@ -1,0 +1,84 @@
+{
+  "widget": {
+    "privacy_consent": "Ved at chatte accepterer du vores {link}.",
+    "privacy_policy": "privatlivspolitik",
+    "open_chat": "Åbn chat",
+    "close_chat": "Luk chat",
+    "expand_chat": "Udvid chat",
+    "collapse_chat": "Skjul chat",
+    "menu": "Menu",
+    "clear_current_chat": "Ryd nuværende chat",
+    "send_message": "Send besked",
+    "type_message": "Skriv en besked...",
+    "ask_question": "Stil et spørgsmål...",
+    "loading": "Indlæser",
+    "view_history": "Vis chathistorik",
+    "scroll_to_bottom": "Rul til nyeste besked",
+    "upload_failed": "Upload mislykkedes."
+  },
+  "menu": {
+    "new_chat": "Start ny chat",
+    "chat_history": "Chathistorik",
+    "clear_current": "Ryd nuværende chat",
+    "clear_all": "Ryd alle",
+    "theme_toggle": "Skift tema"
+  },
+  "conversations": {
+    "no_history": "Ingen chathistorik tilgængelig.",
+    "new_conversation": "Ny samtale",
+    "unknown_date": "Ukendt dato",
+    "just_now": "Lige nu",
+    "minute_ago": "1 minut siden",
+    "minutes_ago": "{count} minutter siden",
+    "hour_ago": "1 time siden",
+    "hours_ago": "{count} timer siden",
+    "yesterday": "I går",
+    "days_ago": "{count} dage siden"
+  },
+  "confirm": {
+    "delete_chat_title": "Slet chat",
+    "delete_chat_message": "Er du sikker på, at du vil slette denne chat? Denne handling kan ikke fortrydes.",
+    "delete_all_title": "Slet alle chats",
+    "delete_all_message": "Er du sikker på, at du vil slette HELE din chathistorik? Denne handling kan ikke fortrydes.",
+    "delete_button": "Slet",
+    "delete_all_button": "Slet alle",
+    "cancel": "Annullér"
+  },
+  "messages": {
+    "copy": "Kopiér",
+    "copy_message": "Kopiér besked",
+    "good_response": "Godt svar",
+    "bad_response": "Dårligt svar",
+    "retry": "Prøv igen",
+    "copied": "Kopieret!"
+  },
+  "handoff": {
+    "talk_to_human": "Tal med en medarbejder",
+    "connecting": "Forbinder dig til en medarbejder...",
+    "connected": "Forbundet til {name}",
+    "disconnected": "Medarbejderen har forladt samtalen",
+    "returned_to_bot": "Samtalen er overdraget til bot'en",
+    "agent_typing": "{name} skriver...",
+    "waiting_for_agent": "Venter på en ledig medarbejder...",
+    "end_chat": "Afslut chat",
+    "end_live_chat_title": "Afslut live chat",
+    "end_live_chat_message": "Er du sikker på, at du vil afslutte samtalen med medarbejderen?",
+    "end_live_chat_tooltip": "Afslut live chat"
+  },
+  "tool": {
+    "calling": "Kalder eksternt værktøj..."
+  },
+  "errors": {
+    "initialization_failed": "Initialiseringsfejl. Prøv igen senere.",
+    "verification_failed": "Klientverificering mislykkedes.",
+    "session_failed": "Sessionsinitialisering mislykkedes.",
+    "connection_error": "Forbindelsesfejl. Tjek venligst din internetforbindelse.",
+    "message_send_failed": "Kunne ikke sende besked. Prøv igen.",
+    "response_failed": "Noget gik galt under generering af svaret. Prøv igen.",
+    "auth_required": "Denne chat kræver login."
+  },
+  "disclosure": {
+    "ai_assistant": "AI-assistent",
+    "human_agent": "Menneskelig agent"
+  }
+}

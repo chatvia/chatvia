@@ -1,0 +1,9 @@
+/**
+ * BarWidget styles.
+ *
+ * All styles are shared with the ChatWidget — both modes (bubble + bar) live
+ * in widget.css. This file exists for API consistency: callers that prefer to
+ * import `bar.css` instead of `widget.css` get the same stylesheet.
+ */
+
+@import './widget.css';

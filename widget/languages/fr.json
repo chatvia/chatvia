@@ -1,0 +1,84 @@
+{
+  "widget": {
+    "privacy_consent": "En discutant, vous acceptez notre {link}.",
+    "privacy_policy": "politique de confidentialité",
+    "open_chat": "Ouvrir le chat",
+    "close_chat": "Fermer le chat",
+    "expand_chat": "Agrandir le chat",
+    "collapse_chat": "Réduire le chat",
+    "menu": "Menu",
+    "clear_current_chat": "Effacer le chat actuel",
+    "send_message": "Envoyer le message",
+    "type_message": "Tapez un message...",
+    "ask_question": "Posez une question...",
+    "loading": "Chargement",
+    "view_history": "Voir l'historique des chats",
+    "scroll_to_bottom": "Aller au dernier message",
+    "upload_failed": "Échec de l'envoi du fichier."
+  },
+  "menu": {
+    "new_chat": "Démarrer un nouveau chat",
+    "chat_history": "Historique des chats",
+    "clear_current": "Effacer le chat actuel",
+    "clear_all": "Tout effacer",
+    "theme_toggle": "Changer de thème"
+  },
+  "conversations": {
+    "no_history": "Aucun historique de chat disponible.",
+    "new_conversation": "Nouvelle conversation",
+    "unknown_date": "Date inconnue",
+    "just_now": "À l'instant",
+    "minute_ago": "il y a 1 minute",
+    "minutes_ago": "il y a {count} minutes",
+    "hour_ago": "il y a 1 heure",
+    "hours_ago": "il y a {count} heures",
+    "yesterday": "Hier",
+    "days_ago": "il y a {count} jours"
+  },
+  "confirm": {
+    "delete_chat_title": "Supprimer le chat",
+    "delete_chat_message": "Voulez-vous vraiment supprimer ce chat ? Cette action est irréversible.",
+    "delete_all_title": "Supprimer tous les chats",
+    "delete_all_message": "Voulez-vous vraiment supprimer TOUT votre historique de chats ? Cette action est irréversible.",
+    "delete_button": "Supprimer",
+    "delete_all_button": "Tout supprimer",
+    "cancel": "Annuler"
+  },
+  "messages": {
+    "copy": "Copier",
+    "copy_message": "Copier le message",
+    "good_response": "Bonne réponse",
+    "bad_response": "Mauvaise réponse",
+    "retry": "Réessayer",
+    "copied": "Copié !"
+  },
+  "handoff": {
+    "talk_to_human": "Parler à un humain",
+    "connecting": "Connexion à un agent en cours...",
+    "connected": "Connecté à {name}",
+    "disconnected": "L'agent a quitté la conversation",
+    "returned_to_bot": "Conversation transférée au bot",
+    "agent_typing": "{name} est en train d'écrire...",
+    "waiting_for_agent": "En attente d'un agent disponible...",
+    "end_chat": "Terminer le chat",
+    "end_live_chat_title": "Terminer le chat en direct",
+    "end_live_chat_message": "Voulez-vous vraiment mettre fin à la conversation avec l'agent ?",
+    "end_live_chat_tooltip": "Terminer le chat en direct"
+  },
+  "tool": {
+    "calling": "Appel d'un outil externe..."
+  },
+  "errors": {
+    "initialization_failed": "Erreur d'initialisation. Veuillez réessayer plus tard.",
+    "verification_failed": "Échec de la vérification du client.",
+    "session_failed": "Échec de l'initialisation de la session.",
+    "connection_error": "Erreur de connexion. Veuillez vérifier votre connexion Internet.",
+    "message_send_failed": "Échec de l'envoi du message. Veuillez réessayer.",
+    "response_failed": "Une erreur est survenue lors de la génération de la réponse. Veuillez réessayer.",
+    "auth_required": "Ce chat nécessite une connexion."
+  },
+  "disclosure": {
+    "ai_assistant": "Assistant IA",
+    "human_agent": "Agent humain"
+  }
+}

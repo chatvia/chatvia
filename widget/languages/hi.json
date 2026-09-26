@@ -1,0 +1,84 @@
+{
+  "widget": {
+    "privacy_consent": "चैट करके, आप हमारी {link} से सहमत होते हैं।",
+    "privacy_policy": "गोपनीयता नीति",
+    "open_chat": "चैट खोलें",
+    "close_chat": "चैट बंद करें",
+    "expand_chat": "चैट बड़ा करें",
+    "collapse_chat": "चैट छोटा करें",
+    "menu": "मेन्यू",
+    "clear_current_chat": "वर्तमान चैट साफ़ करें",
+    "send_message": "संदेश भेजें",
+    "type_message": "संदेश लिखें…",
+    "ask_question": "प्रश्न पूछें…",
+    "loading": "लोड हो रहा है",
+    "view_history": "चैट इतिहास देखें",
+    "scroll_to_bottom": "नवीनतम संदेश पर जाएँ",
+    "upload_failed": "अपलोड विफल हुआ।"
+  },
+  "menu": {
+    "new_chat": "नई चैट शुरू करें",
+    "chat_history": "चैट इतिहास",
+    "clear_current": "वर्तमान चैट साफ़ करें",
+    "clear_all": "सभी साफ़ करें",
+    "theme_toggle": "थीम बदलें"
+  },
+  "conversations": {
+    "no_history": "कोई चैट इतिहास उपलब्ध नहीं है।",
+    "new_conversation": "नई बातचीत",
+    "unknown_date": "अज्ञात तिथि",
+    "just_now": "अभी-अभी",
+    "minute_ago": "1 मिनट पहले",
+    "minutes_ago": "{count} मिनट पहले",
+    "hour_ago": "1 घंटे पहले",
+    "hours_ago": "{count} घंटे पहले",
+    "yesterday": "कल",
+    "days_ago": "{count} दिन पहले"
+  },
+  "confirm": {
+    "delete_chat_title": "चैट हटाएँ",
+    "delete_chat_message": "क्या आप वाकई इस चैट को हटाना चाहते हैं? यह क्रिया वापस नहीं की जा सकती।",
+    "delete_all_title": "सभी चैट हटाएँ",
+    "delete_all_message": "क्या आप वाकई अपना सारा चैट इतिहास हटाना चाहते हैं? यह क्रिया वापस नहीं की जा सकती।",
+    "delete_button": "हटाएँ",
+    "delete_all_button": "सभी हटाएँ",
+    "cancel": "रद्द करें"
+  },
+  "messages": {
+    "copy": "कॉपी करें",
+    "copy_message": "संदेश कॉपी करें",
+    "good_response": "अच्छा उत्तर",
+    "bad_response": "खराब उत्तर",
+    "retry": "पुनः प्रयास करें",
+    "copied": "कॉपी किया गया!"
+  },
+  "handoff": {
+    "talk_to_human": "किसी व्यक्ति से बात करें",
+    "connecting": "आपको एजेंट से जोड़ा जा रहा है…",
+    "connected": "{name} से जुड़े",
+    "disconnected": "एजेंट बातचीत से चला गया",
+    "returned_to_bot": "बातचीत बॉट को वापस मिली",
+    "agent_typing": "{name} टाइप कर रहा है…",
+    "waiting_for_agent": "उपलब्ध एजेंट की प्रतीक्षा…",
+    "end_chat": "चैट समाप्त करें",
+    "end_live_chat_title": "लाइव चैट समाप्त करें",
+    "end_live_chat_message": "क्या आप वाकई एजेंट के साथ बातचीत समाप्त करना चाहते हैं?",
+    "end_live_chat_tooltip": "लाइव चैट समाप्त करें"
+  },
+  "tool": {
+    "calling": "बाहरी टूल को कॉल किया जा रहा है…"
+  },
+  "errors": {
+    "initialization_failed": "इनिशियलाइज़ेशन त्रुटि। कृपया बाद में पुनः प्रयास करें।",
+    "verification_failed": "क्लाइंट सत्यापन विफल हुआ।",
+    "session_failed": "सत्र प्रारंभ करना विफल हुआ।",
+    "connection_error": "कनेक्शन त्रुटि। कृपया अपना इंटरनेट जाँचें।",
+    "message_send_failed": "संदेश भेजने में विफल। कृपया पुनः प्रयास करें।",
+    "response_failed": "प्रतिक्रिया उत्पन्न करते समय कुछ गलत हुआ। कृपया पुनः प्रयास करें।",
+    "auth_required": "इस चैट के लिए साइन-इन आवश्यक है।"
+  },
+  "disclosure": {
+    "ai_assistant": "एआई सहायक",
+    "human_agent": "मानव एजेंट"
+  }
+}

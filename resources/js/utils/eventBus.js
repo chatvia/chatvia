@@ -42,5 +42,3 @@ export function createChatEventBus() {
         },
     };
 }
-
-export const chatEventBus = createChatEventBus();

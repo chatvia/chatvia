@@ -104,6 +104,7 @@ const _page = usePage();
 const isCopied = ref(false);
 const feedback = ref<'thumbs-up' | 'thumbs-down' | null>(null);
 
+
 async function copyToClipboard() {
     try {
         await navigator.clipboard.writeText(props.message.content);
@@ -248,6 +249,7 @@ watch(
                         size="icon"
                         variant="ghost"
                         class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
+                        :aria-label="t('messages.copy_message')"
                         @click="copyToClipboard"
                     >
                         <Check v-if="isCopied" class="h-3.5 w-3.5 text-green-500" />
@@ -259,6 +261,8 @@ watch(
                         variant="ghost"
                         class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
                         :class="{ '!bg-green-500/10 !text-green-600': feedback === 'thumbs-up' }"
+                        :aria-pressed="feedback === 'thumbs-up'"
+                        :aria-label="t('messages.feedback_helpful')"
                         @click="provideFeedback('thumbs-up')"
                     >
                         <ThumbsUp class="h-3.5 w-3.5" />
@@ -269,6 +273,8 @@ watch(
                         variant="ghost"
                         class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
                         :class="{ '!bg-red-500/10 !text-red-600': feedback === 'thumbs-down' }"
+                        :aria-pressed="feedback === 'thumbs-down'"
+                        :aria-label="t('messages.feedback_not_helpful')"
                         @click="provideFeedback('thumbs-down')"
                     >
                         <ThumbsDown class="h-3.5 w-3.5" />
@@ -276,7 +282,12 @@ watch(
 
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button size="icon" variant="ghost" class="text-muted-foreground h-7 w-7 hover:bg-red-500/10 hover:text-red-600">
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                class="text-muted-foreground h-7 w-7 hover:bg-red-500/10 hover:text-red-600"
+                                :aria-label="t('common.delete')"
+                            >
                                 <Trash2 class="h-3.5 w-3.5" />
                             </Button>
                         </AlertDialogTrigger>
@@ -303,6 +314,7 @@ watch(
                         :disabled="isRegenerating"
                         @click="regenerate"
                         :title="t('messages.regenerate_tooltip')"
+                        :aria-label="t('messages.regenerate_tooltip')"
                     >
                         <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRegenerating }" />
                     </Button>
@@ -321,7 +333,7 @@ watch(
 :deep(.prose) {
     font-size: 1rem;
     line-height: 1.75rem;
-    color: hsl(var(--foreground));
+    color: var(--foreground);
 }
 
 :deep(.prose p) {
@@ -338,8 +350,8 @@ watch(
 }
 
 :deep(.prose pre) {
-    background-color: hsl(var(--muted));
-    border: 1px solid hsl(var(--border));
+    background-color: var(--muted);
+    border: 1px solid var(--border);
     margin: 0.75rem 0;
     position: relative;
     border-radius: 0.5rem;
@@ -350,7 +362,7 @@ watch(
 }
 
 :deep(.prose :not(pre) > code) {
-    background-color: hsl(var(--muted));
+    background-color: var(--muted);
     padding: 0.125rem 0.25rem;
     border-radius: 0.25rem;
     font-size: 0.8rem;
@@ -362,10 +374,10 @@ watch(
     top: 0.5rem;
     right: 0.5rem;
     padding: 0.25rem;
-    background-color: hsl(var(--background));
-    border: 1px solid hsl(var(--border));
+    background-color: var(--background);
+    border: 1px solid var(--border);
     border-radius: 0.25rem;
-    color: hsl(var(--muted-foreground));
+    color: var(--muted-foreground);
     cursor: pointer;
     opacity: 0;
     transition: all 0.2s ease;
@@ -379,14 +391,14 @@ watch(
 }
 
 :deep(.code-copy-button:hover) {
-    background-color: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
+    background-color: var(--accent);
+    color: var(--accent-foreground);
 }
 
 :deep(.code-copy-button.copied) {
-    background-color: hsl(var(--success));
+    background-color: var(--success);
     color: white;
-    border-color: hsl(var(--success));
+    border-color: var(--success);
 }
 
 /* Alert styling */
@@ -408,28 +420,28 @@ watch(
 }
 
 :deep(.markdown-alert-note) {
-    border-left-color: hsl(var(--primary));
-    background-color: hsl(var(--primary) / 0.1);
+    border-left-color: var(--primary);
+    background-color: color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 :deep(.markdown-alert-tip) {
-    border-left-color: hsl(var(--success));
-    background-color: hsl(var(--success) / 0.1);
+    border-left-color: var(--success);
+    background-color: color-mix(in srgb, var(--success) 10%, transparent);
 }
 
 :deep(.markdown-alert-important) {
-    border-left-color: hsl(var(--warning));
-    background-color: hsl(var(--warning) / 0.1);
+    border-left-color: var(--warning);
+    background-color: color-mix(in srgb, var(--warning) 10%, transparent);
 }
 
 :deep(.markdown-alert-warning) {
-    border-left-color: hsl(var(--warning));
-    background-color: hsl(var(--warning) / 0.1);
+    border-left-color: var(--warning);
+    background-color: color-mix(in srgb, var(--warning) 10%, transparent);
 }
 
 :deep(.markdown-alert-caution) {
-    border-left-color: hsl(var(--destructive));
-    background-color: hsl(var(--destructive) / 0.1);
+    border-left-color: var(--destructive);
+    background-color: color-mix(in srgb, var(--destructive) 10%, transparent);
 }
 
 :deep(.markdown-alert-title) {
@@ -448,7 +460,7 @@ watch(
 }
 
 :deep(.prose thead) {
-    border-bottom: 2px solid hsl(var(--border));
+    border-bottom: 2px solid var(--border);
 }
 
 :deep(.prose th) {
@@ -459,7 +471,7 @@ watch(
 
 :deep(.prose td) {
     padding: 0.75rem;
-    border-bottom: 1px solid hsl(var(--border));
+    border-bottom: 1px solid var(--border);
 }
 
 :deep(.prose tbody tr:last-child td) {
@@ -483,16 +495,16 @@ watch(
 
 /* Blockquotes */
 :deep(.prose blockquote) {
-    border-left: 3px solid hsl(var(--muted-foreground) / 0.3);
+    border-left: 3px solid color-mix(in srgb, var(--muted-foreground) 30%, transparent);
     padding-left: 1rem;
     margin: 1rem 0;
     font-style: italic;
-    color: hsl(var(--muted-foreground));
+    color: var(--muted-foreground);
 }
 
 /* Links */
 :deep(.prose a) {
-    color: hsl(var(--primary));
+    color: var(--primary);
     text-decoration: underline;
     text-underline-offset: 2px;
 }
@@ -537,7 +549,7 @@ watch(
 /* Horizontal rule */
 :deep(.prose hr) {
     border: none;
-    border-top: 1px solid hsl(var(--border));
+    border-top: 1px solid var(--border);
     margin: 1.5rem 0;
 }
 
@@ -575,7 +587,7 @@ watch(
 }
 
 :deep(.prose[data-rtl='true'] blockquote) {
-    border-right: 3px solid hsl(var(--muted-foreground) / 0.3);
+    border-right: 3px solid color-mix(in srgb, var(--muted-foreground) 30%, transparent);
     border-left: none;
     padding-right: 1rem;
     padding-left: 0;

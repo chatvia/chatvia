@@ -1,0 +1,84 @@
+{
+  "widget": {
+    "privacy_consent": "با گفتگو، شما با {link} ما موافقت می‌کنید.",
+    "privacy_policy": "سیاست حفظ حریم خصوصی",
+    "open_chat": "باز کردن گفتگو",
+    "close_chat": "بستن گفتگو",
+    "expand_chat": "بزرگ کردن گفتگو",
+    "collapse_chat": "کوچک کردن گفتگو",
+    "menu": "منو",
+    "clear_current_chat": "پاک کردن گفتگوی فعلی",
+    "send_message": "ارسال پیام",
+    "type_message": "پیام را بنویسید…",
+    "ask_question": "سؤال خود را بپرسید…",
+    "loading": "در حال بارگذاری",
+    "view_history": "مشاهده تاریخچه گفتگو",
+    "scroll_to_bottom": "رفتن به آخرین پیام",
+    "upload_failed": "آپلود ناموفق بود."
+  },
+  "menu": {
+    "new_chat": "شروع گفتگوی جدید",
+    "chat_history": "تاریخچه گفتگو",
+    "clear_current": "پاک کردن گفتگوی فعلی",
+    "clear_all": "پاک کردن همه",
+    "theme_toggle": "تغییر تم"
+  },
+  "conversations": {
+    "no_history": "تاریخچه گفتگویی موجود نیست.",
+    "new_conversation": "گفتگوی جدید",
+    "unknown_date": "تاریخ نامشخص",
+    "just_now": "همین حالا",
+    "minute_ago": "۱ دقیقه پیش",
+    "minutes_ago": "{count} دقیقه پیش",
+    "hour_ago": "۱ ساعت پیش",
+    "hours_ago": "{count} ساعت پیش",
+    "yesterday": "دیروز",
+    "days_ago": "{count} روز پیش"
+  },
+  "confirm": {
+    "delete_chat_title": "حذف گفتگو",
+    "delete_chat_message": "آیا مطمئن هستید می‌خواهید این گفتگو را حذف کنید؟ این عمل قابل بازگشت نیست.",
+    "delete_all_title": "حذف همه گفتگوها",
+    "delete_all_message": "آیا مطمئن هستید می‌خواهید کل تاریخچه گفتگوها را حذف کنید؟ این عمل قابل بازگشت نیست.",
+    "delete_button": "حذف",
+    "delete_all_button": "حذف همه",
+    "cancel": "لغو"
+  },
+  "messages": {
+    "copy": "کپی",
+    "copy_message": "کپی پیام",
+    "good_response": "پاسخ خوب",
+    "bad_response": "پاسخ ضعیف",
+    "retry": "تلاش مجدد",
+    "copied": "کپی شد!"
+  },
+  "handoff": {
+    "talk_to_human": "گفتگو با یک شخص",
+    "connecting": "در حال اتصال به اپراتور…",
+    "connected": "به {name} متصل شدید",
+    "disconnected": "اپراتور گفتگو را ترک کرد",
+    "returned_to_bot": "گفتگو به ربات بازگشت",
+    "agent_typing": "{name} در حال نوشتن است…",
+    "waiting_for_agent": "در انتظار اپراتور آزاد…",
+    "end_chat": "پایان گفتگو",
+    "end_live_chat_title": "پایان گفتگوی زنده",
+    "end_live_chat_message": "آیا مطمئن هستید می‌خواهید گفتگو با اپراتور را پایان دهید؟",
+    "end_live_chat_tooltip": "پایان گفتگوی زنده"
+  },
+  "tool": {
+    "calling": "در حال فراخوانی ابزار خارجی…"
+  },
+  "errors": {
+    "initialization_failed": "خطای راه‌اندازی. لطفاً بعداً دوباره تلاش کنید.",
+    "verification_failed": "اعتبارسنجی کلاینت ناموفق بود.",
+    "session_failed": "راه‌اندازی جلسه ناموفق بود.",
+    "connection_error": "خطای اتصال. لطفاً اتصال اینترنت خود را بررسی کنید.",
+    "message_send_failed": "ارسال پیام ناموفق بود. لطفاً دوباره تلاش کنید.",
+    "response_failed": "هنگام تولید پاسخ مشکلی پیش آمد. لطفاً دوباره تلاش کنید.",
+    "auth_required": "این گفتگو نیاز به ورود دارد."
+  },
+  "disclosure": {
+    "ai_assistant": "دستیار هوش مصنوعی",
+    "human_agent": "پشتیبان انسانی"
+  }
+}

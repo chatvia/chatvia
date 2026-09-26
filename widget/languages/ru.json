@@ -1,0 +1,84 @@
+{
+  "widget": {
+    "privacy_consent": "Начиная чат, вы соглашаетесь с нашей {link}.",
+    "privacy_policy": "политикой конфиденциальности",
+    "open_chat": "Открыть чат",
+    "close_chat": "Закрыть чат",
+    "expand_chat": "Развернуть чат",
+    "collapse_chat": "Свернуть чат",
+    "menu": "Меню",
+    "clear_current_chat": "Очистить текущий чат",
+    "send_message": "Отправить сообщение",
+    "type_message": "Введите сообщение…",
+    "ask_question": "Задайте вопрос…",
+    "loading": "Загрузка",
+    "view_history": "История чатов",
+    "scroll_to_bottom": "К последнему сообщению",
+    "upload_failed": "Не удалось загрузить файл."
+  },
+  "menu": {
+    "new_chat": "Начать новый чат",
+    "chat_history": "История чатов",
+    "clear_current": "Очистить текущий чат",
+    "clear_all": "Очистить всё",
+    "theme_toggle": "Сменить тему"
+  },
+  "conversations": {
+    "no_history": "История чатов отсутствует.",
+    "new_conversation": "Новая беседа",
+    "unknown_date": "Неизвестная дата",
+    "just_now": "Только что",
+    "minute_ago": "1 минуту назад",
+    "minutes_ago": "{count} мин. назад",
+    "hour_ago": "1 час назад",
+    "hours_ago": "{count} ч. назад",
+    "yesterday": "Вчера",
+    "days_ago": "{count} дн. назад"
+  },
+  "confirm": {
+    "delete_chat_title": "Удалить чат",
+    "delete_chat_message": "Вы уверены, что хотите удалить этот чат? Это действие нельзя отменить.",
+    "delete_all_title": "Удалить все чаты",
+    "delete_all_message": "Вы уверены, что хотите удалить ВСЮ историю чатов? Это действие нельзя отменить.",
+    "delete_button": "Удалить",
+    "delete_all_button": "Удалить всё",
+    "cancel": "Отмена"
+  },
+  "messages": {
+    "copy": "Копировать",
+    "copy_message": "Копировать сообщение",
+    "good_response": "Хороший ответ",
+    "bad_response": "Плохой ответ",
+    "retry": "Повторить",
+    "copied": "Скопировано!"
+  },
+  "handoff": {
+    "talk_to_human": "Связаться с человеком",
+    "connecting": "Подключаем вас к оператору…",
+    "connected": "Подключено к {name}",
+    "disconnected": "Оператор покинул чат",
+    "returned_to_bot": "Беседа возвращена боту",
+    "agent_typing": "{name} печатает…",
+    "waiting_for_agent": "Ожидание свободного оператора…",
+    "end_chat": "Завершить чат",
+    "end_live_chat_title": "Завершить живой чат",
+    "end_live_chat_message": "Вы уверены, что хотите завершить беседу с оператором?",
+    "end_live_chat_tooltip": "Завершить живой чат"
+  },
+  "tool": {
+    "calling": "Вызов внешнего инструмента…"
+  },
+  "errors": {
+    "initialization_failed": "Ошибка инициализации. Повторите попытку позже.",
+    "verification_failed": "Проверка клиента не пройдена.",
+    "session_failed": "Не удалось инициализировать сессию.",
+    "connection_error": "Ошибка соединения. Проверьте интернет-подключение.",
+    "message_send_failed": "Не удалось отправить сообщение. Повторите попытку.",
+    "response_failed": "При формировании ответа возникла ошибка. Повторите попытку.",
+    "auth_required": "Для этого чата требуется вход."
+  },
+  "disclosure": {
+    "ai_assistant": "ИИ-ассистент",
+    "human_agent": "Оператор"
+  }
+}

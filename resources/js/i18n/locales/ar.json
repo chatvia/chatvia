@@ -18,7 +18,9 @@
         "mcp_tool": "أداة MCP",
         "function": "دالة",
         "approve": "موافقة",
-        "deny": "رفض"
+        "deny": "رفض",
+        "details": "التفاصيل",
+        "arguments": "الوسائط"
     },
     "composer": {
         "default_placeholder": "اكتب رسالة...",
@@ -39,7 +41,8 @@
         "incognito_mode": "وضع التصفح الخاص",
         "delete_conversation": "حذف المحادثة",
         "delete_dialog_title": "حذف المحادثة؟",
-        "delete_dialog_description": "لا يمكن التراجع عن هذا الإجراء."
+        "delete_dialog_description": "لا يمكن التراجع عن هذا الإجراء.",
+        "citations": "الاستشهادات"
     },
     "sidebar": {
         "open_sidebar": "فتح الشريط الجانبي",
@@ -117,7 +120,12 @@
         "delete_attachment_aria": "إزالة المرفق",
         "delete_attachment_title": "إزالة هذا الملف؟",
         "delete_attachment_description": "بعد الإزالة، لن يتمكن المساعد من الوصول إلى هذا الملف في الردود المستقبلية.",
-        "delete_attachment_failed": "تعذّرت إزالة الملف. يرجى المحاولة مجدداً."
+        "delete_attachment_failed": "تعذّرت إزالة الملف. يرجى المحاولة مجدداً.",
+        "responding": "المساعد يكتب الآن…",
+        "response_complete": "اكتمل الرد",
+        "copy_message": "نسخ الرسالة",
+        "feedback_helpful": "رد جيد",
+        "feedback_not_helpful": "رد سيئ"
     },
     "errors": {
         "subscription_expired": "انتهى الاشتراك",
@@ -136,7 +144,10 @@
         "title": "مصادر المعرفة",
         "source_count": "{count} مصدر | {count} مصادر",
         "description": "تم استخدام {count} مصدر لإنشاء هذا الرد | تم استخدام {count} مصادر لإنشاء هذا الرد",
-        "page_label": "صفحة {page}"
+        "page_label": "صفحة {page}",
+        "section_label": "القسم {section}",
+        "open": "فتح",
+        "at_time": "عند {time}"
     },
     "home": {
         "logo_alt": "الشعار",
@@ -1807,7 +1818,9 @@
                 "topics_help_title": "المواضيع",
                 "topics_help_1": "تفحص المواضيع المحادثات وتجمّعها حسب ما يسأل عنه الناس، دون تصنيف يدوي.",
                 "topics_help_2": "تُكتشف مواضيع جديدة تلقائياً وتُجمَّع في لوحة المواضيع. يتطلب تفعيل تخزين المحادثات.",
-                "topics_hint": "اكتشف واجمع تلقائياً ما يسأل عنه الزوار."
+                "topics_hint": "اكتشف واجمع تلقائياً ما يسأل عنه الزوار.",
+                "citations_label": "الاستشهاد بالمصادر",
+                "citations_hint": "أضف علامات [1] قابلة للنقر بعد الإجابات، تشير إلى مصادر قاعدة المعرفة التي استُمدت منها."
             },
             "bubbles_title": "فقاعات الدردشة",
             "bubbles_description": "رسائل سريعة تظهر بجانب مُشغّل الأداة.",

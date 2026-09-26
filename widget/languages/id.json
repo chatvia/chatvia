@@ -1,0 +1,84 @@
+{
+  "widget": {
+    "privacy_consent": "Dengan mengobrol, Anda menyetujui {link} kami.",
+    "privacy_policy": "kebijakan privasi",
+    "open_chat": "Buka obrolan",
+    "close_chat": "Tutup obrolan",
+    "expand_chat": "Perbesar obrolan",
+    "collapse_chat": "Kecilkan obrolan",
+    "menu": "Menu",
+    "clear_current_chat": "Hapus obrolan saat ini",
+    "send_message": "Kirim pesan",
+    "type_message": "Ketik pesan…",
+    "ask_question": "Ajukan pertanyaan…",
+    "loading": "Memuat",
+    "view_history": "Lihat riwayat obrolan",
+    "scroll_to_bottom": "Gulir ke pesan terbaru",
+    "upload_failed": "Unggah gagal."
+  },
+  "menu": {
+    "new_chat": "Mulai obrolan baru",
+    "chat_history": "Riwayat obrolan",
+    "clear_current": "Hapus obrolan saat ini",
+    "clear_all": "Hapus semua",
+    "theme_toggle": "Ganti tema"
+  },
+  "conversations": {
+    "no_history": "Tidak ada riwayat obrolan.",
+    "new_conversation": "Percakapan baru",
+    "unknown_date": "Tanggal tidak diketahui",
+    "just_now": "Baru saja",
+    "minute_ago": "1 menit lalu",
+    "minutes_ago": "{count} menit lalu",
+    "hour_ago": "1 jam lalu",
+    "hours_ago": "{count} jam lalu",
+    "yesterday": "Kemarin",
+    "days_ago": "{count} hari lalu"
+  },
+  "confirm": {
+    "delete_chat_title": "Hapus Obrolan",
+    "delete_chat_message": "Apakah Anda yakin ingin menghapus obrolan ini? Tindakan ini tidak dapat dibatalkan.",
+    "delete_all_title": "Hapus Semua Obrolan",
+    "delete_all_message": "Apakah Anda yakin ingin menghapus SEMUA riwayat obrolan Anda? Tindakan ini tidak dapat dibatalkan.",
+    "delete_button": "Hapus",
+    "delete_all_button": "Hapus Semua",
+    "cancel": "Batal"
+  },
+  "messages": {
+    "copy": "Salin",
+    "copy_message": "Salin pesan",
+    "good_response": "Jawaban bagus",
+    "bad_response": "Jawaban kurang baik",
+    "retry": "Coba lagi",
+    "copied": "Tersalin!"
+  },
+  "handoff": {
+    "talk_to_human": "Bicara dengan manusia",
+    "connecting": "Menghubungkan Anda ke agen…",
+    "connected": "Terhubung dengan {name}",
+    "disconnected": "Agen telah meninggalkan percakapan",
+    "returned_to_bot": "Percakapan kembali ke bot",
+    "agent_typing": "{name} sedang mengetik…",
+    "waiting_for_agent": "Menunggu agen yang tersedia…",
+    "end_chat": "Akhiri Obrolan",
+    "end_live_chat_title": "Akhiri Obrolan Langsung",
+    "end_live_chat_message": "Apakah Anda yakin ingin mengakhiri percakapan dengan agen?",
+    "end_live_chat_tooltip": "Akhiri obrolan langsung"
+  },
+  "tool": {
+    "calling": "Memanggil alat eksternal…"
+  },
+  "errors": {
+    "initialization_failed": "Kesalahan inisialisasi. Silakan coba lagi nanti.",
+    "verification_failed": "Verifikasi klien gagal.",
+    "session_failed": "Inisialisasi sesi gagal.",
+    "connection_error": "Kesalahan koneksi. Silakan periksa internet Anda.",
+    "message_send_failed": "Gagal mengirim pesan. Silakan coba lagi.",
+    "response_failed": "Terjadi kesalahan saat menghasilkan respons. Silakan coba lagi.",
+    "auth_required": "Obrolan ini memerlukan masuk."
+  },
+  "disclosure": {
+    "ai_assistant": "Asisten AI",
+    "human_agent": "Agen manusia"
+  }
+}

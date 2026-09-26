@@ -129,7 +129,7 @@ rrf_scores AS (
     FROM combined_results
     GROUP BY id
 )
-SELECT c.id, c.external_id, c.chunk, c.chunkable_type, c.chunkable_id, c.metadata,
+SELECT c.id, c.external_id, c.chunk, c.chunk_index, c.chunkable_type, c.chunkable_id, c.metadata,
        r.search_type, r.rrf_score AS score
 FROM rrf_scores r
 JOIN chunks c USING (id)

@@ -18,7 +18,9 @@
         "mcp_tool": "MCP tool",
         "function": "Function",
         "approve": "Approve",
-        "deny": "Deny"
+        "deny": "Deny",
+        "details": "Details",
+        "arguments": "Arguments"
     },
     "composer": {
         "default_placeholder": "Message...",
@@ -39,7 +41,8 @@
         "incognito_mode": "Incognito",
         "delete_conversation": "Delete conversation",
         "delete_dialog_title": "Delete Conversation?",
-        "delete_dialog_description": "This action cannot be undone."
+        "delete_dialog_description": "This action cannot be undone.",
+        "citations": "Citations"
     },
     "sidebar": {
         "open_sidebar": "Open sidebar",
@@ -117,7 +120,12 @@
         "delete_attachment_aria": "Remove attachment",
         "delete_attachment_title": "Remove this file?",
         "delete_attachment_description": "After you remove it, the assistant will no longer have access to this file in future replies.",
-        "delete_attachment_failed": "Could not remove the file. Please try again."
+        "delete_attachment_failed": "Could not remove the file. Please try again.",
+        "responding": "Assistant is responding…",
+        "response_complete": "Response complete",
+        "copy_message": "Copy message",
+        "feedback_helpful": "Good response",
+        "feedback_not_helpful": "Bad response"
     },
     "errors": {
         "subscription_expired": "Subscription expired",
@@ -136,7 +144,10 @@
         "title": "Knowledge Sources",
         "source_count": "{count} Source | {count} Sources",
         "description": "{count} source used to generate this response | {count} sources used to generate this response",
-        "page_label": "Page {page}"
+        "page_label": "Page {page}",
+        "section_label": "Section {section}",
+        "open": "Open",
+        "at_time": "at {time}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1807,7 +1818,9 @@
                 "topics_help_title": "Topics",
                 "topics_help_1": "Topics scans conversations and groups them by what people ask about, so you don't have to tag chats by hand.",
                 "topics_help_2": "New topics are detected automatically and rolled up on the Topics dashboard, showing you the most common themes. Needs Store conversations on.",
-                "topics_hint": "Automatically detect and group what visitors ask about."
+                "topics_hint": "Automatically detect and group what visitors ask about.",
+                "citations_label": "Cite sources",
+                "citations_hint": "Add clickable [1] markers after answers, linking to the knowledge-base sources they came from."
             },
             "bubbles_title": "Chat Bubbles",
             "bubbles_description": "Quick message prompts shown next to the widget launcher.",

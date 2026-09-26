@@ -1093,3 +1093,33 @@ html[lang='fa'] body {
     border-radius: 8px;
     height: 8px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Reduced-motion safety net.
+ *
+ * Honors the OS "reduce motion" setting across the chat surface. Neutralizes
+ * the infinite/looping animations — spinners, pulsing "thinking" dots, the
+ * tool-call shimmer, the bespoke ring loader — that would otherwise run
+ * forever for motion-sensitive users. Unlayered + !important so it wins over
+ * Tailwind's layered utilities and component-scoped keyframes (the targeted
+ * class names are global even when a component's own <style> is scoped).
+ * The streaming-reveal fade/caret already self-handles reduced-motion in
+ * AssistantMessageBody.
+ * ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    .animate-spin,
+    .animate-pulse,
+    .animate-bounce,
+    .loading-spinner div {
+        animation: none !important;
+    }
+
+    /* The tool-call activity label is transparent text painted by an animated
+       gradient; with the animation off, repaint it as a solid readable color. */
+    .external-call-shimmer {
+        animation: none !important;
+        background: none !important;
+        color: var(--muted-foreground) !important;
+        -webkit-text-fill-color: currentColor !important;
+    }
+}

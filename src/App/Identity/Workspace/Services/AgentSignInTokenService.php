@@ -7,6 +7,7 @@ use Domain\Agent\Models\Agent;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -285,6 +286,14 @@ class AgentSignInTokenService
         // by construction, but the relation's static type erases to
         // `Model|null`. The `@var` brings the concrete type back so the
         // `canAccessAgent()` call and array return both typecheck.
+        // `external_id` is a Postgres uuid column, so a non-UUID `sub` (a
+        // customer signing their own internal id like "2" instead of the
+        // Chatvia external_id) would make the driver throw. Treat it as an
+        // unknown subject instead — fail closed, don't 500.
+        if (! Str::isUuid($sub)) {
+            return null;
+        }
+
         /** @var User|null $user */
         $user = $owner->users()->where('external_id', $sub)->first();
 

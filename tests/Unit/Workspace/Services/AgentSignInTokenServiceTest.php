@@ -217,6 +217,20 @@ describe('compact HMAC credential', function (): void {
     ]);
 });
 
+it('rejects a validly-signed token whose sub is not a UUID instead of throwing', function (): void {
+    // A customer who signs their own internal user id ("2") rather than the
+    // Chatvia external_id must get "not signed in", not a Postgres uuid cast
+    // error from the managed-user lookup.
+    $secret = $this->agent->ensureAuthSecret();
+    $exp = now()->addMinutes(5)->getTimestamp();
+
+    $jwt = JWT::encode(['sub' => '2', 'aud' => $this->agent->external_id, 'exp' => $exp], $secret, 'HS256');
+    $hmac = 'cvh1.2.'.$exp.'.'.hash_hmac('sha256', '2.'.$exp, $secret);
+
+    expect($this->service->verify($jwt, $this->agent))->toBeNull()
+        ->and($this->service->verify($hmac, $this->agent))->toBeNull();
+});
+
 it('accepts both a JWT and an HMAC credential against the same agent (no scheme conflict)', function (): void {
     $jwt = $this->service->issue($this->owner, $this->agent)['token'];
     $hmac = $this->service->issueHmac($this->owner, $this->agent)['token'];

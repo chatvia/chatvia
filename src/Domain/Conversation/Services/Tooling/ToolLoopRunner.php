@@ -259,6 +259,7 @@ class ToolLoopRunner
             activityLabel: $pc['activity_label'] ?? null,
             iconUrl: $pc['icon_url'],
             brandColor: $pc['brand_color'],
+            internal: $pc['is_builtin'] ?? false,
         );
 
         $start = microtime(true);
@@ -348,6 +349,7 @@ class ToolLoopRunner
                 'kind' => $display['kind'],
                 'label' => $display['label'],
                 'activity_label' => $display['activity_label'],
+                'is_builtin' => $display['is_builtin'],
                 'icon_url' => $display['icon_url'],
                 'brand_color' => $display['brand_color'],
                 'reason' => $requires ? self::APPROVAL_REASON : null,

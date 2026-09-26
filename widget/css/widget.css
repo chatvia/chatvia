@@ -1,0 +1,3895 @@
+/* ============================================
+   WIDGET STYLES - Chatvia Widget
+   ============================================ */
+
+/* Import shared styles */
+@import './shared.css';
+
+/* Widget-specific size variables - Responsive with clamp() */
+:root {
+  /* Small: compact */
+  --chat-small-width: clamp(340px, 22vw, 380px);
+  --chat-small-height: clamp(500px, 60vh, 600px);
+
+  /* Medium: 380×700 base, scales up to 420×800 on larger screens */
+  --chat-medium-width: clamp(380px, 25vw, 420px);
+  --chat-medium-height: clamp(700px, 80vh, 800px);
+
+  /* Large: expanded - constrained to viewport */
+  --chat-large-width: clamp(420px, 28vw, 480px);
+  --chat-large-height: clamp(600px, calc(100vh - 120px), 850px);
+}
+
+@media (max-width: 768px) {
+  :root {
+    /* On mobile, fullscreen */
+    --chat-small-width: 100%;
+    --chat-small-height: 100%;
+
+    --chat-medium-width: 100%;
+    --chat-medium-height: 100%;
+
+    --chat-large-width: 100%;
+    --chat-large-height: 100%;
+  }
+}
+
+/* Landscape mode - use smaller heights to account for browser UI */
+@media (max-width: 1024px) and (max-height: 600px) and (orientation: landscape) {
+  :root {
+    --chat-small-height: clamp(400px, 90vh, 500px);
+    --chat-medium-height: clamp(450px, 90vh, 550px);
+    --chat-large-height: clamp(500px, 90vh, 600px);
+  }
+
+  /* Use full height in landscape when widget is open */
+  .chatvia-widget-window.chatvia-widget-open {
+    height: 90vh !important;
+    max-height: 90vh !important;
+  }
+
+  /* For fullscreen mode in landscape, use dvh */
+  .chatvia-widget.chatvia-widget-fullscreen .chatvia-widget-window {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+}
+
+/* Chat Widget container */
+.chatvia-widget {
+  position: fixed !important;
+  /* Make sure position is not overridden */
+  z-index: 9999;
+  font-family: var(--chat-font);
+  /* Remove the default positioning here */
+
+  /* Primary-derived tokens are declared HERE (on the container), not at :root,
+     so each color-mix() substitutes the container's runtime --chat-primary (the
+     brand injected by applyColors) instead of the transparent :root sentinel —
+     the indirection trap documented in config.js. These give the launcher, send
+     button, and focus rings one shared accent so they read as a single system. */
+  --chat-shadow-accent: 0 6px 18px -4px color-mix(in srgb, var(--chat-primary) 42%, transparent);
+  --chat-shadow-accent-sm: 0 2px 8px -2px color-mix(in srgb, var(--chat-primary) 36%, transparent);
+  --chat-focus-ring-color: color-mix(in srgb, var(--chat-primary) 72%, transparent);
+}
+
+/* ============================================
+   FOCUS-VISIBLE — keyboard focus rings
+   Every interactive control shows a ring on keyboard focus only
+   (:focus-visible), never on mouse press. Body-area controls use a
+   primary-derived outline; controls on the colored header use a fixed light
+   ring so it reads against the brand fill. We use `outline` (not box-shadow)
+   so the ring never reflows layout and layers cleanly over existing shadows.
+   ============================================ */
+.chatvia-widget .chatvia-widget-action-btn:focus-visible,
+.chatvia-widget .chatvia-widget-attach-btn:focus-visible,
+.chatvia-widget .chatvia-widget-starter-btn:focus-visible,
+.chatvia-widget .chatvia-widget-scroll-bottom:focus-visible,
+.chatvia-widget .chatvia-widget-conversation-item:focus-visible,
+.chatvia-widget .chatvia-widget-menu-option:focus-visible,
+.chatvia-widget .chatvia-widget-new-chat-btn:focus-visible,
+.chatvia-widget .chatvia-widget-delete-all-btn:focus-visible,
+.chatvia-widget .chatvia-widget-talk-to-human:focus-visible,
+.chatvia-widget .chatvia-widget-bubble:focus-visible,
+.chatvia-widget-bar-btn:focus-visible,
+.chatvia-widget-bar-history-btn:focus-visible {
+  outline: 2px solid var(--chat-focus-ring-color);
+  outline-offset: 2px;
+}
+
+/* The send button is itself primary-filled; a slightly larger offset keeps the
+   ring legible around the circle instead of blending into the fill. */
+.chatvia-widget .chatvia-widget-send-btn:focus-visible {
+  outline: 2px solid var(--chat-focus-ring-color);
+  outline-offset: 3px;
+}
+
+/* Header controls sit on the brand fill — use the fixed light ring. */
+.chatvia-widget .chatvia-widget-close-btn:focus-visible,
+.chatvia-widget .chatvia-widget-menu-btn:focus-visible,
+.chatvia-widget .chatvia-widget-expand-btn:focus-visible,
+.chatvia-widget .chatvia-widget-delete-btn:focus-visible,
+.chatvia-widget .chatvia-widget-theme-toggle:focus-visible,
+.chatvia-widget .chatvia-widget-end-chat-btn:focus-visible {
+  outline: 2px solid var(--chat-focus-ring-on-accent);
+  outline-offset: 2px;
+}
+
+/* Keyboard focus on the menu option should also tint the row so focus and
+   hover read consistently. */
+.chatvia-widget .chatvia-widget-menu-option:focus-visible {
+  background-color: var(--chat-surface-hover);
+}
+
+.chatvia-widget.chatvia-widget-bottom-right {
+  right: 20px !important;
+  bottom: 20px !important;
+  left: auto !important;
+}
+
+.chatvia-widget.chatvia-widget-bottom-left {
+  left: 20px !important;
+  bottom: 20px !important;
+  right: auto !important;
+}
+
+/* Floating Message Bubbles */
+.chatvia-widget .chatvia-widget-bubble-contents {
+  position: absolute;
+  bottom: 75px;
+  /* Much closer to the chat bubble */
+  right: 0;
+  width: 320px;
+  pointer-events: auto;
+  z-index: 10;
+}
+
+.chatvia-widget.chatvia-widget-bottom-left .chatvia-widget-bubble-contents {
+  right: auto;
+  left: 0;
+}
+
+/* Message Bubbles Container - appears above the chat bubble */
+.chatvia-widget .chatvia-widget-msg-bubbles {
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  z-index: 999998;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.chatvia-widget .chatvia-widget-msg-bubbles>* {
+  pointer-events: auto;
+}
+
+/* Position adjustments for left side */
+.chatvia-widget-position-left .chatvia-widget-msg-bubbles {
+  right: auto;
+  left: 30px;
+  align-items: flex-start;
+}
+
+/* Position adjustments for top positions */
+.chatvia-widget-position-top-left .chatvia-widget-msg-bubbles,
+.chatvia-widget-position-top-right .chatvia-widget-msg-bubbles {
+  bottom: auto;
+  top: 100px;
+}
+
+.chatvia-widget .chatvia-widget-floating-bubble {
+  background: linear-gradient(135deg, var(--chat-primary) 0%, color-mix(in srgb, var(--chat-primary) 90%, black) 100%);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 16px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transform: scale(0.85) translateY(10px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 100%;
+  word-wrap: break-word;
+  position: relative;
+  cursor: pointer;
+}
+
+.chatvia-widget .chatvia-widget-floating-bubble.chatvia-widget-bubble-show {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.chatvia-widget .chatvia-widget-floating-bubble:hover {
+  transform: scale(1.02) translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Close (X) control on each teaser bubble — dismisses the whole teaser.
+   Sits as a small floating chip on the top-right corner, revealed on hover. */
+.chatvia-widget .chatvia-widget-floating-bubble-text {
+  display: block;
+}
+
+.chatvia-widget .chatvia-widget-floating-bubble-close {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: #6b7280;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  pointer-events: none;
+}
+
+/* Reveal the close control when the bubble is hovered or keyboard-focused. */
+.chatvia-widget .chatvia-widget-floating-bubble:hover .chatvia-widget-floating-bubble-close,
+.chatvia-widget .chatvia-widget-floating-bubble:focus-within .chatvia-widget-floating-bubble-close {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.chatvia-widget .chatvia-widget-floating-bubble-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.chatvia-widget .chatvia-widget-floating-bubble-close svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+/* Touch devices have no hover — keep the control visible so it stays reachable. */
+@media (hover: none) {
+  .chatvia-widget .chatvia-widget-floating-bubble-close {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+}
+
+/* Mobile adjustments for message bubbles */
+@media (max-width: 768px) {
+  .chatvia-widget .chatvia-widget-msg-bubbles {
+    right: 20px;
+    bottom: 90px;
+    max-width: calc(100vw - 100px);
+  }
+
+  .chatvia-widget-position-left .chatvia-widget-msg-bubbles {
+    left: 20px;
+    right: auto;
+  }
+
+  .chatvia-widget .chatvia-widget-floating-bubble {
+    max-width: 280px;
+    font-size: 14px;
+    padding: 14px 18px;
+  }
+}
+
+
+/* Chat bubble (collapsed state) - Intercom style */
+.chatvia-widget .chatvia-widget-bubble {
+  width: 60px;
+  height: 60px;
+  background-color: var(--chat-primary);
+  background-image: linear-gradient(135deg, color-mix(in srgb, var(--chat-primary) 90%, white) 0%, var(--chat-primary) 50%, color-mix(in srgb, var(--chat-primary) 84%, black) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 28px -6px color-mix(in srgb, var(--chat-primary) 45%, transparent), 0 4px 12px rgba(15, 23, 42, 0.12);
+  position: absolute;
+  z-index: 10001;
+  transition: transform var(--chat-transition-normal), box-shadow var(--chat-transition-normal);
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Position the bubble properly for each position */
+.chatvia-widget.chatvia-widget-bottom-right .chatvia-widget-bubble {
+  right: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+}
+
+.chatvia-widget.chatvia-widget-bottom-left .chatvia-widget-bubble {
+  left: 0 !important;
+  right: auto !important;
+  bottom: 0 !important;
+}
+
+/* Transition only on hover, not on initial load */
+.chatvia-widget .chatvia-widget-bubble:hover {
+  transform: scale(1.06) translateY(-2px);
+  box-shadow: 0 18px 40px -8px color-mix(in srgb, var(--chat-primary) 52%, transparent), 0 6px 16px rgba(15, 23, 42, 0.14);
+}
+
+/* Open state — keep the themed launcher color and just swap the logo for a
+   down-chevron, Chatbase-style, so it reads as a "minimize/close" affordance. */
+.chatvia-widget .chatvia-widget-bubble.chatvia-widget-active {
+  opacity: 1;
+}
+
+/* Swap logo ↔ close icon based on open state. */
+.chatvia-widget .chatvia-widget-bubble-close-icon {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.chatvia-widget .chatvia-widget-bubble-close-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.chatvia-widget .chatvia-widget-bubble.chatvia-widget-active img {
+  display: none;
+}
+
+.chatvia-widget .chatvia-widget-bubble.chatvia-widget-active .chatvia-widget-bubble-close-icon {
+  display: flex;
+}
+
+/* Keep the open-state launcher static — no pulse ring while the chat is open. */
+.chatvia-widget .chatvia-widget-bubble.chatvia-widget-active.chatvia-widget-pulse,
+.chatvia-widget .chatvia-widget-bubble.chatvia-widget-active.chatvia-widget-pulse:after {
+  animation: none;
+}
+
+.chatvia-widget .chatvia-widget-bubble:after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  animation: none;
+  box-sizing: border-box;
+}
+
+/* Animation for pulse effect */
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--chat-primary) 70%, transparent);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--chat-primary) 0%, transparent);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--chat-primary) 0%, transparent);
+  }
+}
+
+/* Modified pulse animation for the bubble outline */
+@keyframes pulse-outline {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
+.chatvia-widget .chatvia-widget-bubble.chatvia-widget-pulse:after {
+  animation: pulse-outline 1.5s infinite;
+  border-color: color-mix(in srgb, var(--chat-primary) 50%, transparent);
+}
+
+.chatvia-widget .chatvia-widget-bubble.chatvia-widget-pulse {
+  animation: pulse 2s infinite;
+}
+
+.chatvia-widget .chatvia-widget-bubble img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: filter 0.3s ease;
+  opacity: 1;
+}
+
+/* Chat window container - Sleek floating design */
+.chatvia-widget .chatvia-widget-window {
+  display: none;
+  position: fixed;
+  width: var(--chat-medium-width);
+  height: var(--chat-medium-height);
+  background-color: #ffffff;
+  background-color: var(--chat-bg, #ffffff);
+  border-radius: var(--chat-radius-xl);
+  overflow: hidden;
+  box-shadow: var(--chat-shadow-xl), var(--chat-ring-hairline);
+  flex-direction: column;
+  /* Scope to opacity+transform (was `all`) so a theme toggle snaps cleanly
+     instead of cross-fading bg/shadow; the entrance still interpolates. */
+  transition: opacity var(--chat-transition-slow), transform var(--chat-transition-slow);
+  border: none;
+  z-index: 10000;
+  opacity: 0;
+  transform: translateY(16px) scale(0.975);
+}
+
+/* Flat mode - widget adapts to container size */
+.chatvia-widget.chatvia-widget-flat-mode {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  top: unset !important;
+  left: unset !important;
+  right: unset !important;
+  bottom: unset !important;
+}
+
+.chatvia-widget.chatvia-widget-flat-mode .chatvia-widget-window {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: unset !important;
+  max-width: unset !important;
+  min-height: unset !important;
+  max-height: unset !important;
+  border-radius: 0 !important;
+  box-shadow: none;
+  transform: none !important;
+  opacity: 1 !important;
+  display: flex !important;
+}
+
+.chatvia-widget.chatvia-widget-flat-mode .chatvia-widget-header {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+/* Window size variations */
+/* Dynamic sizing - clamp() handles min/max automatically */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-small {
+  width: var(--chat-small-width);
+  height: var(--chat-small-height);
+  max-height: calc(100vh - 140px);
+  /* Prevent overflow - account for bottom position + margin */
+  max-height: calc(100dvh - 140px);
+  /* Use dynamic viewport height for mobile */
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-medium {
+  width: var(--chat-medium-width);
+  height: var(--chat-medium-height);
+  max-height: calc(100vh - 140px);
+  /* Prevent overflow - account for bottom position + margin */
+  max-height: calc(100dvh - 140px);
+  /* Use dynamic viewport height for mobile */
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-large {
+  width: var(--chat-large-width);
+  height: var(--chat-large-height);
+  max-height: calc(100vh - 140px);
+  /* Prevent overflow - account for bottom position + margin */
+  max-height: calc(100dvh - 140px);
+  /* Use dynamic viewport height for mobile */
+}
+
+/* Hide expand button in large mode - modified to work with _previousWindowSize logic */
+.chatvia-widget[data-window-size="large"] .chatvia-widget-expand-btn {
+  display: none !important;
+}
+
+/* The JavaScript will handle showing the button when in large mode with _previousWindowSize */
+
+/* Animation for window transitions */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-animating {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-animating .chatvia-widget-messages {
+  transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* When open, display flex with proper layout */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-open {
+  display: flex;
+  opacity: 1;
+  /* `none` (not `scale(1)`) at rest: an identity transform still keeps the
+     window on its own compositing layer, and Firefox then mis-clips the
+     rounded corners under `overflow: hidden`, bleeding the white background
+     past the dark header's top corners. Dropping the layer at rest fixes that
+     while the entrance animation (from translateY(20px) scale(0.96)) still
+     interpolates to identity. */
+  transform: none;
+  flex-direction: column;
+}
+
+/* Chat messages area - Clean and airy */
+.chatvia-widget .chatvia-widget-messages {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Side padding matches the composer's 16px side margin so the message column
+     and the composer pill share one left/right edge (shared rhythm). */
+  padding: var(--chat-space-4);
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  background: var(--chat-bg, #ffffff) !important;
+  min-height: 100px;
+}
+
+/* Trailing spacer that reserves scroll room so a just-sent question can sit
+   pinned at the top while its reply streams in below (ChatGPT-style). Its
+   height is driven from JS and collapses to 0 when not pinning. */
+.chatvia-widget .chatvia-widget-scroll-spacer {
+  flex: 0 0 auto;
+  width: 100%;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+/* Custom scrollbar for messages */
+.chatvia-widget .chatvia-widget-messages {
+  scrollbar-width: thin;
+  scrollbar-color: var(--chat-scrollbar-thumb) transparent;
+}
+
+.chatvia-widget .chatvia-widget-messages::-webkit-scrollbar {
+  width: 7px;
+}
+
+.chatvia-widget .chatvia-widget-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chatvia-widget .chatvia-widget-messages::-webkit-scrollbar-thumb {
+  background: var(--chat-scrollbar-thumb);
+  border-radius: var(--chat-radius-full);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.chatvia-widget .chatvia-widget-messages::-webkit-scrollbar-thumb:hover {
+  background: var(--chat-scrollbar-thumb-hover);
+  background-clip: content-box;
+}
+
+
+
+/* Better header styling - Refined gradient with glassmorphism accent */
+.chatvia-widget .chatvia-widget-header {
+  display: flex;
+  align-items: center;
+  padding: var(--chat-space-3) var(--chat-space-4);
+  /* Diagonal 3-stop gradient: a soft top-left sheen easing into the brand and a
+     hair darker at the base — gives the header gentle depth without a second hue. */
+  background: linear-gradient(165deg,
+    color-mix(in srgb, var(--chat-primary) 96%, white) 0%,
+    var(--chat-primary) 46%,
+    color-mix(in srgb, var(--chat-primary) 90%, black) 100%);
+  color: var(--chat-header-text);
+  border-top-left-radius: var(--chat-radius-xl);
+  border-top-right-radius: var(--chat-radius-xl);
+  border-bottom: none;
+  position: relative;
+  z-index: 2;
+  /* Inset top highlight + a primary-tinted drop so the divider under the header
+     belongs to the same accent system rather than a generic black shadow. */
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 2px 10px -4px color-mix(in srgb, var(--chat-primary) 42%, transparent);
+}
+
+.chatvia-widget .chatvia-widget-header-logo {
+  width: 34px;
+  height: 34px;
+  margin-right: 12px;
+  object-fit: cover;
+  /* Square crop for the avatar/logo. No background fill — the default Chatvia
+     logo is a white glyph on transparent, so a white fill here would hide it
+     (white-on-white) on the dark header. */
+  border-radius: 0;
+}
+
+.chatvia-widget .chatvia-widget-header-titlewrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.chatvia-widget .chatvia-widget-header-title {
+  flex-grow: 1;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: var(--chat-letter-spacing);
+}
+
+.chatvia-widget .chatvia-widget-header-titlewrap .chatvia-widget-header-title {
+  flex-grow: 0;
+}
+
+/* EU AI Act Art. 50 disclosure label — "AI assistant" / "Human agent". */
+.chatvia-widget .chatvia-widget-header-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--chat-font-size-xs);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.005em;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Reserve room for the status dot's 3px glow ring so `overflow: hidden`
+     (here for text ellipsis) clips at the padding edge instead of slicing the
+     ring. The negative margin keeps the dot aligned under the title text. */
+  padding-left: 4px;
+  margin-left: -4px;
+}
+
+/* Disclosure status dot — a soft outer glow ring makes the AI/Human state read
+   as a quiet "live" indicator without animating (respects reduced-motion). */
+.chatvia-widget .chatvia-widget-header-subtitle::before {
+  content: '';
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+  opacity: 0.9;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.chatvia-widget .chatvia-widget-close-btn {
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chatvia-widget .chatvia-widget-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.chatvia-widget .chatvia-widget-close-btn:active {
+  transform: scale(0.95);
+}
+
+.chatvia-widget .chatvia-widget-close-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--chat-header-text);
+}
+
+/* Message styling - Intercom style */
+.chatvia-widget .chatvia-widget-message {
+  display: block;
+  position: relative;
+  margin: 10px 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  /* Ensure messages don't exceed container width */
+  box-sizing: border-box;
+  background-color: transparent;
+  box-shadow: none;
+  animation: message-appear 0.32s var(--chat-ease-emphasized) both;
+  min-width: 0;
+  /* Prevent flex items from overflowing */
+}
+
+/* Message content wrapper - contains avatar and bubble */
+.chatvia-widget .chatvia-widget-content-wrapper {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* assistant message styling - Refined */
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant {
+  align-self: flex-start;
+  width: 100%;
+  margin-right: 50px;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant .chatvia-widget-bubble-content {
+  background-color: var(--chat-assistant-bubble) !important;
+  color: var(--chat-assistant-text) !important;
+  border-radius: var(--chat-radius-lg);
+  border-bottom-left-radius: var(--chat-radius-sm);
+  margin-right: auto;
+  width: auto;
+  flex-grow: 0;
+  max-width: calc(100% - 36px);
+  min-width: 0;
+  position: relative;
+  padding: 11px 14px;
+  z-index: 1;
+  box-shadow: var(--chat-shadow-xs);
+  font-size: var(--chat-font-size-base);
+  line-height: var(--chat-line-height);
+  border: 1px solid var(--chat-assistant-border);
+  letter-spacing: var(--chat-letter-spacing);
+}
+
+/* Human agent message styling - Subtle difference using primary color */
+.chatvia-widget .chatvia-widget-message.chatvia-widget-human-agent .chatvia-widget-bubble-content {
+  background-color: color-mix(in srgb, var(--chat-primary) 8%, var(--chat-assistant-bubble)) !important;
+  color: var(--chat-assistant-text) !important;
+  border-left: 3px solid var(--chat-primary) !important;
+}
+
+/* Human agent avatar - uses primary color */
+.chatvia-widget .chatvia-widget-message.chatvia-widget-human-agent .chatvia-widget-avatar {
+  background: linear-gradient(135deg, var(--chat-primary) 0%, color-mix(in srgb, var(--chat-primary) 80%, black) 100%);
+}
+
+/* Human icon for human agent avatar */
+.chatvia-widget .chatvia-widget-message.chatvia-widget-human-agent .chatvia-widget-avatar svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Message timestamp styling - inline with actions (after buttons with divider) */
+.chatvia-widget .chatvia-widget-actions .chatvia-widget-message-time {
+  font-size: 11px;
+  color: #9ca3af;
+  white-space: nowrap;
+  padding-left: 8px;
+  margin-left: 4px;
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: default;
+}
+
+/* Standalone timestamp (for messages without actions like user/human messages) */
+.chatvia-widget .chatvia-widget-message>.chatvia-widget-message-time {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-user>.chatvia-widget-message-time {
+  text-align: right;
+  margin-right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+/* Read status indicator */
+.chatvia-widget .chatvia-widget-read-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.chatvia-widget .chatvia-widget-read-status.read {
+  color: var(--chat-primary);
+}
+
+.chatvia-widget .chatvia-widget-read-status svg {
+  width: 12px;
+  height: 12px;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant>.chatvia-widget-message-time,
+.chatvia-widget .chatvia-widget-message.chatvia-widget-human-agent>.chatvia-widget-message-time {
+  text-align: left;
+  margin-left: 0;
+}
+
+/* User message styling - Refined */
+.chatvia-widget .chatvia-widget-message.chatvia-widget-user {
+  align-self: flex-end;
+  margin-left: 10px;
+  padding-right: 8px;
+  /* Space for scrollbar */
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-user .chatvia-widget-content-wrapper {
+  /* Stack the bubble + any attachment chips vertically. Without this, the
+     default row-flex layout puts the attachments strip beside the bubble.
+     `align-items: flex-end` keeps both pinned to the user's side (right in
+     LTR, left in RTL — the cross axis flips with `dir`). */
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-user .chatvia-widget-bubble-content {
+  background: linear-gradient(135deg, var(--chat-user-bubble) 0%, color-mix(in srgb, var(--chat-user-bubble) 88%, black) 100%);
+  color: var(--chat-user-text);
+  border-radius: var(--chat-radius-lg);
+  border-bottom-right-radius: var(--chat-radius-sm);
+  margin-left: auto;
+  max-width: 85%;
+  min-width: 0;
+  box-shadow: var(--chat-shadow-accent-sm);
+  font-size: var(--chat-font-size-base);
+  line-height: var(--chat-line-height);
+  letter-spacing: var(--chat-letter-spacing);
+}
+
+/* Message bubbles */
+.chatvia-widget .chatvia-widget-bubble-content {
+  padding: 12px 16px;
+  box-shadow: var(--chat-shadow-xs);
+  position: relative;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
+  /* Prevent flex items from overflowing */
+}
+
+/* Message content styling for all messages */
+.chatvia-widget .chatvia-widget-bubble-content * {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Ensure lists are properly styled */
+.chatvia-widget .chatvia-widget-bubble-content ul,
+.chatvia-widget .chatvia-widget-bubble-content ol {
+  display: block !important;
+}
+
+.chatvia-widget .chatvia-widget-bubble-content li {
+  display: list-item !important;
+}
+
+/* Ensure code blocks and pre elements don't overflow */
+.chatvia-widget .chatvia-widget-bubble-content pre,
+.chatvia-widget .chatvia-widget-bubble-content code {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  font-family: var(--chat-font-mono);
+}
+
+.chatvia-widget .chatvia-widget-bubble-content code {
+  background-color: var(--chat-code-bg);
+  border: 1px solid var(--chat-code-border);
+  color: var(--chat-code-text);
+  padding: 1.5px 5px;
+  border-radius: 5px;
+  font-size: 0.85em;
+  white-space: pre-wrap;
+}
+
+.chatvia-widget .chatvia-widget-bubble-content pre {
+  background-color: var(--chat-code-bg);
+  border: 1px solid var(--chat-code-border);
+  color: var(--chat-code-text);
+  padding: 12px 14px;
+  border-radius: var(--chat-radius-md);
+  margin: 0.6em 0;
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 0.85em;
+  line-height: 1.55;
+}
+
+.chatvia-widget .chatvia-widget-bubble-content pre code {
+  background-color: transparent;
+  border: none;
+  color: inherit;
+  padding: 0;
+  font-size: 1em;
+  white-space: inherit;
+}
+
+/* Table styling for markdown tables */
+.chatvia-widget .chatvia-widget-bubble-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 12px 0;
+  font-size: 0.875em;
+  table-layout: auto;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+}
+
+.chatvia-widget .chatvia-widget-bubble-content thead {
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+}
+
+.chatvia-widget .chatvia-widget-bubble-content th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.chatvia-widget .chatvia-widget-bubble-content td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #4b5563;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.chatvia-widget .chatvia-widget-bubble-content tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.chatvia-widget .chatvia-widget-bubble-content tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Zebra striping for better readability */
+.chatvia-widget .chatvia-widget-bubble-content tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.chatvia-widget .chatvia-widget-bubble-content tbody tr:nth-child(even):hover {
+  background-color: #f5f5f5;
+}
+
+/* Dark mode table styling */
+.chatvia-widget-dark .chatvia-widget-bubble-content table {
+  border-color: #374151;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.chatvia-widget-dark .chatvia-widget-bubble-content thead {
+  background: linear-gradient(to bottom, #374151, #1f2937);
+}
+
+.chatvia-widget-dark .chatvia-widget-bubble-content th {
+  color: #f3f4f6;
+  border-bottom-color: #4b5563;
+}
+
+.chatvia-widget-dark .chatvia-widget-bubble-content td {
+  color: #d1d5db;
+  border-bottom-color: #374151;
+}
+
+.chatvia-widget-dark .chatvia-widget-bubble-content tbody tr:hover {
+  background-color: #374151;
+}
+
+.chatvia-widget-dark .chatvia-widget-bubble-content tbody tr:nth-child(even) {
+  background-color: #1f2937;
+}
+
+.chatvia-widget-dark .chatvia-widget-bubble-content tbody tr:nth-child(even):hover {
+  background-color: #374151;
+}
+
+/* Ensure images don't overflow */
+.chatvia-widget .chatvia-widget-bubble-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Message action buttons */
+.chatvia-widget .chatvia-widget-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+/* Hide action buttons during streaming */
+.chatvia-widget .chatvia-widget-message.chatvia-widget-streaming-msg .chatvia-widget-actions,
+.chatvia-widget #streaming-message .chatvia-widget-actions {
+  display: none !important;
+}
+
+/* Message action buttons inherit from shared.css .chatvia-widget-action-btn */
+.chatvia-widget .chatvia-widget-action-btn {
+  background: transparent;
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+  border-radius: var(--chat-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--chat-transition-fast);
+  color: var(--chat-text-muted);
+}
+
+.chatvia-widget .chatvia-widget-action-btn:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--chat-text-secondary);
+}
+
+.chatvia-widget .chatvia-widget-action-btn:active {
+  transform: scale(0.92);
+}
+
+.chatvia-widget .chatvia-widget-action-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Copy button specific styles */
+.chatvia-widget .chatvia-widget-copy-btn.chatvia-widget-copied {
+  color: #10b981;
+}
+
+/* Thumbs up/down active states */
+.chatvia-widget .chatvia-widget-thumbs-up.chatvia-widget-active {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.chatvia-widget .chatvia-widget-thumbs-down.chatvia-widget-active {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+.chatvia-widget .chatvia-widget-thumbs-up.chatvia-widget-active:hover {
+  background-color: rgba(16, 185, 129, 0.15);
+}
+
+.chatvia-widget .chatvia-widget-thumbs-down.chatvia-widget-active:hover {
+  background-color: rgba(239, 68, 68, 0.12);
+}
+
+
+/* System message — centered status banner.
+   Default = neutral info (green; used for handoff notifications).
+   `.error` = red variant with a warning-triangle icon. Layout is shared. */
+.chatvia-widget .chatvia-widget-message.chatvia-widget-system {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 12px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-system .chatvia-widget-bubble-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  text-align: center;
+  font-size: var(--chat-font-size-xs);
+  padding: 10px 16px;
+  border-radius: var(--chat-radius-md);
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  box-shadow: none;
+}
+
+/* Error variant — red bubble + warning-triangle icon */
+.chatvia-widget .chatvia-widget-message.chatvia-widget-system.error .chatvia-widget-bubble-content {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-system.error .chatvia-widget-bubble-content::before {
+  content: '';
+  display: inline-block;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23dc2626' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Loading indicator - Elegant bouncing dots */
+.chatvia-widget .chatvia-widget-loading {
+  display: flex;
+  justify-content: flex-start;
+  padding: 8px;
+  width: auto;
+  margin: 0 0 12px 0;
+}
+
+.chatvia-widget .chatvia-widget-loading-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: var(--chat-surface);
+  padding: 14px 18px;
+  border-radius: var(--chat-radius-lg);
+  border-bottom-left-radius: var(--chat-radius-sm);
+  box-shadow: var(--chat-shadow-sm);
+  border: 1px solid var(--chat-border);
+}
+
+.chatvia-widget .chatvia-widget-loading-dots .chatvia-widget-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--chat-primary);
+  border-radius: var(--chat-radius-full);
+  animation: dotPulse 1.4s infinite ease-in-out;
+}
+
+.chatvia-widget .chatvia-widget-loading-dots .chatvia-widget-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.chatvia-widget .chatvia-widget-loading-dots .chatvia-widget-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.chatvia-widget .chatvia-widget-loading-dots .chatvia-widget-dot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes chatvia-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Centered fetch spinner — shown while loading messages/conversations/history.
+   Mounted into .chatvia-widget-window (position: fixed or relative),
+   so it stays centered regardless of message-list scroll. */
+.chatvia-widget .chatvia-widget-fetch-spinner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-fetch-spinner {
+  background: rgba(17, 24, 39, 0.55);
+}
+
+.chatvia-widget .chatvia-widget-fetch-spinner-circle {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--chat-primary);
+  border-radius: 50%;
+  animation: chatvia-spin 0.7s linear infinite;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-fetch-spinner-circle {
+  border-color: rgba(255, 255, 255, 0.15);
+  border-top-color: var(--chat-primary);
+}
+
+/* Avatar styling. Hidden by default for a clean, avatar-less message column
+   (bubbles sit flush against the start edge). The element is still built by
+   addMessage so re-enabling is a one-line flip back to `display: flex`. */
+.chatvia-widget .chatvia-widget-avatar {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.chatvia-widget .chatvia-widget-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.chatvia-widget .chatvia-widget-avatar svg {
+  width: 16px;
+  height: 16px;
+  fill: white;
+  stroke: white;
+}
+
+/* Streaming avatar animation */
+.chatvia-widget .chatvia-widget-avatar.chatvia-widget-streaming {
+  animation: avatar-pulse 2s ease-in-out infinite;
+}
+
+@keyframes avatar-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+/* Tool activity: a transient "calling external tool" shimmer shown while a
+   function/MCP call runs, then removed so the answer can stream in below. */
+.chatvia-widget .chatvia-widget-tool-activity {
+  padding-left: 0;
+  margin-bottom: 6px;
+}
+
+.chatvia-widget .chatvia-widget-tool-activity:empty {
+  display: none;
+}
+
+.chatvia-widget .chatvia-widget-tool-calling {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  background-image: linear-gradient(
+    90deg,
+    #9ca3af 0%,
+    #9ca3af 40%,
+    var(--chat-primary, #6366f1) 50%,
+    #9ca3af 60%,
+    #9ca3af 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: chatvia-tool-shimmer 1.8s linear infinite;
+}
+
+@keyframes chatvia-tool-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+/* Tool calling shimmer - dark mode */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-tool-calling {
+  background-image: linear-gradient(
+    90deg,
+    #94a3b8 0%,
+    #94a3b8 40%,
+    var(--chat-primary, #a5b4fc) 50%,
+    #94a3b8 60%,
+    #94a3b8 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Animation - Intercom style */
+@keyframes message-appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Media queries for responsive behavior */
+@media (max-width: 768px) {
+  .chatvia-widget .chatvia-widget-window {
+    width: 85vw;
+    height: 82vh;
+    height: 82dvh;
+    /* Use dynamic viewport height */
+    min-width: 280px;
+    max-width: 340px;
+  }
+
+  .chatvia-widget .chatvia-widget-window.chatvia-widget-expanded {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    /* Use dynamic viewport height */
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+  }
+
+  /* Hide expand button on mobile */
+  .chatvia-widget .chatvia-widget-expand-btn {
+    display: none !important;
+  }
+}
+
+/* Chat input styling - Intercom style */
+.chatvia-widget .chatvia-widget-input-container {
+  display: flex;
+  flex-direction: column;
+  /* Floating pill composer — a single rounded, bordered surface that sits with
+     breathing room above the window's bottom edge (Intercom/Chatbase style)
+     instead of a flush full-width bar. The paperclip and send button are
+     absolutely positioned inside it (left/right); the textarea reserves room
+     for both via its horizontal padding. */
+  border: 1px solid var(--chat-border-strong);
+  border-radius: 26px;
+  margin: 10px 16px 14px;
+  padding: 0;
+  background: var(--chat-bg, #ffffff) !important;
+  position: relative;
+  box-sizing: border-box;
+  /* NOT overflow:hidden — the round send/attach buttons sit near the pill's
+     rounded corners, and clipping would slice them. The textarea + strip have
+     transparent backgrounds, so nothing pokes out of the rounded border. */
+  overflow: visible;
+  z-index: 2;
+  /* A resting shadow lifts the pill off the window background (Intercom-style),
+     deepening to a primary focus halo when active. */
+  box-shadow: var(--chat-shadow-sm);
+  transition: border-color var(--chat-transition-fast),
+    box-shadow var(--chat-transition-fast),
+    transform var(--chat-transition-fast);
+}
+
+.chatvia-widget .chatvia-widget-input-container:focus-within {
+  border-color: color-mix(in srgb, var(--chat-primary) 55%, var(--chat-border-strong));
+  /* A 1px lift pairs with the accent halo so focusing the composer feels like
+     the pill rises to meet the visitor (Linear/Intercom-style). */
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px var(--chat-focus-ring), var(--chat-shadow-md);
+}
+
+/* Composer row — paperclip, textarea, send as flex siblings. align-items:
+   flex-end keeps the buttons pinned to the bottom line as the textarea grows. */
+.chatvia-widget .chatvia-widget-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 8px 10px;
+  box-sizing: border-box;
+}
+
+.chatvia-widget .chatvia-widget-attachments-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  /* Equal top + bottom padding so chips have breathing room against the
+     attach/send button row that sits directly beneath. Previously had 0
+     bottom, which made chips touch the composer underneath. */
+  padding: 10px 14px;
+}
+
+.chatvia-widget .chatvia-widget-attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 8px;
+  background: color-mix(in srgb, var(--chat-text) 8%, transparent);
+  color: var(--chat-text);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.2;
+  max-width: 240px;
+}
+
+.chatvia-widget .chatvia-widget-attachment-chip svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--chat-text-muted);
+}
+
+.chatvia-widget .chatvia-widget-attachment-chip-uploading svg {
+  animation: chatvia-widget-spin 1s linear infinite;
+}
+
+@keyframes chatvia-widget-spin {
+  to { transform: rotate(360deg); }
+}
+
+.chatvia-widget .chatvia-widget-attachment-chip-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chatvia-widget .chatvia-widget-attachment-chip-size {
+  color: var(--chat-text-muted);
+  font-size: 11px;
+}
+
+.chatvia-widget .chatvia-widget-attachment-chip-remove {
+  background: none;
+  border: 0;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--chat-text-muted);
+  display: inline-flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.chatvia-widget .chatvia-widget-attachment-chip-remove:hover {
+  background: color-mix(in srgb, var(--chat-text) 12%, transparent);
+  color: var(--chat-text);
+}
+
+.chatvia-widget .chatvia-widget-attachment-chip-remove svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Persisted attachment chips on user message bubbles — rendered BELOW the
+   bubble by addMessage when message.attachments is non-empty. Differs from
+   the composer strip in that the chips are anchor links, align to the right
+   (user side), and use a custom file-type icon + two-line label. */
+.chatvia-widget .chatvia-widget-user .chatvia-widget-attachments-strip {
+  padding: 6px 0 0 0;
+  justify-content: flex-end;
+}
+
+.chatvia-widget .chatvia-widget-user .chatvia-widget-attachment-chip {
+  text-decoration: none;
+  padding: 8px 10px;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--chat-text) 10%, transparent);
+  background: var(--chat-bg);
+}
+
+.chatvia-widget .chatvia-widget-user .chatvia-widget-attachment-chip:hover {
+  background: color-mix(in srgb, var(--chat-text) 6%, var(--chat-bg));
+}
+
+.chatvia-widget .chatvia-widget-attachment-chip-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.chatvia-widget .chatvia-widget-attachment-chip-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.chatvia-widget .chatvia-widget-attach-btn {
+  position: static;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--chat-text-muted);
+  transition: background 0.2s, color 0.2s;
+  z-index: 1;
+}
+
+.chatvia-widget .chatvia-widget-attach-btn:hover {
+  background: color-mix(in srgb, var(--chat-text) 8%, transparent);
+  color: var(--chat-text);
+}
+
+.chatvia-widget .chatvia-widget-attach-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.chatvia-widget .chatvia-widget-input {
+  /* Flex child of .chatvia-widget-input-row. min-width:0 lets it shrink so the
+     buttons never get pushed out of the pill. */
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 7px 4px;
+  border-radius: 0;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  font-size: 16px;
+  /* Minimum 16px to prevent mobile zoom */
+  max-height: 120px;
+  min-height: 22px;
+  height: 36px;
+  /* Transparent so the pill container provides the surface. */
+  background-color: transparent;
+  color: var(--chat-text);
+  box-shadow: none;
+  transition: background-color var(--chat-transition-fast);
+  border: none;
+  /* Remove all borders */
+  box-sizing: border-box;
+  line-height: 1.375;
+}
+
+.chatvia-widget .chatvia-widget-input::placeholder {
+  color: var(--chat-text-muted);
+}
+
+.chatvia-widget .chatvia-widget-send-btn {
+  position: static;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background-color: var(--chat-primary);
+  /* Same gradient language as the launcher + header so the accent reads as one
+     system; the shadow is primary-tinted (shared --chat-shadow-accent). */
+  background-image: linear-gradient(135deg,
+    color-mix(in srgb, var(--chat-primary) 92%, white) 0%,
+    var(--chat-primary) 55%,
+    color-mix(in srgb, var(--chat-primary) 88%, black) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform var(--chat-transition-normal), box-shadow var(--chat-transition-normal);
+  box-shadow: var(--chat-shadow-accent-sm);
+  z-index: 1;
+}
+
+.chatvia-widget .chatvia-widget-send-btn:hover {
+  transform: scale(1.06) translateY(-1px);
+  box-shadow: var(--chat-shadow-accent);
+}
+
+.chatvia-widget .chatvia-widget-send-btn:active {
+  transform: scale(0.94);
+  box-shadow: var(--chat-shadow-accent-sm);
+}
+
+.chatvia-widget .chatvia-widget-send-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: white;
+  transition: fill var(--chat-transition-normal);
+}
+
+/* Idle send button — when the composer is empty (`:placeholder-shown` on the
+   sibling textarea), the button rests in a calm neutral coin instead of the
+   saturated brand gradient. It "lights up" to the full accent (the base rule
+   above) the instant the visitor types, so the affordance reads as primed →
+   ready. The textarea is an earlier sibling in `.chatvia-widget-input-row`,
+   so the general-sibling combinator reaches the button. */
+.chatvia-widget .chatvia-widget-input:placeholder-shown ~ .chatvia-widget-send-btn {
+  background-image: none;
+  background-color: color-mix(in srgb, var(--chat-text) 7%, transparent);
+  color: var(--chat-text-muted);
+  box-shadow: none;
+}
+
+.chatvia-widget .chatvia-widget-input:placeholder-shown ~ .chatvia-widget-send-btn svg {
+  fill: var(--chat-text-muted);
+}
+
+/* Idle hover stays quiet — a neutral fill bump, no lift or accent halo, so an
+   empty composer never implies there's something to send yet. */
+.chatvia-widget .chatvia-widget-input:placeholder-shown ~ .chatvia-widget-send-btn:hover {
+  background-color: color-mix(in srgb, var(--chat-text) 12%, transparent);
+  transform: none;
+  box-shadow: none;
+}
+
+
+
+/* Scroll-to-bottom floating button — appears when the visitor has scrolled
+   up away from the latest message. Anchored to the chat window (position:
+   fixed there), so it stays put as messages stream in. Lives just above the
+   composer so it doesn't cover any message content. Hidden by default;
+   `.chatvia-widget-scroll-bottom-visible` fades + scales it in.
+
+   Bottom offset accounts for the worst case: brand footer (~36px) + footer
+   text strip (~25px when present) + input container (~88px) + small gap =
+   ~155px. Sits ~6px above the footer text strip when present, or floats a
+   touch higher above the input when it's hidden — either way it never covers
+   message content or runs into the composer. The composer is the bottom-most
+   element now (~74px tall incl. margins), so the button floats just above it. */
+.chatvia-widget .chatvia-widget-scroll-bottom {
+  position: absolute;
+  bottom: 92px;
+  /* Anchored to the window's right edge, lined up with the composer's 16px
+     side margin, rather than centered — sits just above the send button.
+     Mirrored to the left in RTL below. */
+  right: 16px;
+  left: auto;
+  width: 36px;
+  height: 36px;
+  background: rgba(17, 24, 39, 0.9);
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--chat-shadow-lg);
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px) scale(0.92);
+  transition: opacity var(--chat-transition-fast),
+    transform var(--chat-transition-fast),
+    visibility 0s linear 150ms,
+    background-color var(--chat-transition-fast);
+}
+
+.chatvia-widget .chatvia-widget-scroll-bottom.chatvia-widget-scroll-bottom-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition: opacity var(--chat-transition-fast),
+    transform var(--chat-transition-fast),
+    visibility 0s linear 0s,
+    background-color var(--chat-transition-fast);
+}
+
+.chatvia-widget .chatvia-widget-scroll-bottom:hover {
+  background: rgba(17, 24, 39, 1);
+}
+
+.chatvia-widget .chatvia-widget-scroll-bottom:active {
+  transform: translateY(0) scale(0.94);
+}
+
+/* RTL — mirror the button to the left (start) edge. */
+.chatvia-widget[dir="rtl"] .chatvia-widget-scroll-bottom {
+  right: auto;
+  left: 16px;
+}
+
+.chatvia-widget .chatvia-widget-scroll-bottom svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Dark mode — keep the same dark pill (matches chatvia design). Only the
+   shadow is softened so it stays visible against the dark background. */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-scroll-bottom {
+  background: rgba(248, 250, 252, 0.92);
+  color: #0f172a;
+  box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.35);
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-scroll-bottom:hover {
+  background: #f8fafc;
+}
+
+/* Message spacing and appearance - Intercom style */
+.chatvia-widget .chatvia-widget-message+.chatvia-widget-message {
+  margin-top: 10px;
+}
+
+.chatvia-widget .chatvia-widget-message p {
+  margin: 0;
+  padding: 0;
+}
+
+.chatvia-widget .chatvia-widget-message p+p {
+  margin-top: 0.8em;
+}
+
+/* Markdown styling in messages */
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant a {
+  color: var(--chat-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--chat-primary) 45%, transparent);
+  font-weight: 500;
+  transition: text-decoration-color var(--chat-transition-fast);
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant a:hover {
+  text-decoration-color: var(--chat-primary);
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant ul,
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+  list-style-position: outside;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant ul {
+  list-style-type: disc !important;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant ol {
+  list-style-type: decimal !important;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant li {
+  display: list-item !important;
+  margin: 0.25em 0;
+}
+
+/* Nested lists */
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant ul ul {
+  list-style-type: circle !important;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant ul ul ul {
+  list-style-type: square !important;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant ol ol {
+  list-style-type: lower-alpha !important;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant ol ol ol {
+  list-style-type: lower-roman !important;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant blockquote {
+  margin: 0.5em 0;
+  padding: 0.1em 0 0.1em 1em;
+  border-left: 3px solid color-mix(in srgb, var(--chat-primary) 40%, var(--chat-border-strong));
+  color: var(--chat-text-secondary);
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h1,
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h2,
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h3,
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h4,
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h5,
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h6 {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h1 {
+  font-size: 1.4em;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h2 {
+  font-size: 1.3em;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h3 {
+  font-size: 1.2em;
+}
+
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h4,
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h5,
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant h6 {
+  font-size: 1.1em;
+}
+
+/* Chat menu button styling */
+.chatvia-widget .chatvia-widget-menu-btn {
+  cursor: pointer;
+  padding: 6px;
+  margin-right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.chatvia-widget .chatvia-widget-menu-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.chatvia-widget .chatvia-widget-menu-btn:active {
+  transform: scale(0.95);
+}
+
+.chatvia-widget .chatvia-widget-menu-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: transparent;
+  stroke: var(--chat-header-text);
+}
+
+/* Menu dropdown styling. Uses visibility + pointer-events for the hidden
+   state instead of display:none so the open ↔ close transition is symmetric.
+   visibility is delayed on close so the fade-out completes before the element
+   becomes inert. (We can't pull the visibility delay through
+   --chat-transition-fast — that var bundles duration + timing-function, which
+   would produce an invalid `visibility 0s linear 0.15s ease` shorthand and
+   the browser would drop the whole `transition` declaration. So the 150ms is
+   hard-coded here; keep it in sync with --chat-transition-fast.) */
+.chatvia-widget .chatvia-widget-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 40px;
+  width: 210px;
+  background-color: var(--chat-surface);
+  border-radius: var(--chat-radius-lg);
+  box-shadow: var(--chat-shadow-lg);
+  overflow: hidden;
+  z-index: 10005;
+  transition: opacity var(--chat-transition-fast), transform var(--chat-transition-fast),
+    visibility 0s linear 150ms;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px) scale(0.96);
+  transform-origin: top right;
+  max-height: 70vh;
+  border: 1px solid var(--chat-border);
+  padding: 6px;
+}
+
+.chatvia-widget .chatvia-widget-menu-dropdown.chatvia-widget-dropdown-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition: opacity var(--chat-transition-fast), transform var(--chat-transition-fast),
+    visibility 0s linear 0s;
+}
+
+.chatvia-widget .chatvia-widget-menu-option {
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all var(--chat-transition-fast);
+  color: var(--chat-text);
+  font-size: var(--chat-font-size-sm);
+  font-weight: 500;
+  border-radius: var(--chat-radius-sm);
+}
+
+.chatvia-widget .chatvia-widget-menu-option:hover {
+  background-color: var(--chat-surface-hover);
+}
+
+.chatvia-widget .chatvia-widget-menu-option svg {
+  width: 16px;
+  height: 16px;
+  color: var(--chat-text-secondary);
+}
+
+/* Disabled menu option (during handoff) */
+.chatvia-widget .chatvia-widget-menu-option.chatvia-widget-menu-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+  color: #9ca3af;
+}
+
+.chatvia-widget .chatvia-widget-menu-option.chatvia-widget-menu-disabled svg {
+  color: #9ca3af;
+}
+
+/* Conversation list styling - Clean design */
+.chatvia-widget .chatvia-widget-conversations {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.chatvia-widget .chatvia-widget-conversations-list .chatvia-widget-conversation-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 20px;
+  margin: 0 0 2px 0;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all var(--chat-transition-fast);
+  box-sizing: border-box;
+  border-radius: var(--chat-radius-md);
+}
+
+.chatvia-widget .chatvia-widget-conversation-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+  transform: translateX(2px);
+}
+
+.chatvia-widget .chatvia-widget-conversation-item.chatvia-widget-conversation-active {
+  background-color: color-mix(in srgb, var(--chat-primary) 8%, transparent);
+}
+
+.chatvia-widget .chatvia-widget-conversation-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding-right: 12px;
+}
+
+.chatvia-widget .chatvia-widget-conversation-title {
+  font-size: var(--chat-font-size-base);
+  font-weight: 600;
+  color: var(--chat-text);
+  line-height: 1.4;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chatvia-widget .chatvia-widget-conversation-subtitle {
+  font-size: var(--chat-font-size-xs);
+  color: var(--chat-text-secondary);
+  line-height: 1.3;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chatvia-widget .chatvia-widget-conversation-date {
+  font-size: var(--chat-font-size-xs);
+  color: var(--chat-text-muted);
+}
+
+.chatvia-widget .chatvia-widget-conversation-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: #cbd5e1;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: all var(--chat-transition-fast);
+}
+
+.chatvia-widget .chatvia-widget-conversation-item:hover .chatvia-widget-conversation-arrow {
+  color: var(--chat-text-muted);
+  transform: translateX(2px);
+}
+
+.chatvia-widget .chatvia-widget-no-conversations {
+  text-align: center;
+  color: var(--chat-text-muted);
+  padding: 32px 20px;
+  font-size: var(--chat-font-size-base);
+}
+
+
+/* Expand button styling */
+.chatvia-widget .chatvia-widget-expand-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 5px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.chatvia-widget .chatvia-widget-expand-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.chatvia-widget .chatvia-widget-expand-btn:active {
+  transform: scale(0.95);
+}
+
+.chatvia-widget .chatvia-widget-expand-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: transparent;
+  stroke: var(--chat-header-text);
+}
+
+/* Renamed from delete conversation button to clean button */
+.chatvia-widget .chatvia-widget-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  background-color: transparent;
+  transition: all 0.2s ease;
+  margin-right: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+.chatvia-widget .chatvia-widget-delete-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: var(--chat-radius-sm);
+}
+
+.chatvia-widget .chatvia-widget-delete-btn svg {
+  width: 18px;
+  height: 18px;
+  color: white;
+  transition: transform 0.2s ease;
+}
+
+.chatvia-widget .chatvia-widget-delete-btn:hover svg {
+  transform: scale(1.1);
+}
+
+/* Success animation styles */
+.chatvia-widget .chatvia-widget-delete-btn.success {
+  background-color: transparent;
+}
+
+.chatvia-widget .chatvia-widget-delete-btn.success svg {
+  color: white;
+  animation: success-pop 0.3s ease forwards;
+}
+
+@keyframes success-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.chatvia-widget .chatvia-widget-delete-btn.success-exit svg {
+  animation: success-exit 0.5s ease forwards;
+}
+
+@keyframes success-exit {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+/* Disclaimer strip below the composer — populated from settings.chat_footer_text
+   (e.g. "AI can make mistakes…"). Hidden via inline style when unset. Visually
+   subordinate to the brand footer below it; no top border because the input
+   container already provides a divider. */
+.chatvia-widget .chatvia-widget-footer-text {
+  text-align: center;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  padding: 6px 14px 4px;
+  color: var(--chat-text-muted);
+  background: var(--chat-bg, #ffffff);
+  flex-shrink: 0;
+  letter-spacing: 0.01em;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-footer-text {
+  background: var(--chat-bg);
+  color: var(--chat-text-muted);
+}
+
+/* Privacy-consent strip — quiet single line just above the composer, shown
+   only when the agent configured a privacy_policy_url. Dismiss affordance on
+   the trailing edge. */
+.chatvia-widget .chatvia-widget-privacy-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 14px 6px;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--chat-text-muted);
+  background: var(--chat-bg, #ffffff);
+  flex-shrink: 0;
+}
+
+.chatvia-widget .chatvia-widget-privacy-text {
+  text-align: center;
+}
+
+.chatvia-widget .chatvia-widget-privacy-link {
+  color: var(--chat-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.chatvia-widget .chatvia-widget-privacy-link:hover {
+  color: var(--chat-primary);
+}
+
+.chatvia-widget .chatvia-widget-privacy-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--chat-text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.chatvia-widget .chatvia-widget-privacy-dismiss:hover {
+  opacity: 1;
+  background: var(--chat-hover, rgba(0, 0, 0, 0.05));
+}
+
+.chatvia-widget .chatvia-widget-privacy-dismiss svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-privacy-notice {
+  background: var(--chat-bg);
+  color: var(--chat-text-muted);
+}
+
+/* Chat brand footer */
+.chatvia-widget .chatvia-widget-footer {
+  position: relative;
+  text-align: center;
+  font-size: 0.72rem;
+  /* Anchored at the very bottom of the window, below the floating composer (and
+     the optional disclaimer line). No divider or fill, so it reads as a quiet
+     brand caption rather than a toolbar. */
+  padding: 2px 14px 10px;
+  color: var(--chat-text-muted);
+  background: transparent;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.chatvia-widget .chatvia-widget-footer .chatvia-widget-brand-logo {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  vertical-align: middle;
+  object-fit: contain;
+}
+
+.chatvia-widget .chatvia-widget-footer a,
+.chatvia-widget .chatvia-widget-footer span {
+  display: inline-flex;
+  align-items: center;
+  color: #888;
+  text-decoration: none;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.chatvia-widget .chatvia-widget-footer a:hover {
+  text-decoration: none;
+  opacity: 1;
+  color: #666;
+}
+
+.chatvia-widget .chatvia-widget-new-chat-btn {
+  background-color: var(--chat-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  margin: 16px 0;
+  display: block;
+  width: 100%;
+  transition: background-color 0.2s ease;
+}
+
+
+/* Theme toggle button */
+.chatvia-widget .chatvia-widget-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  margin-right: 5px;
+  background-color: transparent;
+}
+
+.chatvia-widget .chatvia-widget-theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: none;
+}
+
+.chatvia-widget .chatvia-widget-theme-toggle svg {
+  width: 18px;
+  height: 18px;
+  color: var(--chat-header-text);
+  transition: transform 0.5s ease;
+}
+
+/* Theme toggle animation */
+.chatvia-widget .chatvia-widget-theme-toggle.chatvia-widget-animating svg {
+  animation: theme-toggle-rotate 0.5s ease;
+}
+
+@keyframes theme-toggle-rotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(180deg) scale(0.5);
+  }
+
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* Unauthorized message styles */
+.chatvia-widget .chatvia-widget-message.unauthorized {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.chatvia-widget .chatvia-widget-message.unauthorized .chatvia-widget-bubble-content {
+  color: #d32f2f;
+  font-weight: bold;
+  font-size: 1.1em;
+  background-color: #ffebee;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 8px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Disabled input and button styles */
+.chatvia-widget .chatvia-widget-input:disabled,
+.chatvia-widget .chatvia-widget-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Dialog Animations */
+@keyframes dialogFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialogSlideIn {
+  from {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Confirmation dialog - Modern floating card */
+.chatvia-widget-confirm-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000 !important;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  animation: dialogFadeIn 0.2s ease forwards;
+}
+
+.chatvia-widget-confirm-content {
+  background-color: #ffffff;
+  padding: 24px 28px;
+  border-radius: var(--chat-radius-lg);
+  box-shadow: var(--chat-shadow-xl);
+  max-width: 400px;
+  width: 90%;
+  z-index: 100001 !important;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  animation: dialogSlideIn 0.3s ease forwards;
+  border: 1px solid var(--chat-border-subtle);
+}
+
+.chatvia-widget-confirm-content h3 {
+  margin: 0 0 10px 0;
+  color: var(--chat-text);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.chatvia-widget-confirm-content p {
+  margin: 0 0 20px 0;
+  color: var(--chat-text-secondary);
+  line-height: 1.55;
+  font-size: var(--chat-font-size-base);
+}
+
+.chatvia-widget-confirm-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.chatvia-widget-confirm-buttons button {
+  padding: 10px 18px;
+  border-radius: var(--chat-radius-md);
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--chat-font-size-sm);
+  transition: all var(--chat-transition-fast);
+}
+
+.chatvia-widget-confirm-cancel {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.chatvia-widget-confirm-cancel:hover {
+  background-color: #e2e8f0;
+}
+
+.chatvia-widget-confirm-delete {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+
+.chatvia-widget-confirm-delete:hover {
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+  transform: translateY(-1px);
+}
+
+.chatvia-widget-confirm-cancel:active,
+.chatvia-widget-confirm-delete:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* The dialog mounts on <body>, outside .chatvia-widget, so it can't inherit the
+   container's primary-derived focus token — give each button a self-contained
+   keyboard ring (neutral for cancel, red for the destructive action). */
+.chatvia-widget-confirm-cancel:focus-visible {
+  outline: 2px solid rgba(100, 116, 139, 0.85);
+  outline-offset: 2px;
+}
+
+.chatvia-widget-confirm-delete:focus-visible {
+  outline: 2px solid rgba(239, 68, 68, 0.75);
+  outline-offset: 2px;
+}
+
+/* Window positioning with correct transform origins */
+.chatvia-widget.chatvia-widget-bottom-right .chatvia-widget-window {
+  right: 20px;
+  bottom: 100px;
+  transform-origin: bottom right;
+}
+
+.chatvia-widget.chatvia-widget-bottom-left .chatvia-widget-window {
+  left: 20px;
+  bottom: 100px;
+  transform-origin: bottom left;
+}
+
+/* Fullscreen mode for mobile devices */
+.chatvia-widget.chatvia-widget-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99999 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.chatvia-widget.chatvia-widget-fullscreen .chatvia-widget-window {
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  /* Use dynamic viewport height for mobile */
+  min-width: 100vw !important;
+  max-width: 100vw !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+  border-radius: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  position: fixed !important;
+  transform: none !important;
+  opacity: 1 !important;
+  display: none !important;
+  /* Force display none by default */
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.chatvia-widget.chatvia-widget-fullscreen .chatvia-widget-window.chatvia-widget-open {
+  display: flex !important;
+  /* Only show when explicitly opened */
+}
+
+.chatvia-widget.chatvia-widget-fullscreen .chatvia-widget-header {
+  border-radius: 0 !important;
+}
+
+.chatvia-widget.chatvia-widget-fullscreen .chatvia-widget-footer {
+  border-radius: 0 !important;
+}
+
+/* Show chat bubble by default in fullscreen mode */
+.chatvia-widget.chatvia-widget-fullscreen .chatvia-widget-bubble {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 100000 !important;
+}
+
+@media (max-width: 768px) {
+  .chatvia-widget.chatvia-widget-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99999 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .chatvia-widget.chatvia-widget-fullscreen .chatvia-widget-window {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    /* Use dynamic viewport height for mobile */
+    min-width: 100vw !important;
+    max-width: 100vw !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    position: fixed !important;
+    transform: none !important;
+    opacity: 1 !important;
+    display: none !important;
+    /* Force display none by default */
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .chatvia-widget.chatvia-widget-fullscreen .chatvia-widget-window.chatvia-widget-open {
+    display: flex !important;
+    /* Only show when explicitly opened */
+  }
+
+  .chatvia-widget.chatvia-widget-fullscreen .chatvia-widget-header {
+    border-radius: 0 !important;
+  }
+
+  .chatvia-widget.chatvia-widget-fullscreen .chatvia-widget-footer {
+    border-radius: 0 !important;
+  }
+
+  /* Show chat bubble by default in fullscreen mode */
+  .chatvia-widget.chatvia-widget-fullscreen .chatvia-widget-bubble {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 100000 !important;
+  }
+}
+
+/* Starters container styling */
+.chatvia-widget .chatvia-widget-starters {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 16px;
+  overflow: hidden;
+  position: relative;
+  background: var(--chat-bg, #ffffff) !important;
+  z-index: 2;
+  transition: height 0.2s ease-in-out, opacity 0.2s ease-in-out;
+}
+
+.chatvia-widget .chatvia-widget-starter-btn {
+  background-color: var(--chat-bg);
+  color: var(--chat-text);
+  border: 1px solid var(--chat-border-strong);
+  border-radius: var(--chat-radius-full);
+  padding: 10px 16px;
+  font-size: var(--chat-font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--chat-transition-fast);
+  text-align: center;
+  line-height: 1.35;
+  letter-spacing: var(--chat-letter-spacing);
+  user-select: none;
+  max-width: 90%;
+  box-shadow: var(--chat-shadow-xs);
+  /* Settle in with a quiet bottom-up fade so the prompts feel offered rather
+     than dumped. Staggered per-child below; disabled under reduced-motion. */
+  animation: starter-appear 0.34s var(--chat-ease-emphasized) both;
+}
+
+/* Stagger the suggested prompts so they cascade in (nearest the composer
+   first, matching their bottom-anchored column order). */
+.chatvia-widget .chatvia-widget-starter-btn:nth-child(1) { animation-delay: 0.02s; }
+.chatvia-widget .chatvia-widget-starter-btn:nth-child(2) { animation-delay: 0.08s; }
+.chatvia-widget .chatvia-widget-starter-btn:nth-child(3) { animation-delay: 0.14s; }
+.chatvia-widget .chatvia-widget-starter-btn:nth-child(4) { animation-delay: 0.20s; }
+
+@keyframes starter-appear {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover tints toward the brand (border + fill + text) so the suggested prompts
+   feel part of the same accent system as the launcher and send button. */
+.chatvia-widget .chatvia-widget-starter-btn:hover {
+  background-color: color-mix(in srgb, var(--chat-primary) 7%, var(--chat-bg));
+  border-color: color-mix(in srgb, var(--chat-primary) 38%, var(--chat-border-strong));
+  color: color-mix(in srgb, var(--chat-primary) 32%, var(--chat-text));
+  transform: translateY(-1px);
+  box-shadow: var(--chat-shadow-sm);
+}
+
+.chatvia-widget .chatvia-widget-starter-btn:active {
+  background-color: color-mix(in srgb, var(--chat-primary) 10%, var(--chat-bg));
+  transform: translateY(0);
+  box-shadow: var(--chat-shadow-xs);
+}
+
+/* Mobile responsiveness for starters */
+@media (max-width: 768px) {
+  .chatvia-widget .chatvia-widget-starters {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .chatvia-widget .chatvia-widget-starter-btn {
+    padding: 9px 16px;
+    font-size: 13px;
+  }
+}
+
+/* Conversation actions (New / Delete) */
+.chatvia-widget .chatvia-widget-conversation-actions {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.chatvia-widget .chatvia-widget-new-chat-btn,
+.chatvia-widget .chatvia-widget-delete-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  width: auto;
+  /* remove full width */
+}
+
+.chatvia-widget .chatvia-widget-new-chat-btn svg,
+.chatvia-widget .chatvia-widget-delete-all-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+
+.chatvia-widget .chatvia-widget-delete-all-btn {
+  background-color: #E03E52;
+  /* Red */
+  color: #fff;
+}
+
+.chatvia-widget .chatvia-widget-delete-all-btn:hover {
+  background-color: #C9354A;
+  transform: translateY(-1px);
+}
+
+.chatvia-widget .chatvia-widget-new-chat-btn:hover {
+  background-color: var(--chat-primary);
+  transform: translateY(-1px);
+}
+
+.chatvia-widget .chatvia-widget-delete-all-btn:active,
+.chatvia-widget .chatvia-widget-new-chat-btn:active {
+  transform: translateY(0);
+}
+
+/* Centered actions container */
+.chatvia-widget .chatvia-widget-conversation-actions {
+  justify-content: center;
+}
+
+/* Unified sizing for action buttons within conversation actions */
+.chatvia-widget .chatvia-widget-conversation-actions .chatvia-widget-new-chat-btn,
+.chatvia-widget .chatvia-widget-conversation-actions .chatvia-widget-delete-all-btn {
+  height: 36px;
+  padding: 0 16px;
+  margin: 0;
+  /* override earlier margin */
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-flat {
+  border-radius: 0 !important;
+}
+
+/* Body scroll lock when chat is open in fullscreen */
+body.chatvia-scroll-locked {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+}
+
+/* ============================================
+   BAR MODE STYLES
+   ============================================ */
+
+/* Bar mode container */
+.chatvia-widget.chatvia-widget-bar-mode {
+  position: static;
+}
+
+/* Floating bar */
+.chatvia-widget-bar-container {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 340px;
+  max-width: 90vw;
+  z-index: 999998;
+  transition: all var(--chat-transition-slow);
+  opacity: 1;
+  visibility: visible;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-expanded {
+  width: 580px;
+  max-width: 90vw;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-bar-top {
+  top: 20px;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-bar-bottom {
+  bottom: 20px;
+}
+
+/* Right-anchored placements: undo the `left: 50%` + `translateX(-50%)` that
+   centers the default bar, and pin to the right edge instead. The hover/active
+   transforms on .chatvia-widget-bar-btn use plain translateY/scale so they
+   don't fight this transform reset. */
+.chatvia-widget-bar-container.chatvia-widget-bar-top-right {
+  top: 20px;
+  left: auto;
+  right: 20px;
+  transform: none;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-bar-bottom-right {
+  bottom: 20px;
+  left: auto;
+  right: 20px;
+  transform: none;
+}
+
+/* Keep right-anchored bars from getting wider than they should when expanded
+   on a narrow viewport — the centered default uses max-width: 90vw which
+   re-centers via translateX, but right-anchored bars need a hard cap from the
+   right edge instead. */
+@media (max-width: 768px) {
+  .chatvia-widget-bar-container.chatvia-widget-bar-top-right,
+  .chatvia-widget-bar-container.chatvia-widget-bar-bottom-right {
+    right: 16px;
+    max-width: calc(100vw - 32px);
+  }
+}
+
+/* Bar input wrapper */
+.chatvia-widget-bar-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--chat-border);
+  border-radius: 50px;
+  padding: 6px 6px 6px 8px;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.12),
+    0 2px 6px -1px rgba(0, 0, 0, 0.08);
+  transition: all var(--chat-transition-normal);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.chatvia-widget-bar-container.chatvia-widget-expanded .chatvia-widget-bar-input-wrapper {
+  border-radius: 20px;
+  padding: 8px 8px 8px 12px;
+  box-shadow: 0 8px 28px -4px rgba(0, 0, 0, 0.16),
+    0 4px 10px -2px rgba(0, 0, 0, 0.1);
+}
+
+.chatvia-widget-bar-input-wrapper:focus-within {
+  border-color: color-mix(in srgb, var(--chat-primary, #3b82f6) 50%, transparent);
+  box-shadow: 0 8px 28px -4px color-mix(in srgb, var(--chat-primary, #3b82f6) 25%, transparent),
+    0 4px 10px -2px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+}
+
+/* Bar input field */
+.chatvia-widget-bar-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 8px 10px;
+  font-size: 15px;
+  font-family: var(--chat-font);
+  background: transparent;
+  color: var(--chat-text);
+  min-width: 0;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-expanded .chatvia-widget-bar-input {
+  font-size: 16px;
+  padding: 10px 12px;
+}
+
+.chatvia-widget-bar-input::placeholder {
+  color: var(--chat-text-muted);
+}
+
+.chatvia-widget-bar-input:focus::placeholder {
+  color: #cbd5e1;
+}
+
+/* Keyboard Shortcut Hint */
+.chatvia-widget-shortcut-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 12px;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 18px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  font-family: var(--chat-font);
+  white-space: nowrap;
+  pointer-events: none;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-expanded .chatvia-widget-shortcut-hint {
+  display: none;
+}
+
+/* Bar submit button */
+.chatvia-widget-bar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--chat-primary, #3b82f6) 0%, color-mix(in srgb, var(--chat-primary, #3b82f6) 85%, black) 100%);
+  border: none;
+  border-radius: var(--chat-radius-full);
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: all var(--chat-transition-normal);
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--chat-primary, #3b82f6) 35%, transparent);
+  color: white;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-expanded .chatvia-widget-bar-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.chatvia-widget-bar-btn:hover {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--chat-primary, #3b82f6) 40%, transparent);
+}
+
+.chatvia-widget-bar-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.chatvia-widget-bar-btn svg {
+  fill: white;
+  stroke: white;
+  width: 17px;
+  height: 17px;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-expanded .chatvia-widget-bar-btn svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* History dot — circular launcher that reopens the slider so the user can
+   see what they wrote earlier. Sized to match the submit button. */
+.chatvia-widget-bar-history-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: all var(--chat-transition-normal);
+  flex-shrink: 0;
+  color: #64748b;
+  padding: 0;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-expanded .chatvia-widget-bar-history-btn {
+  width: 42px;
+  height: 42px;
+}
+
+.chatvia-widget-bar-history-btn:hover {
+  background: #e2e8f0;
+  color: #475569;
+  transform: translateY(-1px);
+  box-shadow: var(--chat-shadow-sm);
+}
+
+.chatvia-widget-bar-history-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.chatvia-widget-bar-history-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-expanded .chatvia-widget-bar-history-btn svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* Slider Mode - Full Height Panel */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-slider-mode {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  bottom: 0;
+  left: auto;
+  width: 450px;
+  max-width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  min-height: 100vh;
+  border-radius: 0;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  transition: right var(--chat-transition-slow);
+  transform: none;
+  opacity: 1;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-slider-mode.chatvia-widget-open {
+  right: 0;
+  display: flex;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-slider-mode .chatvia-widget-header {
+  border-radius: 0;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-slider-mode .chatvia-widget-footer {
+  border-radius: 0;
+}
+
+/* Expand has no effect on the full-height slider, so hide it in bar mode */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-slider-mode .chatvia-widget-expand-btn {
+  display: none;
+}
+
+/* Slider expanded state */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-slider-mode.chatvia-widget-expanded {
+  width: 700px;
+}
+
+/* Mobile responsiveness for bar mode */
+@media (max-width: 768px) {
+  .chatvia-widget-bar-container {
+    width: 280px;
+    max-width: calc(100vw - 32px);
+  }
+
+  .chatvia-widget-bar-container.chatvia-widget-expanded {
+    width: calc(100vw - 32px);
+  }
+
+  .chatvia-widget .chatvia-widget-window.chatvia-widget-slider-mode {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .chatvia-widget .chatvia-widget-window.chatvia-widget-slider-mode.chatvia-widget-expanded {
+    width: 100%;
+  }
+
+  .chatvia-widget-bar-input {
+    font-size: 16px;
+    /* Prevent zoom on iOS */
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .chatvia-widget .chatvia-widget-window.chatvia-widget-slider-mode {
+    width: 400px;
+  }
+
+  .chatvia-widget .chatvia-widget-window.chatvia-widget-slider-mode.chatvia-widget-expanded {
+    width: 600px;
+  }
+}
+
+/* ============================================
+   HANDOFF / HUMAN MODE Styles
+   ============================================ */
+
+/* "Talk to Human" button */
+.chatvia-widget .chatvia-widget-talk-to-human {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin: 8px auto;
+  background: transparent;
+  border: 1px solid var(--chat-border);
+  border-radius: var(--chat-radius-full);
+  color: var(--chat-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chatvia-widget .chatvia-widget-talk-to-human:hover {
+  background: var(--chat-hover-bg);
+  border-color: var(--chat-primary);
+  color: var(--chat-primary);
+}
+
+.chatvia-widget .chatvia-widget-talk-to-human svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Pending mode - waiting for agent */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-pending-mode .chatvia-widget-header {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-pending-mode .chatvia-widget-header::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 60px;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background-color: #fef3c7;
+  border-radius: 50%;
+  animation: pendingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pendingPulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: translateY(-50%) scale(1.2);
+  }
+}
+
+/* Human mode indicator - green header */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-human-mode .chatvia-widget-header {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* End Chat button */
+.chatvia-widget .chatvia-widget-end-chat-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  margin-right: 8px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: white;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.chatvia-widget .chatvia-widget-end-chat-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.chatvia-widget .chatvia-widget-end-chat-btn:active {
+  transform: scale(0.98);
+}
+
+.chatvia-widget .chatvia-widget-end-chat-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Handoff notifications reuse the consolidated system-message style above
+   (green default). Only the dark-mode + pending colour variants live here. */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-message.chatvia-widget-system .chatvia-widget-bubble-content {
+  background-color: #052e16;
+  border-color: #14532d;
+  color: #86efac;
+}
+
+/* Error variant in dark mode. Without this, the green dark-system rule above —
+   higher specificity than the light `.error` rule (one extra class) — would
+   paint errors GREEN in dark. Re-assert a red-tinted dark surface and recolor
+   the warning glyph to a lighter red so it reads against the dark fill. */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-message.chatvia-widget-system.error .chatvia-widget-bubble-content {
+  background-color: #3a1212;
+  border-color: #7f1d1d;
+  color: #fca5a5;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-message.chatvia-widget-system.error .chatvia-widget-bubble-content::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fca5a5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'/%3E%3C/svg%3E");
+}
+
+/* Pending state system message - amber */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-pending-mode .chatvia-widget-message.chatvia-widget-system .chatvia-widget-bubble-content {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-pending-mode.chatvia-widget-dark .chatvia-widget-message.chatvia-widget-system .chatvia-widget-bubble-content {
+  background-color: #451a03;
+  border-color: #78350f;
+  color: #fcd34d;
+}
+
+/* Human typing indicator - "is typing..." */
+.chatvia-widget .chatvia-widget-human-typing {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 0;
+  margin: 4px 0 4px 28px;
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+  animation: fadeInTyping 0.15s ease-out;
+}
+
+@keyframes fadeInTyping {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.chatvia-widget .chatvia-widget-typing-text {
+  color: #94a3b8;
+}
+
+.chatvia-widget .chatvia-widget-typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 1px;
+}
+
+.chatvia-widget .chatvia-widget-typing-dot {
+  width: 3px;
+  height: 3px;
+  background-color: #94a3b8;
+  border-radius: 50%;
+  animation: typingDotBounce 1.4s ease-in-out infinite;
+}
+
+.chatvia-widget .chatvia-widget-typing-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.chatvia-widget .chatvia-widget-typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.chatvia-widget .chatvia-widget-typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingDotBounce {
+
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+/* Dark mode for human typing indicator */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-human-typing,
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-typing-text {
+  color: #64748b;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-typing-dot {
+  background-color: #64748b;
+}
+
+/* Menu divider — token-driven, adapts to light/dark automatically */
+.chatvia-widget .chatvia-widget-menu-dropdown hr {
+  border: none;
+  border-top: 1px solid var(--chat-border);
+  margin: 6px 4px;
+}
+
+/* ============================================
+   DARK MODE — comprehensive coverage
+   Toggled by adding .chatvia-widget-dark to the chat window.
+   Redefining the semantic tokens here cascades to every
+   token-driven surface (messages, bubbles, input, starters,
+   menu, scrollbar, code). The explicit rules below cover the
+   remaining surfaces that still carry hard-coded light values.
+   ============================================ */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark {
+  --chat-bg: #0f172a;
+  --chat-bg-secondary: #1e293b;
+  --chat-surface: #1e293b;
+  --chat-surface-hover: #334155;
+  --chat-text: #e5e9f0;
+  --chat-text-secondary: #9aa7bd;
+  --chat-text-muted: #6b7a93;
+  --chat-hover-bg: rgba(255, 255, 255, 0.06);
+  --chat-border: rgba(255, 255, 255, 0.09);
+  --chat-border-subtle: rgba(255, 255, 255, 0.055);
+  --chat-border-strong: rgba(255, 255, 255, 0.16);
+  --chat-assistant-bubble: #1e293b;
+  --chat-assistant-text: #e5e9f0;
+  --chat-assistant-border: rgba(255, 255, 255, 0.07);
+  --chat-code-bg: #0b1322;
+  --chat-code-border: rgba(255, 255, 255, 0.10);
+  --chat-code-text: #e5e7eb;
+  --chat-input-bg: #1b2638;
+  --chat-input-bg-focus: #223047;
+  --chat-scrollbar-thumb: rgba(255, 255, 255, 0.14);
+  --chat-scrollbar-thumb-hover: rgba(255, 255, 255, 0.26);
+  /* Deepen the whole elevation ramp on dark surfaces so shadows still read
+     against the near-black background — same light direction, more contrast. */
+  --chat-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --chat-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+  --chat-shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.55), 0 2px 6px -3px rgba(0, 0, 0, 0.4);
+  --chat-shadow-lg: 0 12px 28px -8px rgba(0, 0, 0, 0.6), 0 6px 14px -8px rgba(0, 0, 0, 0.45);
+  --chat-shadow-xl: 0 24px 60px -16px rgba(0, 0, 0, 0.7), 0 12px 30px -12px rgba(0, 0, 0, 0.5);
+  --chat-ring-hairline: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background-color: var(--chat-bg);
+}
+
+/* Footer — transparent like light mode; it sits above the composer on the
+   plain window background, so no fill/divider. */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-footer {
+  background: transparent;
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-footer a,
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-footer span {
+  color: var(--chat-text-muted);
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-footer a:hover {
+  color: var(--chat-text-secondary);
+}
+
+/* Loading-dots bubble */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-loading-dots {
+  background-color: var(--chat-surface);
+  border-color: var(--chat-border);
+}
+
+/* Message action buttons + timestamps */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-action-btn:hover {
+  background-color: var(--chat-hover-bg);
+  color: var(--chat-text-secondary);
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-actions .chatvia-widget-message-time {
+  color: var(--chat-text-muted);
+  border-left-color: rgba(255, 255, 255, 0.12);
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-message > .chatvia-widget-message-time {
+  color: var(--chat-text-muted);
+}
+
+/* Conversation list */
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-conversation-item:hover {
+  background-color: var(--chat-hover-bg);
+}
+
+.chatvia-widget .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-conversation-arrow {
+  color: var(--chat-text-muted);
+}
+
+/* Bar mode — collapsed launcher.
+   The dark class is also placed on the bar container so the floating bar
+   matches a dark host page (the expanded panel is the dark chat window). */
+.chatvia-widget-bar-container.chatvia-widget-dark .chatvia-widget-bar-input-wrapper {
+  background: rgba(30, 41, 59, 0.98);
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.5),
+    0 2px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+.chatvia-widget-bar-container.chatvia-widget-dark.chatvia-widget-expanded .chatvia-widget-bar-input-wrapper {
+  box-shadow: 0 12px 32px -6px rgba(0, 0, 0, 0.6),
+    0 4px 12px -2px rgba(0, 0, 0, 0.45);
+}
+
+.chatvia-widget-bar-container.chatvia-widget-dark .chatvia-widget-bar-input-wrapper:focus-within {
+  background: #223047;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-dark .chatvia-widget-bar-input {
+  color: #e5e9f0;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-dark .chatvia-widget-bar-input::placeholder {
+  color: #6b7a93;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-dark .chatvia-widget-bar-input:focus::placeholder {
+  color: #475569;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-dark .chatvia-widget-shortcut-hint {
+  background: rgba(255, 255, 255, 0.08);
+  color: #9aa7bd;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-dark .chatvia-widget-bar-history-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #9aa7bd;
+}
+
+.chatvia-widget-bar-container.chatvia-widget-dark .chatvia-widget-bar-history-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+}
+/* Markdown-emitted images inside chat bubbles. Sizing used to be an inline
+ * `style` attribute on the <img>, dropped now that DOMPurify rejects `style`
+ * outright. Same visual.
+ */
+.chatvia-widget .chatvia-widget-md-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+/* ============================================
+   RTL SUPPORT
+   Triggered by `dir="rtl"` on the widget container / chat window / bar /
+   confirm dialog (set from JS based on the active language).
+   Block scope: keep every override scoped under `[dir="rtl"]` so the LTR
+   default is untouched. Where a physical property has to flip, write a
+   logical replacement here rather than mutating the source rule above —
+   that keeps the diff readable and the LTR path untouched on rollback.
+   ============================================ */
+
+/* Header — logo, avatar margin, button gutters all mirror to the left side */
+.chatvia-widget[dir="rtl"] .chatvia-widget-header-logo,
+.chatvia-widget[dir="rtl"] .chatvia-widget-avatar {
+  margin-right: 0;
+  margin-left: 12px;
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-avatar {
+  margin-left: 8px;
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-menu-btn,
+.chatvia-widget[dir="rtl"] .chatvia-widget-expand-btn,
+.chatvia-widget[dir="rtl"] .chatvia-widget-delete-btn,
+.chatvia-widget[dir="rtl"] .chatvia-widget-theme-toggle {
+  margin-right: 0;
+  margin-left: 5px;
+}
+
+/* Message bubbles — flip side, mirror the corner-flat radius and avatar gutter */
+.chatvia-widget[dir="rtl"] .chatvia-widget-message.chatvia-widget-assistant {
+  margin-right: 0;
+  margin-left: 50px;
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-message.chatvia-widget-assistant .chatvia-widget-bubble-content {
+  border-bottom-left-radius: var(--chat-radius-lg);
+  border-bottom-right-radius: var(--chat-radius-sm);
+  margin-right: 0;
+  margin-left: auto;
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-message.chatvia-widget-user {
+  margin-left: 0;
+  margin-right: 10px;
+  padding-right: 0;
+  padding-left: 8px;
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-message.chatvia-widget-user .chatvia-widget-bubble-content {
+  border-bottom-right-radius: var(--chat-radius-lg);
+  border-bottom-left-radius: var(--chat-radius-sm);
+  margin-left: 0;
+  margin-right: auto;
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-message.chatvia-widget-human-agent .chatvia-widget-bubble-content {
+  border-left: none !important;
+  border-right: 3px solid var(--chat-primary) !important;
+}
+
+/* Timestamps + action row mirror their alignment */
+.chatvia-widget[dir="rtl"] .chatvia-widget-message.chatvia-widget-user > .chatvia-widget-message-time {
+  text-align: left;
+  margin-right: 0;
+  margin-left: 4px;
+  justify-content: flex-start;
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-message.chatvia-widget-assistant > .chatvia-widget-message-time,
+.chatvia-widget[dir="rtl"] .chatvia-widget-message.chatvia-widget-human-agent > .chatvia-widget-message-time {
+  text-align: right;
+  margin-left: 0;
+  margin-right: 0;
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-actions .chatvia-widget-message-time {
+  padding-left: 0;
+  padding-right: 8px;
+  margin-left: 0;
+  margin-right: 4px;
+  border-left: none;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-window.chatvia-widget-dark .chatvia-widget-actions .chatvia-widget-message-time {
+  border-right-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Loading dots bubble + tool-activity gutter mirror to the right */
+.chatvia-widget[dir="rtl"] .chatvia-widget-loading {
+  justify-content: flex-end;
+  margin-left: 0;
+  margin-right: 0;
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-loading-dots {
+  border-bottom-left-radius: var(--chat-radius-lg);
+  border-bottom-right-radius: var(--chat-radius-sm);
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-tool-activity {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Markdown content inside assistant bubbles */
+.chatvia-widget[dir="rtl"] .chatvia-widget-message.chatvia-widget-assistant ul,
+.chatvia-widget[dir="rtl"] .chatvia-widget-message.chatvia-widget-assistant ol {
+  padding-left: 0;
+  padding-right: 1.5em;
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-message.chatvia-widget-assistant blockquote {
+  padding: 0.1em 1em 0.1em 0;
+  border-left: none;
+  border-right: 3px solid color-mix(in srgb, var(--chat-primary) 40%, var(--chat-border-strong));
+}
+
+/* Composer: the flex row auto-mirrors in RTL (paperclip moves to the right,
+   send to the left) because flexbox honors `dir`, so no position overrides are
+   needed — only the send glyph gets an explicit horizontal flip. */
+.chatvia-widget[dir="rtl"] .chatvia-widget-send-btn svg {
+  transform: scaleX(-1);
+}
+
+/* Menu dropdown: anchor from the left side of the header */
+.chatvia-widget[dir="rtl"] .chatvia-widget-menu-dropdown {
+  right: auto;
+  left: 40px;
+  transform-origin: top left;
+}
+
+/* Conversation list — hover-shift now moves into the writing direction (leftward) */
+.chatvia-widget[dir="rtl"] .chatvia-widget-conversation-item:hover,
+.chatvia-widget[dir="rtl"] .chatvia-widget-conversation-item:hover .chatvia-widget-conversation-arrow {
+  transform: translateX(-2px);
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-conversation-content {
+  padding-right: 0;
+  padding-left: 12px;
+}
+/* Arrow glyph points right in LTR — mirror it so it points into the writing
+   direction (left) in RTL */
+.chatvia-widget[dir="rtl"] .chatvia-widget-conversation-arrow svg {
+  transform: scaleX(-1);
+}
+
+/* Starters: align to the left edge (logical start in RTL) */
+.chatvia-widget[dir="rtl"] .chatvia-widget-starters {
+  align-items: flex-start;
+}
+
+/* Brand footer: mirror logo gutter */
+.chatvia-widget[dir="rtl"] .chatvia-widget-footer .chatvia-widget-brand-logo {
+  margin-right: 0;
+  margin-left: 6px;
+}
+
+/* Floating bubbles container — anchor to the left when widget is positioned left.
+   For the default bottom-right position, leave it on the right; RTL doesn't
+   change the launcher placement (the host page decides via settings.position),
+   only the content direction. */
+
+/* Confirm dialog: button row alignment flips automatically because the JS
+   stamps dir="rtl" and flex-end resolves to the writing direction's end. */
+
+/* Pending mode pulse dot lives in the header — mirror to the left edge */
+.chatvia-widget[dir="rtl"] .chatvia-widget-window.chatvia-widget-pending-mode .chatvia-widget-header::before {
+  right: auto;
+  left: 60px;
+}
+
+/* End-chat button gutter mirrors */
+.chatvia-widget[dir="rtl"] .chatvia-widget-end-chat-btn {
+  margin-right: 0;
+  margin-left: 8px;
+}
+
+/* Human typing indicator — mirror the leading gutter */
+.chatvia-widget[dir="rtl"] .chatvia-widget-human-typing {
+  margin-left: 0;
+  margin-right: 28px;
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-typing-dots {
+  margin-left: 0;
+  margin-right: 1px;
+}
+
+/* Bar mode slider — slide in from the LEFT in RTL */
+.chatvia-widget[dir="rtl"] .chatvia-widget-window.chatvia-widget-slider-mode {
+  right: auto;
+  left: -100%;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  transition: left var(--chat-transition-slow);
+}
+.chatvia-widget[dir="rtl"] .chatvia-widget-window.chatvia-widget-slider-mode.chatvia-widget-open {
+  left: 0;
+  right: auto;
+}
+
+/* ─── Locked state ─────────────────────────────────────────────────────────
+   Set by controls.disabledChat when the widget can't accept input — protected
+   agent with a missing/expired bootstrap token, init failure, session
+   failure. The locked class lives on `.chatvia-widget`; close, expand, and
+   theme toggle stay interactive (the visitor can dismiss / resize / re-theme
+   the locked shell). Composer + paperclip + menu get visually dimmed AND
+   click-blocked. Native disabled controls (textarea, sendButton) are already
+   handled by `[disabled]` — these rules cover the `<div role="button">`
+   buttons that can't use that attribute. */
+.chatvia-widget.chatvia-widget-locked .chatvia-widget-attach-btn,
+.chatvia-widget.chatvia-widget-locked .chatvia-widget-menu-btn,
+.chatvia-widget.chatvia-widget-locked .chatvia-widget-input,
+.chatvia-widget.chatvia-widget-locked .chatvia-widget-send-btn {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* If the menu dropdown was open at the moment we locked, keep it hidden. */
+.chatvia-widget.chatvia-widget-locked .chatvia-widget-menu-dropdown {
+  display: none !important;
+}
+
+/* ============================================
+   REDUCED MOTION
+   Honor `prefers-reduced-motion: reduce`. We disable decorative loops
+   (pulse, shimmer, bounce, theme spin) and entrance/hover motion, and snap
+   state changes. Intentionally LEFT RUNNING: the boot/fetch/upload spinners
+   (essential progress feedback) and any transform used purely for layout
+   (centering the scroll-to-bottom button, the floating bar, the pending dot)
+   — those are never touched here so nothing loses its position.
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .chatvia-widget .chatvia-widget-window,
+  .chatvia-widget .chatvia-widget-message,
+  .chatvia-widget .chatvia-widget-starter-btn,
+  .chatvia-widget .chatvia-widget-floating-bubble,
+  .chatvia-widget .chatvia-widget-bubble.chatvia-widget-pulse,
+  .chatvia-widget .chatvia-widget-bubble.chatvia-widget-pulse::after,
+  .chatvia-widget .chatvia-widget-avatar.chatvia-widget-streaming,
+  .chatvia-widget .chatvia-widget-tool-calling,
+  .chatvia-widget .chatvia-widget-loading-dots .chatvia-widget-dot,
+  .chatvia-widget .chatvia-widget-theme-toggle.chatvia-widget-animating svg,
+  .chatvia-widget .chatvia-widget-typing-dot,
+  .chatvia-widget .chatvia-widget-human-typing,
+  .chatvia-widget .chatvia-widget-delete-btn.success svg,
+  .chatvia-widget .chatvia-widget-delete-btn.success-exit svg,
+  .chatvia-widget .chatvia-widget-window.chatvia-widget-pending-mode .chatvia-widget-header::before,
+  .chatvia-widget-confirm-dialog,
+  .chatvia-widget-confirm-content {
+    animation: none !important;
+  }
+
+  /* Window: appear without the translate/scale entrance. */
+  .chatvia-widget .chatvia-widget-window {
+    transition: opacity 0.001ms linear !important;
+    transform: none !important;
+  }
+
+  /* Collapse hover/press polish transforms to identity (structural transforms
+     above are deliberately not in this list). */
+  .chatvia-widget .chatvia-widget-bubble:hover,
+  .chatvia-widget .chatvia-widget-input-container:focus-within,
+  .chatvia-widget .chatvia-widget-send-btn:hover,
+  .chatvia-widget .chatvia-widget-send-btn:active,
+  .chatvia-widget .chatvia-widget-starter-btn:hover,
+  .chatvia-widget .chatvia-widget-starter-btn:active,
+  .chatvia-widget .chatvia-widget-close-btn:hover,
+  .chatvia-widget .chatvia-widget-close-btn:active,
+  .chatvia-widget .chatvia-widget-menu-btn:hover,
+  .chatvia-widget .chatvia-widget-menu-btn:active,
+  .chatvia-widget .chatvia-widget-expand-btn:hover,
+  .chatvia-widget .chatvia-widget-expand-btn:active,
+  .chatvia-widget .chatvia-widget-theme-toggle:hover,
+  .chatvia-widget .chatvia-widget-delete-btn:hover,
+  .chatvia-widget .chatvia-widget-action-btn:active,
+  .chatvia-widget .chatvia-widget-attach-btn:hover,
+  .chatvia-widget .chatvia-widget-conversation-item:hover,
+  .chatvia-widget .chatvia-widget-conversation-item:hover .chatvia-widget-conversation-arrow,
+  .chatvia-widget .chatvia-widget-new-chat-btn:hover,
+  .chatvia-widget .chatvia-widget-delete-all-btn:hover,
+  .chatvia-widget-bar-btn:hover,
+  .chatvia-widget-bar-btn:active,
+  .chatvia-widget-bar-history-btn:hover,
+  .chatvia-widget-bar-history-btn:active,
+  .chatvia-widget-confirm-cancel:hover,
+  .chatvia-widget-confirm-delete:hover,
+  .chatvia-widget-confirm-cancel:active,
+  .chatvia-widget-confirm-delete:active {
+    transform: none !important;
+  }
+}
+
+/* ── Inline forms (form tool artifact) ───────────────────────────────────── */
+/* An inline form stacks BELOW the assistant bubble. The content-wrapper is a
+   row-flex (avatar | bubble), so without these rules the form becomes a third
+   flex item squeezed into the space beside the bubble. Letting the wrapper wrap
+   and giving the form a 100% flex-basis drops it onto its own full-width row. */
+.chatvia-widget .chatvia-widget-message.chatvia-widget-assistant .chatvia-widget-content-wrapper {
+  flex-wrap: wrap;
+}
+
+.chatvia-widget .chatvia-widget-content-wrapper > .chatvia-widget-form {
+  flex: 0 0 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.chatvia-widget .chatvia-widget-form {
+  margin-top: var(--chat-space-2);
+  padding: var(--chat-space-4);
+  border: 1px solid var(--chat-border);
+  border-radius: var(--chat-radius-md);
+  background-color: var(--chat-surface);
+}
+
+.chatvia-widget .chatvia-widget-form-header {
+  margin-bottom: var(--chat-space-4);
+  padding-bottom: var(--chat-space-3);
+  border-bottom: 1px solid var(--chat-border);
+}
+
+.chatvia-widget .chatvia-widget-form-title {
+  font-weight: 600;
+  font-size: var(--chat-font-size-xl);
+  line-height: 1.3;
+  color: var(--chat-text);
+}
+
+.chatvia-widget .chatvia-widget-form-subtitle {
+  margin-top: var(--chat-space-1);
+  font-size: var(--chat-font-size-sm);
+  line-height: 1.45;
+  color: var(--chat-text-secondary);
+}
+
+.chatvia-widget .chatvia-widget-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--chat-space-3);
+}
+
+.chatvia-widget .chatvia-widget-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--chat-space-1);
+}
+
+.chatvia-widget .chatvia-widget-form-label {
+  font-size: var(--chat-font-size-xs);
+  color: var(--chat-text-secondary);
+}
+
+.chatvia-widget .chatvia-widget-form-req {
+  color: #dc2626;
+}
+
+.chatvia-widget .chatvia-widget-form-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: var(--chat-font-size-sm);
+  color: var(--chat-text);
+  background-color: var(--chat-input-bg);
+  border: 1px solid var(--chat-border);
+  border-radius: var(--chat-radius-sm);
+  transition: border-color var(--chat-transition-fast);
+}
+
+.chatvia-widget .chatvia-widget-form-input:focus {
+  outline: none;
+  border-color: var(--chat-primary);
+  background-color: var(--chat-input-bg-focus);
+}
+
+.chatvia-widget textarea.chatvia-widget-form-input {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.chatvia-widget .chatvia-widget-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--chat-space-1);
+}
+
+.chatvia-widget .chatvia-widget-form-choice {
+  display: flex;
+  align-items: center;
+  gap: var(--chat-space-2);
+  font-size: var(--chat-font-size-sm);
+  color: var(--chat-text);
+  cursor: pointer;
+}
+
+.chatvia-widget .chatvia-widget-form-choice input {
+  accent-color: var(--chat-primary);
+}
+
+.chatvia-widget .chatvia-widget-form-help {
+  font-size: var(--chat-font-size-xs);
+  color: var(--chat-text-muted);
+}
+
+.chatvia-widget .chatvia-widget-form-field-error,
+.chatvia-widget .chatvia-widget-form-error {
+  font-size: var(--chat-font-size-xs);
+  color: #dc2626;
+}
+
+.chatvia-widget .chatvia-widget-form-submit {
+  align-self: flex-start;
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: var(--chat-font-size-sm);
+  font-weight: 600;
+  color: var(--chat-primary-contrast);
+  background-color: var(--chat-primary);
+  border: none;
+  border-radius: var(--chat-radius-sm);
+  cursor: pointer;
+  transition: opacity var(--chat-transition-fast);
+}
+
+.chatvia-widget .chatvia-widget-form-submit:hover {
+  opacity: 0.9;
+}
+
+.chatvia-widget .chatvia-widget-form-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.chatvia-widget .chatvia-widget-form-success {
+  display: flex;
+  align-items: center;
+  gap: var(--chat-space-2);
+  font-size: var(--chat-font-size-sm);
+  font-weight: 500;
+  color: #16a34a;
+}
+
+.chatvia-widget .chatvia-widget-form-check {
+  font-weight: 700;
+}
+
+.chatvia-widget .chatvia-widget-form-expired {
+  font-size: var(--chat-font-size-sm);
+  color: var(--chat-text-muted);
+  font-style: italic;
+}

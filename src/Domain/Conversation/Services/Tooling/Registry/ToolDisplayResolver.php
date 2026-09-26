@@ -20,7 +20,7 @@ class ToolDisplayResolver
     ) {}
 
     /**
-     * @return array{kind: 'mcp'|'function', label: string, activity_label: ?string, icon_url: ?string, brand_color: ?string}
+     * @return array{kind: 'mcp'|'function', label: string, activity_label: ?string, is_builtin: bool, icon_url: ?string, brand_color: ?string}
      */
     public function resolve(Agent $agent, string $toolName): array
     {
@@ -32,7 +32,7 @@ class ToolDisplayResolver
     }
 
     /**
-     * @return array{kind: 'mcp', label: string, activity_label: ?string, icon_url: ?string, brand_color: ?string}
+     * @return array{kind: 'mcp', label: string, activity_label: ?string, is_builtin: bool, icon_url: ?string, brand_color: ?string}
      */
     private function resolveMcp(Agent $agent, string $toolName): array
     {
@@ -61,13 +61,17 @@ class ToolDisplayResolver
             'kind' => 'mcp',
             'label' => $label,
             'activity_label' => $activityLabel,
+            // First-party builtins (forms, charts, leads) are internal plumbing —
+            // the client hides their activity indicator. Read straight off the
+            // connector preset's server_category.
+            'is_builtin' => ($preset['server_category'] ?? null) === 'builtin',
             'icon_url' => $this->iconUrlForPreset($preset),
             'brand_color' => $preset['brand_color'] ?? null,
         ];
     }
 
     /**
-     * @return array{kind: 'function', label: string, activity_label: null, icon_url: null, brand_color: null}
+     * @return array{kind: 'function', label: string, activity_label: null, is_builtin: false, icon_url: null, brand_color: null}
      */
     private function resolveFunction(Agent $agent, string $toolName): array
     {
@@ -84,6 +88,8 @@ class ToolDisplayResolver
             // Webhook functions have no connector preset; the widget derives a
             // generic phrase from the label.
             'activity_label' => null,
+            // Custom webhook tools are user-defined, not first-party builtins.
+            'is_builtin' => false,
             'icon_url' => null,
             'brand_color' => null,
         ];

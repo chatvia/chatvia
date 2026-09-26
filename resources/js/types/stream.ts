@@ -103,6 +103,10 @@ export interface StreamToolData {
     // verbatim while the tool runs. Absent for tools without a configured phrase
     // (the UI falls back to the label-based "Calling {label}…").
     activity_label?: string | null;
+    // First-party builtin capability (forms, charts, leads). Internal plumbing —
+    // the client suppresses the activity indicator entirely for these (artifacts
+    // on the 'end' phase still render). Set on phase: 'start'.
+    internal?: boolean;
     icon_url?: string | null;
     brand_color?: string | null;
     // Sent on phase: 'awaiting_approval' — the checkpoint the client posts its

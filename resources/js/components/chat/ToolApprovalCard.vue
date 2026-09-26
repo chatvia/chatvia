@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { ToolApprovalCall } from '@/types/stream';
-import { Check, Loader2, Plug, ShieldQuestion, Webhook, X } from 'lucide-vue-next';
+import { Check, ChevronRight, Loader2, Plug, ShieldQuestion, Webhook, X } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -56,6 +57,20 @@ const provider = computed(() => {
     if (props.call.kind === 'mcp') return props.call.label || t('approval.mcp_tool');
     return props.call.label && props.call.label !== toolName.value ? props.call.label : t('approval.function');
 });
+
+// The exact arguments the tool will run with, pretty-printed for the
+// "Details" disclosure so the user can verify the amount / target before
+// authorizing. Unparseable JSON falls back to the raw string so they still
+// see what will run.
+const prettyArgs = computed(() => {
+    const raw = props.call.args;
+    if (!raw) return '';
+    try {
+        return JSON.stringify(JSON.parse(raw), null, 2);
+    } catch {
+        return raw;
+    }
+});
 </script>
 
 <template>
@@ -81,7 +96,28 @@ const provider = computed(() => {
         </div>
 
         <!-- The clear call to action -->
-        <p class="text-foreground/90 px-3.5 pb-2.5 text-sm">{{ t('approval.prompt') }}</p>
+        <p class="text-foreground/90 px-3.5 pb-2 text-sm">{{ t('approval.prompt') }}</p>
+
+        <!-- The server-provided reason this call was gated (the "why"), shown plainly. -->
+        <p v-if="call.reason" class="text-muted-foreground px-3.5 pb-2 text-xs">{{ call.reason }}</p>
+
+        <!-- What will actually run: the tool's arguments, behind a disclosure so the
+             user can verify the amount / target before authorizing a write. -->
+        <Collapsible v-if="prettyArgs" class="px-3.5 pb-2.5">
+            <CollapsibleTrigger class="group text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs font-medium">
+                <ChevronRight class="h-3 w-3 transition-transform group-data-[state=open]:rotate-90" />
+                {{ t('approval.details') }}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+                <div class="text-muted-foreground mt-1.5 mb-1 text-[10px] font-medium tracking-wide uppercase">
+                    {{ t('approval.arguments') }}
+                </div>
+                <pre
+                    dir="ltr"
+                    class="bg-muted/50 text-foreground/80 max-h-40 overflow-auto rounded-md p-2 text-[11px] leading-relaxed"
+                ><code>{{ prettyArgs }}</code></pre>
+            </CollapsibleContent>
+        </Collapsible>
 
         <!-- Footer: deny/approve actions -->
         <div class="border-border/60 bg-muted/30 flex items-center justify-end gap-1.5 border-t px-3 py-2">

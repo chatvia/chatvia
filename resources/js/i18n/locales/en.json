@@ -2431,7 +2431,8 @@
             "sending_link": "Sending link...",
             "or_continue_with": "Or continue with",
             "no_account": "Don't have an account?",
-            "start_free_trial": "Start free trial"
+            "start_free_trial": "Start free trial",
+            "create_account": "Create an account"
         },
         "register": {
             "title": "Create an account",
@@ -3518,7 +3519,8 @@
         "volume_month": "Message volume over the past 30 days",
         "last_week": "Last Week",
         "last_month": "Last Month",
-        "messages_tooltip": "{n} message | {n} messages"
+        "messages_tooltip": "{n} message | {n} messages",
+        "messages_this_month": "Messages This Month"
     },
     "knowledge_base": {
         "dashboard": "Dashboard",
@@ -3632,7 +3634,8 @@
         "tokens_note": "Consumed this cycle — for insight only; your plan is billed in messages.",
         "of": "of {limit}",
         "remaining": "{count} remaining",
-        "load_error": "Unable to load usage data."
+        "load_error": "Unable to load usage data.",
+        "no_limit": "No limit"
     },
     "analytics_chat": {
         "title": "Ask your data",

@@ -3,10 +3,12 @@
 namespace Tests;
 
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Faker\Factory;
 use Faker\Generator;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Tests\Support\FakeEmbeddingsProvider;
+use Tests\Support\FakeReranker;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -24,6 +26,10 @@ abstract class TestCase extends BaseTestCase
         // routing, function/KB indexing) fast + silent instead of tripping the
         // typed getApiKey(). A test needing specific vectors re-binds its own.
         $this->app->instance(EmbeddingsProviderInterface::class, new FakeEmbeddingsProvider);
+
+        // Same for the reranker: an offline identity reranker keeps the rerank
+        // paths (knowledge search, tool relevance gate) running without a key.
+        $this->app->instance(Reranker::class, new FakeReranker);
     }
 
     public function faker(): Generator

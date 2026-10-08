@@ -2,8 +2,19 @@
 
 namespace Domain\Knowledge\Embedding\Contracts;
 
+/**
+ * Turns text into vectors for semantic search. The provider is chosen from
+ * config (`chatvia.ai.models.embedding`). Reranking is a separate contract
+ * ({@see Reranker}).
+ */
 interface EmbeddingsProviderInterface
 {
+    /**
+     * Vector size the database stores (halfvec(1024) / vector(1024) columns).
+     * A provider must return vectors of exactly this size.
+     */
+    public const int STORED_DIMENSIONS = 1024;
+
     /**
      * Generate embeddings for a single text, treating it as a document
      * (content to be indexed and later retrieved).
@@ -28,24 +39,6 @@ interface EmbeddingsProviderInterface
      * should delegate to embed().
      */
     public function embedQuery(string $text, bool $returnAsText = false): string|array;
-
-    /**
-     * Rerank documents based on query relevance.
-     * Returns null if provider doesn't support reranking.
-     *
-     * @param  string  $query  The search query
-     * @param  array  $documents  Array of documents to rerank
-     * @param  int|null  $topN  Cap on results returned; null leaves the provider default in place
-     * @return array|null Array of reranked documents with relevance scores or null if not supported
-     */
-    public function rerank(string $query, array $documents, ?int $topN = null): ?array;
-
-    /**
-     * Check if the provider supports reranking.
-     *
-     * @return bool True if reranking is supported
-     */
-    public function supportsReranking(): bool;
 
     /**
      * Get the embedding dimensions for this provider.

@@ -33,7 +33,7 @@ class ProvisionTestDatabase
             // migrate:fresh because db:wipe drops tables across all schemas
             // (including extension catalogs) which leaves the extension types
             // in a half-broken state for subsequent CREATE TABLE calls.
-            // Seeding is required: factories resolve the seeded demo user.
+            // Seeding loads reference data (the LLM catalogue) that tests read.
             $this->installPostgresExtensions();
             Artisan::call('migrate', ['--seed' => true]);
             $this->recordChecksum();

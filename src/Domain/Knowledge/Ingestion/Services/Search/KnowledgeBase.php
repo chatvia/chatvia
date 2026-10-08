@@ -3,7 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Services\Search;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Ingestion\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Illuminate\Support\Collection;
@@ -90,11 +90,11 @@ class KnowledgeBase
 
             // --- Phase 3: rerank (model call) or DB-confidence filter ---
             // Only rerank if we have multiple results, reranking is enabled in
-            // config, and the configured embeddings provider supports it.
-            $provider = app(EmbeddingsProviderInterface::class);
+            // config, and a reranking service is configured.
+            $reranker = app(Reranker::class);
             $rerankStart = microtime(true);
-            if (count($results) > 1 && $rerankEnabled && $provider->supportsReranking()) {
-                $results = $this->rerank($query, $results, $provider);
+            if (count($results) > 1 && $rerankEnabled && $reranker->isEnabled()) {
+                $results = $this->rerank($query, $results, $reranker);
                 $reranked = true;
             } else {
                 // When reranking is disabled or unsupported, use DB confidence
@@ -167,15 +167,11 @@ class KnowledgeBase
             ->all();
     }
 
-    private function rerank(string $query, array $results, EmbeddingsProviderInterface $provider): array
+    private function rerank(string $query, array $results, Reranker $reranker): array
     {
         try {
-            $chunks = collect($results)->pluck('chunk')->toArray();
-            $rerankedResults = $provider->rerank($query, $chunks);
-
-            if ($rerankedResults === null) {
-                return $this->filterByDbConfidence($results);
-            }
+            $chunks = collect($results)->pluck('chunk')->all();
+            $rerankedResults = $reranker->rerank($query, $chunks);
 
             // Get relevance threshold from config (default: 0.5)
             $relevanceThreshold = config('chatvia.vector.search.relevance_threshold');

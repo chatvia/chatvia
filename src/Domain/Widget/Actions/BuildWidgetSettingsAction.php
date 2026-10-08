@@ -6,14 +6,15 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AppearanceTextResolver;
 use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Llm\Services\DocumentLlm;
 use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
 use Domain\Widget\Data\Settings\WidgetSettingsResourceData;
 use Illuminate\Support\Collection;
 
 /**
  * Assemble the settings payload the embedded widget loads at boot —
- * appearance + widget chrome + starters, plus the "Powered by Chatvia"
- * branding block.
+ * appearance + widget chrome + starters, plus the "Powered by …" branding
+ * block (label and link from `chatvia.brand.powered_by`).
  */
 class BuildWidgetSettingsAction
 {
@@ -49,7 +50,9 @@ class BuildWidgetSettingsAction
         // Workspace-wide: the "remove branding" add-on hides the badge across
         // every agent. Drives both the legacy branding.enabled flag (so cached
         // widget bundles still obey it) and the dedicated chatvia_branding field.
-        $showsBranding = $agent->showsChatviaBranding();
+        // The install can also switch the credit off for everyone.
+        $poweredBy = (array) config('chatvia.brand.powered_by');
+        $showsBranding = ($poweredBy['enabled'] ?? false) === true && $agent->showsChatviaBranding();
 
         return new WidgetSettingsResourceData(
             protected: $agent->is_public === false,
@@ -71,8 +74,9 @@ class BuildWidgetSettingsAction
             show_on_load_delay: $widget['show_on_load_delay'] ?? null,
             branding: new WidgetSettingsBrandingData(
                 enabled: $showsBranding,
-                name: 'Powered by ChatVia.ai',
-                url: 'https://chatvia.ai',
+                name: 'Powered by '.(($poweredBy['label'] ?? null) ?: config('chatvia.brand.name')),
+                // Empty when no URL is set: the widget then shows plain text.
+                url: (string) ($poweredBy['url'] ?? ''),
                 logo_url: asset('images/logo.svg'),
             ),
             chatvia_branding: $showsBranding,
@@ -85,7 +89,8 @@ class BuildWidgetSettingsAction
             composer_placeholder: $text['composer_placeholder'] ?? null,
             privacy_policy_url: $appearance['privacy_policy_url'] ?? null,
             handoff_enabled: ($widget['handoff_enabled'] ?? true) && ($agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false),
-            allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true),
+            // Chat uploads are PDFs, so they need an LLM that can read them.
+            allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true) && app(DocumentLlm::class)->isAvailable(),
             allow_voice_input: (bool) ($appearance['allow_voice_input'] ?? true),
             max_files_per_chat: (int) config('chatvia.agent.files.upload.max_files'),
         );

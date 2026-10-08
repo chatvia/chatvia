@@ -22,13 +22,16 @@ class AgentFactory extends Factory
      */
     public function definition(): array
     {
-        $user = User::factory()->create();
-        $team = $user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user);
-
         return [
             'external_id' => Str::random(20),
-            'user_id' => $user->id,
-            'team_id' => $team->id,
+            // Lazy: only creates an owner when the caller doesn't pass one, so
+            // seeders and tests that supply user_id don't leave orphan users.
+            'user_id' => User::factory(),
+            'team_id' => function (array $attributes): int {
+                $user = User::query()->findOrFail($attributes['user_id']);
+
+                return ($user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user))->id;
+            },
             'name' => $this->faker->words(2, true),
             'sub_domain' => $this->faker->unique()->slug(),
             'system_instructions' => 'You are a helpful assistant.',

@@ -30,6 +30,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // Product name and links (config/chatvia.php `brand`). A self-hosted
+            // install sets its own; an empty URL hides the link that uses it.
+            'brand' => config('chatvia.brand'),
             'auth' => [
                 'user' => $user,
             ],
@@ -52,6 +55,11 @@ class HandleInertiaRequests extends Middleware
             'locale' => $user?->locale ?? 'auto',
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'subscribed' => (bool) $user?->hasActiveSubscription(),
+            // Off on a self-hosted install without billing: the UI then hides
+            // plans, upgrade prompts and billing links (useBilling()).
+            'billing' => [
+                'enabled' => (bool) config('billing.enabled', true),
+            ],
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),
 

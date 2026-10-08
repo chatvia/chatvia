@@ -1,0 +1,86 @@
+name: Bug report
+description: Something does not work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a bug.
+        **Security problems:** do not report them here. See SECURITY.md.
+        Please remove secrets (API keys, tokens, passwords) and personal data from logs and screenshots.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug in a few sentences.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest set of steps that shows the bug.
+      placeholder: |
+        1. Create an agent with ...
+        2. Upload ...
+        3. Ask ...
+        4. See error ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of Chatvia is affected?
+      options:
+        - Dashboard / agent setup
+        - Knowledge base (sources, ingestion, search)
+        - Chat (hosted chat, playground)
+        - Chat widget / command bar
+        - Tools (functions, MCP connectors)
+        - Channels (Slack, Teams, Telegram, WhatsApp, ...)
+        - Public API
+        - Billing
+        - Installation / self-hosting
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The release tag or the commit hash (`git rev-parse --short HEAD`).
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: PHP, PostgreSQL and Node versions, operating system, browser (for UI bugs), and how you run it (Docker services, Herd, a server, ...).
+      placeholder: |
+        PHP 8.5.x, PostgreSQL 18 (tensorchord/vchord-suite), Node 22
+        macOS 15 / Ubuntu 24.04
+        Firefox 140
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and screenshots
+      description: Relevant lines from `storage/logs/laravel.log`, the browser console or the queue worker. Remove secrets first.
+      render: shell
+    validations:
+      required: false

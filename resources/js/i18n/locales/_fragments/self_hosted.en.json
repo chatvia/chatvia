@@ -1,0 +1,13 @@
+{
+    "auth": {
+        "login": {
+            "create_account": "Create an account"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "Messages This Month"
+    },
+    "usage": {
+        "no_limit": "No limit"
+    }
+}

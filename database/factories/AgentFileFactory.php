@@ -20,15 +20,9 @@ class AgentFileFactory extends Factory
      */
     public function definition(): array
     {
-        // Use demo user instead of creating a new one
-        $user = User::where('email', 'ahmad@mayahi.net')->first();
-
-        if (! $user) {
-            throw new \RuntimeException('Demo user (ahmad@mayahi.net) not found. Please run DatabaseSeeder first.');
-        }
-
         return [
-            'user_id' => $user->id,
+            // Each file gets its own owner so tests never depend on seeded users.
+            'user_id' => User::factory(),
             'filename' => $this->faker->word().'.txt',
             'filetype' => 'pdf',
             'filepath' => 'test/files/'.$this->faker->uuid().'.txt',

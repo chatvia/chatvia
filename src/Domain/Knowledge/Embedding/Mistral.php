@@ -44,6 +44,6 @@ class Mistral extends AbstractEmbeddingsProvider
 
     protected function getModel(): string
     {
-        return 'mistral-embed';
+        return (string) config('services.mistral.embedding_model');
     }
 }

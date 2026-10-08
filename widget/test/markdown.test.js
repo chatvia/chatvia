@@ -146,3 +146,20 @@ describe('escapeHtml', () => {
     expect(escapeHtml(`<>&"'`)).toBe('&lt;&gt;&amp;&quot;&#039;');
   });
 });
+
+describe('escapeHtml nullish input', () => {
+  it('returns an empty string for null and undefined, but keeps 0', () => {
+    expect(escapeHtml(null)).toBe('');
+    expect(escapeHtml(undefined)).toBe('');
+    expect(escapeHtml(0)).toBe('0');
+  });
+});
+
+describe('unordered lists', () => {
+  it.each(['-', '+'])('turns "%s item" lines into a list', marker => {
+    const html = parseMarkdown(`${marker} first\n${marker} second`);
+    expect(html).toContain('<ul>');
+    expect(html).toContain('<li>first</li>');
+    expect(html).toContain('<li>second</li>');
+  });
+});

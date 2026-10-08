@@ -2,6 +2,7 @@
 
 use Domain\Knowledge\Ingestion\Services\Media\AudioDurationExtractor;
 use Illuminate\Support\Facades\Process;
+use Symfony\Component\Process\ExecutableFinder;
 
 /**
  * Build an audio fixture with ffmpeg. When $headerless is true the stream is
@@ -40,7 +41,10 @@ function makeAudioFixture(float $seconds, string $extension, bool $headerless = 
 
 beforeEach(function (): void {
     foreach (['ffmpeg', 'ffprobe'] as $bin) {
-        if (! is_file((string) config("services.bin.{$bin}"))) {
+        // The config holds either an absolute path or a bare name looked up on PATH.
+        $configured = (string) config("services.bin.{$bin}");
+
+        if (! is_file($configured) && (new ExecutableFinder)->find($configured) === null) {
             $this->markTestSkipped("{$bin} binary not available");
         }
     }

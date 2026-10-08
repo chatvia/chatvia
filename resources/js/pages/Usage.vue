@@ -50,7 +50,7 @@ const metrics = computed<Metric[]>(() => {
         return [];
     }
 
-    return [
+    const all: Metric[] = [
         {
             key: 'messages',
             label: t('usage.label_messages'),
@@ -125,6 +125,14 @@ const metrics = computed<Metric[]>(() => {
             capped: true,
         },
     ];
+
+    if (!d.unlimited) {
+        return all;
+    }
+
+    // Billing is turned off: there are no limits, and no message credits are
+    // counted, so show plain usage and drop the two credit-cycle cards.
+    return all.filter((m) => m.key !== 'messages' && m.key !== 'tokens').map((m) => ({ ...m, capped: false, note: t('usage.no_limit') }));
 });
 
 const percent = (m: Metric): number => (m.limit === 0 ? 0 : Math.min(100, Math.round((m.used / m.limit) * 100)));
@@ -146,7 +154,7 @@ onMounted(fetchUsageData);
                     <h1 class="text-2xl font-bold tracking-tight">{{ t('usage.title') }}</h1>
                     <p class="text-muted-foreground text-sm">{{ t('usage.subtitle') }}</p>
                 </div>
-                <Badge v-if="usageData" variant="secondary" class="h-fit w-fit gap-1.5 capitalize">
+                <Badge v-if="usageData && !usageData.unlimited" variant="secondary" class="h-fit w-fit gap-1.5 capitalize">
                     <Sparkles class="h-3.5 w-3.5" />
                     {{ t('usage.plan_badge', { plan: usageData.subscription.plan }) }}
                 </Badge>

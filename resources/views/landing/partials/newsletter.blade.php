@@ -16,7 +16,7 @@
                                 <path class="fill-blue-600" d="m33.917 14.499-3.94 19.698a1 1 0 0 1-1.58.6l-6.505-4.876 12.025-15.422Z" fill-opacity=".5" fill="#2174EA" />
                             </svg>
                         </div>
-                        <h3 class="h4 font-playfair-display text-slate-100 mb-2">Sign up for ChatVia.ai</h3>
+                        <h3 class="h4 font-playfair-display text-slate-100 mb-2">Sign up for {{ config('chatvia.brand.name') }}</h3>
                         <p class="text-slate-400 mb-6">Get the latest news about AI chatbots.</p>
 
                         <!-- CTA form -->

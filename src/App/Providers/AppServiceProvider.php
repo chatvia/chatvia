@@ -54,6 +54,20 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->registerRequestMacros();
+        $this->skipCashierRoutesWithoutBilling();
+    }
+
+    /**
+     * With billing turned off (a self-hosted install) there is no Stripe
+     * account, so Cashier's webhook and payment routes are not registered and
+     * answer 404. This must run in register(): Cashier adds its routes while
+     * the providers boot.
+     */
+    private function skipCashierRoutesWithoutBilling(): void
+    {
+        if (! config('billing.enabled', true)) {
+            Cashier::ignoreRoutes();
+        }
     }
 
     public function boot(): void
@@ -97,7 +111,8 @@ class AppServiceProvider extends ServiceProvider
         // events. Refuse to boot rather than run a forgeable billing webhook.
         // (TRUSTED_PROXIES is validated in bootstrap/app.php where it is read; it
         // has no config mirror, so it cannot be re-checked cache-safely here.)
-        if (blank(config('cashier.webhook.secret'))) {
+        // Without billing there is no Stripe webhook to protect.
+        if (config('billing.enabled', true) && blank(config('cashier.webhook.secret'))) {
             throw new \RuntimeException(
                 'STRIPE_WEBHOOK_SECRET is not set. Refusing to boot in production: '
                 .'the Stripe webhook would accept unsigned, forgeable events.'
@@ -213,6 +228,11 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureStripe(): void
     {
+        // A self-hosted install without billing has no Stripe keys.
+        if (! config('billing.enabled', true)) {
+            return;
+        }
+
         Stripe::setApiKey(config('cashier.secret'));
     }
 

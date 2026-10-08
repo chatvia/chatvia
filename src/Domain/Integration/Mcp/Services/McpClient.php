@@ -27,10 +27,7 @@ class McpClient
 {
     private const PROTOCOL_VERSION = '2025-06-18';
 
-    private const CLIENT_INFO = [
-        'name' => 'chatvia',
-        'version' => '1.0',
-    ];
+    private const CLIENT_VERSION = '1.0';
 
     /**
      * Probe a server with `initialize` + `tools/list`. Returns the tool
@@ -48,7 +45,7 @@ class McpClient
         $initResponse = $this->rpc($server, $sessionId, 'initialize', [
             'protocolVersion' => self::PROTOCOL_VERSION,
             'capabilities' => (object) [],
-            'clientInfo' => self::CLIENT_INFO,
+            'clientInfo' => $this->clientInfo(),
         ]);
 
         // Streamable-HTTP servers may issue a session id we must echo back.
@@ -90,7 +87,7 @@ class McpClient
         $initResponse = $this->rpc($server, $sessionId, 'initialize', [
             'protocolVersion' => self::PROTOCOL_VERSION,
             'capabilities' => (object) [],
-            'clientInfo' => self::CLIENT_INFO,
+            'clientInfo' => $this->clientInfo(),
         ], $identityHeaders);
 
         if ($initResponse['_session_id']) {
@@ -363,5 +360,19 @@ class McpClient
         $decoded = $response->json();
 
         return is_array($decoded) ? $decoded : null;
+    }
+
+    /**
+     * How this app introduces itself to MCP servers (the `initialize`
+     * handshake): the configured brand name as a slug.
+     *
+     * @return array{name: string, version: string}
+     */
+    private function clientInfo(): array
+    {
+        return [
+            'name' => Str::slug((string) config('chatvia.brand.name')) ?: 'chatvia',
+            'version' => self::CLIENT_VERSION,
+        ];
     }
 }

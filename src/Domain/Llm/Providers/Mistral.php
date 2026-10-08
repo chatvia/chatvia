@@ -30,6 +30,20 @@ class Mistral extends AbstractLlmProvider
     }
 
     /**
+     * Mistral chat completions rejects `top_k` (error 3051), but the agent's
+     * stored llmSettings always include it.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    protected function preparePayload(array $payload): array
+    {
+        unset($payload['top_k']);
+
+        return $payload;
+    }
+
+    /**
      * Get the API key for Mistral.
      *
      * @return string The API key

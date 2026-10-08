@@ -1,9 +1,15 @@
+@php
+    use Support\Cms\Marketing\CompanyDetails;
+
+    $brand = (string) config('chatvia.brand.name');
+    $processorName = CompanyDetails::name();
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8">
-    <title>Data Processing Agreement — Chatvia</title>
+    <title>Data Processing Agreement — {{ $brand }}</title>
     <style>
         * { box-sizing: border-box; }
 
@@ -76,10 +82,10 @@
 
 <body>
     <h1>Data Processing Agreement</h1>
-    <p class="subtitle">Article 28 GDPR · Processor agreement for the Chatvia service</p>
+    <p class="subtitle">Article 28 GDPR · Processor agreement for the {{ $brand }} service</p>
 
     <p>This Data Processing Agreement (the <strong>&ldquo;DPA&rdquo;</strong>) forms part of, and is incorporated
-        into, the agreement for the provision of the Chatvia service (the <strong>&ldquo;Principal
+        into, the agreement for the provision of the {{ $brand }} service (the <strong>&ldquo;Principal
             Agreement&rdquo;</strong>) between the parties below. It gives effect to Article 28(3) of Regulation (EU)
         2016/679 (<strong>&ldquo;GDPR&rdquo;</strong>).</p>
 
@@ -87,9 +93,9 @@
         <tr>
             <td>
                 <div class="role">Processor</div>
-                <strong>Akkadian</strong> (CVR/VAT 35709738)<br>
-                Skovbrynet 50, 1 tv, Næstved, Denmark<br>
-                operating the Chatvia service (<strong>&ldquo;Chatvia&rdquo;</strong>)
+                <strong>{{ $processorName ?? $brand }}</strong>@if (CompanyDetails::vatId()) (VAT {{ CompanyDetails::vatId() }})@endif<br>
+                @if (CompanyDetails::inlineAddress()){{ CompanyDetails::inlineAddress() }}<br>@endif
+                operating the {{ $brand }} service (<strong>&ldquo;{{ $brand }}&rdquo;</strong>)
             </td>
             <td>
                 <div class="role">Controller</div>
@@ -103,8 +109,8 @@
     </table>
 
     <div class="note">
-        This Data Processing Agreement becomes effective only when signed by both parties. To have Chatvia
-        countersign, contact <strong>info@chatvia.ai</strong>.
+        This Data Processing Agreement becomes effective only when signed by both parties.@if (CompanyDetails::email()) To have {{ $brand }}
+        countersign, contact <strong>{{ CompanyDetails::email() }}</strong>.@endif
     </div>
 
     {{-- Trusted, version-controlled DPA body (clauses 1–5 + Annexes 1–3). --}}
@@ -114,7 +120,7 @@
     <table class="sig">
         <tr>
             <td>
-                <strong>For the Processor — Akkadian (Chatvia)</strong>
+                <strong>For the Processor — {{ $processorName !== null ? $processorName.' ('.$brand.')' : $brand }}</strong>
                 <div class="line">Name &amp; title</div>
                 <div class="line">Signature</div>
                 <div class="line">Date</div>
@@ -128,7 +134,7 @@
         </tr>
     </table>
 
-    <p class="meta">Generated {{ $generatedAt }} from the Chatvia DPA template (version 1.0). The standard terms are
+    <p class="meta">Generated {{ $generatedAt }} from the {{ $brand }} DPA template (version 1.0). The standard terms are
         offered on a non-negotiable basis; the parties&rsquo; identities and signatures complete the agreement.</p>
 </body>
 

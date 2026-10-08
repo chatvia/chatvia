@@ -1,0 +1,20 @@
+<?php
+
+namespace Domain\Llm\Contracts;
+
+use Domain\Llm\Exceptions\TranscriptionNotConfiguredException;
+
+/**
+ * Turns speech in an audio file into text. Used for chat voice input and for
+ * audio and video knowledge sources. The implementation is chosen from config
+ * (`chatvia.ai.transcriber`).
+ */
+interface Transcriber
+{
+    /**
+     * @param  string  $filePath  Local path of an audio file (MP3 after compression).
+     *
+     * @throws TranscriptionNotConfiguredException When no speech-to-text service is set up.
+     */
+    public function transcribe(string $filePath): string;
+}

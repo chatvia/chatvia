@@ -33,6 +33,13 @@ class HandleStripeWebhook
 
     public function handle(WebhookReceived $event): void
     {
+        // With billing turned off nothing may be granted from a Stripe event.
+        // The webhook route is not even registered then (AppServiceProvider);
+        // this guard covers any other way the event could be dispatched.
+        if (! config('billing.enabled', true)) {
+            return;
+        }
+
         $this->assertWebhookIsSigned();
 
         $eventId = $event->payload['id'] ?? null;

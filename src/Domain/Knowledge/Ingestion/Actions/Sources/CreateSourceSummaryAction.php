@@ -10,20 +10,27 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Llm\Operations\Documents\Summarizer;
 use Domain\Llm\Operations\Pricing\CostCalculator;
+use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Adds the summary chunk (chunk_index 0) of a source: one LLM call classifies
+ * the whole document and one summarises it. Skipped when no LLM that can read
+ * PDF documents is configured — the source is still searchable by its pages.
+ */
 class CreateSourceSummaryAction
 {
     public function __construct(
         private readonly ContentAnalyzer $contentAnalyzer,
         private readonly Summarizer $summarizer,
         private readonly CostCalculator $costCalculator,
+        private readonly DocumentLlm $documentLlm,
     ) {}
 
     public function execute(SourceFile|SourceText|SourceWebsite $source): ?Chunk
     {
-        if ($source->summary()->exists()) {
+        if (! $this->documentLlm->isAvailable() || $source->summary()->exists()) {
             return null;
         }
 

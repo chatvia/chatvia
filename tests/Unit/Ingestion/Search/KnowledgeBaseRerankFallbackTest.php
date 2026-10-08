@@ -3,6 +3,8 @@
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Domain\Knowledge\Ingestion\Actions\Sources\CreateSourceChunkAction;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Jobs\UpdateRetrievalStatsJob;
@@ -18,10 +20,8 @@ use Illuminate\Support\Facades\Queue;
  */
 function kbFallbackProvider(bool $rerankThrows): void
 {
-    app()->bind(EmbeddingsProviderInterface::class, fn (): EmbeddingsProviderInterface => new class($rerankThrows) implements EmbeddingsProviderInterface
+    app()->bind(EmbeddingsProviderInterface::class, fn (): EmbeddingsProviderInterface => new class implements EmbeddingsProviderInterface
     {
-        public function __construct(private bool $rerankThrows) {}
-
         public function embed(string $text, bool $returnAsText = false): string|array
         {
             $vector = array_fill(0, 1024, 0.1);
@@ -39,20 +39,6 @@ function kbFallbackProvider(bool $rerankThrows): void
             return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
         }
 
-        public function rerank(string $query, array $documents, ?int $topN = null): ?array
-        {
-            if ($this->rerankThrows) {
-                throw new RuntimeException('reranker down');
-            }
-
-            return null;
-        }
-
-        public function supportsReranking(): bool
-        {
-            return true;
-        }
-
         public function getDimensions(): int
         {
             return 1024;
@@ -61,6 +47,25 @@ function kbFallbackProvider(bool $rerankThrows): void
         public function getModelName(): string
         {
             return 'fake-embed';
+        }
+    });
+
+    app()->instance(Reranker::class, new class($rerankThrows) implements Reranker
+    {
+        public function __construct(private bool $rerankThrows) {}
+
+        public function rerank(string $query, array $documents, ?int $topN = null): array
+        {
+            if ($this->rerankThrows) {
+                throw new RuntimeException('reranker down');
+            }
+
+            return (new NullReranker)->rerank($query, $documents, $topN);
+        }
+
+        public function isEnabled(): bool
+        {
+            return true;
         }
     });
 }

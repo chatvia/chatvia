@@ -222,7 +222,7 @@ export function applyColors(widget) {
   const colorTheme = widget.settings.color_theme;
   const colorShade = widget.settings.color_shade;
 
-  if (!colorTheme || colorShade == null) {
+  if (!colorTheme || colorShade === null || colorShade === undefined) {
     console.warn(
       'chatvia: agent settings missing color_theme and/or color_shade — ' +
         'the widget will render with the unset (transparent) sentinel. ' +

@@ -12,6 +12,18 @@ on:
   workflow_call:
   workflow_dispatch:
 
+# Read-only token, and no secrets anywhere in this workflow, so it runs the same
+# for pull requests from forks.
+permissions:
+  contents: read
+
+# A new push to the same pull request cancels its older run. Runs on branches
+# are never cancelled. The group includes the caller's workflow name, so a run
+# started through workflow_call never cancels a normal run.
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   tests:
     name: Tests
@@ -24,7 +36,8 @@ jobs:
 
     services:
       postgres:
-        image: tensorchord/vchord-suite:pg18-latest
+        # Same image and tag as docker-compose.yml; keep them in sync.
+        image: tensorchord/vchord-suite:pg18-20260501
         env:
           POSTGRES_DB: testing
           POSTGRES_USER: chatvia
@@ -32,13 +45,13 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U chatvia"
+          --health-cmd="pg_isready -U chatvia -d testing"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
 
       redis:
-        image: redis:7-alpine
+        image: redis:7.4-alpine
         ports:
           - 6379:6379
         options: >-
@@ -55,7 +68,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pdo_pgsql, intl, gd, exif, iconv, fileinfo
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pdo_pgsql, intl, gd, exif, iconv, fileinfo, redis
           coverage: none
           tools: composer:v2
 
@@ -83,8 +96,6 @@ jobs:
         run: cp .env.testing .env
 
       - name: Install Composer dependencies
-        env:
-          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
         run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
       - name: Setup Node.js
@@ -96,16 +107,18 @@ jobs:
       - name: Install NPM dependencies
         run: npm ci
 
-      - name: Build assets
-        run: npm run build
-
       - name: Prepare Laravel Application
         run: |
           php artisan key:generate --force
           php artisan key:generate --force --env=testing
 
-      - name: Run Migrations
-        run: php artisan migrate --force --env=testing
+      # Every gate a contributor runs locally before a pull request: composer
+      # validate + audit, npm audit, Pint, Rector, PHPStan, Prettier, ESLint,
+      # vue-tsc, the i18n check and the Pest suite. It never changes files. The
+      # test run installs the Postgres extensions, migrates and seeds the
+      # `testing` database by itself, so there is no separate migrate step.
+      - name: Run CI checks
+        run: composer ci:check
 
-      - name: Run Tests
-        run: php artisan test
+      - name: Build assets
+        run: npm run build

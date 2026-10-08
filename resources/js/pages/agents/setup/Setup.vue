@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useBilling } from '@/composables/useBilling';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -115,6 +116,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const { t } = useI18n();
+const { billingEnabled } = useBilling();
 
 const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
 const num = (v: unknown, fallback = 0): number => (typeof v === 'number' ? v : fallback);
@@ -1923,8 +1925,11 @@ const copyApiCode = async (code: string) => {
                                         </AlertDescription>
                                     </Alert>
 
-                                    <!-- Quota counter -->
-                                    <div v-else class="bg-muted/40 flex items-center justify-between rounded-lg border p-3 text-sm">
+                                    <!-- Quota counter (no limit to show when billing is turned off) -->
+                                    <div
+                                        v-else-if="billingEnabled"
+                                        class="bg-muted/40 flex items-center justify-between rounded-lg border p-3 text-sm"
+                                    >
                                         <span class="text-muted-foreground">
                                             {{
                                                 t(

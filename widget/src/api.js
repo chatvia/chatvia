@@ -37,7 +37,7 @@ export default async function api({ endpoint, method, headers = {}, body = null 
   } catch (error) {
     // Re-throw with more context
     if (error.name === 'AbortError' || error.name === 'TimeoutError') {
-      throw new Error(`API request timeout: ${endpoint}`);
+      throw new Error(`API request timeout: ${endpoint}`, { cause: error });
     }
     throw error;
   }

@@ -13,8 +13,7 @@ use Illuminate\Support\Str;
  */
 function ownedSourceFile(User $owner): SourceFile
 {
-    // Created directly (not via AgentFileFactory) so the test does not
-    // depend on the seeded demo user the factory definition resolves.
+    // Created directly (not via AgentFileFactory) so the owner is explicit.
     $file = SourceFile::create([
         'user_id' => $owner->id,
         'external_id' => (string) Str::uuid(),

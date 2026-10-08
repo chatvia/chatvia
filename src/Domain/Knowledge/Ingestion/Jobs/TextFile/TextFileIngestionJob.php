@@ -16,7 +16,7 @@ use Throwable;
 
 /**
  * Ingest a text SourceFile (.txt, .md/.markdown, and Pandoc-extracted ebooks
- * .epub/.fb2) by chunking its content directly via chunk.fit — the document/OCR
+ * .epub/.fb2) by splitting its content directly with the TextSplitter — the document/OCR
  * pipeline (DocumentIngestionJob) is bypassed because the text is already
  * chunk-ready. Mirrors DocumentIngestionJob's lifecycle handling; the per-chunk
  * embedding work is shared via DocumentChunkIngestionJob.

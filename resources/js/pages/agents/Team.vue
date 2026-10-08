@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useBilling } from '@/composables/useBilling';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -56,6 +57,8 @@ const teamMembers = ref<any[]>([]);
 // Workspace users = team members + chatters; they share one quota bucket.
 const workspaceUsersCount = computed(() => props.workspace_users_count ?? 0);
 const workspaceUsersLimit = computed(() => props.workspace_users_limit ?? 0);
+// Without billing there is no seat limit, so the quota line is not shown.
+const { billingEnabled } = useBilling();
 
 const canInviteMembers = computed(() => {
     return props.team_collaboration && (workspaceUsersLimit.value === 0 || workspaceUsersCount.value < workspaceUsersLimit.value);
@@ -291,7 +294,7 @@ const cancelDelete = () => {
                         </CardTitle>
                         <CardDescription>
                             {{ t('agents.team.description') }}
-                            <span v-if="workspaceUsersLimit > 0" class="text-muted-foreground mt-2 block">
+                            <span v-if="billingEnabled && workspaceUsersLimit > 0" class="text-muted-foreground mt-2 block">
                                 {{
                                     t('agents.team.quota', {
                                         used: workspaceUsersCount,

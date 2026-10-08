@@ -16,7 +16,7 @@ use Domain\Conversation\Services\Streaming\Sources\ErrorSource;
 use Domain\Conversation\Services\Streaming\Sources\GuardBlockSource;
 use Domain\Conversation\Services\Streaming\Sources\HandoffSource;
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
-use Domain\Conversation\Services\Streaming\Sources\MistralPdfSource;
+use Domain\Conversation\Services\Streaming\Sources\PdfSource;
 use Domain\Conversation\Services\Streaming\Sources\QASource;
 use Domain\Conversation\Services\Streaming\Sources\ReplaySource;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
@@ -34,7 +34,7 @@ readonly class ChatStreamService
         private SendVisitorHandoffMessageAction $sendVisitorMessage,
         private SseStreamer $streamer,
         private LlmSource $llmSource,
-        private MistralPdfSource $mistralPdfSource,
+        private PdfSource $pdfSource,
         private QASource $qaSource,
         private GuardBlockSource $guardBlockSource,
         private HandoffSource $handoffSource,
@@ -57,7 +57,7 @@ readonly class ChatStreamService
      * run the tools twice), rebuilds the context from the snapshot, and streams
      * the continuation under the original assistant message id.
      *
-     * Picks the same source the paused turn used: Mistral PDF if the
+     * Picks the same source the paused turn used: PDF chat if the
      * conversation still has PDF attachments, the agent LLM otherwise.
      */
     public function resume(ToolApprovalCheckpoint $approval, ResolveToolApprovalData $data): StreamedResponse
@@ -82,7 +82,7 @@ readonly class ChatStreamService
 
         if ($conversation && $conversation->pdfAttachments()->exists()) {
             return $this->streamer->respond(
-                $this->mistralPdfSource->resume($context, $checkpoint, $data->decisions)
+                $this->pdfSource->resume($context, $checkpoint, $data->decisions)
             );
         }
 
@@ -208,7 +208,7 @@ readonly class ChatStreamService
         $llmMessages = $this->chatService->prepareLlmMessages($context);
 
         // 5a. PDF chat — when the conversation has any PDF attachments,
-        // hand off to Mistral's native document Q&A instead of running the
+        // hand off to the document LLM's native PDF Q&A instead of running the
         // agent's LLM + MCP tool loop. Rows are created by the upload
         // endpoints (and claimed by CreateConversationAction on the first
         // Home.vue turn).
@@ -222,7 +222,7 @@ readonly class ChatStreamService
             $pdfs = $conversation->pdfAttachments()->get();
             if ($pdfs->isNotEmpty()) {
                 return $this->streamer->respond(
-                    $this->mistralPdfSource->events($context, $llmMessages, $pdfs)
+                    $this->pdfSource->events($context, $llmMessages, $pdfs)
                 );
             }
         }

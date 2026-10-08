@@ -24,7 +24,7 @@ class SetAgentDomainAction
     public function execute(Agent $agent, User $workspace, ?string $domain): void
     {
         if ($domain !== null && $domain !== $agent->domain) {
-            $total = (int) ($workspace->quota?->totalCustomDomainsLimit() ?? 0);
+            $total = $workspace->totalCustomDomainsLimit();
 
             if ($total === 0) {
                 // Plan names change; say what is missing, not which plan has it.

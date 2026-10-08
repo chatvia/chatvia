@@ -24,7 +24,7 @@ return [
     ],
 
     'ui' => [
-        'title' => 'Chatvia API',
+        'title' => env('BRAND_NAME', env('APP_NAME', 'Chatvia')).' API',
         'theme' => 'light',
         'hide_try_it' => false,
         'hide_schemas' => false,

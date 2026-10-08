@@ -117,8 +117,8 @@
     }
 }
 
-/* Arabic / Farsi (RTL) surfaces use Rubik (loaded in app.blade.php) ahead of
-   the Latin default so the Arabic script renders correctly. This is an
+/* Arabic / Farsi (RTL) surfaces put the system UI font first: it has Arabic
+   glyphs on every major OS, and no web font is fetched from a CDN. This is an
    UNLAYERED rule on purpose: `--font-sans` is declared with `@theme inline`,
    which inlines the literal value into the `font-sans` utility instead of a
    `var()`, so overriding the token has no effect. Re-pointing the utility
@@ -131,7 +131,7 @@ html[dir='rtl'] body,
 html[lang='ar'] body,
 html[lang='fa'] body {
     font-family:
-        'Rubik', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        system-ui, ui-sans-serif, 'Segoe UI', Tahoma, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 :root {

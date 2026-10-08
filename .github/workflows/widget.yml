@@ -1,0 +1,73 @@
+name: Widget
+
+# Lint, test and build the embeddable chat widget (widget/). It has its own
+# package.json and toolchain, so it runs apart from the main test workflow and
+# only when widget files change.
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'widget/**'
+      - '.github/workflows/widget.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'widget/**'
+      - '.github/workflows/widget.yml'
+  workflow_dispatch:
+
+# Read-only token and no secrets, so it runs the same for pull requests from forks.
+permissions:
+  contents: read
+
+# A new push to the same pull request cancels its older run.
+concurrency:
+  group: widget-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  widget:
+    name: Lint, test and build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: widget
+
+    env:
+      # The widget's `prepare` script runs husky, which has no git hooks to set
+      # up in a subfolder. Skip it.
+      HUSKY: '0'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: widget/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          # Placeholders: this step only checks that the bundle builds. A real
+          # build sets these to its own server (see widget/README.md).
+          VITE_APP_VERSION: ci
+          VITE_API_URL: https://example.com/widget
+          VITE_SCRIPT_URL: https://example.com/widget-assets

@@ -8,7 +8,8 @@ use App\Identity\Workspace\Models\User;
  * Keeps the Stripe customer in step with the user's name and email.
  *
  * Billing, quota and the default team are not created here: the trial
- * checkout's Stripe webhook provisions them.
+ * checkout's Stripe webhook provisions them (with billing turned off, the
+ * sign-up form creates the default team and nothing else is needed).
  */
 class UserObserver
 {

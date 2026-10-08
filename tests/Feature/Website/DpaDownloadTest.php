@@ -50,3 +50,11 @@ it('throttles repeated downloads from one visitor', function (): void {
 
     $this->get(route('dpa.download', ['company_name' => 'One too many']))->assertTooManyRequests();
 });
+
+it('names the PDF after the configured brand', function (): void {
+    config(['chatvia.brand.name' => 'Acme Chat']);
+
+    $response = $this->get(route('dpa.download', ['company_name' => 'Example GmbH']))->assertOk();
+
+    expect((string) $response->headers->get('Content-Disposition'))->toContain('acme-chat-DPA-example-gmbh');
+});

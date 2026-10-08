@@ -6,7 +6,6 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\MessageCredits;
 use Carbon\Carbon;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Models\UserQuota;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Membership\Team\Models\Team;
@@ -103,8 +102,9 @@ class GetDashboardStatsAction
      */
     private function getUsageStats(User $user, MessageCredits $credits): array
     {
-        /** @var UserQuota $quota */
-        $quota = $user->quota;
+        $pagesLimit = $user->quotaLimit('pages_limit');
+        $minutesLimit = $user->quotaLimit('minutes_limit');
+        $linksLimit = $user->quotaLimit('links_limit');
 
         $consumption = $user->consumption();
         $pagesConsumed = $consumption->pages();
@@ -120,18 +120,18 @@ class GetDashboardStatsAction
             ],
             'pages' => [
                 'used' => $pagesConsumed,
-                'limit' => $quota->pages_limit,
-                'remaining' => max(0, $quota->pages_limit - $pagesConsumed),
+                'limit' => $pagesLimit,
+                'remaining' => max(0, $pagesLimit - $pagesConsumed),
             ],
             'minutes' => [
                 'used' => $minutesConsumed,
-                'limit' => $quota->minutes_limit,
-                'remaining' => max(0, $quota->minutes_limit - $minutesConsumed),
+                'limit' => $minutesLimit,
+                'remaining' => max(0, $minutesLimit - $minutesConsumed),
             ],
             'links' => [
                 'used' => $linksConsumed,
-                'limit' => $quota->links_limit,
-                'remaining' => max(0, $quota->links_limit - $linksConsumed),
+                'limit' => $linksLimit,
+                'remaining' => max(0, $linksLimit - $linksConsumed),
             ],
         ];
     }

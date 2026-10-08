@@ -30,7 +30,7 @@ use Throwable;
  * immutable audit row off the hot path.
  *
  * Shared by every source that needs the loop — `LlmSource` runs it on the
- * agent's configured provider, `MistralPdfSource` runs it on Mistral with a
+ * agent's configured provider, `PdfSource` runs it on the document LLM with a
  * PDF-augmented user turn. Each source owns its own start/finish envelope; the
  * runner only handles the iteration and tool plumbing.
  */

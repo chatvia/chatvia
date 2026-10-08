@@ -34,7 +34,7 @@ class DpaController
     {
         $validated = $request->validated();
 
-        $filename = 'Chatvia-DPA-'.Str::slug($validated['company_name']);
+        $filename = Str::slug((string) config('chatvia.brand.name')).'-DPA-'.Str::slug($validated['company_name']);
 
         $pdf = Pdf::withBrowsershot(fn (Browsershot $browsershot): Browsershot => $this->browsershotConfig->configure($browsershot))
             ->view('pdf.dpa', [

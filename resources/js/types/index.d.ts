@@ -24,14 +24,34 @@ export interface CurrentTeam {
     is_owner: boolean;
 }
 
+// Product name and links from config/chatvia.php `brand`. URLs arrive as set
+// in the environment: null (or an empty string) means "hide that link". Read
+// them through the `useBrand()` composable, which turns empty strings into null.
+export interface Brand {
+    name: string;
+    website_url: string | null;
+    docs_url: string | null;
+    api_docs_url: string | null;
+    powered_by: {
+        enabled: boolean;
+        label: string | null;
+        url: string | null;
+    };
+    onboarding_video_url: string | null;
+    marketing_site: boolean;
+}
+
 export interface SharedData extends PageProps {
     name: string;
+    brand?: Brand;
     quote: { message: string; author: string };
     auth: Auth;
     ziggy: Config & { location: string };
     sidebarOpen: boolean;
     tenant: string;
     subscribed: boolean;
+    // Paid plans on/off (config/billing.php). Read it through `useBilling()`.
+    billing?: { enabled: boolean };
     permissions: Record<number, string[]>;
     currentTeam: CurrentTeam | null;
     // Persisted UI language for the signed-in user (`auto` follows the browser).

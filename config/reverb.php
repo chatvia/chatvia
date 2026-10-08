@@ -87,17 +87,20 @@ return [
                 'activity_timeout' => env('REVERB_APP_ACTIVITY_TIMEOUT', 30),
                 'max_message_size' => env('REVERB_APP_MAX_MESSAGE_SIZE', 10_000),
             ],
-            ...(env('HEJLY_REVERB_APP_ID') ? [[
-                'key' => env('HEJLY_REVERB_APP_KEY'),
-                'secret' => env('HEJLY_REVERB_APP_SECRET'),
-                'app_id' => env('HEJLY_REVERB_APP_ID'),
+            // Optional second application served by the same Reverb process —
+            // e.g. another site on the same server. Only registered when
+            // REVERB_EXTRA_APP_ID is set.
+            ...(env('REVERB_EXTRA_APP_ID') ? [[
+                'key' => env('REVERB_EXTRA_APP_KEY'),
+                'secret' => env('REVERB_EXTRA_APP_SECRET'),
+                'app_id' => env('REVERB_EXTRA_APP_ID'),
                 'options' => [
-                    'host' => 'hejly.dk',
-                    'port' => 443,
-                    'scheme' => 'https',
-                    'useTLS' => true,
+                    'host' => env('REVERB_EXTRA_APP_HOST'),
+                    'port' => env('REVERB_EXTRA_APP_PORT', 443),
+                    'scheme' => env('REVERB_EXTRA_APP_SCHEME', 'https'),
+                    'useTLS' => env('REVERB_EXTRA_APP_SCHEME', 'https') === 'https',
                 ],
-                'allowed_origins' => ['hejly.dk', 'www.hejly.dk'],
+                'allowed_origins' => array_values(array_filter(array_map('trim', explode(',', (string) env('REVERB_EXTRA_APP_ALLOWED_ORIGINS', ''))))),
                 'ping_interval' => 60,
                 'activity_timeout' => 30,
                 'max_message_size' => 10_000,

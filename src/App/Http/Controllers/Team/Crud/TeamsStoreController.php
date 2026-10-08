@@ -16,7 +16,7 @@ class TeamsStoreController
 
         if (! $user->canCreateTeam()) {
             return back()->withErrors([
-                'name' => "You've reached your team limit ({$user->quota->teams_limit}). Upgrade your plan to create more teams.",
+                'name' => "You've reached your team limit ({$user->quotaLimit('teams_limit')}). Upgrade your plan to create more teams.",
             ]);
         }
 

@@ -407,8 +407,7 @@
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
                             <h4 class="font-semibold text-blue-800 mb-3">Privacy Contact Information</h4>
                             <div class="space-y-2 text-blue-700">
-                                <p><strong>Email:</strong> <a href="mailto:info@chatvia.ai"
-                                        class="underline">info@chatvia.ai</a></p>
+                                <p><strong>Email:</strong> @include('partials.company.email-link', ['class' => 'underline'])</p>
                             </div>
                         </div>
                     </section>

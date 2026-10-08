@@ -30,7 +30,7 @@ class InviteTeamMemberAction
         $owner = $team->owner;
 
         if (! $owner->canAddWorkspaceUser()) {
-            throw new DomainValidationException('email', "You've reached your workspace user limit ({$owner->quota->workspace_users_limit}), shared between team members and chatters. Upgrade your plan to invite more.");
+            throw new DomainValidationException('email', "You've reached your workspace user limit ({$owner->quotaLimit('workspace_users_limit')}), shared between team members and chatters. Upgrade your plan to invite more.");
         }
 
         // Duplicate detection (already-a-member / already-invited) lives in

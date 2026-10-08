@@ -17,18 +17,88 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Founder
+    | Brand
     |--------------------------------------------------------------------------
     |
-    | Identity used for the personal welcome note sent to new trial sign-ups.
-    | The email is set as the message Reply-To so replies land in the founder's
-    | inbox — override it via env if the address changes.
+    | Everything that names or links to the product, so a self-hosted install
+    | can show its own name and links instead of Chatvia's. Leave a URL empty
+    | to hide the link that uses it.
+    |
+    | - name: product name in the UI, emails, file names and outbound headers.
+    | - website_url / docs_url / api_docs_url: links shown in the app.
+    | - powered_by: the "Powered by …" credit under hosted chats and widgets.
+    | - onboarding_video_url: optional video on the first-run welcome screen.
+    | - marketing_site: serve the public landing, pricing and legal pages.
+    |   Turn it off for a self-hosted install; `/` then goes to the app.
+    |
+    */
+
+    'brand' => [
+        'name' => env('BRAND_NAME', env('APP_NAME', 'Chatvia')),
+        'website_url' => env('BRAND_WEBSITE_URL'),
+        'docs_url' => env('BRAND_DOCS_URL'),
+        'api_docs_url' => env('BRAND_API_DOCS_URL'),
+        'powered_by' => [
+            'enabled' => (bool) env('BRAND_POWERED_BY_ENABLED', true),
+            'label' => env('BRAND_POWERED_BY_LABEL', 'Chatvia'),
+            'url' => env('BRAND_POWERED_BY_URL'),
+        ],
+        'onboarding_video_url' => env('BRAND_ONBOARDING_VIDEO_URL'),
+        // Optional social handle (e.g. "@acme") for the twitter:site meta tag.
+        'twitter_handle' => env('BRAND_TWITTER_HANDLE'),
+        'marketing_site' => (bool) env('MARKETING_SITE_ENABLED', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Founder welcome email
+    |--------------------------------------------------------------------------
+    |
+    | An optional personal note sent to new trial sign-ups, signed by a real
+    | person. The email is the message Reply-To, so replies reach that inbox.
+    | It is sent only when `welcome_email` is on and both name and email are
+    | set.
     |
     */
 
     'founder' => [
-        'name' => env('FOUNDER_NAME', 'Ahmad Mayahi'),
-        'email' => env('FOUNDER_EMAIL', 'info@chatvia.ai'),
+        'welcome_email' => (bool) env('FOUNDER_WELCOME_ENABLED', false),
+        'name' => env('FOUNDER_NAME'),
+        'email' => env('FOUNDER_EMAIL'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Company
+    |--------------------------------------------------------------------------
+    |
+    | The legal entity that runs this install. The public legal pages, the DPA
+    | and the footer show these details. Leave a value empty to hide the line
+    | that uses it. Separate address lines with "\n" (in a double-quoted .env
+    | value), e.g. COMPANY_ADDRESS="Main Street 1\n1000 Copenhagen, Denmark".
+    |
+    */
+
+    'company' => [
+        'name' => env('COMPANY_NAME'),
+        'address' => env('COMPANY_ADDRESS'),
+        'email' => env('COMPANY_EMAIL'),
+        'vat_id' => env('COMPANY_VAT_ID'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Demo seed
+    |--------------------------------------------------------------------------
+    |
+    | Login for the demo admin account that `php artisan db:seed` creates on a
+    | local or staging database. The demo seeders never run in production.
+    |
+    */
+
+    'seed' => [
+        'admin_email' => env('SEED_ADMIN_EMAIL', 'admin@example.com'),
+        'admin_password' => env('SEED_ADMIN_PASSWORD', 'password'),
     ],
 
     /*
@@ -98,8 +168,8 @@ return [
                 'max_files' => 1,
 
                 // Hard cap on PDF pages for a single chat attachment. The whole
-                // document is sent to Mistral for Q&A, so this bounds cost and
-                // latency. Enforced at upload via MaxPdfPages.
+                // document is sent to the document LLM for Q&A, so this bounds
+                // cost and latency. Enforced at upload via MaxPdfPages.
                 'max_pdf_pages' => 10,
             ],
         ],
@@ -197,12 +267,56 @@ return [
     */
 
     'ai' => [
+        // Where chat calls go: scaleway, mistral, openrouter or groq
+        // (LlmProviderEnum). Any other value falls back to openrouter.
         'provider' => env('LLM_PROVIDER', 'scaleway'),
+
+        // Which service handles each ingestion and retrieval step. `auto` picks
+        // the hosted service when its API key is set, and the local tool (or
+        // "off") when it is not — so an install works without those accounts.
+        // See docs/guide/self-hosting/ai-providers.md.
+        //
+        // - document_parser: reads PDFs, office files and images.
+        //   mistral (hosted OCR, also reads images) | local (pdftotext +
+        //   LibreOffice, text only). auto = mistral when MISTRAL_API_KEY is set.
+        // - text_splitter: splits text files, ebooks and web pages into chunks.
+        //   chunkfit (hosted) | local. auto = chunkfit when CHUNK_FIT_API_KEY is set.
+        // - reranker: scores search results and tools against the question.
+        //   qwen | cohere | none. auto = the embedding provider's own reranker
+        //   (qwen → qwen, cohere → cohere, jina and mistral → none).
+        // - transcriber: speech-to-text for voice input and audio sources.
+        //   scaleway | none. auto = scaleway when SCALEWAYAI_API_KEY is set.
+        // - document_llm: the LLM that reads whole PDFs, for document summaries
+        //   and chat with PDF files. mistral | none. auto = mistral when
+        //   MISTRAL_API_KEY is set. With none, those two features are off.
+        'document_parser' => env('AI_DOCUMENT_PARSER', 'auto'),
+        'text_splitter' => env('AI_TEXT_SPLITTER', 'auto'),
+        'reranker' => env('AI_RERANKER', 'auto'),
+        'transcriber' => env('AI_TRANSCRIBER', 'auto'),
+        'document_llm' => env('AI_DOCUMENT_LLM', 'auto'),
+
+        // Chunk size for the local text splitter, in tokens. Close to the size
+        // the hosted splitter produces, so search quality stays similar.
+        'local_splitter' => [
+            'chunk_tokens' => 400,
+            'overlap_tokens' => 0,
+        ],
 
         // https://www.scaleway.com/en/docs/generative-apis/reference-content/supported-models/
         'models' => [
             'vision' => 'gemma-3-27b-it',
-            'embedding' => 'qwen',
+            // Embedding provider: qwen (Qwen3 on Scaleway), cohere, jina or
+            // mistral. The database stores 1024-dimension vectors, so the
+            // provider must return exactly 1024 dimensions.
+            'embedding' => env('AI_EMBEDDING_PROVIDER', 'qwen'),
+
+            // Read whole PDF documents through the document_llm above.
+            'summary' => env('AI_SUMMARY_MODEL', 'mistral-large-latest'),
+            'analysis' => env('AI_ANALYSIS_MODEL', 'mistral-large-latest'),
+            // Answers questions about PDF files attached to a chat. Needs both
+            // PDF reading and function calling so tools still work in PDF chats.
+            'document_chat' => env('AI_DOCUMENT_CHAT_MODEL', env('MISTRAL_QA_MODEL', 'mistral-medium-latest')),
+
             'tables' => 'mistral-small-3.2-24b-instruct-2506',
             'chunker' => 'llama-3.1-70b-instruct',
             'title' => 'mistral-small-3.2-24b-instruct-2506',

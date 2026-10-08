@@ -20,11 +20,14 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Observers\AgentObserver;
 use Domain\Analytics\Events\McpToolInvoked;
 use Domain\Analytics\Listeners\RecordAnalytics;
+use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Events\MessageCreditsLow;
 use Domain\Billing\Listeners\HandleStripeWebhook;
 use Domain\Billing\Listeners\RecordLlmTokenUsage;
 use Domain\Billing\Listeners\SyncAddonQuotasFromStripe;
 use Domain\Billing\Listeners\TriggerAutoRecharge;
+use Domain\Billing\Services\Entitlements\StripeEntitlements;
+use Domain\Billing\Services\Entitlements\UnlimitedEntitlements;
 use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Conversation\Events\SessionLocationUnknown;
 use Domain\Conversation\Events\ToolCallCompleted;
@@ -48,9 +51,20 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Observers\AgentMcpServerObserver;
 use Domain\Knowledge\Embedding\Cohere;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
 use Domain\Knowledge\Embedding\Jina;
 use Domain\Knowledge\Embedding\Mistral;
 use Domain\Knowledge\Embedding\Qwen3;
+use Domain\Knowledge\Embedding\Rerank\CohereReranker;
+use Domain\Knowledge\Embedding\Rerank\NullReranker;
+use Domain\Knowledge\Embedding\Rerank\Qwen3Reranker;
+use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
+use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
+use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFitTextSplitter;
+use Domain\Knowledge\Ingestion\Services\Chunking\LocalTextSplitter;
+use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
+use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\File\Observers\SourceFileObserver;
 use Domain\Knowledge\Source\Text\Models\SourceText;
@@ -60,11 +74,13 @@ use Domain\Knowledge\Source\Web\Observers\AgentWebsiteObserver;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Contracts\Transcriber;
+use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Events\LlmTokensConsumed;
-use Domain\Llm\Providers\Groq;
-use Domain\Llm\Providers\Mistral as LlmMistral;
+use Domain\Llm\Operations\Media\NullTranscriber;
+use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Providers\OpenRouter;
-use Domain\Llm\Providers\Scaleway;
+use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Usage\TokenUsageContext;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
 use Domain\Membership\Agent\Listeners\SendAgentChatterInvitationEmail;
@@ -79,6 +95,7 @@ use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use InvalidArgumentException;
 use Laravel\Cashier\Events\WebhookHandled;
 use Laravel\Cashier\Events\WebhookReceived;
 use Support\Cms\Marketing\Models\Post;
@@ -111,27 +128,7 @@ class DomainServiceProvider extends ServiceProvider
         // chat turn or queued job lands in the same scope.
         $this->app->singleton(TokenUsageContext::class);
 
-        $this->app->bind(function ($app): LlmProviderInterface {
-            $provider = config('chatvia.ai.provider', 'openrouter');
-
-            return match ($provider) {
-                'groq' => $app->make(Groq::class),
-                'mistral' => $app->make(LlmMistral::class),
-                'scaleway' => $app->make(Scaleway::class),
-                default => $app->make(OpenRouter::class),
-            };
-        });
-
-        $this->app->bind(function ($app): EmbeddingsProviderInterface {
-            $provider = config('chatvia.ai.models.embedding', 'mistral');
-
-            return match ($provider) {
-                'jina' => $app->make(Jina::class),
-                'qwen' => $app->make(Qwen3::class),
-                'mistral' => $app->make(Mistral::class),
-                default => $app->make(Cohere::class),
-            };
-        });
+        $this->registerAiServices();
 
         // PasswordAuthenticator wraps the `web` guard so Domain Actions don't
         // have to reach for the Auth facade. We bind it explicitly because
@@ -141,6 +138,116 @@ class DomainServiceProvider extends ServiceProvider
             PasswordAuthenticator::class,
             fn (): PasswordAuthenticator => new PasswordAuthenticator(Auth::guard('web')),
         );
+
+        // Billing can be switched off for a self-hosted install
+        // (BILLING_ENABLED=false). Resolved on every use, not as a singleton,
+        // so the driver always matches the current config.
+        $this->app->bind(Entitlements::class, fn ($app): Entitlements => config('billing.enabled', true)
+            ? $app->make(StripeEntitlements::class)
+            : $app->make(UnlimitedEntitlements::class));
+    }
+
+    /**
+     * The LLM and embedding providers plus the services of each ingestion and
+     * retrieval step, picked from config('chatvia.ai.*'). `auto` uses a hosted
+     * service when its API key is set and a local or "off" implementation when
+     * it is not, so a self-hosted install works without those accounts. All
+     * are bound (not singletons) so they always match the current config.
+     */
+    private function registerAiServices(): void
+    {
+        // Values without a client of their own fall back to OpenRouter.
+        $this->app->bind(fn ($app): LlmProviderInterface => $app->make(
+            LlmProviderEnum::tryFrom((string) config('chatvia.ai.provider'))?->providerClass() ?? OpenRouter::class,
+        ));
+
+        $this->app->bind(function ($app): EmbeddingsProviderInterface {
+            $provider = match (config('chatvia.ai.models.embedding', 'mistral')) {
+                'jina' => $app->make(Jina::class),
+                'qwen' => $app->make(Qwen3::class),
+                'mistral' => $app->make(Mistral::class),
+                default => $app->make(Cohere::class),
+            };
+
+            // The vector columns have a fixed size: fail here with a clear
+            // message instead of on the first insert or search.
+            if ((int) $provider->getDimensions() !== EmbeddingsProviderInterface::STORED_DIMENSIONS) {
+                throw EmbeddingDimensionsMismatchException::for($provider);
+            }
+
+            return $provider;
+        });
+
+        $this->app->bind(fn ($app): Reranker => match ($this->aiDriver('reranker', auto: match (config('chatvia.ai.models.embedding', 'mistral')) {
+            'qwen' => 'qwen',
+            'jina', 'mistral' => 'none',
+            default => 'cohere',
+        })) {
+            'qwen' => $app->make(Qwen3Reranker::class),
+            'cohere' => $app->make(CohereReranker::class),
+            'none' => $app->make(NullReranker::class),
+            default => throw $this->unknownAiDriver('reranker', ['qwen', 'cohere', 'none']),
+        });
+
+        $this->app->bind(fn ($app): DocumentParser => match ($this->aiDriver('document_parser', auto: filled(config('services.mistral.api_key')) ? 'mistral' : 'local')) {
+            'mistral' => $app->make(MistralDocumentParser::class),
+            'local' => $app->make(LocalDocumentParser::class),
+            default => throw $this->unknownAiDriver('document_parser', ['mistral', 'local']),
+        });
+
+        $this->app->bind(fn ($app): TextSplitter => match ($this->aiDriver('text_splitter', auto: filled(config('services.chunkfit.api_key')) ? 'chunkfit' : 'local')) {
+            'chunkfit' => $app->make(ChunkFitTextSplitter::class),
+            'local' => $app->make(LocalTextSplitter::class),
+            default => throw $this->unknownAiDriver('text_splitter', ['chunkfit', 'local']),
+        });
+
+        $this->app->bind(fn ($app): Transcriber => match ($this->aiDriver('transcriber', auto: filled(config('services.scalewayai.api_key')) ? 'scaleway' : 'none')) {
+            'scaleway' => $app->make(ScalewayTranscriber::class),
+            'none' => $app->make(NullTranscriber::class),
+            default => throw $this->unknownAiDriver('transcriber', ['scaleway', 'none']),
+        });
+
+        $this->app->bind(function (): DocumentLlm {
+            $driver = $this->aiDriver('document_llm', auto: filled(config('services.mistral.api_key')) ? 'mistral' : 'none');
+
+            if ($driver === 'none') {
+                return new DocumentLlm(null);
+            }
+
+            $provider = LlmProviderEnum::tryFrom($driver);
+
+            if ($provider === null || ! $provider->readsDocuments()) {
+                $readers = array_map(
+                    static fn (LlmProviderEnum $p): string => $p->value,
+                    array_filter(LlmProviderEnum::cases(), static fn (LlmProviderEnum $p): bool => $p->readsDocuments()),
+                );
+
+                throw $this->unknownAiDriver('document_llm', [...$readers, 'none']);
+            }
+
+            return new DocumentLlm($provider);
+        });
+    }
+
+    /** The configured driver for a chatvia.ai step, with `auto` (or empty) replaced by $auto. */
+    private function aiDriver(string $key, string $auto): string
+    {
+        $driver = strtolower(trim((string) config("chatvia.ai.{$key}", 'auto')));
+
+        return $driver === '' || $driver === 'auto' ? $auto : $driver;
+    }
+
+    /**
+     * @param  list<string>  $allowed
+     */
+    private function unknownAiDriver(string $key, array $allowed): InvalidArgumentException
+    {
+        return new InvalidArgumentException(sprintf(
+            'Unsupported value "%s" for chatvia.ai.%s. Use auto, %s.',
+            (string) config("chatvia.ai.{$key}"),
+            $key,
+            implode(', ', $allowed),
+        ));
     }
 
     public function boot(): void

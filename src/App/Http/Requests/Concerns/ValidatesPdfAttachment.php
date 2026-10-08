@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Concerns;
 
+use Domain\Conversation\Rules\DocumentChatAvailable;
 use Domain\Conversation\Rules\HasMessageCreditsForPdf;
 use Domain\Conversation\Rules\MaxConversationAttachments;
 use Domain\Conversation\Rules\MaxPdfPages;
@@ -27,10 +28,11 @@ trait ValidatesPdfAttachment
         return [
             'file' => [
                 'required',
+                new DocumentChatAvailable,
                 'file',
                 'mimes:pdf',
                 'mimetypes:application/pdf',
-                'max:25600', // 25 MB — Mistral OCR allows 50 MB but chat attachments rarely need that much.
+                'max:25600', // 25 MB — chat attachments rarely need more.
                 new MaxConversationAttachments(
                     conversationExternalId: $this->header('X-CONVERSATION-ID'),
                     max: (int) config('chatvia.agent.files.upload.max_files'),

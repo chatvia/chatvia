@@ -75,14 +75,13 @@ readonly class WorkspaceConsumption
      * so a workspace employee gates against the owner's quota AND the owner's
      * measured pages — matching the original on-User semantics verbatim.
      *
-     * Reads `$this->user->quota->pages_limit` directly; the relation is
-     * **lazy-only** (see User::quota() docblock) — eager-loading on a bare
-     * employee instance returns null. Resolve `quota` lazily here, or
-     * `loadMissing(['parentWorkspace.quota', 'quota'])` upstream.
+     * The limit comes from {@see User::quotaLimit()}, which reads the lazy
+     * `quota` relation (see User::quota() docblock) and has no limit when
+     * billing is turned off.
      */
     public function canUploadPages(int $amount): bool
     {
-        return ($this->user->quota->pages_limit - $this->pages()) >= $amount;
+        return ($this->user->quotaLimit('pages_limit') - $this->pages()) >= $amount;
     }
 
     /**

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Agent\Team;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Models\UserQuota;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -23,13 +22,12 @@ class AgentTeamController
         // chatters — preload both legs in one go.
         $user->loadMissing(['parentWorkspace.quota', 'quota']);
 
-        /** @var UserQuota $quota */
-        $quota = $user->quota;
+        $workspaceUsersLimit = $user->quotaLimit('workspace_users_limit');
 
         return Inertia::render('agents/Team', [
             'agent' => AgentResourceData::fromModel($agent),
-            'team_collaboration' => $quota->workspace_users_limit > 0,
-            'workspace_users_limit' => $quota->workspace_users_limit,
+            'team_collaboration' => $workspaceUsersLimit > 0,
+            'workspace_users_limit' => $workspaceUsersLimit,
             'workspace_users_count' => $user->workspaceUsersCount(),
         ]);
     }

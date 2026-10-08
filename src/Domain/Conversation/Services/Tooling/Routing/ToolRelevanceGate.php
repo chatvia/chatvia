@@ -3,7 +3,7 @@
 namespace Domain\Conversation\Services\Tooling\Routing;
 
 use Domain\Conversation\Services\Tooling\Registry\ToolEntry;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Ingestion\Services\Search\KnowledgeBase;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -36,7 +36,7 @@ use Throwable;
  * rerank gate (config: chatvia.vector.search.relevance_threshold), which already
  * keeps greetings from pulling in irrelevant knowledge chunks.
  *
- * Degradation: any reranker failure — or a provider with no reranker — returns the
+ * Degradation: any reranker failure — or an install with no reranker — returns the
  * candidates unchanged. Routing is a quality optimisation, never a correctness
  * dependency; a flaky reranker must not strand a turn that legitimately needs its
  * tools.
@@ -44,7 +44,7 @@ use Throwable;
 class ToolRelevanceGate
 {
     public function __construct(
-        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly Reranker $reranker,
     ) {}
 
     /**
@@ -64,7 +64,7 @@ class ToolRelevanceGate
 
         // No reranker = no absolute signal to gate on. Keep the recall-only set
         // rather than guessing with the unthresholdable RRF score.
-        if (! $this->embeddings->supportsReranking()) {
+        if (! $this->reranker->isEnabled()) {
             return $candidates;
         }
 
@@ -84,18 +84,13 @@ class ToolRelevanceGate
             // top_n = candidate count so we get a score for every candidate and do
             // the cutoff ourselves; the reranker tokens attribute to the workspace
             // via the tool-routing usage scope ToolSelector already opened.
-            $ranked = $this->embeddings->rerank($userMessage, $documents, count($documents));
+            $ranked = $this->reranker->rerank($userMessage, $documents, count($documents));
         } catch (Throwable $e) {
             Log::warning('ToolRelevanceGate: rerank failed; shipping candidates ungated', [
                 'candidates' => count($pool),
                 'error' => $e->getMessage(),
             ]);
 
-            return $candidates;
-        }
-
-        // Provider declined mid-flight — keep recall-only rather than drop everything.
-        if ($ranked === null) {
             return $candidates;
         }
 

@@ -1,7 +1,7 @@
 <?php
 
 use Domain\Knowledge\Embedding\Qwen3;
-use Domain\Llm\Operations\Media\Transcription;
+use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Providers\Scaleway;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -39,9 +39,28 @@ it('sends transcriptions to the configured endpoint', function (): void {
 
     $audio = create_temp_file('clip.mp3', 'fake-audio');
 
-    expect(app(Transcription::class)->transcribe($audio))->toBe('hello');
+    expect(app(ScalewayTranscriber::class)->transcribe($audio))->toBe('hello');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.scaleway.test/project-x/v1/audio/transcriptions');
+});
+
+it('sends the configured embedding and transcription models', function (): void {
+    config([
+        'services.scalewayai.embedding_model' => 'embed-model-x',
+        'services.scalewayai.transcription_model' => 'whisper-x',
+    ]);
+
+    Http::fake([
+        '*/embeddings' => Http::response(['data' => [['embedding' => array_fill(0, 1024, 0.1)]]]),
+        '*/audio/transcriptions' => Http::response(['text' => 'hi']),
+    ]);
+
+    (new Qwen3)->embed('hello');
+    app(ScalewayTranscriber::class)->transcribe(create_temp_file('clip.mp3', 'fake-audio'));
+
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/embeddings') && $request['model'] === 'embed-model-x');
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/audio/transcriptions')
+        && collect($request->data())->contains(fn ($part): bool => ($part['name'] ?? null) === 'model' && ($part['contents'] ?? null) === 'whisper-x'));
 });
 
 it('has no account-specific default endpoint', function (): void {

@@ -21,6 +21,9 @@ use Support\Exceptions\UnsafeUrlException;
  *    `X-Chatvia-Signature: sha256=<hex>`, with the event name in `X-Chatvia-Event`;
  *  - any non-2xx answer throws, so a queued caller retries. That includes a
  *    3xx: with redirects off, a redirect means the event was not delivered.
+ *
+ * The `X-Chatvia-*` header names are a public contract that receivers verify,
+ * so they keep this name even when the product is rebranded.
  */
 final class SignedWebhookSender
 {

@@ -72,7 +72,7 @@ describe('enforce mode', function (): void {
         expect($response->headers->has('X-Frame-Options'))->toBeFalse();
     });
 
-    it('lets the chat load images from the CDN pull zone, the asset host and the brand-icon CDN', function (): void {
+    it('lets the chat load images from the CDN pull zone and the asset host, but no third-party icon CDN', function (): void {
         config([
             'filesystems.disks.assets.pull_zone' => 'https://cdn-zone.example.net',
             'app.asset_url' => 'https://assets.example.net/build',
@@ -86,8 +86,24 @@ describe('enforce mode', function (): void {
         expect($imgSrc)
             ->toContain('https://cdn-zone.example.net')
             ->toContain('https://assets.example.net')
-            ->toContain('https://cdn.simpleicons.org')
+            ->not->toContain('simpleicons')
             ->not->toContain('https://storage');
+    });
+
+    it('lets the chat load images from the local assets disk when no CDN is configured', function (): void {
+        config([
+            'filesystems.disks.assets' => [
+                'driver' => 'local',
+                'root' => storage_path('app/public'),
+                'url' => 'https://files.example.org/storage',
+                'visibility' => 'public',
+            ],
+        ]);
+
+        $imgSrc = collect(explode('; ', (string) $this->get('/_csp-chat-probe')->headers->get('Content-Security-Policy')))
+            ->first(fn (string $directive): bool => str_starts_with($directive, 'img-src'));
+
+        expect($imgSrc)->toContain('https://files.example.org');
     });
 
     it('adds the report-uri when one is configured', function (): void {

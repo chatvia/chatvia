@@ -10,6 +10,7 @@ use Database\Factories\UserFactory;
 use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\ModelSetting;
+use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use Domain\Billing\Enums\Addon;
 use Domain\Billing\Enums\CapabilityEnum;
@@ -368,13 +369,16 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return $this->type === UserType::Chatter;
     }
 
+    /**
+     * Whether the account has a paid subscription or a running trial. Always
+     * true when billing is turned off (see {@see Entitlements}).
+     */
     public function hasActiveSubscription(): bool
     {
-        return $this->remember('hasActiveSubscription', function (): bool {
-            $billing = $this->accountBilling();
-
-            return (bool) ($billing?->subscribed() || $billing?->onTrial());
-        });
+        return $this->remember(
+            'hasActiveSubscription',
+            fn (): bool => app(Entitlements::class)->hasActiveBilling($this),
+        );
     }
 
     /**
@@ -395,22 +399,15 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         );
     }
 
+    /**
+     * The plan features this account has. Resolved by {@see Entitlements}: the
+     * workspace's plan when billing is on, every feature when it is off.
+     */
     public function capabilities(): Attribute
     {
-        return Attribute::get(function (): BillingPackageCapabilitiesData {
-            // Resolve the governing plan id INSIDE the closure and WITHOUT
-            // touching this model's own `plan` Attribute accessor. `plan`,
-            // `is_paid` and `capabilities` are all #[Appends] accessors, so
-            // reading `$this->plan` here re-triggers the attribute-cast merge
-            // and recurses straight back into capabilities() ("Undefined
-            // property: $plan"). `getCurrentPackage()` is the same source
-            // `plan()` reads, minus the accessor round-trip.
-            $plan = $this->workspace_id
-                ? $this->parentWorkspace->plan
-                : $this->getCurrentPackage()['id'];
-
-            return BillingPackageCapabilitiesData::forPlan($plan);
-        });
+        return Attribute::get(
+            fn (): BillingPackageCapabilitiesData => app(Entitlements::class)->capabilities($this),
+        );
     }
 
     public function hasCapability(CapabilityEnum $capability): bool

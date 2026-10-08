@@ -137,9 +137,9 @@ class SourceFile extends Model implements ChunkableContract
     }
 
     /**
-     * Raw-text formats (.txt, .md) are already chunk-ready, so they're chunked
-     * directly via chunk.fit rather than paying the cost/latency of Mistral OCR.
-     * PDF, Office, and images go through OCR; ebooks take the Pandoc path below.
+     * Raw-text formats (.txt, .md) are already chunk-ready, so they're split
+     * directly rather than paying the cost/latency of the document parser.
+     * PDF, Office, and images go through the parser; ebooks take the Pandoc path below.
      */
     public function isDirectChunkable(): bool
     {
@@ -149,7 +149,7 @@ class SourceFile extends Model implements ChunkableContract
     /**
      * EPUB / FictionBook are structured text, not scanned documents — Pandoc
      * extracts their markdown directly, so they ride the direct-chunk text
-     * pipeline (no Mistral OCR, no LibreOffice, no PDF).
+     * pipeline (no document parser, no LibreOffice, no PDF).
      */
     public function isEbook(): bool
     {

@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -75,7 +76,7 @@ class DataExportController
             throw new AccessDeniedHttpException;
         }
 
-        $filename = 'chatvia-export-'.$export->user_id.'-'.$export->created_at->format('Ymd-His').'.zip';
+        $filename = Str::slug((string) config('chatvia.brand.name')).'-export-'.$export->user_id.'-'.$export->created_at->format('Ymd-His').'.zip';
 
         return Storage::disk('local')->download($export->file_path, $filename);
     }

@@ -10,13 +10,17 @@ import daTranslations from '../languages/da.json';
 import deTranslations from '../languages/de.json';
 import esTranslations from '../languages/es.json';
 import faTranslations from '../languages/fa.json';
+import fiTranslations from '../languages/fi.json';
 import frTranslations from '../languages/fr.json';
 import hiTranslations from '../languages/hi.json';
 import idTranslations from '../languages/id.json';
 import jaTranslations from '../languages/ja.json';
 import koTranslations from '../languages/ko.json';
+import noTranslations from '../languages/no.json';
+import plTranslations from '../languages/pl.json';
 import ptTranslations from '../languages/pt.json';
 import ruTranslations from '../languages/ru.json';
+import svTranslations from '../languages/sv.json';
 import trTranslations from '../languages/tr.json';
 import viTranslations from '../languages/vi.json';
 import zhTranslations from '../languages/zh.json';
@@ -29,13 +33,17 @@ const availableTranslations = {
   de: deTranslations,
   es: esTranslations,
   fa: faTranslations,
+  fi: fiTranslations,
   fr: frTranslations,
   hi: hiTranslations,
   id: idTranslations,
   ja: jaTranslations,
   ko: koTranslations,
+  no: noTranslations,
+  pl: plTranslations,
   pt: ptTranslations,
   ru: ruTranslations,
+  sv: svTranslations,
   tr: trTranslations,
   vi: viTranslations,
   zh: zhTranslations
@@ -49,6 +57,10 @@ let userSetLanguage = null; // Language explicitly set by user/config
 // Fallback to English
 const fallbackLanguage = 'en';
 
+// Browsers report Norwegian as Bokmål (`nb`) or Nynorsk (`nn`); both use the
+// single Norwegian (`no`) translation, matching the dashboard's language list.
+const LANGUAGE_ALIASES = { nb: 'no', nn: 'no' };
+
 // Languages that render right-to-left. Keep in sync with bundled translations.
 const RTL_LANGUAGES = new Set(['ar', 'he', 'fa', 'ur']);
 
@@ -60,7 +72,7 @@ const RTL_LANGUAGES = new Set(['ar', 'he', 'fa', 'ur']);
  */
 export async function initI18n(config = {}) {
   // Determine which language to use
-  let targetLanguage = fallbackLanguage;
+  let targetLanguage;
 
   if (config.language && config.language !== 'auto') {
     // User specified a language
@@ -94,7 +106,7 @@ function normalizeLanguageCode(code) {
 
   // Validate it's a 2-letter code
   if (code.length === 2 && /^[a-z]{2}$/.test(code)) {
-    return code;
+    return LANGUAGE_ALIASES[code] || code;
   }
 
   return fallbackLanguage;
@@ -271,9 +283,13 @@ export function getAvailableLanguages() {
       ar: { name: 'Arabic', nativeName: 'العربية' },
       da: { name: 'Danish', nativeName: 'Dansk' },
       de: { name: 'German', nativeName: 'Deutsch' },
+      fi: { name: 'Finnish', nativeName: 'Suomi' },
       fr: { name: 'French', nativeName: 'Français' },
       es: { name: 'Spanish', nativeName: 'Español' },
-      pt: { name: 'Portuguese', nativeName: 'Português' }
+      no: { name: 'Norwegian', nativeName: 'Norsk' },
+      pl: { name: 'Polish', nativeName: 'Polski' },
+      pt: { name: 'Portuguese', nativeName: 'Português' },
+      sv: { name: 'Swedish', nativeName: 'Svenska' }
     };
     return {
       code,

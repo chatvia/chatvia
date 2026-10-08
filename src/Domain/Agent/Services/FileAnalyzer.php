@@ -14,7 +14,7 @@ use Throwable;
 
 /**
  * Computes a file's "length" at upload time for quota enforcement — pages for
- * documents/images, minutes for audio/video. Mistral OCR returns the true page
+ * documents/images, minutes for audio/video. The document parser returns the true page
  * count only during ingestion, so this is a pre-flight estimate:
  *
  *   - PDF            → pdfinfo (exact)
@@ -66,7 +66,7 @@ class FileAnalyzer
 
                 return app(PdfInfo::class)->getInfo($pdf);
             } catch (Throwable $e) {
-                // This count is only a pre-flight quota estimate — Mistral OCR returns
+                // This count is only a pre-flight quota estimate — the document parser returns
                 // the true page count during ingestion. LibreOffice can fail to render
                 // an individual file (corrupt, password-protected, soffice exits 0 with
                 // no output), but that must not 500 the upload. Fall back to a rough

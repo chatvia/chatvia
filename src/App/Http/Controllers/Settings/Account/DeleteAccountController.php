@@ -39,7 +39,8 @@ class DeleteAccountController
                 ->get(['name'])
                 ->map(fn (Agent $agent): array => ['name' => $agent->name])
                 ->all(),
-            'hasSubscription' => $user->hasActiveSubscription(),
+            // Without billing there is no subscription to cancel.
+            'hasSubscription' => config('billing.enabled', true) && $user->hasActiveSubscription(),
             'deletionConfirmed' => $this->confirmationIsFresh($request),
         ]);
     }

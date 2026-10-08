@@ -7,6 +7,11 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules;
 
+/**
+ * The self-serve sign-up form (open only when `billing.registration_enabled`
+ * is on). There are no legal checkboxes: a self-hosted install has no terms
+ * of its own to accept.
+ */
 class RegisterUserRequest extends FormRequest
 {
     public function authorize(): bool
@@ -23,8 +28,6 @@ class RegisterUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'policy' => ['required', 'accepted'],
-            'terms' => ['required', 'accepted'],
         ];
     }
 

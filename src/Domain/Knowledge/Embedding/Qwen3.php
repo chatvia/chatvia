@@ -81,37 +81,6 @@ class Qwen3 extends AbstractEmbeddingsProvider
         return $vector;
     }
 
-    public function rerank(string $query, array $documents, ?int $topN = null): ?array
-    {
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer '.$this->getApiKey(),
-        ])
-            ->throw()
-            ->post($this->endpoint('/rerank'), [
-                'model' => $this->getModel(),
-                'query' => $query,
-                'documents' => $documents,
-                'top_n' => $topN ?? 3,
-            ]);
-
-        app(TokenUsageContext::class)->addFromResponse($response);
-
-        $results = $response->json('results');
-
-        return collect($results)
-            ->map(fn ($item): array => [
-                'index' => $item['index'],
-                'relevance_score' => $item['relevance_score'],
-            ])
-            ->toArray();
-    }
-
-    public function supportsReranking(): bool
-    {
-        return true;
-    }
-
     public function getDimensions(): int
     {
         return 1024;
@@ -138,6 +107,6 @@ class Qwen3 extends AbstractEmbeddingsProvider
 
     protected function getModel(): string
     {
-        return 'qwen3-embedding-8b';
+        return (string) config('services.scalewayai.embedding_model');
     }
 }

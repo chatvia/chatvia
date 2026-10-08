@@ -41,7 +41,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName('Chatvia Admin')
+            ->brandName(config('chatvia.brand.name').' Admin')
             ->authGuard('admin')
             ->login()
             ->profile()

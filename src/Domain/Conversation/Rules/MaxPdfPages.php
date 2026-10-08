@@ -10,7 +10,7 @@ use Throwable;
 
 /**
  * Caps how many pages a single chat-attachment PDF may have. The whole document
- * is streamed to Mistral for Q&A, so an unbounded page count means unbounded
+ * is sent to the document LLM on every question, so an unbounded page count means unbounded
  * cost and latency — this fails the `file` field with a 422 when the upload
  * exceeds `agent.files.upload.max_pdf_pages`.
  *

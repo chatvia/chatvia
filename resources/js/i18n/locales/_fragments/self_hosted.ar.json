@@ -1,0 +1,13 @@
+{
+    "auth": {
+        "login": {
+            "create_account": "إنشاء حساب"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "الرسائل في هذا الشهر"
+    },
+    "usage": {
+        "no_limit": "بلا حد"
+    }
+}

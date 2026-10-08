@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
+import { useBrand } from '@/composables/useBrand';
 import { useIsMobile } from '@/composables/useIsMobile';
 import { safeStorage } from '@/lib/safeStorage';
 import {
@@ -89,6 +90,7 @@ const page = usePage();
 const conversations = ref<Conversation[]>([]);
 const chatEventBus = inject('chatEventBus') as any;
 const { t } = useI18n();
+const { brand } = useBrand();
 const emit = defineEmits(['update:open']);
 const isSidebarOpen = ref(props.open);
 const searchDialogOpen = ref(false);
@@ -431,7 +433,7 @@ const getCurrentSubdomain = () => {
     const hostname = window.location.hostname;
     const parts = hostname.split('.');
 
-    // Return the subdomain if it exists (e.g., "translation" from "translation.chatvia.test")
+    // Return the subdomain if it exists (e.g., "translation" from "translation.example.com")
     return parts.length > 2 ? parts[0] : null;
 };
 
@@ -523,13 +525,13 @@ const switchToSelectedAgent = () => {
                     <img
                         v-if="props.appearance?.logo"
                         :src="props.appearance.logo"
-                        :alt="props.appearance?.chat_window_title || 'ChatVia'"
+                        :alt="props.appearance?.chat_window_title || brand.name"
                         class="h-8 object-contain"
                     />
                     <template v-else>
                         <AppLogoIcon class="h-7 w-7" />
                         <span class="text-foreground text-sm font-semibold tracking-tight">
-                            {{ props.appearance?.chat_window_title || 'Chatvia' }}
+                            {{ props.appearance?.chat_window_title || brand.name }}
                         </span>
                     </template>
                 </Link>

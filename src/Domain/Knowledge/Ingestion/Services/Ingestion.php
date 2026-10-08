@@ -26,12 +26,12 @@ class Ingestion
             dispatch(new MediaIngestionJob($sourceFile, $agent));
         } elseif ($sourceFile->isDirectChunkable() || $sourceFile->isEbook()) {
             // Raw text (.txt, .md) and structured-text ebooks (.epub, .fb2) are
-            // chunk-ready once their text is extracted — chunk directly via
-            // chunk.fit instead of paying for Mistral OCR. Ebooks have their
-            // text pulled by Pandoc inside the action.
+            // chunk-ready once their text is extracted — split them directly
+            // instead of running the document parser. Ebooks have their text
+            // pulled by Pandoc inside the action.
             dispatch(new TextFileIngestionJob($sourceFile, $agent));
         } else {
-            // PDF, Office, and images are parsed by Mistral OCR.
+            // PDF, Office, and images are read by the configured DocumentParser.
             dispatch(new DocumentIngestionJob($sourceFile, $agent));
         }
     }

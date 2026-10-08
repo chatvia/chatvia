@@ -114,17 +114,20 @@ class BuildDataExportArchiveAction
     private function writeReadme(ZipArchive $zip, User $user): void
     {
         $generatedAt = now()->toIso8601String();
+        $brand = (string) config('chatvia.brand.name');
+        $heading = $brand.' — Personal Data Export';
+        $underline = str_repeat('=', mb_strlen($heading));
 
         $body = <<<TXT
-ChatVia — Personal Data Export
-================================
+{$heading}
+{$underline}
 
 Account: {$user->name} <{$user->email}>
 User ID: {$user->id}
 Generated: {$generatedAt}
 
 This archive contains a copy of the personal data held about you on
-ChatVia, prepared in response to your Right of Access (GDPR Art. 15)
+{$brand}, prepared in response to your Right of Access (GDPR Art. 15)
 and Right to Data Portability (GDPR Art. 20).
 
 Contents

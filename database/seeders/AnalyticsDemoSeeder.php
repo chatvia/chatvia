@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Database\Seeders\Demo\DemoCountries;
+use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\RecordFeedbackGivenAction;
 use Domain\Analytics\Actions\RecordMessageAnalyzedAction;
@@ -31,6 +32,8 @@ use Laravel\Telescope\Telescope;
  */
 class AnalyticsDemoSeeder extends Seeder
 {
+    use SkipsInProduction;
+
     /** Days of synthetic history to fabricate. */
     private const DAYS = 30;
 
@@ -50,6 +53,12 @@ class AnalyticsDemoSeeder extends Seeder
 
     public function run(): void
     {
+        // It writes analytics for every agent in the database, so a production
+        // run would mix fake numbers into real customers' dashboards.
+        if ($this->skipInProduction()) {
+            return;
+        }
+
         // Pulse's SlowQueries recorder captures a backtrace per query and the
         // seeder fires tens of thousands of upserts — without this, the seeder
         // OOMs at ~130MB. Telescope behaves the same way.

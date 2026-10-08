@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Account\ConsumeMessageCreditsAction;
+use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Events\MessageCreditsLow;
 use Domain\Billing\Jobs\UpdateUserCreditsJob;
 use Domain\Billing\Models\UserCredit;
@@ -133,7 +134,7 @@ it('does not charge twice when a retry follows a failure after the increment com
     $failing = Mockery::mock(UserCreditSystem::class)->makePartial();
     $failing->shouldReceive('refreshCanSendMessages')->once()->andThrow(new RuntimeException('cache unavailable'));
 
-    expect(fn () => (new ConsumeMessageCreditsAction($failing))->execute($user->id, $llm->id, chargeKey: 'charge-retry'))
+    expect(fn () => (new ConsumeMessageCreditsAction($failing, app(Entitlements::class)))->execute($user->id, $llm->id, chargeKey: 'charge-retry'))
         ->toThrow(RuntimeException::class, 'cache unavailable');
 
     expect((int) $credit->usage()->value('messages'))->toBe(4);
@@ -152,7 +153,7 @@ it('releases the charge key when the increment rolls back so the retry charges',
     $failing = Mockery::mock(UserCreditSystem::class)->makePartial();
     $failing->shouldReceive('updateAfterCreditConsumption')->once()->andThrow(new RuntimeException('deadlock'));
 
-    expect(fn () => (new ConsumeMessageCreditsAction($failing))->execute($user->id, $llm->id, chargeKey: 'charge-rollback'))
+    expect(fn () => (new ConsumeMessageCreditsAction($failing, app(Entitlements::class)))->execute($user->id, $llm->id, chargeKey: 'charge-rollback'))
         ->toThrow(RuntimeException::class, 'deadlock');
 
     expect((int) $credit->usage()->value('messages'))->toBe(0);

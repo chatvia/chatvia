@@ -3,9 +3,6 @@
 namespace Domain\Llm;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
-use Domain\Llm\Providers\Mistral;
-use Domain\Llm\Providers\OpenRouter;
-use Domain\Llm\Providers\Scaleway;
 use Domain\Llm\Usage\TokenUsageContext;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Http\Client\PendingRequest;
@@ -31,23 +28,13 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
             'stream' => true,
         ], $settings);
 
-        $json = $this->disableScalewayReasoning($json);
+        $json = $this->preparePayload($json);
 
         // Force the upstream to emit a final chunk with token usage so Spectra
         // can record cost/tokens. Caller-provided stream_options keys win.
         $json['stream_options'] = ($json['stream_options'] ?? []) + ['include_usage' => true];
 
-        if (static::class === OpenRouter::class) {
-            $json['provider'] = [
-                'sort' => 'throughput',
-            ];
-        }
-
-        if (static::class === Mistral::class) {
-            // Mistral chat completions rejects `top_k` (error 3051), but the
-            // agent's stored llmSettings always include it.
-            unset($json['top_k']);
-        }
+        $json = $this->prepareStreamPayload($json);
 
         return app(GuzzleClient::class)->post($this->getCompletionEndpoint(), [
             'headers' => $this->headers(),
@@ -65,11 +52,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
      */
     public function completion(array $data)
     {
-        $data = $this->disableScalewayReasoning($data);
-
-        if (static::class === Mistral::class) {
-            unset($data['top_k']);
-        }
+        $data = $this->preparePayload($data);
 
         $response = $this->client()
             ->timeout(600)
@@ -86,36 +69,26 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
     }
 
     /**
-     * Scaleway's Qwen3 reasoning models (qwen3.*) think by default: that adds
-     * several seconds before the first answer token plus a chunk of hidden
-     * chain-of-thought. This pipeline is RAG — we want the grounded answer
-     * straight away — so default reasoning OFF for those models via
-     * `reasoning_effort=none`.
-     *
-     * Scoped to qwen ONLY: other Scaleway models (the analytics / guardrail
-     * instruct models) strictly validate the request body and return 400 on an
-     * unknown `reasoning_effort` field, so they must never receive it. A caller
-     * that set `reasoning_effort` itself is always left untouched.
+     * Adjust the request body for this provider before it is sent, for both
+     * streaming and non-streaming calls. Default: no change.
      *
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
-    private function disableScalewayReasoning(array $payload): array
+    protected function preparePayload(array $payload): array
     {
-        if (static::class !== Scaleway::class) {
-            return $payload;
-        }
+        return $payload;
+    }
 
-        if (array_key_exists('reasoning_effort', $payload)) {
-            return $payload;
-        }
-
-        if (! str_contains(strtolower((string) ($payload['model'] ?? '')), 'qwen')) {
-            return $payload;
-        }
-
-        $payload['reasoning_effort'] = 'none';
-
+    /**
+     * Adjust the request body of a streaming call only, after preparePayload()
+     * and the usage option are applied. Default: no change.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    protected function prepareStreamPayload(array $payload): array
+    {
         return $payload;
     }
 

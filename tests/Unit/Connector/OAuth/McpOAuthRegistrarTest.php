@@ -64,3 +64,23 @@ it('scrubs secrets already stored in the metadata column', function (): void {
         // The encrypted column is untouched.
         ->and($client->fresh()->client_secret)->toBe('legacy-secret');
 });
+
+it('registers the client under the configured brand name', function (): void {
+    config(['chatvia.brand.name' => 'Acme Chat']);
+
+    Http::fake([
+        'auth.example.test/register' => Http::response(['client_id' => 'dcr-client'], 201),
+    ]);
+
+    $metadata = OAuthServerMetadata::fromArray('https://auth.example.test', [
+        'authorization_endpoint' => 'https://auth.example.test/authorize',
+        'token_endpoint' => 'https://auth.example.test/token',
+        'registration_endpoint' => 'https://auth.example.test/register',
+        'code_challenge_methods_supported' => ['S256'],
+    ]);
+
+    app(McpOAuthRegistrar::class)->clientFor($metadata);
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://auth.example.test/register'
+        && $request['client_name'] === 'Acme Chat');
+});

@@ -19,7 +19,9 @@ class EnsureUserHasSubscription
         /** @var User $user */
         $user = $request->user();
 
-        if (! $user) {
+        // Billing turned off (a self-hosted install): there is nothing to
+        // subscribe to.
+        if (! $user || ! config('billing.enabled', true)) {
             return $next($request);
         }
 

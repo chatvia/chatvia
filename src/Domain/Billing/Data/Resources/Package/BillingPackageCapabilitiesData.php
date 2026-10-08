@@ -39,90 +39,46 @@ class BillingPackageCapabilitiesData extends Data
         // Enterprise, which is Pro + manual grants).
         public bool $siemWebhook = false,
         // Days a conversation (and its cached memory) lives before the
-        // scheduled prune deletes it. Set per plan in the factory methods
-        // below; ChatCache reads it for the Redis TTL and the conversation
-        // create path stamps `chat_conversations.expires_at` from it.
+        // scheduled prune deletes it. Set per plan in config/billing.php;
+        // ChatCache reads it for the Redis TTL and the conversation create
+        // path stamps `chat_conversations.expires_at` from it.
         public int $retentionDays = self::DEFAULT_RETENTION_DAYS,
     ) {}
 
-    /*
-    |--------------------------------------------------------------------------
-    | Plan Factory Methods
-    |--------------------------------------------------------------------------
-    */
-
-    public static function starter(): self
-    {
-        return new self(
-            retentionDays: 90,
-        );
-    }
-
-    public static function standard(): self
-    {
-        return new self(
-            sentiment: true,
-            handoff: true,
-            api: true,
-            evals: true,
-            guardrails: true,
-            retentionDays: 180,
-        );
-    }
-
-    public static function pro(): self
-    {
-        return new self(
-            sentiment: true,
-            tone: true,
-            topics: true,
-            handoff: true,
-            api: true,
-            pulse: true,
-            evals: true,
-            guardrails: true,
-            audit: true,
-            removeBranding: true,
-            security: true,
-            siemWebhook: true,
-            retentionDays: 366,
-        );
-    }
-
-    public static function enterprise(): self
-    {
-        return new self(
-            sentiment: true,
-            tone: true,
-            topics: true,
-            handoff: true,
-            api: true,
-            pulse: true,
-            evals: true,
-            guardrails: true,
-            audit: true,
-            removeBranding: true,
-            security: true,
-            siemWebhook: true,
-            retentionDays: 366,
-        );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Helper Methods
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * The features a plan turns on, read from the plan's `capabilities` entry
+     * in config/billing.php. An unknown plan gets the safe default: every
+     * feature off and the Starter retention floor.
+     */
     public static function forPlan(string $plan): self
     {
-        return match (strtolower($plan)) {
-            'starter' => self::starter(),
-            'standard' => self::standard(),
-            'pro' => self::pro(),
-            'enterprise' => self::enterprise(),
-            default => new self,
-        };
+        $packages = (array) config('billing.packages', []);
+        $capabilities = $packages[strtolower($plan)]['capabilities'] ?? null;
+
+        return is_array($capabilities) ? self::fromArray($capabilities) : new self;
+    }
+
+    /**
+     * Every feature on. Used when billing is turned off (a self-hosted
+     * install), where there are no plans to hold features back.
+     */
+    public static function unlimited(int $retentionDays): self
+    {
+        return new self(
+            sentiment: true,
+            tone: true,
+            topics: true,
+            handoff: true,
+            api: true,
+            pulse: true,
+            evals: true,
+            guardrails: true,
+            audit: true,
+            removeBranding: true,
+            security: true,
+            siemWebhook: true,
+            retentionDays: $retentionDays,
+        );
     }
 
     public static function fromArray(array $capabilities): self

@@ -32,6 +32,7 @@ declare namespace App {
                                 tokens: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
                                 teams: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
                                 members: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
+                                unlimited: boolean;
                             };
                             export type UsageStatsData = {
                                 limit: number;
@@ -40,8 +41,8 @@ declare namespace App {
                             };
                             export type UsageSubscriptionData = {
                                 plan: string;
-                                started_at: string;
-                                ends_at: string;
+                                started_at: string | null;
+                                ends_at: string | null;
                             };
                         }
                     }

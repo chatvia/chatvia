@@ -28,9 +28,9 @@
                     </p>
 
                     <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900 mb-6">
-                        <strong>Note:</strong> This DPA becomes effective only when signed by both parties. Chatvia
-                        executes DPAs for customers on <strong>Pro</strong> plans. To have us countersign, contact
-                        <a href="mailto:info@chatvia.ai" class="font-medium underline">info@chatvia.ai</a>.
+                        <strong>Note:</strong> This DPA becomes effective only when signed by both parties. {{ config('chatvia.brand.name') }}
+                        executes DPAs for customers on <strong>Pro</strong> plans.@if ($companyEmail = \Support\Cms\Marketing\CompanyDetails::email()) To have us countersign, contact
+                        <a href="mailto:{{ $companyEmail }}" class="font-medium underline">{{ $companyEmail }}</a>.@endif
                     </div>
 
                     <form method="GET" action="{{ route('dpa.download') }}" class="space-y-5">
@@ -131,8 +131,10 @@
                         <h3 class="text-xl font-bold text-slate-900 mb-2">Questions?</h3>
                         <p class="text-slate-600">
                             If you have questions about our data processing practices or need a customized agreement,
-                            please contact us at
-                            <a href="mailto:info@chatvia.ai" class="text-blue-600 hover:underline">info@chatvia.ai</a>.
+                            please contact us
+                            @if ($companyEmail = \Support\Cms\Marketing\CompanyDetails::email())
+                                at <a href="mailto:{{ $companyEmail }}" class="text-blue-600 hover:underline">{{ $companyEmail }}</a>.
+                            @endif
                         </p>
                     </div>
                 </div>

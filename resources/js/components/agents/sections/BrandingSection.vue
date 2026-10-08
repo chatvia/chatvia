@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { useBrand } from '@/composables/useBrand';
 import { Link2 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const { brand } = useBrand();
 
 withDefaults(
     defineProps<{
@@ -17,7 +19,7 @@ withDefaults(
         colorShade: number;
         avatarPreview?: string | null;
         logoPreview?: string | null;
-        // Whether the workspace may hide the "Powered by Chatvia" badge. When
+        // Whether the workspace may hide the "Powered by" badge. When
         // false the show/hide toggle is omitted and the badge always shows.
         canHideBranding?: boolean;
         showBranding?: boolean;
@@ -135,9 +137,10 @@ defineEmits<{
             <p v-if="privacyError" class="text-destructive text-sm">{{ privacyError }}</p>
         </div>
 
-        <!-- Show/hide the "Powered by Chatvia" badge — only for workspaces whose
-             plan/add-on allows it. Otherwise the badge always shows. -->
-        <template v-if="canHideBranding">
+        <!-- Show/hide the "Powered by" badge — only for workspaces whose
+             plan/add-on allows it. Otherwise the badge always shows. Not shown
+             at all when the install turns the badge off (brand.powered_by). -->
+        <template v-if="canHideBranding && brand.powered_by.enabled">
             <Separator />
 
             <div class="flex items-center justify-between gap-3">

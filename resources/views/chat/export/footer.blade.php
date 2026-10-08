@@ -1,7 +1,7 @@
 <!-- Footer Section -->
 <div class="footer">
     <div class="logo">
-        <a href="https://chatvia.ai">ChatVia.AI</a>
+        <a href="{{ config('chatvia.brand.website_url') ?: config('app.url') }}">{{ config('chatvia.brand.name') }}</a>
     </div>
     <div class="center-info">
         Agent: {{ $agent }} • Generated on {{ now()->format('M j, Y g:i A T') }}

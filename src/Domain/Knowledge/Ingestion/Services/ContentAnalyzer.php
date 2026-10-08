@@ -3,14 +3,20 @@
 namespace Domain\Knowledge\Ingestion\Services;
 
 use Domain\Analytics\Data\ContentAnalysisData;
-use Domain\Llm\Providers\Mistral;
+use Domain\Llm\Exceptions\DocumentLlmUnavailableException;
+use Domain\Llm\Services\DocumentLlm;
 use Exception;
 use Illuminate\Http\Client\Response;
 
+/**
+ * Classifies a whole document (type, language, audience, likely questions),
+ * read as a PDF from a signed URL by the configured document-reading LLM
+ * (`chatvia.ai.models.analysis`).
+ */
 class ContentAnalyzer
 {
     public function __construct(
-        public Mistral $provider
+        private readonly DocumentLlm $documentLlm,
     ) {}
 
     public function fromUrl(string $documentUrl): ContentAnalysisData
@@ -20,11 +26,13 @@ class ContentAnalyzer
 
     /**
      * The raw completion response, for callers that also need its `usage`.
+     *
+     * @throws DocumentLlmUnavailableException
      */
     public function complete(string $documentUrl): Response
     {
-        return $this->provider->completion([
-            'model' => 'mistral-large-latest',
+        return $this->documentLlm->provider()->completion([
+            'model' => (string) config('chatvia.ai.models.analysis'),
             'max_tokens' => 1024,
             'messages' => [
                 [

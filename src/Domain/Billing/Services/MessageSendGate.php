@@ -3,6 +3,7 @@
 namespace Domain\Billing\Services;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Enums\MessageAdmission;
 
 /**
@@ -10,7 +11,8 @@ use Domain\Billing\Enums\MessageAdmission;
  * Every surface that answers a visitor (the web chat stream and the messaging
  * channels) asks this one gate, so they apply the same rule, admins included.
  *
- * Two checks, in order:
+ * Two checks, in order, both answered by {@see Entitlements} (so a
+ * self-hosted install with billing turned off always admits):
  *  1. Active billing: a paid subscription or a running trial. Admin accounts
  *     skip this check.
  *  2. Capacity: the cached can-send flag kept by {@see UserCreditSystem}. That
@@ -23,31 +25,22 @@ use Domain\Billing\Enums\MessageAdmission;
 final readonly class MessageSendGate
 {
     public function __construct(
-        private UserCreditSystem $creditSystem,
+        private Entitlements $entitlements,
     ) {}
 
     public function admit(User $owner): MessageAdmission
     {
-        if (! $owner->isAdmin() && ! $this->hasActiveBilling($owner)) {
+        // The billing state is read from Cashier's locally synced tables — a
+        // DB read, never a Stripe API call — on every turn, so an ended
+        // subscription is refused even while the cached capacity flag is warm.
+        if (! $owner->isAdmin() && ! $this->entitlements->hasActiveBilling($owner)) {
             return MessageAdmission::SubscriptionInactive;
         }
 
-        if (! $this->creditSystem->forWorkspace($owner->id)->canSendMessages()) {
+        if (! $this->entitlements->hasMessageCapacity($owner->id)) {
             return MessageAdmission::CreditsExhausted;
         }
 
         return MessageAdmission::Allowed;
-    }
-
-    /**
-     * Read from Cashier's locally synced tables — a DB read, never a Stripe
-     * API call. Checked on every turn so an ended subscription is refused even
-     * while the cached capacity flag is still warm.
-     */
-    private function hasActiveBilling(User $owner): bool
-    {
-        $billing = $owner->billing;
-
-        return (bool) ($billing?->subscribed() || $billing?->onTrial());
     }
 }

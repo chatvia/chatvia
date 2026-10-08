@@ -4,17 +4,47 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Billing On / Off
+    |--------------------------------------------------------------------------
+    |
+    | `enabled` turns paid plans on or off. The hosted product runs with
+    | billing on (the default): people sign up through the Stripe trial
+    | checkout, and the plan decides features, quotas and message credits.
+    |
+    | A self-hosted install can set BILLING_ENABLED=false to run without
+    | Stripe. Then every workspace gets every feature, quotas have no limit,
+    | messages are not counted against credits, the billing pages answer 404,
+    | and no Stripe keys are needed.
+    |
+    | `registration_enabled` opens the normal sign-up form at /register. It
+    | is on by default only when billing is off (with billing on, accounts are
+    | created by the trial checkout). Set REGISTRATION_ENABLED=false to close
+    | sign-ups after you have created your own account.
+    |
+    | `unlimited_retention_days` is how many days conversations are kept when
+    | billing is off. With billing on, each plan sets its own value below.
+    |
+    */
+
+    'enabled' => (bool) env('BILLING_ENABLED', true),
+
+    'registration_enabled' => (bool) env('REGISTRATION_ENABLED', ! env('BILLING_ENABLED', true)),
+
+    'unlimited_retention_days' => (int) env('CONVERSATION_RETENTION_DAYS', 366),
+
+    /*
+    |--------------------------------------------------------------------------
     | Billing Packages Configuration
     |--------------------------------------------------------------------------
     |
     | This configuration defines all available subscription packages for your
-    | application. Each package consists of two main components:
+    | application. Each package consists of three main components:
     |
     | 1. FEATURES: User-facing descriptions for marketing and UI display
     | 2. QUOTA_LIMITS: Usage tracking limits for billing periods
-    |
-    | NOTE: Capabilities are defined in BillingPackageCapabilitiesData DTO.
-    | Use BillingPackageCapabilitiesData::forPlan('starter') at runtime.
+    | 3. CAPABILITIES: The features the plan turns on, read at runtime through
+    |    BillingPackageCapabilitiesData::forPlan('starter'). A flag that is
+    |    left out is off. `retentionDays` is how long conversations are kept.
     |
     | NOTE: `monthly_price` / `yearly_price` (in cents) are DISPLAY values only.
     | The amount actually charged comes from the Stripe Price objects behind the
@@ -75,6 +105,10 @@ return [
             'monthly_price' => 4900,
             'yearly_price' => 46800,
             'is_popular' => false,
+
+            'capabilities' => [
+                'retentionDays' => 90,
+            ],
 
             'quota_limits' => [
                 'monthly' => [
@@ -140,6 +174,15 @@ return [
             'monthly_price' => 19900,
             'yearly_price' => 190800,
             'is_popular' => true,
+
+            'capabilities' => [
+                'sentiment' => true,
+                'handoff' => true,
+                'api' => true,
+                'evals' => true,
+                'guardrails' => true,
+                'retentionDays' => 180,
+            ],
 
             'quota_limits' => [
                 'monthly' => [
@@ -219,6 +262,22 @@ return [
             'monthly_price' => 49900,
             'yearly_price' => 478800,
             'is_popular' => false,
+
+            'capabilities' => [
+                'sentiment' => true,
+                'tone' => true,
+                'topics' => true,
+                'handoff' => true,
+                'api' => true,
+                'pulse' => true,
+                'evals' => true,
+                'guardrails' => true,
+                'audit' => true,
+                'removeBranding' => true,
+                'security' => true,
+                'siemWebhook' => true,
+                'retentionDays' => 366,
+            ],
 
             'quota_limits' => [
                 'monthly' => [
@@ -311,6 +370,22 @@ return [
             'monthly_price' => 0,
             'yearly_price' => 0,
             'is_popular' => false,
+
+            'capabilities' => [
+                'sentiment' => true,
+                'tone' => true,
+                'topics' => true,
+                'handoff' => true,
+                'api' => true,
+                'pulse' => true,
+                'evals' => true,
+                'guardrails' => true,
+                'audit' => true,
+                'removeBranding' => true,
+                'security' => true,
+                'siemWebhook' => true,
+                'retentionDays' => 366,
+            ],
 
             'quota_limits' => [
                 'monthly' => [

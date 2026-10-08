@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useBilling } from '@/composables/useBilling';
 import { useLocaleDate } from '@/composables/useLocaleDate';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData } from '@/types';
@@ -16,6 +17,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const { formatWeekdayShort, formatDayOfMonth, intlLocale } = useLocaleDate();
+const { billingEnabled } = useBilling();
 
 // Types for the dashboard data
 interface ActivityData {
@@ -195,11 +197,17 @@ const formatNumber = (num: number): string => {
                     <!-- Messages Card -->
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium">{{ t('dashboard.messages_this_cycle') }}</CardTitle>
+                            <CardTitle class="text-sm font-medium">{{
+                                billingEnabled ? t('dashboard.messages_this_cycle') : t('dashboard.messages_this_month')
+                            }}</CardTitle>
                             <MessageSquare class="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
                             <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
+                            <!-- Without billing there is no credit cycle or limit: show this month's replies. -->
+                            <div v-else-if="!billingEnabled">
+                                <div class="text-2xl font-bold">{{ formatNumber(dashboardData.messages.trend.this_month) }}</div>
+                            </div>
                             <div v-else>
                                 <div class="text-2xl font-bold">{{ formatNumber(dashboardData.messages.total) }}</div>
                                 <div class="mt-2">

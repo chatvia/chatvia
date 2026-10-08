@@ -55,29 +55,6 @@ abstract class AbstractEmbeddingsProvider implements EmbeddingsProviderInterface
     }
 
     /**
-     * Default implementation: no reranking support.
-     *
-     * @param  string  $query  The search query
-     * @param  array  $documents  Array of documents to rerank
-     * @param  int|null  $topN  Ignored — no reranking here
-     * @return array|null Always returns null
-     */
-    public function rerank(string $query, array $documents, ?int $topN = null): ?array
-    {
-        return null;
-    }
-
-    /**
-     * Default implementation: no reranking support.
-     *
-     * @return bool False by default
-     */
-    public function supportsReranking(): bool
-    {
-        return false;
-    }
-
-    /**
      * Get the API endpoint.
      *
      * @param  string|null  $path  Optional path to append

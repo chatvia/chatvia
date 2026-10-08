@@ -62,7 +62,6 @@ const UNTESTED_ACTIONS_ALLOWLIST = [
     'SocialLoginAction',
     'StartWebsiteIngestionAction',
     'ToggleAgentFunctionAction',
-    'TranscribeAudioAction',
     'UnlinkSourceFileFromAgentAction',
     'UpdateAgentQaAction',
     'UpdateApiAgentAction',

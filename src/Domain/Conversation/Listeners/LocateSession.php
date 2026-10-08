@@ -72,7 +72,7 @@ class LocateSession implements ShouldQueue
 
         // Proxy detection is about the connecting IP itself, independent of the
         // geo mismatch — keep it whenever the lookup returned a verdict.
-        if ($location && $location->isProxy !== null) {
+        if ($location instanceof IpLocationData && $location->isProxy !== null) {
             $updates['is_proxy'] = $location->isProxy;
         }
 

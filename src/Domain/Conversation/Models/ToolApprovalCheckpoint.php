@@ -4,6 +4,7 @@ namespace Domain\Conversation\Models;
 
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +36,7 @@ use Support\Concerns\HasExternalId;
  */
 #[Guarded(['id'])]
 #[Table(name: 'tool_approval_checkpoints')]
+#[RouteKey('external_id')]
 class ToolApprovalCheckpoint extends Model
 {
     use HasExternalId;
@@ -71,10 +73,5 @@ class ToolApprovalCheckpoint extends Model
         }
 
         return $this->expires_at === null || $this->expires_at->isFuture();
-    }
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
     }
 }

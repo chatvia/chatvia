@@ -5,6 +5,7 @@ namespace Domain\Billing\Actions\Subscriptions;
 use Domain\Billing\Data\SubscribeExtraAgentsData;
 use Domain\Billing\Enums\Addon;
 use Laravel\Cashier\Checkout;
+use Laravel\Cashier\Subscription;
 use RuntimeException;
 
 /**
@@ -29,7 +30,7 @@ class SubscribeExtraAgentsAction
         // Existing subscription → adjust quantity in place; no checkout needed.
         $existing = $billing->ownedSubscription(Addon::ExtraAgents->value);
 
-        if ($existing && $existing->active()) {
+        if ($existing instanceof Subscription && $existing->active()) {
             $existing->updateQuantity($data->quantity);
 
             $data->user->quota()->updateOrCreate([], [Addon::ExtraAgents->quotaColumn() => $data->quantity]);

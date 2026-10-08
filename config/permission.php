@@ -30,6 +30,20 @@ return [
 
         'role' => Role::class,
 
+        /*
+         * The team model used by the package's own `teams()` relation and
+         * `team()` scope on HasRoles (added in v8). Chatvia resolves teams
+         * through Domain\Membership\Team instead, so this stays unset.
+         */
+        'team' => null,
+
+        /*
+         * When using the "HasModels" trait and passing raw IDs to syncModels,
+         * attachModels, or detachModels, this model class will be used to
+         * resolve those IDs. If null, defaults to the guard's model.
+         */
+        'default_model' => null,
+
     ],
 
     'table_names' => [

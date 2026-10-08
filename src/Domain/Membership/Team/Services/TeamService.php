@@ -162,7 +162,7 @@ class TeamService
 
         $role = $user->teamRole($team);
 
-        return $role && $this->roleCanAccessAgent($role, $agent);
+        return $role instanceof Role && $this->roleCanAccessAgent($role, $agent);
     }
 
     /**

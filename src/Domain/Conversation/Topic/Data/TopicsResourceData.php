@@ -14,8 +14,10 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 class TopicsResourceData extends Data
 {
     public function __construct(
+        /** @var DataCollection<int, TopicTrendData> */
         #[DataCollectionOf(TopicTrendData::class)]
         public DataCollection $topics_by_date,
+        /** @var DataCollection<int, TopicSummaryData> */
         #[DataCollectionOf(TopicSummaryData::class)]
         public DataCollection $total_topics,
         public int $total_count,

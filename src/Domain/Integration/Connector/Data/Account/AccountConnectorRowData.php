@@ -5,6 +5,7 @@ namespace Domain\Integration\Connector\Data\Account;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Mcp\Data\Resources\AgentMcpServerData;
 use Spatie\LaravelData\Data;
+use Spatie\TypeScriptTransformer\Attributes\LiteralTypeScriptType;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
@@ -17,6 +18,7 @@ class AccountConnectorRowData extends Data
 {
     public function __construct(
         /** @var "featured"|"custom" */
+        #[LiteralTypeScriptType("'featured' | 'custom'")]
         public string $kind,
         public ?ConnectorData $connector,
         public ?AgentMcpServerData $server,

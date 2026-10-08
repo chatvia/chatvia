@@ -80,7 +80,7 @@ class ConnectorCatalog
     {
         $connector = $this->find($slug);
 
-        if (! $connector || $connector->comingSoon) {
+        if (! $connector instanceof ConnectorData || $connector->comingSoon) {
             return null;
         }
 

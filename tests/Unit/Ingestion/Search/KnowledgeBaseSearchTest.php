@@ -27,7 +27,7 @@ function knowledgeBaseEmbeddingFake(): void
     // Distinct fixed vectors per call so different chunks don't all collapse to
     // identical embeddings (which would hide ranking bugs behind tied distances).
     $next = 0;
-    app()->bind(EmbeddingsProviderInterface::class, function () use (&$next): EmbeddingsProviderInterface {
+    app()->bind(function () use (&$next): EmbeddingsProviderInterface {
         return new class($next++) implements EmbeddingsProviderInterface
         {
             public function __construct(private int $seed) {}

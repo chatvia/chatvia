@@ -12,6 +12,7 @@ use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -121,6 +122,7 @@ use Support\Localization\Language\Models\Language;
     'cleared_at',
 ])]
 #[Table(name: 'chat_conversations')]
+#[RouteKey('external_id')]
 class Conversation extends Model
 {
     use CascadesAttachmentDeletes, HasExternalId, HasFactory, SoftDeletes;
@@ -149,11 +151,6 @@ class Conversation extends Model
             'cleared_at' => 'datetime',
             'is_visible' => 'boolean',
         ];
-    }
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
     }
 
     public function newEloquentBuilder($query): ConversationQueryBuilder

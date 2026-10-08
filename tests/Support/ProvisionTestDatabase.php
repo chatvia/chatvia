@@ -105,7 +105,7 @@ class ProvisionTestDatabase
 
         $files = array_keys(iterator_to_array($files));
 
-        $checksum = collect($files)->map(fn ($file) => md5_file($file))->implode('');
+        $checksum = collect($files)->map(fn ($file): string|false => md5_file($file))->implode('');
 
         return md5($checksum);
     }

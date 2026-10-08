@@ -5,6 +5,7 @@ namespace Domain\Prompt\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,7 @@ use Support\Concerns\HasExternalId;
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
+#[RouteKey('external_id')]
 class AgentPrompt extends Model
 {
     use HasExternalId, HasFactory;
@@ -51,10 +53,5 @@ class AgentPrompt extends Model
     public function agents(): HasMany
     {
         return $this->hasMany(Agent::class);
-    }
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
     }
 }

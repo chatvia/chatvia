@@ -3,6 +3,7 @@
 namespace Domain\Billing\Data\Resources\Subscription;
 
 use App\Identity\Workspace\Models\User;
+use Laravel\Cashier\Subscription;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -61,22 +62,22 @@ class BillingAddonsData extends Data
             ),
             extra_agents: new BillingAddonSubscriptionData(
                 active: (bool) $extraAgentsSub?->active(),
-                quantity: $extraAgentsSub && $extraAgentsSub->active() ? (int) $extraAgentsSub->quantity : 0,
+                quantity: $extraAgentsSub instanceof Subscription && $extraAgentsSub->active() ? (int) $extraAgentsSub->quantity : 0,
                 cancels_at: $extraAgentsSub?->ends_at?->toFormattedDateString(),
             ),
             custom_domains: new BillingAddonSubscriptionData(
                 active: (bool) $customDomainsSub?->active(),
-                quantity: $customDomainsSub && $customDomainsSub->active() ? (int) $customDomainsSub->quantity : 0,
+                quantity: $customDomainsSub instanceof Subscription && $customDomainsSub->active() ? (int) $customDomainsSub->quantity : 0,
                 cancels_at: $customDomainsSub?->ends_at?->toFormattedDateString(),
             ),
             remove_branding: new BillingAddonSubscriptionData(
                 active: (bool) $removeBrandingSub?->active(),
-                quantity: $removeBrandingSub && $removeBrandingSub->active() ? 1 : 0,
+                quantity: $removeBrandingSub instanceof Subscription && $removeBrandingSub->active() ? 1 : 0,
                 cancels_at: $removeBrandingSub?->ends_at?->toFormattedDateString(),
             ),
             members: new BillingAddonSubscriptionData(
                 active: (bool) $membersSub?->active(),
-                quantity: $membersSub && $membersSub->active() ? (int) $membersSub->quantity : 0,
+                quantity: $membersSub instanceof Subscription && $membersSub->active() ? (int) $membersSub->quantity : 0,
                 cancels_at: $membersSub?->ends_at?->toFormattedDateString(),
             ),
         );

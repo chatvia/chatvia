@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
 use App\Http\Requests\Settings\Connector\SalesforceConnectRequest;
 use App\Identity\Workspace\Models\User;
+use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
@@ -27,7 +28,7 @@ class SalesforceConnectController
         SalesforceEndpointBuilder $builder,
     ): JsonResponse {
         $connector = $catalog->find('salesforce');
-        abort_unless($connector && $connector->requiresClientId && ! $connector->comingSoon, 404);
+        abort_unless($connector instanceof ConnectorData && $connector->requiresClientId && ! $connector->comingSoon, 404);
 
         $byo = $builder->build(
             clientId: $request->string('client_id')->toString(),

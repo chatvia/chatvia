@@ -9,6 +9,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Encoders\PngEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 use InvalidArgumentException;
 use RuntimeException;
@@ -122,7 +123,7 @@ trait HasSettings
             $disk = Storage::disk('assets');
             $previousPath = $this->modelSettings()->where('key', $key)->where('group', $group)->value('value');
 
-            $data = Image::read($value->getContent())->scale(height: 128)->toPng()->toString();
+            $data = Image::decodeBinary($value->getContent())->scale(height: 128)->encode(new PngEncoder)->toString();
             $file = new File(create_temp_file($value->getFilename(), $data));
 
             $uploadedPath = $disk->putFile('users/'.$this->getUserExternalId().'/settings/'.$group.'/'.$this->external_id, $file);

@@ -52,7 +52,7 @@ class ConversationAnalyzer
         return $this->parse(
             is_string($content) ? $content : null,
             allowedIds: $topics->pluck('id')->map(fn ($id): int => (int) $id)->all(),
-            existingNames: $topics->pluck('topic')->map(fn ($n) => mb_strtolower(trim((string) $n)))->all(),
+            existingNames: $topics->pluck('topic')->map(fn ($n): string => mb_strtolower(trim((string) $n)))->all(),
         );
     }
 
@@ -226,7 +226,7 @@ class ConversationAnalyzer
             ->filter(fn ($l): bool => is_string($l) && trim($l) !== '')
             ->map(fn ($l): string => trim($l))
             ->reject(fn ($l): bool => in_array(mb_strtolower($l), $existingNames, true))
-            ->unique(fn ($l) => mb_strtolower($l))
+            ->unique(fn ($l): string => mb_strtolower($l))
             ->values()
             ->all();
 

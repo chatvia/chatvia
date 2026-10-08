@@ -3,6 +3,7 @@
 namespace Support\Cms\Marketing\Observers;
 
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 use Support\Cms\Marketing\Models\Post;
 
@@ -42,9 +43,9 @@ class PostObserver
 
         $imageContent = $disk->get($imagePath);
 
-        $image = Image::read($imageContent)
+        $image = Image::decodeBinary($imageContent)
             ->cover(768, 432)
-            ->toWebp(quality: 85);
+            ->encode(new WebpEncoder(quality: 85));
 
         $pathInfo = pathinfo($imagePath);
         $newPath = $pathInfo['dirname'].'/'.$pathInfo['filename'].'.webp';

@@ -5,6 +5,7 @@ namespace Domain\Billing\Data\Resources\Subscription;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Data\Resources\Package\BillingCurrentPackageData;
 use Exception;
+use Laravel\Cashier\Subscription;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -30,7 +31,7 @@ class BillingResourceData extends Data
         $subscriptionData = null;
         $pendingPlanChange = null;
 
-        if ($subscription && $subscription->stripe_id) {
+        if ($subscription instanceof Subscription && $subscription->stripe_id) {
             // Cashier's `Subscription::asStripeSubscription` reaches for
             // `$this->owner` to get the Stripe client. That relation is the
             // inverse of the one we just used to fetch the subscription — we

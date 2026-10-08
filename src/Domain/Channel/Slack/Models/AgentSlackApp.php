@@ -4,6 +4,7 @@ namespace Domain\Channel\Slack\Models;
 
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,20 +26,10 @@ use Support\Concerns\HasExternalId;
  * @property bool $enabled
  */
 #[Guarded(['id'])]
+#[RouteKey('external_id')]
 class AgentSlackApp extends Model
 {
     use HasExternalId;
-
-    protected $casts = [
-        'bot_token' => 'encrypted',
-        'signing_secret' => 'encrypted',
-        'enabled' => 'boolean',
-    ];
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
-    }
 
     /**
      * @return BelongsTo<Agent, $this>
@@ -51,5 +42,14 @@ class AgentSlackApp extends Model
     public function channels(): HasMany
     {
         return $this->hasMany(SlackChannel::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'bot_token' => 'encrypted',
+            'signing_secret' => 'encrypted',
+            'enabled' => 'boolean',
+        ];
     }
 }

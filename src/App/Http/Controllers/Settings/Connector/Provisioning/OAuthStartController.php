@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Connector\Services\OAuth\ConnectorMisconfiguredException;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
@@ -20,7 +21,7 @@ class OAuthStartController
     public function __invoke(Request $request, string $slug): RedirectResponse
     {
         $connector = $this->catalog->find($slug);
-        abort_unless($connector && $connector->authStrategy === 'oauth' && ! $connector->comingSoon, 404);
+        abort_unless($connector instanceof ConnectorData && $connector->authStrategy === 'oauth' && ! $connector->comingSoon, 404);
 
         /** @var User $user */
         $user = $request->user();

@@ -1,9 +1,18 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/vue-starter-kit",
+    "name": "chatvia/chatvia",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "Chatvia: an AI chat-agent platform. Agents answer from your knowledge base (RAG), call tools over MCP, and talk to visitors on the web widget, hosted chat and messaging channels.",
+    "keywords": [
+        "laravel",
+        "inertia",
+        "vue",
+        "ai",
+        "chatbot",
+        "rag",
+        "mcp",
+        "llm"
+    ],
     "license": "MIT",
     "repositories": [
         {
@@ -21,23 +30,20 @@
         "ext-pdo": "*",
         "aws/aws-sdk-php": "^3.351",
         "cesargb/laravel-magiclink": "^2.24",
-        "crwlr/crawler": "^3.5",
         "dedoc/scramble": "^0.13.23",
         "dedoc/scramble-pro": "^0.9.2",
         "filament/filament": "^5.0",
         "firebase/php-jwt": "^v7.0.5",
-        "google/cloud-document-ai": "^2.2",
         "graham-campbell/markdown": "^16.0",
         "inertiajs/inertia-laravel": "^3.0",
-        "intervention/image": "^3.11",
-        "intervention/image-laravel": "^1.5",
+        "intervention/image": "^4.3",
+        "intervention/image-laravel": "^4.1",
         "irazasyed/telegram-bot-sdk": "^3.16",
-        "james-heinrich/getid3": "^1.9",
         "laravel/cashier": "^16.0",
         "laravel/fortify": "^1.37",
         "laravel/framework": "^13.0",
         "laravel/horizon": "^5.33",
-        "laravel/mcp": "^0.7.0",
+        "laravel/mcp": "^1.0",
         "laravel/octane": "^2.17",
         "laravel/pennant": "^1.23",
         "laravel/pulse": "^1.4",
@@ -52,28 +58,24 @@
         "league/flysystem-aws-s3-v3": "^3.0",
         "mcamara/laravel-localization": "^2.4",
         "pgvector/pgvector": "^0.2.2",
-        "php-ffmpeg/php-ffmpeg": "^1.3",
         "platformcommunity/flysystem-bunnycdn": "^3.3",
         "prism-php/prism": "^0.100.0",
-        "resend/resend-php": "^0.18.1",
+        "resend/resend-php": "^1.16",
         "ryangjchandler/laravel-cloudflare-turnstile": "^3.0",
-        "sentry/sentry-laravel": "^4.15",
         "socialiteproviders/microsoft": "^4.7",
-        "spatie/crawler": "^8.4",
+        "spatie/browsershot": "^5.4",
         "spatie/laravel-data": "^4.15",
         "spatie/laravel-flare": "^3.0",
         "spatie/laravel-markdown": "^2.7",
         "spatie/laravel-pdf": "^2.0",
-        "spatie/laravel-permission": "^7.0",
-        "spatie/laravel-ray": "^1.40",
-        "spatie/laravel-typescript-transformer": "^2.5",
-        "spatie/typescript-transformer": "^2.5",
+        "spatie/laravel-permission": "^8.3",
+        "spatie/laravel-typescript-transformer": "^3.3",
+        "spatie/typescript-transformer": "^3.3",
         "spectra-php/laravel-spectra": "^1.2.0",
         "spiral/roadrunner-http": "^4.1",
-        "symfony/browser-kit": "^7.3",
-        "symfony/dom-crawler": "^7.3",
+        "symfony/dom-crawler": "^8.1",
         "tightenco/ziggy": "^2.5",
-        "yethee/tiktoken": "^0.10.0"
+        "yethee/tiktoken": "^1.1"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.7",
@@ -85,8 +87,9 @@
         "laravel/pint": "^1.18",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "pestphp/pest": "^4.0",
-        "spatie/laravel-horizon-watcher": "^1.1"
+        "pestphp/pest": "^5.3",
+        "spatie/laravel-horizon-watcher": "^1.1",
+        "spatie/laravel-ray": "^1.43"
     },
     "autoload": {
         "psr-4": {
@@ -138,19 +141,43 @@
             "@php -d memory_limit=2G artisan test"
         ],
         "format": "vendor/bin/pint",
+        "format:check": "vendor/bin/pint --test",
         "analyse": "vendor/bin/phpstan analyse --memory-limit=2G",
         "refactor": "vendor/bin/rector process",
+        "refactor:check": "vendor/bin/rector process --dry-run",
         "ci": [
-            "composer audit",
-            "npm audit report",
+            "Composer\\Config::disableProcessTimeout",
             "npm run format",
-            "npm run typecheck",
-            "npx eslint .",
+            "npm run lint",
             "@format",
-            "@analyse",
             "@refactor",
+            "@ci:check"
+        ],
+        "ci:check": [
+            "Composer\\Config::disableProcessTimeout",
+            "@composer validate --strict",
+            "@composer audit",
+            "npm audit --omit=dev",
+            "@format:check",
+            "@refactor:check",
+            "@analyse",
+            "npm run format:check",
+            "npm run lint:check",
+            "npm run typecheck",
+            "npm run i18n:check",
             "@test"
         ]
+    },
+    "scripts-descriptions": {
+        "dev": "Run the app server, queue worker, log tail and Vite together.",
+        "test": "Run the Pest test suite against the testing database.",
+        "format": "Fix PHP code style with Pint.",
+        "format:check": "Check PHP code style with Pint without changing files.",
+        "analyse": "Run PHPStan (Larastan) static analysis.",
+        "refactor": "Apply Rector refactorings.",
+        "refactor:check": "Show pending Rector refactorings without changing files.",
+        "ci": "Auto-fix formatting, lint and Rector findings, then run ci:check.",
+        "ci:check": "Run every CI gate without changing files: composer validate + audit, npm audit (production deps), Pint, Rector, PHPStan, Prettier, ESLint, vue-tsc, i18n check and the test suite."
     },
     "extra": {
         "laravel": {
@@ -164,6 +191,9 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
+        },
+        "audit": {
+            "abandoned": "report"
         }
     },
     "minimum-stability": "stable",

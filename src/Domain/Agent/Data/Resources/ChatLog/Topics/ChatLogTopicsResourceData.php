@@ -13,6 +13,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 class ChatLogTopicsResourceData extends Data
 {
     public function __construct(
+        /** @var DataCollection<int, ChatLogTopicData> */
         #[DataCollectionOf(ChatLogTopicData::class)]
         public DataCollection $topics,
     ) {}

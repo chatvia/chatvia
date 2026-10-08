@@ -9,6 +9,8 @@ use Domain\Guardrail\Enums\GuardStage;
 use Domain\Guardrail\Enums\GuardType;
 use Domain\Guardrail\Listeners\RecordGuardrailEvent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,25 +35,13 @@ use Support\Concerns\HasExternalId;
  * @property array<string, mixed>|null $detail
  */
 #[Guarded(['id'])]
+#[RouteKey('external_id')]
 class GuardrailEvent extends Model
 {
     use HasExternalId;
 
     /** Insert-only audit log. */
     public const UPDATED_AT = null;
-
-    protected $casts = [
-        'stage' => GuardStage::class,
-        'guard_type' => GuardType::class,
-        'outcome' => GuardOutcome::class,
-        'detail' => 'array',
-        'created_at' => 'datetime',
-    ];
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
-    }
 
     /**
      * @return BelongsTo<Agent, $this>
@@ -69,12 +59,14 @@ class GuardrailEvent extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function scopeForWorkspace(Builder $query, int $workspaceId): Builder
+    #[Scope]
+    protected function forWorkspace(Builder $query, int $workspaceId): Builder
     {
         return $query->where('workspace_id', $workspaceId);
     }
 
-    public function scopeForAgent(Builder $query, int $agentId): Builder
+    #[Scope]
+    protected function forAgent(Builder $query, int $agentId): Builder
     {
         return $query->where('agent_id', $agentId);
     }
@@ -107,6 +99,17 @@ class GuardrailEvent extends Model
             'snippet' => $this->snippet,
             'trace_id' => $this->trace_id,
             'conversation_external_id' => $this->conversation_external_id,
+        ];
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'stage' => GuardStage::class,
+            'guard_type' => GuardType::class,
+            'outcome' => GuardOutcome::class,
+            'detail' => 'array',
+            'created_at' => 'datetime',
         ];
     }
 }

@@ -5,7 +5,9 @@ namespace Domain\Integration\Connector\Data\Catalog;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Spatie\LaravelData\Attributes\Hidden;
 use Spatie\LaravelData\Data;
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+#[TypeScript]
 class ConnectorData extends Data
 {
     public function __construct(

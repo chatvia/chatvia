@@ -37,7 +37,7 @@ class McpOAuthRegistrar
         }
 
         if (! $metadata->supportsDynamicRegistration()) {
-            if ($connector && $connector->hasPreRegisteredOAuth()) {
+            if ($connector instanceof ConnectorData && $connector->hasPreRegisteredOAuth()) {
                 return ConnectorOAuthClient::create([
                     'auth_server_url' => $metadata->authServerUrl,
                     'client_id' => (string) $connector->oauthClientId,

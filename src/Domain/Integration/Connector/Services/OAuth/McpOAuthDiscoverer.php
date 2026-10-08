@@ -158,7 +158,7 @@ class McpOAuthDiscoverer
         // Some providers (notably GitHub) don't expose RFC 8414 metadata at
         // all. If the catalog entry carries pre-registered endpoints,
         // synthesise a metadata object from those.
-        if ($connector && $connector->hasPreRegisteredOAuth()) {
+        if ($connector instanceof ConnectorData && $connector->hasPreRegisteredOAuth()) {
             return $this->fallbackFromConnector($authServerUrl, $connector);
         }
 

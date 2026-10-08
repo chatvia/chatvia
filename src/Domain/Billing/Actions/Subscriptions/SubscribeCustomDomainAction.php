@@ -5,6 +5,7 @@ namespace Domain\Billing\Actions\Subscriptions;
 use Domain\Billing\Data\SubscribeCustomDomainData;
 use Domain\Billing\Enums\Addon;
 use Laravel\Cashier\Checkout;
+use Laravel\Cashier\Subscription;
 use RuntimeException;
 
 /**
@@ -27,7 +28,7 @@ class SubscribeCustomDomainAction
 
         $existing = $billing->ownedSubscription(Addon::CustomDomains->value);
 
-        if ($existing && $existing->active()) {
+        if ($existing instanceof Subscription && $existing->active()) {
             $existing->updateQuantity($data->quantity);
 
             $data->user->quota()->updateOrCreate([], [Addon::CustomDomains->quotaColumn() => $data->quantity]);

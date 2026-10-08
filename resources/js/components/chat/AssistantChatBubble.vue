@@ -104,7 +104,6 @@ const _page = usePage();
 const isCopied = ref(false);
 const feedback = ref<'thumbs-up' | 'thumbs-down' | null>(null);
 
-
 async function copyToClipboard() {
     try {
         await navigator.clipboard.writeText(props.message.content);

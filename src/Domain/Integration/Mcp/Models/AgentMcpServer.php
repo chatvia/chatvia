@@ -7,6 +7,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -87,6 +88,7 @@ use Support\Concerns\HasExternalId;
  */
 #[Guarded(['id'])]
 #[Table(name: 'mcp_servers')]
+#[RouteKey('external_id')]
 class AgentMcpServer extends Model
 {
     use HasExternalId, HasFactory;
@@ -233,11 +235,6 @@ class AgentMcpServer extends Model
         }
 
         return null;
-    }
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
     }
 
     /**

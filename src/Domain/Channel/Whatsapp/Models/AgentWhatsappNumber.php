@@ -4,6 +4,7 @@ namespace Domain\Channel\Whatsapp\Models;
 
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -30,23 +31,10 @@ use Support\Concerns\HasExternalId;
  * @property bool $enabled
  */
 #[Guarded(['id'])]
+#[RouteKey('external_id')]
 class AgentWhatsappNumber extends Model
 {
     use HasExternalId;
-
-    protected $casts = [
-        'access_token' => 'encrypted',
-        // `app_secret` is a legacy, never-read, now-nullable column — deliberately
-        // NOT cast: the `encrypted` caster can't decrypt a null and would throw on
-        // every OAuth-era row (which leaves it null). A raw null/ciphertext read is
-        // harmless since nothing consumes it.
-        'enabled' => 'boolean',
-    ];
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
-    }
 
     /**
      * @return BelongsTo<Agent, $this>
@@ -59,5 +47,17 @@ class AgentWhatsappNumber extends Model
     public function chats(): HasMany
     {
         return $this->hasMany(WhatsappChat::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'access_token' => 'encrypted',
+            // `app_secret` is a legacy, never-read, now-nullable column — deliberately
+            // NOT cast: the `encrypted` caster can't decrypt a null and would throw on
+            // every OAuth-era row (which leaves it null). A raw null/ciphertext read is
+            // harmless since nothing consumes it.
+            'enabled' => 'boolean',
+        ];
     }
 }

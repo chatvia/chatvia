@@ -2,6 +2,8 @@
 
 namespace Domain\Conversation\Enums;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * Which surface a conversation originated from. Set once at insert time and
  * read-only thereafter; drives chat-log filtering and analytics segmentation.
@@ -13,6 +15,7 @@ namespace Domain\Conversation\Enums;
  * Instagram). Playground previews reuse the same enum since they render the same
  * surfaces.
  */
+#[TypeScript]
 enum ConversationSource: string
 {
     case HostedChat = 'hosted_chat';

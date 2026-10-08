@@ -5,10 +5,13 @@ namespace Domain\Evaluation\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Support\Concerns\HasExternalId;
 
 /**
@@ -18,8 +21,12 @@ use Support\Concerns\HasExternalId;
  * @property string $external_id
  * @property string $status
  * @property int|null $agent_id
+ * @property float|null $avg_score
+ * @property Carbon|null $started_at
+ * @property Carbon|null $finished_at
  */
 #[Guarded(['id'])]
+#[RouteKey('external_id')]
 class EvalRun extends Model
 {
     use HasExternalId;
@@ -29,17 +36,6 @@ class EvalRun extends Model
     public const STATUS_COMPLETED = 'completed';
 
     public const STATUS_FAILED = 'failed';
-
-    protected $casts = [
-        'avg_score' => 'float',
-        'started_at' => 'datetime',
-        'finished_at' => 'datetime',
-    ];
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
-    }
 
     /**
      * @return BelongsTo<Agent, $this>
@@ -68,13 +64,24 @@ class EvalRun extends Model
         return $this->belongsTo(User::class, 'triggered_by_user_id');
     }
 
-    public function scopeForAgent(Builder $query, int $agentId): Builder
+    #[Scope]
+    protected function forAgent(Builder $query, int $agentId): Builder
     {
         return $query->where('agent_id', $agentId);
     }
 
-    public function scopeForWorkspace(Builder $query, int $workspaceId): Builder
+    #[Scope]
+    protected function forWorkspace(Builder $query, int $workspaceId): Builder
     {
         return $query->where('workspace_id', $workspaceId);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'avg_score' => 'float',
+            'started_at' => 'datetime',
+            'finished_at' => 'datetime',
+        ];
     }
 }

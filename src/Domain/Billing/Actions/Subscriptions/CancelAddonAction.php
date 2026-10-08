@@ -4,6 +4,7 @@ namespace Domain\Billing\Actions\Subscriptions;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Enums\Addon;
+use Laravel\Cashier\Subscription;
 
 /**
  * Cancels a workspace's addon subscription immediately and resets its quota
@@ -24,7 +25,7 @@ class CancelAddonAction
         $billing = $user->accountBillingOrFail();
         $subscription = $billing->ownedSubscription($addon->value);
 
-        if ($subscription && ! $subscription->canceled()) {
+        if ($subscription instanceof Subscription && ! $subscription->canceled()) {
             $subscription->cancelNow();
         }
 

@@ -39,7 +39,7 @@ class HTMLCleaner
 
         foreach ($this->unwantedTags() as $selector) {
             $crawler->filter($selector)->each(function (DOMCrawler $node): void {
-                if ($node->getNode(0) && $node->getNode(0)->parentNode) {
+                if ($node->getNode(0) instanceof \DOMNode && $node->getNode(0)->parentNode instanceof \DOMNode) {
                     $node->getNode(0)->parentNode->removeChild($node->getNode(0));
                 }
             });

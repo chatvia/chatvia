@@ -288,7 +288,6 @@
         },
         "governance": {
             "breadcrumb": "Governance",
-            "title": "Revisionslog",
             "description": "Alle handlinger dine agenter foretager via værktøjer og connectorer — tilladt, godkendt, afvist eller rate-begrænset — med argumenter, resultat og hvem der udløste det."
         },
         "sections": {
@@ -302,8 +301,7 @@
             "functions": "Funktioner",
             "api_keys": "API-nøgler",
             "prompts": "Prompts",
-            "members": "Chattere",
-            "audit_log": "Revisionslog"
+            "members": "Chattere"
         }
     }
 }

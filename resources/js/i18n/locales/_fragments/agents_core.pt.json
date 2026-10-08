@@ -116,7 +116,6 @@
                 "messenger": "Messenger",
                 "whatsapp": "WhatsApp",
                 "msteams": "Microsoft Teams",
-                "teams": "Microsoft Teams",
                 "instagram": "Instagram",
                 "playground": "Playground",
                 "api": "API"
@@ -128,9 +127,6 @@
             "sidebar": {
                 "online": "Online",
                 "show_online_only": "Mostrar apenas visitantes online",
-                "export_json": "Exportar como JSON",
-                "export_csv": "Exportar como CSV",
-                "export_pdf": "Exportar como PDF",
                 "expires_today": "Expira hoje",
                 "expires_in_days": "Expira em {count} dia | Expira em {count} dias",
                 "expires_in_one_month": "Expira em 1 mês",
@@ -556,8 +552,6 @@
                 "add_topic": "Adicionar tópico",
                 "empty": "Ainda não há tópicos. Adicione um para ajudar o seu agente a classificar conversas.",
                 "no_results": "Nenhum tópico corresponde a \"{query}\".",
-                "freeze_topics": "Congelar tópicos",
-                "freeze_hint": "Quando congelado, o agente deixa de aprender novos tópicos a partir das conversas.",
                 "done": "Ver análises",
                 "add_dialog_title": "Adicionar tópico",
                 "add_dialog_description": "Defina um nome e descrição de tópico para ajudar o agente a classificar conversas.",
@@ -581,9 +575,6 @@
                 "update_error": "Não foi possível atualizar o tópico. Por favor tente novamente.",
                 "delete_error": "Não foi possível eliminar o tópico. Por favor tente novamente.",
                 "load_error": "Não foi possível carregar os tópicos. Por favor tente novamente.",
-                "freeze_error": "Não foi possível atualizar a definição de congelamento. Por favor tente novamente.",
-                "frozen": "Tópicos congelados",
-                "unfrozen": "Tópicos descongelados",
                 "permission_denied": "Permissão negada",
                 "permission_denied_description": "Não tem permissão para gerir tópicos."
             }

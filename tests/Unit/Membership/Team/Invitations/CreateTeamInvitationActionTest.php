@@ -11,8 +11,7 @@ use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Event;
 
 /*
- * CreateTeamInvitationAction is the state-changing step lifted out of
- * TeamService::inviteUser: it persists the invitation row and fires
+ * CreateTeamInvitationAction persists the invitation row and fires
  * TeamInvitationCreated (the mail send rides the listener, never an inline
  * Notification dispatch). The two guards it keeps — "already a member" and
  * "unknown role" — are the only branches, so they earn the coverage alongside

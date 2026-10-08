@@ -3,7 +3,6 @@
 namespace Domain\Agent\Models;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\QueryBuilders\AgentQueryBuilder;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use Domain\Channel\Instagram\Models\AgentInstagramAccount;
@@ -13,7 +12,6 @@ use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Conversation\Enums\ConversationSource;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Conversation\Topic\Models\Topic;
@@ -29,7 +27,6 @@ use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Database\Eloquent\Attributes\Appends;
-use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
@@ -45,7 +42,6 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Support\Enums\CreatedVia;
 use Support\MimeType;
@@ -74,8 +70,6 @@ use Support\Traits\HasSettings;
  * @property-read Collection<int, SourceFile> $audioFiles
  * @property-read int|null $audio_files_count
  * @property-read string $chat_embed_url
- * @property-read Collection<int, Session> $chatSessions
- * @property-read int|null $chat_sessions_count
  * @property-read string $chat_url
  * @property-read Collection<int, SourceFile> $files
  * @property-read int|null $files_count
@@ -107,7 +101,7 @@ use Support\Traits\HasSettings;
  * @property-read Collection<int, SourceYoutubeVideo> $youtubeVideos
  * @property-read int|null $youtube_videos_count
  *
- * @method static AgentCollection<int, static> all($columns = ['*'])
+ * @method static Collection<int, static> all($columns = ['*'])
  * @method static AgentQueryBuilder<static>|Agent aggregateStats()
  * @method static AgentQueryBuilder<static>|Agent conversationsByCountry()
  * @method static AgentQueryBuilder<static>|Agent conversationsByDayOfWeek()
@@ -115,13 +109,12 @@ use Support\Traits\HasSettings;
  * @method static AgentQueryBuilder<static>|Agent conversationsTrend(int $days = 30)
  * @method static AgentQueryBuilder<static>|Agent dailyMessages(int $days)
  * @method static \Database\Factories\AgentFactory factory($count = null, $state = [])
- * @method static AgentCollection<int, static> get($columns = ['*'])
+ * @method static Collection<int, static> get($columns = ['*'])
  * @method static AgentQueryBuilder<static>|Agent messagesByData(\Illuminate\Support\Carbon $startDate, \Illuminate\Support\Carbon $endDate)
  * @method static AgentQueryBuilder<static>|Agent mostAccessedFiles()
  * @method static AgentQueryBuilder<static>|Agent mostAccessedSources()
  * @method static AgentQueryBuilder<static>|Agent mostUsedFunctions()
  * @method static AgentQueryBuilder<static>|Agent mostUsedMcpTools()
- * @method static AgentQueryBuilder<static>|Agent mostUsedModels()
  * @method static AgentQueryBuilder<static>|Agent newModelQuery()
  * @method static AgentQueryBuilder<static>|Agent newQuery()
  * @method static AgentQueryBuilder<static>|Agent query()
@@ -151,7 +144,6 @@ use Support\Traits\HasSettings;
     'chat_url',
     'chat_embed_url',
 ])]
-#[CollectedBy(AgentCollection::class)]
 #[Guarded(['id'])]
 #[Hidden(['auth_secret'])]
 #[RouteKey('external_id')]
@@ -740,14 +732,6 @@ class Agent extends Model
         return Attribute::get(fn (): string => $this->permanent_url.'/chat/embed');
     }
 
-    /**
-     * @return HasMany<Session, $this>
-     */
-    public function chatSessions(): HasMany
-    {
-        return $this->hasMany(Session::class);
-    }
-
     public function getUserId()
     {
         return $this->user_id;
@@ -776,30 +760,6 @@ class Agent extends Model
     public function workspaceExternalId(): string
     {
         return $this->resolvedWorkspaceExternalId ??= $this->user()->value('external_id');
-    }
-
-    /**
-     * Image URLs aggregated from this agent's source files' `metadata.images`
-     * keys. Postgres JSON path needs the `->` operator at query time, not as
-     * an Eloquent column alias — using selectRaw keeps it portable.
-     *
-     * Returns `Support\Collection` (not Eloquent's) because pluck/flatMap
-     * lift the value out of the Model collection — the Eloquent
-     * `Collection<TKey, TModel of Model>` generic forbids `<int, string>`.
-     *
-     * @return SupportCollection<int, string>
-     */
-    public function images(): SupportCollection
-    {
-        return $this->files()
-            ->selectRaw("source_files.metadata->'images' AS images")
-            ->get()
-            ->pluck('images')
-            ->filter()
-            ->flatMap(fn ($json) => collect(is_string($json) ? json_decode($json, true) : (array) $json)->keys())
-            ->unique()
-            ->map(fn (string $path): string => Storage::url($path))
-            ->values();
     }
 
     public function wordFiles(): BelongsToMany

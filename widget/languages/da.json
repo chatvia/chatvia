@@ -48,16 +48,12 @@
     "copy": "Kopiér",
     "copy_message": "Kopiér besked",
     "good_response": "Godt svar",
-    "bad_response": "Dårligt svar",
-    "retry": "Prøv igen",
-    "copied": "Kopieret!"
+    "bad_response": "Dårligt svar"
   },
   "handoff": {
     "talk_to_human": "Tal med en medarbejder",
     "connecting": "Forbinder dig til en medarbejder...",
     "connected": "Forbundet til {name}",
-    "disconnected": "Medarbejderen har forladt samtalen",
-    "returned_to_bot": "Samtalen er overdraget til bot'en",
     "agent_typing": "{name} skriver...",
     "waiting_for_agent": "Venter på en ledig medarbejder...",
     "end_chat": "Afslut chat",
@@ -72,7 +68,6 @@
     "initialization_failed": "Initialiseringsfejl. Prøv igen senere.",
     "verification_failed": "Klientverificering mislykkedes.",
     "session_failed": "Sessionsinitialisering mislykkedes.",
-    "connection_error": "Forbindelsesfejl. Tjek venligst din internetforbindelse.",
     "message_send_failed": "Kunne ikke sende besked. Prøv igen.",
     "response_failed": "Noget gik galt under generering af svaret. Prøv igen.",
     "auth_required": "Denne chat kræver login."

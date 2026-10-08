@@ -29,12 +29,10 @@ use Illuminate\Support\Str;
  */
 class WidgetAuthSessionService
 {
-    // Keyed on the 64-char CSPRNG token alone. It used to embed the issuing
-    // user id, but issue() interpolated $user->id while resolveWithMeta() and
-    // revoke() interpolated $agent->user_id — they only matched for the agent
-    // owner, so every non-owner chatter's session silently missed (protected
-    // widgets broke) and revoke() never deleted anything. The token is already
-    // unguessable; the (user, agent, fingerprint) payload still scopes it.
+    // Keyed on the 64-char CSPRNG token alone. The token is unguessable, and
+    // the (user, agent, fingerprint) payload still scopes it, so the key needs
+    // no user id (which issue and resolve would then have to agree on for
+    // every chatter, not just the agent owner).
     private const string PREFIX = 'widget:auth:';
 
     // Four hours. Long enough for a typical chat session; short enough that an
@@ -118,15 +116,6 @@ class WidgetAuthSessionService
     public function resolve(string $token, Agent $agent, Request $request): ?User
     {
         return $this->resolveWithMeta($token, $agent, $request)['user'] ?? null;
-    }
-
-    /**
-     * Tear down a single widget session — used when an owner revokes a stolen
-     * token from the dashboard, or when the user explicitly logs out.
-     */
-    public function revoke(string $token): void
-    {
-        Cache::forget(self::PREFIX.$token);
     }
 
     /**

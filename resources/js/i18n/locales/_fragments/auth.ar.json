@@ -35,14 +35,8 @@
             "password_placeholder": "كلمة المرور",
             "confirm_password_label": "تأكيد كلمة المرور",
             "confirm_password_placeholder": "تأكيد كلمة المرور",
-            "agree_to": "أوافق على",
-            "privacy_policy": "سياسة الخصوصية",
-            "terms_of_service": "شروط الخدمة",
             "create_account": "إنشاء حساب",
             "creating_account": "جارٍ إنشاء الحساب...",
-            "or": "أو",
-            "continue_with_google": "المتابعة باستخدام Google",
-            "continue_with_slack": "المتابعة باستخدام Slack",
             "have_account": "هل لديك حساب بالفعل؟",
             "log_in": "تسجيل الدخول"
         },
@@ -129,22 +123,6 @@
             "sending_link": "جارٍ إرسال الرابط...",
             "or": "أو"
         },
-        "member_password": {
-            "title": "عيّن كلمة المرور",
-            "description": "أنشئ كلمة مرور آمنة لحسابك",
-            "head": "تعيين كلمة المرور",
-            "accept_error": "تعذّر قبول الدعوة. يرجى المحاولة مرة أخرى.",
-            "name_label": "الاسم",
-            "name_placeholder": "أدخل اسمك",
-            "password_label": "كلمة المرور",
-            "password_placeholder": "أنشئ كلمة مرور آمنة",
-            "confirm_password_label": "تأكيد كلمة المرور",
-            "confirm_password_placeholder": "أكّد كلمة المرور",
-            "accept_invitation": "قبول الدعوة",
-            "accepting_invitation": "جارٍ قبول الدعوة...",
-            "have_account": "هل لديك حساب بالفعل؟",
-            "sign_in": "تسجيل الدخول"
-        },
         "accept_invitation": {
             "title_existing": "سجّل الدخول لقبول الدعوة",
             "title_new": "أنشئ حسابك",
@@ -208,13 +186,6 @@
             "card_title": "انتهت صلاحية الدعوة",
             "contact_owner": "يرجى التواصل مع مالك الفريق لطلب دعوة جديدة.",
             "go_to_login": "الانتقال إلى تسجيل الدخول"
-        },
-        "split": {
-            "headline": "أنشئ {brand} الخاص بك في دقائق",
-            "subheadline": "أنشئ مساعدين بالذكاء الاصطناعي يتعلّمون من {data} ومعرفتك",
-            "your_data": "بياناتك",
-            "secure_data": "معالجة آمنة للبيانات",
-            "custom_gpt": "GPT مخصّص"
         }
     }
 }

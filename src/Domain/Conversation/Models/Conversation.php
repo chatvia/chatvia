@@ -307,14 +307,6 @@ class Conversation extends Model
         return $this->handoff_status === 'human';
     }
 
-    /**
-     * Check if AI should respond to this conversation.
-     */
-    public function shouldAiRespond(): bool
-    {
-        return in_array($this->handoff_status, ['ai', 'returned', null]);
-    }
-
     public function displayName(): ?string
     {
         if ($this->lead?->name) {

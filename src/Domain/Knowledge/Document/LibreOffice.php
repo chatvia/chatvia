@@ -94,13 +94,6 @@ class LibreOffice
         return $this->convert($inputPath, 'pdf');
     }
 
-    public function text2Pdf(string $text): string
-    {
-        $filePath = create_temp_file('file.txt', $text);
-
-        return $this->convert($filePath, 'pdf');
-    }
-
     public function supportsFormat(string $format): bool
     {
         return in_array(strtolower($format), $this->allowedFormats, true);
@@ -188,7 +181,7 @@ class LibreOffice
         }
     }
 
-    public function getVersion(): string
+    private function getVersion(): string
     {
         $result = $this->withProfile(fn (string $profileDir) => Process::timeout(30)
             ->env($this->getLibreOfficeEnv())
@@ -204,11 +197,6 @@ class LibreOffice
         }
 
         return trim($result->output());
-    }
-
-    public static function make(): self
-    {
-        return new self;
     }
 
     private function getLibreOfficeEnv(): array

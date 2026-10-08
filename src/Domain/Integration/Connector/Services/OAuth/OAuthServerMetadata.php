@@ -5,26 +5,20 @@ namespace Domain\Integration\Connector\Services\OAuth;
 /**
  * RFC 8414 — OAuth 2.0 Authorization Server Metadata.
  *
- * We only carry the fields the MCP OAuth flow actually uses; the raw
- * payload is kept around so the registrar can persist whatever else the
- * server declares.
+ * Carries only the fields the MCP OAuth flow reads; everything else the
+ * server declares is ignored.
  */
 class OAuthServerMetadata
 {
     /**
-     * @param  array<string, mixed>  $raw
      * @param  array<int, string>  $codeChallengeMethodsSupported
-     * @param  array<int, string>  $grantTypesSupported
      */
     public function __construct(
-        public readonly string $issuer,
         public readonly string $authServerUrl,
         public readonly string $authorizationEndpoint,
         public readonly string $tokenEndpoint,
         public readonly ?string $registrationEndpoint,
         public readonly array $codeChallengeMethodsSupported,
-        public readonly array $grantTypesSupported,
-        public readonly array $raw,
     ) {}
 
     /**
@@ -33,7 +27,6 @@ class OAuthServerMetadata
     public static function fromArray(string $authServerUrl, array $payload): self
     {
         return new self(
-            issuer: (string) ($payload['issuer'] ?? $authServerUrl),
             authServerUrl: $authServerUrl,
             authorizationEndpoint: (string) ($payload['authorization_endpoint'] ?? ''),
             tokenEndpoint: (string) ($payload['token_endpoint'] ?? ''),
@@ -44,8 +37,6 @@ class OAuthServerMetadata
                 strval(...),
                 array_filter((array) ($payload['code_challenge_methods_supported'] ?? []), 'is_scalar'),
             )),
-            grantTypesSupported: (array) ($payload['grant_types_supported'] ?? ['authorization_code', 'refresh_token']),
-            raw: $payload,
         );
     }
 

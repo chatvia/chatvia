@@ -46,11 +46,6 @@ trait Chunkable
         return $this->morphToMany(Agent::class, 'sourceable', 'agent_sources');
     }
 
-    public function tempUrl(): string
-    {
-        return Storage::temporaryUrl($this->filepath, now()->addMinutes(60));
-    }
-
     public function ingestionProgress(): int
     {
         if ($this->status === SourceStatus::Completed->value) {

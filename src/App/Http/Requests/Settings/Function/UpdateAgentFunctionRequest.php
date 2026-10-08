@@ -3,11 +3,11 @@
 namespace App\Http\Requests\Settings\Function;
 
 use App\Identity\Workspace\Models\User;
-use Closure;
 use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Function\Data\UpdateAgentFunctionData;
 use Domain\Integration\Function\Enums\FunctionAuthType;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Function\Rules\ValidParametersSchema;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -41,12 +41,7 @@ class UpdateAgentFunctionRequest extends FormRequest
             'parameters_schema' => [
                 'required',
                 'string',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    $decoded = json_decode((string) $value, true);
-                    if (! is_array($decoded)) {
-                        $fail('parameters_schema must be valid JSON describing the parameters.');
-                    }
-                },
+                new ValidParametersSchema($this->function()?->parameters_schema?->getArrayCopy()),
             ],
             'webhook_url' => ['required', 'url', 'max:2048', new SafeWebhookUrl],
             'webhook_method' => ['sometimes', 'in:POST,GET,PATCH,DELETE'],

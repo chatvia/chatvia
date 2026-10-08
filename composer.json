@@ -37,7 +37,6 @@
         "laravel/framework": "^13.0",
         "laravel/horizon": "^5.33",
         "laravel/mcp": "^1.0",
-        "laravel/octane": "^2.17",
         "laravel/pennant": "^1.23",
         "laravel/pulse": "^1.4",
         "laravel/reverb": "^1.0",
@@ -52,7 +51,6 @@
         "mcamara/laravel-localization": "^2.4",
         "pgvector/pgvector": "^0.2.2",
         "platformcommunity/flysystem-bunnycdn": "^3.3",
-        "prism-php/prism": "^0.100.0",
         "resend/resend-php": "^1.16",
         "ryangjchandler/laravel-cloudflare-turnstile": "^3.0",
         "socialiteproviders/microsoft": "^4.7",
@@ -65,8 +63,6 @@
         "spatie/laravel-typescript-transformer": "^3.3",
         "spatie/typescript-transformer": "^3.3",
         "spectra-php/laravel-spectra": "^1.2.0",
-        "spiral/roadrunner-http": "^4.1",
-        "symfony/dom-crawler": "^8.1",
         "tightenco/ziggy": "^2.5",
         "yethee/tiktoken": "^1.1"
     },
@@ -121,11 +117,6 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
-        ],
-        "dev:ssr": [
-            "npm run build:ssr",
-            "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"php artisan inertia:start-ssr\" --names=server,queue,logs,ssr"
         ],
         "test": [
             "Composer\\Config::disableProcessTimeout",

@@ -1,13 +1,7 @@
 {
     "agents": {
         "chat_errors": {
-            "disabled_title": "Agent deaktivert",
-            "disabled_description": "Denne agenten er for øyeblikket utilgjengelig",
-            "disabled_heading": "Agent deaktivert",
-            "disabled_message": "Denne agenten har blitt deaktivert. Kontakt administratoren for hjelp.",
-            "disabled_hint": "Hvis du mener dette er en feil eller trenger umiddelbar hjelp, ta kontakt med administratoren din.",
             "contact_admin": "Kontakt administrator",
-            "return_dashboard": "Gå tilbake til dashbordet",
             "no_messages_title": "Ingen meldinger igjen",
             "no_messages_description": "Du har nådd meldingsgrensen din",
             "not_found_title": "Agenten ble ikke funnet",

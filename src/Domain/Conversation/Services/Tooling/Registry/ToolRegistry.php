@@ -14,8 +14,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * Pool catalog for an agent's tools — the full attached pool (MCP +
  * webhook functions) as `ToolEntry[]`, cached for an hour. Used by the
- * fallback path in `ToolSelector` (when query embedding fails) and by
- * `asOpenAiTools()` (settings/diagnostics surfaces).
+ * fallback path in `ToolSelector` (when query embedding fails).
  *
  * Per-turn ranked retrieval is **not** here — see `ToolHybridSearch`,
  * which does dense + BM25 hybrid across both `mcp_tools` and
@@ -54,20 +53,6 @@ class ToolRegistry
     public function forget(int $agentId): void
     {
         Cache::forget($this->cacheKey($agentId));
-    }
-
-    /**
-     * Convenience: same entries but already flattened to OpenAI shape.
-     * Used by the fallback path in ToolSelector when semantic routing
-     * fails — ship the whole pool rather than risking blocking the turn.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    public function asOpenAiTools(Agent $agent): array
-    {
-        return Collection::make($this->for($agent))
-            ->map(fn (ToolEntry $entry): array => $entry->toOpenAiFormat())
-            ->all();
     }
 
     /**

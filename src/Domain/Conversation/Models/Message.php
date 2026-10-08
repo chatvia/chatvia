@@ -4,7 +4,6 @@ namespace Domain\Conversation\Models;
 
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\MessageQueryBuilder;
-use Domain\Form\Models\FormSubmission;
 use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
@@ -14,7 +13,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Support\Concerns\HasExternalId;
 
@@ -46,7 +44,6 @@ use Support\Concerns\HasExternalId;
  * @property Carbon|null $updated_at
  * @property Carbon|null $read_at
  * @property-read Conversation|null $conversation
- * @property-read FormSubmission|null $conversationLead
  * @property-read Llm|null $llm
  * @property-read AgentQuestionAnswer|null $questionAnswer
  *
@@ -187,20 +184,6 @@ class Message extends Model
     public function llm(): BelongsTo
     {
         return $this->belongsTo(Llm::class);
-    }
-
-    /**
-     * The lead for this message's CONVERSATION — shared across every message
-     * in the conversation, NOT a message-owned lead. It joins on
-     * `chat_conversation_id` (the conversation FK), so every message in the
-     * same conversation returns the same row; the name avoids the
-     * ownership-implying `lead()`. Prefer `$message->conversation->lead`.
-     *
-     * @return HasOne<FormSubmission, $this>
-     */
-    public function conversationLead(): HasOne
-    {
-        return $this->hasOne(FormSubmission::class, 'chat_conversation_id', 'chat_conversation_id')->latestOfMany();
     }
 
     /**

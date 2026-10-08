@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
@@ -38,7 +37,6 @@ const searchQuery = ref('');
 const isAddDialogOpen = ref(false);
 const isEditDialogOpen = ref(false);
 const isDeleteDialogOpen = ref(false);
-const isFrozen = ref(false);
 const isSubmitting = ref(false);
 
 const currentTopic = ref<any>(null);
@@ -57,11 +55,6 @@ const fetchTopics = async () => {
     try {
         const response = await axios.get(route('agents.topics.index', props.agent.external_id));
         topics.value = response.data;
-
-        // Set frozen status from first topic (assuming all have same status)
-        if (topics.value.length > 0) {
-            isFrozen.value = topics.value[0].is_frozen;
-        }
     } catch (error: any) {
         toast.error(error.response?.data?.message || t('agents.topics.manage.load_error'));
     } finally {
@@ -164,21 +157,6 @@ const handleDelete = async () => {
     }
 };
 
-const handleToggleFreeze = async (value: boolean) => {
-    try {
-        await axios.post(route('agents.topics.toggle-freeze', props.agent.external_id), {
-            is_frozen: value,
-        });
-        toast.success(value ? t('agents.topics.manage.frozen') : t('agents.topics.manage.unfrozen'));
-        isFrozen.value = value;
-        fetchTopics();
-    } catch (error: any) {
-        toast.error(error.response?.data?.message || t('agents.topics.manage.freeze_error'));
-        // Revert the switch
-        isFrozen.value = !value;
-    }
-};
-
 onMounted(() => {
     fetchTopics();
 });
@@ -239,23 +217,11 @@ onMounted(() => {
                 </CardContent>
             </Card>
 
-            <!-- Freeze Topics -->
-            <Card>
-                <CardContent class="!p-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <Switch :checked="isFrozen" @update:checked="handleToggleFreeze" />
-                            <div>
-                                <Label class="cursor-pointer">{{ t('agents.topics.manage.freeze_topics') }}</Label>
-                                <p class="text-muted-foreground text-sm">{{ t('agents.topics.manage.freeze_hint') }}</p>
-                            </div>
-                        </div>
-                        <Button variant="outline" size="sm" as-child>
-                            <a :href="route('agents.analytics.topics', props.agent.external_id)"> {{ t('agents.topics.manage.done') }} </a>
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+            <div class="flex justify-end">
+                <Button variant="outline" size="sm" as-child>
+                    <a :href="route('agents.analytics.topics', props.agent.external_id)"> {{ t('agents.topics.manage.done') }} </a>
+                </Button>
+            </div>
         </div>
 
         <!-- Add Topic Dialog -->

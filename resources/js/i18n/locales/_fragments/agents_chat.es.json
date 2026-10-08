@@ -1,13 +1,7 @@
 {
     "agents": {
         "chat_errors": {
-            "disabled_title": "Agente desactivado",
-            "disabled_description": "Este agente no está disponible en este momento",
-            "disabled_heading": "Agente desactivado",
-            "disabled_message": "Este agente ha sido desactivado. Por favor, contacta al administrador para obtener ayuda.",
-            "disabled_hint": "Si crees que esto es un error o necesitas asistencia inmediata, comunícate con tu administrador.",
             "contact_admin": "Contactar al administrador",
-            "return_dashboard": "Volver al panel",
             "no_messages_title": "Sin mensajes disponibles",
             "no_messages_description": "Has alcanzado tu límite de mensajes",
             "not_found_title": "Agente no encontrado",

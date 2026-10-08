@@ -94,11 +94,3 @@ it('carries session meta through resolveWithMeta', function (): void {
         ->and($payload['user']->id)->toBe($this->owner->id)
         ->and($payload['meta']['is_playground'])->toBeTrue();
 });
-
-it('revoke() invalidates a previously valid token', function (): void {
-    $session = $this->service->issue($this->owner, $this->agent, $this->request);
-
-    $this->service->revoke($session['token']);
-
-    expect($this->service->resolve($session['token'], $this->agent, $this->request))->toBeNull();
-});

@@ -35,14 +35,8 @@
             "password_placeholder": "Passord",
             "confirm_password_label": "Bekreft passord",
             "confirm_password_placeholder": "Bekreft passord",
-            "agree_to": "Jeg godtar",
-            "privacy_policy": "personvernerklæringen",
-            "terms_of_service": "vilkårene for bruk",
             "create_account": "Opprett konto",
             "creating_account": "Oppretter konto...",
-            "or": "Eller",
-            "continue_with_google": "Fortsett med Google",
-            "continue_with_slack": "Fortsett med Slack",
             "have_account": "Har du allerede en konto?",
             "log_in": "Logg inn"
         },
@@ -129,22 +123,6 @@
             "sending_link": "Sender lenke...",
             "or": "Eller"
         },
-        "member_password": {
-            "title": "Angi passord",
-            "description": "Opprett et sikkert passord for kontoen din",
-            "head": "Angi passord",
-            "accept_error": "Kunne ikke akseptere invitasjonen. Prøv igjen.",
-            "name_label": "Navn",
-            "name_placeholder": "Skriv inn navnet ditt",
-            "password_label": "Passord",
-            "password_placeholder": "Opprett et sikkert passord",
-            "confirm_password_label": "Bekreft passord",
-            "confirm_password_placeholder": "Bekreft passordet ditt",
-            "accept_invitation": "Aksepter invitasjon",
-            "accepting_invitation": "Aksepterer invitasjon...",
-            "have_account": "Har du allerede en konto?",
-            "sign_in": "Logg inn"
-        },
         "accept_invitation": {
             "title_existing": "Logg inn for å akseptere invitasjonen",
             "title_new": "Opprett kontoen din",
@@ -208,13 +186,6 @@
             "card_title": "Invitasjon utløpt",
             "contact_owner": "Kontakt teamets eier for å be om en ny invitasjon.",
             "go_to_login": "Gå til innlogging"
-        },
-        "split": {
-            "headline": "Bygg din egen {brand} på minutter",
-            "subheadline": "Lag AI-assistenter som lærer av {data} og kunnskap",
-            "your_data": "dine data",
-            "secure_data": "Sikker datahåndtering",
-            "custom_gpt": "Tilpasset GPT"
         }
     }
 }

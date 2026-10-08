@@ -288,7 +288,6 @@
         },
         "governance": {
             "breadcrumb": "Governação",
-            "title": "Registo de auditoria",
             "description": "Todas as ações que os seus agentes realizam através de ferramentas e conectores — permitidas, aprovadas, negadas ou limitadas por taxa — com os argumentos, o resultado e quem as desencadeou."
         },
         "sections": {
@@ -302,8 +301,7 @@
             "functions": "Funções",
             "api_keys": "Chaves API",
             "prompts": "Prompts",
-            "members": "Chatters",
-            "audit_log": "Registo de Auditoria"
+            "members": "Chatters"
         }
     }
 }

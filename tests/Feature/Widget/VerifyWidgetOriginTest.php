@@ -62,10 +62,6 @@ it('lets a call from an allowed site through to the controller', function (): vo
         ->assertJson(['error' => 'Missing required parameters']);
 });
 
-it('keeps the version probe reachable without an agent or origin', function (): void {
-    $this->getJson('/widget/version')->assertOk()->assertJsonStructure(['version']);
-});
-
 it('answers agents/verify with its own verified flag', function (): void {
     $this->withHeaders(['X-AGENT-ID' => $this->agent->external_id, 'Origin' => 'https://evil.example'])
         ->getJson('/widget/agents/verify')

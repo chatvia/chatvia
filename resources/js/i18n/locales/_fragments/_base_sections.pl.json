@@ -16,10 +16,8 @@
         "delete_dialog_description": "Tej operacji nie można cofnąć."
     },
     "sidebar": {
-        "open_sidebar": "Otwórz panel boczny",
         "new_chat": "Nowy czat",
         "your_chats": "Twoje czaty",
-        "loading": "Ładowanie...",
         "no_conversations": "Brak rozmów",
         "rename_conversation": "Zmień nazwę",
         "clear_all_chats": "Wyczyść wszystkie czaty",

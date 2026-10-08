@@ -119,16 +119,6 @@
                 "name": "Amplitude",
                 "description": "Produktanalysen abfragen – Ereignisse, Diagramme und Kohorten – aus Ihrem Amplitude-Projekt."
             }
-        },
-        "mcp": {
-            "account-analytics": {
-                "name": "Kontoanalysen",
-                "description": "Fragen des Workspace-Inhabers zu seinem eigenen Konto in Zahlen beantworten – Nachrichten, Konversationen, Benutzer, Kanäle, Leads, Zufriedenheit, Antwortzeit, Themen und Übergaben."
-            },
-            "charts": {
-                "name": "Interaktive Diagramme",
-                "description": "Interaktive Diagramme (Balken, Linien, Kreis, Messanzeige, Streu, Radar, Heatmap, …) direkt im Chat anzeigen."
-            }
         }
     }
 }

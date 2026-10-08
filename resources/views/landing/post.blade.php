@@ -6,11 +6,16 @@
 
 @section('og_title', $post->title)
 @section('og_description', Str::limit(strip_tags($post->excerpt ?? $post->html), 200))
-@section('og_image', $post->img_url)
 
 @section('twitter_title', $post->title)
 @section('twitter_description', Str::limit(strip_tags($post->excerpt ?? $post->html), 200))
-@section('twitter_image', $post->img_url)
+
+{{-- A section given null opens an output buffer that is never closed, so set
+     the image sections only when the post has a cover image. --}}
+@if ($post->img_url)
+    @section('og_image', $post->img_url)
+    @section('twitter_image', $post->img_url)
+@endif
 
 @section('content')
     @include('landing.partials.header')

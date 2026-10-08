@@ -35,14 +35,8 @@
             "password_placeholder": "Salasana",
             "confirm_password_label": "Vahvista salasana",
             "confirm_password_placeholder": "Vahvista salasana",
-            "agree_to": "Hyväksyn",
-            "privacy_policy": "Tietosuojakäytännön",
-            "terms_of_service": "Käyttöehdot",
             "create_account": "Luo tili",
             "creating_account": "Luodaan tiliä...",
-            "or": "Tai",
-            "continue_with_google": "Jatka Google-tilillä",
-            "continue_with_slack": "Jatka Slack-tilillä",
             "have_account": "Onko sinulla jo tili?",
             "log_in": "Kirjaudu sisään"
         },
@@ -129,22 +123,6 @@
             "sending_link": "Lähetetään linkkiä...",
             "or": "Tai"
         },
-        "member_password": {
-            "title": "Aseta salasanasi",
-            "description": "Luo tilillesi turvallinen salasana",
-            "head": "Aseta salasana",
-            "accept_error": "Kutsua ei voitu hyväksyä. Yritä uudelleen.",
-            "name_label": "Nimi",
-            "name_placeholder": "Syötä nimesi",
-            "password_label": "Salasana",
-            "password_placeholder": "Luo turvallinen salasana",
-            "confirm_password_label": "Vahvista salasana",
-            "confirm_password_placeholder": "Vahvista salasanasi",
-            "accept_invitation": "Hyväksy kutsu",
-            "accepting_invitation": "Hyväksytään kutsua...",
-            "have_account": "Onko sinulla jo tili?",
-            "sign_in": "Kirjaudu sisään"
-        },
         "accept_invitation": {
             "title_existing": "Kirjaudu sisään hyväksyäksesi kutsun",
             "title_new": "Luo tilisi",
@@ -208,13 +186,6 @@
             "card_title": "Kutsu on vanhentunut",
             "contact_owner": "Pyydä tiimin omistajalta uutta kutsua.",
             "go_to_login": "Siirry kirjautumiseen"
-        },
-        "split": {
-            "headline": "Rakenna oma {brand} muutamassa minuutissa",
-            "subheadline": "Luo tekoälyavustajia, jotka oppivat {data} ja tietämyksestäsi",
-            "your_data": "tiedoistasi",
-            "secure_data": "Turvallinen tietojen käsittely",
-            "custom_gpt": "Mukautettu GPT"
         }
     }
 }

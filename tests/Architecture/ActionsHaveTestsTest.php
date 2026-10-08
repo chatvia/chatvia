@@ -39,7 +39,6 @@ const UNTESTED_ACTIONS_ALLOWLIST = [
     'EmbedAgentFunctionAction',
     'EnhanceDocumentChunkAction',
     'FindWidgetConversationAction',
-    'IngestDocumentChunkAction',
     'ListAccountConnectorsAction',
     'ListAgentConnectorsAction',
     'ListAgentConversationsAction',

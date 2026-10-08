@@ -17,7 +17,9 @@ class ChunkFitClientTest extends TestCase
         config()->set('services.chunkfit.api_key', 'test-key');
         config()->set('services.chunkfit.base_url', 'https://chunk.fit/api/v1');
         config()->set('services.chunkfit.timeout', 30);
-        config()->set('services.chunkfit.tokenizer', 'cl100k_base');
+        config()->set('services.chunkfit.by_title.max_characters', 2000);
+        config()->set('services.chunkfit.by_title.new_after_n_chars', 1500);
+        config()->set('services.chunkfit.by_title.combine_text_under_n_chars', 1000);
     }
 
     public function test_returns_empty_array_for_blank_text_without_calling_api(): void
@@ -26,34 +28,35 @@ class ChunkFitClientTest extends TestCase
 
         $client = new ChunkFitClient;
 
-        $this->assertSame([], $client->splitSentences('   ', chunkSize: 800));
+        $this->assertSame([], $client->splitByTitle('   '));
 
         Http::assertNothingSent();
     }
 
-    public function test_posts_to_llamaindex_sentence_endpoint_with_expected_envelope(): void
+    public function test_posts_to_the_by_title_endpoint_with_expected_envelope(): void
     {
         Http::fake([
-            'chunk.fit/api/v1/llama-index/splitters/sentence' => Http::response([
+            'chunk.fit/api/v1/unstructured/splitters/text' => Http::response([
                 'chunks' => ['First chunk text.', 'Second chunk text.'],
                 'chunk_count' => 2,
-                'metadata' => ['splitter_type' => 'SentenceSplitter'],
+                'metadata' => [],
             ], 200),
         ]);
 
         $client = new ChunkFitClient;
-        $chunks = $client->splitSentences('Long body of text.', chunkSize: 800, chunkOverlap: 0);
+        $chunks = $client->splitByTitle('Long body of text.');
 
         $this->assertSame(['First chunk text.', 'Second chunk text.'], $chunks);
 
         Http::assertSent(function (Request $request) {
             return $request->method() === 'POST'
-                && $request->url() === 'https://chunk.fit/api/v1/llama-index/splitters/sentence'
+                && $request->url() === 'https://chunk.fit/api/v1/unstructured/splitters/text'
                 && $request->hasHeader('Authorization', 'Bearer test-key')
                 && $request['text'] === 'Long body of text.'
-                && $request['config']['chunk_size'] === 800
-                && $request['config']['chunk_overlap'] === 0
-                && $request['config']['tokenizer'] === 'cl100k_base';
+                && $request['config']['max_characters'] === 2000
+                && $request['config']['new_after_n_chars'] === 1500
+                && $request['config']['combine_text_under_n_chars'] === 1000
+                && $request['config']['overlap'] === 0;
         });
     }
 
@@ -68,7 +71,7 @@ class ChunkFitClientTest extends TestCase
         ]);
 
         $client = new ChunkFitClient;
-        $chunks = $client->splitSentences('text', chunkSize: 800);
+        $chunks = $client->splitByTitle('text');
 
         $this->assertSame(['padded', 'normal'], $chunks);
     }
@@ -76,15 +79,15 @@ class ChunkFitClientTest extends TestCase
     public function test_raises_a_typed_exception_when_api_returns_an_error(): void
     {
         Http::fake([
-            'chunk.fit/*' => Http::response(['detail' => 'invalid chunk_size'], 422),
+            'chunk.fit/*' => Http::response(['detail' => 'invalid max_characters'], 422),
         ]);
 
         $client = new ChunkFitClient;
 
         $this->expectException(ChunkFitException::class);
-        $this->expectExceptionMessage('chunk.fit returned 422: invalid chunk_size');
+        $this->expectExceptionMessage('chunk.fit returned 422: invalid max_characters');
 
-        $client->splitSentences('text', chunkSize: 800);
+        $client->splitByTitle('text');
     }
 
     public function test_raises_when_api_response_is_malformed(): void
@@ -98,7 +101,7 @@ class ChunkFitClientTest extends TestCase
         $this->expectException(ChunkFitException::class);
         $this->expectExceptionMessage('missing "chunks" array');
 
-        $client->splitSentences('text', chunkSize: 800);
+        $client->splitByTitle('text');
     }
 
     public function test_raises_when_api_key_is_missing(): void
@@ -110,6 +113,6 @@ class ChunkFitClientTest extends TestCase
         $this->expectException(ChunkFitException::class);
         $this->expectExceptionMessage('CHUNK_FIT_API_KEY');
 
-        $client->splitSentences('text', chunkSize: 800);
+        $client->splitByTitle('text');
     }
 }

@@ -4,7 +4,6 @@ namespace Domain\Membership\Team\Services;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Membership\Team\Actions\Invitations\CreateTeamInvitationAction;
 use Domain\Membership\Team\Data\Resources\Permissions\PermissionGroupData;
 use Domain\Membership\Team\Data\Resources\Permissions\PermissionMetaData;
 use Domain\Membership\Team\Data\Resources\Permissions\PermissionScopeData;
@@ -53,34 +52,11 @@ class TeamService
     }
 
     /**
-     * Thin delegator kept for callers that still reach for the service. The
-     * invitation-row write + TeamInvitationCreated dispatch now lives in
-     * CreateTeamInvitationAction — a state-changing operation no longer belongs
-     * in this otherwise read-only config/authorization service.
-     */
-    public function inviteUser(Team $team, string $email, string $roleCode): void
-    {
-        app(CreateTeamInvitationAction::class)->execute($team, $email, $roleCode);
-    }
-
-    /**
      * Check if team owner can invite members (requires active subscription).
      */
     public function canInviteMembers(Team $team): bool
     {
         return $team->owner->hasActiveSubscription();
-    }
-
-    /**
-     * Get max team members based on subscription.
-     */
-    public function getMaxTeamMembers(Team $team): int
-    {
-        if (! $this->canInviteMembers($team)) {
-            return 1; // Owner only
-        }
-
-        return config('teams.max_members', 10);
     }
 
     public function permissionCodes(): array
@@ -217,18 +193,6 @@ class TeamService
         return $role->agents()
             ->whereIn('agents.id', $team->agents()->pluck('id'))
             ->get();
-    }
-
-    /**
-     * Update which agents a role can access.
-     */
-    public function syncRoleAgents(Role $role, array $agentIds = []): void
-    {
-        if ($role->hasPermissionTo('agents.access-all')) {
-            $role->agents()->detach();
-        } else {
-            $role->agents()->sync($agentIds);
-        }
     }
 
     /**

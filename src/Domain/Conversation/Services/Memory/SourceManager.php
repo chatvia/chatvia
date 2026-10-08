@@ -27,11 +27,4 @@ class SourceManager
 
         return $this->cache->get($cacheKey, [], $conversationId);
     }
-
-    public function getSourcesForMessage(string $conversationId, string $messageId): array
-    {
-        $sources = $this->getSourcesForConversation($conversationId);
-
-        return $sources[$messageId] ?? [];
-    }
 }

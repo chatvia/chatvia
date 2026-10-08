@@ -34,11 +34,14 @@
     });
 </script>
 
-<script
-    id="chatbot-embed-script"
-    src="{{ config('chatvia.widget.script_url_embed') }}"
-    data-agent-id="{{ config('chatvia.widget.chatvia_widget_id') }}"
-    data-language="{{ app()->currentLocale() }}"
-    defer
-    >
-</script>
+{{-- The site's own support widget: only when an agent id is configured. --}}
+@if (filled(config('chatvia.widget.chatvia_widget_id')))
+    <script
+        id="chatbot-embed-script"
+        src="{{ config('chatvia.widget.script_url_embed') }}"
+        data-agent-id="{{ config('chatvia.widget.chatvia_widget_id') }}"
+        data-language="{{ app()->currentLocale() }}"
+        defer
+        >
+    </script>
+@endif

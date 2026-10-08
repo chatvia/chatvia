@@ -222,22 +222,6 @@ declare namespace Domain {
                         };
                     }
                 }
-                namespace Llm {
-                    export type AgentLlmDefaultSettingsData = {
-                        temperature: number;
-                        top_k: number;
-                        top_p: number;
-                        presence_penalty: number;
-                        frequency_penalty: number;
-                    };
-                    export type AgentLlmSettingsData = {
-                        temperature: number;
-                        top_k: number;
-                        top_p: number;
-                        presence_penalty: number;
-                        frequency_penalty: number;
-                    };
-                }
                 namespace Sources {
                     export type AgentSourcesStatsData = {
                         websites: number;
@@ -294,10 +278,6 @@ declare namespace Domain {
                         day: string;
                         date: string;
                         value: number;
-                    };
-                    export type ModelFeedbackData = {
-                        positive: number;
-                        negative: number;
                     };
                     export type StatsResourceData = {
                         total_messages: number;

@@ -74,20 +74,4 @@ class ToolApprovalStore
             return $checkpoint;
         });
     }
-
-    /**
-     * The most recent still-pending checkpoint for a conversation, used to
-     * re-render the approval card after a page reload.
-     */
-    public function findPendingForConversation(string $conversationExternalId): ?ToolApprovalCheckpoint
-    {
-        return ToolApprovalCheckpoint::query()
-            ->where('conversation_external_id', $conversationExternalId)
-            ->where('status', ToolApprovalCheckpoint::STATUS_PENDING)
-            ->where(function ($q): void {
-                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-            })
-            ->latest('id')
-            ->first();
-    }
 }

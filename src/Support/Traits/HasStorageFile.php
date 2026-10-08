@@ -78,11 +78,6 @@ trait HasStorageFile
         }
     }
 
-    public function signedUrl(): string
-    {
-        return Storage::temporaryUrl($this->filepath, now()->addDay());
-    }
-
     /**
      * Run $callback with the Storage path of a PDF version of this file.
      *

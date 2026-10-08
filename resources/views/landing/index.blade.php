@@ -32,13 +32,7 @@
 
             @include('landing.partials.hero')
 
-{{--            @include('landing.partials.trust-badges')--}}
-
-{{--            @include('landing.partials.comparison')--}}
-
             @include('landing.partials.integrations')
-
-{{--            @include('landing.partials.core-features')--}}
 
             @include('landing.partials.features-bar')
 

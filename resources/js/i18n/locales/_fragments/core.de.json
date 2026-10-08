@@ -6,8 +6,7 @@
         "upload": "Hochladen",
         "cancel": "Abbrechen",
         "save": "Speichern",
-        "confirm": "Bestätigen",
-        "deleting": "Wird gelöscht..."
+        "confirm": "Bestätigen"
     },
     "nav": {
         "account": "Konto",

@@ -1,15 +1,17 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use MagicLink\MagicLink;
 
-Artisan::command('inspire', function (): void {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
-
 Schedule::command('horizon:snapshot')->everyFiveMinutes();
+
+Schedule::command('telescope:prune --hours=24')->dailyAt('00:00');
+
+// Refreshes the cached per-workspace message usage that the message-capacity
+// gate reads between consumptions.
+Schedule::command('app:cache-message-usage')->everyFiveMinutes();
+
+Schedule::command('app:prune-expired-data-exports')->dailyAt('00:15');
 
 // Daily cleanup of visitor-uploaded chat attachments. Keeps the Scaleway
 // public bucket from accumulating PDFs indefinitely. The 30-day window is

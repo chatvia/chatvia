@@ -4,12 +4,15 @@ import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useBrand } from '@/composables/useBrand';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Lock, LockKeyhole, Mail, User, Users } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+// The legal pages are part of the marketing site; without it they 404.
+const { brand } = useBrand();
 
 interface Props {
     invitation: {
@@ -177,9 +180,15 @@ const submit = () => {
                         <div class="text-sm">
                             <label for="policy" class="text-muted-foreground">
                                 {{ t('auth.accept_invitation.agree_to') }}
-                                <a href="/privacy-policy" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{{
-                                    t('auth.accept_invitation.privacy_policy')
-                                }}</a>
+                                <a
+                                    v-if="brand.marketing_site"
+                                    href="/privacy-policy"
+                                    class="text-primary hover:underline"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    >{{ t('auth.accept_invitation.privacy_policy') }}</a
+                                >
+                                <span v-else>{{ t('auth.accept_invitation.privacy_policy') }}</span>
                             </label>
                             <InputError :message="form.errors.policy" />
                         </div>
@@ -198,9 +207,15 @@ const submit = () => {
                         <div class="text-sm">
                             <label for="terms" class="text-muted-foreground">
                                 {{ t('auth.accept_invitation.agree_to') }}
-                                <a href="/terms-of-service" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{{
-                                    t('auth.accept_invitation.terms_of_service')
-                                }}</a>
+                                <a
+                                    v-if="brand.marketing_site"
+                                    href="/terms-of-service"
+                                    class="text-primary hover:underline"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    >{{ t('auth.accept_invitation.terms_of_service') }}</a
+                                >
+                                <span v-else>{{ t('auth.accept_invitation.terms_of_service') }}</span>
                             </label>
                             <InputError :message="form.errors.terms" />
                         </div>

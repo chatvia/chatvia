@@ -55,11 +55,6 @@ class ChatCache
         return $this->tagsFor($conversationId)->has($key);
     }
 
-    public function forget(string $key, ?string $conversationId = null): bool
-    {
-        return $this->tagsFor($conversationId)->forget($key);
-    }
-
     public function flush(): bool
     {
         return $this->getTaggedCache()->flush();

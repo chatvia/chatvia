@@ -42,7 +42,7 @@ it('promotes a suggested label and backfills its conversations', function (): vo
         suggestionConversation($agent, 'Refund Requests'),
     ];
 
-    $topic = app(PromoteSuggestedTopicAction::class)->execute($agent, $agent->user, 'Refund Requests');
+    $topic = app(PromoteSuggestedTopicAction::class)->execute($agent, 'Refund Requests');
 
     expect($topic->topic)->toBe('Refund Requests')
         ->and($agent->topics()->where('topics.id', $topic->id)->exists())->toBeTrue();
@@ -66,8 +66,8 @@ it('throws when the agent already has a topic with that name', function (): void
     suggestionConversation($agent, 'Billing');
 
     // First promotion creates the "Billing" topic.
-    app(PromoteSuggestedTopicAction::class)->execute($agent, $agent->user, 'Billing');
+    app(PromoteSuggestedTopicAction::class)->execute($agent, 'Billing');
 
-    expect(fn () => app(PromoteSuggestedTopicAction::class)->execute($agent, $agent->user, 'Billing'))
+    expect(fn () => app(PromoteSuggestedTopicAction::class)->execute($agent, 'Billing'))
         ->toThrow(DomainValidationException::class);
 });

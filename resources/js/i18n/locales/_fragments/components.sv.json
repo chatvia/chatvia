@@ -1,7 +1,4 @@
 {
-    "nav": {
-        "platform": "Plattform"
-    },
     "theme": {
         "toggle": "Växla tema",
         "light": "Ljust",

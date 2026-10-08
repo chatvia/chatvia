@@ -16,7 +16,6 @@
                     "scorer": "Arvioija",
                     "status": "Tila",
                     "actions": "Toiminnot",
-                    "by": "Tekijä",
                     "pass_rate": "Läpäisyaste",
                     "passed_failed": "Läpäissyt / Hylätty",
                     "avg_score": "Keskipistemäärä",

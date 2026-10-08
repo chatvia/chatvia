@@ -35,16 +35,6 @@ class Pandoc
         $this->binPath = config('services.bin.pandoc');
     }
 
-    public static function readerFor(string $extension): ?string
-    {
-        return self::READERS[strtolower($extension)] ?? null;
-    }
-
-    public static function supports(string $extension): bool
-    {
-        return self::readerFor($extension) !== null;
-    }
-
     public function toText(string $path, string $extension): string
     {
         return $this->convert($path, $extension, 'plain');
@@ -80,5 +70,10 @@ class Pandoc
         }
 
         return $result->output();
+    }
+
+    private static function readerFor(string $extension): ?string
+    {
+        return self::READERS[strtolower($extension)] ?? null;
     }
 }

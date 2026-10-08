@@ -48,16 +48,12 @@
     "copy": "コピー",
     "copy_message": "メッセージをコピー",
     "good_response": "良い回答",
-    "bad_response": "悪い回答",
-    "retry": "再試行",
-    "copied": "コピーしました!"
+    "bad_response": "悪い回答"
   },
   "handoff": {
     "talk_to_human": "人間のオペレーターと話す",
     "connecting": "オペレーターに接続中…",
     "connected": "{name} に接続しました",
-    "disconnected": "オペレーターが退席しました",
-    "returned_to_bot": "会話がボットに戻されました",
     "agent_typing": "{name} が入力中…",
     "waiting_for_agent": "対応可能なオペレーターを待っています…",
     "end_chat": "チャットを終了",
@@ -72,7 +68,6 @@
     "initialization_failed": "初期化エラーが発生しました。後でもう一度お試しください。",
     "verification_failed": "クライアントの認証に失敗しました。",
     "session_failed": "セッションの初期化に失敗しました。",
-    "connection_error": "接続エラーです。インターネット接続を確認してください。",
     "message_send_failed": "メッセージの送信に失敗しました。もう一度お試しください。",
     "response_failed": "応答の生成中に問題が発生しました。もう一度お試しください。",
     "auth_required": "このチャットにはサインインが必要です。"

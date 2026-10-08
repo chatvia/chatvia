@@ -6,7 +6,7 @@ use Domain\Agent\Policies\AgentPolicy;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * AgentPolicy matrix. The view/update/delete/restore/forceDelete abilities
+ * AgentPolicy matrix. The view/update/delete abilities
  * all delegate to `User::canAccessAgent($agent)`, so the matrix below maps
  * to the *real* contract: who can touch an agent.
  *
@@ -40,9 +40,7 @@ it('view/update/delete grant the workspace owner access to their own agents', fu
 
     expect($this->policy->view($owner, $agent))->toBeTrue()
         ->and($this->policy->update($owner, $agent))->toBeTrue()
-        ->and($this->policy->delete($owner, $agent))->toBeTrue()
-        ->and($this->policy->restore($owner, $agent))->toBeTrue()
-        ->and($this->policy->forceDelete($owner, $agent))->toBeTrue();
+        ->and($this->policy->delete($owner, $agent))->toBeTrue();
 });
 
 it('view/update/delete deny an unrelated workspace owner', function (): void {

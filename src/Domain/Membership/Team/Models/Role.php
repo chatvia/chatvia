@@ -3,11 +3,8 @@
 namespace Domain\Membership\Team\Models;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -25,7 +22,7 @@ use Support\Concerns\HasExternalId;
  * @property string $guard_name
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read AgentCollection<int, Agent> $agents
+ * @property-read Collection<int, Agent> $agents
  * @property-read int|null $agents_count
  * @property-read Collection<int, Permission> $permissions
  * @property-read int|null $permissions_count
@@ -33,7 +30,6 @@ use Support\Concerns\HasExternalId;
  * @property-read Collection<int, User> $users
  * @property-read int|null $users_count
  *
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Role forTeam(\Domain\Membership\Team\Models\Team $team)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Role newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Role newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Role permission($permissions, bool $without = false)
@@ -75,14 +71,5 @@ class Role extends SpatieRole
     public function agents(): BelongsToMany
     {
         return $this->belongsToMany(Agent::class);
-    }
-
-    /**
-     * Scope roles to a specific team.
-     */
-    #[Scope]
-    protected function forTeam(Builder $query, Team $team): void
-    {
-        $query->where('team_id', $team->id);
     }
 }

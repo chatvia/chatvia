@@ -16,7 +16,6 @@
                     "scorer": "Bewerter",
                     "status": "Status",
                     "actions": "Aktionen",
-                    "by": "Von",
                     "pass_rate": "Bestehensquote",
                     "passed_failed": "Bestanden / Nicht bestanden",
                     "avg_score": "Durchschn. Bewertung",

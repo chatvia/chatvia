@@ -3,7 +3,6 @@
 namespace Domain\Membership\Team\Models;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Enums\CapabilityEnum;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -23,7 +22,7 @@ use Support\Concerns\HasExternalId;
  * @property string $name
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read AgentCollection<int, Agent> $agents
+ * @property-read Collection<int, Agent> $agents
  * @property-read int|null $agents_count
  * @property-read Collection<int, Invitation> $invitations
  * @property-read int|null $invitations_count

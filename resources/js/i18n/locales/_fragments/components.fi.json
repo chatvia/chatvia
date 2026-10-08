@@ -1,7 +1,15 @@
 {
-    "nav": { "platform": "Alusta" },
-    "theme": { "toggle": "Vaihda teema", "light": "Vaalea", "dark": "Tumma", "system": "Järjestelmä" },
-    "team_switcher": { "select_team": "Valitse tiimi", "no_teams": "Ei tiimejä saatavilla", "manage_teams": "Hallinnoi tiimejä" },
+    "theme": {
+        "toggle": "Vaihda teema",
+        "light": "Vaalea",
+        "dark": "Tumma",
+        "system": "Järjestelmä"
+    },
+    "team_switcher": {
+        "select_team": "Valitse tiimi",
+        "no_teams": "Ei tiimejä saatavilla",
+        "manage_teams": "Hallinnoi tiimejä"
+    },
     "agents": {
         "create_modal": {
             "title": "Luo agentti",

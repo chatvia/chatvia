@@ -6,8 +6,7 @@
         "upload": "Lataa",
         "cancel": "Peruuta",
         "save": "Tallenna",
-        "confirm": "Vahvista",
-        "deleting": "Poistetaan..."
+        "confirm": "Vahvista"
     },
     "nav": {
         "account": "Tili",

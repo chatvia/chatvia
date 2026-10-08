@@ -2,7 +2,6 @@
 
 namespace Domain\Knowledge\Source\Web\Models;
 
-use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
@@ -39,7 +38,7 @@ use Support\Traits\HasStorageFile;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read AgentSource|null $pivot
- * @property-read AgentCollection<int, Agent> $agents
+ * @property-read Collection<int, Agent> $agents
  * @property-read int|null $agents_count
  * @property-read Collection<int, Chunk> $chunks
  * @property-read int|null $chunks_count

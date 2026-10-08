@@ -35,14 +35,8 @@
             "password_placeholder": "Adgangskode",
             "confirm_password_label": "Bekræft adgangskode",
             "confirm_password_placeholder": "Bekræft adgangskode",
-            "agree_to": "Jeg accepterer",
-            "privacy_policy": "Privatlivspolitikken",
-            "terms_of_service": "Servicevilkårene",
             "create_account": "Opret konto",
             "creating_account": "Opretter konto...",
-            "or": "Eller",
-            "continue_with_google": "Fortsæt med Google",
-            "continue_with_slack": "Fortsæt med Slack",
             "have_account": "Har du allerede en konto?",
             "log_in": "Log ind"
         },
@@ -129,22 +123,6 @@
             "sending_link": "Sender link...",
             "or": "Eller"
         },
-        "member_password": {
-            "title": "Angiv din adgangskode",
-            "description": "Opret en sikker adgangskode til din konto",
-            "head": "Angiv adgangskode",
-            "accept_error": "Invitationen kunne ikke accepteres. Prøv igen.",
-            "name_label": "Navn",
-            "name_placeholder": "Indtast dit navn",
-            "password_label": "Adgangskode",
-            "password_placeholder": "Opret en sikker adgangskode",
-            "confirm_password_label": "Bekræft adgangskode",
-            "confirm_password_placeholder": "Bekræft din adgangskode",
-            "accept_invitation": "Accepter invitation",
-            "accepting_invitation": "Accepterer invitation...",
-            "have_account": "Har du allerede en konto?",
-            "sign_in": "Log ind"
-        },
         "accept_invitation": {
             "title_existing": "Log ind for at acceptere invitation",
             "title_new": "Opret din konto",
@@ -208,13 +186,6 @@
             "card_title": "Invitation udløbet",
             "contact_owner": "Kontakt venligst teamejeren for at anmode om en ny invitation.",
             "go_to_login": "Gå til login"
-        },
-        "split": {
-            "headline": "Byg din egen {brand} på få minutter",
-            "subheadline": "Opret AI-assistenter, der lærer af {data} og viden",
-            "your_data": "dine data",
-            "secure_data": "Sikker datahåndtering",
-            "custom_gpt": "Tilpasset GPT"
         }
     }
 }

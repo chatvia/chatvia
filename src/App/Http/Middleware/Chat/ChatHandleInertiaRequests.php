@@ -10,11 +10,6 @@ class ChatHandleInertiaRequests extends Middleware
 {
     protected $rootView = 'app';
 
-    public function version(Request $request): ?string
-    {
-        return parent::version($request);
-    }
-
     public function share(Request $request): array
     {
         $user = $request->user();
@@ -34,7 +29,6 @@ class ChatHandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            //            'chatSession' => app(Session::class)->firstOrCreateSession(),
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),
             'domain' => $request->domain(),

@@ -46,8 +46,6 @@
             "evals_tooltip": "Testipaketit, jotka arvioivat tämän agentin vastauksia",
             "guardrails": "Turvarajat",
             "guardrails_tooltip": "Tekoälyturvallisuuden suojat: PII, kehotteen injektio, aiheet, myrkyllisyys",
-            "leads": "Liidit",
-            "leads_tooltip": "Hallinnoi agenttiesi keräimiä liidejä",
             "knowledge_sources": "Lähteet",
             "knowledge_sources_tooltip": "Hallinnoi agentin tietoja ja koulutusaineistoa",
             "functions": "Funktiot",

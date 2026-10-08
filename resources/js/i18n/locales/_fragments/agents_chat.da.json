@@ -1,13 +1,7 @@
 {
     "agents": {
         "chat_errors": {
-            "disabled_title": "Agent deaktiveret",
-            "disabled_description": "Denne agent er i øjeblikket utilgængelig",
-            "disabled_heading": "Agent deaktiveret",
-            "disabled_message": "Denne agent er blevet deaktiveret. Kontakt venligst administratoren for hjælp.",
-            "disabled_hint": "Hvis du mener, at dette er en fejl, eller du har brug for øjeblikkelig hjælp, bedes du kontakte din administrator.",
             "contact_admin": "Kontakt administrator",
-            "return_dashboard": "Tilbage til dashboard",
             "no_messages_title": "Ingen beskeder tilbage",
             "no_messages_description": "Du har nået din beskedgrænse",
             "not_found_title": "Agent ikke fundet",

@@ -117,7 +117,6 @@
                 "messenger": "Messenger",
                 "whatsapp": "WhatsApp",
                 "msteams": "Microsoft Teams",
-                "teams": "Microsoft Teams",
                 "instagram": "Instagram",
                 "playground": "بيئة التجربة",
                 "api": "واجهة برمجة التطبيقات"
@@ -129,9 +128,6 @@
             "sidebar": {
                 "online": "متصل",
                 "show_online_only": "إظهار الزوار المتصلين فقط",
-                "export_json": "تصدير JSON",
-                "export_csv": "تصدير CSV",
-                "export_pdf": "تصدير PDF",
                 "expires_today": "تنتهي اليوم",
                 "expires_in_days": "تنتهي خلال {count} يوم | تنتهي خلال {count} أيام",
                 "expires_in_one_month": "تنتهي خلال شهر واحد",
@@ -558,8 +554,6 @@
                 "add_topic": "إضافة موضوع",
                 "empty": "لا توجد مواضيع بعد. أضف موضوعاً لمساعدة وكيلك في تصنيف المحادثات.",
                 "no_results": "لا توجد مواضيع مطابقة لـ «{query}».",
-                "freeze_topics": "تجميد المواضيع",
-                "freeze_hint": "عند التجميد، يتوقف الوكيل عن تعلّم مواضيع جديدة من المحادثات.",
                 "done": "عرض التحليلات",
                 "add_dialog_title": "إضافة موضوع",
                 "add_dialog_description": "حدّد اسم الموضوع ووصفه لمساعدة الوكيل في تصنيف المحادثات.",
@@ -583,9 +577,6 @@
                 "update_error": "تعذّر تحديث الموضوع. يرجى المحاولة مجدداً.",
                 "delete_error": "تعذّر حذف الموضوع. يرجى المحاولة مجدداً.",
                 "load_error": "تعذّر تحميل المواضيع. يرجى المحاولة مجدداً.",
-                "freeze_error": "تعذّر تحديث إعداد التجميد. يرجى المحاولة مجدداً.",
-                "frozen": "تم تجميد المواضيع",
-                "unfrozen": "تم إلغاء تجميد المواضيع",
                 "permission_denied": "تم رفض الإذن",
                 "permission_denied_description": "ليس لديك إذن لإدارة المواضيع."
             }

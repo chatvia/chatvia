@@ -119,18 +119,6 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
     }
 
     /**
-     * Format the model name.
-     * Override this method in subclasses if model formatting is needed.
-     *
-     * @param  string  $model  The model identifier
-     * @return string The formatted model name
-     */
-    protected function formatModel(string $model): string
-    {
-        return $model;
-    }
-
-    /**
      * Get the API key for the provider.
      *
      * @return string The API key

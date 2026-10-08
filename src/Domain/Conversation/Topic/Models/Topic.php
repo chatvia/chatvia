@@ -3,7 +3,6 @@
 namespace Domain\Conversation\Topic\Models;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -22,7 +21,7 @@ use Illuminate\Support\Carbon;
  * @property string $description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read AgentCollection<int, Agent> $agents
+ * @property-read Collection<int, Agent> $agents
  * @property-read int|null $agents_count
  * @property-read Collection<int, Conversation> $conversations
  * @property-read int|null $conversations_count

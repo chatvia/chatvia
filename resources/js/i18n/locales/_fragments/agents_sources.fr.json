@@ -370,8 +370,6 @@
                 "include_paths_hint": "Utilisez des caractères génériques (*) pour les correspondances. Laissez vide pour inclure tous les chemins.",
                 "exclude_paths_label": "Exclure les chemins",
                 "exclude_paths_hint": "Utilisez des caractères génériques (*) pour les correspondances. Ces chemins seront ignorés.",
-                "slow_crawling_label": "Exploration lente",
-                "slow_crawling_hint": "Utilise des délais plus longs pour une exploration plus respectueuse",
                 "crawling_title": "Exploration...",
                 "crawling_count": "{count} site web en cours d'exploration. | {count} sites web en cours d'exploration.",
                 "tooltip_crawling": "Exploration en cours...",

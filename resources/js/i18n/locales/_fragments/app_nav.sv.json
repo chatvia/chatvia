@@ -46,8 +46,6 @@
             "evals_tooltip": "Testsviter som betygsätter den här agentens svar",
             "guardrails": "Skyddsräcken",
             "guardrails_tooltip": "AI-säkerhetsskydd: PII, promptinjektion, ämnen, toxicitet",
-            "leads": "Leads",
-            "leads_tooltip": "Hantera leads som fångats av din agent",
             "knowledge_sources": "Källor",
             "knowledge_sources_tooltip": "Hantera agentkunskap och träningsdata",
             "functions": "Funktioner",

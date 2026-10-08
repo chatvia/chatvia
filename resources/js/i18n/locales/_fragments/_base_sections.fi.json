@@ -16,10 +16,8 @@
         "delete_dialog_description": "Tätä toimintoa ei voi peruuttaa."
     },
     "sidebar": {
-        "open_sidebar": "Avaa sivupalkki",
         "new_chat": "Uusi keskustelu",
         "your_chats": "Omat keskustelut",
-        "loading": "Ladataan...",
         "no_conversations": "Ei keskusteluja vielä",
         "rename_conversation": "Nimeä uudelleen",
         "clear_all_chats": "Tyhjennä kaikki keskustelut",

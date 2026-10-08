@@ -46,8 +46,6 @@
             "evals_tooltip": "Zestawy testów oceniające odpowiedzi agenta",
             "guardrails": "Zabezpieczenia",
             "guardrails_tooltip": "Zabezpieczenia AI: PII, wstrzykiwanie promptów, tematy, toksyczność",
-            "leads": "Leady",
-            "leads_tooltip": "Zarządzaj leadami przechwywanymi przez agenta",
             "knowledge_sources": "Źródła",
             "knowledge_sources_tooltip": "Zarządzaj wiedzą i danymi szkoleniowymi agenta",
             "functions": "Funkcje",

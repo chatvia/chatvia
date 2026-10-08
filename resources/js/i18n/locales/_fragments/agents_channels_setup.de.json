@@ -15,13 +15,6 @@
                     "bot_token": "Bot-Token",
                     "signing_secret": "Signing-Secret",
                     "request_url": "Anfrage-URL",
-                    "callback_url": "Callback-URL",
-                    "verify_token": "Verifizierungs-Token",
-                    "page_access_token": "Seiten-Zugriffstoken",
-                    "app_secret": "App-Secret",
-                    "access_token": "Zugriffstoken",
-                    "phone_number_id": "Telefonnummer-ID",
-                    "waba_id": "WhatsApp Business-Konto-ID",
                     "microsoft_app_id": "Microsoft-App-ID",
                     "client_secret": "Client-Secret",
                     "tenant_id": "Mandanten-ID",
@@ -33,24 +26,10 @@
                 "placeholders": {
                     "telegram_bot_token": "123456789:ABCdef…",
                     "slack_bot_token": "xoxb-…",
-                    "meta_token": "EAAG…",
-                    "phone_number_id": "123456789012345",
                     "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
-                    "tenant_id": "Für Multi-Tenant leer lassen",
-                    "instagram_token": "IGAA…"
-                },
-                "guide": {
-                    "need_detail_before": "Benötigen Sie mehr Details? Folgen Sie der",
-                    "step_by_step_guide": "Schritt-für-Schritt-Anleitung",
-                    "need_detail_after": "mit Screenshots."
+                    "tenant_id": "Für Multi-Tenant leer lassen"
                 },
                 "shared": {
-                    "subscribe_webhook": "Den Webhook für das Feld {field} abonnieren",
-                    "messages_field": "Nachrichten",
-                    "create_meta_app_at": "Eine App unter {link} erstellen",
-                    "copy_app_secret_both": "Das App-Secret aus {section} kopieren und beides unten einfügen",
-                    "copy_app_secret_all": "Das App-Secret aus {section} kopieren und alles unten einfügen",
-                    "copy_app_secret_same_page": "Das App-Secret von derselben Seite kopieren und beides unten einfügen",
                     "reply_streams_live": "— die Antwort wird live gestreamt"
                 },
                 "telegram": {
@@ -70,9 +49,7 @@
                         "dialog_description": "Fügen Sie Slash-Befehle hinzu, die Personen in Telegram antippen können. Jeder antwortet mit dem von Ihnen festgelegten Text. Integrierte Befehle (/start, /reset, /help) sind immer verfügbar.",
                         "command_placeholder": "pricing",
                         "description_placeholder": "Was dieser Befehl macht",
-                        "reply_placeholder": "Die Antwort, die gesendet wird, wenn jemand diesen Befehl verwendet…",
                         "remove": "Befehl entfernen",
-                        "empty_draft": "Noch keine Befehle. Fügen Sie unten einen hinzu.",
                         "add": "Befehl hinzufügen",
                         "cancel": "Abbrechen",
                         "save": "Befehle speichern",
@@ -93,32 +70,6 @@
                     "oauth_permissions": "OAuth & Permissions",
                     "basic_information": "Basic Information"
                 },
-                "messenger": {
-                    "steps": {
-                        "connected_1": "In {link} {webhooks} öffnen und die Callback-URL sowie das Verifizierungs-Token oben einfügen",
-                        "connected_3": "Senden Sie eine Nachricht an Ihre Seite über Messenger – Ihr Agent antwortet automatisch",
-                        "connect_1": "Eine App unter {link} erstellen, dann den Anwendungsfall {product} hinzufügen — bei Bedarf danach suchen",
-                        "connect_2": "Unter {api_settings} Ihre Facebook-Seite verbinden und einen Seiten-Zugriffstoken generieren",
-                        "connect_perms": "In {permissions} die Berechtigungen {perm1}, {perm2} und {perm3} hinzufügen"
-                    },
-                    "your_meta_app": "Ihrer Meta-App",
-                    "webhooks_path": "Anwendungsfälle → Anpassen → Messenger-API-Einstellungen",
-                    "api_settings_path": "Anwendungsfälle → Anpassen → Messenger-API-Einstellungen",
-                    "permissions_path": "Anwendungsfälle → Anpassen → Berechtigungen und Funktionen",
-                    "app_settings_basic": "App-Einstellungen → Allgemein",
-                    "product": "Kunden über Messenger erreichen"
-                },
-                "whatsapp": {
-                    "steps": {
-                        "connected_1": "In {link} {configuration} öffnen und die Callback-URL sowie das Verifizierungs-Token oben einfügen",
-                        "connected_3": "Senden Sie eine Nachricht an Ihre Nummer über WhatsApp – Ihr Agent antwortet automatisch",
-                        "connect_1": "Eine App unter {link} mit dem Anwendungsfall {use_case} erstellen",
-                        "connect_2": "{basic_setup} abschließen und anschließend die Telefonnummer-ID, die WhatsApp Business-Konto-ID sowie ein Zugriffstoken kopieren"
-                    },
-                    "configuration_path": "WhatsApp → Konfiguration",
-                    "use_case": "Mit Kunden über WhatsApp in Kontakt treten",
-                    "basic_setup_path": "Anwendungsfälle → Anpassen → Grundkonfiguration"
-                },
                 "msteams": {
                     "app_id_label": "App-{id}",
                     "steps": {
@@ -137,18 +88,6 @@
                     "manage_password": "Kennwort verwalten → Zertifikate & Geheimnisse",
                     "directory_tenant_id": "Verzeichnis-ID (Mandant)",
                     "open_chat_in_teams": "Einen Chat mit Ihrem Bot in Teams öffnen"
-                },
-                "instagram": {
-                    "steps": {
-                        "connected_1": "In {link} {webhooks} öffnen und die Callback-URL sowie das Verifizierungs-Token oben einfügen",
-                        "connected_3": "In der Instagram-App den Nachrichtenzugriff unter {message_controls} erlauben und Ihr Konto per DM kontaktieren",
-                        "connect_1": "Eine App unter {link} erstellen und das Produkt {product} hinzufügen – Ihr Instagram-Konto muss ein professionelles Konto (Unternehmen oder Creator) sein",
-                        "connect_2": "Unter {api_setup} einen Zugriffstoken für Ihr Konto generieren"
-                    },
-                    "webhooks_path": "Instagram → API-Einrichtung mit Instagram-Login → Webhooks konfigurieren",
-                    "message_controls_path": "Einstellungen → Nachrichten und Story-Antworten → Nachrichteneinstellungen → Verbundene Tools",
-                    "api_setup_path": "Instagram → API-Einrichtung mit Instagram-Login",
-                    "product": "Instagram"
                 }
             }
         }

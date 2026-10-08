@@ -25,7 +25,6 @@
 
     --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
     --font-inter: 'Inter', sans-serif;
-    --font-heading: 'Inter', 'Plus Jakarta Sans', sans-serif;
 
     --text-xs: 0.75rem;
     --text-xs--line-height: 1.5;
@@ -111,22 +110,6 @@
     display: none;
 }
 
-/* Marquee Animation */
-@keyframes marquee {
-    0% {
-        transform: translateX(0%);
-    }
-    100% {
-        transform: translateX(-50%);
-    }
-}
-
-@layer utilities {
-    .animate-marquee {
-        animation: marquee 20s linear infinite;
-    }
-}
-
 /* Hide scrollbar utility */
 .scrollbar-hide {
     -ms-overflow-style: none;
@@ -153,10 +136,7 @@ html[lang='ar'] .font-inter,
 html[lang='fa'] .font-inter,
 html[dir='rtl'] .font-display,
 html[lang='ar'] .font-display,
-html[lang='fa'] .font-display,
-html[dir='rtl'] .font-heading,
-html[lang='ar'] .font-heading,
-html[lang='fa'] .font-heading {
+html[lang='fa'] .font-display {
     font-family: system-ui, 'Segoe UI', Tahoma, 'Inter', sans-serif;
 }
 

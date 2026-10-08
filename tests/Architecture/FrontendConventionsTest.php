@@ -71,7 +71,6 @@ it('leaves no console.log debug output in the frontend', function () use ($front
     // These files show console.log inside code samples for customers.
     $codeSamples = [
         'pages/agents/Deploy.vue',
-        'pages/agents/setup/Setup.vue',
         'pages/agents/security/Identity.examples.ts',
     ];
 

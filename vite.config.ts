@@ -47,7 +47,6 @@ export default defineConfig({
         typescriptTransformPlugin(),
         laravel({
             input: ['resources/js/app.ts', 'resources/css/landing.css'],
-            ssr: 'resources/js/ssr.ts',
             refresh: true,
         }),
         inertia(),

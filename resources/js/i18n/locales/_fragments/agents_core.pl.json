@@ -116,7 +116,6 @@
                 "messenger": "Messenger",
                 "whatsapp": "WhatsApp",
                 "msteams": "Microsoft Teams",
-                "teams": "Microsoft Teams",
                 "instagram": "Instagram",
                 "playground": "Plac zabaw",
                 "api": "API"
@@ -128,9 +127,6 @@
             "sidebar": {
                 "online": "Online",
                 "show_online_only": "Pokaż tylko odwiedzających online",
-                "export_json": "Eksportuj jako JSON",
-                "export_csv": "Eksportuj jako CSV",
-                "export_pdf": "Eksportuj jako PDF",
                 "expires_today": "Wygasa dzisiaj",
                 "expires_in_days": "Wygasa za {count} dzień | Wygasa za {count} dni",
                 "expires_in_one_month": "Wygasa za 1 miesiąc",
@@ -556,8 +552,6 @@
                 "add_topic": "Dodaj temat",
                 "empty": "Brak tematów. Dodaj jeden, aby pomóc agentowi klasyfikować rozmowy.",
                 "no_results": "Brak tematów pasujących do „{query}\".",
-                "freeze_topics": "Zamroź tematy",
-                "freeze_hint": "Gdy zamrożone, agent przestaje uczyć się nowych tematów z rozmów.",
                 "done": "Wyświetl analizę",
                 "add_dialog_title": "Dodaj temat",
                 "add_dialog_description": "Zdefiniuj nazwę i opis tematu, aby pomóc agentowi klasyfikować rozmowy.",
@@ -581,9 +575,6 @@
                 "update_error": "Nie udało się zaktualizować tematu. Spróbuj ponownie.",
                 "delete_error": "Nie udało się usunąć tematu. Spróbuj ponownie.",
                 "load_error": "Nie udało się załadować tematów. Spróbuj ponownie.",
-                "freeze_error": "Nie udało się zaktualizować ustawienia zamrożenia. Spróbuj ponownie.",
-                "frozen": "Tematy zamrożone",
-                "unfrozen": "Tematy odblokowane",
                 "permission_denied": "Odmowa dostępu",
                 "permission_denied_description": "Nie masz uprawnień do zarządzania tematami."
             }

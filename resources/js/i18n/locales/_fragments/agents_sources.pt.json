@@ -370,8 +370,6 @@
                 "include_paths_hint": "Utilize caracteres universais (*) para corresponder padrões. Deixe em branco para incluir todos os caminhos.",
                 "exclude_paths_label": "Excluir caminhos",
                 "exclude_paths_hint": "Utilize caracteres universais (*) para corresponder padrões. Estes caminhos serão ignorados.",
-                "slow_crawling_label": "Rastreio Lento",
-                "slow_crawling_hint": "Utiliza intervalos mais longos para um rastreio mais respeitoso",
                 "crawling_title": "A Rastrear...",
                 "crawling_count": "{count} website a ser rastreado atualmente. | {count} websites a serem rastreados atualmente.",
                 "tooltip_crawling": "A rastrear...",

@@ -14,8 +14,7 @@ use Illuminate\Support\Facades\Http;
  * `/crawl` flow needed. `/map` returns URLs only (no Markdown).
  *
  * Stage 2 (ingestion) uses `/scrape` to fetch a single page as Markdown. Because
- * `/map` captures no Markdown, every trained page is scraped on demand here (see
- * WebPageMarkdownCache — a cost optimisation, never a correctness dependency).
+ * `/map` captures no Markdown, every trained page is scraped on demand here.
  * FireCrawl performs every fetch from its own infrastructure, so we never hit
  * the target site ourselves.
  */

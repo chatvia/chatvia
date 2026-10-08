@@ -321,10 +321,8 @@ return [
             'chunker' => 'llama-3.1-70b-instruct',
             'title' => 'mistral-small-3.2-24b-instruct-2506',
             'form_description' => 'mistral-small-3.2-24b-instruct-2506',
-            'subdomain' => 'mistral-small-3.2-24b-instruct-2506',
             'tone' => 'mistral-small-3.2-24b-instruct-2506',
             'topic' => 'mistral-small-3.2-24b-instruct-2506',
-            'search_decision' => 'gemma-3-27b-it',
             // LLM-as-judge for agent evals. Open-weight + reliable for the
             // constrained pass/fail scoring we ask of it; swap to a Qwen3
             // instruct model here without touching code.
@@ -359,7 +357,6 @@ return [
         'pricing' => [
             'chunker_input_per_million_tokens' => 0.90,
             'chunker_output_per_million_tokens' => 0.90,
-            'embedding_output_per_million_tokens' => 0.90,
             // Per-million-token prices used for the stored ingestion cost.
             'embedding_per_million_tokens' => 0.10,
             'summary_input_per_million_tokens' => 2.0,
@@ -590,9 +587,6 @@ return [
     */
 
     'evals' => [
-        // Master switch — when false, eval runs are rejected (CI / local).
-        'enabled' => env('EVALS_ENABLED', true),
-
         // Queue the per-case eval jobs run on — off the chat-critical `messages` queue.
         'queue' => env('EVALS_QUEUE', 'analytics'),
 
@@ -650,34 +644,18 @@ return [
     | SSE streaming
     |--------------------------------------------------------------------------
     |
-    | The SSE endpoint and the request-id idempotency store. Streams keyed by a
-    | client request_id are remembered in `dedupe.store` for `ttl_seconds`; a
-    | replay with the same id re-streams the snapshot instead of re-running the LLM.
+    | The request-id idempotency store. Streams keyed by a client request_id are
+    | remembered in `dedupe.store` for `ttl_seconds`; a replay with the same id
+    | re-streams the snapshot instead of re-running the LLM.
     |
     */
 
     'sse' => [
-        'url' => env('SSE_URL', 'http://localhost:8000/sse'),
-
         'dedupe' => [
             // Cache driver name from config/cache.php; null = default store.
             'store' => env('SSE_DEDUPE_STORE'),
             'ttl_seconds' => (int) env('SSE_DEDUPE_TTL', 600),
         ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | HMAC
-    |--------------------------------------------------------------------------
-    |
-    | Shared secret for request signing. Currently not referenced anywhere in the
-    | codebase — kept here as a reserved key; remove once confirmed unneeded.
-    |
-    */
-
-    'hmac' => [
-        'key' => env('HMAC_KEY', ''),
     ],
 
     /*
@@ -734,6 +712,24 @@ return [
     'security' => [
         'csp' => env('CSP_MODE', 'report-only'),
         'csp_report_uri' => env('CSP_REPORT_URI'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Unfinished features
+    |--------------------------------------------------------------------------
+    |
+    | Install-wide switches for features that are not finished yet. While a
+    | switch is off, the feature's routes answer 404 (EnsureFeatureFlagIsOn)
+    | and the dashboard hides its entry points (shared as `features`).
+    |
+    | - youtube_sources: add YouTube videos as knowledge sources. Added
+    |   videos are saved but not ingested yet.
+    |
+    */
+
+    'features' => [
+        'youtube_sources' => (bool) env('FEATURE_YOUTUBE_SOURCES', false),
     ],
 
 ];

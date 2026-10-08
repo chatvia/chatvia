@@ -119,16 +119,6 @@
                 "name": "Amplitude",
                 "description": "Forespørg på produktanalyse — hændelser, diagrammer og kohorter — fra dit Amplitude-projekt."
             }
-        },
-        "mcp": {
-            "account-analytics": {
-                "name": "Kontoanalyse",
-                "description": "Besvar workspace-ejerens spørgsmål om deres egen konto i tal — beskeder, samtaler, brugere, kanaler, leads, tilfredshed, svartid, emner og overdragelser."
-            },
-            "charts": {
-                "name": "Interaktive diagrammer",
-                "description": "Vis interaktive diagrammer (søjle, linje, cirkel, måler, punkt, radar, varmekort, …) direkte i chatten."
-            }
         }
     }
 }

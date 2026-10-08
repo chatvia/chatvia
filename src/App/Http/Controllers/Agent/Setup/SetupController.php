@@ -74,7 +74,7 @@ class SetupController
             'appearanceSettings' => $agent->settings('appearance'),
             'defaultAppearance' => config('model-settings.defaults.'.Agent::class.'.appearance'),
 
-            // Per-surface behaviour settings (Behavior + Embed sections swap on preview tab).
+            // Per-surface behaviour settings (the Behavior section swaps them on the preview tab).
             'widgetSettings' => $agent->settings('widget'),
             'defaultWidget' => config('model-settings.defaults.'.Agent::class.'.widget'),
             'barSettings' => $agent->settings('bar'),
@@ -93,8 +93,6 @@ class SetupController
             'llmSettings' => $agent->llmSettings(),
             'defaultLlmSettings' => config('model-settings.defaults.'.Agent::class.'.llm_settings'),
 
-            // Embed snippet helpers (Widget/Bar render their script tag in the Embed section).
-            'embedScriptUrl' => config('chatvia.widget.script_url_embed'),
             'availableLanguages' => config('chatvia.languages'),
 
             // Custom domain (Hosted Chat only) — quota + CNAME target.

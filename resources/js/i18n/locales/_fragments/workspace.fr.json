@@ -288,7 +288,6 @@
         },
         "governance": {
             "breadcrumb": "Gouvernance",
-            "title": "Journal d'audit",
             "description": "Toutes les actions de vos agents via les outils et connecteurs — autorisées, approuvées, refusées ou limitées en débit — avec les arguments, le résultat et l'utilisateur à l'origine de l'action."
         },
         "sections": {
@@ -302,8 +301,7 @@
             "functions": "Fonctions",
             "api_keys": "Clés API",
             "prompts": "Prompts",
-            "members": "Chatters",
-            "audit_log": "Journal d'audit"
+            "members": "Chatters"
         }
     }
 }

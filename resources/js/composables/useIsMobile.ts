@@ -3,19 +3,16 @@ import type { Ref } from 'vue';
 
 /**
  * The single mobile breakpoint for the chat surface. Mobile is anything
- * narrower than this (matches the `innerWidth >= 768` desktop checks the
- * chat layout used to scatter inline).
+ * narrower than this.
  */
 export const MOBILE_BREAKPOINT = 768;
 
 /**
  * Reactive viewport-based mobile detection.
  *
- * Replaces the one-shot `is-mobile` UA sniff that was evaluated once at
- * setup and never updated — so the chat layout stayed frozen in whatever
- * mode it booted in when a desktop window was narrowed, a tablet rotated,
- * or the app ran in split-screen. This re-flows live, and keys off the
- * viewport (what actually drives layout) rather than the user agent.
+ * Keyed off the viewport (what actually drives layout), not the user agent,
+ * and reactive: the layout re-flows when a desktop window is narrowed, a
+ * tablet rotates, or the app runs in split-screen.
  *
  * Returns a `Ref<boolean>` — read `.value` in script, auto-unwrapped in
  * templates.

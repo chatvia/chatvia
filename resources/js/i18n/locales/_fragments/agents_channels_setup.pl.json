@@ -15,13 +15,6 @@
                     "bot_token": "Token bota",
                     "signing_secret": "Klucz podpisujący",
                     "request_url": "URL żądania",
-                    "callback_url": "URL zwrotny",
-                    "verify_token": "Token weryfikacyjny",
-                    "page_access_token": "Token dostępu do strony",
-                    "app_secret": "Klucz tajny aplikacji",
-                    "access_token": "Token dostępu",
-                    "phone_number_id": "ID numeru telefonu",
-                    "waba_id": "ID konta WhatsApp Business",
                     "microsoft_app_id": "ID aplikacji Microsoft",
                     "client_secret": "Klucz tajny klienta",
                     "tenant_id": "ID dzierżawcy",
@@ -33,24 +26,10 @@
                 "placeholders": {
                     "telegram_bot_token": "123456789:ABCdef…",
                     "slack_bot_token": "xoxb-…",
-                    "meta_token": "EAAG…",
-                    "phone_number_id": "123456789012345",
                     "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
-                    "tenant_id": "Pozostaw puste dla Multi Tenant",
-                    "instagram_token": "IGAA…"
-                },
-                "guide": {
-                    "need_detail_before": "Potrzebujesz więcej szczegółów? Skorzystaj z",
-                    "step_by_step_guide": "przewodnika krok po kroku",
-                    "need_detail_after": "z zrzutami ekranu."
+                    "tenant_id": "Pozostaw puste dla Multi Tenant"
                 },
                 "shared": {
-                    "subscribe_webhook": "Subskrybuj webhook do pola {field}",
-                    "messages_field": "wiadomości",
-                    "create_meta_app_at": "Utwórz aplikację na {link}",
-                    "copy_app_secret_both": "Skopiuj klucz tajny aplikacji z sekcji {section} i wklej oba pola poniżej",
-                    "copy_app_secret_all": "Skopiuj klucz tajny aplikacji z sekcji {section} i wklej wszystko poniżej",
-                    "copy_app_secret_same_page": "Skopiuj klucz tajny aplikacji z tej samej strony i wklej oba pola poniżej",
                     "reply_streams_live": "— odpowiedź pojawia się na żywo"
                 },
                 "telegram": {
@@ -76,30 +55,6 @@
                     "oauth_permissions": "OAuth i uprawnienia",
                     "basic_information": "Informacje podstawowe"
                 },
-                "messenger": {
-                    "steps": {
-                        "connected_1": "W {link} otwórz {webhooks} i wklej URL zwrotny oraz token weryfikacyjny powyżej",
-                        "connected_3": "Wyślij wiadomość do swojej strony przez Messenger — agent odpowiada automatycznie",
-                        "connect_1": "Utwórz aplikację na {link} i dodaj produkt {product}",
-                        "connect_2": "W sekcji {api_settings} połącz swoją stronę na Facebooku i wygeneruj token dostępu do strony"
-                    },
-                    "your_meta_app": "swojej aplikacji Meta",
-                    "webhooks_path": "Messenger → Ustawienia → Webhooki",
-                    "api_settings_path": "Messenger → Ustawienia API",
-                    "app_settings_basic": "Ustawienia aplikacji → Podstawowe",
-                    "product": "Messenger"
-                },
-                "whatsapp": {
-                    "steps": {
-                        "connected_1": "W {link} otwórz {configuration} i wklej URL zwrotny oraz token weryfikacyjny powyżej",
-                        "connected_3": "Wyślij wiadomość na swój numer przez WhatsApp — agent odpowiada automatycznie",
-                        "connect_1": "Utwórz aplikację na {link} z przypadkiem użycia {use_case}",
-                        "connect_2": "Wypełnij {basic_setup}, a następnie skopiuj ID numeru telefonu, ID konta WhatsApp Business i token dostępu"
-                    },
-                    "configuration_path": "WhatsApp → Konfiguracja",
-                    "use_case": "Nawiązuj kontakt z klientami przez WhatsApp",
-                    "basic_setup_path": "Przypadki użycia → Dostosuj → Konfiguracja podstawowa"
-                },
                 "msteams": {
                     "app_id_label": "{id} aplikacji",
                     "steps": {
@@ -118,18 +73,6 @@
                     "manage_password": "Zarządzaj hasłem → Certyfikaty i klucze tajne",
                     "directory_tenant_id": "ID katalogu (dzierżawcy)",
                     "open_chat_in_teams": "Otwórz czat z botem w Teams"
-                },
-                "instagram": {
-                    "steps": {
-                        "connected_1": "W {link} otwórz {webhooks} i wklej URL zwrotny oraz token weryfikacyjny powyżej",
-                        "connected_3": "W aplikacji Instagram zezwól na dostęp do wiadomości w sekcji {message_controls}, a następnie wyślij wiadomość bezpośrednią do swojego konta",
-                        "connect_1": "Utwórz aplikację na {link} i dodaj produkt {product} — Twoje konto Instagram musi być kontem profesjonalnym (firmowym lub twórcy)",
-                        "connect_2": "W sekcji {api_setup} wygeneruj token dostępu dla swojego konta"
-                    },
-                    "webhooks_path": "Instagram → Konfiguracja API z logowaniem Instagram → Konfiguruj webhooki",
-                    "message_controls_path": "Ustawienia → Wiadomości i odpowiedzi na relacje → Kontrola wiadomości → Połączone narzędzia",
-                    "api_setup_path": "Instagram → Konfiguracja API z logowaniem Instagram",
-                    "product": "Instagram"
                 }
             }
         }

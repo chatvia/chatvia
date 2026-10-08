@@ -370,8 +370,6 @@
                 "include_paths_hint": "Käytä jokerimerkkejä (*) kaavojen täsmäyttämiseen. Jätä tyhjäksi sisällyttääksesi kaikki polut.",
                 "exclude_paths_label": "Poissuljetut polut",
                 "exclude_paths_hint": "Käytä jokerimerkkejä (*) kaavojen täsmäyttämiseen. Nämä polut ohitetaan.",
-                "slow_crawling_label": "Hidas indeksointi",
-                "slow_crawling_hint": "Käyttää pidempiä viiveitä kunnioittavampaa indeksointia varten",
                 "crawling_title": "Indeksoidaan...",
                 "crawling_count": "{count} verkkosivustoa indeksoidaan parhaillaan. | {count} verkkosivustoa indeksoidaan parhaillaan.",
                 "tooltip_crawling": "Indeksoidaan parhaillaan...",

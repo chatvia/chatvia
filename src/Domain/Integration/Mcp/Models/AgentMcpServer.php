@@ -277,23 +277,6 @@ class AgentMcpServer extends Model
         $query->where('user_id', $agent->user_id);
     }
 
-    /**
-     * Restrict to one or more {@see McpServerCategory} values.
-     *
-     * @param  Builder<self>  $query
-     * @param  McpServerCategory|array<int, McpServerCategory>  $category
-     */
-    #[Scope]
-    protected function inCategory(Builder $query, McpServerCategory|array $category): void
-    {
-        $values = array_map(
-            static fn (McpServerCategory $c): string => $c->value,
-            is_array($category) ? $category : [$category],
-        );
-
-        $query->whereIn('category', $values);
-    }
-
     public static function makeSlug(string $input): string
     {
         $slug = preg_replace('/[^a-z0-9_]+/', '_', strtolower($input)) ?? 'mcp';

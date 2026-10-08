@@ -1,7 +1,4 @@
 {
-    "nav": {
-        "platform": "Plattform"
-    },
     "theme": {
         "toggle": "Bytt tema",
         "light": "Lys",

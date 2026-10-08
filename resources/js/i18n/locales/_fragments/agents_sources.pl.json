@@ -370,8 +370,6 @@
                 "include_paths_hint": "Używaj symboli wieloznacznych (*) do dopasowywania wzorców. Pozostaw puste, aby uwzględnić wszystkie ścieżki.",
                 "exclude_paths_label": "Wyklucz ścieżki",
                 "exclude_paths_hint": "Używaj symboli wieloznacznych (*) do dopasowywania wzorców. Te ścieżki zostaną pominięte.",
-                "slow_crawling_label": "Wolne indeksowanie",
-                "slow_crawling_hint": "Używa dłuższych opóźnień dla bardziej przyjaznego indeksowania",
                 "crawling_title": "Indeksowanie...",
                 "crawling_count": "Obecnie indeksowana {count} strona internetowa. | Obecnie indeksowane {count} strony internetowe. | Obecnie indeksowanych {count} stron internetowych.",
                 "tooltip_crawling": "Trwa indeksowanie...",

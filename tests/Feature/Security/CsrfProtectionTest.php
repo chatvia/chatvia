@@ -64,6 +64,5 @@ it('keeps the server-to-server endpoints exempt', function (string $uri): void {
 
     expect($response->getContent())->toBe('ok');
 })->with([
-    'ingestion webhook' => '/ingestion/webhook',
     'stripe webhook' => '/stripe/webhook',
 ]);

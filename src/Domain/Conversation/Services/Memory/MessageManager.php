@@ -232,19 +232,6 @@ class MessageManager
         $this->saveMessages($conversationId, array_values($messages));
     }
 
-    public function removeMessage(string $conversationId, string $messageId): void
-    {
-        $messages = $this->getMessagesForConversation($conversationId);
-
-        foreach ($messages as $key => $message) {
-            if ($message['id'] === $messageId) {
-                unset($messages[$key]);
-            }
-        }
-
-        $this->saveMessages($conversationId, array_values($messages));
-    }
-
     public function getMessageById(string $conversationId, string $messageId): ?MessageData
     {
         $message = collect($this->getMessagesForConversation($conversationId))
@@ -301,13 +288,6 @@ class MessageManager
         }
 
         return $formattedMessages;
-    }
-
-    public function getLastMessages(string $conversationId, int $number = 3): array
-    {
-        $llmMessages = $this->getLlmMessages($conversationId, false, $number);
-
-        return array_reverse(array_slice($llmMessages, -$number));
     }
 
     public function addFeedback(string $conversationId, string $messageId, ?string $feedback): void

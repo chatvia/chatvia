@@ -30,7 +30,6 @@ use App\Http\Controllers\Landing\Legal\TermsController;
 use App\Http\Controllers\Landing\Marketing\ContactController;
 use App\Http\Controllers\Landing\Marketing\MissionController;
 use App\Http\Controllers\Landing\Marketing\PricingController;
-use App\Http\Controllers\Landing\Marketing\UseCaseController;
 use App\Http\Middleware\Access\EnsureBillingIsEnabled;
 use App\Http\Middleware\Web\ResolveLandingLocale;
 use Illuminate\Support\Facades\Route;
@@ -78,7 +77,6 @@ Route::group([
     Route::get('/blog/{post:slug}', PostController::class)->name('blog.post');
 
     Route::get('contact', [ContactController::class, 'show'])->name('contact');
-    Route::get('/use-cases/{case}', UseCaseController::class)->name('use-cases');
     Route::get('free-tools/chat-with-pdf', ChatPdfController::class)->name('free-tools.chat-with-pdf');
 });
 
@@ -169,5 +167,4 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
 // transactional/email + invitation links (auth.php), and webhook/dev endpoints.
 require __DIR__.'/auth.php';
 require __DIR__.'/chat.php';
-require __DIR__.'/ingestion.php';
 require __DIR__.'/local.php';

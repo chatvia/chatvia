@@ -102,3 +102,58 @@ describe('DELETE /api/v1/functions/{function}', function (): void {
         expect(AgentFunction::whereKey($theirs->id)->exists())->toBeTrue();
     });
 });
+
+describe('POST /api/v1/functions', function (): void {
+
+    it('rejects a parameters schema that is not an object schema', function (): void {
+        $this->withHeaders(functionHeaders($this->token))
+            ->postJson('/api/v1/functions', [
+                'internal_name' => 'get_order_status',
+                'description' => 'Get the order status',
+                'parameters_schema' => ['type' => 'object', 'properties' => ['x' => ['type' => 'function']]],
+                'webhook_url' => 'https://example.com/webhook',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('parameters_schema');
+
+        expect($this->user->functions()->count())->toBe(0);
+    });
+});
+
+describe('PATCH /api/v1/functions/{function}', function (): void {
+
+    it('404s without changes for a function belonging to another account', function (): void {
+        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        $theirs = makeApiFunction($other);
+
+        $this->withHeaders(functionHeaders($this->token))
+            ->patchJson("/api/v1/functions/{$theirs->external_id}", ['description' => 'Hijacked'])
+            ->assertNotFound();
+
+        expect($theirs->fresh()->description)->toBe('Get the order status');
+    });
+
+    it('rejects a changed schema with an invalid property name', function (): void {
+        $fn = makeApiFunction($this->user);
+
+        $this->withHeaders(functionHeaders($this->token))
+            ->patchJson("/api/v1/functions/{$fn->external_id}", [
+                'parameters_schema' => ['type' => 'object', 'properties' => ['1bad' => ['type' => 'string']]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('parameters_schema');
+    });
+
+    it('accepts a stored schema that fails the shape rules when it is sent back unchanged', function (): void {
+        $stored = ['type' => 'object', 'properties' => ['order-id' => ['type' => 'string']]];
+        $fn = makeApiFunction($this->user, ['parameters_schema' => $stored]);
+
+        $this->withHeaders(functionHeaders($this->token))
+            ->patchJson("/api/v1/functions/{$fn->external_id}", [
+                'description' => 'New description',
+                'parameters_schema' => $stored,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.description', 'New description');
+    });
+});

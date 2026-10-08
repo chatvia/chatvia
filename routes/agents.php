@@ -111,11 +111,11 @@ use App\Http\Controllers\Agent\Source\Youtube\RetrainAgentYoutubeController;
 use App\Http\Controllers\Agent\Starters\AgentStarterController;
 use App\Http\Controllers\Agent\Starters\GenerateStartersController;
 use App\Http\Controllers\Agent\SubDomain\AgentsGenerateRandomSubDomainController;
-use App\Http\Controllers\Agent\Team\AgentTeamController;
 use App\Http\Controllers\Agent\Topic\AgentTopicController as TopicsResourceController;
 use App\Http\Controllers\Agent\Widget\AgentBubbleController;
 use App\Http\Controllers\Agent\Widget\WidgetPreviewController;
 use App\Http\Controllers\Countries\CountriesListController;
+use App\Http\Middleware\Access\EnsureFeatureFlagIsOn;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'])->prefix('my/')->group(function (): void {
@@ -187,10 +187,15 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('sources/audio', AgentSourceAudioController::class)->name('sources.audio');
         Route::get('sources/video', AgentSourceVideoController::class)->name('sources.video');
         Route::get('sources/web', AgentKnowledgeWebController::class)->name('sources.web');
-        Route::get('sources/youtube', [AgentYoutubeController::class, 'index'])->name('sources.youtube.index');
-        Route::post('sources/youtube', [AgentYoutubeController::class, 'store'])->name('sources.youtube.store');
-        Route::delete('sources/youtube/{youtube}', [AgentYoutubeController::class, 'destroy'])->name('sources.youtube.destroy');
-        Route::post('sources/youtube/{youtube}/retrain', RetrainAgentYoutubeController::class)->name('sources.youtube.retrain');
+
+        // YouTube sources are not finished (added videos are never ingested),
+        // so they stay off unless FEATURE_YOUTUBE_SOURCES turns them on.
+        Route::middleware(EnsureFeatureFlagIsOn::class.':youtube_sources')->group(function (): void {
+            Route::get('sources/youtube', [AgentYoutubeController::class, 'index'])->name('sources.youtube.index');
+            Route::post('sources/youtube', [AgentYoutubeController::class, 'store'])->name('sources.youtube.store');
+            Route::delete('sources/youtube/{youtube}', [AgentYoutubeController::class, 'destroy'])->name('sources.youtube.destroy');
+            Route::post('sources/youtube/{youtube}/retrain', RetrainAgentYoutubeController::class)->name('sources.youtube.retrain');
+        });
 
         Route::get('sources/text', [AgentTextController::class, 'index'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.index');
         Route::post('sources/text', [AgentTextController::class, 'store'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.store');
@@ -402,7 +407,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::patch('domain', UpdateAgentDomainController::class)
             ->middleware('agent.permission:agent.setup')->name('domain.update');
 
-        //        Route::patch('activity', AgentUpdateActivityController::class)->name('activity');
         // Toggling `is_public` exposes/locks the agent on the public internet —
         // gate it on the documented `agent.setup` permission, not mere access.
         Route::patch('security', AgentSecurityUpdateController::class)
@@ -438,7 +442,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
             ->middleware('agent.permission:agent.setup')->name('settings.delete');
 
         // Members
-        Route::get('team', AgentTeamController::class)->name('team');
 
         // Rename Agent (renaming is part of agent setup)
         Route::patch('rename', RenameAgentController::class)->middleware('agent.permission:agent.setup')->name('rename');
@@ -466,10 +469,3 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
 
     Route::get('generate-random-subdomain', AgentsGenerateRandomSubDomainController::class)->name('generate-random-subdomain');
 });
-
-// Removed - old member invitation system
-// Route::get('agents/{agent}/invitations/{token}', AgentMembersInvitationCreateAccountController::class)
-//     ->name('agents.invitations');
-//
-// Route::post('agents/{agent}/invitations/{token}/accept', AgentMembersInvitationAcceptController::class)
-//     ->name('agents.invitations.accept');

@@ -15,40 +15,21 @@
                     "bot_token": "Token do bot",
                     "signing_secret": "Segredo de assinatura",
                     "request_url": "URL de pedido",
-                    "callback_url": "URL de callback",
-                    "verify_token": "Token de verificação",
-                    "page_access_token": "Token de acesso à página",
-                    "app_secret": "Segredo da aplicação",
-                    "access_token": "Token de acesso",
-                    "phone_number_id": "ID do número de telefone",
-                    "waba_id": "ID da conta WhatsApp Business",
                     "microsoft_app_id": "ID da aplicação Microsoft",
                     "client_secret": "Segredo do cliente",
                     "tenant_id": "ID do inquilino",
                     "messaging_endpoint": "Endpoint de mensagens"
                 },
-                "hints": { "tenant_single_only": "(Apenas para bots de inquilino único)" },
+                "hints": {
+                    "tenant_single_only": "(Apenas para bots de inquilino único)"
+                },
                 "placeholders": {
                     "telegram_bot_token": "123456789:ABCdef…",
                     "slack_bot_token": "xoxb-…",
-                    "meta_token": "EAAG…",
-                    "phone_number_id": "123456789012345",
                     "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
-                    "tenant_id": "Deixe em branco para Multi Inquilino",
-                    "instagram_token": "IGAA…"
-                },
-                "guide": {
-                    "need_detail_before": "Precisa de mais detalhes? Siga o",
-                    "step_by_step_guide": "guia passo a passo",
-                    "need_detail_after": "com capturas de ecrã."
+                    "tenant_id": "Deixe em branco para Multi Inquilino"
                 },
                 "shared": {
-                    "subscribe_webhook": "Subscreva o webhook no campo {field}",
-                    "messages_field": "mensagens",
-                    "create_meta_app_at": "Crie uma aplicação em {link}",
-                    "copy_app_secret_both": "Copie o segredo da aplicação em {section} e cole ambos abaixo",
-                    "copy_app_secret_all": "Copie o segredo da aplicação em {section} e cole tudo abaixo",
-                    "copy_app_secret_same_page": "Copie o segredo da aplicação da mesma página e cole ambos abaixo",
                     "reply_streams_live": "— a resposta é transmitida em direto"
                 },
                 "telegram": {
@@ -74,30 +55,6 @@
                     "oauth_permissions": "OAuth & Permissões",
                     "basic_information": "Informações básicas"
                 },
-                "messenger": {
-                    "steps": {
-                        "connected_1": "Em {link}, abra {webhooks} e cole o URL de callback + token de verificação acima",
-                        "connected_3": "Envie uma mensagem à sua página no Messenger — o seu agente responde automaticamente",
-                        "connect_1": "Crie uma aplicação em {link} e adicione o produto {product}",
-                        "connect_2": "Em {api_settings}, ligue a sua página do Facebook e gere um token de acesso à página"
-                    },
-                    "your_meta_app": "a sua aplicação Meta",
-                    "webhooks_path": "Messenger → Definições → Webhooks",
-                    "api_settings_path": "Messenger → Definições da API",
-                    "app_settings_basic": "Definições da aplicação → Básico",
-                    "product": "Messenger"
-                },
-                "whatsapp": {
-                    "steps": {
-                        "connected_1": "Em {link}, abra {configuration} e cole o URL de callback + token de verificação acima",
-                        "connected_3": "Envie uma mensagem para o seu número no WhatsApp — o seu agente responde automaticamente",
-                        "connect_1": "Crie uma aplicação em {link} com o caso de utilização {use_case}",
-                        "connect_2": "Conclua {basic_setup}, depois copie o ID do número de telefone, o ID da conta WhatsApp Business e um token de acesso"
-                    },
-                    "configuration_path": "WhatsApp → Configuração",
-                    "use_case": "Ligue-se a clientes através do WhatsApp",
-                    "basic_setup_path": "Casos de utilização → Personalizar → Configuração básica"
-                },
                 "msteams": {
                     "app_id_label": "App {id}",
                     "steps": {
@@ -116,18 +73,6 @@
                     "manage_password": "Gerir palavra-passe → Certificados e segredos",
                     "directory_tenant_id": "ID do diretório (inquilino)",
                     "open_chat_in_teams": "Abra uma conversa com o seu bot no Teams"
-                },
-                "instagram": {
-                    "steps": {
-                        "connected_1": "Em {link}, abra {webhooks} e cole o URL de callback + token de verificação acima",
-                        "connected_3": "Na aplicação Instagram, permita o acesso a mensagens em {message_controls} e, em seguida, envie uma mensagem direta à sua conta",
-                        "connect_1": "Crie uma aplicação em {link} e adicione o produto {product} — a sua conta do Instagram deve ser uma conta profissional (empresarial ou criador)",
-                        "connect_2": "Em {api_setup}, gere um token de acesso para a sua conta"
-                    },
-                    "webhooks_path": "Instagram → Configuração da API com login do Instagram → Configurar webhooks",
-                    "message_controls_path": "Definições → Mensagens e respostas a histórias → Controlos de mensagens → Ferramentas ligadas",
-                    "api_setup_path": "Instagram → Configuração da API com login do Instagram",
-                    "product": "Instagram"
                 }
             }
         }

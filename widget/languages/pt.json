@@ -48,16 +48,12 @@
     "copy": "Copiar",
     "copy_message": "Copiar mensagem",
     "good_response": "Boa resposta",
-    "bad_response": "Resposta ruim",
-    "retry": "Tentar novamente",
-    "copied": "Copiado!"
+    "bad_response": "Resposta ruim"
   },
   "handoff": {
     "talk_to_human": "Falar com um atendente",
     "connecting": "Conectando você a um atendente...",
     "connected": "Conectado a {name}",
-    "disconnected": "O atendente saiu da conversa",
-    "returned_to_bot": "Conversa devolvida ao bot",
     "agent_typing": "{name} está digitando...",
     "waiting_for_agent": "Aguardando um atendente disponível...",
     "end_chat": "Encerrar chat",
@@ -72,7 +68,6 @@
     "initialization_failed": "Erro de inicialização. Tente novamente mais tarde.",
     "verification_failed": "Falha na verificação do cliente.",
     "session_failed": "Falha na inicialização da sessão.",
-    "connection_error": "Erro de conexão. Verifique sua conexão com a internet.",
     "message_send_failed": "Falha ao enviar a mensagem. Tente novamente.",
     "response_failed": "Algo deu errado ao gerar a resposta. Tente novamente.",
     "auth_required": "Este chat requer login."

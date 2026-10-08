@@ -370,8 +370,6 @@
                 "include_paths_hint": "Bruk jokertegn (*) for å matche mønstre. La stå tomt for å inkludere alle stier.",
                 "exclude_paths_label": "Ekskluder stier",
                 "exclude_paths_hint": "Bruk jokertegn (*) for å matche mønstre. Disse stiene hoppes over.",
-                "slow_crawling_label": "Langsom henting",
-                "slow_crawling_hint": "Bruker lengre forsinkelser for mer hensynsfull henting",
                 "crawling_title": "Henter...",
                 "crawling_count": "{count} nettside hentes for øyeblikket. | {count} nettsider hentes for øyeblikket.",
                 "tooltip_crawling": "Henter for øyeblikket...",

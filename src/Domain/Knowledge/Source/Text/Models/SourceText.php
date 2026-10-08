@@ -2,18 +2,16 @@
 
 namespace Domain\Knowledge\Source\Text\Models;
 
-use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Support\Concerns\HasExternalId;
 use Support\Traits\Chunkable;
 use Support\Traits\HasStorageFile;
@@ -40,9 +38,9 @@ use Support\Traits\HasStorageFile;
  * @property Carbon|null $updated_at
  * @property string|null $content Dynamic attribute populated from storage at runtime
  * @property-read AgentSource|null $pivot
- * @property-read AgentCollection<int, Agent> $agents
+ * @property-read Collection<int, Agent> $agents
  * @property-read int|null $agents_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Chunk> $chunks
+ * @property-read Collection<int, Chunk> $chunks
  * @property-read int|null $chunks_count
  * @property-read Chunk|null $summary
  *
@@ -94,22 +92,5 @@ class SourceText extends Model implements ChunkableContract
             'document_classification' => null,
             'status' => SourceStatus::Pending->value,
         ]);
-    }
-
-    public function pages(): Collection
-    {
-        $chunks = $this
-            ->chunks()
-            ->whereNot('chunk_index', 0)
-            ->select('id', 'chunk_index', 'chunk', 'checksum')
-            ->orderBy('chunk_index')->get();
-
-        return collect($chunks)->map(function (Chunk $chunk) {
-            return new PageData(
-                pageNumber: $chunk->chunk_index,
-                content: $chunk->chunk,
-                checksum: $chunk->checksum,
-            );
-        });
     }
 }

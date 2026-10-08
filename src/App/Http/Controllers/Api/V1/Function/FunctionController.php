@@ -56,7 +56,7 @@ class FunctionController
      */
     public function show(Request $request, AgentFunction $function): array
     {
-        $this->assertOwnership($request, $function);
+        abort_if($request->user()->cannot('view', $function), 404);
 
         return ['data' => FunctionData::fromModel($function)];
     }
@@ -68,7 +68,7 @@ class FunctionController
      */
     public function update(UpdateApiFunctionRequest $request, AgentFunction $function, UpdateApiFunctionAction $updateFunction): array
     {
-        $this->assertOwnership($request, $function);
+        abort_if($request->user()->cannot('update', $function), 404);
 
         return ['data' => FunctionData::fromModel($updateFunction->execute($function, $request->toData()))];
     }
@@ -78,17 +78,10 @@ class FunctionController
      */
     public function destroy(Request $request, AgentFunction $function): JsonResponse
     {
-        $this->assertOwnership($request, $function);
+        abort_if($request->user()->cannot('delete', $function), 404);
 
         $function->delete();
 
         return response()->json(null, 204);
-    }
-
-    private function assertOwnership(Request $request, AgentFunction $function): void
-    {
-        /** @var User $user */
-        $user = $request->user();
-        abort_if($function->user_id !== $user->workspace()->id, 404);
     }
 }

@@ -116,7 +116,6 @@
                 "messenger": "Messenger",
                 "whatsapp": "WhatsApp",
                 "msteams": "Microsoft Teams",
-                "teams": "Microsoft Teams",
                 "instagram": "Instagram",
                 "playground": "محیط آزمایشی",
                 "api": "API"
@@ -128,9 +127,6 @@
             "sidebar": {
                 "online": "آنلاین",
                 "show_online_only": "فقط بازدیدکنندگان آنلاین",
-                "export_json": "خروجی JSON",
-                "export_csv": "خروجی CSV",
-                "export_pdf": "خروجی PDF",
                 "expires_today": "امروز منقضی می‌شود",
                 "expires_in_days": "در {count} روز منقضی می‌شود | در {count} روز منقضی می‌شود",
                 "expires_in_one_month": "در ۱ ماه منقضی می‌شود",
@@ -556,8 +552,6 @@
                 "add_topic": "افزودن موضوع",
                 "empty": "هنوز موضوعی وجود ندارد. یکی اضافه کنید تا به عامل در دسته‌بندی مکالمات کمک کنید.",
                 "no_results": "هیچ موضوعی با «{query}» مطابقت ندارد.",
-                "freeze_topics": "انجماد موضوعات",
-                "freeze_hint": "وقتی منجمد است، عامل از یادگیری موضوعات جدید از مکالمات متوقف می‌شود.",
                 "done": "مشاهده آنالیتیکس",
                 "add_dialog_title": "افزودن موضوع",
                 "add_dialog_description": "یک نام و توضیح موضوع تعریف کنید تا به عامل در دسته‌بندی مکالمات کمک کنید.",
@@ -581,26 +575,9 @@
                 "update_error": "به‌روزرسانی موضوع امکان‌پذیر نبود. لطفاً دوباره تلاش کنید.",
                 "delete_error": "حذف موضوع امکان‌پذیر نبود. لطفاً دوباره تلاش کنید.",
                 "load_error": "بارگذاری موضوعات امکان‌پذیر نبود. لطفاً دوباره تلاش کنید.",
-                "freeze_error": "به‌روزرسانی تنظیم انجماد امکان‌پذیر نبود. لطفاً دوباره تلاش کنید.",
-                "frozen": "موضوعات منجمد شدند",
-                "unfrozen": "موضوعات از حالت انجماد خارج شدند",
                 "permission_denied": "دسترسی رد شد",
                 "permission_denied_description": "شما مجاز به مدیریت موضوعات نیستید."
             }
-        },
-        "composer": {
-            "attach_file": "پیوست یک PDF",
-            "remove_attachment": "حذف پیوست",
-            "uploading": "در حال بارگذاری…",
-            "upload_failed": "بارگذاری ناموفق بود",
-            "delete_failed": "حذف پیوست امکان‌پذیر نبود",
-            "upload_limit_reached": "می‌توانید تا {count} فایل پیوست کنید | می‌توانید تا {count} فایل پیوست کنید"
-        },
-        "messages": {
-            "delete_attachment_aria": "حذف پیوست",
-            "delete_attachment_title": "این فایل حذف شود؟",
-            "delete_attachment_description": "پس از حذف، دستیار دیگر در پاسخ‌های آینده به این فایل دسترسی نخواهد داشت.",
-            "delete_attachment_failed": "حذف فایل امکان‌پذیر نبود. لطفاً دوباره تلاش کنید."
         }
     }
 }

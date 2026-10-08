@@ -72,6 +72,20 @@ return [
             'after_commit' => false,
         ],
 
+        // Same Redis queues as `redis`, but for workers that run long jobs
+        // (ingestion, exports). `retry_after` must be longer than the longest
+        // job timeout, or a still-running job is handed to a second worker.
+        // Horizon's long-running supervisors pop through this connection;
+        // jobs are still dispatched on `redis`, so no code needs to know.
+        'redis-long' => [
+            'driver' => 'redis',
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'queue' => env('REDIS_QUEUE', 'default'),
+            'retry_after' => (int) env('REDIS_LONG_QUEUE_RETRY_AFTER', 1900),
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
     ],
 
     /*

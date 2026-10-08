@@ -81,17 +81,4 @@ class TextFileIngestionJob implements ShouldBeUnique, ShouldQueue
             'failure_reason' => $exception->getMessage(),
         ]);
     }
-
-    public function timeout(): void
-    {
-        Log::warning('TextFileIngestionJob timed out', [
-            'source_file_id' => $this->sourceFile->id,
-            'job_id' => $this->job?->getJobId() ?? $this->job?->uuid() ?? 'unknown',
-        ]);
-
-        $this->sourceFile->update([
-            'status' => 'failed',
-            'failure_reason' => 'Job timed out after '.$this->timeout.' seconds',
-        ]);
-    }
 }

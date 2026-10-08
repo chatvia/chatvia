@@ -38,16 +38,6 @@ final class AnalyticsChart
     }
 
     /**
-     * Single-series bar from `label => value` pairs.
-     *
-     * @param  array<string, int|float>  $values
-     */
-    public static function barFromMap(array $values, string $seriesName, ?string $title = null, bool $horizontal = false): array
-    {
-        return self::bar(array_keys($values), [['name' => $seriesName, 'data' => array_values($values)]], $title, $horizontal);
-    }
-
-    /**
      * @param  list<string>  $categories
      * @param  list<array{name: string, data: list<int|float>}>  $series
      */

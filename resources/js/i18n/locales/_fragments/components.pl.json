@@ -1,7 +1,15 @@
 {
-    "nav": { "platform": "Platforma" },
-    "theme": { "toggle": "Przełącz motyw", "light": "Jasny", "dark": "Ciemny", "system": "Systemowy" },
-    "team_switcher": { "select_team": "Wybierz zespół", "no_teams": "Brak dostępnych zespołów", "manage_teams": "Zarządzaj zespołami" },
+    "theme": {
+        "toggle": "Przełącz motyw",
+        "light": "Jasny",
+        "dark": "Ciemny",
+        "system": "Systemowy"
+    },
+    "team_switcher": {
+        "select_team": "Wybierz zespół",
+        "no_teams": "Brak dostępnych zespołów",
+        "manage_teams": "Zarządzaj zespołami"
+    },
     "agents": {
         "create_modal": {
             "title": "Utwórz agenta",

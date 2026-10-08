@@ -6,7 +6,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Ingestion\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -216,12 +215,5 @@ class KnowledgeBase
             })
             ->values()
             ->toArray();
-    }
-
-    public function chunks(int|Agent $agent, string $query): Collection
-    {
-        $results = $this->search($agent, $query);
-
-        return collect($results)->pluck('chunk');
     }
 }

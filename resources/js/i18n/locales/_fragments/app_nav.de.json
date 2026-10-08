@@ -46,8 +46,6 @@
             "evals_tooltip": "Testsuiten zur Bewertung der Antworten dieses Agenten",
             "guardrails": "Guardrails",
             "guardrails_tooltip": "KI-Sicherheitsmaßnahmen: PII, Prompt-Injection, Themen, Toxizität",
-            "leads": "Leads",
-            "leads_tooltip": "Von Ihrem Agenten erfasste Leads verwalten",
             "knowledge_sources": "Quellen",
             "knowledge_sources_tooltip": "Agentenwissen und Trainingsdaten verwalten",
             "functions": "Funktionen",

@@ -15,13 +15,6 @@
                     "bot_token": "رمز البوت",
                     "signing_secret": "سر التوقيع",
                     "request_url": "رابط الطلب",
-                    "callback_url": "رابط الاستدعاء",
-                    "verify_token": "رمز التحقق",
-                    "page_access_token": "رمز وصول الصفحة",
-                    "app_secret": "سر التطبيق",
-                    "access_token": "رمز الوصول",
-                    "phone_number_id": "معرّف رقم الهاتف",
-                    "waba_id": "معرّف حساب WhatsApp Business",
                     "microsoft_app_id": "معرّف تطبيق Microsoft",
                     "client_secret": "سر العميل",
                     "tenant_id": "معرّف المستأجر",
@@ -33,24 +26,10 @@
                 "placeholders": {
                     "telegram_bot_token": "123456789:ABCdef…",
                     "slack_bot_token": "xoxb-…",
-                    "meta_token": "EAAG…",
-                    "phone_number_id": "123456789012345",
                     "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
-                    "tenant_id": "اتركه فارغاً للمستأجر المتعدد",
-                    "instagram_token": "IGAA…"
-                },
-                "guide": {
-                    "need_detail_before": "تحتاج مزيداً من التفاصيل؟ اتبع",
-                    "step_by_step_guide": "الدليل خطوة بخطوة",
-                    "need_detail_after": "مع لقطات الشاشة."
+                    "tenant_id": "اتركه فارغاً للمستأجر المتعدد"
                 },
                 "shared": {
-                    "subscribe_webhook": "اشترك بـ webhook في حقل {field}",
-                    "messages_field": "الرسائل",
-                    "create_meta_app_at": "أنشئ تطبيقاً على {link}",
-                    "copy_app_secret_both": "انسخ سر التطبيق من {section} والصقهما أدناه",
-                    "copy_app_secret_all": "انسخ سر التطبيق من {section} والصق كل شيء أدناه",
-                    "copy_app_secret_same_page": "انسخ سر التطبيق من نفس الصفحة والصقهما أدناه",
                     "reply_streams_live": "— يتدفق الرد مباشرة"
                 },
                 "telegram": {
@@ -79,7 +58,6 @@
                         "help_hint": "اتركه فارغاً لإدراج أوامرك تلقائياً.",
                         "name_token_hint": "تلميح: {'{'}name{'}'} يُستبدل بالاسم الأول للشخص.",
                         "remove": "حذف الأمر",
-                        "empty_draft": "لا توجد أوامر بعد. أضف أمراً في الأسفل.",
                         "add": "إضافة أمر",
                         "cancel": "إلغاء",
                         "save": "حفظ الأوامر",
@@ -101,34 +79,12 @@
                     "basic_information": "Basic Information"
                 },
                 "messenger": {
-                    "steps": {
-                        "connected_1": "في {link}، افتح {webhooks} والصق رابط الاستدعاء + رمز التحقق أعلاه",
-                        "connected_3": "راسل صفحتك على Messenger — سيرد وكيلك تلقائياً",
-                        "connect_1": "أنشئ تطبيقاً على {link}، ثم أضف حالة الاستخدام {product} — ابحث عنها إذا لم تظهر",
-                        "connect_2": "تحت {api_settings}، اربط صفحة Facebook الخاصة بك وأنشئ رمز وصول للصفحة",
-                        "connect_perms": "في {permissions}، أضف {perm1} و {perm2} و {perm3}"
-                    },
-                    "your_meta_app": "تطبيق Meta الخاص بك",
-                    "webhooks_path": "Use cases → Customize → Messenger API Settings",
-                    "api_settings_path": "Use cases → Customize → Messenger API Settings",
-                    "permissions_path": "Use cases → Customize → Permissions and features",
-                    "app_settings_basic": "App settings → Basic",
-                    "product": "تواصل مع العملاء عبر Messenger",
                     "oauth_intro": "اربط صفحة فيسبوك ليتمكن هذا الوكيل من الرد على محادثات ماسنجر — ستسجّل الدخول عبر فيسبوك ثم تختار الصفحة التي تريد استخدامها.",
                     "connect_facebook": "الاتصال عبر فيسبوك",
                     "pick_title": "اختر صفحة فيسبوك",
                     "pick_button": "ربط هذه الصفحة"
                 },
                 "whatsapp": {
-                    "steps": {
-                        "connected_1": "في {link}، افتح {configuration} والصق رابط الاستدعاء + رمز التحقق أعلاه",
-                        "connected_3": "راسل رقمك على WhatsApp — سيرد وكيلك تلقائياً",
-                        "connect_1": "أنشئ تطبيقاً على {link} بحالة استخدام {use_case}",
-                        "connect_2": "أكمل {basic_setup}، ثم انسخ معرّف رقم الهاتف ومعرّف حساب WhatsApp Business ورمز وصول"
-                    },
-                    "configuration_path": "WhatsApp → Configuration",
-                    "use_case": "تواصل مع العملاء عبر WhatsApp",
-                    "basic_setup_path": "Use cases → Customize → Basic setup",
                     "oauth_intro": "اربط رقم WhatsApp Business الخاص بك ليتمكن هذا الوكيل من الرد على رسائل WhatsApp — سجّل الدخول عبر Facebook وأكمل الإعداد في خطوة واحدة.",
                     "connect_facebook": "الاتصال عبر Facebook",
                     "not_configured": "لم يتم إعداد WhatsApp على نظام Chatvia هذا بعد. يرجى التواصل مع الدعم.",
@@ -155,16 +111,6 @@
                     "open_chat_in_teams": "افتح محادثة مع بوتك في Teams"
                 },
                 "instagram": {
-                    "steps": {
-                        "connected_1": "في {link}، افتح {webhooks} والصق رابط الاستدعاء + رمز التحقق أعلاه",
-                        "connected_3": "في تطبيق Instagram، اسمح بالوصول إلى الرسائل تحت {message_controls}، ثم أرسل رسالة خاصة لحسابك",
-                        "connect_1": "أنشئ تطبيقاً على {link} وأضف منتج {product} — يجب أن يكون حساب Instagram الخاص بك حساباً مهنياً (تجاري أو منشئ محتوى)",
-                        "connect_2": "تحت {api_setup}، أنشئ رمز وصول لحسابك"
-                    },
-                    "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
-                    "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
-                    "api_setup_path": "Instagram → API setup with Instagram login",
-                    "product": "Instagram",
                     "oauth_intro": "اربط حساب إنستغرام احترافي ليتمكن هذا الوكيل من الرد على الرسائل المباشرة — ستسجّل الدخول عبر فيسبوك ثم تختار الحساب الذي تريد استخدامه.",
                     "connect_facebook": "الاتصال عبر فيسبوك",
                     "pick_title": "اختر حساب إنستغرام",

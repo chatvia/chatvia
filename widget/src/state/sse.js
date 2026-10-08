@@ -14,7 +14,7 @@ import {
   handleToolEvent,
   renderStreamError
 } from './messages.js';
-import { handleHandoffEvent, HANDOFF_STATUS } from './handoff.js';
+import { handleHandoffEvent } from './handoff.js';
 
 /**
  * Setup SSE connection

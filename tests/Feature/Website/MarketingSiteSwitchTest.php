@@ -37,7 +37,7 @@ afterEach(function (): void {
 $marketingRoutes = [
     'pricing', 'mission', 'security', 'privacy', 'terms', 'refund', 'dpa',
     'dpa.download', 'subprocessors', 'changelog', 'blog', 'blog.post',
-    'contact', 'contact.submit', 'use-cases', 'free-tools.chat-with-pdf',
+    'contact', 'contact.submit', 'free-tools.chat-with-pdf',
 ];
 
 it('serves the marketing site by default', function () use ($marketingRoutes): void {
@@ -49,6 +49,11 @@ it('serves the marketing site by default', function () use ($marketingRoutes): v
 
     $this->get('/en')->assertOk();
     $this->get('/en/pricing')->assertOk();
+});
+
+it('has no use-case pages', function (): void {
+    // No use-case pages exist, so the URL must 404 (not 500).
+    $this->get('/en/use-cases/law')->assertNotFound();
 });
 
 it('registers no marketing route when the marketing site is off', function () use ($marketingRoutes): void {

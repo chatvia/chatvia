@@ -15,13 +15,6 @@
                     "bot_token": "Bot-token",
                     "signing_secret": "Signeringshemmelighet",
                     "request_url": "Forespørsels-URL",
-                    "callback_url": "Tilbakeringing-URL",
-                    "verify_token": "Verifiseringstoken",
-                    "page_access_token": "Sidetilgangstoken",
-                    "app_secret": "App-hemmelighet",
-                    "access_token": "Tilgangstoken",
-                    "phone_number_id": "Telefonnummer-ID",
-                    "waba_id": "WhatsApp Business-konto-ID",
                     "microsoft_app_id": "Microsoft App-ID",
                     "client_secret": "Klienthemmelighet",
                     "tenant_id": "Leietaker-ID",
@@ -33,24 +26,10 @@
                 "placeholders": {
                     "telegram_bot_token": "123456789:ABCdef…",
                     "slack_bot_token": "xoxb-…",
-                    "meta_token": "EAAG…",
-                    "phone_number_id": "123456789012345",
                     "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
-                    "tenant_id": "La stå tom for Multi Tenant",
-                    "instagram_token": "IGAA…"
-                },
-                "guide": {
-                    "need_detail_before": "Trenger du mer detaljer? Følg",
-                    "step_by_step_guide": "trinn-for-trinn-guiden",
-                    "need_detail_after": "med skjermbilder."
+                    "tenant_id": "La stå tom for Multi Tenant"
                 },
                 "shared": {
-                    "subscribe_webhook": "Abonner på webhook for feltet {field}",
-                    "messages_field": "meldinger",
-                    "create_meta_app_at": "Opprett en app på {link}",
-                    "copy_app_secret_both": "Kopier app-hemmeligheten fra {section} og lim inn begge nedenfor",
-                    "copy_app_secret_all": "Kopier app-hemmeligheten fra {section} og lim inn alt nedenfor",
-                    "copy_app_secret_same_page": "Kopier app-hemmeligheten fra samme side og lim inn begge nedenfor",
                     "reply_streams_live": "— svaret strømmer inn direkte"
                 },
                 "telegram": {
@@ -76,32 +55,6 @@
                     "oauth_permissions": "OAuth & Permissions",
                     "basic_information": "Basic Information"
                 },
-                "messenger": {
-                    "steps": {
-                        "connected_1": "I {link}, åpne {webhooks} og lim inn tilbakeringing-URL-en + verifiseringstokenet ovenfor",
-                        "connected_3": "Send en melding til siden din på Messenger — agenten din svarer automatisk",
-                        "connect_1": "Opprett en app på {link}, og legg deretter til brukstilfellet {product} — søk etter det hvis det ikke vises",
-                        "connect_2": "Under {api_settings}, koble til Facebook-siden din og generer et sidetilgangstoken",
-                        "connect_perms": "I {permissions}, legg til {perm1}, {perm2} og {perm3}"
-                    },
-                    "your_meta_app": "Meta-appen din",
-                    "webhooks_path": "Use cases → Customize → Messenger API Settings",
-                    "api_settings_path": "Use cases → Customize → Messenger API Settings",
-                    "permissions_path": "Use cases → Customize → Permissions and features",
-                    "app_settings_basic": "App settings → Basic",
-                    "product": "Nå kunder på Messenger"
-                },
-                "whatsapp": {
-                    "steps": {
-                        "connected_1": "I {link}, åpne {configuration} og lim inn tilbakeringing-URL-en + verifiseringstokenet ovenfor",
-                        "connected_3": "Send en melding til nummeret ditt på WhatsApp — agenten din svarer automatisk",
-                        "connect_1": "Opprett en app på {link} med brukstilfellet {use_case}",
-                        "connect_2": "Fullfør {basic_setup}, og kopier deretter telefonnummer-ID, WhatsApp Business-konto-ID og et tilgangstoken"
-                    },
-                    "configuration_path": "WhatsApp → Configuration",
-                    "use_case": "Kommuniser med kunder via WhatsApp",
-                    "basic_setup_path": "Use cases → Customize → Basic setup"
-                },
                 "msteams": {
                     "app_id_label": "App-{id}",
                     "steps": {
@@ -120,18 +73,6 @@
                     "manage_password": "Manage password → Certificates & secrets",
                     "directory_tenant_id": "Directory (tenant) ID",
                     "open_chat_in_teams": "Åpne en chat med boten din i Teams"
-                },
-                "instagram": {
-                    "steps": {
-                        "connected_1": "I {link}, åpne {webhooks} og lim inn tilbakeringing-URL-en + verifiseringstokenet ovenfor",
-                        "connected_3": "I Instagram-appen, tillat meldingstilgang under {message_controls}, og send deretter en DM til kontoen din",
-                        "connect_1": "Opprett en app på {link} og legg til produktet {product} — Instagram-kontoen din må være en profesjonell konto (bedrift eller innholdsskaper)",
-                        "connect_2": "Under {api_setup}, generer et tilgangstoken for kontoen din"
-                    },
-                    "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
-                    "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
-                    "api_setup_path": "Instagram → API setup with Instagram login",
-                    "product": "Instagram"
                 }
             }
         }

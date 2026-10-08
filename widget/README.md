@@ -7,11 +7,9 @@ A customizable, embeddable chat widget with Markdown support, designed to connec
 ## Features
 
 *   **Embeddable:** Easily integrate the chat widget into any web page.
-*   **Customizable:** Adapt the look and feel (though details on customization need implementation/documentation).
+*   **Two launchers:** a chat bubble in the corner, or a floating "ask anything" bar.
 *   **Markdown Support:** Renders messages formatted with Markdown.
-*   **SSE Communication:** Connects to an SSE backend for real-time messaging.
-*   **Streaming Responses:** Simulates streaming responses from the backend.
-*   **Search Widget:** New standalone search component with side-panel results.
+*   **Streaming Responses:** Shows the agent's reply as it streams from the server (Server-Sent Events).
 
 ## Getting Started
 
@@ -95,21 +93,16 @@ the same folder as `embed.js`.
 
 ## Running Locally
 
-To run the project locally, you'll typically need to run both the frontend development server and the backend simulation server.
+The widget talks to a running Chatvia server. Set `VITE_API_URL` in `.env` to
+that server's widget API (for example `http://localhost:8000/widget`), then
+start the development server:
 
-1.  **Start the Backend Simulation Server:**
-    This server simulates responses for the chat widget.
-    ```bash
-    node server.js
-    ```
-    This will start the SSE server, usually on port 8080 (or the port specified by the `PORT` environment variable).
+```bash
+npm run dev
+```
 
-2.  **Start the Frontend Development Server:**
-    This command uses Vite to serve the frontend with hot module replacement.
-    ```bash
-    npm run dev
-    ```
-    Vite will output the URL where you can access the development version (likely `http://localhost:5173` or similar, check the console output). Open `dev.html` or `index.html` in your browser through this URL.
+Vite serves the widget on `http://localhost:3000` and opens `index.html`.
+`bar.html` shows the bar launcher.
 
 ## Building for Production
 
@@ -129,81 +122,38 @@ This will generate the following structure:
 
 ```
 dist/
-  ├── embed.js               # Minimal embed script (users embed this)
-  ├── version.json           # Current version info (cache-busted)
-  └── {VERSION}/             # Version-specific directory (e.g., 1.0.5/)
-      ├── bootstrap.js       # Versioned bootstrap script
-      ├── widget.min.js      # Main chat widget bundle
-      ├── search.min.js      # Search widget bundle
-      └── version.json       # Version info (for this specific version)
+  ├── embed.js               # Small loader script (sites embed this)
+  ├── version.json           # Current version, read by embed.js
+  └── {VERSION}/             # Version folder (e.g., 1.0.5/)
+      └── widget.min.js      # The widget bundle (bubble and bar modes)
 ```
 
-### Build Output Files:
-- `dist/embed.js` - Minimal embed script (what users embed on their sites)
-- `dist/{VERSION}/bootstrap.js` - Versioned bootstrap script for loading either widget or search
-- `dist/{VERSION}/widget.min.js` - Main chat widget
-- `dist/{VERSION}/search.min.js` - Search widget
-- `dist/version.json` - Version information for cache-busting
+Production builds also write `.gz` and `.br` copies next to each file.
 
 ### Versioning Strategy
 See [VERSIONING.md](./VERSIONING.md) for detailed information about the three-layer versioning architecture.
 
-## Search Widget
+## Embed Options
 
-The search widget provides AI-powered search with a side-panel interface. It uses the same embed script as the chat widget but with `type="search"`.
+All options are `data-` attributes on the embed script tag.
 
-### Features
+- `data-agent-id` (required): the agent's public ID.
+- `data-mode`: `bubble` (default, a chat bubble in the corner) or `bar` (a floating "ask anything" bar).
+- `data-language`: a language code, or `auto` (default) to follow the visitor's browser. Supported codes: `ar`, `da`, `de`, `en`, `es`, `fa`, `fi`, `fr`, `hi`, `id`, `ja`, `ko`, `no`, `pl`, `pt`, `ru`, `sv`, `tr`, `vi`, `zh`. Other codes fall back to English.
+- `data-theme`: `auto`, `light` or `dark`. Without it, the widget uses the agent's setting.
+- `data-auth`: a signed token, needed only for protected (non-public) agents.
+- `data-mount-id`: the ID of an element to render the widget into, instead of the page corner.
 
-- **Flexible Positioning:** Can be positioned at the top or bottom of the page
-- **Side Panel Interface:** Opens a beautiful side panel on the right for results
-- **Real-time Streaming:** Streams AI responses using SSE
-- **Markdown Support:** Renders formatted responses
-- **Responsive Design:** Works on all devices
-- **Same Infrastructure:** Uses the same embed.js as the chat widget
-
-### Usage
-
-Use the embed script with `type="search"`:
+`data-type="widget"` and `data-type="search"` still work for older embeds (they mean `bubble` and `bar`), but they are deprecated.
 
 ```html
-<!-- For Chat Widget (default) -->
-<script src="https://your-cdn.com/embed.js" agent-id="YOUR_AGENT_ID"></script>
-
-<!-- For Search Widget -->
-<script 
-  src="https://your-cdn.com/embed.js" 
-  agent-id="YOUR_AGENT_ID"
-  type="search"
-  data-search-position="top"
-  data-search-placeholder="Ask a question..."
-></script>
-
-<!-- Chat Widget in Arabic -->
-<script 
-  src="https://your-cdn.com/embed.js" 
-  agent-id="YOUR_AGENT_ID"
-  language="ar"
-></script>
-
-<!-- Search Widget with Auto-detect Language -->
-<script 
-  src="https://your-cdn.com/embed.js" 
-  agent-id="YOUR_AGENT_ID"
-  type="search"
-  language="auto"
-></script>
+<script id="chatbot-embed-script"
+    src="https://your-cdn.com/embed.js"
+    data-agent-id="YOUR_AGENT_ID"
+    data-mode="bar"
+    data-language="auto"
+    defer></script>
 ```
-
-#### Configuration Options
-
-- `type`: `'widget'` (default) or `'search'` - Which component to load
-- `language`: a language code, or `'auto'` (default) to follow the visitor's browser - Language for the widget interface. Supported codes: `ar`, `da`, `de`, `en`, `es`, `fa`, `fi`, `fr`, `hi`, `id`, `ja`, `ko`, `no`, `pl`, `pt`, `ru`, `sv`, `tr`, `vi`, `zh`. Other codes fall back to English.
-- `data-search-position`: `'top'` or `'bottom'` - Where to display the search bar (default: `'top'`)
-- `data-search-placeholder`: String - Placeholder text for the search input (default: `'Ask a question...'`)
-
-### Demo
-
-Open `search.html` in your browser to see the search widget in action.
 
 ## JavaScript API
 
@@ -212,7 +162,7 @@ The widget exposes a JavaScript API that allows you to control the chat programm
 ### Basic Usage
 
 ```html
-<script src="https://your-cdn.com/embed.js" agent-id="YOUR_AGENT_ID"></script>
+<script id="chatbot-embed-script" src="https://your-cdn.com/embed.js" data-agent-id="YOUR_AGENT_ID" defer></script>
 
 <script>
   // Wait for widget to be ready

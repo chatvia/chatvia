@@ -25,13 +25,9 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void {
-    // No origin check: the version probe carries no agent, and agents/verify
-    // IS the origin check, answered as `{verified: bool}` for the widget.
+    // No origin check: agents/verify IS the origin check, answered as
+    // `{verified: bool}` for the widget.
     Route::get('/agents/verify', AgentVerifyController::class)->name('widget.agents.verify');
-
-    Route::get('/version', function () {
-        return response()->json(['version' => config('app.version')]);
-    })->name('widget.version');
 
     // Every other widget route must come from one of the agent's allowed sites.
     Route::middleware(VerifyWidgetOrigin::class)->group(function (): void {

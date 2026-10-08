@@ -4,8 +4,6 @@ namespace Domain\Llm\Models;
 
 use Domain\Llm\Enums\LlmProviderEnum;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,7 +28,6 @@ use Illuminate\Support\Facades\Cache;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm byLocation($location)
  * @method static \Database\Factories\LlmFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm newQuery()
@@ -51,7 +48,6 @@ use Illuminate\Support\Facades\Cache;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereProvider($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereIsReasoning($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm withReasoning()
  *
  * @mixin \Eloquent
  */
@@ -79,18 +75,6 @@ class Llm extends Model
         'is_reasoning' => false,
         'credits' => 1,
     ];
-
-    #[Scope]
-    protected function byLocation(Builder $query, string $location): void
-    {
-        $query->where('location', $location);
-    }
-
-    #[Scope]
-    protected function withReasoning(Builder $query): void
-    {
-        $query->where('is_reasoning', true);
-    }
 
     /**
      * Cache the entire LLM catalog. A tiny static lookup table that's read on

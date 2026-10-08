@@ -288,7 +288,6 @@
         },
         "governance": {
             "breadcrumb": "Governance",
-            "title": "Audit-Log",
             "description": "Jede Aktion, die Ihre Agenten über Tools und Konnektoren ausführen — erlaubt, genehmigt, abgelehnt oder rate-limitiert — mit Argumenten, Ergebnis und auslösender Person."
         },
         "sections": {
@@ -302,8 +301,7 @@
             "functions": "Funktionen",
             "api_keys": "API-Schlüssel",
             "prompts": "Prompts",
-            "members": "Chatter",
-            "audit_log": "Audit-Log"
+            "members": "Chatter"
         }
     }
 }

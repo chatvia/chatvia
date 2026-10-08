@@ -116,7 +116,6 @@
                 "messenger": "Messenger",
                 "whatsapp": "WhatsApp",
                 "msteams": "Microsoft Teams",
-                "teams": "Microsoft Teams",
                 "instagram": "Instagram",
                 "playground": "Testiympäristö",
                 "api": "API"
@@ -128,9 +127,6 @@
             "sidebar": {
                 "online": "Paikalla",
                 "show_online_only": "Näytä vain paikalla olevat kävijät",
-                "export_json": "Vie JSON-muodossa",
-                "export_csv": "Vie CSV-muodossa",
-                "export_pdf": "Vie PDF-muodossa",
                 "expires_today": "Vanhenee tänään",
                 "expires_in_days": "Vanhenee {count} päivän kuluttua | Vanhenee {count} päivän kuluttua",
                 "expires_in_one_month": "Vanhenee 1 kuukauden kuluttua",
@@ -556,8 +552,6 @@
                 "add_topic": "Lisää aihe",
                 "empty": "Ei vielä aiheita. Lisää yksi auttaaksesi agenttiasi luokittelemaan keskusteluja.",
                 "no_results": "Mikään aihe ei vastaa hakua \"{query}\".",
-                "freeze_topics": "Jäädytä aiheet",
-                "freeze_hint": "Kun jäädytetty, agentti lopettaa uusien aiheiden oppimisen keskusteluista.",
                 "done": "Näytä analytiikka",
                 "add_dialog_title": "Lisää aihe",
                 "add_dialog_description": "Määrittele aiheen nimi ja kuvaus auttaaksesi agenttia luokittelemaan keskusteluja.",
@@ -581,9 +575,6 @@
                 "update_error": "Aiheen päivittäminen epäonnistui. Yritä uudelleen.",
                 "delete_error": "Aiheen poistaminen epäonnistui. Yritä uudelleen.",
                 "load_error": "Aiheiden lataaminen epäonnistui. Yritä uudelleen.",
-                "freeze_error": "Jäädytysasetuksen päivittäminen epäonnistui. Yritä uudelleen.",
-                "frozen": "Aiheet jäädytetty",
-                "unfrozen": "Aiheiden jäädytys poistettu",
                 "permission_denied": "Pääsy estetty",
                 "permission_denied_description": "Sinulla ei ole oikeutta hallita aiheita."
             }

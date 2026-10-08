@@ -6,8 +6,7 @@
         "upload": "Upload",
         "cancel": "Cancel",
         "save": "Save",
-        "confirm": "Confirm",
-        "deleting": "Deleting..."
+        "confirm": "Confirm"
     },
     "nav": {
         "account": "Account",

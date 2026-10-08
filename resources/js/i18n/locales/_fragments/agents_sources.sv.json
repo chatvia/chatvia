@@ -370,8 +370,6 @@
                 "include_paths_hint": "Använd jokertecken (*) för att matcha mönster. Lämna tomt för att inkludera alla sökvägar.",
                 "exclude_paths_label": "Exkludera sökvägar",
                 "exclude_paths_hint": "Använd jokertecken (*) för att matcha mönster. Dessa sökvägar hoppas över.",
-                "slow_crawling_label": "Långsam crawling",
-                "slow_crawling_hint": "Använder längre fördröjningar för mer respektfull crawling",
                 "crawling_title": "Crawlar...",
                 "crawling_count": "{count} webbplats crawlas just nu. | {count} webbplatser crawlas just nu.",
                 "tooltip_crawling": "Crawlar just nu...",

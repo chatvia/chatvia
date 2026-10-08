@@ -259,7 +259,7 @@ export async function subscribeToConversation(widget) {
  * Request human assistance
  * @deprecated Admin initiates handoff via "Take Over" - manual request no longer supported
  */
-export async function requestHumanAssistance(widget) {
+export async function requestHumanAssistance(_widget) {
   return null;
 }
 
@@ -329,7 +329,6 @@ function emitHandoffEvent(widget, data) {
  * Switch to human agent mode (WebSocket)
  */
 export async function switchToHumanMode(widget, adminName, adminId, serverMessage) {
-  const wasPending = widget.handoffMode === HANDOFF_MODE.PENDING;
   widget.handoffMode = HANDOFF_MODE.HUMAN;
   widget.adminName = adminName;
 
@@ -667,7 +666,7 @@ async function handleWebSocketMessage(widget, data) {
  * Handle typing indicator event
  */
 function handleTypingEvent(widget, data) {
-  const { is_typing, typer_type, typer_name } = data;
+  const { is_typing, typer_type } = data;
 
   // Only show typing indicator for admin/agent
   if (typer_type === 'user') {
@@ -675,7 +674,7 @@ function handleTypingEvent(widget, data) {
   }
 
   if (is_typing) {
-    showAdminTyping(widget, typer_name);
+    showAdminTyping(widget);
     // Scroll to bottom when typing indicator appears
     widget.scrollToBottom();
   } else {
@@ -691,7 +690,7 @@ function handleTypingEvent(widget, data) {
  * the name can never reach the HTML parser; using innerHTML here would be an
  * XSS sink the moment an admin sets their name to "<img onerror=...>".
  */
-function showAdminTyping(widget, agentName) {
+function showAdminTyping(widget) {
   if (widget._adminTyping) return;
   widget._adminTyping = true;
 

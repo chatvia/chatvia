@@ -5,21 +5,10 @@
                 "appearance_translations_default": "الافتراضية",
                 "appearance_translations_default_tip": "النص الذي تكتبه — يُترجَم تلقائيًا إلى كل اللغات.",
                 "appearance_translations_default_hint": "هذا هو النص الذي تكتبه. عند الحفظ يُترجَم تلقائيًا إلى كل اللغات، ويظهر عندما لا تكون لغة الزائر ضمن القائمة.",
-                "appearance_translations_lang_hint": "عدّل هذه اللغة هنا. اترك الحقل فارغًا لاستخدام الترجمة التلقائية، وتُحفَظ تعديلاتك دائمًا.",
-                "appearance_translations_manage": "إدارة الترجمات",
-                "appearance_translations_hint": "يُترجَم النص المحفوظ إلى كل اللغات تلقائيًا. افتح عَلَمًا لتعديل تلك اللغة، وسيتم الاحتفاظ بتعديلاتك.",
-                "appearance_translations_title": "الترجمات",
-                "appearance_translations_desc": "اختر لغة وعدّل الترجمة التلقائية. اترك الحقل فارغًا لاستخدام الترجمة التلقائية.",
-                "appearance_translations_language": "اللغة",
-                "appearance_translations_reset": "إعادة تعيين",
-                "appearance_translations_auto": "تلقائي"
+                "appearance_translations_lang_hint": "عدّل هذه اللغة هنا. اترك الحقل فارغًا لاستخدام الترجمة التلقائية، وتُحفَظ تعديلاتك دائمًا."
             },
             "behavior": {
                 "language_switcher": "مُبدّل اللغة"
-            },
-            "toasts": {
-                "translations_saved": "تم تحديث الترجمات",
-                "translations_error": "تعذّر حفظ الترجمات"
             }
         }
     }

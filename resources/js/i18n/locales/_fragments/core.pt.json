@@ -6,8 +6,7 @@
         "upload": "Carregar",
         "cancel": "Cancelar",
         "save": "Guardar",
-        "confirm": "Confirmar",
-        "deleting": "A eliminar..."
+        "confirm": "Confirmar"
     },
     "nav": {
         "account": "Conta",

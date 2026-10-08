@@ -15,8 +15,6 @@ class EmbedFormDefinitionJob implements AttributesTokenUsage, ShouldQueue
     use Queueable;
     use TracksTokenUsage;
 
-    public int $tries = 2;
-
     public function __construct(public int $formId) {}
 
     public function handle(EmbedFormDefinitionAction $action): void

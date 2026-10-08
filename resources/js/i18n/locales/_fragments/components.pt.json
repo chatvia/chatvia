@@ -1,7 +1,4 @@
 {
-    "nav": {
-        "platform": "Plataforma"
-    },
     "theme": {
         "toggle": "Alternar tema",
         "light": "Claro",

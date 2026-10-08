@@ -16,7 +16,6 @@
                     "scorer": "Bedømmer",
                     "status": "Status",
                     "actions": "Handlinger",
-                    "by": "Af",
                     "pass_rate": "Beståelsesrate",
                     "passed_failed": "Bestået / Fejlet",
                     "avg_score": "Gns. score",

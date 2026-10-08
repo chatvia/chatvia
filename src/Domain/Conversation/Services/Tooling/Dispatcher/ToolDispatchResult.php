@@ -37,14 +37,6 @@ final readonly class ToolDispatchResult
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $artifacts
-     */
-    public static function withArtifacts(string $text, array $artifacts): self
-    {
-        return new self($text, $artifacts);
-    }
-
-    /**
      * A recoverable tool error (the LLM still sees the text). Flagged so the
      * governance audit can record the call as failed.
      */

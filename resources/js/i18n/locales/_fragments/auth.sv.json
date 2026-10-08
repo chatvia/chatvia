@@ -35,14 +35,8 @@
             "password_placeholder": "Lösenord",
             "confirm_password_label": "Bekräfta lösenord",
             "confirm_password_placeholder": "Bekräfta lösenord",
-            "agree_to": "Jag godkänner",
-            "privacy_policy": "integritetspolicyn",
-            "terms_of_service": "användarvillkoren",
             "create_account": "Skapa konto",
             "creating_account": "Skapar konto...",
-            "or": "Eller",
-            "continue_with_google": "Fortsätt med Google",
-            "continue_with_slack": "Fortsätt med Slack",
             "have_account": "Har du redan ett konto?",
             "log_in": "Logga in"
         },
@@ -129,22 +123,6 @@
             "sending_link": "Skickar länk...",
             "or": "Eller"
         },
-        "member_password": {
-            "title": "Ange ditt lösenord",
-            "description": "Skapa ett säkert lösenord för ditt konto",
-            "head": "Ange lösenord",
-            "accept_error": "Det gick inte att acceptera inbjudan. Försök igen.",
-            "name_label": "Namn",
-            "name_placeholder": "Ange ditt namn",
-            "password_label": "Lösenord",
-            "password_placeholder": "Skapa ett säkert lösenord",
-            "confirm_password_label": "Bekräfta lösenord",
-            "confirm_password_placeholder": "Bekräfta ditt lösenord",
-            "accept_invitation": "Acceptera inbjudan",
-            "accepting_invitation": "Accepterar inbjudan...",
-            "have_account": "Har du redan ett konto?",
-            "sign_in": "Logga in"
-        },
         "accept_invitation": {
             "title_existing": "Logga in för att acceptera inbjudan",
             "title_new": "Skapa ditt konto",
@@ -208,13 +186,6 @@
             "card_title": "Inbjudan har gått ut",
             "contact_owner": "Kontakta teamägaren för att begära en ny inbjudan.",
             "go_to_login": "Gå till inloggning"
-        },
-        "split": {
-            "headline": "Bygg din egen {brand} på några minuter",
-            "subheadline": "Skapa AI-assistenter som lär sig från {data} och kunskap",
-            "your_data": "din data",
-            "secure_data": "Säker datahantering",
-            "custom_gpt": "Anpassad GPT"
         }
     }
 }

@@ -78,8 +78,8 @@ class AnalyticsDemoSeeder extends Seeder
             return;
         }
 
-        // Pull model dimensions from the actual llms table so the analytics
-        // mostUsedModels query joins correctly. Falls back to a constant if
+        // Pull model dimensions from the actual llms table so the per-model
+        // analytics rows match real LLM names. Falls back to a constant if
         // LlmSeeder hasn't run yet (allowing standalone db:seed --class).
         $models = Llm::query()->pluck('external_name')->all();
         if (empty($models)) {

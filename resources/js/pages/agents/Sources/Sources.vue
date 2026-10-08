@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Card, CardContent } from '@/components/ui/card';
+import { useFeature } from '@/composables/useFeature';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -28,10 +29,12 @@ interface SourceStats {
 const props = defineProps<Props>();
 const page = usePage();
 const { t } = useI18n();
+const { hasFeature } = useFeature();
 const stats = ref<SourceStats | null>(null);
 const isLoadingStats = ref(true);
 
-// Knowledge base content types
+// Knowledge base content types. YouTube sources are unfinished and only show
+// when the install turns them on (FEATURE_YOUTUBE_SOURCES).
 const contentTypes = [
     {
         id: 'files',
@@ -89,7 +92,7 @@ const contentTypes = [
         route: 'agents.sources.qa.index',
         statsKey: 'qa',
     },
-];
+].filter((type) => type.id !== 'youtube' || hasFeature('youtube_sources'));
 
 const getCurrentType = () => {
     const currentRoute = page.url;
@@ -100,7 +103,7 @@ const getCurrentType = () => {
     if (currentRoute.includes('/sources/text')) {
         return 'text';
     }
-    if (currentRoute.includes('/sources/youtube')) {
+    if (hasFeature('youtube_sources') && currentRoute.includes('/sources/youtube')) {
         return 'youtube';
     }
     if (currentRoute.includes('/sources/pdf')) {

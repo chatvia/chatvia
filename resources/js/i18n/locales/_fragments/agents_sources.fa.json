@@ -370,8 +370,6 @@
                 "include_paths_hint": "از wildcard (*) برای تطبیق الگوها استفاده کنید. برای شامل کردن همه مسیرها خالی بگذارید.",
                 "exclude_paths_label": "مسیرهای استثنا",
                 "exclude_paths_hint": "از wildcard (*) برای تطبیق الگوها استفاده کنید. این مسیرها نادیده گرفته خواهند شد.",
-                "slow_crawling_label": "خزش آهسته",
-                "slow_crawling_hint": "از تأخیرهای بیشتر برای خزش محترمانه‌تر استفاده می‌کند",
                 "crawling_title": "در حال خزش...",
                 "crawling_count": "{count} وب‌سایت در حال خزش",
                 "tooltip_crawling": "در حال خزش...",

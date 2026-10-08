@@ -33,53 +33,91 @@
                 "name": "Interaktiiviset kaaviot",
                 "description": "Renderöi interaktiivisia kaavioita suoraan chatissa — palkki, viiva, piirakka, hajonta, tutka, mittari, lämpökartta ja paljon muuta."
             },
-            "leads": { "name": "Liidit", "description": "Kaappaa vierailijan yhteystiedot (nimi, sähköposti, puhelin ja muut)" },
-            "stripe": { "name": "Stripe", "description": "Hae tapahtumia, asiakkaita, tuotteita ja maksuja Stripe-tililtäsi." },
+            "leads": {
+                "name": "Liidit",
+                "description": "Kaappaa vierailijan yhteystiedot (nimi, sähköposti, puhelin ja muut)"
+            },
+            "stripe": {
+                "name": "Stripe",
+                "description": "Hae tapahtumia, asiakkaita, tuotteita ja maksuja Stripe-tililtäsi."
+            },
             "github": {
                 "name": "GitHub",
                 "description": "Lue repositorioita, issueja, PR:iä ja koodia mistä tahansa tililtä, johon sinulla on pääsy."
             },
-            "notion": { "name": "Notion", "description": "Lue sivuja, tietokantoja ja kommentteja Notion-työtilastasi." },
-            "linear": { "name": "Linear", "description": "Hae issueja, projekteja ja syklejä Linear-työtilastasi." },
-            "atlassian": { "name": "Atlassian", "description": "Jira-issuet, Confluence-sivut ja työnkulut Atlassian-sivustoiltasi." },
-            "gmail": { "name": "Gmail", "description": "Hae viestejä, lue ketjuja ja laadi vastauksia Gmail-postilaatikostasi." },
-            "google-calendar": { "name": "Google Calendar", "description": "Lue ja luo tapahtumia Google-kalentereissasi." },
-            "google-drive": { "name": "Google Drive", "description": "Lue tiedostoja ja kansioita Google Drivestasi." },
-            "slack": { "name": "Slack", "description": "Hae viestejä, lähetä vastauksia ja lue kanavahistoriaa Slack-työtilassasi." },
+            "notion": {
+                "name": "Notion",
+                "description": "Lue sivuja, tietokantoja ja kommentteja Notion-työtilastasi."
+            },
+            "linear": {
+                "name": "Linear",
+                "description": "Hae issueja, projekteja ja syklejä Linear-työtilastasi."
+            },
+            "atlassian": {
+                "name": "Atlassian",
+                "description": "Jira-issuet, Confluence-sivut ja työnkulut Atlassian-sivustoiltasi."
+            },
+            "gmail": {
+                "name": "Gmail",
+                "description": "Hae viestejä, lue ketjuja ja laadi vastauksia Gmail-postilaatikostasi."
+            },
+            "google-calendar": {
+                "name": "Google Calendar",
+                "description": "Lue ja luo tapahtumia Google-kalentereissasi."
+            },
+            "google-drive": {
+                "name": "Google Drive",
+                "description": "Lue tiedostoja ja kansioita Google Drivestasi."
+            },
+            "slack": {
+                "name": "Slack",
+                "description": "Hae viestejä, lähetä vastauksia ja lue kanavahistoriaa Slack-työtilassasi."
+            },
             "calendly": {
                 "name": "Calendly",
                 "description": "Anna vierailijoiden varata tapaamisia Calendlyssasi ja anna agenttien lukea aikataulutettuja tapahtumiasi."
             },
-            "todoist": { "name": "Todoist", "description": "Hallinnoi tehtäviä, projekteja ja tunnisteita Todoist-tililläsi." },
-            "zapier": { "name": "Zapier", "description": "Käynnistä Zapier-toimintoja yli 9 000 yhdistetyssä sovelluksessa." },
+            "todoist": {
+                "name": "Todoist",
+                "description": "Hallinnoi tehtäviä, projekteja ja tunnisteita Todoist-tililläsi."
+            },
+            "zapier": {
+                "name": "Zapier",
+                "description": "Käynnistä Zapier-toimintoja yli 9 000 yhdistetyssä sovelluksessa."
+            },
             "zendesk": {
                 "name": "Zendesk",
                 "description": "Lue tikettejä, käyttäjiä ja Tukikeskuksen artikkeleita Zendesk Support -tililtäsi.",
                 "token_label": "Zendesk API-token",
                 "token_placeholder": "Zendesk API-tokenisi"
             },
-            "hubspot": { "name": "HubSpot", "description": "Lue ja päivitä yhteystietoja, yrityksiä, kauppoja ja tikettejä HubSpot CRM:ssäsi." },
+            "hubspot": {
+                "name": "HubSpot",
+                "description": "Lue ja päivitä yhteystietoja, yrityksiä, kauppoja ja tikettejä HubSpot CRM:ssäsi."
+            },
             "salesforce": {
                 "name": "Salesforce",
                 "description": "Lue ja päivitä tilejä, yhteystietoja, mahdollisuuksia ja tapauksia Salesforce-organisaatiostasi."
             },
-            "box": { "name": "Box", "description": "Hae ja lue tiedostoja, kansioita ja metatietoja Box-tililläsi." },
-            "asana": { "name": "Asana", "description": "Lue ja päivitä tehtäviä, projekteja ja portfolioita Asana-työtilassasi." },
-            "sentry": { "name": "Sentry", "description": "Lue issueja, virheitä ja julkaisuja Sentry-projekteistasi." },
-            "fireflies": { "name": "Fireflies", "description": "Hae kokousten litterointeja, yhteenvetoja ja toimintakohteita Fireflies.ai:sta." },
+            "box": {
+                "name": "Box",
+                "description": "Hae ja lue tiedostoja, kansioita ja metatietoja Box-tililläsi."
+            },
+            "asana": {
+                "name": "Asana",
+                "description": "Lue ja päivitä tehtäviä, projekteja ja portfolioita Asana-työtilassasi."
+            },
+            "sentry": {
+                "name": "Sentry",
+                "description": "Lue issueja, virheitä ja julkaisuja Sentry-projekteistasi."
+            },
+            "fireflies": {
+                "name": "Fireflies",
+                "description": "Hae kokousten litterointeja, yhteenvetoja ja toimintakohteita Fireflies.ai:sta."
+            },
             "amplitude": {
                 "name": "Amplitude",
                 "description": "Tee kyselyitä tuoteanalytiikkaan — tapahtumat, kaaviot ja kohortit — Amplitude-projektistasi."
-            }
-        },
-        "mcp": {
-            "account-analytics": {
-                "name": "Tilin analytiikka",
-                "description": "Vastaa työtilan omistajan kysymyksiin heidän omasta tilistään numeroina — viestit, keskustelut, käyttäjät, kanavat, liidit, tyytyväisyys, vastausaika, aiheet ja siirrot."
-            },
-            "charts": {
-                "name": "Interaktiiviset kaaviot",
-                "description": "Renderöi interaktiivisia kaavioita (palkki, viiva, piirakka, mittari, hajonta, tutka, lämpökartta, …) suoraan chatissa."
             }
         }
     }

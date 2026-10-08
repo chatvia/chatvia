@@ -35,14 +35,8 @@
             "password_placeholder": "Password",
             "confirm_password_label": "Confirm password",
             "confirm_password_placeholder": "Confirm password",
-            "agree_to": "I agree to the",
-            "privacy_policy": "Privacy Policy",
-            "terms_of_service": "Terms of Service",
             "create_account": "Create account",
             "creating_account": "Creating account...",
-            "or": "Or",
-            "continue_with_google": "Continue with Google",
-            "continue_with_slack": "Continue with Slack",
             "have_account": "Already have an account?",
             "log_in": "Log in"
         },
@@ -129,22 +123,6 @@
             "sending_link": "Sending link...",
             "or": "Or"
         },
-        "member_password": {
-            "title": "Set your password",
-            "description": "Create a secure password for your account",
-            "head": "Set Password",
-            "accept_error": "Could not accept the invitation. Please try again.",
-            "name_label": "Name",
-            "name_placeholder": "Enter your name",
-            "password_label": "Password",
-            "password_placeholder": "Create a secure password",
-            "confirm_password_label": "Confirm Password",
-            "confirm_password_placeholder": "Confirm your password",
-            "accept_invitation": "Accept Invitation",
-            "accepting_invitation": "Accepting Invitation...",
-            "have_account": "Already have an account?",
-            "sign_in": "Sign in"
-        },
         "accept_invitation": {
             "title_existing": "Login to accept invitation",
             "title_new": "Create your account",
@@ -208,13 +186,6 @@
             "card_title": "Invitation Expired",
             "contact_owner": "Please contact the team owner to request a new invitation.",
             "go_to_login": "Go to Login"
-        },
-        "split": {
-            "headline": "Build your own {brand} in minutes",
-            "subheadline": "Create AI assistants that learn from {data} and knowledge",
-            "your_data": "your data",
-            "secure_data": "Secure data handling",
-            "custom_gpt": "Custom GPT"
         }
     }
 }

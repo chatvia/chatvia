@@ -35,14 +35,8 @@
             "password_placeholder": "Palavra-passe",
             "confirm_password_label": "Confirmar palavra-passe",
             "confirm_password_placeholder": "Confirmar palavra-passe",
-            "agree_to": "Concordo com a",
-            "privacy_policy": "Política de Privacidade",
-            "terms_of_service": "Termos de Serviço",
             "create_account": "Criar conta",
             "creating_account": "A criar conta...",
-            "or": "Ou",
-            "continue_with_google": "Continuar com o Google",
-            "continue_with_slack": "Continuar com o Slack",
             "have_account": "Já tem uma conta?",
             "log_in": "Iniciar sessão"
         },
@@ -129,22 +123,6 @@
             "sending_link": "A enviar ligação...",
             "or": "Ou"
         },
-        "member_password": {
-            "title": "Defina a sua palavra-passe",
-            "description": "Crie uma palavra-passe segura para a sua conta",
-            "head": "Definir Palavra-passe",
-            "accept_error": "Não foi possível aceitar o convite. Por favor, tente novamente.",
-            "name_label": "Nome",
-            "name_placeholder": "Introduza o seu nome",
-            "password_label": "Palavra-passe",
-            "password_placeholder": "Crie uma palavra-passe segura",
-            "confirm_password_label": "Confirmar Palavra-passe",
-            "confirm_password_placeholder": "Confirme a sua palavra-passe",
-            "accept_invitation": "Aceitar Convite",
-            "accepting_invitation": "A aceitar convite...",
-            "have_account": "Já tem uma conta?",
-            "sign_in": "Iniciar sessão"
-        },
         "accept_invitation": {
             "title_existing": "Iniciar sessão para aceitar o convite",
             "title_new": "Crie a sua conta",
@@ -208,13 +186,6 @@
             "card_title": "Convite Expirado",
             "contact_owner": "Por favor, contacte o proprietário da equipa para solicitar um novo convite.",
             "go_to_login": "Ir para o início de sessão"
-        },
-        "split": {
-            "headline": "Crie o seu próprio {brand} em minutos",
-            "subheadline": "Crie assistentes de IA que aprendem com {data} e conhecimento",
-            "your_data": "os seus dados",
-            "secure_data": "Tratamento seguro de dados",
-            "custom_gpt": "GPT personalizado"
         }
     }
 }

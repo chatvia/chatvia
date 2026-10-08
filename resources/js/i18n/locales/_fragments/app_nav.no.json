@@ -46,8 +46,6 @@
             "evals_tooltip": "Testsuiter som vurderer agentens svar",
             "guardrails": "Sikkerhetssperre",
             "guardrails_tooltip": "AI-sikkerhetsvakter: PII, prompt-injeksjon, emner, toksisitet",
-            "leads": "Leads",
-            "leads_tooltip": "Administrer leads fanget opp av agenten din",
             "knowledge_sources": "Kilder",
             "knowledge_sources_tooltip": "Administrer agentens kunnskap og treningsdata",
             "functions": "Funksjoner",

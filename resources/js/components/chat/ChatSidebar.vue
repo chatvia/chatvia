@@ -43,7 +43,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator'; // TODO: Implement agent switching functionality
+import { Separator } from '@/components/ui/separator';
 
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import ChatSearchDialog from '@/components/chat/ChatSearchDialog.vue';

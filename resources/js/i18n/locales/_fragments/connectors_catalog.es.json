@@ -119,16 +119,6 @@
                 "name": "Amplitude",
                 "description": "Consulta análisis de producto — eventos, gráficos y cohortes — desde tu proyecto de Amplitude."
             }
-        },
-        "mcp": {
-            "account-analytics": {
-                "name": "Análisis de cuenta",
-                "description": "Responde las preguntas del propietario del workspace sobre su propia cuenta en cifras — mensajes, conversaciones, usuarios, canales, leads, satisfacción, tiempo de respuesta, temas y transferencias."
-            },
-            "charts": {
-                "name": "Gráficos interactivos",
-                "description": "Renderiza gráficos interactivos (barras, líneas, sectores, indicadores, dispersión, radar, mapas de calor, …) directamente en el chat."
-            }
         }
     }
 }

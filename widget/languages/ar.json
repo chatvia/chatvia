@@ -48,16 +48,12 @@
     "copy": "نسخ",
     "copy_message": "نسخ الرسالة",
     "good_response": "إجابة جيدة",
-    "bad_response": "إجابة سيئة",
-    "retry": "إعادة المحاولة",
-    "copied": "تم النسخ!"
+    "bad_response": "إجابة سيئة"
   },
   "handoff": {
     "talk_to_human": "تحدث مع موظف",
     "connecting": "جاري توصيلك بأحد الموظفين...",
     "connected": "متصل مع {name}",
-    "disconnected": "غادر الموظف المحادثة",
-    "returned_to_bot": "تم إرجاع المحادثة للمساعد الآلي",
     "agent_typing": "{name} يكتب...",
     "waiting_for_agent": "في انتظار موظف متاح...",
     "end_chat": "إنهاء المحادثة",
@@ -72,7 +68,6 @@
     "initialization_failed": "خطأ في التهيئة. يرجى المحاولة لاحقاً.",
     "verification_failed": "فشل التحقق من العميل.",
     "session_failed": "فشل إنشاء الجلسة.",
-    "connection_error": "خطأ في الاتصال. يرجى التحقق من اتصالك بالإنترنت.",
     "message_send_failed": "فشل إرسال الرسالة. يرجى المحاولة مرة أخرى.",
     "response_failed": "حدث خطأ أثناء إنشاء الرد. يرجى المحاولة مرة أخرى.",
     "auth_required": "تتطلب هذه المحادثة تسجيل الدخول."

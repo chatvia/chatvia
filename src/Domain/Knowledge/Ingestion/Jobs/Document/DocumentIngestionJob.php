@@ -89,19 +89,4 @@ class DocumentIngestionJob implements AttributesTokenUsage, ShouldBeUnique, Shou
             'failure_reason' => $exception->getMessage(),
         ]);
     }
-
-    public function timeout(): void
-    {
-        $jobId = $this->job?->getJobId() ?? $this->job?->uuid() ?? 'unknown';
-
-        Log::warning('IngestionJob timed out', [
-            'source_file_id' => $this->sourceFile->id,
-            'job_id' => $jobId,
-        ]);
-
-        $this->sourceFile->update([
-            'status' => 'failed',
-            'failure_reason' => 'Job timed out after '.$this->timeout.' seconds',
-        ]);
-    }
 }

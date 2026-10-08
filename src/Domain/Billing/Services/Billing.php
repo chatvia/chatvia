@@ -96,42 +96,6 @@ class Billing
         return $packages->where('name', ucfirst($name))->first();
     }
 
-    public static function getPackages()
-    {
-        return config('billing.packages');
-    }
-
-    /**
-     * Get capabilities DTO for a specific package
-     */
-    public static function getCapabilitiesForPackage(string $packageKey): BillingPackageCapabilitiesData
-    {
-        return BillingPackageCapabilitiesData::forPlan($packageKey);
-    }
-
-    /**
-     * Check if a package has a specific capability
-     */
-    public static function packageHasCapability(string $packageKey, string $capability): bool
-    {
-        $capabilities = static::getCapabilitiesForPackage($packageKey);
-
-        return property_exists($capabilities, $capability) && $capabilities->{$capability} === true;
-    }
-
-    /**
-     * Get UI features for a specific package and billing cycle
-     */
-    public static function getFeaturesForPackage(string $packageKey, bool $isYearly = false): array
-    {
-        $packages = static::getPackages();
-        $featuresConfig = $packages[$packageKey]['features'] ?? [];
-
-        $billingCycle = $isYearly ? 'yearly' : 'monthly';
-
-        return $featuresConfig[$billingCycle] ?? $featuresConfig['monthly'] ?? [];
-    }
-
     public function getAvailablePackages(): Collection
     {
         $packages = config('billing.packages');

@@ -22,7 +22,6 @@ use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use App\Http\Middleware\Web\SetLocale;
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -61,11 +60,6 @@ $app = Application::configure(basePath: dirname(__DIR__))
             Route::group([], __DIR__.'/../routes/instagram.php');
         }
     )
-    ->withSchedule(function (Schedule $schedule): void {
-        $schedule->command('telescope:prune --hours=24')->dailyAt('00:00');
-        $schedule->command('app:cache-message-usage')->everyFiveMinutes();
-        $schedule->command('app:prune-expired-data-exports')->dailyAt('00:15');
-    })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
@@ -112,13 +106,12 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
         // Exempt only endpoints that the session cookie doesn't authenticate:
         // the embeddable widget (token auth) and server-to-server webhooks
-        // (Stripe, ingestion). The hosted chat (/chat/*) is cookie-authenticated,
+        // (Stripe). The hosted chat (/chat/*) is cookie-authenticated,
         // so it keeps CSRF protection: its frontend sends the XSRF-TOKEN cookie
         // back as the X-XSRF-TOKEN header.
         $middleware->preventRequestForgery(except: [
             '/widget/*',
             '/stripe/*',
-            '/ingestion/*',
         ]);
 
         // Set TRUSTED_PROXIES to a comma-separated list of upstream IPs/CIDRs (e.g. Cloudflare).

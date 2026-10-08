@@ -15,13 +15,6 @@
                     "bot_token": "توکن ربات",
                     "signing_secret": "کلید امضا",
                     "request_url": "آدرس درخواست",
-                    "callback_url": "آدرس بازگشت",
-                    "verify_token": "توکن تأیید",
-                    "page_access_token": "توکن دسترسی صفحه",
-                    "app_secret": "کلید مخفی برنامه",
-                    "access_token": "توکن دسترسی",
-                    "phone_number_id": "شناسه شماره تلفن",
-                    "waba_id": "شناسه حساب تجاری WhatsApp",
                     "microsoft_app_id": "شناسه برنامه Microsoft",
                     "client_secret": "کلید مخفی کاربر",
                     "tenant_id": "شناسه مستأجر",
@@ -33,24 +26,10 @@
                 "placeholders": {
                     "telegram_bot_token": "123456789:ABCdef…",
                     "slack_bot_token": "xoxb-…",
-                    "meta_token": "EAAG…",
-                    "phone_number_id": "123456789012345",
                     "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
-                    "tenant_id": "برای Multi Tenant خالی بگذارید",
-                    "instagram_token": "IGAA…"
-                },
-                "guide": {
-                    "need_detail_before": "به جزئیات بیشتر نیاز دارید؟ راهنمای",
-                    "step_by_step_guide": "گام‌به‌گام",
-                    "need_detail_after": "را با تصاویر دنبال کنید."
+                    "tenant_id": "برای Multi Tenant خالی بگذارید"
                 },
                 "shared": {
-                    "subscribe_webhook": "Webhook را در فیلد {field} مشترک کنید",
-                    "messages_field": "پیام‌ها",
-                    "create_meta_app_at": "یک برنامه در {link} ایجاد کنید",
-                    "copy_app_secret_both": "کلید مخفی برنامه را از {section} کپی کرده و هر دو را در زیر پیست کنید",
-                    "copy_app_secret_all": "کلید مخفی برنامه را از {section} کپی کرده و همه را در زیر پیست کنید",
-                    "copy_app_secret_same_page": "کلید مخفی برنامه را از همین صفحه کپی کرده و هر دو را در زیر پیست کنید",
                     "reply_streams_live": "— پاسخ به صورت زنده نمایش داده می‌شود"
                 },
                 "telegram": {
@@ -76,32 +55,6 @@
                     "oauth_permissions": "OAuth & Permissions",
                     "basic_information": "Basic Information"
                 },
-                "messenger": {
-                    "steps": {
-                        "connected_1": "در {link}، بخش {webhooks} را باز کرده و Callback URL و توکن تأیید بالا را پیست کنید",
-                        "connected_3": "با صفحه خود در Messenger پیام بفرستید — عامل شما به صورت خودکار پاسخ می‌دهد",
-                        "connect_1": "یک برنامه در {link} ایجاد کنید، سپس حالت استفاده {product} را اضافه کنید — اگر نمایش داده نشد، آن را جستجو کنید",
-                        "connect_2": "در بخش {api_settings}، صفحه Facebook خود را متصل کرده و یک توکن دسترسی صفحه تولید کنید",
-                        "connect_perms": "در {permissions}، {perm1}، {perm2} و {perm3} را اضافه کنید"
-                    },
-                    "your_meta_app": "برنامه Meta شما",
-                    "webhooks_path": "موارد استفاده ← سفارشی‌سازی ← تنظیمات API Messenger",
-                    "api_settings_path": "موارد استفاده ← سفارشی‌سازی ← تنظیمات API Messenger",
-                    "permissions_path": "موارد استفاده ← سفارشی‌سازی ← مجوزها و قابلیت‌ها",
-                    "app_settings_basic": "تنظیمات برنامه ← پایه",
-                    "product": "تعامل با مشتریان در Messenger"
-                },
-                "whatsapp": {
-                    "steps": {
-                        "connected_1": "در {link}، بخش {configuration} را باز کرده و Callback URL و توکن تأیید بالا را پیست کنید",
-                        "connected_3": "با شماره خود در WhatsApp پیام بفرستید — عامل شما به صورت خودکار پاسخ می‌دهد",
-                        "connect_1": "یک برنامه در {link} با حالت استفاده {use_case} ایجاد کنید",
-                        "connect_2": "مراحل {basic_setup} را کامل کنید، سپس شناسه شماره تلفن، شناسه حساب تجاری WhatsApp و یک توکن دسترسی را کپی کنید"
-                    },
-                    "configuration_path": "WhatsApp ← پیکربندی",
-                    "use_case": "ارتباط با مشتریان از طریق WhatsApp",
-                    "basic_setup_path": "موارد استفاده ← سفارشی‌سازی ← راه‌اندازی پایه"
-                },
                 "msteams": {
                     "app_id_label": "App {id}",
                     "steps": {
@@ -120,18 +73,6 @@
                     "manage_password": "مدیریت رمز عبور ← گواهی‌ها و رازها",
                     "directory_tenant_id": "شناسه دایرکتوری (tenant)",
                     "open_chat_in_teams": "یک چت با ربات خود در Teams باز کنید"
-                },
-                "instagram": {
-                    "steps": {
-                        "connected_1": "در {link}، بخش {webhooks} را باز کرده و Callback URL و توکن تأیید بالا را پیست کنید",
-                        "connected_3": "در برنامه Instagram، دسترسی به پیام را در بخش {message_controls} فعال کنید، سپس به حساب خود پیام مستقیم بفرستید",
-                        "connect_1": "یک برنامه در {link} ایجاد کرده و محصول {product} را اضافه کنید — حساب Instagram شما باید یک حساب حرفه‌ای (کسب‌وکار یا سازنده) باشد",
-                        "connect_2": "در بخش {api_setup}، یک توکن دسترسی برای حساب خود تولید کنید"
-                    },
-                    "webhooks_path": "Instagram ← راه‌اندازی API با ورود Instagram ← پیکربندی Webhook",
-                    "message_controls_path": "تنظیمات ← پیام‌ها و پاسخ استوری ← کنترل پیام ← ابزارهای متصل",
-                    "api_setup_path": "Instagram ← راه‌اندازی API با ورود Instagram",
-                    "product": "Instagram"
                 }
             }
         }

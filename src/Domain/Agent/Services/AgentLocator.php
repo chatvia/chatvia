@@ -3,31 +3,15 @@
 namespace Domain\Agent\Services;
 
 use Domain\Agent\Models\Agent as AgentModel;
-use Illuminate\Support\Facades\Cache;
 
 /**
- * Stateless locator/cache helpers for resolving an {@see AgentModel} from a
- * request (sub-domain or custom host), caching agent names, and minting
- * collision-free external ids. Named distinctly from the `Agent` model so call
- * sites never have to alias one of them away.
+ * Stateless locator helpers for resolving an {@see AgentModel} from a
+ * request (sub-domain or custom host) and minting collision-free external
+ * ids. Named distinctly from the `Agent` model so call sites never have to
+ * alias one of them away.
  */
 class AgentLocator
 {
-    public static function exists($name): bool
-    {
-        return Cache::has('agent-'.$name);
-    }
-
-    public static function missing($name): bool
-    {
-        return self::exists($name) === false;
-    }
-
-    public static function cacheAgentName($name): void
-    {
-        Cache::forever('agent-'.$name, '');
-    }
-
     public static function resolveAgentFromSubdomain($subdomain): ?AgentModel
     {
         return AgentModel::query()

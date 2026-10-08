@@ -16,7 +16,6 @@
                     "scorer": "Avaliador",
                     "status": "Estado",
                     "actions": "Ações",
-                    "by": "Por",
                     "pass_rate": "Taxa de aprovação",
                     "passed_failed": "Aprovados / Reprovados",
                     "avg_score": "Pontuação média",

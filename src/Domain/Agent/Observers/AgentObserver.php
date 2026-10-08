@@ -4,7 +4,6 @@ namespace Domain\Agent\Observers;
 
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
-use Domain\Agent\Services\AgentLocator as AgentHelper;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -33,8 +32,6 @@ class AgentObserver
 
     public function created(Agent $agent): void
     {
-        AgentHelper::cacheAgentName($agent->sub_domain);
-
         // Each agent answers with a single LLM. Seed it to the platform's
         // configured default (config('chatvia.agent.default_model'), matched by
         // `llms.internal_name`); fall back to the first available row if the
@@ -49,11 +46,6 @@ class AgentObserver
                 $agent->forceFill(['llm_id' => $llmId])->save();
             }
         }
-    }
-
-    public function updated(Agent $agent): void
-    {
-        AgentHelper::cacheAgentName($agent->sub_domain);
     }
 
     /**
@@ -124,15 +116,5 @@ class AgentObserver
                 'error' => $e->getMessage(),
             ]);
         }
-    }
-
-    public function restored(Agent $agent): void {}
-
-    /**
-     * Handle the Agent "force deleted" event.
-     */
-    public function forceDeleted(Agent $agent): void
-    {
-        $this->deleted($agent);
     }
 }

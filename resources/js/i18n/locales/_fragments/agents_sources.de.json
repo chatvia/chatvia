@@ -370,8 +370,6 @@
                 "include_paths_hint": "Verwenden Sie Wildcards (*) für Muster. Leer lassen, um alle Pfade einzuschließen.",
                 "exclude_paths_label": "Pfade ausschließen",
                 "exclude_paths_hint": "Verwenden Sie Wildcards (*) für Muster. Diese Pfade werden übersprungen.",
-                "slow_crawling_label": "Langsames Crawling",
-                "slow_crawling_hint": "Verwendet längere Verzögerungen für rücksichtsvolleres Crawling",
                 "crawling_title": "Wird gecrawlt...",
                 "crawling_count": "{count} Website wird derzeit gecrawlt. | {count} Websites werden derzeit gecrawlt.",
                 "tooltip_crawling": "Wird derzeit gecrawlt...",

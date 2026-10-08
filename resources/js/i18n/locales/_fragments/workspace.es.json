@@ -288,7 +288,6 @@
         },
         "governance": {
             "breadcrumb": "Gobernanza",
-            "title": "Registro de auditoría",
             "description": "Cada acción que tus agentes realizan a través de herramientas y conectores — permitida, aprobada, denegada o limitada por tasa — con los argumentos, el resultado y quién la desencadenó."
         },
         "sections": {
@@ -302,8 +301,7 @@
             "functions": "Funciones",
             "api_keys": "Claves API",
             "prompts": "Prompts",
-            "members": "Usuarios",
-            "audit_log": "Registro de auditoría"
+            "members": "Usuarios"
         }
     }
 }

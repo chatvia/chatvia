@@ -117,7 +117,6 @@
                 "messenger": "Messenger",
                 "whatsapp": "WhatsApp",
                 "msteams": "Microsoft Teams",
-                "teams": "Microsoft Teams",
                 "instagram": "Instagram",
                 "playground": "Playground",
                 "api": "API"
@@ -129,9 +128,6 @@
             "sidebar": {
                 "online": "Online",
                 "show_online_only": "Show online visitors only",
-                "export_json": "Export as JSON",
-                "export_csv": "Export as CSV",
-                "export_pdf": "Export as PDF",
                 "expires_today": "Expires today",
                 "expires_in_days": "Expires in {count} day | Expires in {count} days",
                 "expires_in_one_month": "Expires in 1 month",
@@ -559,8 +555,6 @@
                 "add_topic": "Add topic",
                 "empty": "No topics yet. Add one to help your agent classify conversations.",
                 "no_results": "No topics match \"{query}\".",
-                "freeze_topics": "Freeze topics",
-                "freeze_hint": "When frozen, the agent stops learning new topics from conversations.",
                 "done": "View analytics",
                 "add_dialog_title": "Add topic",
                 "add_dialog_description": "Define a topic name and description to help the agent classify conversations.",
@@ -584,9 +578,6 @@
                 "update_error": "Could not update topic. Please try again.",
                 "delete_error": "Could not delete topic. Please try again.",
                 "load_error": "Could not load topics. Please try again.",
-                "freeze_error": "Could not update freeze setting. Please try again.",
-                "frozen": "Topics frozen",
-                "unfrozen": "Topics unfrozen",
                 "permission_denied": "Permission denied",
                 "permission_denied_description": "You don't have permission to manage topics."
             }

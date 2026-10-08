@@ -46,8 +46,6 @@
             "evals_tooltip": "Testsuiter der bedømmer denne agents svar",
             "guardrails": "Guardrails",
             "guardrails_tooltip": "AI-sikkerhedsfiltre: PII, prompt-injection, emner, toksicitet",
-            "leads": "Leads",
-            "leads_tooltip": "Administrer leads indsamlet af din agent",
             "knowledge_sources": "Kilder",
             "knowledge_sources_tooltip": "Administrer agentens viden og træningsdata",
             "functions": "Funktioner",

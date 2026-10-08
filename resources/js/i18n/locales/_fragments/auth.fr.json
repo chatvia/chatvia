@@ -35,14 +35,8 @@
             "password_placeholder": "Mot de passe",
             "confirm_password_label": "Confirmer le mot de passe",
             "confirm_password_placeholder": "Confirmer le mot de passe",
-            "agree_to": "J'accepte la",
-            "privacy_policy": "Politique de confidentialité",
-            "terms_of_service": "Conditions d'utilisation",
             "create_account": "Créer un compte",
             "creating_account": "Création du compte...",
-            "or": "Ou",
-            "continue_with_google": "Continuer avec Google",
-            "continue_with_slack": "Continuer avec Slack",
             "have_account": "Vous avez déjà un compte ?",
             "log_in": "Se connecter"
         },
@@ -129,22 +123,6 @@
             "sending_link": "Envoi du lien...",
             "or": "Ou"
         },
-        "member_password": {
-            "title": "Définissez votre mot de passe",
-            "description": "Créez un mot de passe sécurisé pour votre compte",
-            "head": "Définir le mot de passe",
-            "accept_error": "Impossible d'accepter l'invitation. Veuillez réessayer.",
-            "name_label": "Nom",
-            "name_placeholder": "Entrez votre nom",
-            "password_label": "Mot de passe",
-            "password_placeholder": "Créez un mot de passe sécurisé",
-            "confirm_password_label": "Confirmer le mot de passe",
-            "confirm_password_placeholder": "Confirmez votre mot de passe",
-            "accept_invitation": "Accepter l'invitation",
-            "accepting_invitation": "Acceptation de l'invitation...",
-            "have_account": "Vous avez déjà un compte ?",
-            "sign_in": "Se connecter"
-        },
         "accept_invitation": {
             "title_existing": "Connectez-vous pour accepter l'invitation",
             "title_new": "Créez votre compte",
@@ -208,13 +186,6 @@
             "card_title": "Invitation expirée",
             "contact_owner": "Veuillez contacter le responsable de l'équipe pour demander une nouvelle invitation.",
             "go_to_login": "Aller à la connexion"
-        },
-        "split": {
-            "headline": "Créez votre propre {brand} en quelques minutes",
-            "subheadline": "Créez des assistants IA qui apprennent de {data} et de vos connaissances",
-            "your_data": "vos données",
-            "secure_data": "Gestion sécurisée des données",
-            "custom_gpt": "GPT personnalisé"
         }
     }
 }

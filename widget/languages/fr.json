@@ -48,16 +48,12 @@
     "copy": "Copier",
     "copy_message": "Copier le message",
     "good_response": "Bonne réponse",
-    "bad_response": "Mauvaise réponse",
-    "retry": "Réessayer",
-    "copied": "Copié !"
+    "bad_response": "Mauvaise réponse"
   },
   "handoff": {
     "talk_to_human": "Parler à un humain",
     "connecting": "Connexion à un agent en cours...",
     "connected": "Connecté à {name}",
-    "disconnected": "L'agent a quitté la conversation",
-    "returned_to_bot": "Conversation transférée au bot",
     "agent_typing": "{name} est en train d'écrire...",
     "waiting_for_agent": "En attente d'un agent disponible...",
     "end_chat": "Terminer le chat",
@@ -72,7 +68,6 @@
     "initialization_failed": "Erreur d'initialisation. Veuillez réessayer plus tard.",
     "verification_failed": "Échec de la vérification du client.",
     "session_failed": "Échec de l'initialisation de la session.",
-    "connection_error": "Erreur de connexion. Veuillez vérifier votre connexion Internet.",
     "message_send_failed": "Échec de l'envoi du message. Veuillez réessayer.",
     "response_failed": "Une erreur est survenue lors de la génération de la réponse. Veuillez réessayer.",
     "auth_required": "Ce chat nécessite une connexion."

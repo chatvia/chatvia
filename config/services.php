@@ -21,12 +21,10 @@ return [
     // Base URLs the built-in Weather / Currency MCP tools call. Each workspace
     // brings its own API key (sent to /mcp/* as a bearer token).
     'openweather' => [
-        'key' => env('OPEN_WEATHER_API_KEY'),
         'base_url' => env('OPEN_WEATHER_BASE_URL', 'https://api.openweathermap.org/data/2.5'),
     ],
 
     'exchange_rate' => [
-        'key' => env('EXCHANGE_RATE_API_KEY'),
         'base_url' => env('EXCHANGE_RATE_API_BASE_URL', 'https://v6.exchangerate-api.com/v6'),
     ],
 
@@ -85,19 +83,7 @@ return [
     'openrouter' => [
         'api_key' => env('OPENROUTER_API_KEY'),
         'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
-        'api_endpoint' => env('OPENROUTER_API_ENDPOINT', 'https://openrouter.ai/api/v1'),
         'completion_endpoint' => env('OPENROUTER_COMPLETION_ENDPOINT', 'https://openrouter.ai/api/v1/chat/completions'),
-    ],
-
-    'openai' => [
-        'api_key' => env('OPENAI_API_KEY'),
-        'api_endpoint' => env('OPENAI_API_ENDPOINT', 'https://api.openai.com/v1'),
-        'completion_endpoint' => env('OPENAI_COMPLETION_ENDPOINT', 'https://api.openai.com/v1/chat/completions'),
-    ],
-
-    'ingestion' => [
-        'api_endpoint' => env('INGESTION_ENDPOINT_URL', 'http://127.0.0.1:8080'),
-        'secret' => env('INGESTION_WEBHOOK_SECRET'),
     ],
 
     'cohere' => [
@@ -125,7 +111,6 @@ return [
         'client_id' => env('GOOGLE_AUTH_CLIENT_ID'),
         'client_secret' => env('GOOGLE_AUTH_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_AUTH_REDIRECT_URI'),
-        'api_key' => env('GOOGLE_API_KEY'),
     ],
 
     'microsoft' => [
@@ -156,10 +141,6 @@ return [
         'ffprobe' => env('FFPROBE_PATH', 'ffprobe'),
     ],
 
-    'libs' => [
-        'tiktoken' => env('TIKTOKEN_PATH'),
-    ],
-
     'firecrawl' => [
         'key' => env('FIRECRAWL_API_KEY'),
         'endpoint' => env('FIRECRAWL_API_ENDPOINT', 'https://api.firecrawl.dev/v2'),
@@ -168,8 +149,8 @@ return [
         // AJAX / client-rendered content is captured). `wait_for` is an extra
         // settle delay in MS for content that loads after the initial render;
         // `timeout` (MS) caps a slow render. Both env-tunable; keep them well
-        // under the HTTP client timeout in Firecrawl::client(). These also
-        // drive `scrapeOptions` on the stage-1 crawl below.
+        // under the HTTP client timeout in Firecrawl::client(). `timeout` also
+        // caps the stage-1 `/map` discovery call.
         'wait_for' => (int) env('FIRECRAWL_WAIT_FOR', 2000),
         'timeout' => (int) env('FIRECRAWL_SCRAPE_TIMEOUT', 60000),
 
@@ -180,27 +161,6 @@ return [
         // "Rate limit exceeded"). Set to ~80% of your plan's per-minute scrape
         // limit. 0 disables throttling.
         'rate_per_minute' => (int) env('FIRECRAWL_SCRAPE_RATE_PER_MINUTE', 60),
-
-        // Stage-1 discovery uses the async `/crawl` endpoint (a full recursive
-        // crawl, not the shallow `/map`). WebsiteCrawlerJob starts the crawl;
-        // PollWebsiteCrawlJob then re-checks status every `crawl_poll_seconds`,
-        // up to `crawl_max_polls` times, before giving up. The markdown FireCrawl
-        // fetches during the crawl is cached for `markdown_cache_hours` so
-        // stage-2 training reuses it instead of re-scraping every page.
-        'crawl_poll_seconds' => (int) env('FIRECRAWL_CRAWL_POLL_SECONDS', 10),
-        'crawl_max_polls' => (int) env('FIRECRAWL_CRAWL_MAX_POLLS', 120),
-        'markdown_cache_hours' => (int) env('FIRECRAWL_MARKDOWN_CACHE_HOURS', 48),
-    ],
-
-    'voyageai' => [
-        'api_key' => env('VOYAGEAI_API_KEY'),
-        'api_endpoint' => env('VOYAGEAI_API_ENDPOINT', 'https://api.voyageai.com/v1'),
-    ],
-
-    'comprehend' => [
-        'key' => env('AWS_COMPREHEND_ACCESS_KEY_ID'),
-        'secret' => env('AWS_COMPREHEND_SECRET_ACCESS_KEY'),
-        'region' => env('AWS_COMPREHEND_REGION', 'eu-central-1'),
     ],
 
     'ip2location' => [
@@ -240,10 +200,6 @@ return [
         'research_model' => env('PERPLEXITY_RESEARCH_MODEL', 'sonar-reasoning-pro'),
     ],
 
-    'chunker' => [
-        'hash_key' => env('CHUNKER_HASH_KEY'),
-    ],
-
     // Shared secret signing internal calls to our own built-in MCP servers
     // (/mcp/*). Must be set explicitly in every environment — InternalMcpSignature
     // fails closed (throws "Missing secret") when blank, so the built-in tool loop
@@ -268,7 +224,6 @@ return [
         'api_key' => env('CHUNK_FIT_API_KEY'),
         'base_url' => env('CHUNK_FIT_BASE_URL', 'https://chunk.fit/api/v1'),
         'timeout' => (int) env('CHUNK_FIT_TIMEOUT', 120),
-        'tokenizer' => env('CHUNK_FIT_TOKENIZER', 'cl100k_base'),
 
         // Unstructured `chunk_by_title` knobs (all in CHARACTERS). Sections are
         // combined up to `combine_text_under_n_chars` and capped at

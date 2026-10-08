@@ -46,8 +46,6 @@
             "evals_tooltip": "Test suites that grade this agent's answers",
             "guardrails": "Guardrails",
             "guardrails_tooltip": "AI-safety guards: PII, prompt-injection, topics, toxicity",
-            "leads": "Leads",
-            "leads_tooltip": "Manage leads captured by your agent",
             "knowledge_sources": "Sources",
             "knowledge_sources_tooltip": "Manage agent knowledge and training data",
             "functions": "Functions",

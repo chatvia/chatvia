@@ -5,6 +5,8 @@ namespace App\Http\Requests\Api\V1\Function;
 use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Function\Data\ApiFunctionPayloadData;
 use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Function\Rules\ValidParametersSchema;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,11 +22,14 @@ class UpdateApiFunctionRequest extends FormRequest
      */
     public function rules(): array
     {
+        $function = $this->route('function');
+        $currentSchema = $function instanceof AgentFunction ? $function->parameters_schema?->getArrayCopy() : null;
+
         return [
             'internal_name' => ['sometimes', 'string', 'max:64', 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/'],
             'display_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'description' => ['sometimes', 'string', 'max:1024'],
-            'parameters_schema' => ['sometimes', 'array'],
+            'parameters_schema' => ['sometimes', 'array', new ValidParametersSchema($currentSchema)],
             'webhook_url' => ['sometimes', 'url', 'max:2048', new SafeWebhookUrl],
             'webhook_method' => ['sometimes', 'in:POST,GET,PATCH,DELETE'],
             'webhook_headers' => ['sometimes', 'nullable', 'array'],

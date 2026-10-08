@@ -116,7 +116,6 @@
                 "messenger": "Messenger",
                 "whatsapp": "WhatsApp",
                 "msteams": "Microsoft Teams",
-                "teams": "Microsoft Teams",
                 "instagram": "Instagram",
                 "playground": "Playground",
                 "api": "API"
@@ -128,9 +127,6 @@
             "sidebar": {
                 "online": "En línea",
                 "show_online_only": "Mostrar solo visitantes en línea",
-                "export_json": "Exportar como JSON",
-                "export_csv": "Exportar como CSV",
-                "export_pdf": "Exportar como PDF",
                 "expires_today": "Vence hoy",
                 "expires_in_days": "Vence en {count} día | Vence en {count} días",
                 "expires_in_one_month": "Vence en 1 mes",
@@ -556,8 +552,6 @@
                 "add_topic": "Agregar tema",
                 "empty": "Aún no hay temas. Agrega uno para ayudar a tu agente a clasificar las conversaciones.",
                 "no_results": "Ningún tema coincide con \"{query}\".",
-                "freeze_topics": "Congelar temas",
-                "freeze_hint": "Cuando está congelado, el agente deja de aprender nuevos temas de las conversaciones.",
                 "done": "Ver analíticas",
                 "add_dialog_title": "Agregar tema",
                 "add_dialog_description": "Define un nombre y descripción del tema para ayudar al agente a clasificar las conversaciones.",
@@ -581,9 +575,6 @@
                 "update_error": "No se pudo actualizar el tema. Por favor, inténtalo de nuevo.",
                 "delete_error": "No se pudo eliminar el tema. Por favor, inténtalo de nuevo.",
                 "load_error": "No se pudieron cargar los temas. Por favor, inténtalo de nuevo.",
-                "freeze_error": "No se pudo actualizar la configuración de congelado. Por favor, inténtalo de nuevo.",
-                "frozen": "Temas congelados",
-                "unfrozen": "Temas descongelados",
                 "permission_denied": "Permiso denegado",
                 "permission_denied_description": "No tienes permiso para gestionar temas."
             }

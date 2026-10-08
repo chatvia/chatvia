@@ -6,10 +6,9 @@ use Domain\Membership\Team\Models\Invitation;
 use Illuminate\Foundation\Events\Dispatchable;
 
 /**
- * Fired when an invitation row is persisted by TeamService::inviteUser.
- * The mail send lives in {@see SendTeamInvitationEmail} so the inline
- * Notification::route call no longer sits in the service body — matches
- * the codebase convention that all notifications go through listeners.
+ * Fired when CreateTeamInvitationAction persists an invitation row. The
+ * mail send lives in {@see SendTeamInvitationEmail}, so every notification
+ * goes through a listener.
  */
 class TeamInvitationCreated
 {

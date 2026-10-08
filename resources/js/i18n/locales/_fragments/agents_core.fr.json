@@ -116,7 +116,6 @@
                 "messenger": "Messenger",
                 "whatsapp": "WhatsApp",
                 "msteams": "Microsoft Teams",
-                "teams": "Microsoft Teams",
                 "instagram": "Instagram",
                 "playground": "Bac à sable",
                 "api": "API"
@@ -128,9 +127,6 @@
             "sidebar": {
                 "online": "En ligne",
                 "show_online_only": "Afficher uniquement les visiteurs en ligne",
-                "export_json": "Exporter en JSON",
-                "export_csv": "Exporter en CSV",
-                "export_pdf": "Exporter en PDF",
                 "expires_today": "Expire aujourd'hui",
                 "expires_in_days": "Expire dans {count} jour | Expire dans {count} jours",
                 "expires_in_one_month": "Expire dans 1 mois",
@@ -556,8 +552,6 @@
                 "add_topic": "Ajouter un sujet",
                 "empty": "Aucun sujet pour l'instant. Ajoutez-en un pour aider votre agent à classer les conversations.",
                 "no_results": "Aucun sujet ne correspond à « {query} ».",
-                "freeze_topics": "Geler les sujets",
-                "freeze_hint": "Lorsqu'ils sont gelés, l'agent cesse d'apprendre de nouveaux sujets à partir des conversations.",
                 "done": "Voir les analyses",
                 "add_dialog_title": "Ajouter un sujet",
                 "add_dialog_description": "Définissez un nom et une description de sujet pour aider l'agent à classer les conversations.",
@@ -581,9 +575,6 @@
                 "update_error": "Impossible de mettre à jour le sujet. Veuillez réessayer.",
                 "delete_error": "Impossible de supprimer le sujet. Veuillez réessayer.",
                 "load_error": "Impossible de charger les sujets. Veuillez réessayer.",
-                "freeze_error": "Impossible de mettre à jour le paramètre de gel. Veuillez réessayer.",
-                "frozen": "Sujets gelés",
-                "unfrozen": "Sujets dégelés",
                 "permission_denied": "Permission refusée",
                 "permission_denied_description": "Vous n'avez pas la permission de gérer les sujets."
             }

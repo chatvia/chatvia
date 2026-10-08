@@ -1,5 +1,9 @@
 # YouTube sources
 
+::: warning Not available yet
+YouTube sources are still in development. Added videos are not indexed yet, so the YouTube tab is hidden by default.
+:::
+
 Add a YouTube video URL and Chatvia indexes its transcript. Useful for recorded all-hands, product demos, training sessions, and onboarding videos your team already publishes.
 
 ![SCREENSHOT — youtube sources](/screenshots/sources-youtube.png)

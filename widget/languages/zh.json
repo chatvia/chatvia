@@ -48,16 +48,12 @@
     "copy": "复制",
     "copy_message": "复制消息",
     "good_response": "回答得不错",
-    "bad_response": "回答不佳",
-    "retry": "重试",
-    "copied": "已复制!"
+    "bad_response": "回答不佳"
   },
   "handoff": {
     "talk_to_human": "联系人工客服",
     "connecting": "正在为你接入客服…",
     "connected": "已接入 {name}",
-    "disconnected": "客服已离开对话",
-    "returned_to_bot": "对话已返回机器人",
     "agent_typing": "{name} 正在输入…",
     "waiting_for_agent": "正在等待空闲客服…",
     "end_chat": "结束对话",
@@ -72,7 +68,6 @@
     "initialization_failed": "初始化错误,请稍后重试。",
     "verification_failed": "客户端验证失败。",
     "session_failed": "会话初始化失败。",
-    "connection_error": "连接错误,请检查你的网络。",
     "message_send_failed": "消息发送失败,请重试。",
     "response_failed": "生成回复时出错,请重试。",
     "auth_required": "此聊天需要登录。"

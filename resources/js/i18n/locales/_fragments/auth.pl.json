@@ -35,14 +35,8 @@
             "password_placeholder": "Hasło",
             "confirm_password_label": "Potwierdź hasło",
             "confirm_password_placeholder": "Potwierdź hasło",
-            "agree_to": "Akceptuję",
-            "privacy_policy": "Politykę prywatności",
-            "terms_of_service": "Warunki korzystania z usługi",
             "create_account": "Utwórz konto",
             "creating_account": "Tworzenie konta...",
-            "or": "Lub",
-            "continue_with_google": "Kontynuuj przez Google",
-            "continue_with_slack": "Kontynuuj przez Slack",
             "have_account": "Masz już konto?",
             "log_in": "Zaloguj się"
         },
@@ -129,22 +123,6 @@
             "sending_link": "Wysyłanie linku...",
             "or": "Lub"
         },
-        "member_password": {
-            "title": "Ustaw swoje hasło",
-            "description": "Utwórz bezpieczne hasło do swojego konta",
-            "head": "Ustaw hasło",
-            "accept_error": "Nie udało się przyjąć zaproszenia. Spróbuj ponownie.",
-            "name_label": "Imię i nazwisko",
-            "name_placeholder": "Wprowadź swoje imię i nazwisko",
-            "password_label": "Hasło",
-            "password_placeholder": "Utwórz bezpieczne hasło",
-            "confirm_password_label": "Potwierdź hasło",
-            "confirm_password_placeholder": "Potwierdź swoje hasło",
-            "accept_invitation": "Akceptuj zaproszenie",
-            "accepting_invitation": "Akceptowanie zaproszenia...",
-            "have_account": "Masz już konto?",
-            "sign_in": "Zaloguj się"
-        },
         "accept_invitation": {
             "title_existing": "Zaloguj się, aby zaakceptować zaproszenie",
             "title_new": "Utwórz swoje konto",
@@ -208,13 +186,6 @@
             "card_title": "Zaproszenie wygasło",
             "contact_owner": "Skontaktuj się z właścicielem zespołu, aby poprosić o nowe zaproszenie.",
             "go_to_login": "Przejdź do logowania"
-        },
-        "split": {
-            "headline": "Zbuduj własnego {brand} w kilka minut",
-            "subheadline": "Twórz asystentów AI, którzy uczą się z {data} i bazy wiedzy",
-            "your_data": "Twoich danych",
-            "secure_data": "Bezpieczne przetwarzanie danych",
-            "custom_gpt": "Niestandardowy GPT"
         }
     }
 }

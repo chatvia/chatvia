@@ -116,7 +116,6 @@
                 "messenger": "Messenger",
                 "whatsapp": "WhatsApp",
                 "msteams": "Microsoft Teams",
-                "teams": "Microsoft Teams",
                 "instagram": "Instagram",
                 "playground": "Playground",
                 "api": "API"
@@ -128,9 +127,6 @@
             "sidebar": {
                 "online": "Online",
                 "show_online_only": "Nur Online-Besucher anzeigen",
-                "export_json": "Als JSON exportieren",
-                "export_csv": "Als CSV exportieren",
-                "export_pdf": "Als PDF exportieren",
                 "expires_today": "Läuft heute ab",
                 "expires_in_days": "Läuft in {count} Tag ab | Läuft in {count} Tagen ab",
                 "expires_in_one_month": "Läuft in 1 Monat ab",
@@ -556,8 +552,6 @@
                 "add_topic": "Thema hinzufügen",
                 "empty": "Noch keine Themen. Fügen Sie eines hinzu, um Ihrem Agenten die Klassifizierung von Gesprächen zu erleichtern.",
                 "no_results": "Keine Themen gefunden für \"{query}\".",
-                "freeze_topics": "Themen einfrieren",
-                "freeze_hint": "Wenn eingefroren, lernt der Agent keine neuen Themen mehr aus Gesprächen.",
                 "done": "Analysen anzeigen",
                 "add_dialog_title": "Thema hinzufügen",
                 "add_dialog_description": "Definieren Sie einen Themennamen und eine Beschreibung, um dem Agenten die Klassifizierung von Gesprächen zu erleichtern.",
@@ -581,9 +575,6 @@
                 "update_error": "Thema konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
                 "delete_error": "Thema konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
                 "load_error": "Themen konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
-                "freeze_error": "Einfriereinstellung konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
-                "frozen": "Themen eingefroren",
-                "unfrozen": "Themen aufgetaut",
                 "permission_denied": "Zugriff verweigert",
                 "permission_denied_description": "Sie haben keine Berechtigung, Themen zu verwalten."
             }

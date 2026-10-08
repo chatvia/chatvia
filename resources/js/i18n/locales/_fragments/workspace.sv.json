@@ -288,7 +288,6 @@
         },
         "governance": {
             "breadcrumb": "Styrning",
-            "title": "Granskningslogg",
             "description": "Varje åtgärd dina agenter utför via verktyg och anslutningar — tillåten, godkänd, nekad eller hastighetsbegränsad — med argumenten, resultatet och vem som utlöste det."
         },
         "sections": {
@@ -302,8 +301,7 @@
             "functions": "Funktioner",
             "api_keys": "API-nycklar",
             "prompts": "Prompter",
-            "members": "Chattare",
-            "audit_log": "Granskningslogg"
+            "members": "Chattare"
         }
     }
 }

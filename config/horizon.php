@@ -215,7 +215,7 @@ return [
             'nice' => 0,
         ],
         'ingestion-heavy' => [
-            'connection' => 'redis',
+            'connection' => 'redis-long',
             'queue' => ['ingestion.video', 'ingestion.audio'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
@@ -228,7 +228,7 @@ return [
             'nice' => 0,
         ],
         'ingestion-medium' => [
-            'connection' => 'redis',
+            'connection' => 'redis-long',
             'queue' => ['ingestion.pdf', 'ingestion.word', 'ingestion.website', 'ingestion.youtube'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
@@ -241,7 +241,7 @@ return [
             'nice' => 0,
         ],
         'ingestion-light' => [
-            'connection' => 'redis',
+            'connection' => 'redis-long',
             'queue' => ['ingestion.text', 'ingestion.markdown', 'ingestion.summary'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
@@ -267,7 +267,7 @@ return [
             'nice' => 0,
         ],
         'exports' => [
-            'connection' => 'redis',
+            'connection' => 'redis-long',
             'queue' => ['exports'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',

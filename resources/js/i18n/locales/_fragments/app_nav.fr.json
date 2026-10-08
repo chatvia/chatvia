@@ -46,8 +46,6 @@
             "evals_tooltip": "Suites de tests qui évaluent les réponses de cet agent",
             "guardrails": "Garde-fous",
             "guardrails_tooltip": "Protections IA : données personnelles, injection de prompt, sujets, toxicité",
-            "leads": "Prospects",
-            "leads_tooltip": "Gérez les prospects capturés par votre agent",
             "knowledge_sources": "Sources",
             "knowledge_sources_tooltip": "Gérez les connaissances et les données d'entraînement de l'agent",
             "functions": "Fonctions",

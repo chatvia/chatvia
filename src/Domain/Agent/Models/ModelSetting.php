@@ -44,20 +44,4 @@ class ModelSetting extends Model
     {
         return $this->morphTo();
     }
-
-    /**
-     * Get the setting value with proper type casting.
-     */
-    public function getValue(): mixed
-    {
-        return $this->value;
-    }
-
-    /**
-     * Set the setting value with proper JSON encoding.
-     */
-    public function setValue(mixed $value): void
-    {
-        $this->value = $value;
-    }
 }

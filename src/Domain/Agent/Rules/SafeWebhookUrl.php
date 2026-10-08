@@ -32,9 +32,4 @@ class SafeWebhookUrl implements ValidationRule
             $fail($e->getMessage());
         }
     }
-
-    public static function isPublicIp(string $ip): bool
-    {
-        return SafeUrl::isPublicIp($ip);
-    }
 }

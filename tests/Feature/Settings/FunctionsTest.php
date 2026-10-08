@@ -127,3 +127,53 @@ it('toggles the enabled flag', function (): void {
 
     expect($fn->fresh()->is_enabled)->toBeFalse();
 });
+
+it('rejects a parameters schema that is not an object schema on create', function (): void {
+    $this->actingAs($this->user)
+        ->post(route('integrations.functions.store'), updatePayload([
+            'internal_name' => 'new_fn',
+            'parameters_schema' => json_encode(['type' => 'string']),
+        ]))
+        ->assertSessionHasErrors('parameters_schema');
+
+    expect($this->user->functions()->count())->toBe(0);
+});
+
+it('creates a function with a well-formed object schema', function (): void {
+    $this->actingAs($this->user)
+        ->post(route('integrations.functions.store'), updatePayload([
+            'internal_name' => 'new_fn',
+            'parameters_schema' => json_encode([
+                'type' => 'object',
+                'properties' => ['order_id' => ['type' => 'string']],
+                'required' => ['order_id'],
+            ]),
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($this->user->functions()->where('internal_name', 'new_fn')->exists())->toBeTrue();
+});
+
+it('rejects an edited schema with an invalid property name', function (): void {
+    $fn = makeFunction($this->user);
+
+    $this->actingAs($this->user)
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+            'parameters_schema' => json_encode(['type' => 'object', 'properties' => ['order-id' => ['type' => 'string']]]),
+        ]))
+        ->assertSessionHasErrors('parameters_schema');
+});
+
+it('saves other fields when a stored schema that fails the shape rules is sent back unchanged', function (): void {
+    $stored = ['type' => 'object', 'properties' => ['order-id' => ['type' => 'string']]];
+    $fn = makeFunction($this->user, ['parameters_schema' => $stored]);
+
+    $this->actingAs($this->user)
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+            'description' => 'Edited without touching the schema',
+            'parameters_schema' => json_encode($stored, JSON_PRETTY_PRINT),
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($fn->fresh()->description)->toBe('Edited without touching the schema');
+});

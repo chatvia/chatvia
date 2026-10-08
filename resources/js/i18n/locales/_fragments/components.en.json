@@ -1,7 +1,4 @@
 {
-    "nav": {
-        "platform": "Platform"
-    },
     "theme": {
         "toggle": "Toggle theme",
         "light": "Light",

@@ -152,37 +152,6 @@ SQL;
             ->orderBy('date');
     }
 
-    public function mostUsedModels()
-    {
-        $agentId = $this->getModel()->id;
-        $sentinel = config('chatvia.analytics.unknown_llm_external_name');
-
-        // Llm display metadata (descriptive_name, icon) is joined in PHP since
-        // the llms table may live on a different connection from analytics.
-        return DB::connection(config('chatvia.analytics.connection'))
-            ->table('analytics_agent_hourly_rollups')
-            ->where('agent_id', $agentId)
-            ->where('llm_external_name', '!=', $sentinel)
-            ->selectRaw(
-                'llm_external_name as model_external_name,
-                 SUM(assistant_messages) as usage_count,
-                 0 as positive_feedback,
-                 0 as negative_feedback,
-                 ROUND(
-                     (SUM(assistant_messages) * 100.0) / NULLIF((
-                         SELECT SUM(assistant_messages)
-                         FROM analytics_agent_hourly_rollups
-                         WHERE agent_id = ? AND llm_external_name <> ?
-                     ), 0),
-                     1
-                 ) as percentage',
-                [$agentId, $sentinel]
-            )
-            ->groupBy('llm_external_name')
-            ->havingRaw('SUM(assistant_messages) > 0')
-            ->orderByRaw('SUM(assistant_messages) DESC');
-    }
-
     public function dailyMessages(int $days)
     {
         $agentId = $this->getModel()->id;

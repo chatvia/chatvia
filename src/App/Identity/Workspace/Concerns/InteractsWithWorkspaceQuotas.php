@@ -33,15 +33,6 @@ trait InteractsWithWorkspaceQuotas
     }
 
     /**
-     * Number of chatters provisioned via the API. Informational only —
-     * the quota gate uses workspaceUsersCount().
-     */
-    public function chattersCount(): int
-    {
-        return $this->chatters()->count();
-    }
-
-    /**
      * Total users belonging to this workspace — employees + chatters
      * combined. This is the figure the per-plan quota gates against.
      */

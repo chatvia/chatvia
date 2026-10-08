@@ -10,10 +10,10 @@ use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Web\Services\WebPageMarkdownCache;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 
 /**
  * TrainWebsiteUrlAction turns one crawled page into chunks and links each
@@ -71,7 +71,12 @@ function trainUrlFixture(): array
 
     $url = $website->urls()->create(['url' => 'https://docs.example.test/page']);
 
-    app(WebPageMarkdownCache::class)->put($url->url, '# Page'.PHP_EOL.'Some content about the product.');
+    config()->set('services.firecrawl.endpoint', 'https://firecrawl.test/v2');
+    config()->set('services.firecrawl.key', 'fc-test');
+    Http::fake(['https://firecrawl.test/v2/scrape' => Http::response([
+        'success' => true,
+        'data' => ['markdown' => '# Page'.PHP_EOL.'Some content about the product.', 'metadata' => []],
+    ], 200)]);
 
     return [$agent, $website, $url];
 }
@@ -89,9 +94,15 @@ it('links the chunks to the URL using the morph alias', function (): void {
 
     $types = DB::table('chunk_references')->where('referenceable_id', $url->id)->pluck('referenceable_type')->unique()->all();
 
+    // Discovery stores no page content, so training scrapes the page itself.
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://firecrawl.test/v2/scrape'
+        && $request['url'] === $url->url);
+
+    $firstChunkId = Chunk::query()->where('chunkable_id', $website->id)->value('id');
+
     expect($types)->toBe(['agent_website_url'])
         ->and($url->chunks()->count())->toBe(2)
-        ->and(Chunk::query()->where('chunkable_id', $website->id)->first()->links()->pluck('source_website_urls.id')->all())
+        ->and(DB::table('chunk_references')->where('chunk_id', $firstChunkId)->pluck('referenceable_id')->all())
         ->toBe([$url->id]);
 });
 

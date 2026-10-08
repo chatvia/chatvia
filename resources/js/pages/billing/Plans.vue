@@ -284,10 +284,14 @@ const getButtonText = (packageId: string) => {
 
 // Handle package selection
 const handlePackageSelection = (packageId: string) => {
-    // Contact-sales packages (Enterprise) aren't self-serve — send to the demo
-    // form instead of the Stripe subscribe flow.
+    // Contact-sales packages (Enterprise) aren't self-serve — send the visitor
+    // to the contact page (or the brand's website when the marketing site is
+    // off) instead of the Stripe subscribe flow.
     if (findPackage(packageId)?.contact_sales) {
-        window.location.href = route('demo');
+        const contactUrl = route().has('contact') ? route('contact') : brand.value.website_url;
+        if (contactUrl) {
+            window.location.href = contactUrl;
+        }
         return;
     }
 

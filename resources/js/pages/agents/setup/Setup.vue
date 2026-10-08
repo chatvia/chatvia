@@ -7,7 +7,6 @@ import StartersSection from '@/components/agents/sections/StartersSection.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -20,9 +19,6 @@ import { useBilling } from '@/composables/useBilling';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Link, router, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import hljs from 'highlight.js/lib/core';
-import javascript from 'highlight.js/lib/languages/javascript';
-import xml from 'highlight.js/lib/languages/xml';
 import {
     Bot,
     Check,
@@ -30,10 +26,8 @@ import {
     Clock,
     Copy,
     ExternalLink,
-    Eye,
     Globe,
     Image as ImageIcon,
-    Info,
     Keyboard,
     Languages,
     LayoutGrid,
@@ -42,8 +36,6 @@ import {
     MessageSquare,
     MessagesSquare,
     Monitor,
-    MoveHorizontal,
-    MoveVertical,
     Palette,
     RotateCcw,
     Save,
@@ -54,16 +46,11 @@ import {
     Smartphone,
     Sparkles,
     Tablet,
-    Terminal,
     Type,
-    Zap,
 } from 'lucide-vue-next';
-import { computed, reactive, ref, watch, watchEffect } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
-
-hljs.registerLanguage('javascript', javascript);
-hljs.registerLanguage('xml', xml);
 
 type Llm = Domain.Llm.Data.LlmModelData;
 type Surface = 'hosted_chat' | 'widget' | 'bar';
@@ -103,7 +90,6 @@ interface Props {
     llmSettings: { temperature: number; top_k: number; top_p: number; presence_penalty: number; frequency_penalty: number };
     defaultLlmSettings: { temperature: number; top_k: number; top_p: number; presence_penalty: number; frequency_penalty: number };
 
-    embedScriptUrl: string;
     availableLanguages: Record<string, string>;
 
     domain: {
@@ -139,7 +125,7 @@ const locked = computed(() => !canEdit.value);
 
 // ── Preview-tab state (Hosted Chat / Widget / Bar) — purely UI; the same
 // content settings (Info/Persona/Starters/Model/Branding) save once and apply
-// across every surface. Behavior + Embed swap their fields per active tab.
+// across every surface. Behavior swaps its fields per active tab.
 const previewSurface = ref<Surface>('hosted_chat');
 const device = ref<Device>('desktop');
 
@@ -150,7 +136,7 @@ const surfaceTabs = computed(() => [
 ]);
 
 // ── Left sidebar
-type MenuValue = 'info' | 'persona' | 'starters' | 'bubbles' | 'languages' | 'model' | 'branding' | 'behavior' | 'settings' | 'embed' | 'domain';
+type MenuValue = 'info' | 'persona' | 'starters' | 'bubbles' | 'languages' | 'model' | 'branding' | 'behavior' | 'settings' | 'domain';
 const activeTab = ref<MenuValue>('info');
 
 const menuItems = computed(() => {
@@ -172,7 +158,7 @@ const menuItems = computed(() => {
         { value: 'branding', label: t('agents.setup.menu.branding'), icon: ImageIcon },
         { value: 'behavior', label: t('agents.setup.menu.behavior'), icon: Settings },
         { value: 'settings', label: t('agents.setup.menu.settings'), icon: SlidersHorizontal },
-        // Embed/install moved to its own top-level "Deploy" page (agents.deploy).
+        // Install snippets live on the separate Deploy page (agents.deploy).
     );
 
     if (previewSurface.value === 'hosted_chat') {
@@ -693,117 +679,15 @@ const themeOptions = computed(() => [
     { value: 'dark', label: t('agents.setup.options.theme_dark') },
 ]);
 
-// ── Embed snippet — also swaps with `previewSurface`.
-// The preview iframe needs the auth token (dashboard user), but the Share
-// section in Embed should show the clean public URL.
+const domainUsedCount = computed(() => props.domain.quota.used + (props.domain.value ? 1 : 0));
+
+// ── Live Preview iframe — surface-aware.
+// A private agent's Hosted Chat preview needs the dashboard user's auth token.
 const hostedChatUrl = computed(() => {
     const base = props.agent.chat_url;
     if (!props.authToken) return base;
     return `${base}${base.includes('?') ? '&' : '?'}auth_token=${props.authToken}`;
 });
-const shareUrl = computed(() => props.agent.permanent_url || props.agent.url);
-
-// Hosted Chat iframe embed — width/height/presets configurator. The generated
-// `<iframe>` HTML is what an operator drops into their own page.
-const iframeOptions = reactive({
-    width: '100%',
-    height: '600px',
-    title: '',
-});
-watchEffect(() => {
-    iframeOptions.title = t('agents.setup.embed.iframe_title', { name: props.agent.name });
-});
-const protectedSurfaceLabel = computed(() => {
-    if (previewSurface.value === 'widget') return t('agents.setup.surfaces.widget');
-    if (previewSurface.value === 'bar') return t('agents.setup.surfaces.bar');
-    return previewSurface.value;
-});
-const domainUsedCount = computed(() => props.domain.quota.used + (props.domain.value ? 1 : 0));
-const setIframePreset = (preset: 'full' | 'large' | 'medium' | 'small'): void => {
-    if (preset === 'full') {
-        iframeOptions.width = '100%';
-        iframeOptions.height = '100vh';
-    } else if (preset === 'large') {
-        iframeOptions.width = '800px';
-        iframeOptions.height = '600px';
-    } else if (preset === 'medium') {
-        iframeOptions.width = '600px';
-        iframeOptions.height = '500px';
-    } else {
-        iframeOptions.width = '400px';
-        iframeOptions.height = '400px';
-    }
-};
-const iframeEmbedCode = computed(
-    () =>
-        `<iframe src="${props.agent.chat_embed_url}" width="${iframeOptions.width}" height="${iframeOptions.height}" title="${iframeOptions.title}" frameborder="0" allowfullscreen loading="lazy"></iframe>`,
-);
-const highlightedIframe = computed(() => hljs.highlight(iframeEmbedCode.value, { language: 'xml', ignoreIllegals: true }).value);
-const iframeCopied = ref(false);
-const copyIframe = async () => {
-    try {
-        await navigator.clipboard.writeText(iframeEmbedCode.value);
-        iframeCopied.value = true;
-        toast.success(t('agents.setup.toasts.embed_copied'));
-        setTimeout(() => (iframeCopied.value = false), 2000);
-    } catch {
-        toast.error(t('agents.setup.toasts.copy_failed'));
-    }
-};
-
-// Private agents need a server-minted JWT — append a `data-auth` placeholder
-// to the snippet so customers know to fill it in on their backend, and show
-// the protected-widget alert below.
-const isProtected = computed(() => !props.agent.is_public);
-
-const widgetSnippet = computed(() => {
-    const lines = [
-        '<script id="chatbot-embed-script"',
-        `    src="${props.embedScriptUrl}"`,
-        `    data-agent-id="${props.agent.external_id}"`,
-        `    data-language="${widgetBehaviorForm.language}"`,
-        `    data-theme="${widgetBehaviorForm.theme}"`,
-    ];
-    if (isProtected.value) lines.push('    data-auth="YOUR_SIGNED_TOKEN"');
-    lines.push('    defer><\/script>');
-    return lines.join('\n');
-});
-
-const barSnippet = computed(() => {
-    const lines = [
-        '<script id="chatbot-embed-script"',
-        `    src="${props.embedScriptUrl}"`,
-        `    data-agent-id="${props.agent.external_id}"`,
-        '    data-mode="bar"',
-    ];
-    if (isProtected.value) lines.push('    data-auth="YOUR_SIGNED_TOKEN"');
-    lines.push('    defer><\/script>');
-    return lines.join('\n');
-});
-const activeSnippet = computed(() => {
-    if (previewSurface.value === 'widget') return widgetSnippet.value;
-    if (previewSurface.value === 'bar') return barSnippet.value;
-    return shareUrl.value;
-});
-
-// Syntax-highlighted snippet for the Widget/Bar Embed code block. The active
-// snippet is a `<script>` tag, so the xml grammar gives the right colors for
-// tag names, attribute names, and quoted values.
-const highlightedSnippet = computed(() => hljs.highlight(activeSnippet.value, { language: 'xml', ignoreIllegals: true }).value);
-const highlightedEventsExample = computed(() => hljs.highlight(eventsCodeExample, { language: 'javascript', ignoreIllegals: true }).value);
-const copied = ref(false);
-const copyActive = async () => {
-    try {
-        await navigator.clipboard.writeText(activeSnippet.value);
-        copied.value = true;
-        toast.success(t('agents.setup.toasts.copied_clipboard'));
-        setTimeout(() => (copied.value = false), 2000);
-    } catch {
-        toast.error(t('agents.setup.toasts.copy_failed'));
-    }
-};
-
-// ── Live Preview iframe — surface-aware.
 const previewUrl = computed(() => {
     if (previewSurface.value === 'hosted_chat') return hostedChatUrl.value;
     if (previewSurface.value === 'widget') {
@@ -849,56 +733,6 @@ const copyExternalId = async () => {
         setTimeout(() => (isExternalIdCopied.value = false), 2000);
     } catch {
         toast.error(t('agents.setup.toasts.copy_error'));
-    }
-};
-
-// ── JavaScript API reference — shown for Widget + Bar (both surfaces install
-// via the same `window.chatvia` script global). Hosted Chat is a full-page
-// URL, no JS API; the template branch for hosted_chat doesn't render the
-// trigger button.
-const showApiDocsDialog = ref(false);
-
-const apiMethods = computed(() => [
-    { method: 'window.chatvia.open()', description: t('agents.setup.api.methods_list.open') },
-    { method: 'window.chatvia.close()', description: t('agents.setup.api.methods_list.close') },
-    { method: 'window.chatvia.toggle()', description: t('agents.setup.api.methods_list.toggle') },
-    { method: 'window.chatvia.isOpen()', description: t('agents.setup.api.methods_list.is_open') },
-    { method: 'window.chatvia.send(msg)', description: t('agents.setup.api.methods_list.send') },
-    { method: 'window.chatvia.newChat()', description: t('agents.setup.api.methods_list.new_chat') },
-    { method: 'window.chatvia.destroy()', description: t('agents.setup.api.methods_list.destroy') },
-    { method: 'window.chatvia.on(event, fn)', description: t('agents.setup.api.methods_list.on') },
-    { method: 'window.chatvia.off(event, fn)', description: t('agents.setup.api.methods_list.off') },
-]);
-
-const eventsCodeExample = `// When chat window opens
-window.chatvia.on('open', () => {
-  console.log('Chat opened');
-});
-
-// When chat window closes
-window.chatvia.on('close', () => {
-  console.log('Chat closed');
-});
-
-// When widget is ready
-window.chatvia.on('ready', () => {
-  console.log('Widget initialized');
-});
-
-// Unsubscribe from events
-const unsubscribe = window.chatvia.on('open', myCallback);
-unsubscribe(); // Stop listening
-
-// Or use window.chatvia.off()
-window.chatvia.off('open', myCallback); // Remove specific callback
-window.chatvia.off('open'); // Remove all callbacks for this event`;
-
-const copyApiCode = async (code: string) => {
-    try {
-        await navigator.clipboard.writeText(code);
-        toast.success(t('agents.setup.toasts.code_copied'));
-    } catch {
-        toast.error(t('agents.setup.toasts.code_copy_error'));
     }
 };
 </script>
@@ -1749,158 +1583,6 @@ const copyApiCode = async (code: string) => {
                                     </template>
                                 </div>
 
-                                <!-- Embed — swaps with previewSurface -->
-                                <div v-if="activeTab === 'embed'" class="space-y-4 p-6">
-                                    <!-- Hosted Chat — shareable agent URL with a side-by-side copy button. -->
-                                    <template v-if="previewSurface === 'hosted_chat'">
-                                        <div>
-                                            <Label class="text-base">{{ t('agents.setup.embed.agent_url_title') }}</Label>
-                                            <p class="text-muted-foreground mt-1 mb-3 text-sm">{{ t('agents.setup.embed.agent_url_description') }}</p>
-                                        </div>
-
-                                        <div class="bg-muted rounded-lg p-4">
-                                            <div class="flex items-center justify-between gap-3">
-                                                <code class="text-foreground text-sm break-all">{{ shareUrl }}</code>
-                                                <Button type="button" variant="outline" size="sm" @click="copyActive" class="shrink-0 gap-2">
-                                                    <component :is="copied ? Check : Copy" class="h-4 w-4" />
-                                                    {{ copied ? t('agents.setup.copied') : t('workspace.common.copy') }}
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        <Alert>
-                                            <Info class="h-4 w-4" />
-                                            <AlertDescription>
-                                                {{ t('agents.setup.embed.agent_url_alert') }}
-                                            </AlertDescription>
-                                        </Alert>
-
-                                        <!-- Iframe embed configurator — width/height + presets, generated <iframe>. -->
-                                        <div class="space-y-3 border-t pt-4">
-                                            <Label class="text-sm font-medium">{{ t('agents.setup.embed.config_title') }}</Label>
-                                            <p class="text-muted-foreground text-xs">
-                                                {{ t('agents.setup.embed.config_description') }}
-                                            </p>
-                                            <div class="grid grid-cols-2 gap-4">
-                                                <div class="space-y-1.5">
-                                                    <Label for="iframe-width" class="text-xs">{{ t('agents.setup.embed.width') }}</Label>
-                                                    <div class="relative">
-                                                        <div
-                                                            class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-2.5"
-                                                        >
-                                                            <MoveHorizontal class="h-3.5 w-3.5" />
-                                                        </div>
-                                                        <Input
-                                                            id="iframe-width"
-                                                            v-model="iframeOptions.width"
-                                                            type="text"
-                                                            :placeholder="t('agents.setup.embed.width_placeholder')"
-                                                            class="ps-8 text-sm"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div class="space-y-1.5">
-                                                    <Label for="iframe-height" class="text-xs">{{ t('agents.setup.embed.height') }}</Label>
-                                                    <div class="relative">
-                                                        <div
-                                                            class="text-muted-foreground pointer-events-none absolute inset-y-0 start-0 flex items-center ps-2.5"
-                                                        >
-                                                            <MoveVertical class="h-3.5 w-3.5" />
-                                                        </div>
-                                                        <Input
-                                                            id="iframe-height"
-                                                            v-model="iframeOptions.height"
-                                                            type="text"
-                                                            :placeholder="t('agents.setup.embed.height_placeholder')"
-                                                            class="ps-8 text-sm"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="grid grid-cols-4 gap-2">
-                                                <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('full')">{{
-                                                    t('agents.setup.embed.preset_full')
-                                                }}</Button>
-                                                <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('large')">{{
-                                                    t('agents.setup.embed.preset_large')
-                                                }}</Button>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    class="text-xs"
-                                                    @click="setIframePreset('medium')"
-                                                    >{{ t('agents.setup.embed.preset_medium') }}</Button
-                                                >
-                                                <Button type="button" variant="outline" size="sm" class="text-xs" @click="setIframePreset('small')">{{
-                                                    t('agents.setup.embed.preset_small')
-                                                }}</Button>
-                                            </div>
-                                        </div>
-
-                                        <div class="bg-muted space-y-3 rounded-lg p-4">
-                                            <div class="flex items-center justify-between">
-                                                <p class="text-muted-foreground text-sm">{{ t('agents.setup.embed.html_code') }}</p>
-                                                <Button type="button" variant="outline" size="sm" class="gap-2" @click="copyIframe">
-                                                    <component :is="iframeCopied ? Check : Copy" class="h-4 w-4" />
-                                                    {{ iframeCopied ? t('agents.setup.copied') : t('workspace.common.copy') }}
-                                                </Button>
-                                            </div>
-                                            <div class="bg-background rounded border p-3">
-                                                <pre
-                                                    class="hljs overflow-x-auto bg-transparent p-0 text-xs whitespace-pre-wrap"
-                                                ><code class="language-xml" v-html="highlightedIframe" /></pre>
-                                            </div>
-                                        </div>
-                                    </template>
-
-                                    <!-- Widget / Bar — installation snippet + JS API docs link. -->
-                                    <template v-else>
-                                        <div>
-                                            <h3 class="text-sm font-medium">{{ t('agents.setup.embed.install_title') }}</h3>
-                                            <p class="text-muted-foreground mt-1 text-xs">
-                                                {{ t('agents.setup.embed.install_description') }}
-                                            </p>
-                                        </div>
-                                        <div class="bg-muted space-y-3 rounded-lg p-4">
-                                            <div class="flex items-center justify-end gap-2">
-                                                <Button type="button" variant="outline" size="sm" class="gap-2" @click="copyActive">
-                                                    <component :is="copied ? Check : Copy" class="h-4 w-4" />
-                                                    {{ copied ? t('agents.setup.copied') : t('workspace.common.copy') }}
-                                                </Button>
-                                                <Button type="button" variant="outline" size="sm" class="gap-2" @click="openFullPreview">
-                                                    <Eye class="h-4 w-4" />
-                                                    {{ t('agents.setup.embed.full_preview') }}
-                                                </Button>
-                                            </div>
-                                            <div class="bg-background rounded border p-3">
-                                                <pre
-                                                    class="hljs overflow-x-auto bg-transparent p-0 text-xs"
-                                                ><code class="language-xml" v-html="highlightedSnippet" /></pre>
-                                            </div>
-                                        </div>
-
-                                        <Alert v-if="isProtected">
-                                            <Shield class="h-4 w-4" />
-                                            <AlertTitle>{{ t('agents.setup.embed.protected_title', { surface: protectedSurfaceLabel }) }}</AlertTitle>
-                                            <AlertDescription>
-                                                {{ t('agents.setup.embed.protected_description') }}
-                                                <Link
-                                                    :href="route('agents.identity', { agent: agent.external_id })"
-                                                    class="text-primary font-medium hover:underline"
-                                                >
-                                                    {{ t('agents.setup.embed.open_security') }}
-                                                </Link>
-                                            </AlertDescription>
-                                        </Alert>
-
-                                        <Button type="button" variant="outline" class="w-full justify-start gap-2" @click="showApiDocsDialog = true">
-                                            <Terminal class="h-4 w-4" />
-                                            {{ t('agents.setup.embed.api_docs') }}
-                                        </Button>
-                                    </template>
-                                </div>
-
                                 <!-- Domain — Hosted Chat only. Gated by Custom Domain subscription / Pro plan quota. -->
                                 <div v-if="activeTab === 'domain'" class="space-y-6 p-6">
                                     <div>
@@ -2108,93 +1790,5 @@ const copyApiCode = async (code: string) => {
                 </ResizablePanel>
             </ResizablePanelGroup>
         </div>
-
-        <!-- JavaScript API Documentation Dialog (Widget + Bar both expose
-             window.chatvia.* on the host page). -->
-        <Dialog v-model:open="showApiDocsDialog">
-            <DialogContent class="flex max-h-[85vh] flex-col overflow-hidden sm:max-w-4xl">
-                <DialogHeader>
-                    <DialogTitle class="flex items-center gap-2">
-                        <Terminal class="h-5 w-5" />
-                        {{ t('agents.setup.api.title') }}
-                    </DialogTitle>
-                    <DialogDescription>{{ t('agents.setup.api.description') }}</DialogDescription>
-                </DialogHeader>
-
-                <div class="flex-1 space-y-6 overflow-y-auto pe-2">
-                    <div class="space-y-3">
-                        <div class="flex items-center gap-2">
-                            <Zap class="h-4 w-4 text-amber-500" />
-                            <h5 class="text-sm font-medium">{{ t('agents.setup.api.methods') }}</h5>
-                        </div>
-                        <div class="overflow-hidden rounded-lg border">
-                            <table class="w-full text-sm">
-                                <thead class="bg-muted/50">
-                                    <tr>
-                                        <th class="text-muted-foreground px-3 py-2 text-start font-medium">{{ t('agents.setup.api.method_col') }}</th>
-                                        <th class="text-muted-foreground px-3 py-2 text-start font-medium">
-                                            {{ t('agents.setup.api.description_col') }}
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y">
-                                    <tr v-for="item in apiMethods" :key="item.method" class="hover:bg-muted/30 transition-colors">
-                                        <td class="px-3 py-2">
-                                            <code class="bg-muted text-primary rounded px-1.5 py-0.5 font-mono text-xs">{{ item.method }}</code>
-                                        </td>
-                                        <td class="text-muted-foreground px-3 py-2">{{ item.description }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="space-y-3">
-                        <div class="flex items-center gap-2">
-                            <Zap class="h-4 w-4 text-emerald-500" />
-                            <h5 class="text-sm font-medium">{{ t('agents.setup.api.events') }}</h5>
-                        </div>
-                        <p class="text-muted-foreground text-sm">
-                            {{ t('agents.setup.api.events_hint') }}
-                            <code class="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">window.chatvia.on(event, callback)</code>
-                        </p>
-                        <div class="relative">
-                            <div class="border-border bg-muted/40 overflow-hidden rounded-lg border">
-                                <div class="border-border bg-muted text-muted-foreground flex items-center justify-between border-b px-4 py-2">
-                                    <span class="text-xs font-medium">{{ t('agents.setup.api.code_language') }}</span>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        class="hover:bg-background h-7 px-2"
-                                        @click="copyApiCode(eventsCodeExample)"
-                                    >
-                                        <Copy class="me-1.5 h-3.5 w-3.5" />
-                                        <span class="text-xs">{{ t('workspace.common.copy') }}</span>
-                                    </Button>
-                                </div>
-                                <pre
-                                    class="hljs overflow-x-auto bg-transparent p-4 text-sm leading-relaxed"
-                                ><code class="language-javascript font-mono" v-html="highlightedEventsExample" /></pre>
-                            </div>
-                        </div>
-                    </div>
-
-                    <Alert class="bg-primary/5 border-primary/20">
-                        <Info class="text-primary h-4 w-4" />
-                        <AlertDescription class="text-sm">
-                            <strong>{{ t('agents.setup.api.quick_example') }}</strong> {{ t('agents.setup.api.quick_example_text') }}
-                            <code class="bg-muted mt-2 block rounded px-2 py-1 font-mono text-xs">
-                                document.getElementById('help-btn').onclick = () =&gt; window.chatvia.open();
-                            </code>
-                        </AlertDescription>
-                    </Alert>
-                </div>
-
-                <DialogFooter class="mt-4">
-                    <Button variant="outline" @click="showApiDocsDialog = false">{{ t('agents.setup.api.close') }}</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
     </AgentLayout>
 </template>

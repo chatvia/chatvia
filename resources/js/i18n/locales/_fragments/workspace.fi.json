@@ -288,7 +288,6 @@
         },
         "governance": {
             "breadcrumb": "Hallinto",
-            "title": "Tarkistuskirjaus",
             "description": "Kaikki toiminnot, joita agenttisi tekevät työkalujen ja liittimien kautta — sallitut, hyväksytyt, hylätyt tai nopeusrajoitetut — argumentteineen, tuloksineen ja käynnistäjineen."
         },
         "sections": {
@@ -302,8 +301,7 @@
             "functions": "Funktiot",
             "api_keys": "API-avaimet",
             "prompts": "Kehotteet",
-            "members": "Chatterit",
-            "audit_log": "Tarkistuskirjaus"
+            "members": "Chatterit"
         }
     }
 }

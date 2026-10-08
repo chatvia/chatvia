@@ -48,16 +48,12 @@
     "copy": "Salin",
     "copy_message": "Salin pesan",
     "good_response": "Jawaban bagus",
-    "bad_response": "Jawaban kurang baik",
-    "retry": "Coba lagi",
-    "copied": "Tersalin!"
+    "bad_response": "Jawaban kurang baik"
   },
   "handoff": {
     "talk_to_human": "Bicara dengan manusia",
     "connecting": "Menghubungkan Anda ke agen…",
     "connected": "Terhubung dengan {name}",
-    "disconnected": "Agen telah meninggalkan percakapan",
-    "returned_to_bot": "Percakapan kembali ke bot",
     "agent_typing": "{name} sedang mengetik…",
     "waiting_for_agent": "Menunggu agen yang tersedia…",
     "end_chat": "Akhiri Obrolan",
@@ -72,7 +68,6 @@
     "initialization_failed": "Kesalahan inisialisasi. Silakan coba lagi nanti.",
     "verification_failed": "Verifikasi klien gagal.",
     "session_failed": "Inisialisasi sesi gagal.",
-    "connection_error": "Kesalahan koneksi. Silakan periksa internet Anda.",
     "message_send_failed": "Gagal mengirim pesan. Silakan coba lagi.",
     "response_failed": "Terjadi kesalahan saat menghasilkan respons. Silakan coba lagi.",
     "auth_required": "Obrolan ini memerlukan masuk."

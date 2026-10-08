@@ -18,7 +18,7 @@
 ---
 
 Chatvia lets a team create AI agents, give them knowledge (files, web pages,
-YouTube videos, text and Q&A pairs), connect them to tools, and put them in
+text and Q&A pairs), connect them to tools, and put them in
 front of people: on a hosted chat page, in a widget on any website, in a
 command bar, through messaging apps, or through a REST API. Answers come from
 retrieval-augmented generation (RAG) with hybrid search (vectors + BM25) inside
@@ -49,8 +49,9 @@ with open-weight models.
 
 **Knowledge base**
 - Sources: documents (PDF, Word, PowerPoint, Excel, CSV, RTF, text, Markdown,
-  EPUB), images (OCR), audio and video (transcription), web pages, YouTube
-  videos, text snippets and Q&A pairs.
+  EPUB), images (OCR), audio and video (transcription), web pages, text
+  snippets and Q&A pairs. (YouTube sources are experimental and hidden unless
+  `FEATURE_YOUTUBE_SOURCES=true`; videos are not ingested yet.)
 - Ingestion runs in background queues and reports progress live.
 - Hybrid search: vector search ([VectorChord](https://github.com/tensorchord/VectorChord))
   and keyword search ([VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25)),

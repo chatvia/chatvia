@@ -6,7 +6,8 @@ namespace Support;
  * Single source of truth for mime-type group membership. Reads from
  * config/mimes.php so adding a new mime in one place reaches all readers
  * (Agent::pdfFiles() relation, SourceFile::isPdfFile() predicate, the
- * get_file_type() helper, controller filters).
+ * get_file_type()/is_audio_file()/is_video_file() helpers, controller
+ * filters).
  */
 class MimeType
 {
@@ -31,26 +32,6 @@ class MimeType
         return self::matches($mimeType, 'pdf');
     }
 
-    public static function isText(string $mimeType): bool
-    {
-        return self::matches($mimeType, 'text');
-    }
-
-    public static function isImage(string $mimeType): bool
-    {
-        return self::matches($mimeType, 'images');
-    }
-
-    public static function isSpreadsheet(string $mimeType): bool
-    {
-        return self::matches($mimeType, 'spreadsheets');
-    }
-
-    public static function isPresentation(string $mimeType): bool
-    {
-        return self::matches($mimeType, 'presentation');
-    }
-
     public static function isAudio(string $mimeType): bool
     {
         return self::matches($mimeType, 'audio');
@@ -68,7 +49,6 @@ class MimeType
     public static function category(string $mimeType): ?string
     {
         return array_find_key(self::CATEGORIES, fn ($configKey): bool => self::matches($mimeType, $configKey));
-
     }
 
     /**

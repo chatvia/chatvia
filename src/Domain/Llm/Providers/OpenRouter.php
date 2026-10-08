@@ -85,18 +85,6 @@ class OpenRouter extends AbstractLlmProvider
     }
 
     /**
-     * Format the model name for OpenRouter.
-     * Adds `:nitro` suffix to the model name.
-     *
-     * @param  string  $model  The model identifier
-     * @return string The formatted model name
-     */
-    protected function formatModel(string $model): string
-    {
-        return $model.':nitro';
-    }
-
-    /**
      * Get the API key for OpenRouter.
      *
      * @return string The API key

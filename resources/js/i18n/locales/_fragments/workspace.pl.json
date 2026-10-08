@@ -288,7 +288,6 @@
         },
         "governance": {
             "breadcrumb": "Zarządzanie",
-            "title": "Dziennik audytu",
             "description": "Każda akcja wykonana przez Twoich agentów za pomocą narzędzi i konektorów — dozwolona, zatwierdzona, odmówiona lub z ograniczeniem częstotliwości — wraz z argumentami, wynikiem i informacją o tym, kto ją wywołał."
         },
         "sections": {
@@ -302,8 +301,7 @@
             "functions": "Funkcje",
             "api_keys": "Klucze API",
             "prompts": "Prompty",
-            "members": "Czatowicze",
-            "audit_log": "Dziennik audytu"
+            "members": "Czatowicze"
         }
     }
 }

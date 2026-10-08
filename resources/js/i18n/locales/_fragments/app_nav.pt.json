@@ -46,8 +46,6 @@
             "evals_tooltip": "Conjuntos de testes que avaliam as respostas deste agente",
             "guardrails": "Proteções",
             "guardrails_tooltip": "Proteções de segurança de IA: PII, injeção de prompts, tópicos, toxicidade",
-            "leads": "Contactos",
-            "leads_tooltip": "Gerir contactos capturados pelo seu agente",
             "knowledge_sources": "Fontes",
             "knowledge_sources_tooltip": "Gerir conhecimento e dados de treino do agente",
             "functions": "Funções",

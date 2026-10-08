@@ -338,11 +338,6 @@ readonly class ConversationManager
             ->all();
     }
 
-    public function isMemberAuthenticated(): bool
-    {
-        return Auth::guard('web')->check();
-    }
-
     private function getCurrentUser(): ?User
     {
         return Auth::guard('web')->user();

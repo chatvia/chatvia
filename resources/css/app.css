@@ -1098,9 +1098,9 @@ html[lang='fa'] body {
  * Reduced-motion safety net.
  *
  * Honors the OS "reduce motion" setting across the chat surface. Neutralizes
- * the infinite/looping animations — spinners, pulsing "thinking" dots, the
- * tool-call shimmer, the bespoke ring loader — that would otherwise run
- * forever for motion-sensitive users. Unlayered + !important so it wins over
+ * the infinite/looping animations — spinners, pulsing "thinking" dots and the
+ * tool-call shimmer — that would otherwise run forever for motion-sensitive
+ * users. Unlayered + !important so it wins over
  * Tailwind's layered utilities and component-scoped keyframes (the targeted
  * class names are global even when a component's own <style> is scoped).
  * The streaming-reveal fade/caret already self-handles reduced-motion in
@@ -1109,8 +1109,7 @@ html[lang='fa'] body {
 @media (prefers-reduced-motion: reduce) {
     .animate-spin,
     .animate-pulse,
-    .animate-bounce,
-    .loading-spinner div {
+    .animate-bounce {
         animation: none !important;
     }
 

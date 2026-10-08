@@ -370,8 +370,6 @@
                 "include_paths_hint": "Usa comodines (*) para hacer coincidir patrones. Déjalo vacío para incluir todas las rutas.",
                 "exclude_paths_label": "Excluir rutas",
                 "exclude_paths_hint": "Usa comodines (*) para hacer coincidir patrones. Estas rutas serán omitidas.",
-                "slow_crawling_label": "Rastreo lento",
-                "slow_crawling_hint": "Usa intervalos más largos para un rastreo más respetuoso",
                 "crawling_title": "Rastreando...",
                 "crawling_count": "{count} sitio web siendo rastreado actualmente. | {count} sitios web siendo rastreados actualmente.",
                 "tooltip_crawling": "Rastreando actualmente...",

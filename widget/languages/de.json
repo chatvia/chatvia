@@ -48,16 +48,12 @@
     "copy": "Kopieren",
     "copy_message": "Nachricht kopieren",
     "good_response": "Gute Antwort",
-    "bad_response": "Schlechte Antwort",
-    "retry": "Erneut versuchen",
-    "copied": "Kopiert!"
+    "bad_response": "Schlechte Antwort"
   },
   "handoff": {
     "talk_to_human": "Mit einem Mitarbeiter sprechen",
     "connecting": "Sie werden mit einem Mitarbeiter verbunden...",
     "connected": "Verbunden mit {name}",
-    "disconnected": "Der Mitarbeiter hat die Unterhaltung verlassen",
-    "returned_to_bot": "Unterhaltung an den Bot übergeben",
     "agent_typing": "{name} schreibt...",
     "waiting_for_agent": "Warten auf einen verfügbaren Mitarbeiter...",
     "end_chat": "Chat beenden",
@@ -72,7 +68,6 @@
     "initialization_failed": "Initialisierungsfehler. Bitte versuchen Sie es später erneut.",
     "verification_failed": "Client-Verifizierung fehlgeschlagen.",
     "session_failed": "Sitzungsinitialisierung fehlgeschlagen.",
-    "connection_error": "Verbindungsfehler. Bitte prüfen Sie Ihre Internetverbindung.",
     "message_send_failed": "Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.",
     "response_failed": "Beim Erzeugen der Antwort ist ein Fehler aufgetreten. Bitte erneut versuchen.",
     "auth_required": "Für diesen Chat ist eine Anmeldung erforderlich."

@@ -63,7 +63,7 @@ class TurnState
         return null;
     }
 
-    public function isMemberAuth(): bool
+    private function isMemberAuth(): bool
     {
         return Auth::guard('web')->check();
     }

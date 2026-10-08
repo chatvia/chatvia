@@ -116,7 +116,6 @@
                 "messenger": "Messenger",
                 "whatsapp": "WhatsApp",
                 "msteams": "Microsoft Teams",
-                "teams": "Microsoft Teams",
                 "instagram": "Instagram",
                 "playground": "Lekplats",
                 "api": "API"
@@ -128,9 +127,6 @@
             "sidebar": {
                 "online": "Online",
                 "show_online_only": "Visa endast besökare online",
-                "export_json": "Exportera som JSON",
-                "export_csv": "Exportera som CSV",
-                "export_pdf": "Exportera som PDF",
                 "expires_today": "Går ut idag",
                 "expires_in_days": "Går ut om {count} dag | Går ut om {count} dagar",
                 "expires_in_one_month": "Går ut om 1 månad",
@@ -556,8 +552,6 @@
                 "add_topic": "Lägg till ämne",
                 "empty": "Inga ämnen ännu. Lägg till ett för att hjälpa din agent klassificera konversationer.",
                 "no_results": "Inga ämnen matchar \"{query}\".",
-                "freeze_topics": "Frys ämnen",
-                "freeze_hint": "När fryst slutar agenten lära sig nya ämnen från konversationer.",
                 "done": "Visa analys",
                 "add_dialog_title": "Lägg till ämne",
                 "add_dialog_description": "Definiera ett ämnesnamn och en beskrivning för att hjälpa agenten klassificera konversationer.",
@@ -581,9 +575,6 @@
                 "update_error": "Det gick inte att uppdatera ämnet. Försök igen.",
                 "delete_error": "Det gick inte att ta bort ämnet. Försök igen.",
                 "load_error": "Det gick inte att ladda ämnen. Försök igen.",
-                "freeze_error": "Det gick inte att uppdatera frysningsinställningen. Försök igen.",
-                "frozen": "Ämnen frysta",
-                "unfrozen": "Ämnen otinata",
                 "permission_denied": "Åtkomst nekad",
                 "permission_denied_description": "Du har inte behörighet att hantera ämnen."
             }

@@ -116,7 +116,6 @@
                 "messenger": "Messenger",
                 "whatsapp": "WhatsApp",
                 "msteams": "Microsoft Teams",
-                "teams": "Microsoft Teams",
                 "instagram": "Instagram",
                 "playground": "Playground",
                 "api": "API"
@@ -128,9 +127,6 @@
             "sidebar": {
                 "online": "Online",
                 "show_online_only": "Vis kun besøgende online",
-                "export_json": "Eksportér som JSON",
-                "export_csv": "Eksportér som CSV",
-                "export_pdf": "Eksportér som PDF",
                 "expires_today": "Udløber i dag",
                 "expires_in_days": "Udløber om {count} dag | Udløber om {count} dage",
                 "expires_in_one_month": "Udløber om 1 måned",
@@ -556,8 +552,6 @@
                 "add_topic": "Tilføj emne",
                 "empty": "Ingen emner endnu. Tilføj et for at hjælpe din agent med at klassificere samtaler.",
                 "no_results": "Ingen emner matcher \"{query}\".",
-                "freeze_topics": "Frys emner",
-                "freeze_hint": "Når frosset, holder agenten op med at lære nye emner fra samtaler.",
                 "done": "Se analyser",
                 "add_dialog_title": "Tilføj emne",
                 "add_dialog_description": "Definer et emnenavn og en beskrivelse for at hjælpe agenten med at klassificere samtaler.",
@@ -581,9 +575,6 @@
                 "update_error": "Kunne ikke opdatere emne. Prøv igen.",
                 "delete_error": "Kunne ikke slette emne. Prøv igen.",
                 "load_error": "Kunne ikke hente emner. Prøv igen.",
-                "freeze_error": "Kunne ikke opdatere frysindstilling. Prøv igen.",
-                "frozen": "Emner frosset",
-                "unfrozen": "Emner optøet",
                 "permission_denied": "Adgang nægtet",
                 "permission_denied_description": "Du har ikke tilladelse til at administrere emner."
             }

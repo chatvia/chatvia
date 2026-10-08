@@ -35,14 +35,8 @@
             "password_placeholder": "Passwort",
             "confirm_password_label": "Passwort bestätigen",
             "confirm_password_placeholder": "Passwort bestätigen",
-            "agree_to": "Ich stimme den",
-            "privacy_policy": "Datenschutzbestimmungen",
-            "terms_of_service": "Nutzungsbedingungen",
             "create_account": "Konto erstellen",
             "creating_account": "Konto wird erstellt...",
-            "or": "Oder",
-            "continue_with_google": "Mit Google fortfahren",
-            "continue_with_slack": "Mit Slack fortfahren",
             "have_account": "Bereits ein Konto?",
             "log_in": "Anmelden"
         },
@@ -129,22 +123,6 @@
             "sending_link": "Link wird gesendet...",
             "or": "Oder"
         },
-        "member_password": {
-            "title": "Passwort festlegen",
-            "description": "Erstellen Sie ein sicheres Passwort für Ihr Konto",
-            "head": "Passwort festlegen",
-            "accept_error": "Die Einladung konnte nicht angenommen werden. Bitte versuchen Sie es erneut.",
-            "name_label": "Name",
-            "name_placeholder": "Ihren Namen eingeben",
-            "password_label": "Passwort",
-            "password_placeholder": "Sicheres Passwort erstellen",
-            "confirm_password_label": "Passwort bestätigen",
-            "confirm_password_placeholder": "Passwort bestätigen",
-            "accept_invitation": "Einladung annehmen",
-            "accepting_invitation": "Einladung wird angenommen...",
-            "have_account": "Bereits ein Konto?",
-            "sign_in": "Anmelden"
-        },
         "accept_invitation": {
             "title_existing": "Anmelden, um Einladung anzunehmen",
             "title_new": "Konto erstellen",
@@ -208,13 +186,6 @@
             "card_title": "Einladung abgelaufen",
             "contact_owner": "Bitte wenden Sie sich an den Team-Inhaber, um eine neue Einladung anzufordern.",
             "go_to_login": "Zur Anmeldung"
-        },
-        "split": {
-            "headline": "Erstellen Sie Ihr eigenes {brand} in wenigen Minuten",
-            "subheadline": "Erstellen Sie KI-Assistenten, die aus {data} und Wissen lernen",
-            "your_data": "Ihren Daten",
-            "secure_data": "Sichere Datenverarbeitung",
-            "custom_gpt": "Custom GPT"
         }
     }
 }

@@ -48,16 +48,12 @@
     "copy": "کپی",
     "copy_message": "کپی پیام",
     "good_response": "پاسخ خوب",
-    "bad_response": "پاسخ ضعیف",
-    "retry": "تلاش مجدد",
-    "copied": "کپی شد!"
+    "bad_response": "پاسخ ضعیف"
   },
   "handoff": {
     "talk_to_human": "گفتگو با یک شخص",
     "connecting": "در حال اتصال به اپراتور…",
     "connected": "به {name} متصل شدید",
-    "disconnected": "اپراتور گفتگو را ترک کرد",
-    "returned_to_bot": "گفتگو به ربات بازگشت",
     "agent_typing": "{name} در حال نوشتن است…",
     "waiting_for_agent": "در انتظار اپراتور آزاد…",
     "end_chat": "پایان گفتگو",
@@ -72,7 +68,6 @@
     "initialization_failed": "خطای راه‌اندازی. لطفاً بعداً دوباره تلاش کنید.",
     "verification_failed": "اعتبارسنجی کلاینت ناموفق بود.",
     "session_failed": "راه‌اندازی جلسه ناموفق بود.",
-    "connection_error": "خطای اتصال. لطفاً اتصال اینترنت خود را بررسی کنید.",
     "message_send_failed": "ارسال پیام ناموفق بود. لطفاً دوباره تلاش کنید.",
     "response_failed": "هنگام تولید پاسخ مشکلی پیش آمد. لطفاً دوباره تلاش کنید.",
     "auth_required": "این گفتگو نیاز به ورود دارد."

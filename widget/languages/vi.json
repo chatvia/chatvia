@@ -48,16 +48,12 @@
     "copy": "Sao chép",
     "copy_message": "Sao chép tin nhắn",
     "good_response": "Phản hồi tốt",
-    "bad_response": "Phản hồi kém",
-    "retry": "Thử lại",
-    "copied": "Đã sao chép!"
+    "bad_response": "Phản hồi kém"
   },
   "handoff": {
     "talk_to_human": "Trò chuyện với người thật",
     "connecting": "Đang kết nối bạn với nhân viên…",
     "connected": "Đã kết nối với {name}",
-    "disconnected": "Nhân viên đã rời cuộc trò chuyện",
-    "returned_to_bot": "Cuộc trò chuyện đã chuyển lại cho bot",
     "agent_typing": "{name} đang nhập…",
     "waiting_for_agent": "Đang chờ nhân viên rảnh…",
     "end_chat": "Kết thúc trò chuyện",
@@ -72,7 +68,6 @@
     "initialization_failed": "Lỗi khởi tạo. Vui lòng thử lại sau.",
     "verification_failed": "Xác minh máy khách thất bại.",
     "session_failed": "Khởi tạo phiên thất bại.",
-    "connection_error": "Lỗi kết nối. Vui lòng kiểm tra kết nối internet.",
     "message_send_failed": "Không gửi được tin nhắn. Vui lòng thử lại.",
     "response_failed": "Đã xảy ra lỗi khi tạo phản hồi. Vui lòng thử lại.",
     "auth_required": "Cuộc trò chuyện này yêu cầu đăng nhập."

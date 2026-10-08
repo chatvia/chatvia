@@ -328,10 +328,3 @@ if (! function_exists('current_agent_from_widget')) {
         return $cache[$agentId];
     }
 }
-
-if (! function_exists('checksum')) {
-    function checksum(string $text): string
-    {
-        return hash('xxh128', $text);
-    }
-}

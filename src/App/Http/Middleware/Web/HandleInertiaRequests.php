@@ -67,10 +67,14 @@ class HandleInertiaRequests extends Middleware
             'subdomain' => $request->subdomain(),
             'permissions' => $this->getTeamPermissions($request),
             'currentTeam' => $user ? $this->getCurrentTeam($request) : null,
-            // Pennant feature flags (entitlement-derived). Frontend gates via
-            // `useFeature('security')`; resolved per request so they always
-            // reflect the workspace's current plan.
-            'features' => $user ? Feature::all() : [],
+            // Pennant feature flags (entitlement-derived) plus the install-wide
+            // switches for unfinished features (`chatvia.features`). Frontend
+            // gates via `useFeature().hasFeature('security')`; resolved per
+            // request so they always reflect the workspace's current plan.
+            'features' => $user ? [
+                ...Feature::all(),
+                'youtube_sources' => (bool) config('chatvia.features.youtube_sources', false),
+            ] : [],
         ];
     }
 

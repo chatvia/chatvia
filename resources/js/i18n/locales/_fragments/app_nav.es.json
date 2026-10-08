@@ -46,8 +46,6 @@
             "evals_tooltip": "Conjuntos de pruebas que califican las respuestas de este agente",
             "guardrails": "Restricciones",
             "guardrails_tooltip": "Protecciones de seguridad IA: PII, inyección de prompts, temas, toxicidad",
-            "leads": "Prospectos",
-            "leads_tooltip": "Gestionar prospectos capturados por tu agente",
             "knowledge_sources": "Fuentes",
             "knowledge_sources_tooltip": "Gestionar el conocimiento y los datos de entrenamiento del agente",
             "functions": "Funciones",

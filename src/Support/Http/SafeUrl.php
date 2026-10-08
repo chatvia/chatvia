@@ -73,17 +73,6 @@ final class SafeUrl
         }
     }
 
-    public static function isSafe(string $url): bool
-    {
-        try {
-            self::assert($url);
-
-            return true;
-        } catch (UnsafeUrlException) {
-            return false;
-        }
-    }
-
     /**
      * Return the URL only if its scheme is http/https, else null. Cheap
      * scheme-only guard for values that are merely STORED and later rendered

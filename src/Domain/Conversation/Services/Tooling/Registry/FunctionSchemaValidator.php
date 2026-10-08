@@ -2,17 +2,16 @@
 
 namespace Domain\Conversation\Services\Tooling\Registry;
 
+use Domain\Integration\Function\Rules\ValidParametersSchema;
+
 /**
  * Validates that a user-supplied parameters schema is well-formed enough for
  * the LLM to use it as a tool definition.
  *
  * This is *shape* validation — does the JSON look like a JSON Schema for an
  * object whose properties an LLM can populate? It does not fully validate
- * the schema against the JSON Schema spec.
- *
- * In Slice 3, this class will also gain `validateArguments(array $schema,
- * mixed $args): array` for checking LLM-supplied tool-call arguments
- * against a definition before dispatching the webhook.
+ * the schema against the JSON Schema spec. Function create/update requests
+ * run it through {@see ValidParametersSchema}.
  */
 class FunctionSchemaValidator
 {

@@ -370,8 +370,6 @@
                 "include_paths_hint": "Brug jokertegn (*) til at matche mønstre. Lad feltet stå tomt for at inkludere alle stier.",
                 "exclude_paths_label": "Ekskludér stier",
                 "exclude_paths_hint": "Brug jokertegn (*) til at matche mønstre. Disse stier springes over.",
-                "slow_crawling_label": "Langsom gennemsøgning",
-                "slow_crawling_hint": "Bruger længere forsinkelser for mere hensynsfuld gennemsøgning",
                 "crawling_title": "Gennemsøger...",
                 "crawling_count": "{count} hjemmeside gennemsøges i øjeblikket. | {count} hjemmesider gennemsøges i øjeblikket.",
                 "tooltip_crawling": "Gennemsøger i øjeblikket...",

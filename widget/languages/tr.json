@@ -48,16 +48,12 @@
     "copy": "Kopyala",
     "copy_message": "Mesajı kopyala",
     "good_response": "İyi yanıt",
-    "bad_response": "Kötü yanıt",
-    "retry": "Yeniden dene",
-    "copied": "Kopyalandı!"
+    "bad_response": "Kötü yanıt"
   },
   "handoff": {
     "talk_to_human": "Bir kişiyle konuş",
     "connecting": "Bir temsilciye bağlanıyorsunuz…",
     "connected": "{name} ile bağlandınız",
-    "disconnected": "Temsilci konuşmadan ayrıldı",
-    "returned_to_bot": "Konuşma bota geri döndü",
     "agent_typing": "{name} yazıyor…",
     "waiting_for_agent": "Uygun bir temsilci bekleniyor…",
     "end_chat": "Sohbeti Bitir",
@@ -72,7 +68,6 @@
     "initialization_failed": "Başlatma hatası. Lütfen daha sonra tekrar deneyin.",
     "verification_failed": "İstemci doğrulaması başarısız oldu.",
     "session_failed": "Oturum başlatılamadı.",
-    "connection_error": "Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.",
     "message_send_failed": "Mesaj gönderilemedi. Lütfen tekrar deneyin.",
     "response_failed": "Yanıt oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.",
     "auth_required": "Bu sohbet için oturum açmanız gerekiyor."

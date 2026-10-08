@@ -35,14 +35,8 @@
             "password_placeholder": "رمز عبور",
             "confirm_password_label": "تأیید رمز عبور",
             "confirm_password_placeholder": "تأیید رمز عبور",
-            "agree_to": "با موافقم",
-            "privacy_policy": "سیاست حریم خصوصی",
-            "terms_of_service": "شرایط خدمات",
             "create_account": "ایجاد حساب",
             "creating_account": "در حال ایجاد حساب...",
-            "or": "یا",
-            "continue_with_google": "ادامه با Google",
-            "continue_with_slack": "ادامه با Slack",
             "have_account": "قبلاً حساب دارید؟",
             "log_in": "ورود"
         },
@@ -129,22 +123,6 @@
             "sending_link": "در حال ارسال لینک...",
             "or": "یا"
         },
-        "member_password": {
-            "title": "تعیین رمز عبور",
-            "description": "یک رمز عبور امن برای حساب خود بسازید",
-            "head": "تعیین رمز عبور",
-            "accept_error": "پذیرش دعوتنامه امکان‌پذیر نبود. لطفاً دوباره تلاش کنید.",
-            "name_label": "نام",
-            "name_placeholder": "نام خود را وارد کنید",
-            "password_label": "رمز عبور",
-            "password_placeholder": "یک رمز عبور امن بسازید",
-            "confirm_password_label": "تأیید رمز عبور",
-            "confirm_password_placeholder": "رمز عبور خود را تأیید کنید",
-            "accept_invitation": "پذیرش دعوتنامه",
-            "accepting_invitation": "در حال پذیرش دعوتنامه...",
-            "have_account": "قبلاً حساب دارید؟",
-            "sign_in": "ورود"
-        },
         "accept_invitation": {
             "title_existing": "برای پذیرش دعوتنامه وارد شوید",
             "title_new": "حساب کاربری خود را بسازید",
@@ -208,13 +186,6 @@
             "card_title": "دعوتنامه منقضی شده",
             "contact_owner": "لطفاً برای دریافت دعوتنامه جدید با مالک تیم تماس بگیرید.",
             "go_to_login": "رفتن به صفحه ورود"
-        },
-        "split": {
-            "headline": "در چند دقیقه {brand} خود را بسازید",
-            "subheadline": "دستیارهای هوش مصنوعی بسازید که از {data} و دانش یاد می‌گیرند",
-            "your_data": "داده‌های شما",
-            "secure_data": "مدیریت امن داده‌ها",
-            "custom_gpt": "GPT سفارشی"
         }
     }
 }

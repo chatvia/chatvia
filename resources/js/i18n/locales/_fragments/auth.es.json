@@ -35,14 +35,8 @@
             "password_placeholder": "Contraseña",
             "confirm_password_label": "Confirmar contraseña",
             "confirm_password_placeholder": "Confirmar contraseña",
-            "agree_to": "Acepto los",
-            "privacy_policy": "Política de Privacidad",
-            "terms_of_service": "Términos de Servicio",
             "create_account": "Crear cuenta",
             "creating_account": "Creando cuenta...",
-            "or": "O",
-            "continue_with_google": "Continuar con Google",
-            "continue_with_slack": "Continuar con Slack",
             "have_account": "¿Ya tienes una cuenta?",
             "log_in": "Iniciar sesión"
         },
@@ -129,22 +123,6 @@
             "sending_link": "Enviando enlace...",
             "or": "O"
         },
-        "member_password": {
-            "title": "Establece tu contraseña",
-            "description": "Crea una contraseña segura para tu cuenta",
-            "head": "Establecer contraseña",
-            "accept_error": "No se pudo aceptar la invitación. Por favor intenta de nuevo.",
-            "name_label": "Nombre",
-            "name_placeholder": "Ingresa tu nombre",
-            "password_label": "Contraseña",
-            "password_placeholder": "Crea una contraseña segura",
-            "confirm_password_label": "Confirmar contraseña",
-            "confirm_password_placeholder": "Confirma tu contraseña",
-            "accept_invitation": "Aceptar invitación",
-            "accepting_invitation": "Aceptando invitación...",
-            "have_account": "¿Ya tienes una cuenta?",
-            "sign_in": "Iniciar sesión"
-        },
         "accept_invitation": {
             "title_existing": "Inicia sesión para aceptar la invitación",
             "title_new": "Crea tu cuenta",
@@ -208,13 +186,6 @@
             "card_title": "Invitación expirada",
             "contact_owner": "Por favor contacta al administrador del equipo para solicitar una nueva invitación.",
             "go_to_login": "Ir al inicio de sesión"
-        },
-        "split": {
-            "headline": "Crea tu propio {brand} en minutos",
-            "subheadline": "Crea asistentes de IA que aprenden de {data} y conocimientos",
-            "your_data": "tus datos",
-            "secure_data": "Manejo seguro de datos",
-            "custom_gpt": "GPT personalizado"
         }
     }
 }

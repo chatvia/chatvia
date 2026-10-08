@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Settings\Connector;
 
+use Domain\Integration\Connector\Services\Salesforce\SalesforceEndpointBuilder;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Validates the workspace's Salesforce External Client App details before
@@ -27,7 +29,7 @@ class SalesforceConnectRequest extends FormRequest
             'client_secret' => ['nullable', 'string', 'max:1024'],
             'environment' => ['required', 'in:production,sandbox'],
             'my_domain' => ['nullable', 'string', 'regex:#^https://[a-z0-9-]+(\.[a-z0-9-]+)*\.(salesforce\.com|force\.com)/?$#i'],
-            'server' => ['required', 'in:sobject-all,sobject-reads,invocable-actions,flows,data-360,prompt-builder,tableau-next'],
+            'server' => ['required', Rule::in(SalesforceEndpointBuilder::SERVERS)],
         ];
     }
 

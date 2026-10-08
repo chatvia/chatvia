@@ -263,11 +263,9 @@ class McpOAuthDiscoverer
     private function fallbackFromConnector(string $authServerUrl, ConnectorData $connector): OAuthServerMetadata
     {
         return OAuthServerMetadata::fromArray($authServerUrl, [
-            'issuer' => $authServerUrl,
             'authorization_endpoint' => (string) $connector->oauthAuthorizationEndpoint,
             'token_endpoint' => (string) $connector->oauthTokenEndpoint,
             'code_challenge_methods_supported' => ['S256'],
-            'grant_types_supported' => ['authorization_code', 'refresh_token'],
         ]);
     }
 

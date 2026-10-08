@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Chat\Home;
 
-use Domain\Conversation\Services\Memory\TurnState;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ChatHomeController
 {
-    public function __invoke(Request $request, TurnState $turnState)
+    public function __invoke(Request $request)
     {
         $agent = current_agent();
         $agent?->loadSettingsGroups(['appearance', 'embed']);

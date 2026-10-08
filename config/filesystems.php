@@ -53,19 +53,6 @@ return [
             'report' => false,
         ],
 
-        's3' => [
-            'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION'),
-            'bucket' => env('AWS_BUCKET'),
-            'url' => env('AWS_URL'),
-            'endpoint' => env('AWS_ENDPOINT'),
-            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-            'throw' => true,
-            'report' => true,
-        ],
-
         'private' => env('FILESYSTEM_PRIVATE_DRIVER', $s3Configured ? 's3' : 'local') === 's3' ? [
             'driver' => 's3',
             'key' => env('SCALEWAY_ACCESS_KEY_ID'),
@@ -112,16 +99,6 @@ return [
             'throw' => true,
             'report' => true,
             'visibility' => 'public',
-        ],
-
-        'bunnycdn' => [
-            'driver' => 'bunnycdn',
-            'storage_zone' => env('BUNNYCDN_STORAGE_ZONE'),
-            'pull_zone' => env('BUNNYCDN_PULL_ZONE'),
-            'api_key' => env('BUNNYCDN_API_KEY'),
-            'region' => env('BUNNYCDN_REGION', BunnyCDNRegion::DEFAULT),
-            'throw' => true,
-            'report' => true,
         ],
 
         // Public, CDN-served media (profile photos, widget logo/avatar).

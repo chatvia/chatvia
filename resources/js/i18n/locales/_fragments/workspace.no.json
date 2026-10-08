@@ -288,7 +288,6 @@
         },
         "governance": {
             "breadcrumb": "Styring",
-            "title": "Revisjonslogg",
             "description": "Alle handlinger agentene dine utfører gjennom verktøy og koblinger — tillatt, godkjent, avvist eller hastighetsbegrenset — med argumenter, resultat og hvem som utløste det."
         },
         "sections": {
@@ -302,8 +301,7 @@
             "functions": "Funksjoner",
             "api_keys": "API-nøkler",
             "prompts": "Instruksjoner",
-            "members": "Chattere",
-            "audit_log": "Revisjonslogg"
+            "members": "Chattere"
         }
     }
 }

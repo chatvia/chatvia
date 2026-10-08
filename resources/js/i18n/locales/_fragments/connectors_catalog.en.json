@@ -119,16 +119,6 @@
                 "name": "Amplitude",
                 "description": "Query product analytics — events, charts, and cohorts — from your Amplitude project."
             }
-        },
-        "mcp": {
-            "account-analytics": {
-                "name": "Account Analytics",
-                "description": "Answer the workspace owner's questions about their own account in numbers — messages, conversations, users, channels, leads, satisfaction, response time, topics and handoffs."
-            },
-            "charts": {
-                "name": "Interactive charts",
-                "description": "Render interactive charts (bar, line, pie, gauge, scatter, radar, heatmap, …) inline in the chat."
-            }
         }
     }
 }

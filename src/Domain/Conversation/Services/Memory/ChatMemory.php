@@ -2,7 +2,6 @@
 
 namespace Domain\Conversation\Services\Memory;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ConversationData;
 use Domain\Conversation\Data\Memory\MessageData;
@@ -10,7 +9,6 @@ use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Jobs\StoreMessageJob;
-use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 
 /**
@@ -247,16 +245,6 @@ class ChatMemory
     }
 
     /**
-     * Remove a single message from the conversation.
-     */
-    public function removeMessage(string $messageId): void
-    {
-        $this->requireConversationId();
-        $this->ensureInitialized();
-        $this->messageManager->removeMessage($this->conversationId, $messageId);
-    }
-
-    /**
      * Mark messages as read based on who is reading.
      * - 'user': marks agent/assistant messages as read
      * - 'admin': marks user messages as read
@@ -305,18 +293,6 @@ class ChatMemory
     }
 
     /**
-     * Get the last N messages from the conversation.
-     */
-    public function getLastMessages(int $number = 3): array
-    {
-        $this->requireConversationId();
-
-        $this->ensureInitialized();
-
-        return $this->messageManager->getLastMessages($this->conversationId, $number);
-    }
-
-    /**
      * Add feedback (satisfaction rating) for a message.
      * Accepts 'positive', 'negative', or null to clear.
      */
@@ -350,22 +326,6 @@ class ChatMemory
         $this->ensureInitialized();
 
         return $this->sourceManager->getSourcesForConversation($this->conversationId);
-    }
-
-    /**
-     * Get the currently authenticated user.
-     */
-    public function member(): ?User
-    {
-        return Auth::guard('web')->user();
-    }
-
-    /**
-     * Check if a user is currently authenticated.
-     */
-    public function isMemberAuth(): bool
-    {
-        return Auth::guard('web')->check();
     }
 
     /**

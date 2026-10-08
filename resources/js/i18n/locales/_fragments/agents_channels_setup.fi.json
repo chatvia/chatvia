@@ -15,40 +15,21 @@
                     "bot_token": "Bot-tunnus",
                     "signing_secret": "Allekirjoitussalaisuus",
                     "request_url": "Pyyntö-URL",
-                    "callback_url": "Takaisinkutsu-URL",
-                    "verify_token": "Vahvistustunnus",
-                    "page_access_token": "Sivun käyttöoikeustunnus",
-                    "app_secret": "Sovellussalaisuus",
-                    "access_token": "Käyttöoikeustunnus",
-                    "phone_number_id": "Puhelinnumeron tunnus",
-                    "waba_id": "WhatsApp Business -tilin tunnus",
                     "microsoft_app_id": "Microsoft-sovelluksen tunnus",
                     "client_secret": "Asiakassalaisuus",
                     "tenant_id": "Vuokraajan tunnus",
                     "messaging_endpoint": "Viestipäätepisteen osoite"
                 },
-                "hints": { "tenant_single_only": "(Vain Single Tenant -botit)" },
+                "hints": {
+                    "tenant_single_only": "(Vain Single Tenant -botit)"
+                },
                 "placeholders": {
                     "telegram_bot_token": "123456789:ABCdef…",
                     "slack_bot_token": "xoxb-…",
-                    "meta_token": "EAAG…",
-                    "phone_number_id": "123456789012345",
                     "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
-                    "tenant_id": "Jätä tyhjäksi Multi Tenant -käyttöä varten",
-                    "instagram_token": "IGAA…"
-                },
-                "guide": {
-                    "need_detail_before": "Tarvitsetko lisätietoja? Seuraa",
-                    "step_by_step_guide": "vaiheittaista opasta",
-                    "need_detail_after": "kuvakaappausten kera."
+                    "tenant_id": "Jätä tyhjäksi Multi Tenant -käyttöä varten"
                 },
                 "shared": {
-                    "subscribe_webhook": "Tilaa webhook {field}-kenttään",
-                    "messages_field": "viestit",
-                    "create_meta_app_at": "Luo sovellus osoitteessa {link}",
-                    "copy_app_secret_both": "Kopioi sovellussalaisuus kohdasta {section} ja liitä molemmat alle",
-                    "copy_app_secret_all": "Kopioi sovellussalaisuus kohdasta {section} ja liitä kaikki alle",
-                    "copy_app_secret_same_page": "Kopioi sovellussalaisuus samalta sivulta ja liitä molemmat alle",
                     "reply_streams_live": "— vastaus tulee näkyviin reaaliajassa"
                 },
                 "telegram": {
@@ -74,30 +55,6 @@
                     "oauth_permissions": "OAuth ja käyttöoikeudet",
                     "basic_information": "Perustiedot"
                 },
-                "messenger": {
-                    "steps": {
-                        "connected_1": "Avaa {link}-sovelluksessa {webhooks} ja liitä Takaisinkutsu-URL sekä vahvistustunnus yllä",
-                        "connected_3": "Lähetä viesti sivullesi Messengerissä — agenttisi vastaa automaattisesti",
-                        "connect_1": "Luo sovellus osoitteessa {link} ja lisää {product}-tuote",
-                        "connect_2": "Kohdassa {api_settings} yhdistä Facebook-sivusi ja luo sivun käyttöoikeustunnus"
-                    },
-                    "your_meta_app": "Meta-sovelluksesi",
-                    "webhooks_path": "Messenger → Asetukset → Webhookit",
-                    "api_settings_path": "Messenger → API-asetukset",
-                    "app_settings_basic": "Sovelluksen asetukset → Perustiedot",
-                    "product": "Messenger"
-                },
-                "whatsapp": {
-                    "steps": {
-                        "connected_1": "Avaa {link}-sovelluksessa {configuration} ja liitä Takaisinkutsu-URL sekä vahvistustunnus yllä",
-                        "connected_3": "Lähetä viesti numerollesi WhatsAppissa — agenttisi vastaa automaattisesti",
-                        "connect_1": "Luo sovellus osoitteessa {link} käyttötapauksella {use_case}",
-                        "connect_2": "Suorita {basic_setup} loppuun, kopioi sitten puhelinnumeron tunnus, WhatsApp Business -tilin tunnus ja käyttöoikeustunnus"
-                    },
-                    "configuration_path": "WhatsApp → Konfiguraatio",
-                    "use_case": "Yhdistä asiakkaisiisi WhatsAppin kautta",
-                    "basic_setup_path": "Käyttötapaukset → Mukauta → Perusasetukset"
-                },
                 "msteams": {
                     "app_id_label": "Sovelluksen {id}",
                     "steps": {
@@ -116,18 +73,6 @@
                     "manage_password": "Hallitse salasanaa → Varmenteet ja salaisuudet",
                     "directory_tenant_id": "Hakemiston (vuokraajan) tunnus",
                     "open_chat_in_teams": "Avaa chat bottisi kanssa Teamsissa"
-                },
-                "instagram": {
-                    "steps": {
-                        "connected_1": "Avaa {link}-sovelluksessa {webhooks} ja liitä Takaisinkutsu-URL sekä vahvistustunnus yllä",
-                        "connected_3": "Salli viestien käyttöoikeus Instagram-sovelluksessa kohdassa {message_controls}, lähetä sitten yksityisviesti tilillesi",
-                        "connect_1": "Luo sovellus osoitteessa {link} ja lisää {product}-tuote — Instagram-tilisi on oltava ammatillinen (yritys- tai sisällöntuottaja-) tili",
-                        "connect_2": "Kohdassa {api_setup} luo käyttöoikeustunnus tilillesi"
-                    },
-                    "webhooks_path": "Instagram → API-asetus Instagram-kirjautumisella → Konfiguroi webhookit",
-                    "message_controls_path": "Asetukset → Viestit ja tarinamaininnat → Viestihallinta → Yhdistetyt työkalut",
-                    "api_setup_path": "Instagram → API-asetus Instagram-kirjautumisella",
-                    "product": "Instagram"
                 }
             }
         }

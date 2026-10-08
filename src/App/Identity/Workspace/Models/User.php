@@ -7,7 +7,6 @@ use App\Identity\Workspace\Concerns\ResolvesTeamMembership;
 use App\Identity\Workspace\Services\MessageCredits;
 use App\Identity\Workspace\Services\WorkspaceConsumption;
 use Database\Factories\UserFactory;
-use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\ModelSetting;
 use Domain\Billing\Contracts\Entitlements;
@@ -64,7 +63,6 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Support\Concerns\HasExternalId;
 use Support\Enums\User\DateFormat;
-use Support\Enums\User\SocialProvider;
 use Support\Enums\User\UserSource;
 use Support\Enums\User\UserType;
 use Support\Traits\HasSettings;
@@ -96,7 +94,7 @@ use Support\Traits\HasSettings;
  * @property-read int|null $accessible_agents_count
  * @property-read Collection<int, UserAddon> $addons
  * @property-read int|null $addons_count
- * @property-read AgentCollection<int, Agent> $agents
+ * @property-read Collection<int, Agent> $agents
  * @property-read int|null $agents_count
  * @property-read string|null $avatar
  * @property-read UserBilling|null $billing
@@ -557,11 +555,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return $this->hasOne(UserCredit::class, 'user_id')->latestOfMany('ends_at');
     }
 
-    public function getUserId()
-    {
-        return $this->id;
-    }
-
     /**
      * External id used as the entity-first storage prefix
      * (`users/{external_id}/…`). For a user the owner is itself.
@@ -768,14 +761,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public function socials(): HasMany
     {
         return $this->hasMany(UserSocial::class);
-    }
-
-    /**
-     * Resolve the user's provider-side id for a single OAuth provider, or null.
-     */
-    public function socialId(SocialProvider $provider): ?string
-    {
-        return $this->socials()->where('provider', $provider)->value('provider_id');
     }
 
     /**

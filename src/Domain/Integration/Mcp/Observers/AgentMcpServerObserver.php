@@ -9,24 +9,20 @@ use Domain\Integration\Mcp\Models\McpTool;
 use Illuminate\Support\Facades\DB;
 
 /**
- * MCP servers are now account-level, attached to agents via the
- * `agent_mcp_server` pivot. Cache invalidation must therefore
- * walk that pivot — a single config change can affect any number of agents.
- * Per-server tool catalog used to live in Redis; it's now in the
- * `mcp_tools` table, so server-level changes only need to bust the
- * agent-tool compile cache (server enable/disable affects the pool).
+ * MCP servers are account-level and attach to agents through the
+ * `agent_mcp_server` pivot, so cache invalidation walks that pivot — one
+ * config change can affect any number of agents. The tool catalog lives in
+ * the `mcp_tools` table, so server-level changes only need to bust the
+ * agent-tool compile cache (enable/disable changes the pool).
+ *
+ * No `created` hook: a new server has no attachments yet, and
+ * `Agent::attachConnector` busts the per-agent cache when it is attached.
  */
 class AgentMcpServerObserver
 {
     public function __construct(
         private readonly ToolRegistry $registry,
     ) {}
-
-    public function created(AgentMcpServer $server): void
-    {
-        // No attachments yet on the row itself; Agent::attachConnector busts
-        // the per-agent cache when this server is later attached.
-    }
 
     public function updated(AgentMcpServer $server): void
     {

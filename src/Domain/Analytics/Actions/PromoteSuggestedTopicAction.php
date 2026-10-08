@@ -2,7 +2,6 @@
 
 namespace Domain\Analytics\Actions;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\ConversationTopicAssigned;
 use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
@@ -27,7 +26,7 @@ class PromoteSuggestedTopicAction
     /**
      * @throws DomainValidationException when the agent already has a topic with this name
      */
-    public function execute(Agent $agent, User $user, string $label): Topic
+    public function execute(Agent $agent, string $label): Topic
     {
         /** @var array{0: Topic, 1: list<\DateTimeInterface>} $result */
         $result = DB::transaction(function () use ($agent, $label): array {

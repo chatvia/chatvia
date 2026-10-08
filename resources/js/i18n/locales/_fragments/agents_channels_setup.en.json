@@ -15,13 +15,6 @@
                     "bot_token": "Bot token",
                     "signing_secret": "Signing secret",
                     "request_url": "Request URL",
-                    "callback_url": "Callback URL",
-                    "verify_token": "Verify token",
-                    "page_access_token": "Page access token",
-                    "app_secret": "App secret",
-                    "access_token": "Access token",
-                    "phone_number_id": "Phone number ID",
-                    "waba_id": "WhatsApp Business Account ID",
                     "microsoft_app_id": "Microsoft App ID",
                     "client_secret": "Client secret",
                     "tenant_id": "Tenant ID",
@@ -33,24 +26,10 @@
                 "placeholders": {
                     "telegram_bot_token": "123456789:ABCdef…",
                     "slack_bot_token": "xoxb-…",
-                    "meta_token": "EAAG…",
-                    "phone_number_id": "123456789012345",
                     "microsoft_app_id": "00000000-0000-0000-0000-000000000000",
-                    "tenant_id": "Leave empty for Multi Tenant",
-                    "instagram_token": "IGAA…"
-                },
-                "guide": {
-                    "need_detail_before": "Need more detail? Follow the",
-                    "step_by_step_guide": "step-by-step guide",
-                    "need_detail_after": "with screenshots."
+                    "tenant_id": "Leave empty for Multi Tenant"
                 },
                 "shared": {
-                    "subscribe_webhook": "Subscribe the webhook to the {field} field",
-                    "messages_field": "messages",
-                    "create_meta_app_at": "Create an app at {link}",
-                    "copy_app_secret_both": "Copy the app secret from {section} and paste both below",
-                    "copy_app_secret_all": "Copy the app secret from {section} and paste everything below",
-                    "copy_app_secret_same_page": "Copy the app secret from the same page and paste both below",
                     "reply_streams_live": "— the reply streams in live"
                 },
                 "telegram": {
@@ -79,7 +58,6 @@
                         "help_hint": "Leave blank to auto-list your commands.",
                         "name_token_hint": "Tip: {'{'}name{'}'} becomes the person’s first name.",
                         "remove": "Remove command",
-                        "empty_draft": "No commands yet. Add one below.",
                         "add": "Add command",
                         "cancel": "Cancel",
                         "save": "Save commands",
@@ -101,34 +79,12 @@
                     "basic_information": "Basic Information"
                 },
                 "messenger": {
-                    "steps": {
-                        "connected_1": "In {link}, open {webhooks} and paste the Callback URL + verify token above",
-                        "connected_3": "Message your page on Messenger — your agent replies automatically",
-                        "connect_1": "Create an app at {link}, then add the {product} use case — search for it if it's not shown",
-                        "connect_2": "Under {api_settings}, connect your Facebook Page and generate a page access token",
-                        "connect_perms": "In {permissions}, add {perm1}, {perm2}, and {perm3}"
-                    },
-                    "your_meta_app": "your Meta app",
-                    "webhooks_path": "Use cases → Customize → Messenger API Settings",
-                    "api_settings_path": "Use cases → Customize → Messenger API Settings",
-                    "permissions_path": "Use cases → Customize → Permissions and features",
-                    "app_settings_basic": "App settings → Basic",
-                    "product": "Engage with customers on Messenger",
                     "oauth_intro": "Connect a Facebook Page so this agent can reply to Messenger conversations — you'll sign in with Facebook, then pick which Page to use.",
                     "connect_facebook": "Connect with Facebook",
                     "pick_title": "Choose a Facebook Page",
                     "pick_button": "Connect this Page"
                 },
                 "whatsapp": {
-                    "steps": {
-                        "connected_1": "In {link}, open {configuration} and paste the Callback URL + verify token above",
-                        "connected_3": "Message your number on WhatsApp — your agent replies automatically",
-                        "connect_1": "Create an app at {link} with the {use_case} use case",
-                        "connect_2": "Complete {basic_setup}, then copy the phone number ID, WhatsApp Business Account ID, and an access token"
-                    },
-                    "configuration_path": "WhatsApp → Configuration",
-                    "use_case": "Connect with customers through WhatsApp",
-                    "basic_setup_path": "Use cases → Customize → Basic setup",
                     "oauth_intro": "Connect your WhatsApp Business number so this agent can reply to WhatsApp messages — you'll sign in with Facebook and set it up in one step.",
                     "connect_facebook": "Connect with Facebook",
                     "not_configured": "WhatsApp isn't set up on this Chatvia instance yet. Please contact support.",
@@ -155,16 +111,6 @@
                     "open_chat_in_teams": "Open a chat with your bot in Teams"
                 },
                 "instagram": {
-                    "steps": {
-                        "connected_1": "In {link}, open {webhooks} and paste the Callback URL + verify token above",
-                        "connected_3": "In the Instagram app, allow message access under {message_controls}, then DM your account",
-                        "connect_1": "Create an app at {link} and add the {product} product — your Instagram account must be a professional (business or creator) account",
-                        "connect_2": "Under {api_setup}, generate an access token for your account"
-                    },
-                    "webhooks_path": "Instagram → API setup with Instagram login → Configure webhooks",
-                    "message_controls_path": "Settings → Messages and story replies → Message controls → Connected tools",
-                    "api_setup_path": "Instagram → API setup with Instagram login",
-                    "product": "Instagram",
                     "oauth_intro": "Connect an Instagram professional account so this agent can reply to DMs — you'll sign in with Facebook, then pick which account to use.",
                     "connect_facebook": "Connect with Facebook",
                     "pick_title": "Choose an Instagram account",

@@ -3,10 +3,10 @@
 namespace App\Http\Requests\Settings\Function;
 
 use App\Identity\Workspace\Models\User;
-use Closure;
 use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Function\Data\CreateAgentFunctionData;
 use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Rules\ValidParametersSchema;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -33,16 +33,7 @@ class CreateAgentFunctionRequest extends FormRequest
             ],
             'display_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:1024'],
-            'parameters_schema' => [
-                'required',
-                'string',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    $decoded = json_decode((string) $value, true);
-                    if (! is_array($decoded)) {
-                        $fail('parameters_schema must be valid JSON describing the parameters.');
-                    }
-                },
-            ],
+            'parameters_schema' => ['required', 'string', new ValidParametersSchema],
             'webhook_url' => ['required', 'url', 'max:2048', new SafeWebhookUrl],
             'webhook_method' => ['sometimes', 'in:POST,GET,PATCH,DELETE'],
             'auth_type' => ['sometimes', Rule::enum(FunctionAuthType::class)],

@@ -46,20 +46,4 @@ class AgentPolicy
     {
         return $this->view($user, $agent);
     }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Agent $agent): bool
-    {
-        return $this->view($user, $agent);
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Agent $agent): bool
-    {
-        return $this->view($user, $agent);
-    }
 }

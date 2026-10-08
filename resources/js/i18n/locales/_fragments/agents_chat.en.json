@@ -1,13 +1,7 @@
 {
     "agents": {
         "chat_errors": {
-            "disabled_title": "Agent Disabled",
-            "disabled_description": "This agent is currently unavailable",
-            "disabled_heading": "Agent Disabled",
-            "disabled_message": "This agent has been disabled. Please contact the administrator for assistance.",
-            "disabled_hint": "If you believe this is an error or need immediate assistance, please reach out to your administrator.",
             "contact_admin": "Contact Administrator",
-            "return_dashboard": "Return to Dashboard",
             "no_messages_title": "No Messages Left",
             "no_messages_description": "You've reached your message limit",
             "not_found_title": "Agent Not Found",

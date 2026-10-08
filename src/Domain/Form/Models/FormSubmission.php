@@ -146,15 +146,6 @@ class FormSubmission extends Model
             ->where('values_checksum', $checksum);
     }
 
-    /**
-     * Still open for a first submit: pending and not past its TTL.
-     */
-    public function isClaimable(): bool
-    {
-        return $this->status === self::STATUS_PENDING
-            && ($this->expires_at === null || $this->expires_at->isFuture());
-    }
-
     public function isExpired(): bool
     {
         return $this->expires_at !== null && $this->expires_at->isPast();

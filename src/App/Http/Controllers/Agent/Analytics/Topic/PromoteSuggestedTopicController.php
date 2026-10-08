@@ -17,7 +17,7 @@ class PromoteSuggestedTopicController
             'label' => ['required', 'string', 'max:255'],
         ]);
 
-        $topic = $promote->execute($agent, $request->user(), $validated['label']);
+        $topic = $promote->execute($agent, $validated['label']);
 
         return response()->json(['message' => 'Topic added successfully', 'topic' => $topic]);
     }

@@ -27,17 +27,17 @@ class AgentManagerController
 
         // Sources (any training permission)
         'agent.sources.train.files' => 'agents.sources.files',
-        'agent.sources.train.text' => 'agents.sources.text',
-        'agent.sources.train.qa' => 'agents.sources.text',
+        'agent.sources.train.text' => 'agents.sources.text.index',
+        'agent.sources.train.qa' => 'agents.sources.qa.index',
         'agent.sources.train.web' => 'agents.sources.web',
         'agent.sources.train.audio' => 'agents.sources.audio',
         'agent.sources.train.video' => 'agents.sources.video',
 
         // Leads
-        'agent.leads.view' => 'agents.leads',
+        'agent.leads.view' => 'agents.forms.index',
 
         // Topics
-        'agent.topics.add' => 'agents.topics.manage',
+        'agent.topics.add' => 'agents.topics.index',
 
         // Setup/Config (lowest priority for staff)
     ];

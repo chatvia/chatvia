@@ -16,7 +16,6 @@
                     "scorer": "Vurderer",
                     "status": "Status",
                     "actions": "Handlinger",
-                    "by": "Av",
                     "pass_rate": "Bestått-rate",
                     "passed_failed": "Bestått / Ikke bestått",
                     "avg_score": "Gjennomsnittspoeng",

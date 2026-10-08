@@ -1,3 +1,0 @@
-## Web Page HTML
-
-{!! $html !!}

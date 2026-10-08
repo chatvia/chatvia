@@ -15,10 +15,13 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
     {
         parent::boot();
 
-        Horizon::routeMailNotificationsTo('ahmad.mayahi@gmail.com');
+        // Alert emails (long queue waits) go to the configured inbox only.
+        // Without one, Horizon has nowhere to send them, so they stay off.
+        $notifyEmail = config('horizon.notify_email');
 
-        // Horizon::routeSmsNotificationsTo('15556667777');
-        // Horizon::routeSlackNotificationsTo('slack-webhook-url', '#channel');
+        if (is_string($notifyEmail) && $notifyEmail !== '') {
+            Horizon::routeMailNotificationsTo($notifyEmail);
+        }
     }
 
     /**

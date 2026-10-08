@@ -3,6 +3,7 @@
 namespace Domain\Billing\Actions\Account;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Events\MessageCreditsLow;
 use Domain\Billing\Jobs\UpdateUserCreditsJob;
 use Domain\Billing\Services\UserCreditSystem;
@@ -32,10 +33,18 @@ class ConsumeMessageCreditsAction
 
     public function __construct(
         private readonly UserCreditSystem $creditSystem,
+        private readonly Entitlements $entitlements,
     ) {}
 
     public function execute(int $userId, int $modelId, int $additionalMessages = 0, ?string $chargeKey = null): void
     {
+        // With billing turned off there is no credit pool to charge. Return
+        // quietly so queued charge jobs neither fail nor log a warning for
+        // every reply.
+        if (! $this->entitlements->enforced()) {
+            return;
+        }
+
         $this->creditSystem->forWorkspace($userId);
 
         $claim = $chargeKey !== null ? "billing:message-charge:{$chargeKey}" : null;

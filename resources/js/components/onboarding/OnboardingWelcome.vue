@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { useBrand } from '@/composables/useBrand';
 import type { SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/vue3';
 import { MessagesSquare, Play, Plus, Wand2 } from 'lucide-vue-next';
@@ -17,17 +18,18 @@ const emit = defineEmits<{ 'start-create': [] }>();
 
 const { t } = useI18n();
 const page = usePage<SharedData>();
+const { brand } = useBrand();
 
 // Dismissed locally for this session — covers the brief window before the
 // shared `auth.user` prop refreshes with the persisted timestamp.
 const dismissed = ref(false);
 const persisted = ref(false);
 
-// Intro video — loaded only once the owner hits play. Bound via :src so the
-// `&` in the query string isn't parsed as HTML entities.
+// Intro video (embed URL from `brand.onboarding_video_url`) — loaded only once
+// the owner hits play, and left out entirely when no URL is set. Bound via :src
+// so the `&` in the query string isn't parsed as HTML entities.
 const playing = ref(false);
-const videoUrl =
-    'https://iframe.mediadelivery.net/embed/570366/4eb95857-62a4-411d-ad16-c91115ae4f2c?autoplay=true&loop=true&muted=true&preload=true&responsive=true';
+const videoUrl = computed(() => brand.value.onboarding_video_url);
 
 const open = computed<boolean>({
     get: () => {
@@ -70,7 +72,7 @@ function createAgent(): void {
             <div class="relative flex flex-col items-center gap-3 px-6 pt-9 pb-1 text-center">
                 <div class="from-primary/10 pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b to-transparent"></div>
                 <div class="ring-border/70 bg-background relative flex h-16 w-16 items-center justify-center rounded-2xl shadow-sm ring-1">
-                    <img src="/images/logo.svg" alt="Chatvia" class="h-10 w-10" />
+                    <img src="/images/logo.svg" :alt="brand.name" class="h-10 w-10" />
                 </div>
                 <div class="relative space-y-1.5">
                     <DialogTitle class="text-2xl font-semibold tracking-tight">{{ t('onboarding.welcome.title') }}</DialogTitle>
@@ -83,7 +85,7 @@ function createAgent(): void {
             <!-- Body -->
             <div class="space-y-5 px-6 pt-4 pb-6">
                 <!-- Intro video — poster + play button until the owner hits play, then the embed loads inline -->
-                <div class="bg-muted ring-border/60 relative aspect-video w-full overflow-hidden rounded-xl ring-1">
+                <div v-if="videoUrl" class="bg-muted ring-border/60 relative aspect-video w-full overflow-hidden rounded-xl ring-1">
                     <button
                         v-if="!playing"
                         type="button"

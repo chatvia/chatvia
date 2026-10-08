@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
+/**
+ * Client for Mistral's hosted OCR API. Turns PDFs, office files and images into
+ * one PageData per page, with the images and tables found on each page. Used
+ * through MistralDocumentParser; the model is `services.mistral.ocr_model`.
+ */
 class MistralOCR
 {
     public function __construct(
@@ -30,8 +35,8 @@ class MistralOCR
         $response = $this->mistral
             ->client()
             ->timeout(3600)
-            ->post('https://api.mistral.ai/v1/ocr', [
-                'model' => 'mistral-ocr-latest',
+            ->post(rtrim($this->mistral->getBaseUrl(), '/').'/ocr', [
+                'model' => (string) config('services.mistral.ocr_model'),
                 'document' => $document,
                 'table_format' => 'markdown',
                 'include_image_base64' => true,

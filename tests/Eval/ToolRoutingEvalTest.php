@@ -11,6 +11,7 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -73,6 +74,11 @@ beforeEach(function (): void {
 
     app()->instance(EmbeddingsProviderInterface::class, $provider);
     $this->embeddings = $provider;
+
+    // The relevance gate scores with the reranker, which TestCase also fakes —
+    // swap in the real, config-selected one.
+    app()->forgetInstance(Reranker::class);
+    app()->instance(Reranker::class, app(Reranker::class));
 });
 
 it('measures tool-routing retrieval quality against the labelled set', function (): void {

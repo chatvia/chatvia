@@ -26,10 +26,13 @@ use App\Http\Controllers\Billing\Subscriptions\CancelCustomDomainController;
 use App\Http\Controllers\Billing\Subscriptions\CancelExtraAgentsController;
 use App\Http\Controllers\Billing\Subscriptions\CancelMembersController;
 use App\Http\Controllers\Billing\Subscriptions\CancelRemoveBrandingController;
+use App\Http\Middleware\Access\EnsureBillingIsEnabled;
 use App\Http\Middleware\Auth\DenyIfEmployee;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('my')->group(function (): void {
+// Every billing page and Stripe flow answers 404 when billing is turned off
+// (a self-hosted install with BILLING_ENABLED=false).
+Route::prefix('my')->middleware(EnsureBillingIsEnabled::class)->group(function (): void {
     Route::get('subscribe', BillingSubscribeController::class)
         ->middleware(['auth', 'verified', DenyIfEmployee::class])
         ->name('subscribe');

@@ -100,13 +100,10 @@ class ToolDisplayResolver
         if ($preset === null) {
             return null;
         }
+        // Logos are self-hosted; no third-party icon CDN, so a preset without
+        // a logo_url simply shows no icon.
         if (! empty($preset['logo_url'])) {
             return $preset['logo_url'];
-        }
-        if (! empty($preset['icon'])) {
-            $color = $preset['brand_color'] ?? '999999';
-
-            return 'https://cdn.simpleicons.org/'.$preset['icon'].'/'.$color;
         }
 
         return null;

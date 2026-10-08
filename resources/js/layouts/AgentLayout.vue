@@ -971,7 +971,7 @@ onMounted(() => {
                             <span
                                 class="bg-muted border-input text-muted-foreground inline-flex items-center rounded-e-md border border-s-0 px-3 py-2 text-sm"
                             >
-                                .chatvia.ai
+                                .{{ page.props.domain }}
                             </span>
                         </div>
                         <p v-if="renameForm.errors.sub_domain" class="mt-1 text-xs text-red-500">

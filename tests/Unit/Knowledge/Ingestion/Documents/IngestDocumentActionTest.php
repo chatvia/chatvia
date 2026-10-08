@@ -3,11 +3,13 @@
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Documents\IngestDocumentAction;
-use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
+use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
+use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * IngestDocumentAction is the most-burned-on orchestrator in the codebase
@@ -20,28 +22,22 @@ use Illuminate\Support\Facades\Event;
  *   2. Idempotency on already-ingested SourceFile is a hard short-circuit
  *      that protects against double-OCR cost on a retry.
  *
- * The MistralOCR collaborator is faked so the test never reaches Mistral's
- * HTTP surface; we just need to confirm the orchestrator routes batches and
- * the terminal broadcast through the right paths.
+ * The DocumentParser collaborator is faked so the test never reaches a parsing
+ * service; we just need to confirm the orchestrator routes batches and the
+ * terminal broadcast through the right paths.
  */
-function idaFakeMistralOcr(): MistralOCR
+function idaFakeParser(): DocumentParser
 {
-    return new class extends MistralOCR
+    return new class implements DocumentParser
     {
-        public function __construct()
-        {
-            // No real Mistral provider needed — fromUrl/fromFile aren't called
-            // when the SourceFile has no parser_filepath in the happy path.
-        }
-
-        public function fromUrl(string $url, bool $isImage = false): Collection
+        public function parse(string $filePath, string $storageDirectory): Collection
         {
             return collect();
         }
 
-        public function fromFile(string $file, string $storageDirectory): Collection
+        public function name(): string
         {
-            return collect();
+            return 'fake';
         }
     };
 }
@@ -57,7 +53,7 @@ it('is idempotent: a SourceFile already in the ingested state returns immediatel
     ]);
     $agent->files()->attach($sourceFile->id);
 
-    (new IngestDocumentAction(idaFakeMistralOcr()))->execute($sourceFile, $agent);
+    (new IngestDocumentAction(idaFakeParser()))->execute($sourceFile, $agent);
 
     Bus::assertNothingBatched();
     Event::assertNotDispatched(FileIngestionProgressed::class);
@@ -74,9 +70,58 @@ it('routes ingestion via a Bus batch named with the SourceFile id', function ():
     ]);
     $agent->files()->attach($sourceFile->id);
 
-    (new IngestDocumentAction(idaFakeMistralOcr()))->execute($sourceFile, $agent);
+    (new IngestDocumentAction(idaFakeParser()))->execute($sourceFile, $agent);
 
     Bus::assertBatched(function ($batch) use ($sourceFile): bool {
         return str_contains((string) $batch->name, (string) $sourceFile->id);
     });
 })->skip('Bus batch shape depends on whether parser_filepath has chunks present; covered by ingestion feature path.');
+
+it('reads the document with the configured parser and records the parser name', function (): void {
+    Bus::fake();
+    Storage::fake();
+
+    $agent = Agent::factory()->create();
+    $sourceFile = AgentFileFactory::new()->create([
+        'status' => 'uploaded',
+        'filename' => 'manual.pdf',
+        'filepath' => 'users/x/agents/y/files/manual.pdf',
+        'mime_type' => 'application/pdf',
+    ]);
+    Storage::put($sourceFile->filepath, '%PDF-1.4 test');
+    $agent->files()->attach($sourceFile->id);
+
+    $parser = new class implements DocumentParser
+    {
+        /** @var list<string> */
+        public array $parsed = [];
+
+        public function parse(string $filePath, string $storageDirectory): Collection
+        {
+            $this->parsed[] = $storageDirectory;
+
+            return collect([
+                new PageData(pageNumber: 1, content: 'Page one', checksum: hash('xxh128', 'Page one')),
+                new PageData(pageNumber: 2, content: 'Page two', checksum: hash('xxh128', 'Page two')),
+            ]);
+        }
+
+        public function name(): string
+        {
+            return 'local';
+        }
+    };
+
+    (new IngestDocumentAction($parser))->execute($sourceFile, $agent);
+
+    $fresh = $sourceFile->fresh();
+
+    expect($parser->parsed)->toHaveCount(1)
+        ->and($parser->parsed[0])->toEndWith('/tmp')
+        ->and($fresh->parser)->toBe('local')
+        ->and((int) $fresh->expected_chunks)->toBe(2)
+        ->and($fresh->parser_filepath)->not->toBeNull();
+
+    Storage::assertExists($fresh->parser_filepath);
+    Bus::assertBatched(fn ($batch): bool => $batch->jobs->count() === 2);
+});

@@ -105,6 +105,7 @@ return [
         'api_endpoint' => env('COHERE_API_ENDPOINT', 'https://api.cohere.com/v2'),
         'embedding_model' => env('COHERE_EMBEDDING_MODEL', 'embed-v4.0'),
         'embedding_dimensions' => env('COHERE_EMBEDDING_DIMENSIONS', 1024),
+        'rerank_model' => env('COHERE_RERANK_MODEL', 'rerank-v4.0-pro'),
     ],
 
     'jina' => [
@@ -112,11 +113,6 @@ return [
         'api_endpoint' => env('JINA_API_ENDPOINT', 'https://api.jina.ai/v1'),
         'embedding_model' => env('JINA_EMBEDDING_MODEL', 'jina-embeddings-v3'),
         'embedding_dimensions' => env('JINA_EMBEDDING_DIMENSIONS', 1024),
-    ],
-
-    'azure_document_intelligence' => [
-        'endpoint' => env('AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT'),
-        'api_key' => env('AZURE_DOCUMENT_INTELLIGENCE_API_KEY'),
     ],
 
     'groq' => [
@@ -149,20 +145,19 @@ return [
         'npm' => env('NPM_BIN_PATH'),
         'nvm_include_path' => env('NVM_INCLUDE_PATH'),
         'chrome' => env('CHROME_EXECUTABLE_PATH'),
-        'libreoffice' => env('LIBREOFFICE_BIN_PATH', '/opt/homebrew/bin/soffice'),
-        'pandoc' => env('PANDOC_BIN_PATH', '/opt/homebrew/bin/pandoc'),
-        'pdfinfo' => env('PDFINFO_BIN_PATH', '/opt/homebrew/bin/pdfinfo'),
-        'ffmpeg' => env('FFMPEG_BIN_PATH', '/opt/homebrew/bin/ffmpeg'),
-        'ffprobe' => env('FFPROBE_PATH', '/opt/homebrew/bin/ffprobe'),
-    ],
-
-    'llamaparse' => [
-        'endpoint' => env('LLAMA_PARSE_ENDPOINT', 'https://api.cloud.llamaindex.ai/api/v1/parsing'),
-        'api_key' => env('LLAMA_PARSE_API_KEY'),
+        // Bare names are looked up on the PATH of the process that runs them
+        // (usually the queue worker). Set an absolute path when the binary
+        // lives somewhere that PATH doesn't cover.
+        'libreoffice' => env('LIBREOFFICE_BIN_PATH', 'soffice'),
+        'pandoc' => env('PANDOC_BIN_PATH', 'pandoc'),
+        'pdfinfo' => env('PDFINFO_BIN_PATH', 'pdfinfo'),
+        'pdftotext' => env('PDFTOTEXT_BIN_PATH', 'pdftotext'),
+        'ffmpeg' => env('FFMPEG_BIN_PATH', 'ffmpeg'),
+        'ffprobe' => env('FFPROBE_PATH', 'ffprobe'),
     ],
 
     'libs' => [
-        'tiktoken' => env('TIKTOKEN_PATH', '/usr/local/lib/libtiktoken.so'),
+        'tiktoken' => env('TIKTOKEN_PATH'),
     ],
 
     'firecrawl' => [
@@ -219,15 +214,18 @@ return [
         // URL uses the API key's default project; set a project URL
         // (https://api.scaleway.ai/{project-id}/v1) to bill a specific project.
         'endpoint' => env('SCALEWAYAI_API_ENDPOINT', 'https://api.scaleway.ai/v1'),
+        // Open-weight models used for embeddings, reranking and speech-to-text.
+        'embedding_model' => env('SCALEWAYAI_EMBEDDING_MODEL', 'qwen3-embedding-8b'),
+        'rerank_model' => env('SCALEWAYAI_RERANK_MODEL', 'qwen3-embedding-8b'),
+        'transcription_model' => env('SCALEWAYAI_TRANSCRIPTION_MODEL', 'whisper-large-v3'),
     ],
 
     'mistral' => [
         'api_key' => env('MISTRAL_API_KEY'),
         'base_url' => env('MISTRAL_BASE_URL', 'https://api.mistral.ai/v1'),
-        // Model used by MistralPdfSource for PDF Q&A turns. Needs to support
-        // both `document_url` content chunks AND function calling so the
-        // tool loop can fire inside PDF conversations — small-latest doesn't.
-        'qa_model' => env('MISTRAL_QA_MODEL', 'mistral-medium-latest'),
+        // The PDF chat model is chatvia.ai.models.document_chat.
+        'ocr_model' => env('MISTRAL_OCR_MODEL', 'mistral-ocr-latest'),
+        'embedding_model' => env('MISTRAL_EMBEDDING_MODEL', 'mistral-embed'),
     ],
 
     'perplexity' => [
@@ -257,6 +255,13 @@ return [
     'turnstile' => [
         'key' => env('TURNSTILE_SITE_KEY'),
         'secret' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
+    // Page-view analytics (production only). Nothing is loaded while the
+    // domain is empty. The script URL can point at a self-hosted Plausible.
+    'plausible' => [
+        'domain' => env('PLAUSIBLE_DOMAIN'),
+        'script_url' => env('PLAUSIBLE_SCRIPT_URL', 'https://plausible.io/js/script.js'),
     ],
 
     'chunkfit' => [

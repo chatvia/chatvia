@@ -80,7 +80,7 @@
 
                 <h3 class="text-xl font-medium text-gray-800">3.1 Refund Request Process</h3>
                 <ol class="list-decimal list-inside text-gray-700 space-y-2 ml-4">
-                    <li><strong>Contact Support:</strong> Email us at <a href="mailto:info@chatvia.com" class="text-blue-600 underline">info@chatvia.com</a> or use our support chat</li>
+                    <li><strong>Contact Support:</strong> Email @include('partials.company.email-link', ['class' => 'text-blue-600 underline']) or use our support chat</li>
                     <li><strong>Provide Details:</strong> Include your account email, subscription details, and reason for refund</li>
                     <li><strong>Review Period:</strong> We'll review your request within 2-3 business days</li>
                     <li><strong>Processing:</strong> Approved refunds are processed within 5-10 business days</li>
@@ -206,7 +206,7 @@
 
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
                     <div class="space-y-2 text-blue-700">
-                        <p><strong>Refund Requests:</strong> <a href="mailto:info@chatvia.ai" class="underline">info@chatvia.ai</a></p>
+                        <p><strong>Refund Requests:</strong> @include('partials.company.email-link', ['class' => 'underline'])</p>
                     </div>
                 </div>
 
@@ -229,12 +229,12 @@
 
             <!-- Footer -->
             <div class="border-t pt-6 text-center text-gray-500 text-sm">
-                <p>This Refund Policy is effective as of {{ date('F j, Y') }} and applies to all ChatVia subscriptions.</p>
+                <p>This Refund Policy is effective as of {{ date('F j, Y') }} and applies to all {{ config('chatvia.brand.name') }} subscriptions.</p>
                 <p class="mt-2">
-                    By subscribing to ChatVia, you acknowledge that you have read, understood, and agree to this Refund Policy.
+                    By subscribing to {{ config('chatvia.brand.name') }}, you acknowledge that you have read, understood, and agree to this Refund Policy.
                 </p>
                 <p class="mt-2">
-                    For questions about this policy, please contact us at <a href="mailto:info@chatvia.com" class="text-blue-600 underline">info@chatvia.com</a>
+                    For questions about this policy, please contact @include('partials.company.email-link', ['class' => 'text-blue-600 underline', 'fallback' => 'us'])
                 </p>
             </div>
         </div>

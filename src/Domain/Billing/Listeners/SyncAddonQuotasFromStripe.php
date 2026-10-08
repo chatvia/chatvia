@@ -34,6 +34,11 @@ class SyncAddonQuotasFromStripe
 
     public function handle(WebhookHandled $event): void
     {
+        // Billing turned off: Stripe events never change quotas.
+        if (! config('billing.enabled', true)) {
+            return;
+        }
+
         if (! in_array($event->payload['type'] ?? null, self::SUBSCRIPTION_EVENTS, true)) {
             return;
         }

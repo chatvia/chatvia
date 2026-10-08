@@ -6,7 +6,6 @@ use Domain\Knowledge\Ingestion\Data\Chunking\DocumentChunk;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Operations\Pricing\CostCalculator;
-use Domain\Llm\Providers\Mistral;
 use Domain\Llm\Services\TikToken;
 
 class Chunker
@@ -94,76 +93,6 @@ class Chunker
                 ],
             ],
             'required' => ['summary', 'questions'],
-            'additionalProperties' => false,
-        ];
-    }
-
-    public function chunkHtml($html): array
-    {
-        $systemPrompt = prompt('chunking/web');
-
-        $userPrompt = prompt('chunking/user-web', [
-            'html' => $html,
-        ]);
-
-        $res = app(Mistral::class)->completion([
-            'model' => 'mistral-large-latest',
-            'temperature' => 0.0,
-            'max_tokens' => 10000,
-            'messages' => [
-                [
-                    'role' => 'system',
-                    'content' => $systemPrompt,
-                ],
-                [
-                    'role' => 'user',
-                    'content' => $userPrompt,
-                ],
-            ],
-            'response_format' => [
-                'type' => 'json_schema',
-                'json_schema' => [
-                    'name' => 'web_chunks',
-                    'strict' => true,
-                    'schema' => $this->webChunksSchema(),
-                ],
-            ],
-        ])->throw();
-
-        $decoded = json_decode(
-            $res->json('choices.0.message.content') ?? '',
-            true,
-            512,
-            JSON_THROW_ON_ERROR,
-        );
-
-        // Drop empty or sub-threshold chunks. 128 tokens matches the
-        // minimum used by the legacy XML-tag parser — chunks smaller than
-        // that don't carry enough context for useful retrieval.
-        return collect($decoded['chunks'] ?? [])
-            ->map(fn (string $chunk): string => trim($chunk))
-            ->filter(fn (string $chunk): bool => $chunk !== '' && TikToken::countTokens($chunk) >= 128)
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Strict JSON schema for the HTML chunker — replaces the legacy
-     * <Chunk>...</Chunk> tag protocol so missing closing tags, markdown
-     * fences, or nested tags can't silently drop chunks.
-     */
-    private function webChunksSchema(): array
-    {
-        return [
-            'type' => 'object',
-            'properties' => [
-                'chunks' => [
-                    'type' => 'array',
-                    'items' => ['type' => 'string'],
-                    'description' => 'Semantically coherent, self-contained chunks extracted from the input. Empty array when the input has no meaningful content.',
-                ],
-            ],
-            'required' => ['chunks'],
             'additionalProperties' => false,
         ];
     }

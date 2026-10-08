@@ -96,6 +96,12 @@ export default defineConfig({
             { text: 'Human handoff', link: '/guide/chat/handoff' },
           ],
         },
+        {
+          text: 'Self-hosting',
+          items: [
+            { text: 'AI providers', link: '/guide/self-hosting/ai-providers' },
+          ],
+        },
       ],
 
       '/embed/': [

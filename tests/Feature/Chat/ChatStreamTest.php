@@ -6,6 +6,8 @@ use Domain\Agent\Notifications\AgentRateLimitNotification;
 use Domain\Billing\Models\UserCredit;
 use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Membership\Team\Services\TeamService;
 use GuzzleHttp\Psr7\Response as PsrResponse;
@@ -100,16 +102,6 @@ function bindFakeStreamingLlm(string ...$tokens): void
             return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
         }
 
-        public function rerank(string $query, array $documents, ?int $topN = null): ?array
-        {
-            return null;
-        }
-
-        public function supportsReranking(): bool
-        {
-            return false;
-        }
-
         public function getDimensions(): int
         {
             return 1024;
@@ -120,6 +112,9 @@ function bindFakeStreamingLlm(string ...$tokens): void
             return 'fake-embed';
         }
     });
+
+    // No reranking service here: results keep their unranked order.
+    app()->instance(Reranker::class, new NullReranker);
 }
 
 /** A public agent whose owner holds an active subscription (so the turn isn't rejected). */

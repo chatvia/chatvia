@@ -160,7 +160,7 @@ export function htmlToText(input) {
  * Escape HTML entities — fallback for unsafe input or parser failures.
  */
 export function escapeHtml(text) {
-  if (text == null) return '';
+  if (text === null || text === undefined) return '';
   return String(text)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -256,7 +256,7 @@ export function parseMarkdownToHtml(text) {
   html = parseTable(html);
 
   // Unordered lists (- or * or +)
-  html = parseList(html, /^[\-\*\+]\s+(.+)$/gm, 'ul');
+  html = parseList(html, /^[-*+]\s+(.+)$/gm, 'ul');
 
   // Ordered lists (1. 2. etc)
   html = parseList(html, /^\d+\.\s+(.+)$/gm, 'ol');
@@ -366,7 +366,7 @@ function parseList(html, pattern, listType) {
 
   // Determine the regex for this list type
   const isUnordered = listType === 'ul';
-  const listItemRegex = isUnordered ? /^[\-\*\+]\s+(.+)$/ : /^\d+\.\s+(.+)$/;
+  const listItemRegex = isUnordered ? /^[-*+]\s+(.+)$/ : /^\d+\.\s+(.+)$/;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];

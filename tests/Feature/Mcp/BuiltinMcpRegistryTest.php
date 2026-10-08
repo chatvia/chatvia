@@ -8,6 +8,8 @@ use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -35,16 +37,6 @@ function bindFakeEmbeddings(): void
             return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
         }
 
-        public function rerank(string $query, array $documents, ?int $topN = null): ?array
-        {
-            return null;
-        }
-
-        public function supportsReranking(): bool
-        {
-            return false;
-        }
-
         public function getDimensions(): int
         {
             return 1024;
@@ -55,6 +47,9 @@ function bindFakeEmbeddings(): void
             return 'fake-embed';
         }
     });
+
+    // No reranking service here: results keep their unranked order.
+    app()->instance(Reranker::class, new NullReranker);
 }
 
 /**

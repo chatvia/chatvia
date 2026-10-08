@@ -219,7 +219,7 @@ onMounted(() => {
                             <a :href="file.agent.url" target="_blank" class="text-primary">
                                 {{ file.agent.name }}
                             </a>
-                            <a :href="file.agent.url" target="_blank" class="text-primary">• {{ file.agent.sub_domain }}.chatvia.ai</a>
+                            <a :href="file.agent.url" target="_blank" class="text-primary">• {{ file.agent.sub_domain }}.{{ $page.props.domain }}</a>
                         </CardDescription>
                     </CardHeader>
 

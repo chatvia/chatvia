@@ -152,3 +152,13 @@ it('refuses to send an hmac request without a signing secret', function (): void
     expect($result->isError)->toBeTrue()
         ->and($function->fresh()->last_error)->toBe('missing hmac signing secret');
 });
+
+it('names the configured brand in the User-Agent', function (): void {
+    config(['chatvia.brand.name' => 'Acme Chat']);
+    [$agent] = htdFunction();
+    Http::fake(['*' => Http::response('{"ok":true}', 200)]);
+
+    (new HttpToolDispatcher)->dispatch($agent, 'lookup_order', '{}');
+
+    Http::assertSent(fn ($request): bool => $request->header('User-Agent') === ['AcmeChat/Tools']);
+});

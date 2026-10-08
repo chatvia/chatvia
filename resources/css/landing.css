@@ -141,9 +141,8 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Arabic / Farsi (RTL) surfaces use Rubik (loaded in the landing layout head)
-   so the Arabic script renders correctly — Inter / Plus Jakarta Sans have no
-   Arabic glyphs. Unlayered and re-pointing the `font-*` utility classes
+/* Arabic / Farsi (RTL) surfaces put the system UI font first so the Arabic
+   script renders correctly — the self-hosted Inter has no Arabic glyphs. Unlayered and re-pointing the `font-*` utility classes
    directly so it beats Tailwind's layered utilities for every element that
    opts into them; Latin pages are untouched. */
 html[dir='rtl'] body,
@@ -158,7 +157,7 @@ html[lang='fa'] .font-display,
 html[dir='rtl'] .font-heading,
 html[lang='ar'] .font-heading,
 html[lang='fa'] .font-heading {
-    font-family: 'Rubik', 'Inter', sans-serif;
+    font-family: system-ui, 'Segoe UI', Tahoma, 'Inter', sans-serif;
 }
 
 /* Section-divider hairline: a soft light segment sweeps across, then pauses. */

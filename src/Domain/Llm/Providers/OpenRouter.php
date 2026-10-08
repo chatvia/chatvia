@@ -32,6 +32,21 @@ class OpenRouter extends AbstractLlmProvider
     }
 
     /**
+     * Ask OpenRouter to route streamed chat to the fastest upstream host.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    protected function prepareStreamPayload(array $payload): array
+    {
+        $payload['provider'] = [
+            'sort' => 'throughput',
+        ];
+
+        return $payload;
+    }
+
+    /**
      * Fetch generation data from OpenRouter.
      * Returns the raw data object with tokens_prompt, tokens_completion, total_cost, etc.
      *

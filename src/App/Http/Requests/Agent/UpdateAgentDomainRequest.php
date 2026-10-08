@@ -29,7 +29,7 @@ class UpdateAgentDomainRequest extends FormRequest
                 // separated by dots, no leading/trailing hyphen per label.
                 'regex:/^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i',
                 // Don't let the user pin their custom domain to the app's
-                // own host — `chat.chatvia.com` shouldn't resolve to a
+                // own host (APP_URL's host): it must never resolve to a
                 // workspace-controlled record.
                 Rule::notIn([$appHost]),
             ],

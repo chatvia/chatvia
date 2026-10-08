@@ -15,13 +15,10 @@ use Illuminate\Support\Facades\DB;
  * persisted with the right content/index/checksum/owner, and that a re-run with
  * the same checksum is idempotent (returns null, creates no duplicate).
  *
- * REQUIRES the migrated + SEEDED test DB: chunks uses pgvector vector(1024) +
- * bm25vector (the test connection needs the pgvector + bm25 extensions), and
- * AgentFileFactory reuses the seeded demo user — run DatabaseSeeder on the test
- * connection first. The embedding provider is faked here so no external call is
- * made; the bm25 expression is computed locally by the action. Verified
- * structurally sound (passes factory + setup); only the seeded-DB dependency
- * blocks execution in a bare environment.
+ * REQUIRES the migrated test DB: chunks uses pgvector vector(1024) +
+ * bm25vector (the test connection needs the pgvector + bm25 extensions). The
+ * embedding provider is faked here so no external call is made; the bm25
+ * expression is computed locally by the action.
  */
 beforeEach(function (): void {
     // embed() resolves EmbeddingsProviderInterface from the container, so a
@@ -45,16 +42,6 @@ beforeEach(function (): void {
         public function embedBatch(array $texts): array
         {
             return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
-        }
-
-        public function rerank(string $query, array $documents, ?int $topN = null): ?array
-        {
-            return null;
-        }
-
-        public function supportsReranking(): bool
-        {
-            return false;
         }
 
         public function getDimensions(): int

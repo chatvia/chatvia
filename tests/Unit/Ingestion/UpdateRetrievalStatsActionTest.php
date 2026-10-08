@@ -14,9 +14,7 @@ use Illuminate\Support\Facades\Event;
  * `agent_sources` pivot, then dispatches {@see SourceRetrieved} for the
  * date-bucketed rollup.
  *
- * REQUIRES the migrated + SEEDED test DB: AgentFileFactory reuses the seeded
- * demo user (ahmad@mayahi.net) — run DatabaseSeeder on the test connection
- * first. The morph alias "source_file" is registered via enforceMorphMap in
+ * The morph alias "source_file" is registered via enforceMorphMap in
  * AppServiceProvider, so getMorphClass() round-trips through the action.
  */
 it('increments the retrieval counter on the source and the agent_sources pivot', function (): void {

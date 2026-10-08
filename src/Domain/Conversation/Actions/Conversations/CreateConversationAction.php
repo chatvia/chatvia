@@ -70,7 +70,7 @@ class CreateConversationAction
         // Bind orphan attachment rows (uploaded before the conversation
         // existed, on the Home.vue path) to this new conversation. The
         // streaming pipeline will pick up any PDFs as `pdfAttachments` and
-        // route the next turn through MistralPdfSource.
+        // route the next turn through PdfSource.
         $this->claimAttachments($conversationId, $data->attachmentIds);
 
         return $conversationId;

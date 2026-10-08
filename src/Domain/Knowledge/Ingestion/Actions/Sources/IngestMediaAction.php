@@ -11,7 +11,7 @@ use Domain\Knowledge\Ingestion\Services\TokenSplitter;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Domain\Llm\Operations\Media\Transcription;
+use Domain\Llm\Contracts\Transcriber;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
@@ -24,7 +24,7 @@ class IngestMediaAction
     public function __construct(
         private readonly AudioCompressor $audioCompressor,
         private readonly TokenSplitter $splitter,
-        private readonly Transcription $transcription,
+        private readonly Transcriber $transcriber,
     ) {}
 
     public function execute(SourceFile $sourceFile, Agent $agent, ?string $internalJobId = null): void
@@ -50,7 +50,7 @@ class IngestMediaAction
             $transcription = Cache::remember('ingestion:media:transcription:file:'.$sourceFile->checksum, now()->addMonth(), fn (): string => $sourceFile->withLocalFile(function ($file): string {
                 $compressedFilePath = $this->audioCompressor->process($file->getPathname());
 
-                return $this->transcription->transcribe($compressedFilePath);
+                return $this->transcriber->transcribe($compressedFilePath);
             }));
 
             $filePath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/audio/'.Str::uuid()->toString().'.txt';

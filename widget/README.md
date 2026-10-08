@@ -197,7 +197,7 @@ Use the embed script with `type="search"`:
 #### Configuration Options
 
 - `type`: `'widget'` (default) or `'search'` - Which component to load
-- `language`: `'en'`, `'ar'`, or `'auto'` (default) - Language for the widget interface
+- `language`: a language code, or `'auto'` (default) to follow the visitor's browser - Language for the widget interface. Supported codes: `ar`, `da`, `de`, `en`, `es`, `fa`, `fi`, `fr`, `hi`, `id`, `ja`, `ko`, `no`, `pl`, `pt`, `ru`, `sv`, `tr`, `vi`, `zh`. Other codes fall back to English.
 - `data-search-position`: `'top'` or `'bottom'` - Where to display the search bar (default: `'top'`)
 - `data-search-placeholder`: String - Placeholder text for the search input (default: `'Ask a question...'`)
 
@@ -313,11 +313,16 @@ chatvia.on('ready', () => {
 });
 ```
 
-## Deployment CI/CD
+## Deployment
 
-```bash
-# Tag the release with v prefix
-git tag v2.0
-git push origin --tags
-```
+CI (`.github/workflows/widget.yml` at the repository root) lints, tests and
+builds the widget on every change under `widget/`. It does not publish it.
+
+To deploy, build with your own values in `.env` (see **Configuration**) and
+upload the contents of `dist/` to any static host or CDN. Then point the embed
+script tag at the uploaded `embed.js`.
+
+## License
+
+The widget is released under the MIT license.
 

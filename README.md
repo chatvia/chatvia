@@ -1,448 +1,325 @@
-# ChatVia
+<p align="center">
+  <img src="public/images/logo.svg" alt="Chatvia logo" width="96" height="96">
+</p>
+
+<h1 align="center">Chatvia</h1>
 
 <p align="center">
-  <img src="public/images/logo.svg" alt="ChatVia Logo" width="120" height="120">
+  An open-source platform for AI chat agents that answer from your own knowledge base.
 </p>
 
 <p align="center">
-  <strong>Create AI agents powered by your documents</strong>
-</p>
-
-<p align="center">
-  <a href="https://laravel.com"><img src="https://img.shields.io/badge/Laravel-13.x-red.svg" alt="Laravel Version"></a>
-  <a href="https://www.php.net"><img src="https://img.shields.io/badge/PHP-8.4+-blue.svg" alt="PHP Version"></a>
-  <a href="https://vuejs.org"><img src="https://img.shields.io/badge/Vue.js-3.x-green.svg" alt="Vue.js Version"></a>
-  <a href="https://inertiajs.com"><img src="https://img.shields.io/badge/Inertia.js-2.x-purple.svg" alt="Inertia.js Version"></a>
-  <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-4.x-cyan.svg" alt="Tailwind CSS Version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/PHP-8.5-777bb4.svg" alt="PHP 8.5">
+  <img src="https://img.shields.io/badge/Laravel-13-ff2d20.svg" alt="Laravel 13">
+  <img src="https://img.shields.io/badge/PostgreSQL-18-336791.svg" alt="PostgreSQL 18">
 </p>
 
 ---
 
-## 🚀 Overview
+Chatvia lets a team create AI agents, give them knowledge (files, web pages,
+YouTube videos, text and Q&A pairs), connect them to tools, and put them in
+front of people: on a hosted chat page, in a widget on any website, in a
+command bar, through messaging apps, or through a REST API. Answers come from
+retrieval-augmented generation (RAG) with hybrid search (vectors + BM25) inside
+PostgreSQL. It is built with Laravel, Inertia and Vue, and is designed to work
+with open-weight models.
 
-ChatVia is a sophisticated RAG (Retrieval-Augmented Generation) application that enables users to create AI agents by uploading documents and leveraging advanced AI technology. The platform processes documents, creates intelligent embeddings, and provides contextual responses through chat interfaces powered by multiple AI providers.
+## Contents
 
-### ✨ Key Features
+- [Features](#features)
+- [How it is built](#how-it-is-built)
+- [Requirements](#requirements)
+- [Getting started](#getting-started)
+- [Running the app](#running-the-app)
+- [Tests and checks](#tests-and-checks)
+- [The chat widget](#the-chat-widget)
+- [Documentation site](#documentation-site)
+- [Going to production](#going-to-production)
+- [Contributing, security and license](#contributing-security-and-license)
 
-- **🤖 AI Agent Creation**: Create widget or knowledge-based AI agents
-- **📄 Document Ingestion**: Support for multiple file formats with intelligent parsing
-- **🔍 Advanced RAG**: Sophisticated retrieval-augmented generation with vector embeddings
-- **💬 Real-time Chat**: Streaming chat interface with SSE (Server-Sent Events)
-- **🎨 Customizable Appearance**: Brand your agents with custom themes and styling
-- **📊 Analytics & Usage Tracking**: Comprehensive usage statistics and monitoring
-- **🔐 Multi-tenancy**: Support for teams and member management
-- **💳 Billing Integration**: Stripe integration with subscription management
-- **🔌 API Access**: RESTful API for programmatic integration
-- **📱 Responsive Design**: Mobile-first responsive interface
+## Features
 
-## 🛠 Tech Stack
+**Agents**
+- Persona and instructions, model settings, branding, conversation starters
+  and a playground to test changes.
+- Guardrails for prompt injection, off-topic questions, toxic content and
+  personal data.
+- Evaluations: test sets that score an agent's answers with an LLM judge.
 
-### Backend
-- **Framework**: Laravel 12.x with PHP 8.4+
-- **Database**: PostgreSQL with pgvector extension
-- **Queue System**: Laravel Horizon with Redis
-- **Storage**: AWS S3 compatible storage
-- **Authentication**: Laravel Sanctum
-- **Payments**: Laravel Cashier (Stripe)
-- **Admin Panel**: Filament 3.x
+**Knowledge base**
+- Sources: documents (PDF, Word, PowerPoint, Excel, CSV, RTF, text, Markdown,
+  EPUB), images (OCR), audio and video (transcription), web pages, YouTube
+  videos, text snippets and Q&A pairs.
+- Ingestion runs in background queues and reports progress live.
+- Hybrid search: vector search ([VectorChord](https://github.com/tensorchord/VectorChord))
+  and keyword search ([VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25)),
+  merged and reranked.
 
-### Frontend
-- **Framework**: Vue.js 3 with TypeScript
-- **Bridge**: Inertia.js 2.x
-- **Styling**: Tailwind CSS 4.x with shadcn/ui components
-- **Build Tool**: Vite
-- **State Management**: Pinia (via composables)
-- **Icons**: Heroicons & Lucide
+**Tools**
+- Functions: call your own HTTP endpoints (webhooks).
+- MCP: connect any Model Context Protocol server, or a ready-made connector
+  that signs in with OAuth.
+- Approval step for risky tool calls, rate limits and an audit log of every
+  tool call.
 
-### AI & Machine Learning
-- **LLM Infrastructure**: OpenAI, Cohere, Mistral AI, Google AI, Groq
-- **Document Parsing**: LlamaParse, Azure Document Intelligence
-- **Vector Database**: pgvector (PostgreSQL extension)
-- **Text Processing**: Advanced chunking and embedding strategies
+**Where people chat**
+- Hosted chat page, embeddable chat widget and command bar.
+- Messaging channels: Slack, Microsoft Teams, Telegram, WhatsApp, Messenger
+  and Instagram.
+- Public REST API with bearer tokens. OpenAPI docs are served at `/docs/api`.
 
-### DevOps & Deployment
-- **Server**: Laravel Octane (high-performance)
-- **Monitoring**: Laravel Telescope, Laravel Pulse
-- **Error Tracking**: Sentry
-- **Email**: Resend
-- **Search**: Elasticsearch (optional)
+**Conversations**
+- Chat logs, leads, analytics and topics, user feedback, human handoff,
+  forms inside the chat, and export to PDF.
 
-## 📋 Requirements
+**Workspaces**
+- Teams with roles and permissions, sign-in with two-factor authentication,
+  passkeys or social login, and workspace security settings (for example an
+  IP allowlist).
+- Optional paid plans with Stripe. Self-hosted installs can turn billing off.
+- An admin panel and a dashboard translated into many languages, including
+  right-to-left languages.
 
-- **PHP**: 8.4 or higher
-- **Node.js**: 18.x or higher
-- **PostgreSQL**: 14+ with pgvector extension
-- **Redis**: 6.x or higher
-- **Composer**: 2.x
-- **NPM/Yarn**: Latest stable
+## How it is built
 
-### Required Extensions
-- `ext-fileinfo`
-- `ext-pgsql`
-- `ext-redis`
-- `ext-gd` or `ext-imagick`
+| Part | Technology |
+|---|---|
+| Backend | PHP 8.5, Laravel 13 |
+| Frontend | Inertia, Vue 3, TypeScript, Tailwind CSS 4, shadcn-vue, Vite |
+| Database | PostgreSQL 18 with `vchord`, `vchord_bm25`, `pg_tokenizer` and pgvector |
+| Queues and cache | Redis, Laravel Horizon |
+| Real-time updates | Laravel Reverb (WebSockets) and server-sent events for streamed answers |
+| Admin panel | Filament |
+| Tests | Pest |
 
-## 🚀 Installation
+The PHP code is split into three namespaces:
 
-### 1. Clone the Repository
+- `src/App/` (`App\`): the HTTP layer and framework wiring, plus
+  `App\Identity` (accounts and sign-in).
+- `src/Domain/` (`Domain\`): business logic, one folder per module
+  (`Agent`, `Conversation`, `Knowledge`, `Integration`, `Channel`, `Billing`, ...).
+  State changes go through Actions that take DTOs.
+- `src/Support/` (`Support\`): small shared helpers.
+
+The frontend lives in `resources/js/`, the embeddable widget in `widget/`, and
+the user documentation in `docs/`. [CONTRIBUTING.md](CONTRIBUTING.md) explains
+the conventions in more detail.
+
+## Requirements
+
+- **PHP 8.5** with these extensions: `dom`, `fileinfo`, `intl`, `libxml`,
+  `openssl` and `pdo` (required by `composer.json`), plus `pdo_pgsql`, `redis`,
+  `mbstring`, `curl`, `zip`, `gd`, `exif` and `pcntl`.
+- **Composer 2**
+- **Node.js 22** and npm
+- **PostgreSQL 18** with the [VectorChord](https://github.com/tensorchord/VectorChord) (`vchord`),
+  [VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25) (`vchord_bm25`)
+  and [pg_tokenizer](https://github.com/tensorchord/pg_tokenizer.rs) (`pg_tokenizer`)
+  extensions, and pgvector (`vector`). The easiest way is the
+  `tensorchord/vchord-suite` Docker image (see below).
+- **Redis** 7 or newer
+- **System tools** for some file types. You only need the ones for the
+  features you use:
+  - [LibreOffice](https://www.libreoffice.org/) (`soffice`): Word, PowerPoint and Excel files
+  - [pandoc](https://pandoc.org/): EPUB and other e-book formats
+  - [poppler](https://poppler.freedesktop.org/) (`pdfinfo`): PDF files
+  - [ffmpeg](https://ffmpeg.org/) (`ffmpeg`, `ffprobe`): audio and video
+  - Chrome (headless) for PDF export of chats. `npm install` downloads one
+    through Puppeteer.
+
+  If a tool is not at the default path in `config/services.php`, set its path
+  in `.env`: `LIBREOFFICE_BIN_PATH`, `PANDOC_BIN_PATH`, `PDFINFO_BIN_PATH`,
+  `FFMPEG_BIN_PATH`, `FFPROBE_PATH`, `CHROME_EXECUTABLE_PATH` (and
+  `NODE_BIN_PATH` / `NPM_BIN_PATH` for Puppeteer).
+
+**External AI services.** Chatvia calls AI models through OpenAI-compatible
+APIs. The default configuration uses Scaleway's Generative APIs with
+open-weight models (Qwen3 and others) for chat, embeddings and reranking, and
+Mistral for OCR. The chat provider can be changed with `LLM_PROVIDER`
+(`scaleway`, `mistral`, `groq` or `openrouter`). Website import uses
+Firecrawl. You need API keys for the services you use; see `.env.example`.
+
+## Getting started
+
+### 1. Start PostgreSQL, Redis and Mailpit with Docker
+
+The repository has a `docker-compose.yml` for the services the app needs. The
+app itself runs on your machine.
+
 ```bash
-git clone https://github.com/yourusername/chatvia.git
+docker compose up -d
+docker compose ps        # wait until all three services are "healthy"
+```
+
+| Service | Address | Notes |
+|---|---|---|
+| PostgreSQL 18 | `127.0.0.1:5432` | user `chatvia`, password `password`, databases `chatvia` and `testing` |
+| Redis | `127.0.0.1:6379` | no password |
+| Mailpit | SMTP `127.0.0.1:1025`, web UI <http://localhost:8025> | catches all e-mail |
+
+These credentials are for local development only. If a port is already in
+use, change it with `FORWARD_DB_PORT`, `FORWARD_REDIS_PORT`,
+`FORWARD_MAILPIT_PORT` or `FORWARD_MAILPIT_DASHBOARD_PORT`, for example
+`FORWARD_DB_PORT=5433 docker compose up -d`. `docker compose down -v` deletes
+all data.
+
+<details>
+<summary><strong>Without Docker</strong></summary>
+
+1. Install PostgreSQL 18 and build or install the `vchord`, `vchord_bm25` and
+   `pg_tokenizer` extensions and pgvector (see each project's README).
+2. Load the libraries in `postgresql.conf` and restart PostgreSQL:
+
+   ```
+   shared_preload_libraries = 'vchord,vchord_bm25,vector,pg_tokenizer'
+   ```
+
+3. Create a role and the two databases. The first migration runs
+   `CREATE EXTENSION`, so the role needs the rights to do that (in development,
+   a superuser is simplest):
+
+   ```sql
+   CREATE ROLE chatvia LOGIN SUPERUSER PASSWORD 'password';
+   CREATE DATABASE chatvia OWNER chatvia;
+   CREATE DATABASE testing OWNER chatvia;
+   ```
+
+4. Install Redis 7 or newer. For e-mail, use Mailpit or set `MAIL_MAILER=log`.
+
+</details>
+
+### 2. Install the app
+
+```bash
+git clone <repository-url> chatvia
 cd chatvia
-```
 
-### 2. Install Dependencies
-```bash
-# Install PHP dependencies
 composer install
+npm ci                       # also downloads headless Chrome for PDF export
 
-# Install Node.js dependencies
-npm install
-```
-
-### 3. Environment Configuration
-```bash
-# Copy environment file
 cp .env.example .env
-
-# Generate application key
 php artisan key:generate
 ```
 
-### 4. Configure Environment Variables
-Edit your `.env` file with the following essential configurations:
+### 3. Configure `.env`
 
-```env
-# Application
-APP_NAME="ChatVia"
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost
+`.env.example` lists the settings, each with a short comment. Its default
+values work with the Docker services above:
 
-# Database
+```dotenv
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_DATABASE=chatvia
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
+DB_USERNAME=chatvia
+DB_PASSWORD=password
 
-# Redis
 REDIS_HOST=127.0.0.1
-REDIS_PASSWORD=null
 REDIS_PORT=6379
+QUEUE_CONNECTION=redis
 
-# AI Infrastructure (configure as needed)
-OPENAI_API_KEY=your_openai_key
-COHERE_API_KEY=your_cohere_key
-GROQ_API_KEY=your_groq_key
-
-# Storage (AWS S3 or compatible)
-AWS_ACCESS_KEY_ID=your_access_key
-AWS_SECRET_ACCESS_KEY=your_secret_key
-AWS_DEFAULT_REGION=us-east-1
-AWS_BUCKET=your_bucket_name
-
-# Stripe (for billing)
-STRIPE_KEY=your_stripe_key
-STRIPE_SECRET=your_stripe_secret
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
 ```
 
-### 5. Database Setup
-```bash
-# Run migrations
-php artisan migrate
+Then add the API keys for the AI services you want to use, and set
+`BUILTIN_MCP_SECRET` to a long random string (the built-in tools need it).
+Billing is off by default (`BILLING_ENABLED=false`), so the app runs without
+Stripe; see `config/billing.php` to turn it on.
 
-# Seed the database (optional)
-php artisan db:seed
-```
+### 4. Create the database schema and demo data
 
-### 6. Storage Setup
 ```bash
-# Create storage link
+php artisan migrate --seed
 php artisan storage:link
-
-# Create required directories
-mkdir -p storage/app/public/uploads
 ```
 
-### 7. Build Assets
-```bash
-# Development build
-npm run dev
+The first migration installs the PostgreSQL extensions. The seeders create a
+demo account and sample data; see `database/seeders/DatabaseSeeder.php` for
+the details.
 
-# Production build
-npm run build
-```
+## Running the app
 
-### 8. Start Development Server
-```bash
-# Using the convenient dev script
-composer run dev
+During development you need these processes:
 
-# Or manually start services
-php artisan serve
-php artisan queue:work
-npm run dev
-```
+| Process | Command | What it does |
+|---|---|---|
+| Web server | `php artisan serve` (or Herd / Valet) | serves the app |
+| Vite | `npm run dev` | builds the frontend with hot reload |
+| Queues | `php artisan horizon` | runs background jobs (ingestion, AI replies on channels, analytics, exports) |
+| WebSockets | `php artisan reverb:start` | live updates, for example ingestion progress |
+| Scheduler | `php artisan schedule:work` | cleanup and other scheduled tasks |
 
-## 📁 Project Structure
+`composer dev` starts the web server, a simple queue worker, the log viewer
+(`php artisan pail`) and Vite together. Its worker only reads the `default`
+queue, so start `php artisan horizon` as well when you work on ingestion,
+channels or exports: jobs use several named queues (see `config/horizon.php`).
 
-```
-chatvia/
-├── app/
-│   ├── Actions/              # Domain actions
-│   ├── Console/Commands/     # Artisan commands
-│   ├── Data/                 # Data transfer objects
-│   ├── Enums/                # Application enums
-│   ├── Filament/             # Admin panel resources
-│   ├── Http/
-│   │   ├── Controllers/      # HTTP controllers
-│   │   ├── Middleware/       # Custom middleware
-│   │   └── Requests/         # Form requests
-│   ├── Jobs/                 # Queue jobs
-│   ├── Models/               # Eloquent models
-│   ├── Policies/             # Authorization policies
-│   ├── Infrastructure/            # Service providers
-│   ├── Services/             # Business logic services
-│   └── Support/              # Helper classes
-├── database/
-│   ├── factories/            # Model factories
-│   ├── migrations/           # Database migrations
-│   └── seeders/              # Database seeders
-├── resources/
-│   ├── css/                  # Stylesheets
-│   ├── js/
-│   │   ├── components/       # Vue components
-│   │   ├── composables/      # Vue composables
-│   │   ├── layouts/          # Page layouts
-│   │   ├── pages/            # Inertia pages
-│   │   └── types/            # TypeScript definitions
-│   └── views/                # Blade templates
-├── routes/                   # Route definitions
-├── tests/                    # Test files
-└── public/                   # Public assets
-```
+**Messaging channels on your machine.** Slack, Teams, Telegram, WhatsApp,
+Messenger and Instagram can only call a public HTTPS URL. Use a tunnel (for
+example [cloudflared](https://github.com/cloudflare/cloudflared)) to your local
+site, point the channel's webhook at the tunnel URL, and keep Horizon running,
+because replies are sent from queued jobs. Messaging channels only work with
+public agents.
 
-## 🔧 Configuration
-
-### AI Infrastructure
-Configure your preferred AI providers in the `.env` file:
-
-```env
-# OpenAI
-OPENAI_API_KEY=sk-...
-OPENAI_ORGANIZATION=org-...
-
-# Cohere
-COHERE_API_KEY=...
-
-# Groq
-GROQ_API_KEY=gsk_...
-
-# Google AI
-GOOGLE_AI_API_KEY=...
-```
-
-### Document Processing
-ChatVia supports various document formats:
-
-- **Text Documents**: PDF, DOC, DOCX, TXT, RTF, HTML
-- **Spreadsheets**: XLS, XLSX, CSV, ODS
-- **Presentations**: PPT, PPTX, ODP
-- **Images**: JPG, PNG, GIF, BMP, SVG, TIFF, WEBP
-- **Audio**: MP3, WAV, MP4, M4A, WEBM (up to 20MB)
-- **Video**: MP4, AVI, MOV, WMV
-
-### Vector Database
-Ensure PostgreSQL has the pgvector extension installed:
-
-```sql
-CREATE EXTENSION IF NOT EXISTS vector;
-```
-
-## 🎯 Usage
-
-### Creating an Agent
-
-1. **Navigate to Agents**: Go to the agents section in your dashboard
-2. **Choose Type**: Select between widget or knowledge-based agents
-3. **Upload Documents**: For knowledge-based agents, upload your files
-4. **Configure Settings**: Set system instructions, appearance, and capabilities
-5. **Deploy**: Your agent will be available at `your-subdomain.chatvia.ai`
-
-### Chat Interface
-
-- **Real-time Streaming**: Responses stream in real-time using SSE
-- **Context Awareness**: Agents remember conversation history
-- **Source Citations**: Document-based agents show source references
-- **Multi-language Support**: Automatic language detection and support
-
-### API Usage
+## Tests and checks
 
 ```bash
-# Example API call
-curl -X POST https://api.chatvia.ai/v1/chat \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agent_id": "your-agent-id",
-    "message": "Hello, how can you help me?",
-    "stream": true
-  }'
+composer test                                  # the whole Pest suite
+php artisan test --compact tests/Unit/Agent    # one folder or file
+composer ci:check                              # every CI gate (see below)
 ```
 
-### 📨 Telegram channel (local testing)
+- Tests run against PostgreSQL with the same extensions as the app, using the
+  `testing` database on `127.0.0.1:5432` (user `chatvia`, password `password`;
+  see `phpunit.xml`). The Docker setup creates this database for you. On the
+  first run, the suite installs the extensions, migrates and seeds it; when
+  migrations change, it rebuilds the schema by itself.
+- `composer ci:check` runs, without changing any file: `composer validate`,
+  `composer audit`, `npm audit` (production dependencies), Pint, Rector,
+  PHPStan, Prettier, ESLint, `vue-tsc`, the i18n check and the test suite. CI
+  runs the same command. `composer ci` fixes formatting and lint problems
+  first, then runs the checks.
 
-An agent can be reached from Telegram. A Telegram user messages the bot → our webhook → the agent replies. Telegram only calls **public HTTPS** webhooks, so a local `.test` host isn't reachable directly. Use a tunnel (we use [cloudflared](https://github.com/cloudflare/cloudflared)).
+## The chat widget
 
-> **Telegram is for public agents only.** A Telegram sender is anonymous, so a protected (private) agent will refuse to answer. Make the agent public on its **Security** page first.
+The embeddable widget (chat bubble and command bar) is a separate frontend
+project in [`widget/`](widget/README.md), with its own `package.json` and build.
+See [widget/README.md](widget/README.md).
 
-**1. Start a tunnel to your local site.** Herd/Valet serve HTTPS with a local cert, so rewrite the `Host` header and skip cert verification:
+## Documentation site
+
+The user guide is a [VitePress](https://vitepress.dev/) site in `docs/`:
 
 ```bash
-cloudflared tunnel --url https://chatvia.test \
-  --http-host-header chatvia.test \
-  --origin-server-name chatvia.test \
-  --no-tls-verify
+npm run docs:dev      # http://localhost:4000
+npm run docs:build    # static site in docs/.vitepress/dist
 ```
 
-It prints a public URL, e.g. `https://eva-cash-deviant-founded.trycloudflare.com`. Verify it serves the app (expect `302`, not `404`/`530`):
+## Going to production
 
-```bash
-curl -I https://YOUR-TUNNEL.trycloudflare.com/login
-```
+There is no single way to deploy Chatvia. A typical setup:
 
-**2. Connect the bot.** Create a bot with [@BotFather](https://t.me/BotFather) (`/newbot`), then on the agent's **Channels** page paste the token and click **Connect**. The bot is saved; the auto-registered webhook points at `chatvia.test` (which Telegram can't reach), so re-point it at the tunnel next.
+- PHP-FPM (or Laravel Octane) behind nginx, with `APP_ENV=production` and
+  `APP_DEBUG=false`.
+- Build the frontend with `npm ci && npm run i18n:merge && npm run build`.
+- Run `php artisan migrate --force`, then cache the configuration with
+  `php artisan config:cache`, `event:cache` and `view:cache`. Do not run
+  `route:cache`: the localized public pages use routes that the route cache
+  cannot store.
+- Keep `php artisan horizon` and `php artisan reverb:start` running under a
+  process manager (for example Supervisor or systemd), and run
+  `php artisan schedule:run` every minute from cron.
+- Go through the security settings in `.env.example` and set each one for
+  your environment.
 
-**3. Point Telegram's webhook at the tunnel** (reuses the stored token + secret — replace the host):
+## Contributing, security and license
 
-```bash
-php artisan tinker --execute="
-\$b = \Domain\Channel\Telegram\Models\AgentTelegramBot::latest('id')->first();
-\$url = 'https://YOUR-TUNNEL.trycloudflare.com/telegram/webhook/'.\$b->webhook_secret;
-app(\Domain\Channel\Telegram\Services\TelegramClient::class)->setWebhook(\$b->bot_token, \$url, \$b->webhook_secret);
-echo 'Webhook set: '.\$url;
-"
-```
-
-**4. Process replies.** The webhook hands the agent turn to a queued job, so run a worker (replies only happen while it runs):
-
-```bash
-php artisan queue:work redis --queue=default,messages --tries=1
-# or run Horizon: php artisan horizon
-```
-
-**5. Message the bot.** It should reply within a few seconds, with Markdown rendered as Telegram formatting.
-
-**Debugging** — check what Telegram sees (look at `last_error_message`) and tail the log:
-
-```bash
-# Get the raw token, then query Telegram
-php artisan tinker --execute="echo \Domain\Channel\Telegram\Models\AgentTelegramBot::latest('id')->first()->bot_token;"
-curl "https://api.telegram.org/bot<TOKEN>/getWebhookInfo"
-php artisan pail   # live app logs
-```
-
-> The free `trycloudflare.com` URL changes every time you restart the tunnel — re-run **step 3** with the new URL whenever it rotates.
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-php artisan test
-
-# Run specific test suite
-php artisan test --testsuite=Feature
-
-# Run with coverage
-php artisan test --coverage
-```
-
-## 🚀 Deployment
-
-### Production Setup
-
-1. **Environment**: Set `APP_ENV=production` and `APP_DEBUG=false`
-2. **Optimize**: Run optimization commands
-   ```bash
-   php artisan config:cache
-   php artisan route:cache
-   php artisan view:cache
-   php artisan filament:optimize
-   ```
-3. **Assets**: Build production assets
-   ```bash
-   npm run build
-   ```
-4. **Queue Workers**: Set up supervisor for queue workers
-5. **Scheduler**: Add Laravel scheduler to cron
-   ```bash
-   * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
-   ```
-
-### Docker Support
-```bash
-# Build and run with Docker
-docker-compose up -d
-```
-
-## 📊 Monitoring & Analytics
-
-- **Application Monitoring**: Laravel Telescope for debugging
-- **Performance Monitoring**: Laravel Pulse for metrics
-- **Error Tracking**: Sentry integration
-- **Usage Analytics**: Built-in usage tracking and reporting
-
-## 🔒 Security
-
-- **Authentication**: Multi-factor authentication support
-- **Authorization**: Role-based access control
-- **Data Protection**: Encryption at rest and in transit
-- **API Security**: Rate limiting and API key management
-- **File Upload Security**: Comprehensive file validation and scanning
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
-
-### Code Standards
-
-- **PHP**: Follow PSR-12 coding standards
-- **JavaScript/TypeScript**: Use ESLint and Prettier
-- **Vue.js**: Follow Vue.js style guide
-- **Commits**: Use conventional commit messages
-
-## 📝 License
-
-This project is licensed under the [MIT License](LICENSE).
-
-## 🆘 Support
-
-- **Documentation**: [docs.chatvia.ai](https://docs.chatvia.ai)
-- **Community**: [Discord](https://discord.gg/chatvia)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/chatvia/issues)
-- **Email**: support@chatvia.ai
-
-## 🙏 Acknowledgments
-
-- **Laravel Team**: For the amazing framework
-- **Vue.js Team**: For the reactive frontend framework
-- **Inertia.js**: For seamless SPA experience
-- **Filament**: For the beautiful admin panel
-- **Tailwind CSS**: For the utility-first CSS framework
-- **All Contributors**: Thank you for making ChatVia better!
-
----
-
-<p align="center">
-  Made with ❤️ by the ChatVia Team
-</p>
+- Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md)
+  and our [Code of Conduct](CODE_OF_CONDUCT.md).
+- Found a security problem? Please report it privately; see
+  [SECURITY.md](SECURITY.md).
+- Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+- Chatvia is open-source software licensed under the [MIT License](LICENSE).

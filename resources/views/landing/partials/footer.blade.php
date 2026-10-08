@@ -15,12 +15,7 @@
                     </a>
                 </div>
 
-                <address class="not-italic text-sm text-slate-500 leading-relaxed">
-                    Akkadian<br>
-                    Skovbrynet 50, 1 tv<br>
-                    4700 Næstved, Denmark<br>
-                    VAT DK35709738
-                </address>
+                @include('partials.company.address', ['class' => 'not-italic text-sm text-slate-500 leading-relaxed'])
 
             </div>
 

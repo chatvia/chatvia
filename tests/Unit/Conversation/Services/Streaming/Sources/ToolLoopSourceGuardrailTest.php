@@ -9,7 +9,7 @@ use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
-use Domain\Conversation\Services\Streaming\Sources\MistralPdfSource;
+use Domain\Conversation\Services\Streaming\Sources\PdfSource;
 use Domain\Conversation\Services\Streaming\Sources\ToolLoopSource;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
@@ -23,8 +23,9 @@ use Domain\Guardrail\Enums\GuardType;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\Llm;
-use Domain\Llm\Providers\Mistral;
+use Domain\Llm\Services\DocumentLlm;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -169,7 +170,7 @@ function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner)
     $shared = [$chatService, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), $recorder];
 
     $events = match ($source) {
-        'pdf' => (new MistralPdfSource(app(Mistral::class), ...$shared))->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
+        'pdf' => (new PdfSource(new DocumentLlm(LlmProviderEnum::MISTRAL), ...$shared))->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
         default => (new LlmSource(app(LlmProviderInterface::class), ...$shared))->events($context, [['role' => 'user', 'content' => 'Hello']]),
     };
 
@@ -185,7 +186,7 @@ dataset('tool loop sources', ['llm', 'pdf']);
 
 it('is the shared base of every tool-loop source', function (): void {
     expect(is_subclass_of(LlmSource::class, ToolLoopSource::class))->toBeTrue()
-        ->and(is_subclass_of(MistralPdfSource::class, ToolLoopSource::class))->toBeTrue();
+        ->and(is_subclass_of(PdfSource::class, ToolLoopSource::class))->toBeTrue();
 });
 
 it('redacts the answer with the output guardrails before saving and replaying it', function (string $source): void {
@@ -224,3 +225,20 @@ it('redacts the partial answer it saves after the client disconnects', function 
     expect($chatService->saved->getArrayCopy())->toBe(['Mail me at [EMAIL]'])
         ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)['content'])->toBe('Mail me at [EMAIL]');
 })->with('tool loop sources');
+
+it('ends a PDF turn with a clear error, saving nothing, when no LLM can read PDF documents', function (): void {
+    $context = tlsContext();
+    $chatService = tlsChatService();
+    $runner = tlsRunner(function (): Generator {
+        throw new RuntimeException('The tool loop must not run without a document LLM.');
+        yield;
+    });
+
+    $source = new PdfSource(new DocumentLlm(null), $chatService, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), tlsRecorder());
+    $events = iterator_to_array($source->events($context, [['role' => 'user', 'content' => 'Hello']], collect()), false);
+
+    expect(array_map(static fn (StreamEvent $e): EventType => $e->type, $events))->toBe([EventType::Start, EventType::Error, EventType::Done])
+        ->and($events[1]->data['message'])->toBe('Chatting with PDF files is not available.')
+        ->and($events[1]->data['message'])->not->toContain('Mistral')
+        ->and($chatService->saved->getArrayCopy())->toBe([]);
+});

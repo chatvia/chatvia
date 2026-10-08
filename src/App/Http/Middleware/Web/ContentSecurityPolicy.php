@@ -23,8 +23,9 @@ use Symfony\Component\HttpFoundation\Response;
  * connect-src / font-src / frame-src: the app needs 'unsafe-inline' (Alpine,
  * AOS, Ziggy @routes, inline handlers), and adding a nonce would switch
  * 'unsafe-inline' off. So Stripe.js, the Reverb websocket, Turnstile,
- * Plausible, Google Fonts and the asset CDN load without an allow-list. What
- * is left are the directives that don't fight asset loading.
+ * Plausible and the asset CDN load without an allow-list (fonts are
+ * self-hosted under /fonts, so 'self'). What is left are the directives that
+ * don't fight asset loading.
  */
 class ContentSecurityPolicy
 {
@@ -39,9 +40,6 @@ class ContentSecurityPolicy
      * Browsers apply form-action to that redirect too.
      */
     private const STRIPE_CHECKOUT_ORIGIN = 'https://checkout.stripe.com';
-
-    /** Brand icons shown on tool calls in the chat (ToolDisplayResolver). */
-    private const BRAND_ICON_ORIGIN = 'https://cdn.simpleicons.org';
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -97,9 +95,10 @@ class ContentSecurityPolicy
                 config('app.asset_url'),
                 // Chat attachments (public bucket).
                 config('filesystems.disks.public.url'),
-                // Profile photos, agent logo and avatar (CDN pull zone).
+                // Profile photos, agent logo and avatar: the CDN pull zone, or
+                // the local public disk URL when no CDN is configured.
                 config('filesystems.disks.assets.pull_zone'),
-                self::BRAND_ICON_ORIGIN,
+                config('filesystems.disks.assets.url'),
             ]);
         }
 

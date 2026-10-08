@@ -40,7 +40,7 @@ class CreateChatterAction
         ?string $password = null,
     ): User {
         if (! $owner->canAddWorkspaceUser()) {
-            throw ChatterQuotaExceededException::limitReached($owner->quota->workspace_users_limit);
+            throw ChatterQuotaExceededException::limitReached($owner->quotaLimit('workspace_users_limit'));
         }
 
         $agentIds = $agents instanceof Agent

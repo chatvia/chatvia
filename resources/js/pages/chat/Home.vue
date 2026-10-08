@@ -2,9 +2,11 @@
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
+import PoweredByFooter from '@/components/chat/PoweredByFooter.vue';
 import HeroIcon from '@/components/ui/HeroIcon.vue';
 import { normalizeLocale, resolveLocale, setI18nLocale } from '@/i18n';
 import { resolveAppearanceText, resolveStarters } from '@/lib/appearanceText';
+import { useBrand } from '@/composables/useBrand';
 import { useColorTheme } from '@/composables/useColorTheme';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -12,6 +14,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t, locale: i18nLocale } = useI18n();
+const { brand } = useBrand();
 
 // Per-chat upload ceiling — sourced from `agent.files.upload.max_files`
 // via Inertia shared props (ChatHandleInertiaRequests). Falls back to 2
@@ -181,7 +184,7 @@ function handleStarterClick(text) {
         :enabledLanguages="props.enabledLanguages"
         :newChatRoute="props.newChatRoute"
     >
-        <Head title="ChatVia" />
+        <Head :title="brand.name" />
         <template #content>
             <div class="flex h-full items-center justify-center px-4 py-8">
                 <div class="mx-auto -mt-8 w-full max-w-3xl">
@@ -249,17 +252,7 @@ function handleStarterClick(text) {
                         </div>
 
                         <!-- Branding: hidden when the workspace owns the remove-branding add-on -->
-                        <div v-if="props.chatviaBranding" class="mt-2 flex items-center justify-center">
-                            <a
-                                href="https://chatvia.ai"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="text-muted-foreground/50 hover:text-muted-foreground/80 inline-flex items-center gap-1 text-[11px] transition-colors"
-                            >
-                                <img src="/images/logo.svg" alt="Chatvia" class="h-3.5 w-3.5 opacity-70" />
-                                Powered by Chatvia
-                            </a>
-                        </div>
+                        <PoweredByFooter :show="props.chatviaBranding" />
                     </div>
                 </div>
             </div>

@@ -3,8 +3,8 @@
 namespace App\Identity\Workspace\Data\Resources\My\Usage;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Models\UserCredit;
-use Domain\Billing\Models\UserQuota;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -21,21 +21,26 @@ class UsageResourceData extends Data
         public UsageStatsData $tokens,
         public UsageStatsData $teams,
         public UsageStatsData $members,
+        // True when billing is off: there are no limits, so the UI shows what
+        // is used without a cap, and hides the message credit figures.
+        public bool $unlimited = false,
     ) {}
 
     public static function fromUser(User $user): self
     {
-        /** @var UserCredit $credit */
+        /** @var UserCredit|null $credit */
         $credit = $user->credit;
 
         $totalSentMessage = $user->creditSystem()->getTotalSentMessages();
 
         $totalAgents = $user->agents()->count();
 
-        /** @var UserQuota $quota */
-        $quota = $user->quota;
-
-        $agentsLimit = $quota->totalAgentsLimit();
+        $agentsLimit = $user->totalAgentsLimit();
+        $pagesLimit = $user->quotaLimit('pages_limit');
+        $minutesLimit = $user->quotaLimit('minutes_limit');
+        $linksLimit = $user->quotaLimit('links_limit');
+        $teamsLimit = $user->quotaLimit('teams_limit');
+        $membersLimit = $user->totalWorkspaceUsersLimit();
 
         $consumableMessages = $user->consumableMessages();
 
@@ -51,15 +56,16 @@ class UsageResourceData extends Data
         $workspaceUsersUsed = $user->workspaceUsersCount();
 
         return new self(
-            subscription: new UsageSubscriptionData(plan: $user->plan, started_at: $credit->started_at, ends_at: $credit->ends_at),
+            subscription: new UsageSubscriptionData(plan: $user->plan, started_at: $credit?->started_at, ends_at: $credit?->ends_at),
             agents: new UsageStatsData(limit: $agentsLimit, used: $totalAgents, remaining: max(0, $agentsLimit - $totalAgents)),
-            pages: new UsageStatsData(limit: $quota->pages_limit, used: $pagesUsed, remaining: max(0, $quota->pages_limit - $pagesUsed)),
-            minutes: new UsageStatsData(limit: $quota->minutes_limit, used: $minutesUsed, remaining: max(0, $quota->minutes_limit - $minutesUsed)),
-            links: new UsageStatsData(limit: $quota->links_limit, used: $linksUsed, remaining: max(0, $quota->links_limit - $linksUsed)),
+            pages: new UsageStatsData(limit: $pagesLimit, used: $pagesUsed, remaining: max(0, $pagesLimit - $pagesUsed)),
+            minutes: new UsageStatsData(limit: $minutesLimit, used: $minutesUsed, remaining: max(0, $minutesLimit - $minutesUsed)),
+            links: new UsageStatsData(limit: $linksLimit, used: $linksUsed, remaining: max(0, $linksLimit - $linksUsed)),
             messages: new UsageStatsData(limit: $consumableMessages, used: $totalSentMessage, remaining: max(0, $consumableMessages - $totalSentMessage)),
             tokens: new UsageStatsData(limit: 0, used: $tokensUsed, remaining: 0),
-            teams: new UsageStatsData(limit: $quota->teams_limit, used: $teamsUsed, remaining: max(0, $quota->teams_limit - $teamsUsed)),
-            members: new UsageStatsData(limit: $quota->totalWorkspaceUsersLimit(), used: $workspaceUsersUsed, remaining: max(0, $quota->totalWorkspaceUsersLimit() - $workspaceUsersUsed)),
+            teams: new UsageStatsData(limit: $teamsLimit, used: $teamsUsed, remaining: max(0, $teamsLimit - $teamsUsed)),
+            members: new UsageStatsData(limit: $membersLimit, used: $workspaceUsersUsed, remaining: max(0, $membersLimit - $workspaceUsersUsed)),
+            unlimited: ! app(Entitlements::class)->enforced(),
         );
     }
 }

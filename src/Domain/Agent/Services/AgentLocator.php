@@ -65,9 +65,9 @@ class AgentLocator
             return null;
         }
 
-        $quota = $agent->user?->quota;
+        $owner = $agent->user;
 
-        if (! $quota || $quota->totalCustomDomainsLimit() <= 0) {
+        if (! $owner || $owner->totalCustomDomainsLimit() <= 0) {
             return null;
         }
 

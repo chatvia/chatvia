@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Identity\Workspace\Models\User;
+use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Topic\Models\Topic;
@@ -11,13 +12,19 @@ use Illuminate\Support\Facades\DB;
 
 class TopicsSeeder extends Seeder
 {
+    use SkipsInProduction;
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
+        if ($this->skipInProduction()) {
+            return;
+        }
+
         // Get the demo user
-        $user = User::where('email', 'ahmad@mayahi.net')->first();
+        $user = User::where('email', config('chatvia.seed.admin_email'))->first();
 
         if (! $user) {
             $this->command->warn('Demo user not found. Please run the main seeder first.');

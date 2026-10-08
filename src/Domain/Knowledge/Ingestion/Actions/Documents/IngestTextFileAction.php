@@ -4,10 +4,10 @@ namespace Domain\Knowledge\Ingestion\Actions\Documents;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Document\Pandoc;
+use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
-use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -15,20 +15,21 @@ use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
 
 /**
- * Ingest a text SourceFile by chunking its content directly via chunk.fit,
- * bypassing Mistral OCR — the text is already chunk-ready, so OCR would only
- * add cost and latency. Handles raw text (.txt, .md/.markdown) read as-is and
- * structured-text ebooks (.epub, .fb2) whose markdown is extracted by Pandoc.
+ * Ingest a text SourceFile by splitting its content directly with the
+ * configured TextSplitter, bypassing the document parser — the text is already
+ * chunk-ready, so OCR would only add cost and latency. Handles raw text (.txt,
+ * .md/.markdown) read as-is and structured-text ebooks (.epub, .fb2) whose
+ * markdown is extracted by Pandoc.
  *
- * chunk.fit's `chunk_by_title` strategy (same one the website-Markdown path
- * uses) partitions the text. Each chunk becomes one PageData and rides the
- * SHARED DocumentChunkIngestionJob batch — identical embedding, enhancement,
- * progress, and completion handling as the OCR path.
+ * The same splitter as the website-Markdown path partitions the text. Each
+ * chunk becomes one PageData and rides the SHARED DocumentChunkIngestionJob
+ * batch — identical embedding, enhancement, progress, and completion handling
+ * as the document path.
  */
 class IngestTextFileAction
 {
     public function __construct(
-        private readonly ChunkFitClient $chunker,
+        private readonly TextSplitter $splitter,
         private readonly Pandoc $pandoc,
     ) {}
 
@@ -39,13 +40,13 @@ class IngestTextFileAction
         }
 
         // Ebooks are structured text — extract their markdown with Pandoc so
-        // chunk.fit's title-based splitting has headings to work with. Raw
+        // the splitter has headings to work with. Raw
         // text files are already chunk-ready and read as-is.
         $text = $sourceFile->isEbook()
             ? $sourceFile->withLocalFile(fn ($file): string => $this->pandoc->toMarkdown($file->getPathname(), $sourceFile->extension()))
             : $sourceFile->readContents();
 
-        $pages = collect($this->chunker->splitByTitle($text))
+        $pages = collect($this->splitter->split($text))
             ->values()
             ->map(fn (string $chunk, int $index): PageData => new PageData(
                 pageNumber: $index + 1,
@@ -55,7 +56,7 @@ class IngestTextFileAction
 
         $sourceFile->update([
             'internal_ingestion_job_id' => $internalJobId,
-            'parser' => 'chunkfit',
+            'parser' => $this->splitter->name(),
         ]);
 
         // Empty/whitespace-only input produces no chunks — finish cleanly so the

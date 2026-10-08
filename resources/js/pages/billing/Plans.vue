@@ -11,11 +11,13 @@ import { ArrowLeft, Bot, Building, Check, Crown, Gift, Package, Sparkles, Star, 
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { useBrand } from '@/composables/useBrand';
 import { useCatalogText } from '@/composables/useCatalogText';
 import { usePage } from '@inertiajs/vue3';
 
 const { t } = useI18n();
 const { catalogText } = useCatalogText();
+const { brand } = useBrand();
 
 // Plan name / feature bullets / UI labels come from config/billing.php (English
 // source of truth); these overlay the Arabic translation by stable key, falling
@@ -554,8 +556,8 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string) 
                                         >
                                             <Check class="mt-0.5 h-4 w-4 flex-shrink-0 text-green-500" />
                                             <a
-                                                v-if="key === 'api'"
-                                                href="https://chatvia.ai/docs/api"
+                                                v-if="key === 'api' && brand.api_docs_url"
+                                                :href="brand.api_docs_url"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 class="text-sm leading-relaxed text-blue-600 underline decoration-dotted underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"

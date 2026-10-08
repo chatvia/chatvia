@@ -16,16 +16,9 @@
     @endforeach
     <link rel="alternate" hreflang="x-default" href="{{ LaravelLocalization::getLocalizedURL(LaravelLocalization::getDefaultLocale()) }}" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
-        rel="stylesheet">
-    {{-- Rubik ships an Arabic subset; load it only on Arabic / Farsi (RTL) pages so
-         the Arabic script renders correctly — English pages stay on Inter. --}}
-    @if (in_array(LaravelLocalization::getCurrentLocale(), ['ar', 'fa'], true))
-        <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    @endif
+    {{-- Fonts are self-hosted: a third-party font CDN would receive every
+         visitor's IP address. Arabic / Farsi text uses the system font. --}}
+    <link href="{{ asset('fonts/inter/inter.css') }}" rel="stylesheet">
 
     @include('partials.cover')
 

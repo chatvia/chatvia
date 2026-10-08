@@ -3,9 +3,9 @@
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Actions\Website\TrainWebsiteUrlAction;
+use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlEnhanceJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
@@ -23,7 +23,9 @@ use Illuminate\Support\Facades\Event;
  */
 function trainUrlFakes(array $chunks): void
 {
-    test()->mock(ChunkFitClient::class)->shouldReceive('splitByTitle')->andReturn($chunks);
+    $splitter = test()->mock(TextSplitter::class);
+    $splitter->shouldReceive('split')->andReturn($chunks);
+    $splitter->shouldReceive('name')->andReturn('chunkfit');
 
     app()->bind(EmbeddingsProviderInterface::class, fn (): EmbeddingsProviderInterface => new class implements EmbeddingsProviderInterface
     {
@@ -42,16 +44,6 @@ function trainUrlFakes(array $chunks): void
         public function embedBatch(array $texts): array
         {
             return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
-        }
-
-        public function rerank(string $query, array $documents, ?int $topN = null): ?array
-        {
-            return null;
-        }
-
-        public function supportsReranking(): bool
-        {
-            return false;
         }
 
         public function getDimensions(): int

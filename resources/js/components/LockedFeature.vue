@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import { useBilling } from '@/composables/useBilling';
 import { Link } from '@inertiajs/vue3';
 import { Lock, Zap } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -11,6 +12,8 @@ interface Props {
 defineProps<Props>();
 
 const { t } = useI18n();
+// No plans to upgrade to when the install runs without billing.
+const { billingEnabled } = useBilling();
 </script>
 
 <template>
@@ -29,7 +32,7 @@ const { t } = useI18n();
             </div>
 
             <!-- Upgrade Button -->
-            <Button as-child size="lg" class="gap-2 shadow-lg transition-all duration-300 hover:shadow-xl">
+            <Button v-if="billingEnabled" as-child size="lg" class="gap-2 shadow-lg transition-all duration-300 hover:shadow-xl">
                 <Link :href="route('billing.packages')">
                     <Zap class="h-5 w-5" />
                     {{ t('shared.upgrade_now') }}

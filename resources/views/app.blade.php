@@ -36,16 +36,11 @@
             }
         </style>
 
-        <title data-inertia>{{ config('app.name', 'ChatVia') }}</title>
+        <title data-inertia>{{ config('chatvia.brand.name') }}</title>
 
-        <!-- Preload fonts to prevent FOUC -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-        {{-- Rubik ships an Arabic subset (Google serves it via unicode-range, so
-             no subset param is needed). app.css re-points the `font-sans` utility
-             to Rubik whenever the document is Arabic / Farsi / RTL. --}}
-        <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
+        {{-- Fonts are self-hosted: a third-party font CDN would receive every
+             visitor's IP address. Arabic / Farsi text uses the system font. --}}
+        <link href="{{ asset('fonts/inter/inter.css') }}" rel="stylesheet">
 
         @include('partials.cover')
 

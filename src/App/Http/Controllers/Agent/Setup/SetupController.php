@@ -115,7 +115,7 @@ class SetupController
         // `quota` and `agents()` on User already resolve to the workspace
         // owner (`workspace`), so quota maths is the same whether the
         // viewer is the owner or a team member.
-        $total = (int) ($user->quota?->totalCustomDomainsLimit() ?? 0);
+        $total = $user->totalCustomDomainsLimit();
 
         // Agents (across the workspace) that have already claimed a custom
         // domain. Exclude the current agent so editing its own value doesn't

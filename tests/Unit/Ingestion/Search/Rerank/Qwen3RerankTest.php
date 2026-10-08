@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Knowledge\Embedding\Qwen3;
+use Domain\Knowledge\Embedding\Rerank\Qwen3Reranker;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -9,8 +9,8 @@ beforeEach(function (): void {
     config()->set('services.scalewayai.endpoint', 'https://api.scaleway.test/project-x/v1/');
 });
 
-test('supports reranking', function (): void {
-    expect((new Qwen3)->supportsReranking())->toBeTrue();
+test('is an enabled reranker', function (): void {
+    expect((new Qwen3Reranker)->isEnabled())->toBeTrue();
 });
 
 test('posts the expected envelope to the Scaleway rerank endpoint', function (): void {
@@ -26,7 +26,7 @@ test('posts the expected envelope to the Scaleway rerank endpoint', function ():
         ], 200),
     ]);
 
-    (new Qwen3)->rerank('what is the largest ocean?', ['a', 'b']);
+    (new Qwen3Reranker)->rerank('what is the largest ocean?', ['a', 'b']);
 
     Http::assertSent(function (Request $request): bool {
         return $request->method() === 'POST'
@@ -49,11 +49,29 @@ test('maps Scaleway results to {index, relevance_score} pairs preserving order',
         ], 200),
     ]);
 
-    $reranked = (new Qwen3)->rerank('q', ['a', 'b', 'c']);
+    $reranked = (new Qwen3Reranker)->rerank('q', ['a', 'b', 'c']);
 
     expect($reranked)->toBe([
         ['index' => 2, 'relevance_score' => 0.95],
         ['index' => 0, 'relevance_score' => 0.71],
         ['index' => 1, 'relevance_score' => 0.55],
     ]);
+});
+
+test('sends the configured rerank model and caps results at three by default', function (): void {
+    config()->set('services.scalewayai.rerank_model', 'qwen3-reranker-custom');
+
+    Http::fake(['*rerank' => Http::response(['results' => []], 200)]);
+
+    (new Qwen3Reranker)->rerank('q', ['a', 'b', 'c', 'd']);
+
+    Http::assertSent(fn (Request $request): bool => $request['model'] === 'qwen3-reranker-custom'
+        && $request['top_n'] === 3);
+});
+
+test('fails with a clear message when the API key is missing', function (): void {
+    config()->set('services.scalewayai.api_key', null);
+
+    expect(fn (): array => (new Qwen3Reranker)->rerank('q', ['a']))
+        ->toThrow(RuntimeException::class, 'reranker API key is not configured');
 });

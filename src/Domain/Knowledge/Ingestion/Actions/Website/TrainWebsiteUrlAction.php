@@ -4,10 +4,10 @@ namespace Domain\Knowledge\Ingestion\Actions\Website;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlEnhanceJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
-use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
 use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
@@ -28,7 +28,7 @@ class TrainWebsiteUrlAction
 
     public function __construct(
         private readonly Firecrawl $firecrawl,
-        private readonly ChunkFitClient $chunker,
+        private readonly TextSplitter $splitter,
         private readonly EmbeddingsProviderInterface $embeddings,
         private readonly WebPageMarkdownCache $markdownCache,
     ) {}
@@ -80,7 +80,7 @@ class TrainWebsiteUrlAction
         $cacheKey = 'ingestion:website:chunks:'.$websiteUrl->id.':'.$checksum;
 
         $chunks = Cache::remember($cacheKey, now()->addDay(), function () use ($markdown) {
-            return $this->chunker->splitByTitle($markdown);
+            return $this->splitter->split($markdown);
         });
 
         /** @var SourceWebsite $website */
@@ -132,7 +132,7 @@ class TrainWebsiteUrlAction
                         'chunk_index' => $idx + 1,
                         'chunk' => $chunk,
                         'summary' => null,
-                        'chunked_using_model' => 'chunkfit',
+                        'chunked_using_model' => $this->splitter->name(),
                         'cost_in_micro_cents' => 0,
                         'tokens' => TikToken::countTokens($chunk),
                         'embedding' => $vectors[$chunkChecksum],

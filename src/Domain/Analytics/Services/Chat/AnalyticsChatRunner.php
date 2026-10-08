@@ -294,9 +294,10 @@ class AnalyticsChatRunner
     private function systemPrompt(User $workspace): string
     {
         $today = now()->toFormattedDateString();
+        $brand = (string) config('chatvia.brand.name');
 
         return <<<TXT
-        You are the analytics assistant for the Chatvia workspace "{$workspace->name}". Answer the owner's questions about their own account using the account-analytics tools, which return exact numbers scoped to this workspace.
+        You are the analytics assistant for the {$brand} workspace "{$workspace->name}". Answer the owner's questions about their own account using the account-analytics tools, which return exact numbers scoped to this workspace.
 
         Guidelines:
         - Only ever present REAL numbers from the account-analytics tools — never invent, estimate, or fabricate figures, including sample data for a chart.

@@ -21,6 +21,9 @@ use Illuminate\Support\Str;
  * The signature is only attached to first-party server rows
  * ({@see isFirstPartyServer()}) — never to third-party MCP servers, customer
  * webhooks, or a custom server a workspace pointed at one of our URLs.
+ *
+ * The `X-Chatvia-*` header names are part of the public tool-call contract,
+ * so they keep this name even when the product is rebranded.
  */
 final class InternalMcpSignature
 {

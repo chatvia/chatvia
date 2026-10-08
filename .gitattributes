@@ -6,5 +6,30 @@
 *.md diff=markdown
 *.php diff=php
 
-CHANGELOG.md export-ignore
-README.md export-ignore
+# ------------------------------------------------------------------------------
+# Left out of the public release.
+#
+# scripts/export-public.sh builds the public tree with `git archive`, which skips
+# every path marked `export-ignore` below. The script also checks that each of
+# these paths is really gone, so keep its list in sync when you add one here.
+# ------------------------------------------------------------------------------
+
+# Production infrastructure and deployment
+/server export-ignore
+/server.sh export-ignore
+/deploy.php export-ignore
+/.github/workflows/deploy.yml export-ignore
+/postgresql.conf export-ignore
+/Caddyfile export-ignore
+/widget/.github export-ignore
+
+# Private maintainer documents and the export tooling itself
+/internal export-ignore
+/scripts/export-public.sh export-ignore
+
+# Local AI-assistant and editor settings
+/CLAUDE.md export-ignore
+/AGENTS.md export-ignore
+/.cursor export-ignore
+/.junie export-ignore
+/.claude export-ignore

@@ -44,16 +44,6 @@ beforeEach(function (): void {
             return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
         }
 
-        public function rerank(string $query, array $documents, ?int $topN = null): ?array
-        {
-            return null;
-        }
-
-        public function supportsReranking(): bool
-        {
-            return false;
-        }
-
         public function getDimensions(): int
         {
             return 1024;
@@ -106,4 +96,62 @@ it('prices the summary chunk from the provider usage of both calls', function ()
     // Summary:  10,000 × 2.0 + 300 × 8.0 per 1M tokens = 2.24 cents.
     expect($chunk->cost_in_micro_cents)->toBe(4_640_000)
         ->and($chunk->chunk)->toBe('A short summary of the manual.');
+});
+
+it('skips the summary, without any LLM call, when no LLM can read PDF documents', function (): void {
+    config(['services.mistral.api_key' => null, 'chatvia.ai.document_llm' => 'auto']);
+    Http::fake();
+
+    $source = AgentFileFactory::new()->create([
+        'filepath' => 'users/x/agents/y/files/manual.pdf',
+        'mime_type' => 'application/pdf',
+    ]);
+    Storage::put($source->filepath, '%PDF-1.4 test');
+
+    expect(app(CreateSourceSummaryAction::class)->execute($source))->toBeNull()
+        ->and($source->summary()->exists())->toBeFalse();
+
+    Http::assertNothingSent();
+});
+
+it('reads the document with the configured summary and analysis models', function (): void {
+    config([
+        'chatvia.ai.models.summary' => 'summary-model-x',
+        'chatvia.ai.models.analysis' => 'analysis-model-x',
+    ]);
+
+    Http::fake(function (Request $request) {
+        if (isset($request['response_format'])) {
+            return Http::response([
+                'choices' => [['message' => ['content' => json_encode([
+                    'questions' => ['q1', 'q2', 'q3', 'q4', 'q5'],
+                    'document_type' => 'faq',
+                    'metadata' => [
+                        'complexity_level' => 'beginner',
+                        'target_audience' => 'end_users',
+                        'writing_style' => 'informative',
+                        'estimated_reading_time_minutes' => 1,
+                        'key_topics' => ['refunds'],
+                        'contains_sensitive_info' => false,
+                    ],
+                    'language' => 'en',
+                    'confidence_score' => 0.9,
+                ])]]],
+            ]);
+        }
+
+        return Http::response(['choices' => [['message' => ['content' => 'Summary.']]]]);
+    });
+
+    $source = AgentFileFactory::new()->create([
+        'filepath' => 'users/x/agents/y/files/faq.pdf',
+        'mime_type' => 'application/pdf',
+    ]);
+    Storage::put($source->filepath, '%PDF-1.4 test');
+
+    app(CreateSourceSummaryAction::class)->execute($source);
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://mistral.test/v1/chat/completions'
+        && $request['model'] === 'analysis-model-x' && isset($request['response_format']));
+    Http::assertSent(fn (Request $request): bool => $request['model'] === 'summary-model-x' && ! isset($request['response_format']));
 });

@@ -3,12 +3,12 @@
 namespace Domain\Conversation\Services\Streaming\Sources\Concerns;
 
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
-use Domain\Conversation\Services\Streaming\Sources\MistralPdfSource;
+use Domain\Conversation\Services\Streaming\Sources\PdfSource;
 
 /**
  * Shared tool-usage system note for the streaming sources that run the agentic
  * tool loop ({@see LlmSource}
- * and {@see MistralPdfSource}).
+ * and {@see PdfSource}).
  * Kept in one place so the note's wording and placement can't drift between the
  * two turn paths.
  */

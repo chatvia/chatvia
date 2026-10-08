@@ -209,6 +209,14 @@ it('provisions a user when Stripe POSTs a trial checkout.session.completed to th
     // secret is configured; clearing it lets the unsigned test payload through.
     config(['cashier.webhook.secret' => null]);
 
+    // The founder note is opt-in; turn it on so the assertion below covers it.
+    config([
+        'chatvia.founder.welcome_email' => true,
+        'chatvia.founder.name' => 'Jane Founder',
+        'chatvia.founder.email' => 'founder@example.com',
+        'chatvia.brand.name' => 'Acme Chat',
+    ]);
+
     // The trial branch fetches the customer and the subscription from Stripe;
     // stub the StripeClient that Cashier resolves from the container (same
     // pattern as UpdateBillingInformationActionTest).
@@ -283,17 +291,16 @@ it('provisions a user when Stripe POSTs a trial checkout.session.completed to th
     });
 
     // The founder's personal note goes out alongside the transactional email:
-    // greeted by first name, covering the thanks / EU-AI / use-case beats, with
-    // replies routed to the founder's own inbox.
+    // greeted by first name, naming the configured brand, with replies routed
+    // to the founder's own inbox.
     Notification::assertSentTo($user, FounderWelcomeNotification::class, function (FounderWelcomeNotification $notification) use ($user): bool {
         $mail = $notification->toMail($user);
         $body = collect($mail->introLines)->merge($mail->outroLines)->implode(' ');
 
         return $mail->greeting === 'Hi New,'
-            && str_contains($body, 'Thank you for starting your Chatvia trial')
-            && str_contains($body, 'EU-based AI')
+            && str_contains($body, 'Thank you for starting your Acme Chat trial')
             && str_contains($body, 'use case')
-            && $mail->replyTo[0][0] === config('chatvia.founder.email');
+            && $mail->replyTo[0][0] === 'founder@example.com';
     });
 });
 

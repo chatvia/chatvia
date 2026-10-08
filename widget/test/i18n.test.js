@@ -1,5 +1,23 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { initI18n, changeLanguage, t, getDirection } from '../src/i18n.js';
+import {
+  initI18n,
+  changeLanguage,
+  t,
+  getDirection,
+  getCurrentLanguage,
+  getAvailableLanguages
+} from '../src/i18n.js';
+import en from '../languages/en.json';
+import fi from '../languages/fi.json';
+import no from '../languages/no.json';
+import pl from '../languages/pl.json';
+import sv from '../languages/sv.json';
+
+// Every leaf key path of a translation file, e.g. "widget.open_chat".
+const keyPaths = (dict, prefix = '') =>
+  Object.entries(dict).flatMap(([key, value]) =>
+    value && typeof value === 'object' ? keyPaths(value, `${prefix}${key}.`) : [`${prefix}${key}`]
+  );
 
 // i18n holds module-level state, so each test sets the active language first.
 describe('t() — translation with English fallback', () => {
@@ -35,5 +53,31 @@ describe('getDirection', () => {
     expect(getDirection()).toBe('rtl');
     await changeLanguage('en');
     expect(getDirection()).toBe('ltr');
+  });
+});
+
+describe('dashboard languages', () => {
+  // The dashboard and the agent language picker offer these; the widget must
+  // render them in the visitor's language rather than falling back to English.
+  const complete = { fi, no, pl, sv };
+
+  it.each(Object.keys(complete))('bundles %s with every English key', async code => {
+    expect(keyPaths(complete[code]).sort()).toEqual(keyPaths(en).sort());
+
+    await changeLanguage(code);
+    expect(getCurrentLanguage()).toBe(code);
+    expect(t('widget.open_chat')).toBe(complete[code].widget.open_chat);
+  });
+
+  it('lists the new languages as available', () => {
+    const codes = getAvailableLanguages().map(language => language.code);
+    expect(codes).toEqual(expect.arrayContaining(['fi', 'no', 'pl', 'sv']));
+  });
+
+  it('maps Norwegian Bokmål and Nynorsk browser codes to Norwegian', async () => {
+    await changeLanguage('nb-NO');
+    expect(getCurrentLanguage()).toBe('no');
+    await changeLanguage('nn');
+    expect(getCurrentLanguage()).toBe('no');
   });
 });

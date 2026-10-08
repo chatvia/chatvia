@@ -5,10 +5,12 @@ use App\Http\Controllers\Agent\Invitations\AgentInvitationController;
 use App\Http\Controllers\Agent\Invitations\AgentInvitationSocialCallbackController;
 use App\Http\Controllers\Agent\Invitations\AgentInvitationSocialStartController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\Registration\RegisteredUserController;
 use App\Http\Controllers\Auth\Sessions\MagicLinkController;
 use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\Team\Invitations\AcceptTeamInvitationController;
 use App\Http\Controllers\Team\Invitations\TeamInvitationController;
+use App\Http\Middleware\Auth\EnsureRegistrationIsOpen;
 use Illuminate\Support\Facades\Route;
 
 // Team invitation routes (accessible via signed URL). The {invitation} segment
@@ -43,8 +45,9 @@ Route::get('chat-invitation/{token}/oauth/{provider}', AgentInvitationSocialStar
 Route::get('chat-invitation/oauth/{provider}/callback', AgentInvitationSocialCallbackController::class)
     ->name('agents.invitation.social.callback');
 
-// Login / register / forgot-password / reset / verify-email / confirm-password /
-// logout / two-factor / passkey routes are registered by Laravel Fortify. See
+// Login / forgot-password / reset / verify-email / confirm-password / logout /
+// two-factor / passkey routes are registered by Laravel Fortify (sign-up is
+// below, not Fortify's registration feature). See
 // config/fortify.php for enabled features and FortifyServiceProvider for the
 // view callbacks and the authenticateUsing closure.
 
@@ -58,6 +61,19 @@ Route::middleware('auth')->group(function (): void {
     Route::post('set-password', [SetPasswordController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('password.setup.store');
+});
+
+// Self-serve sign-up. Closed on the hosted product, where the Stripe trial
+// checkout creates accounts; open by default on a self-hosted install without
+// billing. REGISTRATION_ENABLED decides (config/billing.php); a closed form
+// answers 404.
+Route::middleware(['guest', EnsureRegistrationIsOpen::class])->group(function (): void {
+    Route::get('register', [RegisteredUserController::class, 'create'])
+        ->name('register');
+
+    Route::post('register', [RegisteredUserController::class, 'store'])
+        ->middleware('throttle:6,1,register')
+        ->name('register.store');
 });
 
 Route::middleware('guest')->group(function (): void {

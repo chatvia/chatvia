@@ -76,7 +76,7 @@ readonly class ChatService
         // PII we still send the rewritten query for better retrieval.
         //
         // PDFs are delivered to the model as `document_url` chunks by
-        // MistralPdfSource, so the visible user content stays clean.
+        // PdfSource, so the visible user content stays clean.
         $storedMessage = $guard->text;
         $piiRedacted = $storedMessage !== $data->message->message;
         $messageForLlm = $piiRedacted ? $storedMessage : $query;
@@ -325,8 +325,8 @@ readonly class ChatService
     public function handleChatCompletion(ChatContext $context): void
     {
         // Update user credits: the model's base cost plus one message per PDF
-        // page in this conversation. PDFs are re-sent to Mistral on every turn
-        // (see ChatStreamService / MistralPdfSource, gated on the same
+        // page in this conversation. PDFs are re-sent to the model on every turn
+        // (see ChatStreamService / PdfSource, gated on the same
         // pdfAttachments relation), so the page charge recurs each turn the
         // document is in context — not just the upload turn.
         UpdateUserCreditsJob::dispatch(
@@ -352,7 +352,7 @@ readonly class ChatService
     /**
      * Extra message credits for this turn: the summed page count of every PDF
      * attached to the conversation. Mirrors the pdfAttachments condition that
-     * routes the turn to Mistral, so the charge applies exactly when the
+     * routes the turn to PdfSource, so the charge applies exactly when the
      * document was actually processed. Returns 0 for plain text conversations.
      */
     private function pdfPageCredits(ChatContext $context): int

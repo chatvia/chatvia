@@ -23,9 +23,8 @@ use Illuminate\Validation\ValidationException;
  * rejected before anything is written, and duplicate questions (existing case
  * inputs or repeats within one payload) are skipped silently.
  *
- * REQUIRES the migrated + SEEDED test DB like CreateSourceChunkActionTest:
- * chunks uses pgvector halfvec(1024) + bm25vector, and AgentFileFactory reuses
- * the seeded demo user.
+ * REQUIRES the migrated test DB like CreateSourceChunkActionTest: chunks uses
+ * pgvector halfvec(1024) + bm25vector.
  */
 function knowledgeEvalAgent(): Agent
 {

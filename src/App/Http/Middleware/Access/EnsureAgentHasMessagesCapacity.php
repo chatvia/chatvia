@@ -3,7 +3,7 @@
 namespace App\Http\Middleware\Access;
 
 use Closure;
-use Domain\Billing\Services\UserCreditSystem;
+use Domain\Billing\Contracts\Entitlements;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -20,7 +20,8 @@ class EnsureAgentHasMessagesCapacity
         // Billing is message-based: gate on the workspace owner's cached
         // can-send-messages flag (refreshed from the DB on cache miss, after
         // each consumption, and every 5 minutes by app:cache-message-usage).
-        if (app(UserCreditSystem::class)->forWorkspace($agentUserId)->canSendMessages() === false) {
+        // Always passes when billing is turned off.
+        if (! app(Entitlements::class)->hasMessageCapacity((int) $agentUserId)) {
             return Inertia::render('agents/chat/AgentNoMessages');
         }
 

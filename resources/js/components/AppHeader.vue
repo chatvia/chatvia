@@ -17,6 +17,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import UpgradeButton from '@/components/UpgradeButton.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
+import { useBilling } from '@/composables/useBilling';
+import { useBrand } from '@/composables/useBrand';
 import { getInitials } from '@/composables/useInitials';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import type { Auth, BreadcrumbItem, NavItem } from '@/types';
@@ -37,6 +39,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 const auth = computed(() => page.props.auth as Auth);
+const { brand } = useBrand();
+const { billingEnabled } = useBilling();
 
 const isCurrentRoute = computed(() => (url: string) => {
     const currentUrl = page.url;
@@ -103,8 +107,9 @@ const mainNavItems = computed<NavItem[]>(() => {
     }
 
     // Billing is workspace-owner only — employees/teammates are blocked from
-    // the billing routes server-side (DenyIfEmployee).
-    if (!isEmployee.value && isOwner.value) {
+    // the billing routes server-side (DenyIfEmployee). Hidden entirely when
+    // the install runs without billing.
+    if (billingEnabled.value && !isEmployee.value && isOwner.value) {
         items.push({
             title: t('app.header.billing'),
             href: route('billing.index'),
@@ -121,18 +126,26 @@ const mainNavItems = computed<NavItem[]>(() => {
     return items;
 });
 
-const rightNavItems = computed<NavItem[]>(() => [
-    {
-        title: t('app.header.documentation'),
-        href: 'https://docs.chatvia.ai',
-        icon: BookOpen,
-    },
-    {
+const rightNavItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [];
+
+    // Hidden when the install has no docs site configured.
+    if (brand.value.docs_url) {
+        items.push({
+            title: t('app.header.documentation'),
+            href: brand.value.docs_url,
+            icon: BookOpen,
+        });
+    }
+
+    items.push({
         title: t('app.header.api'),
         href: '/docs/api',
         icon: Code2,
-    },
-]);
+    });
+
+    return items;
+});
 </script>
 
 <template>

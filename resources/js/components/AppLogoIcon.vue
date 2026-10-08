@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useBrand } from '@/composables/useBrand';
 import type { HTMLAttributes } from 'vue';
 defineOptions({
     inheritAttrs: false,
@@ -9,11 +10,13 @@ interface Props {
 }
 
 defineProps<Props>();
+
+const { brand } = useBrand();
 // <!--        :class="['logo-adaptive', className]"-->
 </script>
 
 <template>
-    <img src="/images/logo.svg" :class="[className]" v-bind="$attrs" alt="ChatVIA" />
+    <img src="/images/logo.svg" :alt="brand.name" :class="[className]" v-bind="$attrs" />
 </template>
 
 <style scoped>

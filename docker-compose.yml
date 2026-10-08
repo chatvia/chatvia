@@ -1,54 +1,75 @@
+# Local development services for Chatvia: PostgreSQL (with the vector and BM25
+# search extensions), Redis and Mailpit. The Laravel app, queue worker, Reverb
+# and Vite run on your machine; see README.md.
+#
+#   docker compose up -d      start the services
+#   docker compose ps         show their health
+#   docker compose down       stop them (data is kept)
+#   docker compose down -v    stop them and delete all data
+#
+# Each host port can be changed in your shell or in .env, for example
+# FORWARD_DB_PORT=5433 when port 5432 is already in use.
+
+name: chatvia
+
 services:
   postgres:
-    build:
-      context: ./docker
-      dockerfile: Dockerfile
-    container_name: chatvia-postgres
+    # PostgreSQL 18 with pgvector, VectorChord (vchord), VectorChord-bm25 and
+    # pg_tokenizer. Same image and tag as CI (.github/workflows/tests.yml); keep
+    # them in sync. The dated tag is what `pg18-latest` pointed to when it was
+    # pinned. The image's default command preloads the extensions, so do not
+    # override `command`.
+    image: tensorchord/vchord-suite:pg18-20260501
     environment:
-      # Database configuration
       POSTGRES_DB: chatvia
       POSTGRES_USER: chatvia
+      # Development only. phpunit.xml and .env.testing use the same values.
       POSTGRES_PASSWORD: password
-
-      # PostgreSQL settings
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.utf8"
-
-      # Timezone
       TZ: UTC
     ports:
-      - "5432:5432"
+      - "${FORWARD_DB_PORT:-5432}:5432"
     volumes:
-      # Persistent data (PostgreSQL 18 uses /var/lib/postgresql instead of /var/lib/postgresql/data)
-      - postgres_data:/var/lib/postgresql
-      
-      # Optional: Backups
-      - ./docker/backups:/backups
-    networks:
-      - chatvia-network
-    restart: unless-stopped
+      # PostgreSQL 18 images keep their data under /var/lib/postgresql/18/.
+      - pgdata:/var/lib/postgresql
+      # Creates the `testing` database on first start (empty volume only).
+      - ./docker/postgres/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql:ro
+    shm_size: 256mb
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U chatvia -d chatvia" ]
+      test: ["CMD-SHELL", "pg_isready -U chatvia -d chatvia"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    shm_size: 256MB
-    # Resource limits (adjust based on your machine)
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 4G
-        reservations:
-          cpus: '1'
-          memory: 2G
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "${FORWARD_REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  mailpit:
+    # Catches every e-mail the app sends. Web UI: http://localhost:8025
+    image: axllent/mailpit:v1.31
+    ports:
+      - "${FORWARD_MAILPIT_PORT:-1025}:1025"
+      - "${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
-    driver: local
-    name: chatvia-postgres-data
-
-networks:
-  chatvia-network:
-    driver: bridge
-    name: chatvia-network
+  pgdata:
+    name: chatvia-pgdata
+  redisdata:
+    name: chatvia-redisdata

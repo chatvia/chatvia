@@ -2,8 +2,8 @@
 
 namespace Domain\Evaluation\Actions;
 
+use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Jobs\UpdateUserCreditsJob;
-use Domain\Billing\Services\UserCreditSystem;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Events\EvalCaseScored;
@@ -28,7 +28,7 @@ class ScoreEvalCaseAction
     public function __construct(
         private readonly EvalAgentRunner $runner,
         private readonly ScorerRegistry $scorers,
-        private readonly UserCreditSystem $creditSystem,
+        private readonly Entitlements $entitlements,
     ) {}
 
     public function execute(EvalRun $run, EvalCase $case): EvalResult
@@ -46,7 +46,7 @@ class ScoreEvalCaseAction
 
         // Credits can run dry mid-suite (each case consumes one message), so
         // re-check the same gate live chat uses before spending an LLM call.
-        if (! $this->creditSystem->forWorkspace($agent->user_id)->canSendMessages()) {
+        if (! $this->entitlements->hasMessageCapacity($agent->user_id)) {
             return $this->record(
                 $run,
                 $case,

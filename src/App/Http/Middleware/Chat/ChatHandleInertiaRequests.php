@@ -22,6 +22,9 @@ class ChatHandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // Product name and links (config/chatvia.php `brand`) — drives the
+            // "Powered by" credit under the hosted chat.
+            'brand' => config('chatvia.brand'),
             'auth' => [
                 'user' => $user,
                 'is_chatter' => $user?->isChatter() ?? false,

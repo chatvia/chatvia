@@ -2431,7 +2431,8 @@
             "sending_link": "جارٍ إرسال الرابط...",
             "or_continue_with": "أو تابع باستخدام",
             "no_account": "ليس لديك حساب؟",
-            "start_free_trial": "ابدأ الفترة التجريبية المجانية"
+            "start_free_trial": "ابدأ الفترة التجريبية المجانية",
+            "create_account": "إنشاء حساب"
         },
         "register": {
             "title": "إنشاء حساب",
@@ -3518,7 +3519,8 @@
         "volume_month": "حجم الرسائل خلال آخر 30 يومًا",
         "last_week": "الأسبوع الماضي",
         "last_month": "الشهر الماضي",
-        "messages_tooltip": "{n} رسالة | {n} رسائل"
+        "messages_tooltip": "{n} رسالة | {n} رسائل",
+        "messages_this_month": "الرسائل في هذا الشهر"
     },
     "knowledge_base": {
         "dashboard": "لوحة التحكم",
@@ -3632,7 +3634,8 @@
         "tokens_note": "المُستهلَك في هذه الدورة — للاطلاع فقط؛ تُحتسب باقتك بعدد الرسائل.",
         "of": "من {limit}",
         "remaining": "{count} متبقٍ",
-        "load_error": "تعذّر تحميل بيانات الاستخدام."
+        "load_error": "تعذّر تحميل بيانات الاستخدام.",
+        "no_limit": "بلا حد"
     },
     "analytics_chat": {
         "title": "اسأل عن بياناتك",

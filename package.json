@@ -15,7 +15,8 @@
     "postinstall": "puppeteer browsers install chrome-headless-shell && chmod -R 755 ${PUPPETEER_CACHE_DIR:-$HOME/.cache/puppeteer}",
     "docs:dev": "vitepress dev docs --port 4000",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs --port 4000"
+    "docs:preview": "vitepress preview docs --port 4000",
+    "widget:build": "npm --prefix widget run build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

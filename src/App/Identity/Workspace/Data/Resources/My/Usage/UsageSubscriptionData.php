@@ -11,7 +11,9 @@ class UsageSubscriptionData extends Data
 {
     public function __construct(
         public string $plan,
-        public DateTimeInterface $started_at,
-        public DateTimeInterface $ends_at,
+        // Null when the account has no active credit cycle (for example when
+        // billing is turned off).
+        public ?DateTimeInterface $started_at,
+        public ?DateTimeInterface $ends_at,
     ) {}
 }

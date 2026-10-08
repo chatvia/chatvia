@@ -141,7 +141,7 @@ const hasFormErrors = computed(() => {
                                         <div
                                             class="border-input bg-muted text-muted-foreground flex h-9 items-center rounded-e-md border border-s-0 px-3 text-sm"
                                         >
-                                            .chatvia.ai
+                                            .{{ $page.props.domain }}
                                         </div>
                                         <Button
                                             type="button"

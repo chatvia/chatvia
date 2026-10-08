@@ -4,21 +4,28 @@ namespace App\Identity\Workspace\Actions\Account;
 
 use App\Identity\Workspace\Data\Account\RegisterUserData;
 use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Support\Enums\User\UserType;
 
 /**
- * Create a new workspace owner from the sign-up form.
+ * Create a new workspace owner from the sign-up form, together with the
+ * default team and its roles, so the account is ready to use.
  *
- * Only the user row is created here. The default team, billing row and quota
- * are provisioned later, when the trial checkout's Stripe webhook arrives.
- * `Registered` (which sends the verification email) is dispatched after the
- * transaction commits, so a listener never sees a user that was rolled back.
+ * The billing row, quota and message credits are not created here. With
+ * billing on they come from the Stripe trial checkout's webhook; with billing
+ * off they are not needed. `Registered` (which sends the verification email)
+ * is dispatched after the transaction commits, so a listener never sees a
+ * user that was rolled back.
  */
 class RegisterUserAction
 {
+    public function __construct(
+        private readonly TeamService $teams,
+    ) {}
+
     public function execute(RegisterUserData $data): User
     {
         $user = DB::transaction(function () use ($data): User {
@@ -31,6 +38,8 @@ class RegisterUserAction
                 'registered_country_code' => $data->registered_country_code,
                 'type' => UserType::Workspace,
             ]);
+
+            $this->teams->createDefaultTeam($user);
 
             $user->bootstrapCurrentTeam();
 

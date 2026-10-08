@@ -3,10 +3,10 @@
 namespace Domain\Knowledge\Ingestion\Actions\Documents;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Data\OCR\PageData;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
-use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -17,10 +17,15 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\File\File;
 
+/**
+ * Ingest a PDF, office file or image: read it into pages with the configured
+ * DocumentParser (cached by file checksum, and the page JSON is stored so a
+ * retry skips parsing), then chunk and embed each page in one batch.
+ */
 class IngestDocumentAction
 {
     public function __construct(
-        private readonly MistralOCR $documentOCR,
+        private readonly DocumentParser $parser,
     ) {}
 
     public function execute(SourceFile $sourceFile, Agent $agent, ?string $internalJobId = null): void
@@ -31,7 +36,7 @@ class IngestDocumentAction
 
         $updateValues = [
             'internal_ingestion_job_id' => $internalJobId,
-            'parser' => 'mistral-ocr',
+            'parser' => $this->parser->name(),
         ];
 
         // Get the file once and reuse it; the local copy is deleted below.
@@ -49,7 +54,7 @@ class IngestDocumentAction
                 $agentStoragePath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id;
 
                 $pages = Cache::remember('files:ocr:'.$fileChecksum, now()->addMonth(), function () use ($filePath, $agentStoragePath) {
-                    return $this->documentOCR->fromFile($filePath, $agentStoragePath.'/tmp');
+                    return $this->parser->parse($filePath, $agentStoragePath.'/tmp');
                 });
 
                 $fileName = Str::uuid()->toString().'.json';

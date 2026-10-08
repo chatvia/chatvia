@@ -75,7 +75,7 @@
                             </p>
                             <footer class="flex items-center mt-4">
                                 <div>
-                                    <span class="font-medium transition duration-150 ease-in-out">Ahmad Mayahi</span>
+                                    <span class="font-medium transition duration-150 ease-in-out">{{ config('chatvia.founder.name') ?: config('chatvia.brand.name') }}</span>
                                     <span class="text-slate-300"> · </span>
                                     <span class="text-slate-500">{{ $featured?->published_at->diffForHumans() }}</span>
                                 </div>
@@ -118,7 +118,7 @@
 
                                         <footer class="flex items-center mt-4">
                                             <div>
-                                                <span class="font-medium transition duration-150 ease-in-out">Ahmad Mayahi</span>
+                                                <span class="font-medium transition duration-150 ease-in-out">{{ config('chatvia.founder.name') ?: config('chatvia.brand.name') }}</span>
                                                 <span class="text-slate-300"> · </span>
                                                 <span class="text-slate-500">{{ $post->published_at->diffForHumans() }}</span>
                                             </div>

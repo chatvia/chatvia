@@ -3,14 +3,24 @@
 namespace Database\Seeders;
 
 use App\Identity\Workspace\Models\User;
+use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Seeder;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Telescope\Telescope;
+use Support\Enums\User\UserType;
 
+/**
+ * `php artisan db:seed`. Reference data (the LLM catalogue) is seeded
+ * everywhere. The demo part — an admin account, three agents, fake chats and
+ * analytics — runs only outside production; the admin login comes from
+ * SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD (chatvia.seed).
+ */
 class DatabaseSeeder extends Seeder
 {
+    use SkipsInProduction;
+
     public function run(): void
     {
         // Pulse and Telescope capture per-query backtraces and the demo
@@ -25,13 +35,22 @@ class DatabaseSeeder extends Seeder
         }
         ini_set('memory_limit', '1G');
 
+        // Reference data every install needs (the chat UI, analytics and
+        // agent setup read the LLM catalogue).
+        $this->call(LlmSeeder::class);
+
+        // Everything below is demo data with a well-known login.
+        if ($this->skipInProduction()) {
+            return;
+        }
+
         // Create the main demo user
         $user = User::firstOrCreate(
-            ['email' => 'ahmad@mayahi.net'],
+            ['email' => (string) config('chatvia.seed.admin_email')],
             [
-                'name' => 'Ahmad Mayahi',
-                'type' => 'admin',
-                'password' => bcrypt('password'),
+                'name' => 'Demo Admin',
+                'type' => UserType::Admin,
+                'password' => bcrypt((string) config('chatvia.seed.admin_password')),
                 'email_verified_at' => now(),
             ]
         );
@@ -113,9 +132,6 @@ class DatabaseSeeder extends Seeder
             $this->command->info('Created Sales Assistant agent');
         }
 
-        // Seed LLMs first (needed for chat messages + analytics model dimension)
-        $this->call(LlmSeeder::class);
-
         // Analytics first: lays down 30 days of "historical" rollup data with
         // no chat_* backing — represents conversations the user has since
         // deleted. ChatSeeder then layers ~25-45 recent chats on top and fires
@@ -128,8 +144,6 @@ class DatabaseSeeder extends Seeder
 
         // Seed topics
         $this->call(TopicsSeeder::class);
-
-        // Seed leads
 
         $this->command->info('Database seeding completed successfully!');
     }

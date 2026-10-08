@@ -36,15 +36,15 @@ class TrialWelcomeNotification extends Notification
         $loginUrl = route('login', absolute: true);
 
         return (new MailMessage)
-            ->subject(__('Welcome to ChatVia - Your Account is Ready!'))
-            ->greeting(__('Welcome to ChatVia!'))
+            ->subject(__('Welcome to :app - Your Account is Ready!', ['app' => config('chatvia.brand.name')]))
+            ->greeting(__('Welcome to :app!', ['app' => config('chatvia.brand.name')]))
             ->line(__('Thank you for signing up. Your account has been created and is ready to use.'))
             ->line(__('**Email:** :email', ['email' => $notifiable->email]))
             ->line(__('**Package:** :package', ['package' => ucfirst($this->package)]))
             ->line(__('For your security, we never send passwords by email. You choose your own password on the page that opens right after your payment.'))
             ->action(__('Log In to Your Account'), $loginUrl)
             ->line(__('Signed out before choosing a password? Use the magic link option on the login page and we will email you a sign-in link.'))
-            ->line(__('Thank you for choosing ChatVia!'));
+            ->line(__('Thank you for choosing :app!', ['app' => config('chatvia.brand.name')]));
     }
 
     /**

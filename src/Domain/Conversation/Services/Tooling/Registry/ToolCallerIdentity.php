@@ -10,6 +10,9 @@ use Domain\Agent\Models\Agent;
  * owning account — triggered it, and, when a signed-in chatter is talking,
  * which end-user. All values are opaque public UUIDs; the chatter id is the
  * one the customer received from POST /api/v1/chatters.
+ *
+ * The `X-Chatvia-*` header names are a public integration contract, so they
+ * stay the same on a rebranded install.
  */
 final class ToolCallerIdentity
 {

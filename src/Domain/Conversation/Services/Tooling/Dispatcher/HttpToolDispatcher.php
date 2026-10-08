@@ -11,6 +11,7 @@ use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Support\Exceptions\UnsafeUrlException;
 use Support\Http\SafeUrl;
 use Support\Http\WebhookSignature;
@@ -21,6 +22,9 @@ use Throwable;
  * agent, checks the URL is safe, calls it with the function's HTTP method and
  * auth (bearer, custom header, or an HMAC signature), and returns the response
  * text to the model. Failures come back as tool errors, never exceptions.
+ *
+ * The `X-Chatvia-*` header names are a public contract that customers' webhook
+ * receivers check, so they keep this name even when the product is rebranded.
  */
 class HttpToolDispatcher implements ToolDispatcherInterface
 {
@@ -156,7 +160,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
     {
         $headers = [
             'Accept' => 'application/json',
-            'User-Agent' => 'ChatVia/Tools',
+            'User-Agent' => Str::studly((string) config('chatvia.brand.name')).'/Tools',
         ];
 
         foreach ((array) ($function->webhook_headers ?? []) as $h) {

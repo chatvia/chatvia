@@ -254,7 +254,7 @@ if (! function_exists('file_extension')) {
 
 if (! function_exists('ocr_supported_extensions')) {
     /**
-     * Flattened union of every extension Mistral OCR can parse.
+     * Flattened union of every extension the document ingestion accepts (config/mimes.php `ocr`).
      *
      * @return array<int, string>
      */

@@ -31,10 +31,11 @@ it('creates a user and dispatches the Registered event', function (): void {
     Event::assertDispatched(Registered::class);
 });
 
-it('defers team, billing and quota provisioning to the trial-checkout webhook', function (): void {
-    // Registration only creates the user row. The default team, UserBilling
-    // and UserQuota rows are provisioned by HandleStripeWebhook when the trial
-    // checkout lands — so a freshly registered user must have none of them yet.
+it('creates the default team and leaves billing and quota provisioning to the trial-checkout webhook', function (): void {
+    // The account must be usable straight away (a self-hosted install has no
+    // webhook), so the default team and its roles are created here. The
+    // UserBilling and UserQuota rows still come from HandleStripeWebhook when
+    // a trial checkout lands.
     Event::fake([Registered::class]);
 
     $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
@@ -45,8 +46,10 @@ it('defers team, billing and quota provisioning to the trial-checkout webhook', 
         registered_ip: '127.0.0.1',
     ));
 
-    expect($user->ownedTeams()->count())->toBe(0)
-        ->and($user->current_team_id)->toBeNull()
+    $team = $user->ownedTeams()->sole();
+
+    expect($user->current_team_id)->toBe($team->id)
+        ->and($team->roles()->where('code', 'owner')->exists())->toBeTrue()
         ->and($user->billing()->exists())->toBeFalse()
         ->and($user->quota()->exists())->toBeFalse();
 });

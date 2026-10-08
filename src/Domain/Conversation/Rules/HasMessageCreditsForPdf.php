@@ -4,6 +4,7 @@ namespace Domain\Conversation\Rules;
 
 use App\Identity\Workspace\Models\User;
 use Closure;
+use Domain\Billing\Contracts\Entitlements;
 use Domain\Knowledge\Document\PdfInfo;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\UploadedFile;
@@ -49,11 +50,12 @@ final readonly class HasMessageCreditsForPdf implements ValidationRule
             return;
         }
 
-        $available = $user->creditSystem()->consumableMessages(refresh: true);
+        // Null means no limit (billing is turned off).
+        $available = app(Entitlements::class)->availableMessages($user);
 
         // The turn costs 1 (base) + pages, so available must exceed pages for at
         // least one full document-chat turn to be possible.
-        if ($available <= $pages) {
+        if ($available !== null && $available <= $pages) {
             $fail("This PDF has {$pages} pages and uses {$pages} extra messages per question, but you only have {$available} messages left.");
         }
     }

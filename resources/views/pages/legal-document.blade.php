@@ -124,10 +124,24 @@
                     {!! $html !!}
                 </div>
             </div>
-            <p class="mt-6 text-center text-xs text-slate-400">
-                Operated by Akkadian (CVR 35709738), Skovbrynet 50, 1 tv, Næstved, Denmark ·
-                <a href="mailto:info@chatvia.ai" class="hover:text-blue-600">info@chatvia.ai</a>
-            </p>
+            @php
+                $operator = array_filter([
+                    \Support\Cms\Marketing\CompanyDetails::name() !== null
+                        ? 'Operated by '.\Support\Cms\Marketing\CompanyDetails::name().(\Support\Cms\Marketing\CompanyDetails::vatId() !== null ? ' (VAT '.\Support\Cms\Marketing\CompanyDetails::vatId().')' : '')
+                        : null,
+                    \Support\Cms\Marketing\CompanyDetails::inlineAddress(),
+                ]);
+                $operatorEmail = \Support\Cms\Marketing\CompanyDetails::email();
+            @endphp
+            @if ($operator !== [] || $operatorEmail !== null)
+                <p class="mt-6 text-center text-xs text-slate-400">
+                    {{ implode(', ', $operator) }}
+                    @if ($operatorEmail !== null)
+                        @if ($operator !== []) · @endif
+                        <a href="mailto:{{ $operatorEmail }}" class="hover:text-blue-600">{{ $operatorEmail }}</a>
+                    @endif
+                </p>
+            @endif
         </main>
     </div>
 </body>

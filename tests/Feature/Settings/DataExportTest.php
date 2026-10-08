@@ -64,6 +64,28 @@ it('lets the owner download a ready export', function (): void {
         ->assertOk();
 });
 
+it('names the download after the configured brand', function (): void {
+    config(['chatvia.brand.name' => 'Acme Chat']);
+    Storage::fake('local');
+    Storage::disk('local')->put('data-exports/brand.zip', 'pretend-zip-bytes');
+
+    $export = DataExport::create([
+        'user_id' => $this->user->id,
+        'status' => DataExportStatus::Ready,
+        'download_token' => str_repeat('c', 64),
+        'file_path' => 'data-exports/brand.zip',
+        'file_size' => 17,
+        'expires_at' => now()->addHours(12),
+    ]);
+
+    $disposition = (string) $this->actingAs($this->user)
+        ->get(route('account.data-export.download', $export))
+        ->assertOk()
+        ->headers->get('Content-Disposition');
+
+    expect($disposition)->toContain('acme-chat-export-'.$this->user->id.'-');
+});
+
 it('forbids another user from downloading an export', function (): void {
     Storage::fake('local');
     Storage::disk('local')->put('data-exports/other.zip', 'pretend-zip-bytes');

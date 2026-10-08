@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Conversation Export</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        {{-- The PDF is rendered by a headless browser on the server, so the
+             font is embedded instead of fetched from a font CDN. --}}
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 100 900;
+            src: url('data:font/woff2;base64,{{ base64_encode((string) file_get_contents(public_path('fonts/inter/inter-latin-wght-normal.woff2'))) }}') format('woff2');
+        }
 
         * {
             margin: 0;

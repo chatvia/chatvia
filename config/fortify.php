@@ -149,16 +149,36 @@ return [
     */
 
     'passkeys' => [
-        // RP ID is the apex host (chatvia.ai). A credential bound to it is spec-valid
-        // from the www.chatvia.ai origin too, so one passkey works on both hosts.
+        // RP ID is the apex host of APP_URL. A credential bound to it is
+        // spec-valid from the www. origin too, so one passkey works on both hosts.
         'relying_party_id' => parse_url(config('app.url'), PHP_URL_HOST),
-        // Both the apex and www serve the app (no host redirect), so accept both
-        // origins. The WebAuthn check matches the full origin exactly before any
-        // subdomain rule, so listing www here is enough — no allow-subdomains flag.
-        'allowed_origins' => [
-            config('app.url'),
-            'https://www.chatvia.ai',
-        ],
+        // Both the apex and www may serve the app (no host redirect), so accept
+        // both origins. The WebAuthn check matches the full origin exactly
+        // before any subdomain rule, so listing www here is enough — no
+        // allow-subdomains flag. PASSKEY_EXTRA_ORIGINS (comma-separated) adds
+        // more origins.
+        'allowed_origins' => (static function (): array {
+            $parts = parse_url((string) config('app.url'));
+            $origins = [];
+
+            if (is_array($parts) && ! empty($parts['scheme']) && ! empty($parts['host'])) {
+                $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+                $host = $parts['host'];
+                $origins[] = $parts['scheme'].'://'.$host.$port;
+
+                // A www. variant only makes sense for a real domain name.
+                if (! str_starts_with($host, 'www.') && str_contains($host, '.') && filter_var($host, FILTER_VALIDATE_IP) === false) {
+                    $origins[] = $parts['scheme'].'://www.'.$host.$port;
+                }
+            }
+
+            $extra = array_map(
+                fn (string $origin): string => rtrim(trim($origin), '/'),
+                explode(',', (string) env('PASSKEY_EXTRA_ORIGINS', '')),
+            );
+
+            return array_values(array_unique(array_filter([...$origins, ...$extra])));
+        })(),
         'timeout' => 60000,
     ],
 

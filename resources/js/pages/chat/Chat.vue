@@ -3,6 +3,7 @@ import AssistantChatBubble from '@/components/chat/AssistantChatBubble.vue';
 import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatErrorBubble from '@/components/chat/ChatErrorBubble.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
+import PoweredByFooter from '@/components/chat/PoweredByFooter.vue';
 import { normalizeLocale, resolveLocale, setI18nLocale } from '@/i18n';
 import { resolveAppearanceText } from '@/lib/appearanceText';
 import { safeStorage } from '@/lib/safeStorage';
@@ -1170,17 +1171,7 @@ const handleScrollToBottomClick = () => {
                         />
 
                         <!-- Branding: hidden when the workspace owns the remove-branding add-on -->
-                        <div v-if="props.chatviaBranding" class="mt-2 flex items-center justify-center">
-                            <a
-                                href="https://chatvia.ai"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="text-muted-foreground/50 hover:text-muted-foreground/80 inline-flex items-center gap-1 text-[11px] transition-colors"
-                            >
-                                <img src="/images/logo.svg" alt="Chatvia" class="h-3.5 w-3.5 opacity-70" />
-                                Powered by Chatvia
-                            </a>
-                        </div>
+                        <PoweredByFooter :show="props.chatviaBranding" />
                     </div>
                 </div>
             </div>

@@ -9,10 +9,10 @@ use RuntimeException;
 
 /**
  * Thin wrapper over the `pandoc` binary, used to extract text from the
- * structured-text ebook formats Mistral OCR can't parse (EPUB, FictionBook).
+ * structured-text ebook formats the document parsers can't read (EPUB, FictionBook).
  *
  * These are already text, so there's nothing to OCR: `toMarkdown()` feeds the
- * direct-chunk ingestion pipeline (titles preserved for chunk.fit) and
+ * direct-chunk ingestion pipeline (titles preserved for the text splitter) and
  * `toText()` feeds FileAnalyzer's word-count page estimate. We never produce a
  * PDF — there's no LaTeX/PDF engine installed. The reader is passed explicitly
  * via `--from` because the uploaded temp file carries no extension for Pandoc

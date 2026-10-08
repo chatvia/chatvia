@@ -32,7 +32,9 @@ class UserFactory extends Factory
         return [
             'external_id' => (string) Str::uuid(),
             'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            // Random prefix: the test suite runs on a persistent, seeded database,
+            // so a plain Faker address can collide with a row left by seeding.
+            'email' => Str::lower(Str::random(8)).'.'.fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),

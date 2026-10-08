@@ -15,6 +15,7 @@ use App\Http\Controllers\Billing\Trials\TrialCheckoutController;
 use App\Http\Controllers\Billing\Trials\TrialSuccessController;
 use App\Http\Controllers\Connector\ConnectorOAuthCallbackController;
 use App\Http\Controllers\KnowledgeFiles\SourceFileViewController;
+use App\Http\Controllers\Landing\AppHomeController;
 use App\Http\Controllers\Landing\Blog\BlogController;
 use App\Http\Controllers\Landing\Blog\ChangelogController;
 use App\Http\Controllers\Landing\Blog\PostController;
@@ -30,9 +31,24 @@ use App\Http\Controllers\Landing\Marketing\ContactController;
 use App\Http\Controllers\Landing\Marketing\MissionController;
 use App\Http\Controllers\Landing\Marketing\PricingController;
 use App\Http\Controllers\Landing\Marketing\UseCaseController;
+use App\Http\Middleware\Access\EnsureBillingIsEnabled;
 use App\Http\Middleware\Web\ResolveLandingLocale;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+
+// The public marketing site (landing, pricing, mission, security, legal, blog,
+// contact) is optional: a self-hosted install turns it off with
+// MARKETING_SITE_ENABLED=false. Its routes are then not registered at all, and
+// `/` (still named `home`, which the app redirects to) sends visitors to the app.
+$marketingSite = (bool) config('chatvia.brand.marketing_site');
+
+if (! $marketingSite) {
+    Route::group([
+        'prefix' => LaravelLocalization::setLocale(),
+    ], function (): void {
+        Route::get('/', AppHomeController::class)->name('home');
+    });
+}
 
 // Public marketing + legal pages, served under an explicit locale segment
 // (e.g. `/en`, `/ar`). `localeSessionRedirect` forwards a visitor to a remembered/
@@ -42,7 +58,11 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),
     'middleware' => [ResolveLandingLocale::class, 'localeSessionRedirect', 'localizationRedirect'],
-], function (): void {
+], function () use ($marketingSite): void {
+    if (! $marketingSite) {
+        return;
+    }
+
     Route::get('/', HomeController::class)->name('home');
     Route::get('/pricing', PricingController::class)->name('pricing');
     Route::get('/mission', MissionController::class)->name('mission');
@@ -79,17 +99,19 @@ Route::group([
     require __DIR__.'/billing.php';
 });
 
-// Each download starts a headless browser, so cap it per visitor. The named
-// prefix keeps this counter separate from other plain `throttle:` routes.
-Route::get('/legal/dpa/download', [DpaController::class, 'download'])
-    ->middleware('throttle:10,1,dpa-download')
-    ->name('dpa.download');
+if ($marketingSite) {
+    // Each download starts a headless browser, so cap it per visitor. The named
+    // prefix keeps this counter separate from other plain `throttle:` routes.
+    Route::get('/legal/dpa/download', [DpaController::class, 'download'])
+        ->middleware('throttle:10,1,dpa-download')
+        ->name('dpa.download');
 
-// Contact form submission posts to the non-localized action URL (a localized POST
-// would be redirected to a GET by the locale middleware).
-Route::post('contact', [ContactController::class, 'submit'])
-    ->middleware('throttle:5,1,contact')
-    ->name('contact.submit');
+    // Contact form submission posts to the non-localized action URL (a localized POST
+    // would be redirected to a GET by the locale middleware).
+    Route::post('contact', [ContactController::class, 'submit'])
+        ->middleware('throttle:5,1,contact')
+        ->name('contact.submit');
+}
 
 // Social OAuth routes. Starts get a tighter cap (cheap redirect, only abused
 // for traffic generation); callbacks get a higher cap (legit users can land
@@ -107,12 +129,14 @@ Route::get('/auth/microsoft/callback', MicrosoftCallbackAuthController::class)->
 Route::get('/auth/slack', SlackAuthController::class)->middleware('throttle:10,1')->name('auth.slack');
 Route::get('/auth/slack/callback', SlackCallbackController::class)->middleware('throttle:30,1')->name('auth.slack.callback');
 
-// Trial routes (guest accessible)
-// Every call creates a Stripe Checkout session, so cap it per visitor.
+// Trial routes (guest accessible). They answer 404 when billing is turned off.
+// Every checkout call creates a Stripe Checkout session, so cap it per visitor.
 Route::post('trial/checkout', TrialCheckoutController::class)
-    ->middleware('throttle:10,1,trial-checkout')
+    ->middleware([EnsureBillingIsEnabled::class, 'throttle:10,1,trial-checkout'])
     ->name('trial.checkout');
-Route::get('trial/success', TrialSuccessController::class)->name('trial.success');
+Route::get('trial/success', TrialSuccessController::class)
+    ->middleware(EnsureBillingIsEnabled::class)
+    ->name('trial.success');
 
 Route::get('my/chunks/{chunkExternalId}/{imageIndex}.png', AgentChunkImageViewController::class)->name('chunks.image.view');
 

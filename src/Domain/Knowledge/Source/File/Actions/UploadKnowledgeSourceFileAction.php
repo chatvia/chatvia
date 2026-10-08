@@ -14,7 +14,7 @@ use Throwable;
 
 /**
  * Persist a knowledge-source upload to disk, attach it to the agent, and
- * queue ingestion. Throws when the file type is not one Mistral OCR can parse
+ * queue ingestion. Throws when the file type is not one the document ingestion accepts
  * (see config/mimes.php `ocr`) nor audio/video — the controller maps that to a
  * 422.
  *

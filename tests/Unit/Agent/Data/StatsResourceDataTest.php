@@ -7,8 +7,6 @@ use Domain\Agent\Models\Agent;
 /**
  * The "top knowledge" list reports each file's document type. The query must
  * select `document_classification`, otherwise every row reads as "unknown".
- *
- * Needs the seeded test DB: AgentFileFactory reuses the seeded demo user.
  */
 it('reports the document classification of the most accessed files', function (): void {
     $agent = Agent::factory()->create();

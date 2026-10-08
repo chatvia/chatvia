@@ -186,7 +186,7 @@ describe('agents.chatters.store', function (): void {
             AgentChatterInvited::class,
             fn (AgentChatterInvited $event): bool => $event->agent->is($this->agent)
                 && $event->email === 'chatter@example.com'
-                && $event->acceptUrl === route('agents.invitation.show', ['token' => $invitation->token]),
+                && $event->token === $invitation->token,
         );
     });
 

@@ -5,6 +5,7 @@ import ChatErrorBubble from '@/components/chat/ChatErrorBubble.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
 import { normalizeLocale, resolveLocale, setI18nLocale } from '@/i18n';
 import { resolveAppearanceText } from '@/lib/appearanceText';
+import { safeStorage } from '@/lib/safeStorage';
 import UserChatBubble from '@/components/chat/UserChatBubble.vue';
 import { useChatStream } from '@/composables/useChatStream';
 import { useColorTheme } from '@/composables/useColorTheme';
@@ -350,13 +351,13 @@ function scrollToBottom(smooth = false) {
 }
 
 function checkScreenSize() {
-    const savedSidebarState = localStorage.getItem('sidebarOpen');
+    const savedSidebarState = safeStorage.get('sidebarOpen');
 
     if (savedSidebarState !== null) {
         isSidebarOpen.value = savedSidebarState === 'true';
     } else {
         isSidebarOpen.value = !isMobile.value;
-        localStorage.setItem('sidebarOpen', isSidebarOpen.value);
+        safeStorage.set('sidebarOpen', String(isSidebarOpen.value));
     }
 }
 
@@ -933,11 +934,6 @@ const messageDeleted = (messageId) => {
     }
 };
 
-const feedbackProvided = (messageId, type) => {
-    // TODO: Implement feedback handling
-    console.log('Feedback:', messageId, type);
-};
-
 // Shared edit/regen flow: delete both messages on the server (which also
 // returns the original timestamp), then restream into the same slot.
 async function reissue({ userMessageId, assistantMessageId, overrideContent = null }) {
@@ -1131,7 +1127,6 @@ const handleScrollToBottomClick = () => {
                                     :pendingApprovals="message.id ? pendingApprovals.get(message.id) || [] : []"
                                     :resolvingApprovalIds="resolvingApprovalIds"
                                     @messageDeleted="messageDeleted"
-                                    @feedbackProvided="feedbackProvided"
                                     @regenerate="handleRegenerate"
                                     @approveTool="approveTool"
                                     @denyTool="denyTool"
@@ -1194,8 +1189,6 @@ const handleScrollToBottomClick = () => {
 </template>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap');
-
 /* Force scrollbar to always be visible to prevent layout shifts */
 #messages-container {
     overflow-y: scroll; /* Changed from auto to scroll */
@@ -1610,13 +1603,18 @@ body,
     background-color: var(--chat-bubble-color, rgb(31 41 55)) !important;
 }
 
-/* Arabic Font Support */
+/* Arabic Font Support — system fonts only. The page does not fetch a web font
+   from a third-party CDN, so visitor IPs are not sent to a font provider.
+   'Noto Sans Arabic' is used when the visitor has it installed. */
 [data-rtl='true'] {
     font-family:
         'Noto Sans Arabic',
+        'Geeza Pro',
+        'Noto Naskh Arabic',
         -apple-system,
         BlinkMacSystemFont,
         'Segoe UI',
+        Tahoma,
         Roboto,
         sans-serif;
 }
@@ -1624,9 +1622,12 @@ body,
 [data-rtl='true'] .prose {
     font-family:
         'Noto Sans Arabic',
+        'Geeza Pro',
+        'Noto Naskh Arabic',
         -apple-system,
         BlinkMacSystemFont,
         'Segoe UI',
+        Tahoma,
         Roboto,
         sans-serif;
 }
@@ -1644,9 +1645,12 @@ body,
 [data-rtl='true'] .prose th {
     font-family:
         'Noto Sans Arabic',
+        'Geeza Pro',
+        'Noto Naskh Arabic',
         -apple-system,
         BlinkMacSystemFont,
         'Segoe UI',
+        Tahoma,
         Roboto,
         sans-serif;
 }

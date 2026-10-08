@@ -33,8 +33,10 @@ trait AttributesSpectraTurn
         try {
             // Spectra (>=1.2) resolves the id to the configured user model.
             Spectra::forUser($workspaceId);
-        } catch (Throwable) {
-            // Attribution must never break the streamed turn.
+        } catch (Throwable $e) {
+            // Attribution must never break the streamed turn — but a failure
+            // means cost tracking is silently wrong, so make it visible.
+            report($e);
         }
     }
 }

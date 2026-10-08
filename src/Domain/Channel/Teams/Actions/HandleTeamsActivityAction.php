@@ -3,6 +3,7 @@
 namespace Domain\Channel\Teams\Actions;
 
 use Domain\Channel\Services\ChannelAccessGate;
+use Domain\Channel\Services\ChannelLocale;
 use Domain\Channel\Teams\Jobs\HandleTeamsActivityJob;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Teams\Services\TeamsChatResolver;
@@ -23,7 +24,8 @@ use Domain\Channel\Teams\Services\TeamsReplyRunner;
  */
 class HandleTeamsActivityAction
 {
-    private const UNAVAILABLE = 'This assistant isn’t available on Microsoft Teams right now.';
+    /** Shown in the channel's own name, so every channel shares one translation. */
+    private const CHANNEL_NAME = 'Microsoft Teams';
 
     public function __construct(
         private readonly TeamsChatResolver $resolver,
@@ -47,7 +49,7 @@ class HandleTeamsActivityAction
         $serviceUrl = (string) $activity['serviceUrl'];
 
         // Protected agents are never answered on Teams (defence in depth).
-        if (! $this->gate->allows($bot->agent, fn (): ?string => $this->client->postMessage($bot, $serviceUrl, $conversationId, self::UNAVAILABLE))) {
+        if (! $this->gate->allows($bot->agent, fn (): ?string => $this->client->postMessage($bot, $serviceUrl, $conversationId, ChannelLocale::text($bot->agent, 'This assistant isn’t available on :channel right now.', ['channel' => self::CHANNEL_NAME])))) {
             return;
         }
 
@@ -61,7 +63,7 @@ class HandleTeamsActivityAction
 
         // Instant feedback: a placeholder activity the moment the message
         // lands. Its id is the handle the reply then streams into.
-        $activityId = $this->client->postMessage($bot, $serviceUrl, $conversationId, '_Thinking…_');
+        $activityId = $this->client->postMessage($bot, $serviceUrl, $conversationId, '_'.ChannelLocale::text($bot->agent, 'Thinking…').'_');
 
         // Posting failed (bot removed, expired secret, outage) — bail before
         // the pipeline runs so the turn isn't billed for a reply nobody sees.

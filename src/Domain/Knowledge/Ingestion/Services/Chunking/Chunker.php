@@ -8,7 +8,6 @@ use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Operations\Pricing\CostCalculator;
 use Domain\Llm\Providers\Mistral;
 use Domain\Llm\Services\TikToken;
-use Illuminate\Support\Facades\Log;
 
 class Chunker
 {
@@ -50,19 +49,25 @@ class Chunker
             ],
         ])->throw();
 
-        $content = $res->json('choices.0.message.content');
-
-        Log::info($content);
+        $content = (string) $res->json('choices.0.message.content');
 
         $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+
+        // Bill from the provider's own token counts; estimate only when the
+        // response carries no usage block.
+        $usage = $res->json('usage') ?: [
+            'prompt_tokens' => TikToken::countTokens($systemPrompt.$userPrompt),
+            'completion_tokens' => TikToken::countTokens($content),
+        ];
 
         return DocumentChunk::from([
             'chunk' => $page->content,
             'summary' => $decoded['summary'],
             'questions' => $decoded['questions'],
-            'cost' => $this->calculateCost(
-                input: $systemPrompt.$userPrompt,
-                output: $res,
+            'cost' => app(CostCalculator::class)->costInCentsFromUsage(
+                usage: $usage,
+                pricePerInputMilToken: (float) config('chatvia.ai.pricing.chunker_input_per_million_tokens'),
+                pricePerOutputMilToken: (float) config('chatvia.ai.pricing.chunker_output_per_million_tokens'),
             ),
         ]);
     }
@@ -161,16 +166,5 @@ class Chunker
             'required' => ['chunks'],
             'additionalProperties' => false,
         ];
-    }
-
-    public function calculateCost($input, $output): float
-    {
-        return app(CostCalculator::class)
-            ->calculateCostInCents(
-                inputText: $input,
-                outputText: $output,
-                pricePerInputMilToken: config('chatvia.ai.pricing.chunker_input_per_million_tokens'),
-                pricePerOutputMilToken: config('chatvia.ai.pricing.chunker_output_per_million_tokens'),
-            );
     }
 }

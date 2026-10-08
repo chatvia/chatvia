@@ -2,9 +2,9 @@
 
 namespace Domain\Conversation\Services;
 
-use App\Identity\Workspace\Models\User;
+use Domain\Billing\Enums\MessageAdmission;
 use Domain\Billing\Services\ChatterMessageAllowance;
-use Domain\Billing\Services\UserCreditSystem;
+use Domain\Billing\Services\MessageSendGate;
 use Domain\Conversation\Actions\Handoff\SendVisitorHandoffMessageAction;
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
@@ -29,7 +29,7 @@ readonly class ChatStreamService
 {
     public function __construct(
         private ChatService $chatService,
-        private UserCreditSystem $creditSystem,
+        private MessageSendGate $sendGate,
         private ChatterMessageAllowance $chatterAllowance,
         private SendVisitorHandoffMessageAction $sendVisitorMessage,
         private SseStreamer $streamer,
@@ -68,7 +68,7 @@ readonly class ChatStreamService
             return $this->streamer->respond(
                 $this->errorSource->events(
                     ErrorCode::Internal,
-                    'This action was already handled or has expired.',
+                    __('This action was already handled or has expired.'),
                     $approval->assistant_message_id,
                 )
             );
@@ -128,12 +128,15 @@ readonly class ChatStreamService
 
         $user = $data->agent->user;
 
-        // 2. Subscription / credit gates → typed error event.
-        if (! $this->userIsSubscribed($user)) {
+        // 2. Subscription / credit gates → typed error event. One shared gate
+        // (MessageSendGate) so the messaging channels apply the same rule.
+        $admission = $this->sendGate->admit($user);
+
+        if ($admission === MessageAdmission::SubscriptionInactive) {
             return $this->streamer->respond(
                 $this->errorSource->events(
                     ErrorCode::SubscriptionExpired,
-                    'Your subscription has expired. Please renew to continue.',
+                    __('Your subscription has expired. Please renew to continue.'),
                 )
             );
         }
@@ -142,11 +145,11 @@ readonly class ChatStreamService
         // workspace receives; this blocks when the cycle's message quota is
         // exhausted or there's no active billing cycle. (Tokens are analytics
         // only — see TokenUsageContext — and never gate.)
-        if (! $this->userCanSendMessages($user->id)) {
+        if ($admission === MessageAdmission::CreditsExhausted) {
             return $this->streamer->respond(
                 $this->errorSource->events(
                     ErrorCode::MessageLimitReached,
-                    'You have reached your message limit. Please upgrade to continue.',
+                    __('You have reached your message limit. Please upgrade to continue.'),
                 )
             );
         }
@@ -158,7 +161,7 @@ readonly class ChatStreamService
             return $this->streamer->respond(
                 $this->errorSource->events(
                     ErrorCode::ChatterMessageLimitReached,
-                    'You have reached your monthly message limit.',
+                    __('You have reached your monthly message limit.'),
                 )
             );
         }
@@ -171,7 +174,7 @@ readonly class ChatStreamService
             return $this->streamer->respond(
                 $this->errorSource->events(
                     ErrorCode::RateLimited,
-                    'This agent is receiving too many messages right now. Please try again in a moment.',
+                    __('This agent is receiving too many messages right now. Please try again in a moment.'),
                 )
             );
         }
@@ -228,22 +231,6 @@ readonly class ChatStreamService
         return $this->streamer->respond(
             $this->llmSource->events($context, $llmMessages)
         );
-    }
-
-    private function userIsSubscribed(User $user): bool
-    {
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        $billing = $user->billing;
-
-        return (bool) ($billing?->subscribed() || $billing?->onTrial());
-    }
-
-    private function userCanSendMessages(int $userId): bool
-    {
-        return $this->creditSystem->forWorkspace($userId)->canSendMessages();
     }
 
     private function chatterLimitReached(int $chatterUserId): bool

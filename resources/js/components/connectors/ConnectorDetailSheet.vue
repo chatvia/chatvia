@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { connectorLogoUrl } from '@/lib/connectorLogo';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -115,7 +116,7 @@ const isAgentScope = computed(() => server.value?.scope === 'agent');
 const brandColor = computed(() => connector.value?.brandColor ?? '6B7280');
 const logo = computed(() => {
     if (!connector.value) return null;
-    return connector.value.logoUrl ?? `https://cdn.simpleicons.org/${connector.value.icon}/${connector.value.brandColor}`;
+    return connectorLogoUrl(connector.value);
 });
 
 // Status label depends on mode + scope so the user always knows what they're

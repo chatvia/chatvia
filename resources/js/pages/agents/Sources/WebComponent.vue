@@ -565,9 +565,6 @@ const addWebsite = () => {
         // Submit form with comprehensive error handling
         websiteForm.post(route('agents.sources.websites.store', { agent: props.agent.external_id }), {
             preserveScroll: true,
-            onStart: () => {
-                console.log('Form submission started');
-            },
             onSuccess: (page: any) => {
                 // Only add to UI after successful server response
                 if (page.props?.website) {
@@ -621,10 +618,6 @@ const addWebsite = () => {
                     // Fallback error message
                     toast.error(t('agents.sources.web.add_failed_retry'));
                 }
-            },
-            onFinish: () => {
-                // Always called after success or error
-                console.log('Form submission finished');
             },
         });
     } catch (error) {
@@ -952,8 +945,6 @@ const handleCollapsibleToggle = async (sourceId: number, isExpanding: boolean) =
 
     try {
         const discoveredLinks = await fetchWebsiteLinks(sourceId);
-
-        console.log(`Fetched ${discoveredLinks.length} links for website ${sourceId}`);
 
         // Update the source with discovered links
         const sourceIndex = webSources.value.findIndex((s) => s.id === sourceId);

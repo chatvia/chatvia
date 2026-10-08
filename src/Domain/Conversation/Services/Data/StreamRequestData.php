@@ -48,5 +48,10 @@ class StreamRequestData extends Data
         public ?string $pageUrl = null,
         public ?string $locale = null,
         public ?string $requestId = null,
+        // Per-run switch for the input + RAG-source guardrails, on top of the
+        // global and per-agent toggles. Live chat leaves it on; an eval run
+        // turns it off for itself only, without touching global config that
+        // other code in the same worker reads.
+        public bool $guardrailsEnabled = true,
     ) {}
 }

@@ -101,3 +101,23 @@ it('no-ops when the results array is empty — no UPDATE and no rollup event', f
     expect($updates)->toBeEmpty();
     Event::assertNotDispatched(SourceRetrieved::class);
 });
+
+it('still reads full search-result rows queued by an older release', function (): void {
+    Event::fake([SourceRetrieved::class]);
+
+    $agent = Agent::factory()->create();
+    $source = AgentFileFactory::new()->create(['retrieval_count' => 0]);
+    $source->agents()->attach($agent->id, ['retrieval_count' => 0]);
+
+    // The old payload shape: the raw stdClass rows from the hybrid search.
+    $legacyRow = (object) [
+        'id' => 1,
+        'chunk' => 'customer text that should no longer be queued',
+        'chunkable_type' => $source->getMorphClass(),
+        'chunkable_id' => $source->id,
+    ];
+
+    app(UpdateRetrievalStatsAction::class)->execute([$legacyRow], agentId: $agent->id);
+
+    expect($source->refresh()->retrieval_count)->toBe(1);
+});

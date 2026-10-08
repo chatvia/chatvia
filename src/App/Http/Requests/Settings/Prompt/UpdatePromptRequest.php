@@ -28,7 +28,7 @@ class UpdatePromptRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('agent_prompts', 'name')
-                    ->where('user_id', $this->user()->id)
+                    ->where('user_id', $this->user()->workspace()->id)
                     ->ignore($this->route('external_id'), 'external_id'),
             ],
             'prompt' => ['required', 'string', 'max:10000'],
@@ -52,7 +52,7 @@ class UpdatePromptRequest extends FormRequest
         /** @var User $user */
         $user = $this->user();
 
-        return $this->prompt = $user->prompts()
+        return $this->prompt = $user->workspace()->prompts()
             ->where('external_id', $this->route('external_id'))
             ->first();
     }

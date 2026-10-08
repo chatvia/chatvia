@@ -9,8 +9,8 @@ use Domain\Billing\Enums\Addon;
 use Domain\Billing\Models\UserBilling;
 use Domain\Billing\Notifications\FounderWelcomeNotification;
 use Domain\Billing\Notifications\TrialWelcomeNotification;
+use Domain\Billing\Services\Billing;
 use Domain\Membership\Team\Services\TeamService;
-use Exception;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
 use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Events\WebhookReceived;
 use Laravel\Cashier\Subscription;
+use RuntimeException;
 use Support\Enums\User\UserType;
 use Throwable;
 
@@ -27,10 +28,13 @@ class HandleStripeWebhook
 {
     public function __construct(
         private readonly PasswordSetup $passwordSetup,
+        private readonly Billing $plans,
     ) {}
 
     public function handle(WebhookReceived $event): void
     {
+        $this->assertWebhookIsSigned();
+
         $eventId = $event->payload['id'] ?? null;
 
         // Idempotency: Stripe retries webhooks on transient failures, so the
@@ -56,6 +60,27 @@ class HandleStripeWebhook
         }
     }
 
+    /**
+     * Cashier checks the Stripe signature only when a webhook secret is set, so
+     * without one every POST to the webhook route is trusted and a forged event
+     * could grant plans and credits. Production already refuses to boot without
+     * the secret (AppServiceProvider); this covers every other shared
+     * environment (staging, demo) at request time. Cashier dispatches
+     * WebhookReceived before its own handlers run, so throwing here also stops
+     * Cashier from syncing subscriptions from the unsigned payload. Local
+     * development and the test suite may still run unsigned.
+     */
+    private function assertWebhookIsSigned(): void
+    {
+        if (filled(config('cashier.webhook.secret')) || app()->environment('local', 'testing')) {
+            return;
+        }
+
+        throw new RuntimeException(
+            'STRIPE_WEBHOOK_SECRET is not set. Refusing to process an unsigned Stripe webhook.'
+        );
+    }
+
     private function process(WebhookReceived $event): void
     {
         $data = $event->payload['data']['object'];
@@ -75,7 +100,7 @@ class HandleStripeWebhook
         }
 
         // Handle subscription renewals and actual payments
-        if ($type === 'invoice.payment_succeeded' && isset($data['subscription_details']['metadata'])) {
+        if ($type === 'invoice.payment_succeeded' && $this->invoiceSubscriptionMetadata($data) !== null) {
             $this->handleInvoicePaymentSucceeded($event);
 
             return;
@@ -86,28 +111,9 @@ class HandleStripeWebhook
             $this->handleAddOns($data);
         }
 
-        // Handle addon-subscription checkouts (extra agents / custom domains)
-        if ($type === 'checkout.session.completed' && isset($data['metadata']['type']) && $data['metadata']['type'] === 'addon_subscription') {
-            $this->handleAddonSubscriptionCreated($data);
-        }
-
-        // Cashier already syncs the local `subscriptions` row on
-        // customer.subscription.deleted; here we just reset the user_quotas
-        // fields we own.
-        if ($type === 'customer.subscription.deleted') {
-            $this->handleAddonSubscriptionDeleted($data);
-        }
-
-        // Log customer.subscription.updated events specifically
-        if ($type === 'customer.subscription.updated') {
-            Log::info('Subscription status updated via webhook', [
-                'subscription_id' => $data['id'] ?? null,
-                'status' => $data['status'] ?? null,
-                'customer' => $data['customer'] ?? null,
-            ]);
-
-            $this->handleAddonSubscriptionUpdated($data);
-        }
+        // Add-on subscription quotas (extra agents, members, custom domains) are
+        // synced after Cashier has stored the subscription change — see
+        // SyncAddonQuotasFromStripe, which listens to WebhookHandled.
     }
 
     /**
@@ -149,11 +155,25 @@ class HandleStripeWebhook
 
         // Handle subscription renewals
         if ($billingReason === 'subscription_cycle') {
-            $metadata = $data['subscription_details']['metadata'];
-            $isYearly = ($metadata['is_yearly'] ?? 'false') === 'true';
-            $package = $metadata['to_package'] ?? $metadata['package'] ?? 'starter';
+            $metadata = $this->invoiceSubscriptionMetadata($data) ?? [];
 
             $subscription = $billing->subscription();
+
+            $plan = $this->renewedPlan($data, $metadata, $billing, $subscription);
+
+            // An add-on subscription (extra agents, members, ...) renews on its
+            // own invoice. It must not re-grant the plan: that would reset the
+            // cycle's message credits and overwrite the plan quotas.
+            if ($plan === null) {
+                Log::info('Skipping renewal invoice that is not for the plan subscription', [
+                    'invoice_id' => $data['id'] ?? null,
+                    'customer' => $data['customer'] ?? null,
+                ]);
+
+                return;
+            }
+
+            ['package' => $package, 'is_yearly' => $isYearly] = $plan;
 
             // End trial period if the subscription is still on trial
             // This transitions the subscription from 'trialing' to 'active' status
@@ -190,16 +210,147 @@ class HandleStripeWebhook
         }
     }
 
+    /**
+     * The metadata of the subscription an invoice belongs to, or null when the
+     * invoice is not for a subscription. Stripe renders the invoice in the
+     * webhook endpoint's API version: older versions put the details at
+     * `subscription_details`, newer ones at `parent.subscription_details`.
+     *
+     * @param  array<string, mixed>  $invoice
+     * @return array<string, mixed>|null
+     */
+    private function invoiceSubscriptionMetadata(array $invoice): ?array
+    {
+        $details = $invoice['subscription_details'] ?? $invoice['parent']['subscription_details'] ?? null;
+
+        if (! is_array($details) || ! isset($details['metadata'])) {
+            return null;
+        }
+
+        return (array) $details['metadata'];
+    }
+
+    /**
+     * The plan and billing cycle a renewal invoice pays for, or null when the
+     * invoice is for an add-on subscription.
+     *
+     * The Stripe price is the source of truth: first the invoice's own
+     * subscription lines, then the locally synced Cashier subscription. The
+     * subscription metadata is only a last resort for a price that is not in
+     * the billing config, because the plan-change flow clears `to_package` and
+     * `is_yearly` once a scheduled change has been applied.
+     *
+     * @param  array<string, mixed>  $invoice
+     * @param  array<string, mixed>  $metadata
+     * @return array{package: string, is_yearly: bool}|null
+     */
+    private function renewedPlan(array $invoice, array $metadata, UserBilling $billing, ?Subscription $subscription): ?array
+    {
+        foreach ($this->invoiceLinePriceIds($invoice) as $priceId) {
+            $plan = $this->plans->planForPriceId($priceId);
+
+            if ($plan !== null) {
+                return $plan;
+            }
+        }
+
+        if ($this->isAddonInvoice($invoice, $metadata, $billing)) {
+            return null;
+        }
+
+        $localPriceIds = $subscription === null ? [] : [
+            $subscription->stripe_price,
+            ...$subscription->items()->pluck('stripe_price')->all(),
+        ];
+
+        foreach ($localPriceIds as $priceId) {
+            $plan = $this->plans->planForPriceId(is_string($priceId) ? $priceId : null);
+
+            if ($plan !== null) {
+                return $plan;
+            }
+        }
+
+        $package = $metadata['to_package'] ?? $metadata['package'] ?? $billing->plan ?? config('billing.default_package', 'starter');
+
+        Log::warning('Stripe renewal: no configured plan price found, using the subscription metadata', [
+            'invoice_id' => $invoice['id'] ?? null,
+            'customer' => $invoice['customer'] ?? null,
+            'package' => $package,
+        ]);
+
+        return [
+            'package' => (string) $package,
+            'is_yearly' => ($metadata['is_yearly'] ?? 'false') === 'true',
+        ];
+    }
+
+    /**
+     * Price ids of the invoice's recurring subscription lines. Proration lines
+     * are skipped because they also carry the previous plan's price. Reads both
+     * line shapes: `price.id` (older API versions) and
+     * `pricing.price_details.price` (newer ones).
+     *
+     * @param  array<string, mixed>  $invoice
+     * @return list<string>
+     */
+    private function invoiceLinePriceIds(array $invoice): array
+    {
+        $priceIds = [];
+
+        foreach ((array) ($invoice['lines']['data'] ?? []) as $line) {
+            if (! is_array($line)) {
+                continue;
+            }
+
+            if ((bool) ($line['proration'] ?? $line['parent']['subscription_item_details']['proration'] ?? false)) {
+                continue;
+            }
+
+            $price = $line['price'] ?? $line['pricing']['price_details']['price'] ?? null;
+            $priceId = is_array($price) ? ($price['id'] ?? null) : $price;
+
+            if (is_string($priceId) && $priceId !== '') {
+                $priceIds[] = $priceId;
+            }
+        }
+
+        return $priceIds;
+    }
+
+    /**
+     * Whether a renewal invoice belongs to an add-on subscription rather than
+     * the plan: the add-on checkout tags its subscription with an `addon`
+     * metadata key, and every add-on gets its own (non-default) Cashier
+     * subscription row.
+     *
+     * @param  array<string, mixed>  $invoice
+     * @param  array<string, mixed>  $metadata
+     */
+    private function isAddonInvoice(array $invoice, array $metadata, UserBilling $billing): bool
+    {
+        if (isset($metadata['addon']) || ($metadata['type'] ?? null) === 'addon_subscription') {
+            return true;
+        }
+
+        $subscriptionId = $invoice['subscription'] ?? $invoice['parent']['subscription_details']['subscription'] ?? null;
+
+        if (! is_string($subscriptionId) || $subscriptionId === '') {
+            return false;
+        }
+
+        return $billing->subscriptions()
+            ->where('stripe_id', $subscriptionId)
+            ->where('type', '!=', 'default')
+            ->exists();
+    }
+
     private function handleTrialRegistration(WebhookReceived $event): void
     {
         $data = $event->payload['data']['object'];
         $metadata = $data['metadata'] ?? [];
 
         $user = $this->resolveOrCreateTrialUser($data, $metadata);
-
-        if (! $user) {
-            return;
-        }
 
         // Populate Cashier's subscriptions/subscription_items for this checkout.
         // Cashier's own customer.subscription.created handler silently no-ops
@@ -217,9 +368,13 @@ class HandleStripeWebhook
      * Resolve the User this trial checkout belongs to, creating the account
      * (and default team + welcome email) when it's a brand-new customer.
      *
-     * Returns null only when account creation failed — already reported.
+     * A failure here (Stripe or the database) is NOT swallowed: it propagates
+     * so handle() releases the idempotency claim and the webhook answers with
+     * an error, which makes Stripe retry. Swallowing it would answer 200 and
+     * the paying customer would never get an account. A retry after the
+     * account was created finds it through the linked Stripe customer.
      */
-    private function resolveOrCreateTrialUser(array $data, array $metadata): ?User
+    private function resolveOrCreateTrialUser(array $data, array $metadata): User
     {
         // Returning customer already linked by an earlier checkout.
         $existingUser = $this->userForCustomer($data);
@@ -228,59 +383,62 @@ class HandleStripeWebhook
             return $existingUser;
         }
 
-        try {
-            $customer = Cashier::stripe()->customers->retrieve($data['customer']);
+        $customer = Cashier::stripe()->customers->retrieve($data['customer']);
 
-            $email = $customer->email;
-            $name = $customer->name ?? explode('@', $email)[0];
+        $email = $customer->email;
+        $name = $customer->name ?? explode('@', $email)[0];
 
-            // Existing account paying under a new Stripe customer — relink it.
-            $existingUserByEmail = User::query()->where('email', $email)->first();
+        // Existing account paying under a new Stripe customer — relink it.
+        $existingUserByEmail = User::query()->where('email', $email)->first();
 
-            if ($existingUserByEmail) {
-                $existingUserByEmail->billing()->updateOrCreate([], ['stripe_id' => $data['customer']]);
+        if ($existingUserByEmail) {
+            $existingUserByEmail->billing()->updateOrCreate([], ['stripe_id' => $data['customer']]);
 
-                return $existingUserByEmail;
-            }
+            return $existingUserByEmail;
+        }
 
-            $password = Str::random();
+        $password = Str::random();
 
-            $countryCode = isset($customer->address->country)
-                ? strtoupper($customer->address->country)
-                : null;
+        $countryCode = isset($customer->address->country)
+            ? strtoupper($customer->address->country)
+            : null;
 
+        /** @var User $user */
+        $user = DB::transaction(function () use ($name, $email, $password, $countryCode, $metadata, $data): User {
+            // `type` must be set explicitly: the UserObserver only auto-provisions
+            // the UserBilling row (and starter quota defaults) for Workspace/Admin
+            // users, and it reads $user->type at `created` time — before the DB
+            // column default is reflected back into the model — so an omitted type
+            // reads as null and the billing row is silently skipped, leaving the
+            // Stripe customer unlinked.
             /** @var User $user */
-            $user = DB::transaction(function () use ($name, $email, $password, $countryCode, $metadata, $data): User {
-                // `type` must be set explicitly: the UserObserver only auto-provisions
-                // the UserBilling row (and starter quota defaults) for Workspace/Admin
-                // users, and it reads $user->type at `created` time — before the DB
-                // column default is reflected back into the model — so an omitted type
-                // reads as null and the billing row is silently skipped, leaving the
-                // Stripe customer unlinked.
-                /** @var User $user */
-                $user = User::create([
-                    'name' => $name,
-                    'email' => $email,
-                    'type' => UserType::Workspace,
-                    'password' => Hash::make($password),
-                    'domain' => parse_url(config('app.url'), PHP_URL_HOST),
-                    'registered_ip' => $metadata['user_ip'] ?? null,
-                    'registered_country_code' => $countryCode,
-                    'email_verified_at' => now(),
-                ]);
+            $user = User::create([
+                'name' => $name,
+                'email' => $email,
+                'type' => UserType::Workspace,
+                'password' => Hash::make($password),
+                'domain' => parse_url(config('app.url'), PHP_URL_HOST),
+                'registered_ip' => $metadata['user_ip'] ?? null,
+                'registered_country_code' => $countryCode,
+                'email_verified_at' => now(),
+            ]);
 
-                $user->billing()->updateOrCreate([], ['stripe_id' => $data['customer']]);
+            $user->billing()->updateOrCreate([], ['stripe_id' => $data['customer']]);
 
-                app(TeamService::class)->createDefaultTeam($user);
+            app(TeamService::class)->createDefaultTeam($user);
 
-                return $user;
-            });
+            return $user;
+        });
 
-            // The random password above is never shown to anyone. The flag
-            // makes RequirePasswordSetup walk the owner through choosing a
-            // real one as soon as they land back in the app.
-            $this->passwordSetup->flag($user);
+        // The random password above is never shown to anyone. The flag
+        // makes RequirePasswordSetup walk the owner through choosing a
+        // real one as soon as they land back in the app.
+        $this->passwordSetup->flag($user);
 
+        // The account now exists, and a Stripe retry would find it and skip
+        // this branch, so a mail failure must not fail the webhook: report it
+        // and let the subscription grant below continue.
+        try {
             // Welcome email with login instructions — no password in it.
             // Sent after commit so a rollback can't email an account that
             // doesn't exist.
@@ -290,13 +448,11 @@ class HandleStripeWebhook
             // A personal note from the founder, sent only to brand-new accounts
             // (this branch) — returning customers above don't get it again.
             $user->notify(new FounderWelcomeNotification);
-
-            return $user;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             report($e);
-
-            return null;
         }
+
+        return $user;
     }
 
     /**
@@ -317,15 +473,12 @@ class HandleStripeWebhook
             return;
         }
 
-        try {
-            $stripeSubscription = Cashier::stripe()->subscriptions->retrieve($subscriptionId, [
-                'expand' => ['items.data.price'],
-            ]);
-        } catch (Exception $e) {
-            report($e);
-
-            return;
-        }
+        // A Stripe failure propagates (see resolveOrCreateTrialUser): without
+        // the local subscription row the account is not subscribed, so the
+        // event must be retried rather than answered with 200.
+        $stripeSubscription = Cashier::stripe()->subscriptions->retrieve($subscriptionId, [
+            'expand' => ['items.data.price'],
+        ]);
 
         $items = $stripeSubscription->items->data;
         $isSinglePrice = count($items) === 1;
@@ -388,56 +541,22 @@ class HandleStripeWebhook
         // not go through Checkout). Only handle the on-session Checkout flow
         // here.
         if ($id === 'extra_message_credits') {
-            $user->addons()->create([
-                'type' => $id,
-                'amount' => $metadata['messages'],
-                'stripe_id' => $data['id'],
-                'started_at' => now(),
-                'ends_at' => now()->addMonth(),
-            ]);
+            // Keyed on the Checkout Session id so a redelivered event (after the
+            // idempotency claim expired, or on a retry after a later failure)
+            // can't grant the same purchase twice or extend its expiry.
+            $user->addons()->firstOrCreate(
+                ['stripe_id' => $data['id'], 'type' => $id],
+                [
+                    'amount' => $metadata['messages'],
+                    'started_at' => now(),
+                    'ends_at' => now()->addMonth(),
+                ],
+            );
 
             // Refresh user from database to ensure we have latest addon data
             $user->refresh();
             $user->creditSystem()->refreshCanSendMessages();
         }
-    }
-
-    /**
-     * checkout.session.completed for the `addon_subscription` family —
-     * extra agents and custom domains. Mirrors the subscription quantity
-     * onto `user_quotas` so the rest of the app can keep reading from one
-     * place.
-     */
-    private function handleAddonSubscriptionCreated(array $data): void
-    {
-        $this->syncAddonQuota($data, (int) ($data['metadata']['quantity'] ?? 1));
-    }
-
-    /**
-     * customer.subscription.updated — keep quotas in sync when a user
-     * changes the quantity of an addon subscription from the Stripe portal
-     * or via the API.
-     */
-    private function handleAddonSubscriptionUpdated(array $data): void
-    {
-        if (($data['metadata']['type'] ?? null) !== 'addon_subscription') {
-            return;
-        }
-
-        $this->syncAddonQuota($data, (int) ($data['quantity'] ?? $data['metadata']['quantity'] ?? 0));
-    }
-
-    /**
-     * customer.subscription.deleted — reset the relevant quota column when
-     * an addon subscription is cancelled (immediately or at period end).
-     */
-    private function handleAddonSubscriptionDeleted(array $data): void
-    {
-        if (($data['metadata']['type'] ?? null) !== 'addon_subscription') {
-            return;
-        }
-
-        $this->syncAddonQuota($data, 0);
     }
 
     /**
@@ -448,36 +567,5 @@ class HandleStripeWebhook
     private function userForCustomer(array $data): ?User
     {
         return UserBilling::query()->where('stripe_id', $data['customer'])->first()?->user;
-    }
-
-    /**
-     * Mirror an `addon_subscription` quantity onto the matching `user_quotas`
-     * column. Shared by the created / updated / deleted handlers — only the
-     * quantity differs (deleted passes 0).
-     */
-    private function syncAddonQuota(array $data, int $quantity): void
-    {
-        $user = $this->userForCustomer($data);
-
-        if (! $user) {
-            return;
-        }
-
-        $addon = Addon::tryFrom($data['metadata']['addon'] ?? '');
-
-        if (! $addon) {
-            return;
-        }
-
-        $quotaColumn = $addon->quotaColumn();
-
-        // Subscription-only addons (e.g. remove_branding) keep no quota mirror;
-        // their entitlement is read live from the Cashier subscription row that
-        // Cashier itself syncs. Nothing to write here.
-        if ($quotaColumn === null) {
-            return;
-        }
-
-        $user->quota()->updateOrCreate([], [$quotaColumn => $quantity]);
     }
 }

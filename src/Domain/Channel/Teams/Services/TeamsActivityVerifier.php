@@ -39,11 +39,18 @@ class TeamsActivityVerifier
             return null;
         }
 
+        // JWT::$leeway is process-wide. A queue worker or long-running process
+        // also verifies other JWTs, so widen it only for this decode and put the
+        // previous value back afterwards, even when the decode throws.
+        $previousLeeway = JWT::$leeway;
+
         try {
             JWT::$leeway = self::LEEWAY_SECONDS;
             $claims = (array) JWT::decode(substr($authorization, 7), $this->signingKeys());
         } catch (Throwable) {
             return null;
+        } finally {
+            JWT::$leeway = $previousLeeway;
         }
 
         if (($claims['iss'] ?? null) !== self::ISSUER || ($claims['aud'] ?? null) !== $appId) {

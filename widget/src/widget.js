@@ -76,7 +76,8 @@ export class ChatWidget {
     // embed.js validates the input attribute; this is a safety net for direct
     // callers that bypass the loader (e.g. the index.html / bar.html demos).
     this.mode = ChatWidget._validateMode(this.options.mode);
-    this.barPosition = this.options.position || 'bottom';
+    // Same default as the dashboard's Command Bar setting (bar.placement).
+    this.barPosition = this.options.position || DEFAULT_BAR_PLACEMENT;
     this.language = this.options.language || 'auto';
 
     // Theme preference: 'auto' | 'light' | 'dark' | null.
@@ -686,11 +687,14 @@ export class ChatWidget {
     // Placement resolution chain:
     //   1. programmatic override from the embedder (e.g. bar.html demo)
     //   2. dashboard-configured bar.placement (served via settings API)
-    //   3. legacy constructor default ('bottom' for back-compat)
+    //   3. constructor default ('top', matching the dashboard default)
     // Constrained to the 4 values the chatvia validator accepts; anything else
     // falls back to 'top' (matching the chatvia default).
     const resolved =
-      this.options.position || this.settings?.bar_placement || this.barPosition || 'top';
+      this.options.position ||
+      this.settings?.bar_placement ||
+      this.barPosition ||
+      DEFAULT_BAR_PLACEMENT;
     this.barPosition = ChatWidget._validateBarPlacement(resolved);
     const positionClass = ChatWidget._barPlacementClass(this.barPosition);
     const barContainer = createElement('div', {

@@ -23,7 +23,8 @@ class ListAccountConnectorsAction
 
     public function execute(User $user): AccountConnectorsResourceData
     {
-        $servers = $user->mcpServers()->withCount('agents')->orderBy('created_at')->get();
+        // Connectors belong to the workspace owner; teammates see the same list.
+        $servers = $user->workspace()->mcpServers()->withCount('agents')->orderBy('created_at')->get();
         $serversByConnector = $servers->whereNotNull('connector_slug')->keyBy('connector_slug');
 
         $featured = $this->catalog->connectors()->values()->map(

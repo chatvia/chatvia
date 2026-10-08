@@ -2,6 +2,7 @@
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { useIsMobile } from '@/composables/useIsMobile';
+import { safeStorage } from '@/lib/safeStorage';
 import {
     Bot,
     Check,
@@ -159,7 +160,7 @@ watch(
 
 function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value;
-    localStorage.setItem('sidebarOpen', String(isSidebarOpen.value));
+    safeStorage.set('sidebarOpen', String(isSidebarOpen.value));
     emit('update:open', isSidebarOpen.value);
 }
 
@@ -181,12 +182,12 @@ onMounted(() => {
     if (isMobileDevice.value) {
         isSidebarOpen.value = false;
     } else {
-        const savedSidebarState = localStorage.getItem('sidebarOpen');
+        const savedSidebarState = safeStorage.get('sidebarOpen');
         if (savedSidebarState !== null) {
             isSidebarOpen.value = savedSidebarState === 'true';
         } else {
             isSidebarOpen.value = !isMobileDevice.value;
-            localStorage.setItem('sidebarOpen', String(isSidebarOpen.value));
+            safeStorage.set('sidebarOpen', String(isSidebarOpen.value));
         }
         emit('update:open', isSidebarOpen.value);
     }
@@ -212,7 +213,7 @@ onUnmounted(() => {
 
 const newConversation = () => {
     if (isMobileDevice.value) {
-        localStorage.setItem('sidebarOpen', String(false));
+        safeStorage.set('sidebarOpen', String(false));
         isSidebarOpen.value = false;
     }
 
@@ -225,7 +226,7 @@ const newConversation = () => {
 // Open a conversation picked from the search dialog.
 const goToConversation = (id: string | number) => {
     if (isMobileDevice.value) {
-        localStorage.setItem('sidebarOpen', String(false));
+        safeStorage.set('sidebarOpen', String(false));
         isSidebarOpen.value = false;
     }
 
@@ -474,14 +475,10 @@ const closeAgentsDialog = () => {
 
 const selectAgent = (agent: Agent) => {
     selectedAgent.value = agent;
-    // TODO: Implement agent switching functionality
-    console.log('Switching to agent:', agent.name);
 };
 
 const switchToSelectedAgent = () => {
     if (!selectedAgent.value || agentSwitchForm.processing) return;
-
-    console.log('Sending switch request for agent:', selectedAgent.value.id);
 
     agentSwitchForm.post(
         route('chat.agents.switch', {
@@ -491,14 +488,10 @@ const switchToSelectedAgent = () => {
             preserveState: true,
             preserveScroll: true,
             onSuccess: () => {
-                console.log('Successfully switched to agent:', selectedAgent.value?.name);
                 closeAgentsDialog();
             },
             onError: (errors) => {
                 console.error('Failed to switch agent:', errors);
-            },
-            onFinish: () => {
-                console.log('Agent switch request completed');
             },
         },
     );

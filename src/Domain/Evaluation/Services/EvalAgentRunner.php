@@ -11,7 +11,6 @@ use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use Spectra\Facades\Spectra;
 use Throwable;
@@ -22,17 +21,20 @@ use Throwable;
  *
  * It reuses {@see ChatService} (context build + RAG + system prompt) and drives
  * {@see ToolLoopRunner::run()} directly — deliberately NOT going through
- * LlmSource::finishTurn(), so an eval NEVER persists a chat message or charges a
- * message credit. For the headless run, approval is disabled (no human to
- * approve gated tools) and audit is disabled (eval traffic must not pollute the
- * production tool-call log); both config overrides are restored in `finally` so
- * they can't leak to the next job in the same queue worker.
+ * LlmSource::finishTurn(), so the runner itself never persists a chat message
+ * or charges a credit. Billing happens one level up: ScoreEvalCaseAction
+ * charges one message credit per case that produced an answer.
  *
  * Tools are offered to the model but NEVER executed: the loop runs in
  * capture-only mode, so when the agent decides to call a tool the call (name +
  * arguments) is recorded and the turn stops. Running real webhooks / MCP calls
  * on every eval would be expensive and have real-world side effects; instead the
- * captured call is what the `tool_call` scorer grades.
+ * captured call is what the `tool_call` scorer grades. Because no tool runs,
+ * nothing reaches the approval gate or the tool-call audit log.
+ *
+ * Guardrails are switched off for this run only, through the request DTO
+ * (`guardrailsEnabled: false`), never through global config — evals measure
+ * answer quality, and a guard must not block a case or bill a classifier call.
  *
  * A fresh, unique conversationId per run means no prior history, so
  * ChatService::initializeChatContext never persists the user message either.
@@ -56,16 +58,6 @@ class EvalAgentRunner
             return new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), 'Agent has no LLM configured.');
         }
 
-        $originalApproval = config('chatvia.agent.tools.approval_enabled');
-        $originalAudit = config('chatvia.governance.audit_enabled');
-        $originalGuardrails = config('chatvia.guardrails.enabled');
-        Config::set('chatvia.agent.tools.approval_enabled', false);
-        Config::set('chatvia.governance.audit_enabled', false);
-        // Evals measure the agent's answer quality, not the guards — they have
-        // their own log. Keep guardrails off so an eval case can't be blocked or
-        // pay for the classifier.
-        Config::set('chatvia.guardrails.enabled', false);
-
         // external session + conversation ids map to Postgres `uuid` columns
         // (sessions.external_id / chat_conversations.external_id), so they MUST be
         // valid UUIDs — a prefixed string throws SQLSTATE 22P02 on the lookup.
@@ -80,6 +72,7 @@ class EvalAgentRunner
             conversationId: (string) Str::uuid(),
             source: 'eval',
             requestId: 'eval_'.Str::uuid(),
+            guardrailsEnabled: false,
         );
 
         try {
@@ -120,6 +113,10 @@ class EvalAgentRunner
                 toolCalls: $context->capturedToolCalls,
             );
         } catch (Throwable $e) {
+            // The case is recorded as failed with this message; report it too so
+            // a broken pipeline shows up in error tracking, not only in eval rows.
+            report($e);
+
             return new AgentRunResultData(
                 answer: '',
                 sources: [],
@@ -129,10 +126,6 @@ class EvalAgentRunner
                 traceId: $requestData->requestId ?? (string) Str::uuid(),
                 error: $e->getMessage(),
             );
-        } finally {
-            Config::set('chatvia.agent.tools.approval_enabled', $originalApproval);
-            Config::set('chatvia.governance.audit_enabled', $originalAudit);
-            Config::set('chatvia.guardrails.enabled', $originalGuardrails);
         }
     }
 

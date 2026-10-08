@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Org-wide security & compliance settings — one row per workspace owner. The
@@ -41,6 +42,24 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class WorkspaceSecurityPolicy extends Model
 {
+    /**
+     * The network rules are read on every authenticated web request (see
+     * EnsureWorkspaceNetworkAllowed), so they are cached. Any save or delete
+     * clears the cache, so a policy change applies on the next request.
+     */
+    protected static function booted(): void
+    {
+        $forget = fn (self $policy): bool => Cache::forget(self::networkRulesCacheKey($policy->workspace_id));
+
+        static::saved($forget);
+        static::deleted($forget);
+    }
+
+    public static function networkRulesCacheKey(int $workspaceId): string
+    {
+        return 'security:network-rules:'.$workspaceId;
+    }
+
     protected function casts(): array
     {
         return [

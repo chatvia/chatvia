@@ -9,6 +9,11 @@ use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+/**
+ * Posts a human operator's reply into a conversation they have taken over:
+ * writes it to the live chat cache and the database under one external id,
+ * then broadcasts it to the visitor.
+ */
 class SendHandoffAdminMessageAction
 {
     public function __construct(
@@ -46,7 +51,10 @@ class SendHandoffAdminMessageAction
                     ],
                 );
 
+            // Same id as the cached copy and the broadcast: read receipts look
+            // the row up by this external_id, so a fresh id would never match.
             $message = Message::create([
+                'external_id' => $messageId,
                 'chat_conversation_id' => $conversation->id,
                 'content' => $data->content,
                 'role' => 'agent',

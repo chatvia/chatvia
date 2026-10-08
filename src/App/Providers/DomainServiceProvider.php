@@ -7,6 +7,7 @@ use App\Identity\Workspace\Events\DataExportReady;
 use App\Identity\Workspace\Events\MagicLinkRequested;
 use App\Identity\Workspace\Listeners\RecordFailedLoginSecurityEvent;
 use App\Identity\Workspace\Listeners\RecordKnownDevice;
+use App\Identity\Workspace\Listeners\RecordLastLogin;
 use App\Identity\Workspace\Listeners\RecordLoginSecurityEvent;
 use App\Identity\Workspace\Listeners\RecordLogoutSecurityEvent;
 use App\Identity\Workspace\Listeners\SendAccountDeletionConfirmationEmail;
@@ -16,14 +17,13 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Observers\UserObserver;
 use App\Identity\Workspace\Services\PasswordAuthenticator;
 use Domain\Agent\Models\Agent;
-use Domain\Agent\Models\ModelSetting;
 use Domain\Agent\Observers\AgentObserver;
-use Domain\Agent\Observers\ModelSettingObserver;
 use Domain\Analytics\Events\McpToolInvoked;
 use Domain\Analytics\Listeners\RecordAnalytics;
 use Domain\Billing\Events\MessageCreditsLow;
 use Domain\Billing\Listeners\HandleStripeWebhook;
 use Domain\Billing\Listeners\RecordLlmTokenUsage;
+use Domain\Billing\Listeners\SyncAddonQuotasFromStripe;
 use Domain\Billing\Listeners\TriggerAutoRecharge;
 use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Conversation\Events\SessionLocationUnknown;
@@ -79,6 +79,7 @@ use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Cashier\Events\WebhookHandled;
 use Laravel\Cashier\Events\WebhookReceived;
 use Support\Cms\Marketing\Models\Post;
 use Support\Cms\Marketing\Observers\PostObserver;
@@ -159,13 +160,13 @@ class DomainServiceProvider extends ServiceProvider
         SourceText::observe(AgentTextObserver::class);
         SourceWebsite::observe(AgentWebsiteObserver::class);
         SourceYoutubeVideo::observe(SourceYoutubeVideoObserver::class);
-        ModelSetting::observe(ModelSettingObserver::class);
         Post::observe(PostObserver::class);
     }
 
     private function registerEventListeners(): void
     {
         Event::listen(Login::class, RecordKnownDevice::class);
+        Event::listen(Login::class, RecordLastLogin::class);
 
         // Enterprise security audit log — one parametric event, persisted off
         // the request by a queued listener. The auth listeners run on the web
@@ -185,6 +186,7 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(MessageCreditsLow::class, TriggerAutoRecharge::class);
         Event::listen(DataExportReady::class, SendDataExportReadyNotification::class);
         Event::listen(WebhookReceived::class, HandleStripeWebhook::class);
+        Event::listen(WebhookHandled::class, SyncAddonQuotasFromStripe::class);
         Event::listen(SessionLocationUnknown::class, LocateSession::class);
         Event::listen(AccountDeletionRequested::class, SendAccountDeletionConfirmationEmail::class);
         Event::listen(LlmTokensConsumed::class, RecordLlmTokenUsage::class);

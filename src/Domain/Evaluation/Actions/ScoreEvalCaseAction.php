@@ -13,6 +13,7 @@ use Domain\Evaluation\Models\EvalRun;
 use Domain\Evaluation\Services\EvalAgentRunner;
 use Domain\Evaluation\Services\Scorers\ScorerRegistry;
 use Illuminate\Support\Str;
+use Support\Text\Utf8;
 
 /**
  * Runs one eval case through the agent's real pipeline, scores the answer with
@@ -129,12 +130,14 @@ class ScoreEvalCaseAction
     }
 
     /**
+     * Byte cap, cut on a character boundary so the stored text stays valid UTF-8.
+     *
      * @return array{0: string, 1: bool}
      */
     private function cap(string $text, int $max): array
     {
         return strlen($text) <= $max
             ? [$text, false]
-            : [substr($text, 0, $max), true];
+            : [Utf8::truncateBytes($text, $max), true];
     }
 }

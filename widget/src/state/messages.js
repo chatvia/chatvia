@@ -17,6 +17,7 @@ import { pickLocalized, t } from '../i18n.js';
 // Canonical markdown impl lives in markdown.js. Import for local use, and
 // re-export so existing call sites that go through messages.js keep working.
 import { parseMarkdown, escapeHtml, htmlToText } from '../markdown.js';
+import { getApiOrigin } from '../endpoints.js';
 export { parseMarkdown, escapeHtml };
 
 /**
@@ -397,7 +398,7 @@ export async function handleFeedback(widget, messageId, isPositive, clickedButto
 /**
  * Render a clickable file chip for a persisted attachment. Clicking opens
  * the public URL in a new tab so the visitor can re-download what they sent.
- * Icon comes from `<__API_URL_HOST__>/images/icons/files/<ext>.svg` — drop a
+ * Icon comes from `<API origin>/images/icons/files/<ext>.svg` — drop a
  * new SVG in there and the chip picks it up automatically.
  */
 function _renderAttachmentChipLink(att) {
@@ -439,8 +440,7 @@ const _KNOWN_FILE_EXTENSIONS = new Set(['pdf']);
 
 function _iconUrlFor(att) {
   const ext = (att.filename || '').split('.').pop()?.toLowerCase();
-  /* global __API_URL__ */
-  const origin = new URL(__API_URL__).origin;
+  const origin = getApiOrigin() || '';
   if (ext && _KNOWN_FILE_EXTENSIONS.has(ext)) {
     return origin + '/images/icons/files/' + ext + '.svg';
   }

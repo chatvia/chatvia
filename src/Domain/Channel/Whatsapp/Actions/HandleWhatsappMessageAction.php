@@ -3,6 +3,7 @@
 namespace Domain\Channel\Whatsapp\Actions;
 
 use Domain\Channel\Services\ChannelAccessGate;
+use Domain\Channel\Services\ChannelLocale;
 use Domain\Channel\Whatsapp\Jobs\HandleWhatsappMessageJob;
 use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Channel\Whatsapp\Services\WhatsappChatResolver;
@@ -23,7 +24,8 @@ use Domain\Channel\Whatsapp\Services\WhatsappReplyRunner;
  */
 class HandleWhatsappMessageAction
 {
-    private const UNAVAILABLE = 'This assistant isn’t available on WhatsApp right now.';
+    /** Shown in the channel's own name, so every channel shares one translation. */
+    private const CHANNEL_NAME = 'WhatsApp';
 
     public function __construct(
         private readonly WhatsappChatResolver $resolver,
@@ -35,7 +37,7 @@ class HandleWhatsappMessageAction
     public function execute(AgentWhatsappNumber $number, string $waId, string $text, string $messageId, ?string $name = null): void
     {
         // Protected agents are never answered on WhatsApp (defence in depth).
-        if (! $this->gate->allows($number->agent, fn () => $this->client->sendMessage($number->access_token, $number->phone_number_id, $waId, self::UNAVAILABLE))) {
+        if (! $this->gate->allows($number->agent, fn () => $this->client->sendMessage($number->access_token, $number->phone_number_id, $waId, ChannelLocale::text($number->agent, 'This assistant isn’t available on :channel right now.', ['channel' => self::CHANNEL_NAME])))) {
             return;
         }
 

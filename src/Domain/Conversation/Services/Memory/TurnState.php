@@ -16,31 +16,16 @@ class TurnState
 
     public function firstOrCreateSession(Agent $agent): string
     {
+        $existing = $this->findSession($agent);
+
+        if ($existing !== null) {
+            Session::put(self::SESSION_KEY, $existing);
+
+            return $existing;
+        }
+
         $workspaceExternalId = $agent->workspaceExternalId();
         $agentExternalId = $agent->external_id;
-
-        $existingSessionId = Session::get(self::SESSION_KEY);
-
-        if ($existingSessionId && $this->isValidSession($existingSessionId, $workspaceExternalId, $agentExternalId)) {
-            return $existingSessionId;
-        }
-
-        // ChatLogoutController invalidates the Laravel session, which drops
-        // cs:session — without reattaching here every relogin would fork a
-        // fresh chat_sessions row and orphan the chatter's prior conversations.
-        if ($this->isMemberAuth()) {
-            $existing = \Domain\Conversation\Models\Session::query()
-                ->where('user_id', Auth::guard('web')->id())
-                ->where('agent_id', $agent->id)
-                ->latest('id')
-                ->first();
-
-            if ($existing) {
-                Session::put(self::SESSION_KEY, $existing->external_id);
-
-                return $existing->external_id;
-            }
-        }
 
         $session = \Domain\Conversation\Models\Session::create([
             'agent_id' => $agent->id,
@@ -50,6 +35,32 @@ class TurnState
         $this->initializeSession($session->external_id, $workspaceExternalId, $agentExternalId);
 
         return $session->external_id;
+    }
+
+    /**
+     * The visitor's existing chat session for this agent, or null. Never
+     * creates one, so read-only endpoints (like search) can use it.
+     */
+    public function findSession(Agent $agent): ?string
+    {
+        $existingSessionId = Session::get(self::SESSION_KEY);
+
+        if ($existingSessionId && $this->isValidSession($existingSessionId, $agent->workspaceExternalId(), $agent->external_id)) {
+            return $existingSessionId;
+        }
+
+        // ChatLogoutController invalidates the Laravel session, which drops
+        // cs:session — without reattaching here every relogin would fork a
+        // fresh chat_sessions row and orphan the chatter's prior conversations.
+        if ($this->isMemberAuth()) {
+            return \Domain\Conversation\Models\Session::query()
+                ->where('user_id', Auth::guard('web')->id())
+                ->where('agent_id', $agent->id)
+                ->latest('id')
+                ->value('external_id');
+        }
+
+        return null;
     }
 
     public function isMemberAuth(): bool

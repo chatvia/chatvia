@@ -64,9 +64,10 @@ class StartTrialCheckoutAction
             'subscription_data' => [
                 'trial_period_days' => $trialDays,
                 'metadata' => array_merge($metadata, [
-                    // These two are only consumed by downstream invoice events
-                    // (HandleStripeWebhook checks `to_package`/`from_package`
-                    // on subscription_cycle). Belong on the subscription, not
+                    // Fallback labels for renewal invoices. HandleStripeWebhook
+                    // derives the renewed plan from the subscription's Stripe
+                    // price and only reads `to_package` when that price is not
+                    // in the billing config. Belong on the subscription, not
                     // the checkout session.
                     'to_package' => strtolower($data->package),
                     'from_package' => 'starter',

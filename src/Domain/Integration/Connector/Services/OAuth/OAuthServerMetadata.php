@@ -38,7 +38,12 @@ class OAuthServerMetadata
             authorizationEndpoint: (string) ($payload['authorization_endpoint'] ?? ''),
             tokenEndpoint: (string) ($payload['token_endpoint'] ?? ''),
             registrationEndpoint: $payload['registration_endpoint'] ?? null,
-            codeChallengeMethodsSupported: (array) ($payload['code_challenge_methods_supported'] ?? ['S256']),
+            // Absent means "not advertised", which counts as no PKCE support
+            // (the MCP authorization spec requires clients to refuse then).
+            codeChallengeMethodsSupported: array_values(array_map(
+                strval(...),
+                array_filter((array) ($payload['code_challenge_methods_supported'] ?? []), 'is_scalar'),
+            )),
             grantTypesSupported: (array) ($payload['grant_types_supported'] ?? ['authorization_code', 'refresh_token']),
             raw: $payload,
         );

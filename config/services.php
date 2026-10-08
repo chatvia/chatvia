@@ -18,12 +18,16 @@ return [
         'token' => env('POSTMARK_TOKEN'),
     ],
 
+    // Base URLs the built-in Weather / Currency MCP tools call. Each workspace
+    // brings its own API key (sent to /mcp/* as a bearer token).
     'openweather' => [
         'key' => env('OPEN_WEATHER_API_KEY'),
+        'base_url' => env('OPEN_WEATHER_BASE_URL', 'https://api.openweathermap.org/data/2.5'),
     ],
 
     'exchange_rate' => [
         'key' => env('EXCHANGE_RATE_API_KEY'),
+        'base_url' => env('EXCHANGE_RATE_API_BASE_URL', 'https://v6.exchangerate-api.com/v6'),
     ],
 
     'ses' => [
@@ -211,7 +215,10 @@ return [
 
     'scalewayai' => [
         'api_key' => env('SCALEWAYAI_API_KEY'),
-        'endpoint' => env('SCALEWAYAI_API_ENDPOINT', 'https://api.scaleway.ai/ce82c941-d642-4fe0-94d7-b89bee83dd9d/v1'),
+        // Base URL for chat, embeddings, rerank and transcription. The generic
+        // URL uses the API key's default project; set a project URL
+        // (https://api.scaleway.ai/{project-id}/v1) to bill a specific project.
+        'endpoint' => env('SCALEWAYAI_API_ENDPOINT', 'https://api.scaleway.ai/v1'),
     ],
 
     'mistral' => [

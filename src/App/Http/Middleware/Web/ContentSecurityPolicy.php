@@ -6,22 +6,63 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Security headers for every page in the `web` group (marketing site,
+ * dashboard and the hosted chat).
+ *
+ * The mode comes from `chatvia.security.csp` (env CSP_MODE):
+ *  - `off`          no headers at all.
+ *  - `report-only`  (default) the policy goes out as
+ *                   Content-Security-Policy-Report-Only, and the headers that
+ *                   block (X-Frame-Options, HSTS) are left out. Browsers only
+ *                   report what the policy would block, so no page can break.
+ *  - `enforce`      Content-Security-Policy, X-Frame-Options, and HSTS in
+ *                   production over HTTPS.
+ *
+ * The policy is deliberately small. It has no script-src / style-src /
+ * connect-src / font-src / frame-src: the app needs 'unsafe-inline' (Alpine,
+ * AOS, Ziggy @routes, inline handlers), and adding a nonce would switch
+ * 'unsafe-inline' off. So Stripe.js, the Reverb websocket, Turnstile,
+ * Plausible, Google Fonts and the asset CDN load without an allow-list. What
+ * is left are the directives that don't fight asset loading.
+ */
 class ContentSecurityPolicy
 {
+    public const MODE_OFF = 'off';
+
+    public const MODE_REPORT_ONLY = 'report-only';
+
+    public const MODE_ENFORCE = 'enforce';
+
+    /**
+     * The trial sign-up form POSTs to us and we redirect to Stripe Checkout.
+     * Browsers apply form-action to that redirect too.
+     */
+    private const STRIPE_CHECKOUT_ORIGIN = 'https://checkout.stripe.com';
+
+    /** Brand icons shown on tool calls in the chat (ToolDisplayResolver). */
+    private const BRAND_ICON_ORIGIN = 'https://cdn.simpleicons.org';
+
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
 
-        // We deliberately do NOT ship script-src/style-src/font-src/connect-src
-        // policies. The app needs 'unsafe-inline' + 'unsafe-eval' anyway (Alpine,
-        // AOS, Ziggy @routes, inline handlers), which neuters CSP's main XSS
-        // benefit, while the allowlist broke on every new CDN/font/dev-server
-        // origin (KaTeX + primeicons fonts, Vite HMR, ...). What's left here are
-        // the cheap, high-value headers that never fight asset loading.
-        $cspDirectives = [
+        $mode = (string) config('chatvia.security.csp', self::MODE_REPORT_ONLY);
+
+        if ($mode === self::MODE_OFF) {
+            return $response;
+        }
+
+        // Anything that isn't exactly `enforce` (a typo included) only reports.
+        $enforce = $mode === self::MODE_ENFORCE;
+
+        $directives = [
             "object-src 'none'",
             "base-uri 'self'",
-            "form-action 'self'",
+            // The app origin is listed next to 'self' because the marketing
+            // pages can be served from another host (e.g. www) than APP_URL,
+            // which is where their forms post.
+            'form-action '.$this->sources(["'self'"], [config('app.url'), self::STRIPE_CHECKOUT_ORIGIN]),
         ];
 
         // The hosted-chat surface (the agent subdomains — every route is named
@@ -32,43 +73,55 @@ class ContentSecurityPolicy
         // is same-origin too.
         $embeddable = $request->routeIs('chat.*') && ! $request->routeIs('chat.login*', 'chat.magic-link*');
 
-        if ($embeddable) {
-            $cspDirectives[] = 'frame-ancestors *';
-            $response->headers->remove('X-Frame-Options');
-        } else {
-            $cspDirectives[] = "frame-ancestors 'self'";
-            $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        $directives[] = $embeddable ? 'frame-ancestors *' : "frame-ancestors 'self'";
+
+        if ($enforce) {
+            if ($embeddable) {
+                $response->headers->remove('X-Frame-Options');
+            } else {
+                $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+            }
         }
 
         // Defence-in-depth against prompt-injection image exfiltration on the
         // hosted-chat surface: even though the assistant renderer already
         // allow-lists <img> hosts, pin img-src so a model-emitted external image
         // is also blocked by the browser. Scoped to chat.* (where the legitimate
-        // image origins are known: self, inline data, the app domain that serves
-        // chunk images, and the public storage/CDN host) so it never fights the
-        // marketing/dashboard asset pipeline. Does NOT require 'unsafe-inline'.
+        // image origins are known) so it never fights the marketing/dashboard
+        // asset pipeline. Does NOT require 'unsafe-inline'.
         if ($request->routeIs('chat.*')) {
-            $imgSources = ["'self'", 'data:', 'blob:'];
-
-            foreach ([config('app.url'), config('filesystems.disks.public.url')] as $candidate) {
-                $origin = $this->originOf((string) $candidate);
-                if ($origin !== null) {
-                    $imgSources[] = $origin;
-                }
-            }
-
-            $cspDirectives[] = 'img-src '.implode(' ', array_values(array_unique($imgSources)));
+            $directives[] = 'img-src '.$this->sources(["'self'", 'data:', 'blob:'], [
+                // Chunk images are absolute URLs on the app domain.
+                config('app.url'),
+                // Built assets when they are served from a CDN host.
+                config('app.asset_url'),
+                // Chat attachments (public bucket).
+                config('filesystems.disks.public.url'),
+                // Profile photos, agent logo and avatar (CDN pull zone).
+                config('filesystems.disks.assets.pull_zone'),
+                self::BRAND_ICON_ORIGIN,
+            ]);
         }
 
-        $response->headers->set('Content-Security-Policy', implode('; ', $cspDirectives));
+        $reportUri = trim((string) config('chatvia.security.csp_report_uri', ''));
 
-        // Additional security headers.
+        if ($reportUri !== '') {
+            $directives[] = 'report-uri '.$reportUri;
+        }
+
+        $response->headers->set(
+            $enforce ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only',
+            implode('; ', $directives),
+        );
+
+        // These two never block a page load, so they go out in both modes.
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-        // HSTS: force HTTPS for two years incl. subdomains. Only over a secure
-        // connection in production so local/dev (http) is unaffected.
-        if ($request->secure() && app()->isProduction()) {
+        // HSTS: force HTTPS for two years incl. subdomains. Only when enforcing,
+        // and only over a secure connection in production so local/dev (http)
+        // is unaffected.
+        if ($enforce && $request->secure() && app()->isProduction()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
         }
 
@@ -76,13 +129,43 @@ class ContentSecurityPolicy
     }
 
     /**
+     * Join fixed source keywords with the origins of configured URLs, skipping
+     * empty or malformed values and duplicates.
+     *
+     * @param  list<string>  $keywords
+     * @param  list<mixed>  $urls
+     */
+    private function sources(array $keywords, array $urls): string
+    {
+        $sources = $keywords;
+
+        foreach ($urls as $url) {
+            $origin = $this->originOf((string) $url);
+
+            if ($origin !== null) {
+                $sources[] = $origin;
+            }
+        }
+
+        return implode(' ', array_values(array_unique($sources)));
+    }
+
+    /**
      * Reduce a configured URL to its `scheme://host[:port]` origin for use as a
-     * CSP source, or null when the value is empty/malformed.
+     * CSP source, or null when the value is empty/malformed. A relative path is
+     * same-origin ('self' covers it). A bare host (no scheme, as a CDN pull
+     * zone is sometimes configured) is taken as https.
      */
     private function originOf(string $url): ?string
     {
-        if ($url === '') {
+        $url = trim($url);
+
+        if ($url === '' || (str_starts_with($url, '/') && ! str_starts_with($url, '//'))) {
             return null;
+        }
+
+        if (! str_contains($url, '://')) {
+            $url = 'https://'.ltrim($url, '/');
         }
 
         $parts = parse_url($url);

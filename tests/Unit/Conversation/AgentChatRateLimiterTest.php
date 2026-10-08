@@ -92,3 +92,18 @@ it('forget() drops the cached config so a new cap applies immediately', function
     // Without forget() the stale cap=1 would still block; the raised cap now wins.
     expect($this->limiter->exceeded($agent))->toBeFalse();
 });
+
+it('counts in a fixed window that refused turns do not extend', function (): void {
+    $agent = Agent::factory()->create();
+    $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 1, group: 'security');
+
+    expect($this->limiter->exceeded($agent))->toBeFalse();   // opens the window
+
+    $this->travel(30)->seconds();
+    expect($this->limiter->exceeded($agent))->toBeTrue();    // refused, still counted
+
+    // 61s after the FIRST message the window is over, even though a turn was
+    // refused 31s ago — a sliding window would still block here.
+    $this->travel(31)->seconds();
+    expect($this->limiter->exceeded($agent))->toBeFalse();
+});

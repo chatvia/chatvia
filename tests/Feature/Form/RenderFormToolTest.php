@@ -133,3 +133,19 @@ it('does not render an inactive form even by its exact slug', function (): void 
 
     expect(FormSubmission::query()->exists())->toBeFalse();
 });
+
+it('does not record the server-to-server IP or user agent on a rendered form', function (): void {
+    $agent = Agent::factory()->create();
+    FormDefinition::factory()->forAgent($agent)->create(['slug' => 'book-a-demo', 'is_active' => true]);
+    $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::HostedChat]);
+
+    // The MCP call comes from Chatvia's own server, not the visitor.
+    app(HttpRequest::class)->headers->set('User-Agent', 'GuzzleHttp/7');
+    renderAs($agent, $conversation);
+
+    FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])->assertOk();
+
+    $pending = FormSubmission::where('chat_conversation_id', $conversation->id)->sole();
+    expect($pending->ip_address)->toBeNull()
+        ->and($pending->user_agent)->toBeNull();
+});

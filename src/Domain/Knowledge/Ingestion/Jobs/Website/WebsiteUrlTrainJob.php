@@ -17,7 +17,10 @@ use Throwable;
 
 class WebsiteUrlTrainJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
-    use Batchable, \Illuminate\Foundation\Queue\Queueable, TracksTokenUsage;
+    use Batchable, \Illuminate\Foundation\Queue\Queueable;
+    use TracksTokenUsage {
+        middleware as tokenUsageMiddleware;
+    }
 
     /**
      * Cap on genuine processing errors (scrape/embedding failures). FireCrawl
@@ -40,10 +43,16 @@ class WebsiteUrlTrainJob implements AttributesTokenUsage, ShouldBeUnique, Should
         $this->onQueue('ingestion.website');
     }
 
-    /** @return array<int, object> */
+    /**
+     * Defining middleware() here replaces the one from {@see TracksTokenUsage},
+     * so the token-usage middleware is merged in explicitly. The throttle runs
+     * first: a throttled job is released before any LLM call is made.
+     *
+     * @return array<int, object>
+     */
     public function middleware(): array
     {
-        return [new ThrottleFirecrawl];
+        return [new ThrottleFirecrawl, ...$this->tokenUsageMiddleware()];
     }
 
     /**

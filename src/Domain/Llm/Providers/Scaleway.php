@@ -26,11 +26,11 @@ class Scaleway extends AbstractLlmProvider
      */
     public function getCompletionEndpoint(): string
     {
-        return 'https://api.scaleway.ai/ce82c941-d642-4fe0-94d7-b89bee83dd9d/v1/chat/completions';
+        return $this->getBaseUrl().'/chat/completions';
     }
 
     /**
-     * Get the API key for Groq.
+     * Get the API key for Scaleway.
      *
      * @return string The API key
      */
@@ -40,12 +40,22 @@ class Scaleway extends AbstractLlmProvider
     }
 
     /**
-     * Get the base URL for Groq.
+     * Get the base URL for Scaleway Generative APIs.
      *
-     * @return string The base URL
+     * @return string The base URL, without a trailing slash
      */
     public function getBaseUrl(): string
     {
-        return 'https://api.scaleway.ai/ce82c941-d642-4fe0-94d7-b89bee83dd9d/v1';
+        return self::baseUrl();
+    }
+
+    /**
+     * The configured Scaleway Generative APIs base URL. Shared by the chat
+     * provider, the Qwen3 embedding/rerank client and audio transcription so
+     * the project URL is set in one place (`services.scalewayai.endpoint`).
+     */
+    public static function baseUrl(): string
+    {
+        return rtrim((string) config('services.scalewayai.endpoint'), '/');
     }
 }

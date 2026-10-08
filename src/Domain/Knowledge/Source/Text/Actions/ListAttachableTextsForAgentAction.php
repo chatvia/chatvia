@@ -8,10 +8,13 @@ use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Data\TrainedTextRowData;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /**
- * Every ingested text in the user's account that's not already attached to the
- * given agent — feeds the "Attach an existing text" list on the agent page.
+ * Every ingested text in the user's workspace that's not already attached to
+ * the given agent — feeds the "Attach an existing text" list on the agent page.
  */
 class ListAttachableTextsForAgentAction
 {
@@ -23,11 +26,31 @@ class ListAttachableTextsForAgentAction
         $currentIds = $agent->texts()->pluck('source_texts.id');
 
         return SourceText::query()
-            ->where('user_id', $user->id)
+            // Texts belong to the workspace owner, not to the teammate viewing them.
+            ->where('user_id', $user->workspace()->id)
             ->where('status', SourceStatus::Completed->value)
             ->whereNotIn('id', $currentIds)
             ->with(['agents' => fn ($q) => $q->select('agents.id', 'agents.name')])
             ->get()
-            ->map(fn (SourceText $text): TrainedTextRowData => TrainedTextRowData::fromModel($text));
+            ->map(fn (SourceText $text): TrainedTextRowData => TrainedTextRowData::fromModel($text, $this->wordCount($text)));
+    }
+
+    /**
+     * The full text lives in storage, not in the row. Count it once per
+     * content checksum so the list doesn't re-read every file on each open.
+     */
+    private function wordCount(SourceText $text): int
+    {
+        return Cache::rememberForever('knowledge:text:word-count:'.$text->checksum, function () use ($text): int {
+            try {
+                $content = (string) Storage::get($text->filepath);
+            } catch (Throwable $e) {
+                report($e);
+
+                return 0;
+            }
+
+            return count(preg_split('/\s+/u', trim($content), -1, PREG_SPLIT_NO_EMPTY) ?: []);
+        });
     }
 }

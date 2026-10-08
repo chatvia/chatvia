@@ -6,7 +6,6 @@ use App\Http\Requests\Team\InviteTeamMemberRequest;
 use Domain\Membership\Team\Actions\Members\InviteTeamMemberAction;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
-use Support\Exceptions\DomainValidationException;
 
 class TeamInviteMemberController
 {
@@ -15,11 +14,7 @@ class TeamInviteMemberController
         Team $team,
         InviteTeamMemberAction $invite,
     ): RedirectResponse {
-        try {
-            $invite->execute($request->toData($team));
-        } catch (DomainValidationException $e) {
-            return back()->withErrors([$e->field => $e->getMessage()]);
-        }
+        $invite->execute($request->toData($team));
 
         return back()->with('success', 'Invitation sent successfully.');
     }

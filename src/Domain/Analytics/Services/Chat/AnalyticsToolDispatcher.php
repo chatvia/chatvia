@@ -14,9 +14,9 @@ use Throwable;
  * the agent path ({@see McpToolDispatcher})
  * there is no agent and no `mcp_servers` row: we hand {@see McpClient} a
  * transient, in-memory server pointed at the internal route and identify the
- * caller with a signed `X-Chatvia-Workspace-Id`. McpClient HMAC-signs internal
- * URLs automatically, so the call satisfies VerifyInternalMcpRequest's
- * workspace mode.
+ * caller with `X-Chatvia-Workspace-Id`. McpClient HMAC-signs first-party
+ * servers, including that header, so the call satisfies
+ * VerifyInternalMcpRequest's workspace mode.
  */
 class AnalyticsToolDispatcher
 {
@@ -29,8 +29,12 @@ class AnalyticsToolDispatcher
      */
     public function dispatch(User $workspace, string $toolName, string $url, array $arguments): ToolDispatchResult
     {
+        // The connector slug is the route's last path segment (…/mcp/charts →
+        // charts). McpClient only signs a server whose slug and canonical
+        // internal URL agree, so a URL that isn't one of ours is never signed.
         $server = new AgentMcpServer;
         $server->forceFill([
+            'connector_slug' => basename((string) parse_url($url, PHP_URL_PATH)),
             'url' => $url,
             'auth_type' => 'none',
             'auth_value' => null,

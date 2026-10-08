@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { connectorLogoUrl } from '@/lib/connectorLogo';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -82,11 +83,7 @@ async function submit(): Promise<void> {
             <DialogHeader>
                 <div class="mb-1 flex items-center gap-3">
                     <div class="flex h-9 w-9 items-center justify-center rounded-md" :style="{ backgroundColor: '#' + connector.brandColor + '15' }">
-                        <img
-                            :src="connector.logoUrl ?? `https://cdn.simpleicons.org/${connector.icon}/${connector.brandColor}`"
-                            :alt="connector.name"
-                            class="h-5 w-5"
-                        />
+                        <img :src="connectorLogoUrl(connector)" :alt="connector.name" class="h-5 w-5" />
                     </div>
                     <DialogTitle>{{ t('workspace.connectors.connect_title', { name: connectorName(connector) }) }}</DialogTitle>
                 </div>

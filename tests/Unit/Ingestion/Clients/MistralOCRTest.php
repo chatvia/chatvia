@@ -5,6 +5,7 @@ use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Wire-format coverage for the Mistral OCR client — the externally-hosted parser
@@ -137,4 +138,50 @@ it('omits hyperlinks when the upstream payload doesn\'t include them', function 
 
     expect($page->hyperlinks)->toBe([])
         ->and($page->pageNumber)->toBe(2);
+});
+
+it('writes the temporary OCR copy under the owner prefix and deletes it after success', function (): void {
+    Storage::fake();
+    Storage::disk()->buildTemporaryUrlsUsing(fn (string $path): string => 'https://files.test/'.$path);
+
+    $seenPath = null;
+
+    Http::fake(function (Request $request) use (&$seenPath) {
+        $seenPath = str_replace('https://files.test/', '', (string) $request['document']['document_url']);
+
+        // The copy must exist while Mistral fetches it.
+        expect(Storage::exists($seenPath))->toBeTrue();
+
+        return Http::response(ocrResponse([
+            'index' => 1,
+            'markdown' => 'page',
+            'images' => [],
+            'tables' => [],
+        ]), 200);
+    });
+
+    $local = create_temp_file('manual.pdf', '%PDF-1.4 test');
+
+    $pages = app(MistralOCR::class)->fromFile($local, 'users/ws-ext/agents/agent-ext/tmp');
+
+    expect($pages)->toHaveCount(1)
+        ->and($seenPath)->toStartWith('users/ws-ext/agents/agent-ext/tmp/')
+        ->and(Storage::exists($seenPath))->toBeFalse()
+        ->and(Storage::allFiles())->toBe([]);
+});
+
+it('deletes the temporary OCR copy when the OCR call fails', function (): void {
+    Storage::fake();
+    Storage::disk()->buildTemporaryUrlsUsing(fn (string $path): string => 'https://files.test/'.$path);
+
+    Http::fake([
+        'api.mistral.ai/v1/ocr' => Http::response(['error' => 'boom'], 500),
+    ]);
+
+    $local = create_temp_file('manual.pdf', '%PDF-1.4 test');
+
+    expect(fn () => app(MistralOCR::class)->fromFile($local, 'users/ws-ext/agents/agent-ext/tmp'))
+        ->toThrow(RequestException::class);
+
+    expect(Storage::allFiles())->toBe([]);
 });

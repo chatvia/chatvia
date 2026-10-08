@@ -51,7 +51,7 @@ use Support\Concerns\HasExternalId;
  * @property-read AgentQuestionAnswer|null $questionAnswer
  *
  * @method static \Database\Factories\MessageFactory factory($count = null, $state = [])
- * @method static MessageQueryBuilder<static>|Message forAgentConversation(int $agentId, string $conversationId)
+ * @method static MessageQueryBuilder<static>|Message forAgentConversation(int $agentId, int $conversationId)
  * @method static MessageQueryBuilder<static>|Message newModelQuery()
  * @method static MessageQueryBuilder<static>|Message newQuery()
  * @method static MessageQueryBuilder<static>|Message query()

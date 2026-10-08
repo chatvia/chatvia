@@ -209,6 +209,7 @@ SQL;
             ->where('agent_sources.agent_id', $agentId)
             ->select([
                 'source_files.filename',
+                'source_files.document_classification',
                 'agent_sources.retrieval_count',
                 'source_files.mime_type',
                 'agent_sources.last_retrieved_at',

@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\McpToolInvoked;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
 use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatchResult;
+use Domain\Conversation\Services\Tooling\Registry\McpServerLookup;
 use Domain\Conversation\Services\Tooling\Registry\ToolCallerIdentity;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -25,6 +26,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
     public function __construct(
         private readonly McpClient $client,
         private readonly McpToolPermissionResolver $permissions,
+        private readonly McpServerLookup $servers,
     ) {}
 
     public function dispatch(Agent $agent, string $name, string $arguments, ?string $conversationExternalId = null, ?string $chatterExternalId = null): ToolDispatchResult
@@ -35,17 +37,10 @@ class McpToolDispatcher implements ToolDispatcherInterface
             return $this->error("Tool \"{$name}\" is not a recognized MCP tool.");
         }
 
-        // Attached to this agent (workspace-owned + on the pivot).
-        $server = AgentMcpServer::query()
-            ->where('slug', $slug)
-            ->where('is_enabled', true)
-            ->where('user_id', $agent->user_id)
-            ->whereExists(function ($sub) use ($agent): void {
-                $sub->from('agent_mcp_server')
-                    ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')
-                    ->where('agent_mcp_server.agent_id', $agent->id);
-            })
-            ->first();
+        // Attached to this agent (workspace-owned, enabled, on the pivot).
+        // Shared per-request lookup: the display + approval steps already
+        // loaded this row for the same call.
+        $server = $this->servers->attachedToAgent($agent, $slug);
 
         if (! $server) {
             return $this->error("MCP server \"{$slug}\" is not attached to this agent or is disabled.");
@@ -75,26 +70,55 @@ class McpToolDispatcher implements ToolDispatcherInterface
 
             $this->record($server, $agent, $toolName, $catalogRow?->description, error: null);
 
+            // Argument values are visitor data (emails, phone numbers, …):
+            // log their keys only.
             Log::info('MCP tool dispatched', [
                 'server' => $server->slug,
                 'tool' => $toolName,
-                'args' => $this->summarizeArgs($args),
+                'arg_keys' => array_keys($args),
                 'latency_ms' => $latencyMs,
             ]);
 
             return $dispatchResult;
         } catch (Throwable $e) {
+            // The full message stays with the workspace (the server row's
+            // last_error); logs get the exception type only, since transport
+            // messages can echo URLs, tokens or visitor data.
             $this->record($server, $agent, $toolName, $catalogRow?->description, error: $e->getMessage());
 
             Log::warning('MCP tool dispatch failed', [
                 'server' => $server->slug,
                 'tool' => $toolName,
-                'args' => $this->summarizeArgs($args),
-                'error' => $e->getMessage(),
+                'arg_keys' => array_keys($args),
+                'exception' => $e::class,
+                'code' => $e->getCode(),
             ]);
 
-            return $this->error($e->getMessage());
+            return $this->error($this->messageForModel($e));
         }
+    }
+
+    /**
+     * What the model may see about a failed call. Only an error the MCP
+     * server itself reported passes through; transport failures become a
+     * generic sentence so URLs, response bodies and stack details never
+     * reach the model (and so never the visitor).
+     */
+    private function messageForModel(Throwable $e): string
+    {
+        if ($e instanceof McpException && $e->serverMessage !== null) {
+            return 'The tool reported an error: '.mb_substr($e->serverMessage, 0, 500);
+        }
+
+        if ($e instanceof McpException && $e->getCode() >= 400 && $e->getCode() < 600) {
+            return "The tool's server returned an error (HTTP {$e->getCode()}). Try again later.";
+        }
+
+        if ($e instanceof McpException) {
+            return "The tool's server could not be reached or sent an invalid reply. Try again later.";
+        }
+
+        return 'The tool failed unexpectedly. Try again later.';
     }
 
     /**
@@ -233,23 +257,5 @@ class McpToolDispatcher implements ToolDispatcherInterface
             $error,
             now(),
         );
-    }
-
-    /**
-     * JSON-encode tool args for logging; truncate so a giant inline
-     * payload (HTML body, base64 image, etc.) doesn't blow up the log.
-     *
-     * @param  array<string, mixed>  $args
-     */
-    private function summarizeArgs(array $args): string
-    {
-        $encoded = json_encode($args, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        if ($encoded === false) {
-            return '<unserializable>';
-        }
-
-        return mb_strlen($encoded) > 500
-            ? mb_substr($encoded, 0, 500).'…[truncated]'
-            : $encoded;
     }
 }

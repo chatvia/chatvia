@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Ingestion\Services;
 use Domain\Analytics\Data\ContentAnalysisData;
 use Domain\Llm\Providers\Mistral;
 use Exception;
+use Illuminate\Http\Client\Response;
 
 class ContentAnalyzer
 {
@@ -14,7 +15,15 @@ class ContentAnalyzer
 
     public function fromUrl(string $documentUrl): ContentAnalysisData
     {
-        $response = $this->provider->completion([
+        return $this->parse($this->complete($documentUrl));
+    }
+
+    /**
+     * The raw completion response, for callers that also need its `usage`.
+     */
+    public function complete(string $documentUrl): Response
+    {
+        return $this->provider->completion([
             'model' => 'mistral-large-latest',
             'max_tokens' => 1024,
             'messages' => [
@@ -40,7 +49,12 @@ class ContentAnalyzer
                     'schema' => $this->fileAnalysisSchema(),
                 ],
             ],
-        ])->json();
+        ]);
+    }
+
+    public function parse(Response $completion): ContentAnalysisData
+    {
+        $response = $completion->json();
 
         if (! isset($response['choices'][0]['message']['content'])) {
             throw new Exception('No valid response content found');

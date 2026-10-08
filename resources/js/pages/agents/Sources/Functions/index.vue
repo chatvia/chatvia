@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import type { AgentFunction } from '@/types/agent-function';
 import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { AlertCircle, Code, FunctionSquare, LoaderCircle, Search } from 'lucide-vue-next';
@@ -21,9 +20,7 @@ const props = defineProps<Props>();
 
 const { t } = useI18n();
 
-interface FunctionRow extends AgentFunction {
-    is_attached: boolean;
-}
+type FunctionRow = Domain.Integration.Function.Data.Resources.AgentFunctionRowData;
 
 const loading = ref(true);
 const functions = ref<FunctionRow[]>([]);
@@ -36,7 +33,7 @@ const filtered = computed(() => {
         (f) =>
             f.internal_name.toLowerCase().includes(q) ||
             (f.display_name ?? '').toLowerCase().includes(q) ||
-            f.description.toLowerCase().includes(q) ||
+            (f.description ?? '').toLowerCase().includes(q) ||
             f.webhook_url.toLowerCase().includes(q),
     );
 });

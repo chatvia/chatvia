@@ -4,20 +4,16 @@ namespace App\Providers;
 
 use App\Identity\Workspace\Actions\Fortify\ResetUserPassword;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\PasswordAuthenticator;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Laravel\Fortify\Actions\AttemptToAuthenticate;
-use Laravel\Fortify\Actions\CanonicalizeUsername;
-use Laravel\Fortify\Actions\EnsureLoginIsNotThrottled;
-use Laravel\Fortify\Actions\PrepareAuthenticatedSession;
-use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
-use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Passkeys\Contracts\PasskeyUser;
+use Laravel\Passkeys\Passkeys;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -31,20 +27,9 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
         $this->registerAuthCallback();
-        $this->registerAuthPipeline();
+        $this->registerPasskeyLoginGate();
         $this->registerViews();
         $this->registerRateLimiters();
-    }
-
-    private function registerAuthPipeline(): void
-    {
-        Fortify::authenticateThrough(fn (): array => array_filter([
-            config('fortify.limiters.login') ? null : EnsureLoginIsNotThrottled::class,
-            config('fortify.lowercase_usernames') ? CanonicalizeUsername::class : null,
-            Features::enabled(Features::twoFactorAuthentication()) ? RedirectIfTwoFactorAuthenticatable::class : null,
-            AttemptToAuthenticate::class,
-            PrepareAuthenticatedSession::class,
-        ]));
     }
 
     /**
@@ -52,26 +37,37 @@ class FortifyServiceProvider extends ServiceProvider
      * default Fortify login pipeline (before the 2FA short-circuit), so the
      * 2FA challenge still kicks in for users that have it enabled — we just
      * return the user and let Fortify own the session login + redirect.
+     *
+     * Chatters sign in on the hosted chat (/chat/login), never here, and a
+     * deactivated account can't sign in at all.
      */
     private function registerAuthCallback(): void
     {
         Fortify::authenticateUsing(function (Request $request): ?User {
-            $user = User::query()
-                ->where('email', $request->string('email')->toString())
-                ->first();
+            $user = app(PasswordAuthenticator::class)->findUserByCredentials(
+                $request->string(Fortify::username())->toString(),
+                $request->string('password')->toString(),
+            );
 
-            if ($user === null || ! Hash::check($request->string('password')->toString(), $user->password)) {
+            if ($user === null || $user->isChatter() || $user->isDeactivated()) {
                 return null;
             }
-
-            if (Str::doesntContain($request->url(), '/chat') && $user->isChatter()) {
-                return null;
-            }
-
-            $user->update(['last_login_at' => now()]);
 
             return $user;
         });
+    }
+
+    /**
+     * A passkey proves who the user is, but the same account rules as the
+     * password login apply: no chatters, no deactivated accounts.
+     */
+    private function registerPasskeyLoginGate(): void
+    {
+        Passkeys::authorizeLoginUsing(
+            fn (Request $request, PasskeyUser $user): bool => $user instanceof User
+                && ! $user->isChatter()
+                && ! $user->isDeactivated(),
+        );
     }
 
     private function registerViews(): void

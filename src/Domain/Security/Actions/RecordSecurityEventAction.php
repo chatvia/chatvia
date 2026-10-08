@@ -6,6 +6,7 @@ use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Listeners\RecordSecurityEvent;
 use Domain\Security\Models\SecurityAuditLog;
 use Illuminate\Support\Str;
+use Support\Text\Utf8;
 
 /**
  * Writes one immutable security audit row (`security_audit_log`) for a
@@ -61,14 +62,15 @@ class RecordSecurityEventAction
                 return [$redacted, false];
             }
 
-            return [substr($encoded, 0, $max), true];
+            return [Utf8::truncateBytes($encoded, $max), true];
         }
 
         if (strlen($raw) <= $max) {
             return [$raw, false];
         }
 
-        return [substr($raw, 0, $max), true];
+        // Cut on a character boundary so the stored text stays valid UTF-8.
+        return [Utf8::truncateBytes($raw, $max), true];
     }
 
     /**

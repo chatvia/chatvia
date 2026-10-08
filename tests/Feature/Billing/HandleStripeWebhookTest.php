@@ -6,7 +6,6 @@ use Domain\Billing\Actions\Subscriptions\GrantSubscriptionAction;
 use Domain\Billing\Listeners\HandleStripeWebhook;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserCredit;
-use Domain\Billing\Models\UserQuota;
 use Domain\Billing\Notifications\FounderWelcomeNotification;
 use Domain\Billing\Notifications\TrialWelcomeNotification;
 use Illuminate\Support\Facades\Cache;
@@ -14,6 +13,7 @@ use Illuminate\Support\Facades\Notification;
 use Laravel\Cashier\Events\WebhookReceived;
 use Mockery as m;
 use Stripe\Customer;
+use Stripe\Exception\ApiConnectionException;
 use Stripe\StripeClient;
 use Stripe\Subscription as StripeSubscription;
 
@@ -55,25 +55,6 @@ function makeAddonCheckoutPayload(string $eventId, string $customerId, int $mess
                     'type' => 'addon',
                     'id' => 'extra_message_credits',
                     'messages' => $messages,
-                ],
-            ],
-        ],
-    ];
-}
-
-function makeAddonSubscriptionCreatedPayload(string $eventId, string $customerId, string $addon, int $quantity): array
-{
-    return [
-        'id' => $eventId,
-        'type' => 'checkout.session.completed',
-        'data' => [
-            'object' => [
-                'id' => 'cs_test_'.$eventId,
-                'customer' => $customerId,
-                'metadata' => [
-                    'type' => 'addon_subscription',
-                    'addon' => $addon,
-                    'quantity' => $quantity,
                 ],
             ],
         ],
@@ -193,33 +174,6 @@ it('records a UserAddon for an extra_message_credits checkout', function (): voi
         ->and($addon->stripe_id)->toBe('cs_test_evt_addon_test')
         ->and($addon->started_at)->not->toBeNull()
         ->and($addon->ends_at)->not->toBeNull();
-});
-
-it('mirrors extra_agents addon quantity onto user_quotas.extra_agents_limit', function (): void {
-    $user = User::factory()->create();
-    $user->billing()->create(['stripe_id' => 'cus_extra_agents']);
-
-    app(HandleStripeWebhook::class)->handle(new WebhookReceived(
-        makeAddonSubscriptionCreatedPayload('evt_extra_agents', 'cus_extra_agents', addon: 'extra_agents', quantity: 5)
-    ));
-
-    expect($user->fresh()->quota->extra_agents_limit)->toBe(5);
-});
-
-it('ignores addon_subscription events for unknown addon names', function (): void {
-    $user = User::factory()->create();
-    $user->billing()->create(['stripe_id' => 'cus_unknown_addon']);
-    UserQuota::firstOrCreate(
-        ['user_id' => $user->id],
-        config('billing.packages.starter.quota_limits.fixed', []),
-    );
-    $baselineExtraAgents = $user->fresh()->quota->extra_agents_limit;
-
-    app(HandleStripeWebhook::class)->handle(new WebhookReceived(
-        makeAddonSubscriptionCreatedPayload('evt_unknown_addon', 'cus_unknown_addon', addon: 'unrecognised-addon', quantity: 9)
-    ));
-
-    expect($user->fresh()->quota->extra_agents_limit)->toBe($baselineExtraAgents);
 });
 
 function makeTrialRegistrationPayload(string $eventId, string $customerId, string $package = 'starter'): array
@@ -343,29 +297,296 @@ it('provisions a user when Stripe POSTs a trial checkout.session.completed to th
     });
 });
 
-it('resets extra_agents_limit to 0 on customer.subscription.deleted', function (): void {
-    $user = User::factory()->create();
-    $user->billing()->create(['stripe_id' => 'cus_deleted_sub']);
-    UserQuota::firstOrCreate(
-        ['user_id' => $user->id],
-        config('billing.packages.starter.quota_limits.fixed', []),
-    );
-    $user->quota()->update(['extra_agents_limit' => 4]);
+function configurePlanPrices(): void
+{
+    config([
+        'billing.packages.starter.stripe_monthly_price_id' => 'price_starter_monthly',
+        'billing.packages.starter.stripe_yearly_price_id' => 'price_starter_yearly',
+        'billing.packages.standard.stripe_monthly_price_id' => 'price_standard_monthly',
+        'billing.packages.standard.stripe_yearly_price_id' => 'price_standard_yearly',
+        'billing.packages.pro.stripe_monthly_price_id' => 'price_pro_monthly',
+        'billing.packages.pro.stripe_yearly_price_id' => 'price_pro_yearly',
+    ]);
+}
 
-    app(HandleStripeWebhook::class)->handle(new WebhookReceived([
-        'id' => 'evt_subscription_deleted',
-        'type' => 'customer.subscription.deleted',
+/**
+ * A renewal invoice in the older API shape: `subscription_details` at the top
+ * level and `price.id` on each line.
+ *
+ * @param  array<string, mixed>  $metadata
+ * @param  list<array<string, mixed>>  $lines
+ */
+function makeRenewalInvoicePayload(string $eventId, string $customerId, array $metadata, array $lines): array
+{
+    return [
+        'id' => $eventId,
+        'type' => 'invoice.payment_succeeded',
         'data' => [
             'object' => [
-                'id' => 'sub_test_deleted',
-                'customer' => 'cus_deleted_sub',
-                'metadata' => [
-                    'type' => 'addon_subscription',
-                    'addon' => 'extra_agents',
+                'id' => 'in_'.$eventId,
+                'customer' => $customerId,
+                'billing_reason' => 'subscription_cycle',
+                'subscription' => 'sub_'.$eventId,
+                'subscription_details' => ['metadata' => $metadata],
+                'lines' => ['object' => 'list', 'data' => $lines],
+            ],
+        ],
+    ];
+}
+
+it('derives the renewed plan and yearly cycle from the invoice price, not the cleared metadata', function (): void {
+    // After a scheduled plan change is applied, the listener clears
+    // `to_package` / `is_yearly` on the Stripe subscription. The next renewal
+    // must still grant the plan the customer pays for (here Pro yearly), not
+    // starter quotas on a monthly cycle.
+    configurePlanPrices();
+
+    $user = User::factory()->create();
+    $user->billing()->create(['stripe_id' => 'cus_renew_pro_yearly']);
+
+    app(HandleStripeWebhook::class)->handle(new WebhookReceived(makeRenewalInvoicePayload(
+        'evt_renew_pro_yearly',
+        'cus_renew_pro_yearly',
+        metadata: ['pending_change' => 'false', 'applied_at' => now()->subYear()->toISOString()],
+        lines: [
+            // A proration line carries the previous plan's price and must be ignored.
+            ['id' => 'il_1', 'proration' => true, 'price' => ['id' => 'price_starter_monthly']],
+            ['id' => 'il_2', 'proration' => false, 'type' => 'subscription', 'price' => ['id' => 'price_pro_yearly']],
+        ],
+    )));
+
+    $user = $user->fresh();
+    $credit = UserCredit::where('user_id', $user->id)->latest('id')->first();
+
+    expect($user->billing->plan)->toBe('pro')
+        ->and($user->quota->agents_limit)->toBe(20)
+        ->and($credit->messages)->toBe(648000)
+        ->and($credit->ends_at->greaterThan(now()->addMonths(11)))->toBeTrue();
+});
+
+it('reads the plan price from the newer invoice shape (parent.subscription_details + pricing)', function (): void {
+    configurePlanPrices();
+
+    $user = User::factory()->create();
+    $user->billing()->create(['stripe_id' => 'cus_renew_basil']);
+
+    app(HandleStripeWebhook::class)->handle(new WebhookReceived([
+        'id' => 'evt_renew_basil',
+        'type' => 'invoice.payment_succeeded',
+        'data' => [
+            'object' => [
+                'id' => 'in_renew_basil',
+                'customer' => 'cus_renew_basil',
+                'billing_reason' => 'subscription_cycle',
+                'parent' => [
+                    'type' => 'subscription_details',
+                    'subscription_details' => ['subscription' => 'sub_basil', 'metadata' => []],
                 ],
+                'lines' => ['object' => 'list', 'data' => [[
+                    'id' => 'il_basil',
+                    'parent' => ['type' => 'subscription_item_details', 'subscription_item_details' => ['proration' => false]],
+                    'pricing' => ['type' => 'price_details', 'price_details' => ['price' => 'price_standard_monthly', 'product' => 'prod_standard']],
+                ]]],
             ],
         ],
     ]));
 
-    expect($user->fresh()->quota->extra_agents_limit)->toBe(0);
+    $credit = UserCredit::where('user_id', $user->id)->latest('id')->first();
+
+    expect($user->fresh()->billing->plan)->toBe('standard')
+        ->and($credit->messages)->toBe(15000);
+});
+
+it('falls back to the synced Cashier subscription price when the invoice carries no lines', function (): void {
+    configurePlanPrices();
+
+    $user = User::factory()->create();
+    $billing = $user->billing()->create(['stripe_id' => 'cus_renew_local']);
+    $billing->subscriptions()->create([
+        'type' => 'default',
+        'stripe_id' => 'sub_local_plan',
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_standard_yearly',
+        'quantity' => 1,
+    ]);
+
+    app(HandleStripeWebhook::class)->handle(new WebhookReceived(makeRenewalInvoicePayload(
+        'evt_renew_local',
+        'cus_renew_local',
+        metadata: [],
+        lines: [],
+    )));
+
+    $credit = UserCredit::where('user_id', $user->id)->latest('id')->first();
+
+    expect($user->fresh()->billing->plan)->toBe('standard')
+        ->and($credit->messages)->toBe(192000);
+});
+
+it('does not re-grant the plan when an add-on subscription renews', function (): void {
+    // An extra-agents add-on renews on its own invoice. Granting the plan from
+    // it would reset the cycle's message credits and overwrite the quotas.
+    configurePlanPrices();
+    config(['billing.addons.extra_agents.stripe_price_id' => 'price_extra_agent']);
+
+    $user = User::factory()->create();
+    $user->billing()->create(['stripe_id' => 'cus_addon_renewal']);
+
+    app(HandleStripeWebhook::class)->handle(new WebhookReceived(makeRenewalInvoicePayload(
+        'evt_addon_renewal',
+        'cus_addon_renewal',
+        metadata: ['addon' => 'extra_agents', 'type' => 'extra_agents', 'name' => 'extra_agents', 'quantity' => '3'],
+        lines: [['id' => 'il_addon', 'proration' => false, 'price' => ['id' => 'price_extra_agent']]],
+    )));
+
+    expect(UserCredit::where('user_id', $user->id)->count())->toBe(0)
+        ->and($user->fresh()->billing->plan)->toBeNull();
+});
+
+it('rethrows a Stripe failure while creating a trial account so Stripe retries the event', function (): void {
+    Notification::fake();
+
+    $customers = m::mock();
+    $customers->shouldReceive('retrieve')
+        ->once()
+        ->andThrow(new ApiConnectionException('Could not connect to Stripe'));
+    $stripe = m::mock(StripeClient::class);
+    $stripe->customers = $customers;
+    app()->bind(StripeClient::class, fn () => $stripe);
+
+    $payload = makeTrialRegistrationPayload('evt_trial_transient', 'cus_trial_transient');
+
+    expect(fn () => app(HandleStripeWebhook::class)->handle(new WebhookReceived($payload)))
+        ->toThrow(ApiConnectionException::class);
+
+    // The claim is released, so Stripe's retry of the same event is processed.
+    expect(Cache::has('stripe:event:evt_trial_transient'))->toBeFalse()
+        ->and(User::where('email', 'transient@example.test')->exists())->toBeFalse();
+
+    $customers = m::mock();
+    $customers->shouldReceive('retrieve')->andReturn(Customer::constructFrom([
+        'id' => 'cus_trial_transient',
+        'email' => 'transient@example.test',
+        'name' => 'Transient Customer',
+    ]));
+    $subscriptions = m::mock();
+    $subscriptions->shouldReceive('retrieve')->andReturn(StripeSubscription::constructFrom([
+        'id' => 'sub_test_evt_trial_transient',
+        'status' => 'trialing',
+        'trial_end' => 1917220000,
+        'metadata' => [],
+        'items' => ['object' => 'list', 'data' => [[
+            'id' => 'si_transient',
+            'quantity' => 1,
+            'price' => ['id' => 'price_starter_monthly', 'product' => 'prod_starter'],
+        ]]],
+    ]));
+    $stripe = m::mock(StripeClient::class);
+    $stripe->customers = $customers;
+    $stripe->subscriptions = $subscriptions;
+    app()->bind(StripeClient::class, fn () => $stripe);
+
+    app(HandleStripeWebhook::class)->handle(new WebhookReceived($payload));
+
+    $user = User::where('email', 'transient@example.test')->first();
+
+    expect($user)->not->toBeNull()
+        ->and($user->billing->subscriptions()->count())->toBe(1);
+});
+
+it('rethrows a Stripe failure while syncing the trial subscription and finishes on the retry', function (): void {
+    Notification::fake();
+
+    $customers = m::mock();
+    $customers->shouldReceive('retrieve')->andReturn(Customer::constructFrom([
+        'id' => 'cus_trial_sync_fail',
+        'email' => 'syncfail@example.test',
+        'name' => 'Sync Fail',
+    ]));
+    $subscriptions = m::mock();
+    $subscriptions->shouldReceive('retrieve')
+        ->once()
+        ->andThrow(new ApiConnectionException('timeout'));
+    $stripe = m::mock(StripeClient::class);
+    $stripe->customers = $customers;
+    $stripe->subscriptions = $subscriptions;
+    app()->bind(StripeClient::class, fn () => $stripe);
+
+    $payload = makeTrialRegistrationPayload('evt_trial_sync_fail', 'cus_trial_sync_fail');
+
+    expect(fn () => app(HandleStripeWebhook::class)->handle(new WebhookReceived($payload)))
+        ->toThrow(ApiConnectionException::class);
+
+    $user = User::where('email', 'syncfail@example.test')->first();
+
+    // The account exists but has no subscription or credits yet.
+    expect($user)->not->toBeNull()
+        ->and($user->billing->subscriptions()->count())->toBe(0)
+        ->and(UserCredit::where('user_id', $user->id)->count())->toBe(0);
+
+    $subscriptions = m::mock();
+    $subscriptions->shouldReceive('retrieve')->andReturn(StripeSubscription::constructFrom([
+        'id' => 'sub_test_evt_trial_sync_fail',
+        'status' => 'trialing',
+        'trial_end' => 1917220000,
+        'metadata' => [],
+        'items' => ['object' => 'list', 'data' => [[
+            'id' => 'si_sync_fail',
+            'quantity' => 1,
+            'price' => ['id' => 'price_starter_monthly', 'product' => 'prod_starter'],
+        ]]],
+    ]));
+    $stripe->subscriptions = $subscriptions;
+
+    app(HandleStripeWebhook::class)->handle(new WebhookReceived($payload));
+
+    expect($user->billing->subscriptions()->count())->toBe(1)
+        ->and(UserCredit::where('user_id', $user->id)->count())->toBe(1)
+        // The retry found the existing account: still exactly one user.
+        ->and(User::where('email', 'syncfail@example.test')->count())->toBe(1);
+});
+
+it('grants an extra_message_credits purchase once even when the event is processed again', function (): void {
+    $user = User::factory()->create();
+    $user->billing()->create(['stripe_id' => 'cus_addon_twice']);
+
+    $payload = makeAddonCheckoutPayload('evt_addon_twice', 'cus_addon_twice', messages: 1000);
+
+    app(HandleStripeWebhook::class)->handle(new WebhookReceived($payload));
+
+    // The idempotency claim expires after 7 days; a later redelivery of the
+    // same checkout must not grant a second add-on.
+    Cache::flush();
+
+    app(HandleStripeWebhook::class)->handle(new WebhookReceived($payload));
+
+    expect(UserAddon::where('user_id', $user->id)->where('stripe_id', 'cs_test_evt_addon_twice')->count())->toBe(1);
+});
+
+it('refuses to process a webhook when no signing secret is set outside local and testing', function (): void {
+    $user = User::factory()->create();
+    $user->billing()->create(['stripe_id' => 'cus_unsigned']);
+
+    config(['cashier.webhook.secret' => null]);
+    app()->detectEnvironment(fn (): string => 'staging');
+
+    try {
+        expect(fn () => app(HandleStripeWebhook::class)->handle(new WebhookReceived(
+            makeSubscriptionCyclePayload('evt_unsigned', 'cus_unsigned')
+        )))->toThrow(RuntimeException::class, 'STRIPE_WEBHOOK_SECRET');
+
+        expect(UserCredit::where('user_id', $user->id)->count())->toBe(0);
+
+        // With a secret configured (Cashier verifies the signature) the same
+        // environment processes the event.
+        config(['cashier.webhook.secret' => 'whsec_test']);
+
+        app(HandleStripeWebhook::class)->handle(new WebhookReceived(
+            makeSubscriptionCyclePayload('evt_unsigned', 'cus_unsigned')
+        ));
+
+        expect(UserCredit::where('user_id', $user->id)->count())->toBe(1);
+    } finally {
+        app()->detectEnvironment(fn (): string => 'testing');
+    }
 });

@@ -10,6 +10,7 @@ use Domain\Conversation\Topic\Models\Topic;
 use Domain\Membership\Team\Actions\Team\ResolveOwnedTeamAction;
 use Domain\Prompt\Actions\ResolveAgentPromptIdAction;
 use Illuminate\Support\Facades\DB;
+use Support\Enums\CreatedVia;
 
 /**
  * Create an agent through the public API. Resolves the target team + (optional)
@@ -43,7 +44,7 @@ class CreateApiAgentAction
                 'agent_prompt_id' => $agentPromptId,
                 'is_public' => $data->is_public,
                 'metadata' => $data->metadata,
-                'source' => 'api',
+                'source' => CreatedVia::Api,
             ]);
 
             $agent->topics()->attach(Topic::pluck('id'));

@@ -14,7 +14,6 @@ use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Throwable;
 
 class AgentObserver
@@ -28,7 +27,7 @@ class AgentObserver
     public function creating(Agent $agent): void
     {
         if (empty($agent->auth_secret)) {
-            $agent->auth_secret = 'cvsk_'.Str::random(56);
+            $agent->auth_secret = Agent::generateAuthSecret();
         }
     }
 

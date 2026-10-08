@@ -9,7 +9,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use Throwable;
 
 class MistralOCR
 {
@@ -79,7 +78,16 @@ class MistralOCR
         });
     }
 
-    public function fromFile(string $file): Collection
+    /**
+     * OCR a local file by uploading a short-lived copy that Mistral can fetch.
+     *
+     * The copy is written under the owner's storage prefix (for example
+     * `users/{ws}/agents/{agent}/tmp`) so an account or agent deletion wipes
+     * it too, and it is removed as soon as the OCR call returns or fails.
+     *
+     * @return Collection<int,PageData>
+     */
+    public function fromFile(string $file, string $storageDirectory): Collection
     {
         if (! file_exists($file)) {
             throw new InvalidArgumentException('File does not exist');
@@ -87,19 +95,16 @@ class MistralOCR
 
         $extension = pathinfo($file, PATHINFO_EXTENSION);
 
-        $filePath = 'temp/'.Str::uuid()->toString().'.'.$extension;
+        $filePath = rtrim($storageDirectory, '/').'/'.Str::uuid()->toString().'.'.$extension;
 
         Storage::put($filePath, file_get_contents($file));
 
-        $tempUrl = Storage::temporaryUrl($filePath, now()->addDay());
-
         try {
-            $response = $this->fromUrl($tempUrl, is_image_file($file));
-        } catch (Throwable $exception) {
-            Storage::delete($filePath);
-            throw $exception;
-        }
+            $tempUrl = Storage::temporaryUrl($filePath, now()->addHour());
 
-        return $response;
+            return $this->fromUrl($tempUrl, is_image_file($file));
+        } finally {
+            Storage::delete($filePath);
+        }
     }
 }

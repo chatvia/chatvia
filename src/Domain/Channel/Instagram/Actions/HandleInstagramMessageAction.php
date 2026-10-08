@@ -8,6 +8,7 @@ use Domain\Channel\Instagram\Services\InstagramClient;
 use Domain\Channel\Instagram\Services\InstagramReplyRunner;
 use Domain\Channel\Instagram\Services\InstagramThreadResolver;
 use Domain\Channel\Services\ChannelAccessGate;
+use Domain\Channel\Services\ChannelLocale;
 
 /**
  * Handles one inbound Instagram Direct text message end to end: resolve the
@@ -23,7 +24,8 @@ use Domain\Channel\Services\ChannelAccessGate;
  */
 class HandleInstagramMessageAction
 {
-    private const UNAVAILABLE = 'This assistant isn’t available on Instagram right now.';
+    /** Shown in the channel's own name, so every channel shares one translation. */
+    private const CHANNEL_NAME = 'Instagram';
 
     public function __construct(
         private readonly InstagramThreadResolver $resolver,
@@ -35,7 +37,7 @@ class HandleInstagramMessageAction
     public function execute(AgentInstagramAccount $account, string $igsid, string $text): void
     {
         // Protected agents are never answered on Instagram (defence in depth).
-        if (! $this->gate->allows($account->agent, fn () => $this->client->sendMessage($account->page_access_token, $igsid, self::UNAVAILABLE))) {
+        if (! $this->gate->allows($account->agent, fn () => $this->client->sendMessage($account->page_access_token, $igsid, ChannelLocale::text($account->agent, 'This assistant isn’t available on :channel right now.', ['channel' => self::CHANNEL_NAME])))) {
             return;
         }
 

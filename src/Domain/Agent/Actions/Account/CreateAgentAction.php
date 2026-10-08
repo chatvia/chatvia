@@ -7,7 +7,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentLocator as AgentService;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class CreateAgentAction
 {
@@ -25,7 +24,7 @@ class CreateAgentAction
                 'sub_domain' => $externalId,
                 'is_public' => false,
                 'external_id' => $externalId,
-                'auth_secret' => 'cvsk_'.Str::random(56),
+                'auth_secret' => Agent::generateAuthSecret(),
             ]);
 
             $agent->topics()->attach(Topic::pluck('id'));

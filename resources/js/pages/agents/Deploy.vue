@@ -111,14 +111,15 @@ const widgetSnippet = computed(() => {
 });
 
 // ── Command Bar install snippet ──
+// Trigger and placement are not in the snippet: the widget reads them from the
+// agent's saved bar settings at load time, so later dashboard changes apply
+// without re-pasting the code.
 const barSnippet = computed(() => {
     const lines = [
         '<script id="chatbot-embed-script"',
         `    src="${props.embedScriptUrl}"`,
         `    data-agent-id="${props.agent.external_id}"`,
         '    data-mode="bar"',
-        `    data-trigger="${pick(props.barSettings, props.defaultBar, 'trigger', 'cmd+k')}"`,
-        `    data-placement="${pick(props.barSettings, props.defaultBar, 'placement', 'top')}"`,
     ];
     if (isProtected.value) lines.push('    data-auth="YOUR_SIGNED_TOKEN"');
     lines.push('    defer><\/script>');

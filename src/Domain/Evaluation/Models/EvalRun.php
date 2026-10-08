@@ -16,7 +16,8 @@ use Support\Concerns\HasExternalId;
 
 /**
  * One execution of an agent's whole eval suite. Mutable while it runs (status +
- * counts transition), finalized by the Bus::batch then() callback.
+ * counts transition), finalized by the Bus::batch finally() callback, so a run
+ * with failed cases is still closed.
  *
  * @property string $external_id
  * @property string $status

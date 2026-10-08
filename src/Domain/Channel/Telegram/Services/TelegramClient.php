@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Telegram\Services;
 
+use Domain\Channel\Services\RedactedException;
 use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Api;
 use Throwable;
@@ -33,7 +34,7 @@ class TelegramClient
                 'first_name' => $me->get('first_name'),
             ];
         } catch (Throwable $e) {
-            Log::warning('Telegram getMe failed', ['error' => $e->getMessage()]);
+            Log::warning('Telegram getMe failed', RedactedException::context($e));
 
             return null;
         }
@@ -54,7 +55,7 @@ class TelegramClient
 
             return true;
         } catch (Throwable $e) {
-            Log::warning('Telegram setWebhook failed', ['error' => $e->getMessage()]);
+            Log::warning('Telegram setWebhook failed', RedactedException::context($e));
 
             return false;
         }
@@ -67,7 +68,7 @@ class TelegramClient
 
             return true;
         } catch (Throwable $e) {
-            Log::warning('Telegram deleteWebhook failed', ['error' => $e->getMessage()]);
+            Log::warning('Telegram deleteWebhook failed', RedactedException::context($e));
 
             return false;
         }
@@ -97,7 +98,7 @@ class TelegramClient
 
                 return;
             } catch (Throwable $e) {
-                Log::warning('Telegram sendMessage (HTML) failed; retrying as plain text', ['error' => $e->getMessage(), 'chat_id' => $chatId]);
+                Log::warning('Telegram sendMessage (HTML) failed; retrying as plain text', [...RedactedException::context($e), 'chat_id' => $chatId]);
                 // fall through to plain text
             }
         }
@@ -107,7 +108,7 @@ class TelegramClient
             try {
                 $api->sendMessage(['chat_id' => $chatId, 'text' => $part]);
             } catch (Throwable $e) {
-                Log::warning('Telegram sendMessage failed', ['error' => $e->getMessage(), 'chat_id' => $chatId]);
+                Log::warning('Telegram sendMessage failed', [...RedactedException::context($e), 'chat_id' => $chatId]);
 
                 return;
             }
@@ -128,7 +129,7 @@ class TelegramClient
 
             return true;
         } catch (Throwable $e) {
-            Log::warning('Telegram setMyCommands failed', ['error' => $e->getMessage()]);
+            Log::warning('Telegram setMyCommands failed', RedactedException::context($e));
 
             return false;
         }
@@ -144,7 +145,7 @@ class TelegramClient
         try {
             $this->api($token)->sendChatAction(['chat_id' => $chatId, 'action' => $action]);
         } catch (Throwable $e) {
-            Log::warning('Telegram sendChatAction failed', ['error' => $e->getMessage(), 'chat_id' => $chatId]);
+            Log::warning('Telegram sendChatAction failed', [...RedactedException::context($e), 'chat_id' => $chatId]);
         }
     }
 

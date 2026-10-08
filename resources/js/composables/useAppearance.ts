@@ -1,3 +1,4 @@
+import { safeStorage } from '@/lib/safeStorage';
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 
@@ -41,7 +42,8 @@ const getStoredAppearance = () => {
         return null;
     }
 
-    return localStorage.getItem('appearance') as Appearance | null;
+    // Runs at app boot; safeStorage keeps a blocked storage (iframe) from throwing.
+    return safeStorage.get('appearance') as Appearance | null;
 };
 
 const handleSystemThemeChange = () => {
@@ -67,7 +69,7 @@ export function useAppearance() {
     const appearance = ref<Appearance>('system');
 
     onMounted(() => {
-        const savedAppearance = localStorage.getItem('appearance') as Appearance | null;
+        const savedAppearance = safeStorage.get('appearance') as Appearance | null;
 
         if (savedAppearance) {
             appearance.value = savedAppearance;
@@ -78,7 +80,7 @@ export function useAppearance() {
         appearance.value = value;
 
         // Store in localStorage for client-side persistence...
-        localStorage.setItem('appearance', value);
+        safeStorage.set('appearance', value);
 
         // Store in cookie for SSR...
         setCookie('appearance', value);

@@ -6,7 +6,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\PromoteSuggestedTopicAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Support\Exceptions\DomainValidationException;
 
 class PromoteSuggestedTopicController
 {
@@ -18,11 +17,7 @@ class PromoteSuggestedTopicController
             'label' => ['required', 'string', 'max:255'],
         ]);
 
-        try {
-            $topic = $promote->execute($agent, $request->user(), $validated['label']);
-        } catch (DomainValidationException $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
-        }
+        $topic = $promote->execute($agent, $request->user(), $validated['label']);
 
         return response()->json(['message' => 'Topic added successfully', 'topic' => $topic]);
     }

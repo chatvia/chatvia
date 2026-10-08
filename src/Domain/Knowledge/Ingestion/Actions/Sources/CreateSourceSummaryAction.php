@@ -27,32 +27,38 @@ class CreateSourceSummaryAction
             return null;
         }
 
-        // Get signed URL if Mistral file is provided, otherwise use public URL
-        $pdfFilepath = $source->toPdf();
-        $pdfFileUrl = Storage::temporaryUrl($pdfFilepath, now()->addDay());
+        // The model reads the document as a PDF from a signed URL. withPdf()
+        // deletes a temporary converted PDF once both calls are done, and never
+        // touches a stored original PDF.
+        [$analysisResponse, $contentAnalysis, $summaryResponse] = $source->withPdf(function (string $pdfPath) use ($source): array {
+            $pdfFileUrl = Storage::temporaryUrl($pdfPath, now()->addDay());
 
-        $contentAnalysis = $this->contentAnalyzer->fromUrl($pdfFileUrl);
+            $analysisResponse = $this->contentAnalyzer->complete($pdfFileUrl);
+            $contentAnalysis = $this->contentAnalyzer->parse($analysisResponse);
 
-        $source->update([
-            'language' => $contentAnalysis->language,
-            'document_classification' => $contentAnalysis->document_type,
-        ]);
+            $source->update([
+                'language' => $contentAnalysis->language,
+                'document_classification' => $contentAnalysis->document_type,
+            ]);
 
-        $summary = $this->summarizer->fromUrl($pdfFileUrl);
+            return [$analysisResponse, $contentAnalysis, $this->summarizer->complete($pdfFileUrl)];
+        });
+
+        $summary = (string) $summaryResponse->json('choices.0.message.content');
 
         // Schema guarantees questions is array<string> with 5-7 items.
         $questionsText = implode("\n", $contentAnalysis->questions);
 
-        // Calculate LLM cost for summarization and analysis
-        $costInCents = $this->costCalculator->calculateCostInCents(
-            inputText: '',
-            outputText: prompt('summarization/system').strip_tags($summary),
-            pricePerInputMilToken: 2.0,
-            pricePerOutputMilToken: 8.0,
-        );
+        // LLM cost of the analysis and summary calls, from the token counts the
+        // provider reports (the prompt includes the whole document).
+        $summaryInputPrice = (float) config('chatvia.ai.pricing.summary_input_per_million_tokens', 2.0);
+        $summaryOutputPrice = (float) config('chatvia.ai.pricing.summary_output_per_million_tokens', 8.0);
+
+        $costInCents = $this->costCalculator->costInCentsFromUsage($analysisResponse->json('usage'), $summaryInputPrice, $summaryOutputPrice)
+            + $this->costCalculator->costInCentsFromUsage($summaryResponse->json('usage'), $summaryInputPrice, $summaryOutputPrice);
 
         // Add embedding cost (chunk + questions)
-        $embeddingPrice = config('chatvia.ai.pricing.embedding_per_million_tokens', 0.10);
+        $embeddingPrice = (float) config('chatvia.ai.pricing.embedding_per_million_tokens', 0.10);
         $costInCents += $this->costCalculator
             ->calculateCostInCents(strip_tags($summary), '', $embeddingPrice, 0.0);
 
@@ -79,8 +85,6 @@ class CreateSourceSummaryAction
             'metadata' => $contentAnalysis->metadata->toArray(),
             'checksum' => hash('xxh128', $summary),
         ]);
-
-        Storage::delete($pdfFilepath);
 
         return $chunk;
     }

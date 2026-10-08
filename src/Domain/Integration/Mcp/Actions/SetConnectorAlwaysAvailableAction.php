@@ -7,8 +7,8 @@ use Domain\Conversation\Services\Tooling\Registry\ToolEntry;
 use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Mcp\Data\Agent\SetConnectorAlwaysAvailableData;
 use Domain\Integration\Mcp\Exceptions\AlwaysAvailableToolLimitException;
+use Domain\Integration\Mcp\Exceptions\ConnectorNotAttachedException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use RuntimeException;
 
 /**
  * Marks a connector attached to an agent as "always on": its tools ship on
@@ -27,7 +27,7 @@ class SetConnectorAlwaysAvailableAction
     public function execute(Agent $agent, AgentMcpServer $server, SetConnectorAlwaysAvailableData $data): void
     {
         if (! $agent->mcpServers()->whereKey($server->id)->exists()) {
-            throw new RuntimeException("Connector \"{$server->slug}\" is not attached to agent {$agent->id}.");
+            throw ConnectorNotAttachedException::toAgent((string) $server->slug, $agent->id);
         }
 
         if ($data->always_available) {

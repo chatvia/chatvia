@@ -15,7 +15,8 @@ use Throwable;
  *   1. Probe the MCP URL — a compliant server responds with
  *      `WWW-Authenticate: Bearer resource_metadata="<url>"` (RFC 9728).
  *   2. Fetch that protected-resource metadata document → it lists one or
- *      more `authorization_servers`.
+ *      more `authorization_servers`. Its `resource` field must name the MCP
+ *      URL (or a parent path on the same origin).
  *   3. For each one, fetch `<auth_server>/.well-known/oauth-authorization-server`
  *      (RFC 8414) and return the parsed metadata.
  *
@@ -27,7 +28,7 @@ class McpOAuthDiscoverer
 {
     public function discover(string $mcpUrl, ?ConnectorData $connector = null): OAuthServerMetadata
     {
-        $authServers = $this->fetchProtectedResource($this->resourceMetadataCandidates($mcpUrl));
+        $authServers = $this->fetchProtectedResource($mcpUrl, $this->resourceMetadataCandidates($mcpUrl));
 
         if ($authServers === []) {
             throw new McpOAuthException('The MCP server did not advertise any authorization servers.');
@@ -93,21 +94,23 @@ class McpOAuthDiscoverer
 
     /**
      * Try each candidate protected-resource URL in order, returning the
-     * `authorization_servers` from the first that resolves. Throws with the
-     * last failure only if none do.
+     * `authorization_servers` from the first that resolves and describes
+     * this MCP URL. Throws with the last failure only if none do.
      *
      * @param  array<int, string>  $candidateUrls
      * @return array<int, string>
      */
-    private function fetchProtectedResource(array $candidateUrls): array
+    private function fetchProtectedResource(string $mcpUrl, array $candidateUrls): array
     {
         $lastError = 'Could not fetch protected-resource metadata.';
+        $lastFailure = null;
 
         foreach ($candidateUrls as $url) {
             try {
                 $response = $this->safeGet($url);
             } catch (Throwable $e) {
                 $lastError = 'Could not fetch protected-resource metadata: '.$e->getMessage();
+                $lastFailure = $e;
 
                 continue;
             }
@@ -125,6 +128,12 @@ class McpOAuthDiscoverer
                 continue;
             }
 
+            if (isset($body['resource']) && is_string($body['resource']) && ! $this->resourceMatches($body['resource'], $mcpUrl)) {
+                $lastError = 'The server\'s OAuth metadata describes a different address, so it cannot be trusted for this connection.';
+
+                continue;
+            }
+
             $servers = array_values(array_filter($body['authorization_servers'], 'is_string'));
             if ($servers !== []) {
                 return $servers;
@@ -132,16 +141,20 @@ class McpOAuthDiscoverer
             $lastError = 'Protected-resource metadata did not list authorization_servers.';
         }
 
-        throw new McpOAuthException($lastError);
+        throw new McpOAuthException($lastError, previous: $lastFailure);
     }
 
     private function fetchAuthServerMetadata(string $authServerUrl, ?ConnectorData $connector): OAuthServerMetadata
     {
         $lastStatus = null;
+        $lastFailure = null;
         foreach ($this->candidateMetadataUrls($authServerUrl) as $url) {
             try {
                 $response = $this->safeGet($url);
-            } catch (Throwable) {
+            } catch (Throwable $e) {
+                // Keep the cause so the final error can chain it.
+                $lastFailure = $e;
+
                 continue;
             }
 
@@ -163,8 +176,52 @@ class McpOAuthDiscoverer
         }
 
         throw new McpOAuthException(
-            'Authorization-server metadata request failed'.($lastStatus ? " ({$lastStatus})" : '').'.'
+            'Authorization-server metadata request failed'.($lastStatus ? " ({$lastStatus})" : '').'.',
+            previous: $lastFailure,
         );
+    }
+
+    /**
+     * RFC 9728 §3.3: the metadata must describe the resource we connect to,
+     * or one host could hand out metadata (and so collect tokens) for
+     * another. Accepts the exact URL — ignoring a trailing slash, the case of
+     * scheme and host, and default ports — or a parent path on the same
+     * origin, because some real servers advertise their origin while serving
+     * MCP under a sub-path.
+     */
+    private function resourceMatches(string $resource, string $mcpUrl): bool
+    {
+        $advertised = $this->normalizedResource($resource);
+        $target = $this->normalizedResource($mcpUrl);
+
+        if ($advertised === null || $target === null || $advertised['origin'] !== $target['origin']) {
+            return false;
+        }
+
+        return $advertised['path'] === ''
+            || str_starts_with($target['path'].'/', $advertised['path'].'/');
+    }
+
+    /**
+     * @return array{origin: string, path: string}|null
+     */
+    private function normalizedResource(string $url): ?array
+    {
+        $parts = parse_url(trim($url));
+        if (! is_array($parts) || empty($parts['scheme']) || empty($parts['host'])) {
+            return null;
+        }
+
+        $scheme = strtolower($parts['scheme']);
+        $port = $parts['port'] ?? null;
+        if (($scheme === 'https' && $port === 443) || ($scheme === 'http' && $port === 80)) {
+            $port = null;
+        }
+
+        return [
+            'origin' => $scheme.'://'.strtolower($parts['host']).($port !== null ? ':'.$port : ''),
+            'path' => rtrim($parts['path'] ?? '', '/'),
+        ];
     }
 
     /**

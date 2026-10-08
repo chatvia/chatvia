@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
-import { Calendar, Circle, Download, Filter, Globe, LoaderCircle, RefreshCcw, ThumbsDown, ThumbsUp, X } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { Calendar, Circle, Filter, Globe, LoaderCircle, RefreshCcw, ThumbsDown, ThumbsUp, X } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { getSourceIcon } from './sourceMeta';
 import { useChatLog } from './useChatLog';
@@ -111,21 +110,6 @@ function clearFilter(filter: string) {
     }
     fetchConversations(1);
 }
-
-// Export functions (placeholders)
-function exportAsJSON() {
-    console.log('Export JSON');
-}
-function exportAsCSV() {
-    console.log('Export CSV');
-}
-function exportAsPDF() {
-    console.log('Export PDF');
-}
-</script>
-
-<script lang="ts">
-import { ref } from 'vue';
 </script>
 
 <template>
@@ -181,20 +165,6 @@ import { ref } from 'vue';
                     <Button variant="ghost" size="icon" class="h-8 w-8" @click="refreshConversations" :disabled="isRefreshingConversations">
                         <RefreshCcw class="h-4 w-4" :class="{ 'animate-spin': isRefreshingConversations }" />
                     </Button>
-
-                    <!-- Export Dropdown -->
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button variant="default" size="icon" class="h-8 w-8">
-                                <Download class="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem @click="exportAsJSON">{{ t('agents.chatlog.sidebar.export_json') }}</DropdownMenuItem>
-                            <DropdownMenuItem @click="exportAsCSV">{{ t('agents.chatlog.sidebar.export_csv') }}</DropdownMenuItem>
-                            <DropdownMenuItem @click="exportAsPDF">{{ t('agents.chatlog.sidebar.export_pdf') }}</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                 </div>
             </div>
 

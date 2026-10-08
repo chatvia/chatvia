@@ -14,9 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Accept an agent-invitation link (password path). The route param is the
- * invitation `token`; we resolve the matching {@see AgentChatterInvitation} row,
- * activate the chatter, delete the invitation (single-use), and hand the
- * session off to the agent's own subdomain via an `auth_token`.
+ * invitation `token`; we resolve the matching {@see AgentChatterInvitation} row
+ * and hand it to the accept Action, which checks expiry, activates the chatter
+ * and deletes the invitation (single use) in one transaction. The session is
+ * then handed off to the agent's own subdomain via an `auth_token`.
  *
  * The redirect uses {@see Inertia::location()} on purpose: the form submits
  * via Inertia XHR, and the chat subdomain is a different host, so a normal
@@ -36,14 +37,13 @@ class AcceptAgentInvitationController
             ->where('token', $token)
             ->first();
 
-        abort_if($invitation === null || $invitation->hasExpired(), 404);
+        abort_if($invitation === null || $invitation->agent === null, 404);
 
         $agent = $invitation->agent;
 
         try {
             $chatter = $accept->execute(new AcceptAgentInvitationData(
-                agent: $agent,
-                invitedEmail: $invitation->email,
+                invitation: $invitation,
                 name: (string) $request->validated('name'),
                 kind: InvitationCredentialKind::Password,
                 password: (string) $request->validated('password'),
@@ -51,8 +51,6 @@ class AcceptAgentInvitationController
         } catch (AgentChatterInvitationRejectedException $e) {
             return back()->withErrors([$e->field => $e->getMessage()])->withInput();
         }
-
-        $invitation->delete();
 
         $authToken = $authTokens->generateToken($agent, $chatter, 5);
 

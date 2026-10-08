@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agent\Identity;
 
 use App\Identity\Workspace\Services\AgentSignInTokenService;
+use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -22,7 +23,7 @@ class AgentIdentityController
         abort_unless(has_permission_to_agent($agent, 'agent.identity.manage'), 404);
 
         return Inertia::render('agents/security/Identity', [
-            'agent' => $agent,
+            'agent' => AgentResourceData::fromModel($agent),
             'auth_secret' => $agent->ensureAuthSecret(),
             'embed_script_url' => config('chatvia.widget.script_url_embed'),
         ]);

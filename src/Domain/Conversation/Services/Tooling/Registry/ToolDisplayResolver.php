@@ -5,7 +5,6 @@ namespace Domain\Conversation\Services\Tooling\Registry;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Tooling\Routing\ToolRouter;
 use Domain\Integration\Function\Models\AgentFunction;
-use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Support\Facades\Config;
 
 /**
@@ -17,6 +16,7 @@ class ToolDisplayResolver
 {
     public function __construct(
         private readonly ToolRouter $router,
+        private readonly McpServerLookup $servers,
     ) {}
 
     /**
@@ -39,10 +39,7 @@ class ToolDisplayResolver
         $rest = substr($toolName, strlen(ToolRouter::MCP_PREFIX));
         $slug = explode('__', $rest, 2)[0];
 
-        $server = AgentMcpServer::query()
-            ->where('user_id', $agent->user_id)
-            ->where('slug', $slug)
-            ->first();
+        $server = $this->servers->forWorkspace((int) $agent->user_id, $slug);
 
         $connectorSlug = $server?->getAttribute('connector_slug');
         $preset = is_string($connectorSlug) ? Config::get('connectors.'.$connectorSlug) : null;

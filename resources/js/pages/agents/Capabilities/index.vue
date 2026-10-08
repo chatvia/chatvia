@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { connectorLogoUrl } from '@/lib/connectorLogo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useConnectorText } from '@/composables/useConnectorText';
@@ -32,7 +33,7 @@ const rows = ref<CapabilityRow[]>(props.capabilities.map((r) => ({ ...r })));
 const busy = reactive<Record<string, boolean>>({});
 
 function logoUrl(c: Connector): string {
-    return c.logoUrl ?? `https://cdn.simpleicons.org/${c.icon}/${c.brandColor}`;
+    return connectorLogoUrl(c);
 }
 
 async function toggle(row: CapabilityRow): Promise<void> {

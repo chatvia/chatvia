@@ -688,7 +688,6 @@ const processAllFiles = async () => {
     }
 
     isProcessingFiles.value = true;
-    console.log(`Starting to process ${uploadedFiles.value.length} files...`);
 
     try {
         // Send single request to process all files
@@ -696,11 +695,7 @@ const processAllFiles = async () => {
             agent: props.agent.external_id,
         });
 
-        console.log(`PROCESS URL: ${processUrl}`);
-
-        const response = await axios.post(processUrl);
-
-        console.log('All files processed successfully', response);
+        await axios.post(processUrl);
 
         // Refresh the knowledge files list to show processed files
         await fetchKnowledgeFiles();
@@ -736,20 +731,14 @@ const unlinkKnowledgeFile = async () => {
     isUnlinking.value = true;
 
     try {
-        console.log(`Unlinking knowledge file: ${fileToUnlink.name} (ID: ${fileToUnlink.id})`);
-
         const unlinkUrl = route('agents.sources.files.unlink', {
             agent: props.agent.external_id,
             fileId: fileToUnlink.id,
         });
 
-        console.log(`UNLINK URL: ${unlinkUrl}`);
-
         await axios.post(unlinkUrl, {
             file_id: fileToUnlink.id,
         });
-
-        console.log(`Successfully unlinked: ${fileToUnlink.name}`);
 
         // Remove file from local state
         knowledgeFiles.value = knowledgeFiles.value.filter((file) => file.id !== fileToUnlink.id);
@@ -794,18 +783,12 @@ const removeKnowledgeFile = async () => {
     isDeleting.value = true;
 
     try {
-        console.log(`Deleting knowledge file: ${fileToRemove.name} (ID: ${fileToRemove.id})`);
-
         const deleteUrl = route('agents.sources.files.delete', {
             agent: props.agent.external_id,
             file: fileToRemove.id,
         });
 
-        console.log(`DELETE URL: ${deleteUrl}`);
-
-        const response = await axios.delete(deleteUrl);
-
-        console.log(`Successfully deleted: ${fileToRemove.name}`, response);
+        await axios.delete(deleteUrl);
 
         // Remove file from local state
         knowledgeFiles.value = knowledgeFiles.value.filter((file) => file.id !== fileToRemove.id);

@@ -43,7 +43,19 @@ it('resolves an agent from the ?agent= query param on the apex domain', function
     expect($called)->toBeTrue()
         ->and($response->getContent())->toBe('next')
         ->and($request->session()->get('chat_agent'))->toBe($agent->external_id)
-        ->and($request->input('agent'))->toBe($agent->external_id);
+        ->and($request->attributes->get('agent_slug'))->toBe($agent->external_id);
+});
+
+it('does not overwrite an agent field the client sent in the request body', function (): void {
+    $agent = makeQueryParamAgent();
+
+    $request = Request::create("https://{$agent->sub_domain}.chatvia.test/chat/messages", 'POST', ['agent' => 'client-value']);
+    $request->setLaravelSession(app('session.store'));
+
+    app(ResolveAgentFromSubdomain::class)->handle($request, fn (): Response => new Response('next'));
+
+    expect($request->input('agent'))->toBe('client-value')
+        ->and($request->attributes->get('agent_slug'))->toBe($agent->sub_domain);
 });
 
 it('keeps the agent sticky via the session on a later param-less request', function (): void {

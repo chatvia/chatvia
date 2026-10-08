@@ -23,7 +23,8 @@ use Support\Enums\User\UserType;
  *   2. Attach them to this agent via the `agent_user` pivot — without it
  *      `User::canAccessAgent()` rejects them, so the sign-in link is useless.
  *   3. Insert a `agent_chatter_invitations` row carrying a random `token` + expiry,
- *      then email the recipient a `/chat-invitation/{token}` link. The row is
+ *      then fire {@see AgentChatterInvited}; its queued listener emails the
+ *      recipient the accept link once the transaction commits. The row is
  *      deleted once the invitation is accepted.
  *
  * Idempotent: re-inviting the same email drops the previous pending invitation
@@ -96,13 +97,11 @@ class InviteAgentChatterAction
             ]);
         });
 
-        $acceptUrl = route('agents.invitation.show', ['token' => $invitation->token]);
-
-        AgentChatterInvited::dispatch($agent, $email, $acceptUrl);
+        AgentChatterInvited::dispatch($agent, $email, $invitation->token);
 
         return new AgentChatterInvitationData(
             email: $email,
-            accept_url: $acceptUrl,
+            token: $invitation->token,
             expires_at: $invitation->expires_at,
         );
     }

@@ -19,9 +19,12 @@ use Throwable;
  * callback URL. Every call is best-effort — a Meta hiccup logs and returns a
  * safe empty/null value rather than throwing.
  *
- * The whole flow is heavily logged (channel "META_OAUTH") so a "no Pages came
- * back" can be diagnosed from the production log alone: never log a token or
- * the app secret — only their presence/length and (for Pages) ids + names.
+ * Failures (a Graph error, no Pages came back) log at warning level so they
+ * can be diagnosed from the production log; the success-path breadcrumbs log
+ * at debug. Never log a token, the app secret or a raw exception message (it
+ * can contain the request URL): only presence flags, ids, and
+ * {@see RedactedException} context. The token exchanges send the app secret
+ * in a POST body, never in a URL.
  */
 class MetaOAuthClient
 {
@@ -76,7 +79,7 @@ class MetaOAuthClient
         }
 
         // app_id / redirect / config_id are all public (they appear in the URL).
-        Log::info('Meta OAuth: built authorize URL', [
+        Log::debug('Meta OAuth: built authorize URL', [
             'has_app_id' => $appId !== '',
             'app_id' => $appId,
             'redirect_uri' => $redirect,
@@ -100,15 +103,13 @@ class MetaOAuthClient
         $appSecret = (string) config('services.meta.app_secret');
         $redirect = (string) ($redirectUri ?: config('services.meta.redirect'));
 
-        Log::info('Meta OAuth: exchanging code for user token', [
+        Log::debug('Meta OAuth: exchanging code for user token', [
             'has_app_id' => $appId !== '',
             'has_app_secret' => $appSecret !== '',
-            'app_secret_len' => strlen($appSecret),
             'redirect_uri' => $redirect,
-            'code_len' => strlen($code),
         ]);
 
-        $short = $this->get('/oauth/access_token', [
+        $short = $this->post('/oauth/access_token', [
             'client_id' => $appId,
             'client_secret' => $appSecret,
             'redirect_uri' => $redirect,
@@ -123,9 +124,9 @@ class MetaOAuthClient
             return null;
         }
 
-        Log::info('Meta OAuth: got short-lived user token', ['len' => strlen($shortToken)]);
+        Log::debug('Meta OAuth: got short-lived user token');
 
-        $long = $this->get('/oauth/access_token', [
+        $long = $this->post('/oauth/access_token', [
             'grant_type' => 'fb_exchange_token',
             'client_id' => $appId,
             'client_secret' => $appSecret,
@@ -134,7 +135,7 @@ class MetaOAuthClient
 
         $longToken = $long['access_token'] ?? null;
 
-        Log::info('Meta OAuth: short → long-lived token exchange', ['got_long_lived' => is_string($longToken)]);
+        Log::debug('Meta OAuth: short → long-lived token exchange', ['got_long_lived' => is_string($longToken)]);
 
         return is_string($longToken) ? $longToken : $shortToken;
     }
@@ -151,14 +152,12 @@ class MetaOAuthClient
         $appId = (string) config('services.meta.app_id');
         $appSecret = (string) config('services.meta.app_secret');
 
-        Log::info('Meta OAuth: exchanging Embedded Signup code for business token', [
+        Log::debug('Meta OAuth: exchanging Embedded Signup code for business token', [
             'has_app_id' => $appId !== '',
             'has_app_secret' => $appSecret !== '',
-            'app_secret_len' => strlen($appSecret),
-            'code_len' => strlen($code),
         ]);
 
-        $response = $this->get('/oauth/access_token', [
+        $response = $this->post('/oauth/access_token', [
             'client_id' => $appId,
             'client_secret' => $appSecret,
             'code' => $code,
@@ -172,7 +171,7 @@ class MetaOAuthClient
             return null;
         }
 
-        Log::info('Meta OAuth: got Embedded Signup business token', ['len' => strlen($token)]);
+        Log::debug('Meta OAuth: got Embedded Signup business token');
 
         return $token;
     }
@@ -246,7 +245,7 @@ class MetaOAuthClient
             // `business_management` grant is the thing to check.
             Log::warning('Meta OAuth: no Pages from /me/accounts or any Business Portfolio', $context);
         } else {
-            Log::info('Meta OAuth: Pages resolved (personal + business)', $context);
+            Log::debug('Meta OAuth: Pages resolved (personal + business)', $context);
         }
 
         return $pages;
@@ -296,9 +295,8 @@ class MetaOAuthClient
             $iba = $linked['instagram_business_account'] ?? null;
             $igId = is_array($iba) ? ($iba['id'] ?? null) : null;
 
-            Log::info('Meta OAuth: resolved IG account for Page', [
+            Log::debug('Meta OAuth: resolved IG account for Page', [
                 'page_id' => $page['id'],
-                'page_name' => $page['name'],
                 'has_ig_account' => is_string($igId) && $igId !== '',
                 'ig_id' => is_string($igId) ? $igId : null,
             ]);
@@ -316,7 +314,7 @@ class MetaOAuthClient
             ];
         }
 
-        Log::info('Meta OAuth: IG-linked accounts resolved', ['count' => count($out)]);
+        Log::debug('Meta OAuth: IG-linked accounts resolved', ['count' => count($out)]);
 
         return $out;
     }
@@ -332,8 +330,34 @@ class MetaOAuthClient
      */
     private function get(string $path, array $query): ?array
     {
+        return $this->request('get', $path, $query);
+    }
+
+    /**
+     * A form-encoded POST. Used for the OAuth token exchanges so the app secret
+     * and the codes/tokens travel in the request body, not in a URL that a
+     * proxy, an access log or an exception message could record.
+     *
+     * @param  array<string, mixed>  $body
+     * @return array<string, mixed>|null
+     */
+    private function post(string $path, array $body): ?array
+    {
+        return $this->request('post', $path, $body);
+    }
+
+    /**
+     * @param  array<string, mixed>  $params
+     * @return array<string, mixed>|null
+     */
+    private function request(string $method, string $path, array $params): ?array
+    {
+        $url = 'https://graph.facebook.com/'.$this->version().$path;
+
         try {
-            $response = Http::get('https://graph.facebook.com/'.$this->version().$path, $query);
+            $response = $method === 'post'
+                ? Http::asForm()->post($url, $params)
+                : Http::get($url, $params);
             $json = $response->json();
 
             if (! $response->successful() || ! is_array($json) || isset($json['error'])) {
@@ -349,7 +373,7 @@ class MetaOAuthClient
 
             return $json;
         } catch (Throwable $e) {
-            Log::warning("Meta OAuth {$path} failed", ['error' => $e->getMessage()]);
+            Log::warning("Meta OAuth {$path} failed", RedactedException::context($e));
 
             return null;
         }

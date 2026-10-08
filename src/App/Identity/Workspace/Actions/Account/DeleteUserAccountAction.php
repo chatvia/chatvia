@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Cashier\Subscription;
-use Stripe\Exception\ApiErrorException;
+use Stripe\Exception\InvalidRequestException;
+use Stripe\Subscription as StripeSubscription;
 use Throwable;
 
 /**
@@ -105,10 +106,9 @@ class DeleteUserAccountAction
             DB::table('sessions')->whereIn('user_id', $allUserIds)->delete();
 
             // Workspace sub-users — their owned data cascades on delete. Model
-            // delete (not a bulk query) so UserObserver/HasRoles cleanup fires;
-            // eager-load `billing` because UserObserver::deleting() reads it
-            // (sub-users have none, but the access must not lazy-load).
-            $user->users()->with('billing')->get()->each(fn ($subUser) => $subUser->delete());
+            // delete (not a bulk query) so the HasRoles cleanup and other model
+            // events fire.
+            $user->users()->get()->each(fn ($subUser) => $subUser->delete());
 
             // Finally the owner; every remaining reference cascades or nulls out.
             $user->delete();
@@ -213,10 +213,12 @@ class DeleteUserAccountAction
      * cancellation_details and metadata") — even when it still looks "subscribed"
      * locally because its trial window hasn't lapsed.
      *
-     * If Stripe rejects a call — most often because the subscription no longer
-     * exists there (stale/test data: "No such subscription") — it can't bill
-     * anyone, so we log it, mark it canceled locally, and carry on rather than
-     * failing the whole account deletion.
+     * When Stripe rejects the cancel because the subscription can't bill anyone
+     * any more — it no longer exists there (`resource_missing`, e.g. stale/test
+     * data) or it is already closed there — we log it, mark it canceled locally,
+     * and carry on. Every other failure (network error, rate limit, outage, any
+     * other rejection) is rethrown: the queued job then retries, instead of
+     * deleting the customer while a live subscription keeps billing.
      */
     private function cancelSubscriptions(User $user): void
     {
@@ -234,13 +236,12 @@ class DeleteUserAccountAction
 
             try {
                 $subscription->cancelNow();
-            } catch (ApiErrorException $e) {
-                // Stripe rejected the cancel — most often the subscription no
-                // longer exists there (stale/test data: "No such subscription")
-                // or is already canceled. It can't bill anyone, so mark it
-                // canceled locally and carry on rather than failing the whole
-                // account deletion.
-                Log::warning('Account deletion: Stripe subscription cancel failed; marking canceled locally.', [
+            } catch (InvalidRequestException $e) {
+                if (! $this->cannotBillAnyMore($subscription, $e)) {
+                    throw $e;
+                }
+
+                Log::warning('Account deletion: Stripe subscription is gone or already closed; marking canceled locally.', [
                     'subscription_id' => $subscription->id,
                     'stripe_id' => $subscription->stripe_id,
                     'error' => $e->getMessage(),
@@ -249,5 +250,22 @@ class DeleteUserAccountAction
                 $subscription->markAsCanceled();
             }
         }
+    }
+
+    /**
+     * Whether a rejected cancel means the subscription can no longer bill:
+     * Stripe doesn't know it (`resource_missing`), or Stripe already closed it
+     * (it rejects a cancel on a closed subscription with a different code). If
+     * the status lookup itself fails, that error propagates so the job retries.
+     */
+    private function cannotBillAnyMore(Subscription $subscription, InvalidRequestException $e): bool
+    {
+        if ($e->getStripeCode() === 'resource_missing') {
+            return true;
+        }
+
+        $status = $subscription->asStripeSubscription()->status;
+
+        return in_array($status, [StripeSubscription::STATUS_CANCELED, StripeSubscription::STATUS_INCOMPLETE_EXPIRED], true);
     }
 }

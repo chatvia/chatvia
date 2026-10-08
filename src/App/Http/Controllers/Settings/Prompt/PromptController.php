@@ -18,18 +18,20 @@ use Inertia\Response;
 use Spatie\LaravelData\DataCollection;
 
 /**
- * Account-level reusable prompts dashboard page. The user authors a prompt
- * once here, then attaches it to any agent from the agent's Persona page.
+ * Workspace-level reusable prompts dashboard page. A prompt is authored once
+ * here, then attached to any agent from the agent's Persona page. Prompts are
+ * owned by the workspace, so every query goes through `workspace()` — a
+ * teammate sees and manages the same prompts as the owner.
  */
 class PromptController
 {
     /**
-     * JSON list of the user's prompts — consumed by the agent Persona editor's
-     * "Saved prompts" picker.
+     * JSON list of the workspace's prompts — consumed by the agent Persona
+     * editor's "Saved prompts" picker.
      */
     public function index(Request $request): AgentPromptPickerListData
     {
-        $prompts = $request->user()->prompts()
+        $prompts = $request->user()->workspace()->prompts()
             ->latest()
             ->get()
             ->map(fn (AgentPrompt $prompt): AgentPromptPickerData => AgentPromptPickerData::fromModel($prompt));
@@ -46,7 +48,7 @@ class PromptController
     public function edit(Request $request): Response
     {
         return Inertia::render('workspace/library/Prompts', [
-            'prompts' => $request->user()->prompts()
+            'prompts' => $request->user()->workspace()->prompts()
                 ->withCount('agents')
                 ->latest()
                 ->get()
@@ -78,7 +80,7 @@ class PromptController
 
         // Library prompt delete. Agents referencing it have agent_prompt_id
         // nulled by the FK (nullOnDelete), falling back to their own instructions.
-        $user->prompts()->where('external_id', $external_id)->delete();
+        $user->workspace()->prompts()->where('external_id', $external_id)->delete();
 
         return back();
     }

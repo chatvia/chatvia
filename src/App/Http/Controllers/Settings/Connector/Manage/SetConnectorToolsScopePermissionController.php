@@ -6,7 +6,6 @@ use App\Http\Requests\Settings\Connector\SetConnectorToolsScopePermissionRequest
 use Domain\Integration\Mcp\Actions\SetMcpToolsScopePermissionAction;
 use Domain\Integration\Mcp\Data\McpToolsScopePermissionData;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use RuntimeException;
 
 /**
  * Bulk-set the tri-state permission (allow / approval / blocked) on every tool
@@ -20,14 +19,12 @@ class SetConnectorToolsScopePermissionController
         string $slug,
         SetMcpToolsScopePermissionAction $set,
     ): McpToolsScopePermissionData {
-        try {
-            return $set->execute(
-                AgentMcpServer::forSlugScoped($slug, $request->user()),
-                $request->scope(),
-                $request->permission(),
-            );
-        } catch (RuntimeException) {
-            abort(404);
-        }
+        // An unknown slug 404s via forSlugScoped; the action itself only
+        // reports how many tools changed.
+        return $set->execute(
+            AgentMcpServer::forSlugScoped($slug, $request->user()),
+            $request->scope(),
+            $request->permission(),
+        );
     }
 }

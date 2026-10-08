@@ -25,9 +25,10 @@ class ResolveAgentFromSubdomain
             }
         }
 
-        $request->merge([
-            'agent' => $slug,
-        ]);
+        // Keep the resolved slug on the request attributes, not in the input:
+        // merging it into the input would overwrite an `agent` field the
+        // client sent in the body or query.
+        $request->attributes->set('agent_slug', $slug);
 
         return $next($request);
     }

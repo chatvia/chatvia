@@ -2,9 +2,17 @@
 
 namespace Domain\Integration\Connector\Services\OAuth;
 
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Crypt;
+
 /**
  * In-flight OAuth state — stashed in the cache by `state` for the few
- * seconds between authorize-redirect and the callback.
+ * minutes between authorize-redirect and the callback.
+ *
+ * It carries the PKCE verifier and, for per-workspace OAuth apps, a client
+ * secret, so it is stored encrypted ({@see seal()}). `userId` and
+ * `sessionBindingHash` tie the state to the account and browser session
+ * that started the flow; the callback must present both.
  */
 class PendingOAuthState
 {
@@ -20,7 +28,62 @@ class PendingOAuthState
         public readonly ?string $scopes = null,
         public readonly ?string $customName = null,
         public readonly ?string $customSlug = null,
+        public readonly ?string $sessionBindingHash = null,
     ) {}
+
+    /**
+     * Hash of the browser-session secret, so the raw value never sits in the
+     * cache next to the state.
+     */
+    public static function hashBinding(string $sessionBinding): string
+    {
+        return hash('sha256', $sessionBinding);
+    }
+
+    /**
+     * True when the given browser-session secret is the one the flow started
+     * with. A state without a stored binding (created before binding existed)
+     * only relies on the user-id check.
+     */
+    public function matchesSession(string $sessionBinding): bool
+    {
+        if ($this->sessionBindingHash === null) {
+            return true;
+        }
+
+        return $sessionBinding !== ''
+            && hash_equals($this->sessionBindingHash, self::hashBinding($sessionBinding));
+    }
+
+    /**
+     * Encrypted form for the cache.
+     */
+    public function seal(): string
+    {
+        return Crypt::encryptString((string) json_encode($this->toArray()));
+    }
+
+    /**
+     * Read a cached payload back. Accepts the encrypted form and the plain
+     * array older flows were cached as; returns null for anything else
+     * (missing, tampered or undecryptable).
+     */
+    public static function unseal(mixed $payload): ?self
+    {
+        if (is_string($payload)) {
+            try {
+                $payload = json_decode(Crypt::decryptString($payload), true);
+            } catch (DecryptException) {
+                return null;
+            }
+        }
+
+        if (! is_array($payload) || ! isset($payload['user_id'], $payload['client_id'], $payload['code_verifier'])) {
+            return null;
+        }
+
+        return self::fromArray($payload);
+    }
 
     /**
      * @return array<string, mixed>
@@ -39,6 +102,7 @@ class PendingOAuthState
             'scopes' => $this->scopes,
             'custom_name' => $this->customName,
             'custom_slug' => $this->customSlug,
+            'session_binding_hash' => $this->sessionBindingHash,
         ];
     }
 
@@ -59,6 +123,7 @@ class PendingOAuthState
             scopes: $data['scopes'] ?? null,
             customName: $data['custom_name'] ?? null,
             customSlug: $data['custom_slug'] ?? null,
+            sessionBindingHash: $data['session_binding_hash'] ?? null,
         );
     }
 }

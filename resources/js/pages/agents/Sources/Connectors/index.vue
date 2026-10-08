@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { connectorLogoUrl } from '@/lib/connectorLogo';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -52,7 +53,7 @@ const customConnectors = ref<CustomRow[]>([]);
 const search = ref('');
 
 function logoUrl(c: Connector): string {
-    return c.logoUrl ?? `https://cdn.simpleicons.org/${c.icon}/${c.brandColor}`;
+    return connectorLogoUrl(c);
 }
 
 function matches(row: { name: string; description?: string | null; url?: string }): boolean {

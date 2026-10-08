@@ -108,3 +108,21 @@ it('routes a two-factor-enabled user to the challenge instead of signing them in
 
     $this->assertGuest();
 });
+
+it('refuses a deactivated account even with a linked social identity', function (): void {
+    $user = User::factory()->create(['deactivated_at' => now()]);
+    UserSocial::create([
+        'user_id' => $user->id,
+        'provider' => SocialProvider::Google,
+        'provider_id' => 'google-off',
+    ]);
+
+    fakeGoogleSocialiteUser('google-off', $user->email, ['email_verified' => true]);
+
+    $this->get(route('auth.google.callback'))
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('error');
+
+    $this->assertGuest();
+    expect(session('login.id'))->toBeNull();
+});

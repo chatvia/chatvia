@@ -82,7 +82,7 @@ class SettingsChatterController
 
         return back()->with('invitation', [
             'email' => $invitation->email,
-            'accept_url' => $invitation->accept_url,
+            'accept_url' => route('agents.invitation.show', ['token' => $invitation->token]),
             'expires_at' => $invitation->expires_at->toIso8601String(),
         ]);
     }

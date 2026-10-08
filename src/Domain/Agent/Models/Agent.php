@@ -194,10 +194,19 @@ class Agent extends Model
      */
     public function regenerateAuthSecret(): string
     {
-        $this->auth_secret = 'cvsk_'.Str::random(56);
+        $this->auth_secret = self::generateAuthSecret();
         $this->save();
 
         return $this->auth_secret;
+    }
+
+    /**
+     * A new random signing secret in the agent secret format (`cvsk_` + 56
+     * random characters). The single place that defines the format.
+     */
+    public static function generateAuthSecret(): string
+    {
+        return 'cvsk_'.Str::random(56);
     }
 
     /**

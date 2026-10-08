@@ -3,11 +3,11 @@
 namespace Domain\Conversation\Services\Tooling\Approval;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Services\Tooling\Registry\McpServerLookup;
 use Domain\Conversation\Services\Tooling\Routing\ToolRouter;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
-use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpToolPermissionResolver;
 
 /**
@@ -40,6 +40,7 @@ class ToolApprovalPolicy
         private readonly ToolRouter $router,
         private readonly McpToolPermissionResolver $permissions,
         private readonly ConnectorCatalog $catalog,
+        private readonly McpServerLookup $servers,
     ) {}
 
     public function requiresApproval(Agent $agent, string $toolName): bool
@@ -71,10 +72,7 @@ class ToolApprovalPolicy
             return false;
         }
 
-        $server = AgentMcpServer::query()
-            ->where('user_id', $agent->user_id)
-            ->where('slug', $slug)
-            ->first();
+        $server = $this->servers->forWorkspace((int) $agent->user_id, $slug);
 
         if (! $server) {
             return false;

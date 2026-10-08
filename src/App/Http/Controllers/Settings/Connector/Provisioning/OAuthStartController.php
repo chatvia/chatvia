@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
+use App\Http\Controllers\Concerns\BindsConnectorOAuthToSession;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
@@ -11,8 +12,15 @@ use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Starts the OAuth + PKCE flow for a catalog connector and redirects the
+ * browser to the provider's consent screen. The flow is bound to this user
+ * and browser session; the callback checks both.
+ */
 class OAuthStartController
 {
+    use BindsConnectorOAuthToSession;
+
     public function __construct(
         private readonly ConnectorCatalog $catalog,
         private readonly McpOAuthFlow $flow,
@@ -27,7 +35,7 @@ class OAuthStartController
         $user = $request->user();
 
         try {
-            $url = $this->flow->begin($user, $connector);
+            $url = $this->flow->begin($user, $connector, $this->connectorOAuthSessionBinding($request));
         } catch (ConnectorMisconfiguredException $e) {
             // Operator hasn't provisioned this connector's OAuth credentials.
             // Report it (so we get paged) but never leak the env-setup detail to

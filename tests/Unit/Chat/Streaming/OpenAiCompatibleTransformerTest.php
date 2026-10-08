@@ -57,7 +57,7 @@ class OpenAiCompatibleTransformerTest extends TestCase
         $events = $this->transform([
             $this->sseChunk(['choices' => [['delta' => ['content' => $payload]]]]),
             "data: [DONE]\n",
-        ], $context);
+        ], $context, ['mcp__charts__render-chart-tool']);
 
         $this->assertSame([], $this->deltaTexts($events), 'JSON content should be suppressed');
         $this->assertSame('', $context->streamedMessage, 'No streamed text should be saved');
@@ -76,7 +76,7 @@ class OpenAiCompatibleTransformerTest extends TestCase
         $events = $this->transform([
             $this->sseChunk(['choices' => [['delta' => ['content' => $payload]]]]),
             "data: [DONE]\n",
-        ], $context);
+        ], $context, ['mcp__currency__exchange-rate-tool']);
 
         $this->assertSame([], $this->deltaTexts($events));
         $this->assertCount(1, $context->pendingToolCalls);
@@ -93,7 +93,7 @@ class OpenAiCompatibleTransformerTest extends TestCase
         $events = $this->transform([
             $this->sseChunk(['choices' => [['delta' => ['content' => $payload]]]]),
             "data: [DONE]\n",
-        ], $context);
+        ], $context, ['mcp__currency__exchange-rate-tool', 'mcp__charts__render-chart-tool']);
 
         $this->assertSame([], $this->deltaTexts($events));
         $this->assertCount(2, $context->pendingToolCalls);
@@ -117,7 +117,7 @@ class OpenAiCompatibleTransformerTest extends TestCase
         $events = $this->transform([
             $this->sseChunk(['choices' => [['delta' => ['content' => $payload]]]]),
             "data: [DONE]\n",
-        ], $context);
+        ], $context, ['mcp__charts__render-chart-tool']);
 
         $this->assertSame([], $this->deltaTexts($events));
         $this->assertCount(1, $context->pendingToolCalls);
@@ -130,7 +130,7 @@ class OpenAiCompatibleTransformerTest extends TestCase
         $events = $this->transform([
             $this->sseChunk(['choices' => [['delta' => ['content' => '{not really json']]]]),
             "data: [DONE]\n",
-        ], $context);
+        ], $context, ['lookup_order']);
 
         $this->assertSame(['{not really json'], $this->deltaTexts($events));
         $this->assertSame('{not really json', $context->streamedMessage);
@@ -149,7 +149,7 @@ class OpenAiCompatibleTransformerTest extends TestCase
                 'function' => ['name' => 'real_tool', 'arguments' => '{}'],
             ]]]]]]),
             "data: [DONE]\n",
-        ], $context);
+        ], $context, ['real_tool']);
 
         $this->assertSame([], $this->deltaTexts($events));
         $this->assertCount(1, $context->pendingToolCalls);
@@ -163,21 +163,52 @@ class OpenAiCompatibleTransformerTest extends TestCase
         // No [DONE] line — upstream closed early.
         $events = $this->transform([
             $this->sseChunk(['choices' => [['delta' => ['content' => $payload]]]]),
-        ], $context);
+        ], $context, ['mcp__charts__render-chart-tool']);
 
         $this->assertSame([], $this->deltaTexts($events));
         $this->assertCount(1, $context->pendingToolCalls);
     }
 
+    public function test_streams_a_json_answer_as_text_when_no_tools_were_offered(): void
+    {
+        // Without tools on the turn, a reply that happens to be JSON with a
+        // `name` key is an answer, not a tool call.
+        $payload = json_encode(['name' => 'delete_everything', 'parameters' => ['confirm' => true]]);
+
+        $events = $this->transform([
+            $this->sseChunk(['choices' => [['delta' => ['content' => $payload]]]]),
+            "data: [DONE]\n",
+        ], $context);
+
+        $this->assertSame([$payload], $this->deltaTexts($events));
+        $this->assertSame($payload, $context->streamedMessage);
+        $this->assertSame([], $context->pendingToolCalls);
+    }
+
+    public function test_streams_json_as_text_when_it_names_no_offered_tool(): void
+    {
+        $payload = json_encode(['name' => 'Alice', 'arguments' => ['age' => 30]]);
+
+        $events = $this->transform([
+            $this->sseChunk(['choices' => [['delta' => ['content' => $payload]]]]),
+            "data: [DONE]\n",
+        ], $context, ['lookup_order']);
+
+        $this->assertSame([$payload], $this->deltaTexts($events));
+        $this->assertSame([], $context->pendingToolCalls);
+    }
+
     /**
      * @param  array<int, string>  $bodyChunks
+     * @param  array<int, string>  $offeredToolNames  tools offered on the turn (none by default)
      * @return array<int, StreamEvent>
      */
-    private function transform(array $bodyChunks, ?ChatContext &$context = null): array
+    private function transform(array $bodyChunks, ?ChatContext &$context = null, array $offeredToolNames = []): array
     {
         $body = Utils::streamFor(implode('', $bodyChunks));
         $response = new Response(200, [], $body);
         $context = $this->makeContext();
+        $context->offeredToolNames = $offeredToolNames;
 
         $transformer = new OpenAiCompatibleTransformer;
 

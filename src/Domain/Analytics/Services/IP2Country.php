@@ -4,8 +4,15 @@ namespace Domain\Analytics\Services;
 
 use Domain\Analytics\Data\IpLocationData;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
+use RuntimeException;
+use Throwable;
 
+/**
+ * IP geolocation through the IP2Location.io API. The API key is sent as a
+ * bearer token, never in the URL, so it cannot end up in logs or error reports
+ * that include the request URL. A failed lookup is reported (with the key
+ * masked) and returns null, so callers treat it as "unknown location".
+ */
 class IP2Country
 {
     /**
@@ -23,22 +30,33 @@ class IP2Country
             return null;
         }
 
-        $url = Str::of(rtrim(config('services.ip2location.endpoint'), '/').'/')
-            ->append('?key='.config('services.ip2location.key'))
-            ->append('&ip='.$ip)
-            ->toString();
+        $key = (string) config('services.ip2location.key');
+        $url = rtrim((string) config('services.ip2location.endpoint'), '/').'/';
 
         try {
-            $result = Http::get($url)
+            $result = Http::withToken($key)
+                ->get($url, ['ip' => $ip])
                 ->throw()
                 ->json();
 
             return IpLocationData::fromApiResponse($result);
-        } catch (\Exception $e) {
-            report($e);
+        } catch (Throwable $e) {
+            report(self::withoutKey($e, $key));
 
             return null;
         }
+    }
+
+    /**
+     * A copy of the failure that is safe to report: the message with the API
+     * key masked, and no link to the original exception (its request and
+     * previous exceptions could still carry the key).
+     */
+    private static function withoutKey(Throwable $e, string $key): RuntimeException
+    {
+        $message = $key === '' ? $e->getMessage() : str_replace($key, '[redacted]', $e->getMessage());
+
+        return new RuntimeException('IP2Location lookup failed ('.$e::class.'): '.$message);
     }
 
     /**

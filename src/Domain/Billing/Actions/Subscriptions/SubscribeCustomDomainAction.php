@@ -4,9 +4,9 @@ namespace Domain\Billing\Actions\Subscriptions;
 
 use Domain\Billing\Data\SubscribeCustomDomainData;
 use Domain\Billing\Enums\Addon;
+use Domain\Billing\Exceptions\AddonNotConfiguredException;
 use Laravel\Cashier\Checkout;
 use Laravel\Cashier\Subscription;
-use RuntimeException;
 
 /**
  * Creates a Cashier subscription of type `custom_domains`. Mirrors quantity
@@ -19,7 +19,7 @@ class SubscribeCustomDomainAction
         $priceId = config('billing.addons.custom_domains.stripe_price_id');
 
         if (! $priceId) {
-            throw new RuntimeException(
+            throw new AddonNotConfiguredException(
                 'Custom Domain addon is not configured. Set STRIPE_CUSTOM_DOMAIN_PRICE_ID in your environment.'
             );
         }

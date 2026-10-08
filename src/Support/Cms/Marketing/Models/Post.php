@@ -77,6 +77,6 @@ class Post extends Model
     {
         $query
             ->select('id', 'title', 'image_path', 'slug', 'excerpt', 'published_at')
-            ->where('is_featured', true)->first();
+            ->where('is_featured', true);
     }
 }

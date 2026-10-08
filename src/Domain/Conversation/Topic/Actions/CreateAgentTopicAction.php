@@ -2,18 +2,21 @@
 
 namespace Domain\Conversation\Topic\Actions;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Support\Facades\DB;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * Creates a workspace topic and attaches it to the agent in one transaction.
+ * The topic is owned by the workspace (the agent's user), whoever creates it.
+ */
 class CreateAgentTopicAction
 {
     /**
      * @throws DomainValidationException
      */
-    public function execute(Agent $agent, User $user, string $topic, string $description): Topic
+    public function execute(Agent $agent, string $topic, string $description): Topic
     {
         // Topics are a workspace resource (attached to the workspace's agents),
         // so scope uniqueness and ownership to the agent's owner — not the

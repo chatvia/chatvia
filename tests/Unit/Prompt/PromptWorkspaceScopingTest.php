@@ -1,0 +1,93 @@
+<?php
+
+use App\Identity\Workspace\Models\User;
+use Domain\Prompt\Actions\CreatePromptAction;
+use Domain\Prompt\Actions\ResolveAgentPromptIdAction;
+use Domain\Prompt\Actions\UpdatePromptAction;
+use Domain\Prompt\Data\CreatePromptData;
+use Domain\Prompt\Data\UpdatePromptData;
+use Domain\Prompt\Models\AgentPrompt;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
+/**
+ * Reusable prompts belong to the workspace (CreatePromptAction stores them on
+ * the workspace owner). Every other read/write must use the same key, or a
+ * teammate can create a prompt they can then never edit or attach.
+ */
+function workspacePrompt(User $workspace, string $name = 'Persona'): AgentPrompt
+{
+    return $workspace->prompts()->create(['name' => $name, 'prompt' => 'Be helpful.']);
+}
+
+it('stores a prompt a teammate creates on the workspace owner', function (): void {
+    $owner = User::factory()->create();
+    $teammate = User::factory()->employee($owner)->create();
+
+    $prompt = app(CreatePromptAction::class)->execute(new CreatePromptData(
+        user: $teammate,
+        name: 'Team persona',
+        prompt: 'Be kind.',
+    ));
+
+    expect($prompt->user_id)->toBe($owner->id);
+});
+
+it('lets a teammate update a prompt owned by their workspace', function (): void {
+    $owner = User::factory()->create();
+    $teammate = User::factory()->employee($owner)->create();
+    $prompt = workspacePrompt($owner);
+
+    $updated = app(UpdatePromptAction::class)->execute(
+        $teammate,
+        $prompt->external_id,
+        new UpdatePromptData(name: 'Renamed', prompt: 'New body'),
+    );
+
+    expect($updated->is($prompt))->toBeTrue()
+        ->and($prompt->fresh()->name)->toBe('Renamed')
+        ->and($prompt->fresh()->user_id)->toBe($owner->id);
+});
+
+it('does not let a user update another workspace\'s prompt', function (): void {
+    $prompt = workspacePrompt(User::factory()->create());
+
+    expect(fn () => app(UpdatePromptAction::class)->execute(
+        User::factory()->create(),
+        $prompt->external_id,
+        new UpdatePromptData(name: 'Hijack', prompt: 'x'),
+    ))->toThrow(ModelNotFoundException::class);
+});
+
+it('resolves a workspace prompt id for the owner and for a teammate', function (): void {
+    $owner = User::factory()->create();
+    $teammate = User::factory()->employee($owner)->create();
+    $prompt = workspacePrompt($owner);
+
+    $resolver = app(ResolveAgentPromptIdAction::class);
+
+    expect($resolver->execute($owner, $prompt->external_id))->toBe($prompt->id)
+        ->and($resolver->execute($teammate, $prompt->external_id))->toBe($prompt->id)
+        ->and($resolver->execute($teammate, null))->toBeNull();
+});
+
+it('refuses to resolve a prompt from another workspace', function (): void {
+    $prompt = workspacePrompt(User::factory()->create());
+
+    expect(fn () => app(ResolveAgentPromptIdAction::class)->execute(User::factory()->create(), $prompt->external_id))
+        ->toThrow(ValidationException::class);
+});
+
+it('moves prompts a teammate created earlier onto their workspace', function (): void {
+    $owner = User::factory()->create();
+    $teammate = User::factory()->employee($owner)->create();
+    $legacy = $teammate->prompts()->create(['name' => 'Legacy', 'prompt' => 'Old']);
+    $ownPrompt = workspacePrompt($owner, 'Owner prompt');
+
+    $migration = require database_path('migrations/2026_10_08_583915_move_teammate_prompts_to_workspace.php');
+    $migration->up();
+
+    expect(DB::table('agent_prompts')->where('id', $legacy->id)->value('user_id'))->toBe($owner->id)
+        ->and(DB::table('agent_prompts')->where('id', $ownPrompt->id)->value('user_id'))->toBe($owner->id);
+});

@@ -11,7 +11,7 @@ class AgentVerifyController
 {
     public function __invoke(Request $request, WidgetVerification $widgetVerification): JsonResponse|WidgetAgentVerifyResultData
     {
-        $verified = $widgetVerification->verifyByAgentExternalId($request->header('X-AGENT-ID'), $request);
+        $verified = $widgetVerification->verifyByAgentExternalId((string) $request->header('X-AGENT-ID'), $request);
 
         if (! $verified) {
             return response()->json(['verified' => false], 403);

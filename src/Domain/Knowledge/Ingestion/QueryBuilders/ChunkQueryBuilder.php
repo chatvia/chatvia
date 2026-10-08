@@ -288,13 +288,15 @@ SQL;
      */
     public function configureSearchAccuracy(string $accuracyLevel, array $config): void
     {
-        $probes = $config['search']['probes'][$accuracyLevel]
+        // SET cannot take bind parameters, so the values are interpolated.
+        // Casting keeps a stray config/env string from becoming SQL.
+        $probes = max(1, (int) ($config['search']['probes'][$accuracyLevel]
             ?? $config['search']['probes']['default']
-            ?? 64;
+            ?? 64));
 
-        $epsilon = $config['search']['epsilon'][$accuracyLevel]
+        $epsilon = (float) ($config['search']['epsilon'][$accuracyLevel]
             ?? $config['search']['epsilon']['default']
-            ?? 1.9;
+            ?? 1.9);
 
         DB::statement("SET LOCAL vchordrq.probes = {$probes}");
         // prefilter is a database-wide default (vchordrq install migration).

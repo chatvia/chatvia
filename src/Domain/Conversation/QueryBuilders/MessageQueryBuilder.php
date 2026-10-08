@@ -13,12 +13,22 @@ use Illuminate\Support\Collection;
  */
 class MessageQueryBuilder extends Builder
 {
+    /**
+     * Messages of one conversation, only when that conversation belongs to the
+     * agent. The agent check is part of the query on purpose: a caller that
+     * forgets to verify ownership first still gets no rows from another
+     * agent's (or tenant's) conversation. The EXISTS probe is a primary-key
+     * lookup, so it costs next to nothing.
+     */
     public function forAgentConversation(int $agentId, int $conversationId): self
     {
-        // chat_conversation_id is already authoritative; the controller verifies
-        // the conversation belongs to the agent before calling this. The
-        // additional whereHas would emit a redundant EXISTS subquery.
-        return $this->where('chat_conversation_id', $conversationId);
+        return $this->where('chat_messages.chat_conversation_id', $conversationId)
+            ->whereExists(function ($query) use ($agentId): void {
+                $query->selectRaw('1')
+                    ->from('chat_conversations')
+                    ->whereColumn('chat_conversations.id', 'chat_messages.chat_conversation_id')
+                    ->where('chat_conversations.agent_id', $agentId);
+            });
     }
 
     /**

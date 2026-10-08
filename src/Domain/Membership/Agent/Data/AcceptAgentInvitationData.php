@@ -2,29 +2,30 @@
 
 namespace Domain\Membership\Agent\Data;
 
-use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
 use Domain\Membership\Agent\Enums\InvitationCredentialKind;
+use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Spatie\LaravelData\Data;
 use Support\Enums\User\SocialProvider;
 
 /**
- * Input for {@see AcceptAgentInvitationAction::execute}.
+ * Input for {@see AcceptAgentInvitationAction::execute}. `invitation` is the
+ * row the caller looked up from the link's token; the Action re-reads it under
+ * a lock, checks it is still valid and deletes it in the same transaction.
  *
  * `kind` discriminates the path:
  *  - Password: $password is set, social fields are null
  *  - Social  : $socialEmail/$socialProvider/$socialProviderId are set,
  *              $password is null
  *
- * The Action's hash_equals guard verifies that $socialEmail matches $invitedEmail
- * on the Social path — defends against forwarded invite links being redirected
- * onto a different account.
+ * The Action's hash_equals guard verifies that $socialEmail matches the
+ * invited email on the Social path — defends against forwarded invite links
+ * being redirected onto a different account.
  */
 class AcceptAgentInvitationData extends Data
 {
     public function __construct(
-        public Agent $agent,
-        public string $invitedEmail,
+        public AgentChatterInvitation $invitation,
         public string $name,
         public InvitationCredentialKind $kind,
         public ?string $password = null,

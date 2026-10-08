@@ -2,6 +2,15 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -615,22 +624,22 @@ const cancelDelete = () => {
         </Dialog>
 
         <!-- Delete Confirmation Dialog -->
-        <Dialog v-model:open="showDeleteDialog">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{{ t('agents.team.delete_dialog_title') }}</DialogTitle>
-                    <DialogDescription>
+        <AlertDialog v-model:open="showDeleteDialog">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{{ t('agents.team.delete_dialog_title') }}</AlertDialogTitle>
+                    <AlertDialogDescription>
                         {{ t('agents.team.delete_dialog_description', { name: selectedMember?.name }) }}
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button variant="outline" @click="cancelDelete">{{ t('common.cancel') }}</Button>
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel @click="cancelDelete">{{ t('common.cancel') }}</AlertDialogCancel>
                     <Button variant="destructive" @click="deleteMemberEntirely">
                         <Trash2 class="me-2 h-4 w-4" />
                         {{ t('agents.team.delete_permanently') }}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </AgentLayout>
 </template>

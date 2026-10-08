@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function (): void {
     config()->set('services.scalewayai.api_key', 'test-key');
+    config()->set('services.scalewayai.endpoint', 'https://api.scaleway.test/project-x/v1/');
 });
 
 test('supports reranking', function (): void {
@@ -29,7 +30,7 @@ test('posts the expected envelope to the Scaleway rerank endpoint', function ():
 
     Http::assertSent(function (Request $request): bool {
         return $request->method() === 'POST'
-            && $request->url() === 'https://api.scaleway.ai/ce82c941-d642-4fe0-94d7-b89bee83dd9d/v1/rerank'
+            && $request->url() === 'https://api.scaleway.test/project-x/v1/rerank'
             && $request->hasHeader('Authorization', 'Bearer test-key')
             && $request['model'] === 'qwen3-embedding-8b'
             && $request['query'] === 'what is the largest ocean?'

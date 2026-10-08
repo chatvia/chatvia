@@ -5,16 +5,29 @@ namespace Domain\Conversation\Services\Tooling\Dispatcher;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\FunctionInvoked;
 use Domain\Conversation\Services\Tooling\Registry\ToolCallerIdentity;
+use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Support\Exceptions\UnsafeUrlException;
 use Support\Http\SafeUrl;
+use Support\Http\WebhookSignature;
 use Throwable;
 
+/**
+ * Runs a webhook function (FunctionTool): finds the function attached to the
+ * agent, checks the URL is safe, calls it with the function's HTTP method and
+ * auth (bearer, custom header, or an HMAC signature), and returns the response
+ * text to the model. Failures come back as tool errors, never exceptions.
+ */
 class HttpToolDispatcher implements ToolDispatcherInterface
 {
+    public const TIMESTAMP_HEADER = 'X-Chatvia-Timestamp';
+
+    public const SIGNATURE_HEADER = 'X-Chatvia-Signature';
+
     public function dispatch(Agent $agent, string $name, string $arguments, ?string $conversationExternalId = null, ?string $chatterExternalId = null): ToolDispatchResult
     {
         $function = AgentFunction::query()
@@ -49,16 +62,41 @@ class HttpToolDispatcher implements ToolDispatcherInterface
             return $this->error('webhook URL is not allowed: '.$e->getMessage());
         }
 
+        $method = FunctionWebhookMethod::tryFrom(strtoupper((string) $function->webhook_method)) ?? FunctionWebhookMethod::Post;
+
+        // Build the exact bytes we send, so an HMAC signature covers what the
+        // receiver gets: GET carries the arguments as a query string, every
+        // other method as a JSON body.
+        $payload = $method === FunctionWebhookMethod::Get
+            ? http_build_query($args, '', '&', PHP_QUERY_RFC3986)
+            : (string) json_encode($args);
+
+        $headers = $this->headers($function, $agent, $conversationExternalId, $chatterExternalId);
+
+        if ($function->auth_type === FunctionAuthType::Hmac->value) {
+            $secret = (string) (($function->auth_config ?? [])['secret'] ?? '');
+
+            // Never send an unsigned request to an endpoint that expects one.
+            if ($secret === '') {
+                $this->record($function, $agent, error: 'missing hmac signing secret');
+
+                return $this->error('the HMAC signing secret for this function is missing.');
+            }
+
+            // Stamped last so a customer webhook header can't shadow them.
+            $headers = array_merge($headers, $this->signatureHeaders($secret, $payload));
+        }
+
         $start = microtime(true);
 
         try {
             $request = Http::timeout(max(1, (int) ceil($function->timeout_ms / 1000)))
                 ->withOptions(SafeUrl::clientOptions())
-                ->withHeaders($this->headers($function, $agent, $conversationExternalId, $chatterExternalId));
+                ->withHeaders($headers);
 
-            $response = $function->webhook_method === 'GET'
-                ? $request->get($function->webhook_url, $args)
-                : $request->post($function->webhook_url, $args);
+            $response = $method === FunctionWebhookMethod::Get
+                ? $request->send($method->value, $function->webhook_url, ['query' => $payload])
+                : $request->withBody($payload, 'application/json')->send($method->value, $function->webhook_url);
 
             $latency = (int) round((microtime(true) - $start) * 1000);
 
@@ -130,7 +168,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         // auth_config shape varies per auth_type:
         //   bearer → ['token' => '...']
         //   header → ['name' => '...', 'value' => '...']
-        //   hmac   → ['secret' => '...'] (used by request body signing, not headers)
+        //   hmac   → ['secret' => '...'] (signs the request, see signatureHeaders())
         $config = $function->auth_config ?? [];
 
         if ($function->auth_type === 'bearer' && ! empty($config['token'])) {
@@ -143,6 +181,25 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         // Identity headers are stamped last so a customer's webhook_headers
         // can't shadow them.
         return array_merge($headers, ToolCallerIdentity::headers($agent, $conversationExternalId, $chatterExternalId));
+    }
+
+    /**
+     * Signature headers for `hmac` auth. The receiver recomputes
+     * HMAC-SHA256 over "{timestamp}.{payload}" with the shared secret — the
+     * payload being the exact raw JSON body, or for GET the raw query string —
+     * compares it in constant time, and rejects old timestamps so a captured
+     * request cannot be replayed later.
+     *
+     * @return array<string, string>
+     */
+    private function signatureHeaders(string $secret, string $payload): array
+    {
+        $timestamp = (string) now()->getTimestamp();
+
+        return [
+            self::TIMESTAMP_HEADER => $timestamp,
+            self::SIGNATURE_HEADER => 'sha256='.WebhookSignature::sign($timestamp.'.'.$payload, $secret),
+        ];
     }
 
     private function record(AgentFunction $function, Agent $agent, ?string $error = null): void

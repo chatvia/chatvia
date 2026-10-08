@@ -15,6 +15,7 @@ use Domain\Conversation\Services\Tooling\Registry\ToolDisplayResolver;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Generator;
+use Illuminate\Support\Facades\Log;
 use Spectra\Facades\Spectra;
 use Throwable;
 
@@ -40,6 +41,8 @@ class ToolLoopRunner
     public const DENIED_RESULT = 'The user reviewed this action and chose not to approve it. Acknowledge their decision briefly and continue helping without running it; do not call this tool again unless they ask.';
 
     public const RATE_LIMITED_RESULT = 'This tool is temporarily rate-limited for this agent and was not run. Do not retry it now; continue helping the user without it.';
+
+    public const UNKNOWN_TOOL_RESULT = 'Tool error: "%s" is not one of the tools available to you right now, so it was not run. Use only the tools you were given, or answer without a tool.';
 
     public function __construct(
         private readonly StreamTransformer $transformer,
@@ -81,12 +84,20 @@ class ToolLoopRunner
         $maxIterations = (int) config('chatvia.agent.tools.max_iterations');
         $iteration = $startIteration;
 
+        // The model may only call what it was offered on this turn. The names
+        // gate both the transformer (no JSON sniffing without tools) and the
+        // dispatch below (an invented or stale name never reaches a backend,
+        // so it cannot skip the surface filter, routing or approval).
+        $offeredNames = $this->offeredToolNames($toolDefinitions);
+
         while ($iteration < $maxIterations) {
             $settings = $extraSettings;
             if (! empty($toolDefinitions)) {
                 $settings['tools'] = $toolDefinitions;
                 $settings['tool_choice'] = 'auto';
             }
+
+            $context->offeredToolNames = $offeredNames;
 
             $tracker = Spectra::stream(provider: $providerSlug, model: $modelName);
             $context->spectraTracker = $tracker;
@@ -137,8 +148,22 @@ class ToolLoopRunner
                 ], $toolCalls),
             ];
 
+            // Refuse calls to tools that were not offered: answer them with a
+            // tool error right away (the model needs a result for every
+            // tool_call_id) and keep them away from approval and dispatch.
+            $offeredCalls = [];
+            foreach ($toolCalls as $tc) {
+                if (in_array($tc['name'], $offeredNames, true)) {
+                    $offeredCalls[] = $tc;
+
+                    continue;
+                }
+
+                $this->rejectUnofferedCall($context, $llmMessages, $tc);
+            }
+
             // Resolve display + access decision once for every call in the turn.
-            $calls = $this->buildPendingCalls($agent, $toolCalls);
+            $calls = $this->buildPendingCalls($agent, $offeredCalls);
             $needsApproval = array_values(array_filter($calls, static fn (array $c): bool => $c['requires_approval']));
 
             // If any call is gated, pause the whole turn (OpenAI needs a result
@@ -324,6 +349,48 @@ class ToolLoopRunner
         ];
 
         $this->emitToolCallAudit($context, $pc, $outcome, $message, false, null, $decided);
+    }
+
+    /**
+     * Answer a call to a tool that was not offered this turn with a recoverable
+     * tool error. Nothing is dispatched, no SSE event is sent (there is no real
+     * tool to show) and no governance audit row is written — the audit records
+     * decisions about real tools, and this name does not map to one.
+     *
+     * @param  array<int, array<string, mixed>>  $llmMessages
+     * @param  array{id: string, name: string, arguments: string}  $toolCall
+     */
+    private function rejectUnofferedCall(ChatContext $context, array &$llmMessages, array $toolCall): void
+    {
+        $llmMessages[] = [
+            'role' => 'tool',
+            'tool_call_id' => $toolCall['id'],
+            'content' => sprintf(self::UNKNOWN_TOOL_RESULT, mb_substr($toolCall['name'], 0, 100)),
+        ];
+
+        Log::warning('Refused a tool call to a tool that was not offered', [
+            'agent_id' => $context->requestData->agent->id,
+            'tool' => mb_substr($toolCall['name'], 0, 100),
+        ]);
+    }
+
+    /**
+     * The function names in an OpenAI-shaped `tools` list.
+     *
+     * @param  array<int, array<string, mixed>>  $toolDefinitions
+     * @return array<int, string>
+     */
+    private function offeredToolNames(array $toolDefinitions): array
+    {
+        $names = [];
+        foreach ($toolDefinitions as $definition) {
+            $name = $definition['function']['name'] ?? null;
+            if (is_string($name) && $name !== '') {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
     }
 
     /**

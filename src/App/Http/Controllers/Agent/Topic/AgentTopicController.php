@@ -15,7 +15,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Support\Exceptions\DomainValidationException;
 use Support\Exceptions\SystemTopicProtectedException;
 
 class AgentTopicController
@@ -26,8 +25,10 @@ class AgentTopicController
             $search = $request->input('search');
 
             if ($request->boolean('all')) {
+                // Topics belong to the workspace owner, so a teammate sees the
+                // same list as the owner.
                 $query = Topic::query()
-                    ->forUser($request->user())
+                    ->forUser($agent->user)
                     ->orderBy('topic');
 
                 if ($search) {
@@ -58,32 +59,23 @@ class AgentTopicController
         CreateAgentTopicAction $createTopic,
     ): JsonResponse {
         if ($request->isAttach()) {
-            // Scope through forUser (global or owned) so a body-supplied id
-            // can't reach another account's private topic. Mirrors the same
-            // scope the attachable-topics listing in index() uses.
+            // Scope through forUser (global or owned by this workspace) so a
+            // body-supplied id can't reach another account's private topic.
+            // Mirrors the same scope the attachable-topics listing in index() uses.
             $topic = Topic::query()
-                ->forUser($request->user())
+                ->forUser($agent->user)
                 ->findOrFail((int) $request->validated('topic_id'));
 
-            try {
-                $attach->execute($agent, $topic);
-            } catch (DomainValidationException $e) {
-                return response()->json(['message' => $e->getMessage()], 422);
-            }
+            $attach->execute($agent, $topic);
 
             return response()->json(['message' => 'Topic added successfully', 'topic' => $topic]);
         }
 
-        try {
-            $topic = $createTopic->execute(
-                $agent,
-                $request->user(),
-                (string) $request->validated('topic'),
-                (string) $request->validated('description'),
-            );
-        } catch (DomainValidationException $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
-        }
+        $topic = $createTopic->execute(
+            $agent,
+            (string) $request->validated('topic'),
+            (string) $request->validated('description'),
+        );
 
         return response()->json(['message' => 'Topic created successfully', 'topic' => $topic]);
     }
@@ -102,15 +94,15 @@ class AgentTopicController
 
         try {
             $updateTopic->execute(
+                $agent,
                 $topic,
-                $request->user(),
                 (string) $request->validated('topic'),
                 (string) $request->validated('description'),
             );
         } catch (SystemTopicProtectedException $e) {
+            // Caught here because the global DomainValidationException mapping
+            // would turn this subclass into a 422.
             return response()->json(['message' => $e->getMessage()], 403);
-        } catch (DomainValidationException $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
         }
 
         return response()->json(['message' => 'Topic updated successfully', 'topic' => $topic]);

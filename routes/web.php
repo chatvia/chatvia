@@ -79,11 +79,17 @@ Route::group([
     require __DIR__.'/billing.php';
 });
 
-Route::get('/legal/dpa/download', [DpaController::class, 'download'])->name('dpa.download');
+// Each download starts a headless browser, so cap it per visitor. The named
+// prefix keeps this counter separate from other plain `throttle:` routes.
+Route::get('/legal/dpa/download', [DpaController::class, 'download'])
+    ->middleware('throttle:10,1,dpa-download')
+    ->name('dpa.download');
 
 // Contact form submission posts to the non-localized action URL (a localized POST
 // would be redirected to a GET by the locale middleware).
-Route::post('contact', [ContactController::class, 'submit'])->name('contact.submit');
+Route::post('contact', [ContactController::class, 'submit'])
+    ->middleware('throttle:5,1,contact')
+    ->name('contact.submit');
 
 // Social OAuth routes. Starts get a tighter cap (cheap redirect, only abused
 // for traffic generation); callbacks get a higher cap (legit users can land
@@ -102,7 +108,10 @@ Route::get('/auth/slack', SlackAuthController::class)->middleware('throttle:10,1
 Route::get('/auth/slack/callback', SlackCallbackController::class)->middleware('throttle:30,1')->name('auth.slack.callback');
 
 // Trial routes (guest accessible)
-Route::post('trial/checkout', TrialCheckoutController::class)->name('trial.checkout');
+// Every call creates a Stripe Checkout session, so cap it per visitor.
+Route::post('trial/checkout', TrialCheckoutController::class)
+    ->middleware('throttle:10,1,trial-checkout')
+    ->name('trial.checkout');
 Route::get('trial/success', TrialSuccessController::class)->name('trial.success');
 
 Route::get('my/chunks/{chunkExternalId}/{imageIndex}.png', AgentChunkImageViewController::class)->name('chunks.image.view');

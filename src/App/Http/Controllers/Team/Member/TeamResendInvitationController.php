@@ -6,7 +6,6 @@ use Domain\Membership\Team\Actions\Invitations\ResendTeamInvitationAction;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Support\Exceptions\DomainValidationException;
 
 class TeamResendInvitationController
 {
@@ -24,11 +23,7 @@ class TeamResendInvitationController
 
         $invitation = $team->invitations()->findOrFail($invitationId);
 
-        try {
-            $resend->execute($invitation);
-        } catch (DomainValidationException $e) {
-            return back()->withErrors([$e->field => $e->getMessage()]);
-        }
+        $resend->execute($invitation);
 
         return back()->with('success', 'Invitation resent.');
     }

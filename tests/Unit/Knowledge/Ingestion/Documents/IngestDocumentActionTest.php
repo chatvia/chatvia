@@ -39,7 +39,7 @@ function idaFakeMistralOcr(): MistralOCR
             return collect();
         }
 
-        public function fromFile(string $file): Collection
+        public function fromFile(string $file, string $storageDirectory): Collection
         {
             return collect();
         }

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Chat\Conversations;
 
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\TurnState;
+use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
@@ -22,7 +22,9 @@ class ConversationSearchController
 {
     private const MAX_RESULTS = 50;
 
-    public function __invoke(Request $request, TurnState $turnState): array
+    private const MAX_SEARCHED_CONVERSATIONS = 1000;
+
+    public function __invoke(Request $request, TurnState $turnState, WidgetVerification $verification): array
     {
         $term = trim((string) $request->query('q', ''));
         if ($term === '') {
@@ -31,18 +33,27 @@ class ConversationSearchController
 
         $agent = current_agent();
 
-        $session = Session::query()
-            ->where('external_id', $turnState->firstOrCreateSession($agent))
-            ->first();
+        // A search is a read: look up the visitor's session, never create one.
+        $sessionId = $agent !== null ? $turnState->findSession($agent) : null;
+
+        if ($agent === null || $sessionId === null) {
+            return [];
+        }
+
+        $session = $verification->verifySessionExternalId($sessionId, $agent);
 
         if ($session === null) {
             return [];
         }
 
+        // Titles are encrypted, so they are matched in PHP after decryption.
+        // Only the most recent conversations are searched to bound that work.
         /** @var Collection<int, Conversation> $conversations */
         $conversations = $session->conversations()
             ->whereNull('cleared_at')
             ->where('is_visible', true)
+            ->latest('id')
+            ->limit(self::MAX_SEARCHED_CONVERSATIONS)
             ->get(['id', 'external_id', 'title', 'created_at']);
 
         if ($conversations->isEmpty()) {

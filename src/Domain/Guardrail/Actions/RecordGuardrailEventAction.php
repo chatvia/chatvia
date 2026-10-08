@@ -5,6 +5,7 @@ namespace Domain\Guardrail\Actions;
 use Domain\Guardrail\Events\GuardrailTriggered;
 use Domain\Guardrail\Listeners\RecordGuardrailEvent;
 use Domain\Guardrail\Models\GuardrailEvent;
+use Support\Text\Utf8;
 
 /**
  * Writes one immutable `guardrail_events` row for a fired guard. Hashes the full
@@ -45,7 +46,8 @@ class RecordGuardrailEventAction
     {
         $sha = hash('sha256', $sample);
         $max = (int) config('chatvia.guardrails.max_snippet_bytes', 2048);
-        $snippet = strlen($sample) <= $max ? $sample : substr($sample, 0, $max);
+        // Byte cap, cut on a character boundary so the stored text stays valid UTF-8.
+        $snippet = Utf8::truncateBytes($sample, $max);
 
         return [$snippet, $sha];
     }

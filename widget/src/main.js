@@ -1,5 +1,6 @@
 import { ChatWidget } from './widget.js';
 import { NAMESPACE } from './utils.js';
+import { configureEndpoints } from './endpoints.js';
 
 (function () {
   const namespace = NAMESPACE;
@@ -13,6 +14,10 @@ import { NAMESPACE } from './utils.js';
 
   const clientId = window[namespace].agentId;
   const commandQueue = window[namespace].q || [];
+
+  // Capture the embed tag's endpoint overrides now: window.chatvia is replaced
+  // by the public API object below, which does not carry them.
+  configureEndpoints(window[namespace].endpoints);
   // Closure-private registry of host-page event subscriptions ('handoff',
   // 'open', 'close', 'ready'). Was previously exposed on the public API as
   // `_eventListeners` so internal modules could reach in via window.chatvia,

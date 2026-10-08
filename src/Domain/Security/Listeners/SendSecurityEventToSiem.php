@@ -8,6 +8,8 @@ use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Support\Exceptions\UnsafeUrlException;
 use Throwable;
 
 /**
@@ -19,9 +21,13 @@ use Throwable;
  * Transient failures retry via the queue; once retries are exhausted, failed()
  * increments the consecutive-failure counter and auto-disables a dead endpoint
  * past the configured threshold (a success resets the counter in the Action).
+ * A URL that fails the SSRF check is failed at once: retrying cannot fix it,
+ * and it still counts towards the auto-disable threshold.
  */
 class SendSecurityEventToSiem implements ShouldQueue
 {
+    use InteractsWithQueue;
+
     public int $tries = 3;
 
     public function __construct(
@@ -43,7 +49,15 @@ class SendSecurityEventToSiem implements ShouldQueue
 
     public function handle(SecurityEventOccurred $event): void
     {
-        $this->action->execute($event);
+        try {
+            $this->action->execute($event);
+        } catch (UnsafeUrlException $e) {
+            if ($this->job === null) {
+                throw $e;
+            }
+
+            $this->fail($e);
+        }
     }
 
     public function failed(SecurityEventOccurred $event, Throwable $exception): void

@@ -7,6 +7,7 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -121,4 +122,46 @@ it('keeps an inactive session while other conversations remain in it', function 
 
     expect(Session::query()->whereKey($session->id)->exists())->toBeTrue()
         ->and(Conversation::query()->whereKey($sibling->id)->exists())->toBeTrue();
+});
+
+it('deletes the conversation exactly once', function (): void {
+    [$owner, $agent, , $conversation] = adcaSetup();
+
+    // The deleting hook wipes attachments + cache; a second delete() call
+    // would run that cascade (and the soft-delete UPDATE) all over again.
+    $deletes = 0;
+    Conversation::deleting(function () use (&$deletes): void {
+        $deletes++;
+    });
+
+    app(AdminDeleteConversationAction::class)->execute($agent, $conversation, $owner);
+
+    expect($deletes)->toBe(1);
+});
+
+it('also clears the BM25 search copy of the erased text', function (): void {
+    [$owner, $agent, , $conversation] = adcaSetup();
+
+    $message = Message::create([
+        'external_id' => (string) Str::uuid(),
+        'chat_conversation_id' => $conversation->id,
+        'role' => 'user',
+        'content' => 'My card number is 4242...',
+    ]);
+
+    app(AdminDeleteConversationAction::class)->execute($agent, $conversation, $owner);
+
+    expect(DB::table('chat_messages')->where('id', $message->id)->value('content_bm25'))->toBeNull();
+});
+
+it('does nothing when the conversation has no session any more', function (): void {
+    [$owner, $agent, , $conversation] = adcaSetup();
+
+    // The FK cascades a session delete onto its conversations; a loaded model
+    // whose session is gone has nothing left to erase — and must not crash.
+    $conversation->setRelation('session', null);
+
+    app(AdminDeleteConversationAction::class)->execute($agent, $conversation, $owner);
+
+    expect(Conversation::query()->whereKey($conversation->id)->exists())->toBeTrue();
 });

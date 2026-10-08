@@ -30,8 +30,8 @@ class PromoteSuggestedTopicAction
     public function execute(Agent $agent, User $user, string $label): Topic
     {
         /** @var array{0: Topic, 1: list<\DateTimeInterface>} $result */
-        $result = DB::transaction(function () use ($agent, $user, $label): array {
-            $topic = $this->createAgentTopic->execute($agent, $user, $label, '');
+        $result = DB::transaction(function () use ($agent, $label): array {
+            $topic = $this->createAgentTopic->execute($agent, $label, '');
 
             $rows = ConversationTopic::query()
                 ->where('suggested_label', $label)

@@ -7,6 +7,11 @@ use Domain\Integration\Function\Models\AgentFunction;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * Dashboard view of an account-level webhook function. Secrets never leave
+ * the server: custom webhook headers are listed by name only (their values
+ * often hold API keys), and auth credentials are not included at all.
+ */
 #[TypeScript]
 class AgentFunctionData extends Data
 {
@@ -19,8 +24,9 @@ class AgentFunctionData extends Data
         public array $parameters_schema,
         public string $webhook_url,
         public string $webhook_method,
-        /** @var array<int, array<string, string>> */
-        public array $webhook_headers,
+        /** @var array<int, string> */
+        public array $webhook_header_names,
+        public bool $has_webhook_headers,
         public string $auth_type,
         public int $timeout_ms,
         public int $max_response_bytes,
@@ -33,6 +39,8 @@ class AgentFunctionData extends Data
 
     public static function fromModel(AgentFunction $function): self
     {
+        $headerNames = self::headerNames($function->webhook_headers);
+
         return new self(
             external_id: $function->external_id,
             internal_name: $function->internal_name,
@@ -41,7 +49,8 @@ class AgentFunctionData extends Data
             parameters_schema: self::schemaToArray($function->parameters_schema),
             webhook_url: $function->webhook_url,
             webhook_method: $function->webhook_method,
-            webhook_headers: array_values((array) ($function->webhook_headers ?? [])),
+            webhook_header_names: $headerNames,
+            has_webhook_headers: $headerNames !== [],
             auth_type: $function->auth_type,
             timeout_ms: $function->timeout_ms,
             max_response_bytes: $function->max_response_bytes,
@@ -51,6 +60,24 @@ class AgentFunctionData extends Data
             invocation_count: $function->invocation_count,
             created_at: $function->created_at,
         );
+    }
+
+    /**
+     * Names of the custom webhook headers, without their values.
+     *
+     * @return array<int, string>
+     */
+    private static function headerNames(mixed $headers): array
+    {
+        $names = [];
+
+        foreach ((array) ($headers ?? []) as $header) {
+            if (is_array($header) && isset($header['key']) && is_string($header['key']) && $header['key'] !== '') {
+                $names[] = $header['key'];
+            }
+        }
+
+        return $names;
     }
 
     /**

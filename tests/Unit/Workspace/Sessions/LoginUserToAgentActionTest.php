@@ -5,6 +5,8 @@ use App\Identity\Workspace\Actions\Sessions\LoginUserToAgentAction;
 use App\Identity\Workspace\Data\Sessions\LoginData;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Support\Enums\User\UserType;
+use Support\Exceptions\DomainValidationException;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create([
@@ -12,75 +14,100 @@ beforeEach(function (): void {
         'password' => Hash::make('correct-password'),
     ]);
     $this->agent = createAgent($this->owner);
+
+    $this->chatter = User::factory()->chatter($this->owner)->create([
+        'email' => 'chatter@example.test',
+        'password' => Hash::make('chatter-pass'),
+    ]);
+    $this->chatter->accessibleAgents()->attach($this->agent);
 });
 
-it('returns the authenticated user and logs them in on valid credentials', function (): void {
-    $user = app(LoginUserToAgentAction::class)->execute(
-        new LoginData(email: 'owner@example.test', password: 'correct-password', remember: false),
-        $this->agent,
+function loginToAgentChat(string $email, string $password): ?User
+{
+    return app(LoginUserToAgentAction::class)->execute(
+        new LoginData(email: $email, password: $password, remember: false),
+        test()->agent,
     );
+}
+
+it('logs in a chatter who has a grant for the agent', function (): void {
+    $user = loginToAgentChat('chatter@example.test', 'chatter-pass');
 
     expect($user)->toBeInstanceOf(User::class)
-        ->and($user->id)->toBe($this->owner->id)
-        ->and(auth()->id())->toBe($this->owner->id);
+        ->and($user->id)->toBe($this->chatter->id)
+        ->and(auth()->id())->toBe($this->chatter->id);
 });
 
 it('stamps last_login_at when the login succeeds', function (): void {
-    expect($this->owner->last_login_at)->toBeNull();
+    expect($this->chatter->last_login_at)->toBeNull();
 
-    app(LoginUserToAgentAction::class)->execute(
-        new LoginData(email: 'owner@example.test', password: 'correct-password', remember: false),
-        $this->agent,
-    );
+    loginToAgentChat('chatter@example.test', 'chatter-pass');
 
-    expect($this->owner->fresh()->last_login_at)->not->toBeNull();
+    expect($this->chatter->fresh()->last_login_at)->not->toBeNull();
 });
 
 it('returns null and does not log in when the password is wrong', function (): void {
-    $result = app(LoginUserToAgentAction::class)->execute(
-        new LoginData(email: 'owner@example.test', password: 'wrong-password', remember: false),
-        $this->agent,
-    );
-
-    expect($result)->toBeNull()
+    expect(loginToAgentChat('chatter@example.test', 'wrong-password'))->toBeNull()
         ->and(auth()->check())->toBeFalse();
 });
 
-it('returns null when the user is deactivated, even with valid credentials', function (): void {
-    app(DeactivateAccountAction::class)->execute($this->owner, 'blocked by admin');
+it('returns null when the chatter is deactivated, even with valid credentials', function (): void {
+    app(DeactivateAccountAction::class)->execute($this->chatter, 'blocked by admin');
 
-    $result = app(LoginUserToAgentAction::class)->execute(
-        new LoginData(email: 'owner@example.test', password: 'correct-password', remember: false),
-        $this->agent,
-    );
-
-    expect($result)->toBeNull()
+    expect(loginToAgentChat('chatter@example.test', 'chatter-pass'))->toBeNull()
         ->and(auth()->check())->toBeFalse();
 });
 
 it('returns null when no user matches the email', function (): void {
-    $result = app(LoginUserToAgentAction::class)->execute(
-        new LoginData(email: 'no-such-user@example.test', password: 'correct-password', remember: false),
-        $this->agent,
-    );
-
-    expect($result)->toBeNull()
+    expect(loginToAgentChat('no-such-user@example.test', 'chatter-pass'))->toBeNull()
         ->and(auth()->check())->toBeFalse();
+});
+
+it('still computes a password hash when no user matches the email', function (): void {
+    // Same work as a wrong password for a real account, so response timing
+    // can't reveal which emails are registered.
+    Hash::shouldReceive('make')->once()->andReturn('hashed');
+
+    expect(loginToAgentChat('no-such-user@example.test', 'chatter-pass'))->toBeNull();
 });
 
 it('returns null when a chatter has no grant for the given agent', function (): void {
     $workspace = User::factory()->workspace()->create();
-    $chatter = User::factory()->chatter($workspace)->create([
-        'email' => 'chatter@example.test',
-        'password' => Hash::make('chatter-pass'),
+    User::factory()->chatter($workspace)->create([
+        'email' => 'outsider@example.test',
+        'password' => Hash::make('outsider-pass'),
     ]);
-    $otherAgent = createAgent($workspace);
 
-    $result = app(LoginUserToAgentAction::class)->execute(
-        new LoginData(email: 'chatter@example.test', password: 'chatter-pass', remember: false),
-        $otherAgent,
-    );
-
-    expect($result)->toBeNull()
+    expect(loginToAgentChat('outsider@example.test', 'outsider-pass'))->toBeNull()
         ->and(auth()->check())->toBeFalse();
 });
+
+it('refuses a 2FA-enabled owner so the password form cannot skip the second factor', function (): void {
+    $this->owner->forceFill([
+        'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'),
+        'two_factor_confirmed_at' => now(),
+    ])->save();
+
+    expect(fn (): ?\App\Identity\Workspace\Models\User => loginToAgentChat('owner@example.test', 'correct-password'))
+        ->toThrow(DomainValidationException::class);
+
+    expect(auth()->check())->toBeFalse();
+});
+
+it('refuses every non-chatter account type, even with access to the agent', function (UserType $type): void {
+    $user = User::factory()->create([
+        'type' => $type,
+        'email' => 'staff@example.test',
+        'password' => Hash::make('staff-pass'),
+    ]);
+
+    expect(fn (): ?\App\Identity\Workspace\Models\User => loginToAgentChat('staff@example.test', 'staff-pass'))
+        ->toThrow(DomainValidationException::class);
+
+    expect(auth()->check())->toBeFalse()
+        ->and($user->fresh()->last_login_at)->toBeNull();
+})->with([
+    'workspace owner' => [UserType::Workspace],
+    'admin' => [UserType::Admin],
+    'employee' => [UserType::Employee],
+]);

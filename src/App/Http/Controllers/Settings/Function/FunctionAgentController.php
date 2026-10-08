@@ -51,6 +51,6 @@ class FunctionAgentController
         /** @var User $user */
         $user = $request->user();
 
-        return $user->functions()->where('external_id', $externalId)->firstOrFail();
+        return $user->workspace()->functions()->where('external_id', $externalId)->firstOrFail();
     }
 }

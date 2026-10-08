@@ -5,30 +5,20 @@ namespace App\Http\Controllers\Widget\Activity;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Auth\WidgetAckData;
-use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 readonly class HeartbeatController
 {
-    public function __construct(
-        private WidgetVerification $widgetVerification,
-    ) {}
-
     public function __invoke(
         Request $request,
         FindWidgetConversationAction $findConversation,
     ): JsonResponse|WidgetAckData {
         $sessionId = $request->header('X-SESSION-ID');
-        $agentId = $request->header('X-AGENT-ID');
         $conversationId = $request->input('conversation_id') ?? $request->header('X-CONVERSATION-ID');
 
         if (! $sessionId) {
             return response()->json(['error' => 'Missing session'], 400);
-        }
-
-        if ($agentId && ! $this->widgetVerification->verifyByAgentExternalId($agentId, $request)) {
-            return response()->json(['error' => 'Domain not allowed'], 403);
         }
 
         if ($conversationId) {

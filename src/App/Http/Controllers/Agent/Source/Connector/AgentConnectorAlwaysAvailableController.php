@@ -6,6 +6,7 @@ use App\Http\Requests\Agent\Connector\SetConnectorAlwaysAvailableRequest;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Actions\SetConnectorAlwaysAvailableAction;
 use Domain\Integration\Mcp\Exceptions\AlwaysAvailableToolLimitException;
+use Domain\Integration\Mcp\Exceptions\ConnectorNotAttachedException;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -29,6 +30,8 @@ class AgentConnectorAlwaysAvailableController
             $action->execute($agent, $server, $request->toData());
         } catch (AlwaysAvailableToolLimitException $exception) {
             return response()->json(['message' => $exception->getMessage()], 422);
+        } catch (ConnectorNotAttachedException) {
+            abort(404, 'Connector not attached to this agent.');
         }
 
         return response()->json(['ok' => true, 'always_available' => $request->toData()->always_available]);

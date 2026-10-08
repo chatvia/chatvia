@@ -255,3 +255,30 @@ it('broadcasts the scored case with the run external id and running pass/fail ta
         },
     );
 });
+
+it('caps a multibyte answer on a character boundary so the result row is stored', function (string $answer): void {
+    // 9 bytes splits a 2-byte Arabic letter / 4-byte emoji; a byte substr()
+    // would leave invalid UTF-8 and Postgres would reject the insert.
+    config(['chatvia.evals.max_output_bytes' => 9]);
+    [$run, $case] = scoringFixtures();
+
+    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+        answer: $answer,
+        sources: [],
+        toolsCalled: [],
+        tokens: 1,
+        latencyMs: 1,
+        traceId: 'trace-mb',
+    )));
+
+    $result = app(ScoreEvalCaseAction::class)->execute($run, $case)->fresh();
+
+    expect(mb_check_encoding((string) $result->actual_output, 'UTF-8'))->toBeTrue()
+        ->and(strlen((string) $result->actual_output))->toBeLessThan(9)
+        ->and(str_starts_with($answer, (string) $result->actual_output))->toBeTrue()
+        ->and($result->actual_output_truncated)->toBeTrue()
+        ->and($result->actual_output_sha256)->toBe(hash('sha256', $answer));
+})->with([
+    'arabic' => 'العاصمة هي باريس',
+    'emoji' => 'Paris 🇫🇷🇫🇷 yes',
+]);

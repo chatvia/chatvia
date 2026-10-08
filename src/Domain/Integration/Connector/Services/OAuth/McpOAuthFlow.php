@@ -9,6 +9,7 @@ use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpCatalog;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -22,15 +23,25 @@ use Throwable;
  *
  *   begin()    → discover, register (DCR), generate PKCE+state,
  *                stash pending state, return the upstream authorize URL.
- *   complete() → recover state, exchange code for tokens, probe tools/list,
- *                upsert the AgentMcpServer row.
+ *   complete() → recover state, check it belongs to the caller, exchange
+ *                code for tokens, probe tools/list, upsert the
+ *                AgentMcpServer row under the workspace owner.
  *
- * The pending-state cache lives in Redis with a 10-min TTL — long enough
- * for slow consent screens, short enough to bound the CSRF window.
+ * The pending state is cached (encrypted) for 10 minutes — long enough for
+ * slow consent screens, short enough to bound the CSRF window. It is bound
+ * to the user and browser session that started the flow: `$sessionBinding`
+ * is a random secret the HTTP layer keeps in the user's session and passes
+ * to both begin and complete.
  */
 class McpOAuthFlow
 {
     private const STATE_TTL_SECONDS = 600;
+
+    /** How long one token refresh may hold the per-server lock. */
+    private const REFRESH_LOCK_SECONDS = 30;
+
+    /** How long a caller waits for another worker's refresh to finish. */
+    private const REFRESH_WAIT_SECONDS = 15;
 
     public function __construct(
         private readonly McpOAuthDiscoverer $discoverer,
@@ -43,10 +54,11 @@ class McpOAuthFlow
      * user should be sent to. Caller is responsible for issuing the actual
      * HTTP redirect.
      */
-    public function begin(User $user, ConnectorData $connector): string
+    public function begin(User $user, ConnectorData $connector, string $sessionBinding): string
     {
         return $this->beginCommon(
             user: $user,
+            sessionBinding: $sessionBinding,
             mcpUrl: $connector->mcpUrl,
             connectorSlug: $connector->slug,
             customName: null,
@@ -60,10 +72,11 @@ class McpOAuthFlow
      * catalog entry. The custom name + slug are carried through the pending
      * state so the callback can persist a row with `connector_slug = null`.
      */
-    public function beginCustom(User $user, string $name, string $slug, string $mcpUrl): string
+    public function beginCustom(User $user, string $name, string $slug, string $mcpUrl, string $sessionBinding): string
     {
         return $this->beginCommon(
             user: $user,
+            sessionBinding: $sessionBinding,
             mcpUrl: $mcpUrl,
             connectorSlug: null,
             customName: $name,
@@ -81,7 +94,7 @@ class McpOAuthFlow
      * pending state and are persisted on the server row in complete() so the
      * background refresh can recover them.
      */
-    public function beginWithClient(User $user, ConnectorData $connector, BringYourOwnOAuthData $byo): string
+    public function beginWithClient(User $user, ConnectorData $connector, BringYourOwnOAuthData $byo, string $sessionBinding): string
     {
         $codeVerifier = $this->generateCodeVerifier();
         $codeChallenge = $this->codeChallengeFor($codeVerifier);
@@ -97,9 +110,10 @@ class McpOAuthFlow
             mcpUrl: $byo->mcpUrl,
             clientSecret: $byo->clientSecret,
             scopes: $connector->oauthScopes,
+            sessionBindingHash: PendingOAuthState::hashBinding($sessionBinding),
         );
 
-        $this->stateStore()->put($this->stateKey($state), $pending->toArray(), self::STATE_TTL_SECONDS);
+        $this->stateStore()->put($this->stateKey($state), $pending->seal(), self::STATE_TTL_SECONDS);
 
         $authorizeParams = [
             'response_type' => 'code',
@@ -118,6 +132,7 @@ class McpOAuthFlow
 
     private function beginCommon(
         User $user,
+        string $sessionBinding,
         string $mcpUrl,
         ?string $connectorSlug,
         ?string $customName,
@@ -140,6 +155,15 @@ class McpOAuthFlow
         }
 
         $metadata = $this->discoverer->discover($mcpUrl, $connector);
+
+        // OAuth 2.1 makes PKCE mandatory. A server that does not advertise S256
+        // could silently ignore our code_challenge, leaving a stolen code usable.
+        if (! $metadata->supportsPkce()) {
+            throw new McpOAuthException(
+                'This service does not support the secure sign-in method (PKCE with S256) that Chatvia requires, so it cannot be connected.'
+            );
+        }
+
         $client = $this->registrar->clientFor($metadata, $connector);
 
         $codeVerifier = $this->generateCodeVerifier();
@@ -158,11 +182,12 @@ class McpOAuthFlow
             scopes: $connector?->oauthScopes,
             customName: $customName,
             customSlug: $customSlug,
+            sessionBindingHash: PendingOAuthState::hashBinding($sessionBinding),
         );
 
         $this->stateStore()->put(
             $this->stateKey($state),
-            $pending->toArray(),
+            $pending->seal(),
             self::STATE_TTL_SECONDS,
         );
 
@@ -182,33 +207,45 @@ class McpOAuthFlow
     }
 
     /**
-     * Complete the round-trip from the upstream consent screen. Exchanges
-     * the auth code for tokens, probes the server's tool catalog, and
-     * persists the AgentMcpServer row.
+     * Complete the round-trip from the upstream consent screen. Checks the
+     * state belongs to `$user` and their browser session, exchanges the auth
+     * code for tokens, probes the server's tool catalog, and persists the
+     * AgentMcpServer row under the workspace owner.
      */
-    public function complete(string $state, string $code): AgentMcpServer
+    public function complete(User $user, string $sessionBinding, string $state, string $code): AgentMcpServer
     {
-        $payload = $this->stateStore()->pull($this->stateKey($state));
+        $pending = PendingOAuthState::unseal($this->stateStore()->pull($this->stateKey($state)));
 
-        if (! is_array($payload)) {
-            throw new McpOAuthException('This OAuth session has expired or was already used. Please try again.');
+        if ($pending === null) {
+            throw new McpOAuthException('This connection request has expired or was already used. Please try again.');
         }
 
-        $pending = PendingOAuthState::fromArray($payload);
+        // Without this check, anyone could send a victim their own authorize
+        // link: the victim's third-party tokens would then be saved in the
+        // sender's workspace.
+        if ($pending->userId !== $user->id || ! $pending->matchesSession($sessionBinding)) {
+            throw new McpOAuthException(
+                'This connection was started from a different account or browser. Please start it again from the Connectors page.'
+            );
+        }
 
         $tokens = $this->exchangeCode($pending, $code);
+
+        // A connector is a workspace resource: key it to the owner so every
+        // teammate and every workspace agent sees the same row.
+        $ownerId = $user->workspace()->id;
 
         // Tokens must commit before the (remote HTTP, non-fatal) catalog refresh.
         $isCustom = $pending->connectorSlug === null;
 
-        $query = AgentMcpServer::query()->where('user_id', $pending->userId);
+        $query = AgentMcpServer::query()->where('user_id', $ownerId);
 
         $server = $isCustom
             ? $query->where('slug', $pending->customSlug)->whereNull('connector_slug')->first()
             : $query->where('connector_slug', $pending->connectorSlug)->first();
 
         $attrs = [
-            'user_id' => $pending->userId,
+            'user_id' => $ownerId,
             'category' => $isCustom ? McpServerCategory::Custom : McpServerCategory::Integration,
             'connector_slug' => $pending->connectorSlug,
             'name' => $isCustom
@@ -255,8 +292,42 @@ class McpOAuthFlow
     }
 
     /**
+     * Refresh the access token if it is about to expire. Many providers
+     * rotate refresh tokens, so two workers refreshing at once would burn
+     * the token and disconnect the server. A per-server lock serialises the
+     * refresh, and the staleness check is repeated after the lock is taken
+     * because another worker may have refreshed in the meantime.
+     */
+    public function refreshIfStale(AgentMcpServer $server): void
+    {
+        if (! $server->accessTokenIsStale()) {
+            return;
+        }
+
+        try {
+            Cache::lock('mcp:refresh:'.$server->id, self::REFRESH_LOCK_SECONDS)
+                ->block(self::REFRESH_WAIT_SECONDS, function () use ($server): void {
+                    if ($server->exists) {
+                        $server->refresh();
+                    }
+
+                    if ($server->accessTokenIsStale()) {
+                        $this->refresh($server);
+                    }
+                });
+        } catch (LockTimeoutException) {
+            // Another worker still holds the lock; use whatever token it has
+            // stored by now rather than racing it.
+            if ($server->exists) {
+                $server->refresh();
+            }
+        }
+    }
+
+    /**
      * Use the refresh token to mint a new access token. Persists the new
-     * pair onto the AgentMcpServer row.
+     * pair onto the AgentMcpServer row. Callers should go through
+     * {@see refreshIfStale()}, which serialises concurrent refreshes.
      */
     public function refresh(AgentMcpServer $server): void
     {

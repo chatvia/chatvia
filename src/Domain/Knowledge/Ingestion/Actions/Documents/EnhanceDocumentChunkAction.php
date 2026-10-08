@@ -44,9 +44,12 @@ class EnhanceDocumentChunkAction
             $imageContent = Image::decode($imageBase64)->encode(new JpegEncoder)->toString();
             $imageDescription = $this->vision->fromDataUrl($imageContent);
 
-            logger()->info(
-                'image description: '.$imageDescription.PHP_EOL.'image path: '.$imageBase64.PHP_EOL,
-            );
+            // IDs only: the image and its description are customer content.
+            logger()->debug('Chunk image described', [
+                'chunk_id' => $chunk->id,
+                'source_file_id' => $sourceFile->id,
+                'described' => $imageDescription !== false,
+            ]);
 
             if ($imageDescription !== false) {
                 $imagePath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/'.Str::uuid()->toString().'.jpg';

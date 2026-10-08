@@ -11,6 +11,7 @@ use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthRegistrar;
 use Domain\Integration\Connector\Services\OAuth\OAuthServerMetadata;
+use Domain\Integration\Connector\Services\OAuth\PendingOAuthState;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpCatalog;
 use Illuminate\Support\Facades\Cache;
@@ -84,7 +85,7 @@ class McpOAuthFlowTest extends TestCase
         $catalog = $this->createMock(McpCatalog::class);
         $flow = $this->flowWithStubs($catalog);
 
-        $url = $flow->begin($this->user(), $this->connector());
+        $url = $flow->begin($this->user(), $this->connector(), 'session-binding');
 
         $this->assertStringStartsWith('https://auth.example.test/authorize?', $url);
 
@@ -98,8 +99,11 @@ class McpOAuthFlowTest extends TestCase
         $this->assertNotEmpty($parts['state']);
         $this->assertNotEmpty($parts['code_challenge']);
 
-        // State is stashed for later code exchange.
-        $this->assertIsArray(Cache::get('oauth:mcp:state:'.$parts['state']));
+        // State is stashed (encrypted) for later code exchange.
+        $cached = Cache::get('oauth:mcp:state:'.$parts['state']);
+        $this->assertIsString($cached);
+        $this->assertStringNotContainsString('oauth-client-xyz', $cached);
+        $this->assertSame(7, PendingOAuthState::unseal($cached)?->userId);
     }
 
     public function test_begin_raises_a_misconfigured_exception_when_oauth_env_is_missing(): void
@@ -129,7 +133,7 @@ class McpOAuthFlowTest extends TestCase
 
         $this->expectException(ConnectorMisconfiguredException::class);
 
-        $flow->begin($this->user(), $connector);
+        $flow->begin($this->user(), $connector, 'session-binding');
     }
 
     public function test_complete_rejects_unknown_state(): void
@@ -141,7 +145,7 @@ class McpOAuthFlowTest extends TestCase
 
         $this->expectException(McpOAuthException::class);
 
-        $flow->complete('not-a-real-state', 'some-code');
+        $flow->complete($this->user(), 'session-binding', 'not-a-real-state', 'some-code');
     }
 
     public function test_refresh_swaps_in_a_new_access_token(): void

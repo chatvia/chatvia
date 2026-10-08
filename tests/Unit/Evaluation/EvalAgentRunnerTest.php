@@ -11,14 +11,15 @@ use Domain\Evaluation\Services\EvalAgentRunner;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
 use Spectra\Facades\Spectra;
 
 /**
  * The whole point of the eval runner is to exercise the agent's REAL pipeline
- * WITHOUT the side effects of a real chat: it must persist no chat message and
- * charge no message credit (it never calls finishTurn), and it must isolate the
- * headless run by disabling approval + audit and restoring them afterwards so a
- * reused queue worker is never left mutated.
+ * WITHOUT the side effects of a real chat: the runner persists no chat message
+ * and charges no credit itself (it never calls finishTurn), and it switches
+ * guardrails off for its own request through the DTO — never by mutating
+ * global config that other code in the same worker reads.
  *
  * We fake the heavy collaborators (a real run would need a live LLM + embeddings)
  * and drive the orchestration body.
@@ -114,27 +115,54 @@ it('captures the answer without persisting a chat message or charging a credit',
     expect(DB::table('chat_messages')->count())->toBe($messagesBefore);
 });
 
-it('disables approval + audit during the run and restores them afterwards', function (): void {
-    config(['chatvia.agent.tools.approval_enabled' => true]);
-    config(['chatvia.governance.audit_enabled' => true]);
+it('turns guardrails off for its own request without touching global config', function (): void {
+    config([
+        'chatvia.agent.tools.approval_enabled' => true,
+        'chatvia.governance.audit_enabled' => true,
+        'chatvia.guardrails.enabled' => true,
+    ]);
 
     $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
 
-    $approvalDuring = null;
-    $auditDuring = null;
+    $configDuring = null;
+    $request = null;
 
-    $runner = fakeEvalRunner(function (ChatContext $context) use (&$approvalDuring, &$auditDuring): void {
-        $approvalDuring = config('chatvia.agent.tools.approval_enabled');
-        $auditDuring = config('chatvia.governance.audit_enabled');
-        $context->streamedMessage = 'ok';
-    });
+    $runner = fakeEvalRunner(
+        onRun: function (ChatContext $context) use (&$configDuring): void {
+            // Anything else running in this worker during the eval must still
+            // see the real settings.
+            $configDuring = [
+                config('chatvia.agent.tools.approval_enabled'),
+                config('chatvia.governance.audit_enabled'),
+                config('chatvia.guardrails.enabled'),
+            ];
+            $context->streamedMessage = 'ok';
+        },
+        onInit: function (StreamRequestData $data) use (&$request): void {
+            $request = $data;
+        },
+    );
 
     $runner->run($agent, 'hello');
 
-    expect($approvalDuring)->toBeFalse()
-        ->and($auditDuring)->toBeFalse()
-        ->and(config('chatvia.agent.tools.approval_enabled'))->toBeTrue()
-        ->and(config('chatvia.governance.audit_enabled'))->toBeTrue();
+    expect($request->guardrailsEnabled)->toBeFalse()
+        ->and($configDuring)->toBe([true, true, true])
+        ->and(config('chatvia.guardrails.enabled'))->toBeTrue();
+});
+
+it('reports a pipeline failure and records it as a failed run', function (): void {
+    Exceptions::fake();
+    $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
+
+    $runner = fakeEvalRunner(function (): void {
+        throw new RuntimeException('provider exploded');
+    });
+
+    $result = $runner->run($agent, 'hello');
+
+    expect($result->failed())->toBeTrue()
+        ->and($result->error)->toBe('provider exploded');
+    Exceptions::assertReported(fn (RuntimeException $e): bool => $e->getMessage() === 'provider exploded');
 });
 
 it('builds the headless request with VALID uuid session + conversation ids', function (): void {

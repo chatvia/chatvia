@@ -7,17 +7,34 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Mail;
 use Support\Cms\Marketing\Mail\ContactMail;
 
+/**
+ * Public contact page. Messages go to `chatvia.contact_email`; when that is
+ * not set, the form is turned off and the page says so.
+ */
 class ContactController
 {
     public function show(): View
     {
-        return view('landing.contact');
+        return view('landing.contact', ['contactEnabled' => $this->recipient() !== null]);
     }
 
     public function submit(ContactRequest $request): View
     {
-        Mail::to('info@chatvia.ai')->send(new ContactMail($request->validated()));
+        $recipient = $this->recipient();
 
-        return view('landing.contact', ['submitted' => true]);
+        if ($recipient === null) {
+            return view('landing.contact', ['contactEnabled' => false]);
+        }
+
+        Mail::to($recipient)->send(new ContactMail($request->validated()));
+
+        return view('landing.contact', ['contactEnabled' => true, 'submitted' => true]);
+    }
+
+    private function recipient(): ?string
+    {
+        $email = config('chatvia.contact_email');
+
+        return is_string($email) && $email !== '' ? $email : null;
     }
 }

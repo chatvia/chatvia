@@ -124,7 +124,7 @@ class Chunk extends Model
             'id',          // Foreign key on Link
             'id',            // Local key on Chunk
             'referenceable_id' // Local key on ChunkReference
-        )->where('chunk_references.referenceable_type', AgentWebsiteUrl::class);
+        )->whereIn('chunk_references.referenceable_type', AgentWebsiteUrl::referenceTypes());
     }
 
     public function page(): array

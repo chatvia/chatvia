@@ -58,3 +58,18 @@ it('silently no-ops when the user cannot access the scoped agent', function (): 
 
     Notification::assertNothingSent();
 });
+
+it('silently no-ops when the account is deactivated', function (): void {
+    Notification::fake();
+    User::factory()->create([
+        'email' => 'off@example.test',
+        'deactivated_at' => now(),
+    ]);
+
+    app(SendMagicLinkAction::class)->execute(
+        new SendMagicLinkData(email: 'off@example.test'),
+        redirectUrl: '/dashboard',
+    );
+
+    Notification::assertNothingSent();
+});

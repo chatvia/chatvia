@@ -15,15 +15,8 @@ class ConversationDeleteController
         ChatMemory $memory,
         WidgetVerification $widgetVerification,
     ): JsonResponse|WidgetAckData {
-        $agentId = $request->header('X-AGENT-ID');
-
-        // Same domain check the sibling controllers run — without it any
-        // origin could delete threads on a public agent.
-        if (! $widgetVerification->verifyByAgentExternalId($agentId, $request)) {
-            return response()->json(['error' => 'Domain not allowed'], 403);
-        }
-
         $agent = current_agent_from_widget();
+        abort_if($agent === null, 404);
         $widgetUser = $request->attributes->get('widget_user');
         $sessionId = $request->header('X-SESSION-ID');
         $conversationId = $request->header('X-CONVERSATION-ID');

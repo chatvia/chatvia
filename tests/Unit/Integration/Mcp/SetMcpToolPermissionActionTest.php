@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Mcp\Actions\SetMcpToolPermissionAction;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
+use Domain\Integration\Mcp\Exceptions\McpToolNotFoundException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Schema;
  * transition (Allow → Approval → Blocked, and any other combo) must persist
  * exactly the requested state, and the action must refuse to write across
  * server boundaries — a tool id that belongs to a different server raises
- * a RuntimeException so the controller can surface a 404.
+ * a McpToolNotFoundException so the controller can surface a 404.
  */
 function smtServerWithTool(McpToolPermission $startPermission = McpToolPermission::Allow): array
 {
@@ -68,12 +69,12 @@ it('transitions Blocked → Allow', function (): void {
     expect($result->permission)->toBe(McpToolPermission::Allow);
 });
 
-it('throws RuntimeException for a tool id that belongs to a DIFFERENT server', function (): void {
+it('throws McpToolNotFoundException for a tool id that belongs to a DIFFERENT server', function (): void {
     [$server] = smtServerWithTool();
     [, $otherTool] = smtServerWithTool();
 
     expect(fn () => app(SetMcpToolPermissionAction::class)->execute($server, $otherTool->id, McpToolPermission::Blocked))
-        ->toThrow(RuntimeException::class);
+        ->toThrow(McpToolNotFoundException::class);
 
     expect($otherTool->refresh()->permission)->not->toBe(McpToolPermission::Blocked);
 });
@@ -124,5 +125,5 @@ it('throws for a connector tool the preset server does not advertise (no members
     $foreignCatalogTool = ConnectorTool::factory()->create(['connector_slug' => 'leads', 'name' => 'other_tool']);
 
     expect(fn () => app(SetMcpToolPermissionAction::class)->execute($server, $foreignCatalogTool->id, McpToolPermission::Blocked))
-        ->toThrow(RuntimeException::class);
+        ->toThrow(McpToolNotFoundException::class);
 })->skip(fn (): bool => ! Schema::hasTable('mcp_server_tool') || ! Schema::hasColumn('mcp_servers', 'uses_central_catalog'), 'schema out of date — run migrate:fresh.');

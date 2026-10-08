@@ -27,7 +27,8 @@ class SetAgentDomainAction
             $total = (int) ($workspace->quota?->totalCustomDomainsLimit() ?? 0);
 
             if ($total === 0) {
-                throw new DomainValidationException('domain', 'Custom domains require a Pro plan or an active Custom Domain subscription.');
+                // Plan names change; say what is missing, not which plan has it.
+                throw new DomainValidationException('domain', __('Custom domains are not included in your plan. Upgrade your plan or add a Custom Domain subscription.'));
             }
 
             $used = (int) $workspace->agents()
@@ -36,7 +37,7 @@ class SetAgentDomainAction
                 ->count();
 
             if ($used >= $total) {
-                throw new DomainValidationException('domain', 'You\'ve used all your custom domains. Increase your Custom Domain subscription to add another.');
+                throw new DomainValidationException('domain', __('You have used all your custom domains. Increase your Custom Domain subscription to add another.'));
             }
         }
 

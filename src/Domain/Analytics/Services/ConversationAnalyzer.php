@@ -15,9 +15,12 @@ use Illuminate\Support\Collection;
 /**
  * One structured LLM call that, over a full conversation transcript, returns
  * every existing topic that applies + emergent suggestions, plus sentiment,
- * tone and language. Uses the provider's json_schema response format so the
- * fields always come back valid (enums for sentiment/tone), replacing the old
- * trio of TopicAnalysis / ToneAnalysis / LanguageDetection.
+ * tone and language. Uses the provider's json_schema response format, which
+ * keeps sentiment/tone inside their enums when the model follows the schema.
+ *
+ * When the response cannot be parsed (empty, cut off, not JSON) both methods
+ * return null instead of a guessed "neutral" result, so callers save nothing
+ * and the item can be analyzed again later.
  */
 class ConversationAnalyzer
 {
@@ -25,7 +28,7 @@ class ConversationAnalyzer
         private readonly LlmProviderInterface $provider,
     ) {}
 
-    public function analyze(string $transcript, Agent $agent): ConversationAnalysisData
+    public function analyze(string $transcript, Agent $agent): ?ConversationAnalysisData
     {
         /** @var Collection<int, Topic> $topics */
         $topics = $agent->topics()->get();
@@ -61,9 +64,9 @@ class ConversationAnalyzer
      * {@see AnalyzeMessageAction} on the per-message
      * analysis path. Returns the same structured-output shape minus topic_ids
      * and language, so per-message and per-conversation analytics can never
-     * drift on the same input.
+     * drift on the same input. Null when the response cannot be parsed.
      */
-    public function analyzeMessage(string $text): ConversationAnalysisData
+    public function analyzeMessage(string $text): ?ConversationAnalysisData
     {
         $response = $this->provider->completion([
             'model' => config('chatvia.ai.models.tone'),
@@ -82,6 +85,10 @@ class ConversationAnalyzer
 
         $content = $response->json('choices.0.message.content');
         $data = $this->decodeJson(is_string($content) ? $content : null);
+
+        if ($data === null) {
+            return null;
+        }
 
         return new ConversationAnalysisData(
             topicIds: [],
@@ -206,13 +213,14 @@ class ConversationAnalyzer
      * @param  int[]  $allowedIds
      * @param  string[]  $existingNames  lower-cased existing topic names
      */
-    private function parse(?string $content, array $allowedIds, array $existingNames): ConversationAnalysisData
+    private function parse(?string $content, array $allowedIds, array $existingNames): ?ConversationAnalysisData
     {
         $data = $this->decodeJson($content);
 
         if ($data === null) {
-            // Malformed / empty response — record nothing rather than guessing.
-            return new ConversationAnalysisData([], [], SentimentEnum::NEUTRAL, ToneEnum::NEUTRAL, null);
+            // Malformed / empty response — return nothing rather than guessing,
+            // so the caller leaves the conversation pending for a later retry.
+            return null;
         }
 
         $topicIds = collect($data['topic_ids'] ?? [])

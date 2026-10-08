@@ -22,12 +22,14 @@ class TrainedTextRowData extends Data
         public array $agents,
     ) {}
 
-    public static function fromModel(SourceText $text): self
+    public static function fromModel(SourceText $text, int $wordCount): self
     {
         return new self(
             id: $text->id,
-            excerpt: substr($text->content, 0, 200),
-            word_count: str_word_count($text->content),
+            // Character-based cut so multibyte text (Arabic, CJK, emoji) never
+            // splits in the middle of a character.
+            excerpt: mb_substr((string) $text->excerpt, 0, 200),
+            word_count: $wordCount,
             agents: $text->agents
                 ->map(fn (Agent $agent): array => ['id' => $agent->id, 'name' => $agent->name])
                 ->all(),

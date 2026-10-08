@@ -90,7 +90,7 @@ class StartWebsiteIngestionAction
             'internal_ingestion_job_id' => $internalJobId,
             'internal_chunking_batch_id' => $batch->id,
             'expected_chunks' => $untrainedUrls->count(),
-            'checksum' => hash('xxh128', $untrainedUrls->pluck('url')->implode('url', ';')),
+            'checksum' => hash('xxh128', $untrainedUrls->pluck('url')->implode(';')),
         ]);
     }
 }

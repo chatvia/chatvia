@@ -61,3 +61,22 @@ it('caps the stored snippet but hashes the full original', function (): void {
     expect(strlen((string) $row->snippet))->toBe(10)
         ->and($row->snippet_sha256)->toBe(hash('sha256', $long));
 });
+
+it('cuts a multibyte snippet on a character boundary so Postgres accepts it', function (string $sample): void {
+    // 9 bytes lands inside a 2-byte Arabic letter / 4-byte emoji; a byte
+    // substr() would leave invalid UTF-8 and the insert would be rejected.
+    config(['chatvia.guardrails.max_snippet_bytes' => 9]);
+    $agent = Agent::factory()->create();
+
+    (new RecordGuardrailEventAction)->execute(guardEvent($agent, $sample));
+
+    $row = GuardrailEvent::query()->firstOrFail();
+
+    expect(mb_check_encoding((string) $row->snippet, 'UTF-8'))->toBeTrue()
+        ->and(strlen((string) $row->snippet))->toBeLessThan(9)
+        ->and(str_starts_with($sample, (string) $row->snippet))->toBeTrue()
+        ->and($row->snippet_sha256)->toBe(hash('sha256', $sample));
+})->with([
+    'arabic' => 'مرحبا بك في الدعم',
+    'emoji' => 'ok 😀😀😀😀 done',
+]);

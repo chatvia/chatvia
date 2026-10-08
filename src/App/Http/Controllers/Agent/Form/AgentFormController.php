@@ -66,9 +66,10 @@ class AgentFormController
         if ($capability !== null && ! $agent->isFormsEnabled()) {
             try {
                 $enable->execute($agent, $request->user(), $capability);
-            } catch (McpException) {
+            } catch (McpException $e) {
                 // Provisioning the builtin failed (remote tools/list); the form is
                 // still saved and the owner can enable Forms manually.
+                report($e);
             }
         }
 

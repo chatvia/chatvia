@@ -129,6 +129,19 @@ const setDefaultPaymentMethod = (paymentMethodId: string) => {
     defaultForm.post(route('billing.payment-method.default'));
 };
 
+// Stripe Elements renders inside its own iframe, so it cannot read our CSS
+// variables. Resolve a theme variable to the concrete color the browser
+// computes (an `rgb(...)` string, which Stripe accepts) before passing it on.
+const themeColor = (variable: string): string => {
+    const probe = document.createElement('span');
+    probe.style.display = 'none';
+    probe.style.color = `var(${variable})`;
+    document.body.appendChild(probe);
+    const color = getComputedStyle(probe).color;
+    probe.remove();
+    return color;
+};
+
 const initializeStripe = async () => {
     try {
         if (!props.stripeKey) {
@@ -142,15 +155,23 @@ const initializeStripe = async () => {
             throw new Error('Failed to load Stripe');
         }
 
+        const colors = {
+            primary: themeColor('--primary'),
+            background: themeColor('--background'),
+            foreground: themeColor('--foreground'),
+            mutedForeground: themeColor('--muted-foreground'),
+            destructive: themeColor('--destructive'),
+        };
+
         // Create elements
         elements.value = stripe.value.elements({
             appearance: {
                 theme: 'stripe',
                 variables: {
-                    colorPrimary: 'hsl(var(--primary))',
-                    colorBackground: 'hsl(var(--background))',
-                    colorText: 'hsl(var(--foreground))',
-                    colorDanger: 'hsl(var(--destructive))',
+                    colorPrimary: colors.primary,
+                    colorBackground: colors.background,
+                    colorText: colors.foreground,
+                    colorDanger: colors.destructive,
                     fontFamily: 'Inter, system-ui, sans-serif',
                     spacingUnit: '4px',
                     borderRadius: '6px',
@@ -164,14 +185,14 @@ const initializeStripe = async () => {
                 style: {
                     base: {
                         fontSize: '16px',
-                        color: 'hsl(var(--foreground))',
+                        color: colors.foreground,
                         fontFamily: 'Inter, system-ui, sans-serif',
                         '::placeholder': {
-                            color: 'hsl(var(--muted-foreground))',
+                            color: colors.mutedForeground,
                         },
                     },
                     invalid: {
-                        color: 'hsl(var(--destructive))',
+                        color: colors.destructive,
                     },
                 },
             });
@@ -692,11 +713,11 @@ const formatExpiry = (month: number, year: number) => {
 }
 
 :deep(.StripeElement--focus) {
-    outline: 2px solid hsl(var(--ring));
+    outline: 2px solid var(--ring);
     outline-offset: 2px;
 }
 
 :deep(.StripeElement--invalid) {
-    color: hsl(var(--destructive));
+    color: var(--destructive);
 }
 </style>

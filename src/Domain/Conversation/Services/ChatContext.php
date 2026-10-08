@@ -31,9 +31,8 @@ class ChatContext
 
     /**
      * Spectra cost/usage tracker bound to the current LLM stream. Set by
-     * LlmSource around its stream() call; left null on paths that don't
-     * route through it (e.g. MistralPdfSource, which calls the transformer
-     * directly). Transformers null-coalesce via `?->`.
+     * ToolLoopRunner around each stream() call and null otherwise.
+     * Transformers null-coalesce via `?->`.
      */
     public ?StreamingTracker $spectraTracker = null;
 
@@ -41,11 +40,21 @@ class ChatContext
      * Tool calls accumulated from the LLM stream within the current tool-loop
      * iteration. Each entry has the partial shape `['id' => string,
      * 'name' => string, 'arguments' => string]`. Mutated by
-     * OpenAiCompatibleTransformer, drained by LlmSource between iterations.
+     * OpenAiCompatibleTransformer, drained by ToolLoopRunner between iterations.
      *
      * @var array<int, array{id: string, name: string, arguments: string}>
      */
     public array $pendingToolCalls = [];
+
+    /**
+     * Names of the tools offered to the model on the current tool-loop
+     * iteration. Set by ToolLoopRunner before each stream. Empty means no
+     * tools were offered, so the transformer must treat every reply as plain
+     * text — a JSON answer is then never mistaken for a tool call.
+     *
+     * @var array<int, string>
+     */
+    public array $offeredToolNames = [];
 
     /**
      * Structured tool-result artifacts accumulated across the whole assistant

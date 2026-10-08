@@ -14,6 +14,9 @@ use Support\Localization\Country\Models\Country;
 
 class DpaController
 {
+    /** How long a rendered DPA PDF is reused for an identical request. */
+    private const int PDF_CACHE_TTL_SECONDS = 3600;
+
     public function __construct(
         private readonly BrowsershotConfigurator $browsershotConfig,
     ) {}
@@ -33,7 +36,7 @@ class DpaController
 
         $filename = 'Chatvia-DPA-'.Str::slug($validated['company_name']);
 
-        return Pdf::withBrowsershot(fn (Browsershot $browsershot): Browsershot => $this->browsershotConfig->configure($browsershot))
+        $pdf = Pdf::withBrowsershot(fn (Browsershot $browsershot): Browsershot => $this->browsershotConfig->configure($browsershot))
             ->view('pdf.dpa', [
                 'companyName' => $validated['company_name'],
                 'registrationNumber' => ($validated['registration_number'] ?? null) ?: null,
@@ -44,7 +47,13 @@ class DpaController
                 'signatoryTitle' => ($validated['signatory_title'] ?? null) ?: null,
                 'bodyHtml' => $this->dpaBodyHtml(),
                 'generatedAt' => now()->isoFormat('D MMMM YYYY'),
-            ])
+            ]);
+
+        // Rendering starts a headless browser, so serve repeat requests from
+        // the cache. The key is the hash of the final HTML: it changes when
+        // the form input, the date, the DPA text or the template changes.
+        return $pdf
+            ->cache(self::PDF_CACHE_TTL_SECONDS, 'dpa:'.hash('sha256', $pdf->getHtml()))
             ->download($filename.'.pdf');
     }
 

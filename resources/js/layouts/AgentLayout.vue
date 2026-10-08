@@ -5,6 +5,15 @@ import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
     Sidebar,
@@ -870,14 +879,14 @@ onMounted(() => {
         </div>
 
         <!-- Delete Agent Dialog -->
-        <Dialog v-model:open="showDeleteDialog">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{{ t('agents.nav.delete_dialog.title') }}</DialogTitle>
-                    <DialogDescription>
+        <AlertDialog v-model:open="showDeleteDialog">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{{ t('agents.nav.delete_dialog.title') }}</AlertDialogTitle>
+                    <AlertDialogDescription>
                         {{ t('agents.nav.delete_dialog.description', { name: agent.name }) }}
-                    </DialogDescription>
-                </DialogHeader>
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
 
                 <div class="space-y-4">
                     <div>
@@ -901,15 +910,15 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <DialogFooter>
-                    <Button variant="outline" @click="showDeleteDialog = false">{{ t('common.cancel') }}</Button>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{{ t('common.cancel') }}</AlertDialogCancel>
                     <Button variant="destructive" @click="deleteAgent" :disabled="isDeleting || !canDelete">
                         <LoaderCircle v-if="isDeleting" class="me-2 h-4 w-4 animate-spin" />
                         {{ t('agents.nav.delete_dialog.submit') }}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
         <!-- Rename Agent Dialog -->
         <Dialog v-model:open="showRenameDialog">

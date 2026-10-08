@@ -1,0 +1,226 @@
+<?php
+
+use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Messages\ChatInputPayload;
+use Domain\Conversation\Services\ChatContext;
+use Domain\Conversation\Services\ChatService;
+use Domain\Conversation\Services\Data\StreamRequestData;
+use Domain\Conversation\Services\Data\StreamRequestMessageData;
+use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
+use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
+use Domain\Conversation\Services\Streaming\Sources\LlmSource;
+use Domain\Conversation\Services\Streaming\Sources\MistralPdfSource;
+use Domain\Conversation\Services\Streaming\Sources\ToolLoopSource;
+use Domain\Conversation\Services\Streaming\Sse\EventType;
+use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
+use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
+use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Guardrail\Data\GuardResultData;
+use Domain\Guardrail\Data\GuardVerdictData;
+use Domain\Guardrail\Enums\GuardOutcome;
+use Domain\Guardrail\Enums\GuardStage;
+use Domain\Guardrail\Enums\GuardType;
+use Domain\Guardrail\Services\GuardrailRecorder;
+use Domain\Guardrail\Services\GuardrailService;
+use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Models\Llm;
+use Domain\Llm\Providers\Mistral;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+
+/**
+ * Every source that runs the tool loop shares one finish step, so the output
+ * guardrails (PII redaction / toxicity replacement) run before ANY answer is
+ * saved or replayed — PDF chats included, and also the partial answer saved
+ * after the visitor disconnects. The runner and the guard are faked; the
+ * assertions are on what the source saves and streams.
+ */
+function tlsGuard(): GuardrailService
+{
+    return new class extends GuardrailService
+    {
+        public function __construct() {}
+
+        public function inspectOutput(Agent $agent, string $text): GuardResultData
+        {
+            if (! str_contains($text, 'a@b.com')) {
+                return GuardResultData::clean($text);
+            }
+
+            return new GuardResultData(
+                text: str_replace('a@b.com', '[EMAIL]', $text),
+                verdicts: [new GuardVerdictData(GuardType::Pii, GuardStage::Output, GuardOutcome::Redacted)],
+            );
+        }
+    };
+}
+
+function tlsRecorder(): GuardrailRecorder
+{
+    return new class extends GuardrailRecorder
+    {
+        /** @var array<int, string> */
+        public array $samples = [];
+
+        public function record(ChatContext $context, string $sample, GuardResultData $result): void
+        {
+            $this->samples[] = $sample;
+        }
+    };
+}
+
+/**
+ * A ChatService whose only job here is to remember the text it was asked to
+ * save.
+ */
+function tlsChatService(): ChatService
+{
+    return new readonly class extends ChatService
+    {
+        public ArrayObject $saved;
+
+        public function __construct()
+        {
+            $this->saved = new ArrayObject;
+        }
+
+        public function handleChatCompletion(ChatContext $context): void
+        {
+            $this->saved->append($context->streamedMessage);
+        }
+    };
+}
+
+function tlsToolSelector(): ToolSelector
+{
+    return new class extends ToolSelector
+    {
+        public function __construct() {}
+
+        public function selectForTurn(Agent $agent, string $message, ?string $conversationId): array
+        {
+            return [];
+        }
+    };
+}
+
+function tlsRunner(Closure $scripted): ToolLoopRunner
+{
+    return new class($scripted) extends ToolLoopRunner
+    {
+        public function __construct(private readonly Closure $scripted) {}
+
+        public function run(
+            ChatContext $context,
+            LlmProviderInterface $provider,
+            string $modelName,
+            string $providerSlug,
+            array &$llmMessages,
+            array $toolDefinitions,
+            array $extraSettings = [],
+            int $startIteration = 0,
+            bool $captureToolCallsOnly = false,
+        ): Generator {
+            return yield from ($this->scripted)($context);
+        }
+    };
+}
+
+function tlsContext(): ChatContext
+{
+    $agent = Agent::factory()->create();
+    $llm = Llm::factory()->create();
+
+    $requestData = new StreamRequestData(
+        agent: $agent,
+        message: new StreamRequestMessageData(model: $llm, message: 'Hello'),
+        externalSessionId: (string) Str::uuid(),
+        conversationId: (string) Str::uuid(),
+        requestId: 'req_'.Str::random(12),
+    );
+
+    return new ChatContext(
+        requestData: $requestData,
+        payload: ChatInputPayload::from([
+            'external_session_id' => $requestData->externalSessionId,
+            'external_conversation_id' => $requestData->conversationId,
+            'external_message_id' => (string) Str::uuid(),
+            'model' => $llm->external_name,
+            'message' => 'Hello',
+            'sent_at' => now(),
+        ]),
+        llmMessages: [['role' => 'user', 'content' => 'Hello']],
+        userMessageId: (string) Str::uuid(),
+        assistantMessageId: (string) Str::uuid(),
+    );
+}
+
+/**
+ * Build the named source with the shared fakes and return its event stream.
+ *
+ * @return array{0: Generator<int, StreamEvent>, 1: ChatService, 2: GuardrailRecorder}
+ */
+function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner): array
+{
+    $chatService = tlsChatService();
+    $recorder = tlsRecorder();
+
+    $shared = [$chatService, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), $recorder];
+
+    $events = match ($source) {
+        'pdf' => (new MistralPdfSource(app(Mistral::class), ...$shared))->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
+        default => (new LlmSource(app(LlmProviderInterface::class), ...$shared))->events($context, [['role' => 'user', 'content' => 'Hello']]),
+    };
+
+    return [$events, $chatService, $recorder];
+}
+
+beforeEach(function (): void {
+    Cache::flush();
+    Log::spy();
+});
+
+dataset('tool loop sources', ['llm', 'pdf']);
+
+it('is the shared base of every tool-loop source', function (): void {
+    expect(is_subclass_of(LlmSource::class, ToolLoopSource::class))->toBeTrue()
+        ->and(is_subclass_of(MistralPdfSource::class, ToolLoopSource::class))->toBeTrue();
+});
+
+it('redacts the answer with the output guardrails before saving and replaying it', function (string $source): void {
+    $context = tlsContext();
+    $runner = tlsRunner(function (ChatContext $ctx) {
+        $ctx->appendStreamedMessage('Mail me at a@b.com');
+        yield StreamEvent::delta($ctx->assistantMessageId, 'Mail me at a@b.com');
+
+        return false;
+    });
+
+    [$stream, $chatService, $recorder] = tlsStream($source, $context, $runner);
+    $events = iterator_to_array($stream, preserve_keys: false);
+
+    $replace = collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Replace);
+
+    expect($replace)->not->toBeNull()
+        ->and($replace->data['text'])->toBe('Mail me at [EMAIL]')
+        ->and($chatService->saved->getArrayCopy())->toBe(['Mail me at [EMAIL]'])
+        ->and($recorder->samples)->toBe(['Mail me at [EMAIL]'])
+        ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)['content'])->toBe('Mail me at [EMAIL]')
+        ->and(end($events)->data['reason'])->toBe('complete');
+})->with('tool loop sources');
+
+it('redacts the partial answer it saves after the client disconnects', function (string $source): void {
+    $context = tlsContext();
+    $runner = tlsRunner(function (ChatContext $ctx) {
+        $ctx->appendStreamedMessage('Mail me at a@b.com');
+        yield StreamEvent::delta($ctx->assistantMessageId, 'Mail me at');
+        throw new ClientDisconnected;
+    });
+
+    [$stream, $chatService] = tlsStream($source, $context, $runner);
+    iterator_to_array($stream, preserve_keys: false);
+
+    expect($chatService->saved->getArrayCopy())->toBe(['Mail me at [EMAIL]'])
+        ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)['content'])->toBe('Mail me at [EMAIL]');
+})->with('tool loop sources');

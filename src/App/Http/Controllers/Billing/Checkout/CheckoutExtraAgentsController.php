@@ -2,35 +2,25 @@
 
 namespace App\Http\Controllers\Billing\Checkout;
 
+use App\Http\Controllers\Billing\Checkout\Concerns\RunsAddonCheckout;
 use App\Http\Requests\Billing\SubscribeExtraAgentsRequest;
 use Domain\Billing\Actions\Subscriptions\SubscribeExtraAgentsAction;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Checkout;
-use RuntimeException;
-use Throwable;
 
+/**
+ * Starts a Stripe checkout for the Extra Agents add-on, or changes its quantity.
+ */
 class CheckoutExtraAgentsController
 {
-    public function __invoke(
-        SubscribeExtraAgentsRequest $request,
-        SubscribeExtraAgentsAction $action,
-    ): Checkout|RedirectResponse {
-        try {
-            $checkout = $action->execute($request->toData());
-        } catch (RuntimeException $e) {
-            return back()->withErrors(['addon' => $e->getMessage()]);
-        } catch (Throwable $e) {
-            Log::error('Extra agents checkout failed', ['error' => $e->getMessage()]);
+    use RunsAddonCheckout;
 
-            return back()->withErrors(['addon' => 'Could not start Stripe checkout. Please try again.']);
-        }
-
-        // Quantity update on an existing active subscription — no checkout needed.
-        if (! $checkout) {
-            return back()->with('success', 'Extra agents quantity updated.');
-        }
-
-        return $checkout;
+    public function __invoke(SubscribeExtraAgentsRequest $request, SubscribeExtraAgentsAction $action): Checkout|RedirectResponse
+    {
+        // No checkout when the quantity was updated on an active subscription.
+        return $this->runAddonCheckout(
+            fn (): ?Checkout => $action->execute($request->toData()),
+            'Extra agents quantity updated.',
+        );
     }
 }

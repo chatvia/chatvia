@@ -11,8 +11,8 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
 
 /**
- * Records a successful sign-in to the security audit log. The SECOND Login
- * listener (alongside {@see RecordKnownDevice}).
+ * Records a successful sign-in to the security audit log. One of several
+ * Login listeners (alongside {@see RecordKnownDevice} and {@see RecordLastLogin}).
  *
  * NOT queued — it reads the live IP + User-Agent from the HTTP request and
  * denormalizes them onto the event; a queued worker would inject a fresh CLI

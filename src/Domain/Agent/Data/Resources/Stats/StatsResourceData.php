@@ -24,7 +24,6 @@ class StatsResourceData extends Data
     public function __construct(
         public int $total_messages,
         public int $total_conversations,
-        public int $total_members,
         public int $total_user_messages,
         public int $unique_sessions,
         public ?float $avg_response_time,
@@ -70,7 +69,6 @@ class StatsResourceData extends Data
         return self::from([
             'total_messages' => (int) ($agg->total_assistant ?? 0),
             'total_conversations' => (int) ($agg->total_conversations ?? 0),
-            'total_members' => 0,
             'total_user_messages' => (int) ($agg->total_user ?? 0),
             'unique_sessions' => (int) ($agg->unique_sessions ?? 0),
             'avg_response_time' => $agg->avg_response_ms !== null

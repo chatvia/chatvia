@@ -24,7 +24,7 @@ class CreateQaFromMessageReviseAction
 
             $qa = AgentQuestionAnswer::create([
                 'agent_id' => $agent->id,
-                'title' => substr($userMessage, 0, 100),
+                'title' => mb_substr($userMessage, 0, 100),
                 'questions' => $userMessage,
                 'answer' => $expectedResponse,
             ]);

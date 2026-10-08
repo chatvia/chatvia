@@ -107,13 +107,14 @@ class RenderFormTool extends Tool
             ));
         }
 
+        // No ip_address / user_agent here: this request comes from Chatvia's
+        // own server, not the visitor, so those values would describe us. The
+        // visitor's real values are recorded when they submit the form.
         $submission = FormSubmission::create([
             'form_definition_id' => $definition->id,
             'agent_id' => $agent->id,
             'chat_conversation_id' => $conversation->id,
             'status' => FormSubmission::STATUS_PENDING,
-            'ip_address' => $http->ip(),
-            'user_agent' => $http->userAgent(),
             'expires_at' => now()->addHours(self::TTL_HOURS),
         ]);
 

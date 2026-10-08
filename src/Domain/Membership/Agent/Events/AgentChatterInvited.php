@@ -7,10 +7,10 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Fired after a chatter invitation row has been created. The recipient email
- * has not been notified yet — a listener (SendAgentChatterInvitationEmail) consumes
- * this and routes the mail. Carries the agent + acceptance URL + recipient
- * email so the listener doesn't have to re-derive any of it.
+ * Fired after a chatter invitation row has been created. The recipient has not
+ * been emailed yet — the queued SendAgentChatterInvitationEmail listener does
+ * that once the surrounding transaction commits. Carries the agent, recipient
+ * email and invitation token so the listener doesn't have to re-derive them.
  */
 class AgentChatterInvited
 {
@@ -19,6 +19,6 @@ class AgentChatterInvited
     public function __construct(
         public Agent $agent,
         public string $email,
-        public string $acceptUrl,
+        public string $token,
     ) {}
 }

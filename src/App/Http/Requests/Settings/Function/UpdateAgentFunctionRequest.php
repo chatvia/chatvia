@@ -33,7 +33,7 @@ class UpdateAgentFunctionRequest extends FormRequest
                 'max:64',
                 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/',
                 Rule::unique('functions', 'internal_name')
-                    ->where('user_id', $this->user()->id)
+                    ->where('user_id', $this->user()->workspace()->id)
                     ->ignore($this->route('external_id'), 'external_id'),
             ],
             'display_name' => ['nullable', 'string', 'max:255'],
@@ -111,7 +111,7 @@ class UpdateAgentFunctionRequest extends FormRequest
         /** @var User $user */
         $user = $this->user();
 
-        return $this->function = $user->functions()
+        return $this->function = $user->workspace()->functions()
             ->where('external_id', $this->route('external_id'))
             ->first();
     }

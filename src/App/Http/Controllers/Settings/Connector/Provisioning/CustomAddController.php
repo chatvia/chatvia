@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
+use App\Http\Controllers\Concerns\BindsConnectorOAuthToSession;
 use App\Http\Requests\Settings\Connector\AddCustomConnectorRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
@@ -21,6 +22,8 @@ use Throwable;
  */
 class CustomAddController
 {
+    use BindsConnectorOAuthToSession;
+
     public function __construct(
         private readonly McpOAuthFlow $oauthFlow,
     ) {}
@@ -38,6 +41,7 @@ class CustomAddController
                     name: $data->name,
                     slug: $this->uniqueCustomSlugForUser($data->user, $data->name),
                     mcpUrl: $data->url,
+                    sessionBinding: $this->connectorOAuthSessionBinding($request),
                 );
             } catch (McpOAuthException $e) {
                 return response()->json(['message' => $e->getMessage()], 422);
@@ -68,13 +72,18 @@ class CustomAddController
         ], 201);
     }
 
+    /**
+     * The OAuth callback saves the server under the workspace owner, so the
+     * slug must be unique among the owner's servers.
+     */
     private function uniqueCustomSlugForUser(User $user, string $name): string
     {
+        $owner = $user->workspace();
         $base = AgentMcpServer::makeSlug($name);
         $slug = $base;
         $i = 2;
 
-        while ($user->mcpServers()->where('slug', $slug)->exists()) {
+        while ($owner->mcpServers()->where('slug', $slug)->exists()) {
             $slug = substr($base, 0, 38).'_'.$i;
             $i++;
         }

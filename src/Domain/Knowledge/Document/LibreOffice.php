@@ -9,6 +9,12 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
 
+/**
+ * Converts office documents (and plain text) to other formats, mostly PDF,
+ * with a headless `soffice`. Each run gets its own throw-away LibreOffice
+ * profile so parallel workers never share one, and the profile is removed
+ * whether the run succeeds or fails.
+ */
 class LibreOffice
 {
     private string $libreOfficeExecPath;
@@ -19,11 +25,12 @@ class LibreOffice
 
     private array $allowedFormats;
 
-    private string $profileDir;
+    /** Set once `soffice --version` has succeeded in this PHP process. */
+    private static bool $installationVerified = false;
 
     public function __construct()
     {
-        $this->libreOfficeExecPath = config('services.bin.libreoffice');
+        $this->libreOfficeExecPath = (string) config('services.bin.libreoffice');
         $this->cacheDir = cache_dir();
 
         $this->allowedFormats = [
@@ -38,17 +45,6 @@ class LibreOffice
             // Images
             'png', 'jpg', 'jpeg', 'svg',
         ];
-
-        $profilePath = rtrim($this->cacheDir, '/').'/libreoffice/profiles/'.Str::uuid()->toString();
-
-        File::makeDirectory($profilePath, recursive: true);
-
-        $this->profileDir = $profilePath;
-
-        // Skip validation during package discovery to avoid issues
-        if (! $this->isPackageDiscovery()) {
-            $this->validateInstallation();
-        }
     }
 
     public function convert(string $filepathToConvert, string $format): string
@@ -57,13 +53,13 @@ class LibreOffice
 
         $this->validateFormat($format);
 
+        $this->ensureInstalled();
+
         $fileInfo = pathinfo($filepathToConvert);
 
-        $command = $this->buildConvertCommand($filepathToConvert, $format);
-
-        $result = Process::timeout($this->timeout)
+        $result = $this->withProfile(fn (string $profileDir) => Process::timeout($this->timeout)
             ->env($this->getLibreOfficeEnv())
-            ->run($command);
+            ->run($this->buildConvertCommand($profileDir, $filepathToConvert, $format)));
 
         if (! $result->successful()) {
             throw new RuntimeException(
@@ -85,8 +81,6 @@ class LibreOffice
                 trim($result->errorOutput()) ?: '(empty)',
             ));
         }
-
-        File::deleteDirectory($this->profileDir);
 
         return $convertedFilePath;
     }
@@ -112,29 +106,51 @@ class LibreOffice
         return in_array(strtolower($format), $this->allowedFormats, true);
     }
 
-    private function validateInstallation(): void
+    /**
+     * Check once per process that soffice runs, so a missing binary fails
+     * with a clear message instead of a conversion error.
+     */
+    private function ensureInstalled(): void
     {
-        $result = Process::timeout(30)
-            ->env($this->getLibreOfficeEnv())
-            ->run([
-                $this->libreOfficeExecPath,
-                '-env:UserInstallation=file://'.$this->profileDir,
-                '--headless',
-                '--version',
-            ]);
+        if (self::$installationVerified) {
+            return;
+        }
 
-        if (! $result->successful()) {
-            throw new RuntimeException("LibreOffice test run failed: {$result->errorOutput()}");
+        $this->getVersion();
+
+        self::$installationVerified = true;
+    }
+
+    /**
+     * Run `$callback` with a fresh LibreOffice profile directory and always
+     * delete the directory afterwards.
+     *
+     * @template T
+     *
+     * @param  callable(string): T  $callback
+     * @return T
+     */
+    private function withProfile(callable $callback): mixed
+    {
+        $profileDir = rtrim($this->cacheDir, '/').'/libreoffice/profiles/'.Str::uuid()->toString();
+
+        File::ensureDirectoryExists($profileDir);
+
+        try {
+            return $callback($profileDir);
+        } finally {
+            File::deleteDirectory($profileDir);
         }
     }
 
     private function buildConvertCommand(
+        string $profileDir,
         string $inputPath,
         string $outputFormat,
     ): array {
         return [
             $this->libreOfficeExecPath,
-            '-env:UserInstallation=file://'.$this->profileDir,
+            '-env:UserInstallation=file://'.$profileDir,
             '--headless',
             '--invisible',
             '--nodefault',
@@ -145,7 +161,6 @@ class LibreOffice
             '--outdir', $this->cacheDir.'/libreoffice/files',
             $inputPath,
         ];
-
     }
 
     private function validateInputFile(string $path): void
@@ -175,14 +190,14 @@ class LibreOffice
 
     public function getVersion(): string
     {
-        $result = Process::timeout(30)
+        $result = $this->withProfile(fn (string $profileDir) => Process::timeout(30)
             ->env($this->getLibreOfficeEnv())
             ->run([
                 $this->libreOfficeExecPath,
-                '-env:UserInstallation=file://'.$this->profileDir,
+                '-env:UserInstallation=file://'.$profileDir,
                 '--headless',
                 '--version',
-            ]);
+            ]));
 
         if (! $result->successful()) {
             throw new RuntimeException("Could not get LibreOffice version: {$result->errorOutput()}");
@@ -194,17 +209,6 @@ class LibreOffice
     public static function make(): self
     {
         return new self;
-    }
-
-    private function isPackageDiscovery(): bool
-    {
-        if (! app()->runningInConsole()) {
-            return false;
-        }
-
-        $argv = $_SERVER['argv'] ?? [];
-
-        return in_array('package:discover', $argv, true);
     }
 
     private function getLibreOfficeEnv(): array

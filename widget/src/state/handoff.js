@@ -3,12 +3,14 @@
  * Handles switching between AI (SSE) and Human Agent (WebSocket/Pusher) modes
  */
 
-/* global __API_URL__, __DEV__, __REVERB_APP_KEY__, __REVERB_HOST__, __REVERB_PORT__, __REVERB_SCHEME__ */
+/* global __DEV__ */
 
 import Pusher from 'pusher-js';
 import { CSS_CLASSES } from '../utils.js';
 import { t } from '../i18n.js';
 import { authHeaders } from '../auth.js';
+import api from '../api.js';
+import { getApiUrl, getReverbConfig } from '../endpoints.js';
 
 // Handoff modes
 export const HANDOFF_MODE = {
@@ -29,17 +31,15 @@ export const HANDOFF_STATUS = {
 const HEARTBEAT_INTERVAL = 30000;
 
 /**
- * Build the JSON request headers every handoff endpoint shares: content type,
- * session + agent ids, and the protected-agent auth token. Pass `extra` for
- * per-call additions (e.g. X-CONVERSATION-ID). Previously this object was
- * hand-rolled in six places, each at risk of forgetting authHeaders().
+ * Build the session + agent id headers every handoff endpoint shares. Pass
+ * `extra` for per-call additions (e.g. X-CONVERSATION-ID). The requests go
+ * through api(), which adds the JSON content headers, the protected-agent auth
+ * token (keyed off X-AGENT-ID) and a timeout.
  */
 function handoffHeaders(widget, extra = {}) {
   return {
-    'Content-Type': 'application/json',
     'X-SESSION-ID': widget.sessionId,
     'X-AGENT-ID': widget.agentId,
-    ...authHeaders(widget.agentId),
     ...extra
   };
 }
@@ -99,7 +99,8 @@ async function sendHeartbeat(widget) {
   }
 
   try {
-    await fetch(`${__API_URL__}/heartbeat`, {
+    await api({
+      endpoint: 'heartbeat',
       method: 'POST',
       headers: handoffHeaders(widget),
       body: JSON.stringify({
@@ -127,7 +128,8 @@ export async function markMessagesAsRead(widget) {
   }
 
   try {
-    await fetch(`${__API_URL__}/mark-read`, {
+    await api({
+      endpoint: 'mark-read',
       method: 'POST',
       headers: handoffHeaders(widget),
       body: JSON.stringify({
@@ -150,7 +152,8 @@ export async function checkHandoffStatus(widget) {
       return null;
     }
 
-    const response = await fetch(`${__API_URL__}/handoff/status`, {
+    const response = await api({
+      endpoint: 'handoff/status',
       method: 'GET',
       headers: handoffHeaders(widget, { 'X-CONVERSATION-ID': conversationId })
     });
@@ -415,7 +418,8 @@ export async function endLiveChat(widget) {
     const conversationId = widget.conversationId || widget.getCurrentActiveConversationId();
 
     // Notify backend that user ended the chat
-    const response = await fetch(`${__API_URL__}/handoff/end`, {
+    const response = await api({
+      endpoint: 'handoff/end',
       method: 'POST',
       headers: handoffHeaders(widget),
       body: JSON.stringify({
@@ -451,30 +455,10 @@ export async function connectPusher(widget) {
   }
 
   try {
-    // Dev fallbacks for local development with Laravel Herd
-    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : true;
-    const devAppKey = 'laravel-herd';
-    const devHost = 'reverb.herd.test';
+    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
 
-    const appKey =
-      typeof __REVERB_APP_KEY__ !== 'undefined' && __REVERB_APP_KEY__
-        ? __REVERB_APP_KEY__
-        : isDev
-          ? devAppKey
-          : null;
-    const wsHost =
-      typeof __REVERB_HOST__ !== 'undefined' && __REVERB_HOST__
-        ? __REVERB_HOST__
-        : isDev
-          ? devHost
-          : null;
-    const wsPort = parseInt(
-      typeof __REVERB_PORT__ !== 'undefined' && __REVERB_PORT__ ? __REVERB_PORT__ : 443,
-      10
-    );
-    const scheme =
-      typeof __REVERB_SCHEME__ !== 'undefined' && __REVERB_SCHEME__ ? __REVERB_SCHEME__ : 'https';
-    const forceTLS = scheme === 'https';
+    // Embed-tag overrides (self-hosted installs) win over the build values.
+    const { key: appKey, host: wsHost, port: wsPort, scheme, forceTLS } = getReverbConfig();
 
     console.log('[Handoff] WebSocket config:', {
       appKey: appKey ? '***' : 'MISSING',
@@ -490,7 +474,7 @@ export async function connectPusher(widget) {
       return;
     }
 
-    const apiUrl = __API_URL__;
+    const apiUrl = getApiUrl();
 
     // Create Pusher client if not exists
     if (!widget.pusherClient) {
@@ -845,7 +829,8 @@ function whisperTyping(widget, isTyping) {
  */
 async function postTypingStatus(widget, isTyping) {
   try {
-    await fetch(`${__API_URL__}/typing`, {
+    await api({
+      endpoint: 'typing',
       method: 'POST',
       headers: handoffHeaders(widget),
       body: JSON.stringify({
@@ -865,7 +850,8 @@ export async function sendMessageInHumanMode(widget, text) {
   sendTypingIndicator(widget, false);
 
   try {
-    const response = await fetch(`${__API_URL__}/stream`, {
+    const response = await api({
+      endpoint: 'stream',
       method: 'POST',
       headers: handoffHeaders(widget, {
         'X-CONVERSATION-ID': widget.getCurrentActiveConversationId()

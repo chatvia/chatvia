@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Embedding;
 
+use Domain\Llm\Providers\Scaleway;
 use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Http;
 
@@ -132,7 +133,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
 
     protected function getBaseUrl(): string
     {
-        return 'https://api.scaleway.ai/ce82c941-d642-4fe0-94d7-b89bee83dd9d/v1';
+        return Scaleway::baseUrl();
     }
 
     protected function getModel(): string

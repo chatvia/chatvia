@@ -24,16 +24,19 @@ class EvalResult extends Model
     /** Insert-only. */
     public const UPDATED_AT = null;
 
-    protected $casts = [
-        'pass' => 'boolean',
-        'score' => 'float',
-        'sources_used' => 'array',
-        'tools_called' => 'array',
-        'actual_output_truncated' => 'boolean',
-    ];
-
     public function run(): BelongsTo
     {
         return $this->belongsTo(EvalRun::class, 'run_id');
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'pass' => 'boolean',
+            'score' => 'float',
+            'sources_used' => 'array',
+            'tools_called' => 'array',
+            'actual_output_truncated' => 'boolean',
+        ];
     }
 }

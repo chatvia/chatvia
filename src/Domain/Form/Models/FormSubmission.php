@@ -6,8 +6,10 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,6 +51,7 @@ use Support\Concerns\HasExternalId;
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
+#[RouteKey('external_id')]
 class FormSubmission extends Model
 {
     use HasExternalId, HasFactory;
@@ -66,11 +69,6 @@ class FormSubmission extends Model
             'expires_at' => 'datetime',
             'submitted_at' => 'datetime',
         ];
-    }
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
     }
 
     /**
@@ -172,34 +170,46 @@ class FormSubmission extends Model
         return is_scalar($value) ? (string) $value : null;
     }
 
-    public function getNameAttribute(): ?string
+    protected function name(): Attribute
     {
-        return $this->field('name');
+        return Attribute::make(get: function () {
+            return $this->field('name');
+        });
     }
 
-    public function getEmailAttribute(): ?string
+    protected function email(): Attribute
     {
-        return $this->field('email');
+        return Attribute::make(get: function () {
+            return $this->field('email');
+        });
     }
 
-    public function getPhoneAttribute(): ?string
+    protected function phone(): Attribute
     {
-        return $this->field('phone');
+        return Attribute::make(get: function () {
+            return $this->field('phone');
+        });
     }
 
-    public function getJobTitleAttribute(): ?string
+    protected function jobTitle(): Attribute
     {
-        return $this->field('job_title');
+        return Attribute::make(get: function () {
+            return $this->field('job_title');
+        });
     }
 
-    public function getCompanyAttribute(): ?string
+    protected function company(): Attribute
     {
-        return $this->field('company');
+        return Attribute::make(get: function () {
+            return $this->field('company');
+        });
     }
 
-    public function getLocationAttribute(): ?string
+    protected function location(): Attribute
     {
-        return $this->field('location');
+        return Attribute::make(get: function () {
+            return $this->field('location');
+        });
     }
 
     public function getMessageAttribute(): ?string

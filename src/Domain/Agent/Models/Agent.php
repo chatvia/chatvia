@@ -32,6 +32,7 @@ use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\CollectedBy;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -153,6 +154,7 @@ use Support\Traits\HasSettings;
 #[CollectedBy(AgentCollection::class)]
 #[Guarded(['id'])]
 #[Hidden(['auth_secret'])]
+#[RouteKey('external_id')]
 class Agent extends Model
 {
     use HasFactory;
@@ -196,14 +198,6 @@ class Agent extends Model
         $this->save();
 
         return $this->auth_secret;
-    }
-
-    /**
-     * Get the route key name for Laravel route model binding.
-     */
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
     }
 
     /**

@@ -13,6 +13,7 @@ use Domain\Llm\Operations\Media\Vision;
 use Domain\Llm\Operations\Pricing\CostCalculator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 
 class EnhanceDocumentChunkAction
@@ -40,7 +41,7 @@ class EnhanceDocumentChunkAction
         $describedImages = [];
         foreach ($page->imagesBase64 as $imageBase64) {
             // Download image content and convert to data URI to avoid URL access issues
-            $imageContent = Image::read($imageBase64)->toJpeg()->toString();
+            $imageContent = Image::decode($imageBase64)->encode(new JpegEncoder)->toString();
             $imageDescription = $this->vision->fromDataUrl($imageContent);
 
             logger()->info(

@@ -129,7 +129,7 @@ class McpOAuthFlow
         // misconfiguration, not a user error — the detailed message is for the
         // error tracker / local debug only; the controller reports it and shows
         // the user a generic failure rather than leaking our env setup.
-        if ($connector && $connector->authStrategy === 'oauth'
+        if ($connector instanceof ConnectorData && $connector->authStrategy === 'oauth'
             && $connector->oauthAuthorizationEndpoint
             && empty($connector->oauthClientId)
         ) {

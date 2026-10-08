@@ -163,7 +163,6 @@ function stripOrphanImagePlaceholders(content: string): string {
     return content.replace(ORPHAN_IMAGE_PLACEHOLDER, '').replace(/\n{3,}/g, '\n\n');
 }
 
-
 function formatMessage(content: string): string {
     const cleaned = renderableArtifacts.value.length > 0 ? stripOrphanImagePlaceholders(content) : content;
     const result = marked.parse(cleaned);
@@ -398,5 +397,4 @@ onMounted(() => {
         opacity: 0.7;
     }
 }
-
 </style>

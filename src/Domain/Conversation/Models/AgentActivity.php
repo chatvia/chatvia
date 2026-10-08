@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Tools\RecordToolCallAuditAction;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -56,15 +57,6 @@ class AgentActivity extends Model
     /** Insert-only audit log. */
     public const UPDATED_AT = null;
 
-    protected $casts = [
-        'arguments' => 'array',
-        'gated' => 'boolean',
-        'is_error' => 'boolean',
-        'arguments_truncated' => 'boolean',
-        'result_truncated' => 'boolean',
-        'decided_at' => 'datetime',
-    ];
-
     /**
      * @return BelongsTo<Agent, $this>
      */
@@ -81,12 +73,14 @@ class AgentActivity extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function scopeForWorkspace(Builder $query, int $workspaceId): Builder
+    #[Scope]
+    protected function forWorkspace(Builder $query, int $workspaceId): Builder
     {
         return $query->where('workspace_id', $workspaceId);
     }
 
-    public function scopeForAgent(Builder $query, int $agentId): Builder
+    #[Scope]
+    protected function forAgent(Builder $query, int $agentId): Builder
     {
         return $query->where('agent_id', $agentId);
     }
@@ -122,6 +116,18 @@ class AgentActivity extends Model
             'result_text' => $this->result_text,
             'conversation_external_id' => $this->conversation_external_id,
             'decided_at' => $this->decided_at?->toIso8601String(),
+        ];
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'arguments' => 'array',
+            'gated' => 'boolean',
+            'is_error' => 'boolean',
+            'arguments_truncated' => 'boolean',
+            'result_truncated' => 'boolean',
+            'decided_at' => 'datetime',
         ];
     }
 }

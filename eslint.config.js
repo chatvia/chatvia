@@ -21,6 +21,9 @@ export default defineConfigWithVueTs(
             // ignored.
             'docs/.vitepress/cache',
             'docs/.vitepress/dist',
+            // The embeddable widget is a separate vanilla-JS package with its
+            // own package.json and eslint.config.js; lint it from widget/.
+            'widget',
         ],
     },
     {

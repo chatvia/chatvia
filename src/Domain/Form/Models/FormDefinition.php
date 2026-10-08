@@ -5,6 +5,7 @@ namespace Domain\Form\Models;
 use Domain\Agent\Models\Agent;
 use Domain\Form\Enums\FormType;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -40,6 +41,7 @@ use Support\Concerns\HasExternalId;
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
+#[RouteKey('external_id')]
 class FormDefinition extends Model
 {
     use HasExternalId, HasFactory;
@@ -53,11 +55,6 @@ class FormDefinition extends Model
             'is_active' => 'boolean',
             'embedding' => Vector::class,
         ];
-    }
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
     }
 
     /**

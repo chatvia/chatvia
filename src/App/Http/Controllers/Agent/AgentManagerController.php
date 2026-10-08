@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\Request;
 
 class AgentManagerController
@@ -48,7 +49,7 @@ class AgentManagerController
         $team = current_team();
 
         // If user is the agent owner or team owner, go to default page
-        if ($user->isWorkspace() || ($team && $user->ownsTeam($team))) {
+        if ($user->isWorkspace() || ($team instanceof Team && $user->ownsTeam($team))) {
             return $this->redirectToDefaultPage($agent);
         }
 

@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Security\Actions\RecordSecurityEventAction;
 use Domain\Security\Enums\SecurityAuditAction;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -46,12 +47,6 @@ class SecurityAuditLog extends Model
     /** Insert-only audit log. */
     public const UPDATED_AT = null;
 
-    protected $casts = [
-        'metadata' => 'array',
-        'metadata_truncated' => 'boolean',
-        'created_at' => 'datetime',
-    ];
-
     /**
      * @return BelongsTo<User, $this>
      */
@@ -60,7 +55,8 @@ class SecurityAuditLog extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function scopeForWorkspace(Builder $query, int $workspaceId): Builder
+    #[Scope]
+    protected function forWorkspace(Builder $query, int $workspaceId): Builder
     {
         return $query->where('workspace_id', $workspaceId);
     }
@@ -99,6 +95,15 @@ class SecurityAuditLog extends Model
             'user_agent' => $this->user_agent,
             'metadata' => $this->metadata,
             'integrity_verified' => $this->metadata_sha256 !== null,
+        ];
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'array',
+            'metadata_truncated' => 'boolean',
+            'created_at' => 'datetime',
         ];
     }
 }

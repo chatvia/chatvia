@@ -5,6 +5,7 @@ namespace Domain\Integration\Function\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
@@ -73,6 +74,7 @@ use Support\Concerns\HasExternalId;
  */
 #[Guarded(['id'])]
 #[Table(name: 'functions')]
+#[RouteKey('external_id')]
 class AgentFunction extends Model
 {
     use HasExternalId, HasFactory;
@@ -114,10 +116,5 @@ class AgentFunction extends Model
     public function agents(): BelongsToMany
     {
         return $this->belongsToMany(Agent::class, 'agent_function', 'function_id', 'agent_id');
-    }
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
     }
 }

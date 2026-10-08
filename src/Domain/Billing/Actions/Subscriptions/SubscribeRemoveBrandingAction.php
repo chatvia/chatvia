@@ -5,6 +5,7 @@ namespace Domain\Billing\Actions\Subscriptions;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Enums\Addon;
 use Laravel\Cashier\Checkout;
+use Laravel\Cashier\Subscription;
 use RuntimeException;
 
 /**
@@ -31,7 +32,7 @@ class SubscribeRemoveBrandingAction
         // Already subscribed → nothing to do; the badge is already hidden.
         $existing = $billing->ownedSubscription(Addon::RemoveBranding->value);
 
-        if ($existing && $existing->active()) {
+        if ($existing instanceof Subscription && $existing->active()) {
             return null;
         }
 

@@ -18,7 +18,7 @@ class SuggestedTopicsDataController
         // Labels already covered by a real topic shouldn't be re-suggested.
         $existingNames = $agent->topics()
             ->pluck('topics.topic')
-            ->map(fn ($name) => mb_strtolower((string) $name))
+            ->map(fn ($name): string => mb_strtolower((string) $name))
             ->all();
 
         // Label cardinality is unbounded — cap the list.

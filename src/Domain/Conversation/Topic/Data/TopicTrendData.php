@@ -12,6 +12,7 @@ class TopicTrendData extends Data
 {
     public function __construct(
         public string $topic_name,
+        /** @var DataCollection<int, TopicCountByDateData> */
         #[DataCollectionOf(TopicCountByDateData::class)]
         public DataCollection $counts,
     ) {}

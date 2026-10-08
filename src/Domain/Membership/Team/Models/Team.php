@@ -7,6 +7,7 @@ use Domain\Agent\Collections\AgentCollection;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Enums\CapabilityEnum;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -47,20 +48,10 @@ use Support\Concerns\HasExternalId;
     'name',
     'user_id',
 ])]
+#[RouteKey('external_id')]
 class Team extends Model
 {
     use HasExternalId;
-
-    /**
-     * Route-bind by external_id so `/my/teams/{team}` URLs use the opaque
-     * UUID instead of the auto-increment id — same convention as Agent /
-     * Conversation. The explicit `{team:external_id}` overrides on the
-     * V1 API routes keep working (they pin to the same column).
-     */
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
-    }
 
     /**
      * @return BelongsTo<User, $this>

@@ -4,6 +4,7 @@ namespace Domain\Channel\Instagram\Models;
 
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -31,22 +32,10 @@ use Support\Concerns\HasExternalId;
  * @property bool $enabled
  */
 #[Guarded(['id'])]
+#[RouteKey('external_id')]
 class AgentInstagramAccount extends Model
 {
     use HasExternalId;
-
-    protected $casts = [
-        'page_access_token' => 'encrypted',
-        // `access_token` / `app_secret` are legacy, never-read, now-nullable
-        // columns — deliberately NOT cast: the `encrypted` caster can't decrypt a
-        // null and would throw on every OAuth-era row (which leaves them null).
-        'enabled' => 'boolean',
-    ];
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
-    }
 
     /**
      * @return BelongsTo<Agent, $this>
@@ -59,5 +48,16 @@ class AgentInstagramAccount extends Model
     public function threads(): HasMany
     {
         return $this->hasMany(InstagramThread::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'page_access_token' => 'encrypted',
+            // `access_token` / `app_secret` are legacy, never-read, now-nullable
+            // columns — deliberately NOT cast: the `encrypted` caster can't decrypt a
+            // null and would throw on every OAuth-era row (which leaves them null).
+            'enabled' => 'boolean',
+        ];
     }
 }

@@ -110,7 +110,7 @@ class DomainServiceProvider extends ServiceProvider
         // chat turn or queued job lands in the same scope.
         $this->app->singleton(TokenUsageContext::class);
 
-        $this->app->bind(LlmProviderInterface::class, function ($app) {
+        $this->app->bind(function ($app): LlmProviderInterface {
             $provider = config('chatvia.ai.provider', 'openrouter');
 
             return match ($provider) {
@@ -121,7 +121,7 @@ class DomainServiceProvider extends ServiceProvider
             };
         });
 
-        $this->app->bind(EmbeddingsProviderInterface::class, function ($app) {
+        $this->app->bind(function ($app): EmbeddingsProviderInterface {
             $provider = config('chatvia.ai.models.embedding', 'mistral');
 
             return match ($provider) {

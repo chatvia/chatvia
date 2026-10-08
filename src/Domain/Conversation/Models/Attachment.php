@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -49,6 +50,7 @@ use Throwable;
     'pages',
 ])]
 #[Table(name: 'chat_attachments')]
+#[RouteKey('external_id')]
 class Attachment extends Model
 {
     use HasExternalId, HasStorageFile;
@@ -60,11 +62,6 @@ class Attachment extends Model
      * request, which is wasted overhead for the use case.
      */
     public const DISK = 'public';
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
-    }
 
     public function conversation(): BelongsTo
     {

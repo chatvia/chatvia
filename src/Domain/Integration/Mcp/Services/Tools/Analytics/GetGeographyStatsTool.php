@@ -52,7 +52,7 @@ class GetGeographyStatsTool extends AnalyticsTool
             ->get();
 
         $names = DB::table('countries')
-            ->whereIn('code', $countryRows->pluck('country_code')->map(fn ($c) => strtolower((string) $c))->all())
+            ->whereIn('code', $countryRows->pluck('country_code')->map(fn ($c): string => strtolower((string) $c))->all())
             ->pluck('name', 'code');
 
         $countryTotal = (int) $countryRows->sum('conversations');

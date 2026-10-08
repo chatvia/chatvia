@@ -31,6 +31,8 @@ const saving = ref(false);
 const error = ref<string | null>(null);
 
 const requiresUrl = computed(() => props.connector?.requiresUrl ?? false);
+const tokenLabel = computed(() => (props.connector ? connectorTokenLabel(props.connector) : null));
+const tokenPlaceholder = computed(() => (props.connector ? connectorTokenPlaceholder(props.connector) : null));
 
 watch(
     () => props.open,
@@ -111,18 +113,18 @@ async function submit(): Promise<void> {
                 </div>
 
                 <div class="space-y-1.5">
-                    <Label for="token">{{ connectorTokenLabel(connector) ?? t('workspace.connectors.token_modal.token') }}</Label>
+                    <Label for="token">{{ tokenLabel ?? t('workspace.connectors.token_modal.token') }}</Label>
                     <Input
                         id="token"
                         v-model="token"
                         type="password"
                         autocomplete="off"
-                        :placeholder="connectorTokenPlaceholder(connector) ?? ''"
+                        :placeholder="tokenPlaceholder ?? ''"
                         :disabled="saving"
                         required
                     />
-                    <p v-if="connector.tokenHelpUrl" class="text-muted-foreground flex items-center gap-1 text-xs">
-                        <a :href="connector.tokenHelpUrl" target="_blank" class="hover:underline">{{
+                    <p v-if="connector?.tokenHelpUrl" class="text-muted-foreground flex items-center gap-1 text-xs">
+                        <a :href="connector?.tokenHelpUrl" target="_blank" class="hover:underline">{{
                             t('workspace.connectors.token_modal.help_link')
                         }}</a>
                         <ExternalLink class="h-3 w-3" />

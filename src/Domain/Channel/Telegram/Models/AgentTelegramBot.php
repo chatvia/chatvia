@@ -4,6 +4,7 @@ namespace Domain\Channel\Telegram\Models;
 
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,20 +24,10 @@ use Support\Concerns\HasExternalId;
  * @property list<array{command: string, description: string, type: string, value: string}>|null $commands
  */
 #[Guarded(['id'])]
+#[RouteKey('external_id')]
 class AgentTelegramBot extends Model
 {
     use HasExternalId;
-
-    protected $casts = [
-        'bot_token' => 'encrypted',
-        'enabled' => 'boolean',
-        'commands' => 'array',
-    ];
-
-    public function getRouteKeyName(): string
-    {
-        return 'external_id';
-    }
 
     /**
      * @return BelongsTo<Agent, $this>
@@ -49,5 +40,14 @@ class AgentTelegramBot extends Model
     public function chats(): HasMany
     {
         return $this->hasMany(TelegramChat::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'bot_token' => 'encrypted',
+            'enabled' => 'boolean',
+            'commands' => 'array',
+        ];
     }
 }

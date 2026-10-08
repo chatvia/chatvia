@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 
 class ProfilePhotoStorage
@@ -29,9 +30,9 @@ class ProfilePhotoStorage
             $disk->delete($user->profile_image_path);
         }
 
-        $encoded = Image::read($photo->getRealPath())
+        $encoded = Image::decodePath($photo->getRealPath())
             ->cover(self::SIZE, self::SIZE)
-            ->toJpeg(self::QUALITY);
+            ->encode(new JpegEncoder(quality: self::QUALITY));
 
         $path = 'users/'.$user->external_id.'/profile-photos/'.Str::uuid().'.jpg';
 

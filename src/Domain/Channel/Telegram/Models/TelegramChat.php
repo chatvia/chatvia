@@ -21,10 +21,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Guarded(['id'])]
 class TelegramChat extends Model implements ChannelConversationMapping
 {
-    protected $casts = [
-        'last_message_at' => 'datetime',
-    ];
-
     /**
      * @return BelongsTo<AgentTelegramBot, $this>
      */
@@ -47,5 +43,12 @@ class TelegramChat extends Model implements ChannelConversationMapping
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class, 'chat_conversation_id');
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'last_message_at' => 'datetime',
+        ];
     }
 }

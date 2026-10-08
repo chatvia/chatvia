@@ -3,6 +3,7 @@
 namespace Domain\Llm\Operations\Media;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 
 class Vision
@@ -14,7 +15,7 @@ class Vision
     public function describeImage(string $image): bool|string
     {
         if (file_exists($image)) {
-            $image = Image::read(file_get_contents($image))->toJpeg()->toDataUri();
+            $image = Image::decodePath($image)->encode(new JpegEncoder)->toDataUri()->toString();
         }
 
         $prompt = prompt('image/describe');
@@ -51,7 +52,7 @@ class Vision
 
     public function fromDataUrl(string $imageContent): bool|string
     {
-        $imageDataUri = Image::read($imageContent)->toJpeg()->toDataUri();
+        $imageDataUri = Image::decode($imageContent)->encode(new JpegEncoder)->toDataUri()->toString();
 
         return $this->describeImage($imageDataUri);
     }

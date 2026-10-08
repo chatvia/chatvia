@@ -21,7 +21,14 @@ use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Pricing\CostCalculator;
 use Domain\Llm\Services\TikToken;
+use Illuminate\Support\Facades\DB;
 
+/**
+ * Persists one chat turn (visitor or assistant) and everything it touches —
+ * session, conversation, message row, attachment links, retention and usage
+ * counters — in one transaction, then queues the follow-up work (location,
+ * analytics, title) once the rows are committed.
+ */
 class StoreMessageAction
 {
     public function __construct(
@@ -34,53 +41,66 @@ class StoreMessageAction
     {
         $isUserMessage = $payload instanceof ChatInputPayload;
 
-        $session = $this->resolveSession($agent, $payload, $isUserMessage);
-
-        $conversation = $this->resolveConversation($session, $payload);
-
+        // May call the provider over HTTP for the billed usage — done before the
+        // transaction so no row lock is held while we wait on the network.
         [$promptTokens, $completionTokens, $costInMicroCents] = $this->resolveUsage($payload, $isUserMessage);
 
-        $message = Message::create($this->buildMessageAttributes(
-            $payload,
-            $conversation,
-            $isUserMessage,
-            $promptTokens,
-            $completionTokens,
-            $costInMicroCents,
-        ));
+        /** @var array{0: Session, 1: Conversation, 2: Message} $stored */
+        $stored = DB::transaction(function () use ($agent, $payload, $isUserMessage, $promptTokens, $completionTokens, $costInMicroCents): array {
+            $session = $this->resolveSession($agent, $payload, $isUserMessage);
 
-        // Link any unattached files of this conversation to the user message
-        // that introduced them. Lets UserChatBubble render chips per-message
-        // instead of one strip per conversation. Only fires for user turns —
-        // assistant turns never own uploaded files.
-        if ($isUserMessage) {
-            Attachment::query()
-                ->where('chat_conversation_id', $conversation->id)
-                ->whereNull('chat_message_id')
-                ->update(['chat_message_id' => $message->id]);
+            $conversation = $this->resolveConversation($session, $payload);
 
-            // Activity-based retention: a fresh user turn pushes the
-            // horizon back out when we're close to it. The model's
-            // threshold (3 days) keeps the update cheap — only writes
-            // when the conversation is actually at risk of being pruned.
-            $conversation->extendRetentionIfDueSoon($agent->messageRetentionInDays());
+            $message = Message::create($this->buildMessageAttributes(
+                $payload,
+                $conversation,
+                $isUserMessage,
+                $promptTokens,
+                $completionTokens,
+                $costInMicroCents,
+            ));
 
-            // Count this send against the chatter's monthly limit. Stamped
-            // only for authenticated chatters (session.user_id); the service
-            // is a no-op for non-chatters and for chatters with no limit. Counted
-            // here (not via chat_messages, which retention prunes) so the tally
-            // is durable.
-            if ($session->user) {
-                $this->chatterAllowance->recordMessage($session->user);
+            // Link any unattached files of this conversation to the user message
+            // that introduced them. Lets UserChatBubble render chips per-message
+            // instead of one strip per conversation. Only fires for user turns —
+            // assistant turns never own uploaded files.
+            if ($isUserMessage) {
+                Attachment::query()
+                    ->where('chat_conversation_id', $conversation->id)
+                    ->whereNull('chat_message_id')
+                    ->update(['chat_message_id' => $message->id]);
+
+                // Activity-based retention: a fresh user turn pushes the
+                // horizon back out when we're close to it. The model's
+                // threshold (3 days) keeps the update cheap — only writes
+                // when the conversation is actually at risk of being pruned.
+                $conversation->extendRetentionIfDueSoon($agent->messageRetentionInDays());
+
+                // Count this send against the chatter's monthly limit. Stamped
+                // only for authenticated chatters (session.user_id); the service
+                // is a no-op for non-chatters and for chatters with no limit. Counted
+                // here (not via chat_messages, which retention prunes) so the tally
+                // is durable.
+                if ($session->user) {
+                    $this->chatterAllowance->recordMessage($session->user);
+                }
+            } else {
+                // Log token usage for the workspace owner's current billing cycle.
+                // Assistant turns are the only ones that carry token usage; user
+                // turns never do. Uses the provider's prompt+completion count
+                // (resolveUsage) — the authoritative billed total — with a TikToken
+                // estimate as a fallback when the provider exposes no usage.
+                $this->recordTokenUsage($agent, $promptTokens, $completionTokens, $payload->message);
             }
-        } else {
-            // Log token usage for the workspace owner's current billing cycle.
-            // Assistant turns are the only ones that carry token usage; user
-            // turns never do. Uses the provider's prompt+completion count
-            // (resolveUsage) — the authoritative billed total — with a TikToken
-            // estimate as a fallback when the provider exposes no usage.
-            $this->recordTokenUsage($agent, $promptTokens, $completionTokens, $payload->message);
-        }
+
+            return [$session, $conversation, $message];
+        });
+
+        [$session, $conversation, $message] = $stored;
+
+        // Everything below queues work that reads these rows, so it runs only
+        // after the transaction has committed.
+        $this->dispatchLocationLookup($session, $payload, $isUserMessage);
 
         $this->dispatchAnalytics(
             $agent,
@@ -185,17 +205,22 @@ class StoreMessageAction
             $session->update($sessionUpdates);
         }
 
-        // Resolve location off the hot path. The request-time country (CF-aware,
-        // user turns only) is the trusted signal; the queued listener still
-        // enriches city/region from the stored IP when it can. Fire when either
-        // source can yield something and the country isn't already stamped.
+        return $session;
+    }
+
+    /**
+     * Resolve location off the hot path. The request-time country (CF-aware,
+     * user turns only) is the trusted signal; the queued listener still
+     * enriches city/region from the stored IP when it can. Fire when either
+     * source can yield something and the country isn't already stamped.
+     */
+    private function dispatchLocationLookup(Session $session, ChatInputPayload|ChatOutputPayload $payload, bool $isUserMessage): void
+    {
         $country = $isUserMessage && $payload instanceof ChatInputPayload ? $payload->country : null;
 
         if (! $session->country_id && ($country || $session->ip_address)) {
             SessionLocationUnknown::dispatch($session, $country);
         }
-
-        return $session;
     }
 
     private function resolveConversation(Session $session, ChatInputPayload|ChatOutputPayload $payload): Conversation

@@ -8,6 +8,7 @@ use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Services\Crawler\Crawler;
 use Domain\Knowledge\Source\Web\Services\WebPageMarkdownCache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Finalises FireCrawl discovery: narrows the discovered pages to the ingest set,
@@ -45,18 +46,21 @@ class CrawlWebsiteAction
         }
 
         // Idempotent: a retried job or a re-crawl must not stack duplicate URL
-        // rows on top of a previous discovery.
-        $website->urls()->delete();
+        // rows on top of a previous discovery. One transaction, so a failure
+        // can't leave the website with its old URLs gone and no new ones.
+        DB::transaction(function () use ($website, $selected, $startedAt, $internalJobId): void {
+            $website->urls()->delete();
 
-        $website->update([
-            'status' => 'crawled',
-            'took_in_seconds' => max(1, time() - $startedAt),
-            'internal_ingestion_job_id' => $internalJobId,
-        ]);
+            $website->update([
+                'status' => 'crawled',
+                'took_in_seconds' => max(1, time() - $startedAt),
+                'internal_ingestion_job_id' => $internalJobId,
+            ]);
 
-        $website->urls()->createMany(
-            array_map(static fn (string $url): array => ['url' => $url], array_keys($selected))
-        );
+            $website->urls()->createMany(
+                array_map(static fn (string $url): array => ['url' => $url], array_keys($selected))
+            );
+        });
 
         $website->refresh();
 

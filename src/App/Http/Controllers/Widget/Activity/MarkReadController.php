@@ -5,14 +5,12 @@ namespace App\Http\Controllers\Widget\Activity;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\Data\Conversation\WidgetMarkReadResultData;
-use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 readonly class MarkReadController
 {
     public function __construct(
-        private WidgetVerification $widgetVerification,
         private ChatMemory $chatMemory,
     ) {}
 
@@ -21,15 +19,10 @@ readonly class MarkReadController
         FindWidgetConversationAction $findConversation,
     ): JsonResponse|WidgetMarkReadResultData {
         $sessionId = $request->header('X-SESSION-ID');
-        $agentId = $request->header('X-AGENT-ID');
         $conversationId = $request->input('conversation_id') ?? $request->header('X-CONVERSATION-ID');
 
         if (! $sessionId || ! $conversationId) {
             return response()->json(['error' => 'Missing required parameters'], 400);
-        }
-
-        if ($agentId && ! $this->widgetVerification->verifyByAgentExternalId($agentId, $request)) {
-            return response()->json(['error' => 'Domain not allowed'], 403);
         }
 
         $agent = current_agent_from_widget();

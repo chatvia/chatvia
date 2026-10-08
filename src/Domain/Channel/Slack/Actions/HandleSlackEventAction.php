@@ -3,6 +3,7 @@
 namespace Domain\Channel\Slack\Actions;
 
 use Domain\Channel\Services\ChannelAccessGate;
+use Domain\Channel\Services\ChannelLocale;
 use Domain\Channel\Slack\Jobs\HandleSlackEventJob;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Services\SlackChannelResolver;
@@ -22,7 +23,8 @@ use Domain\Channel\Slack\Services\SlackReplyRunner;
  */
 class HandleSlackEventAction
 {
-    private const UNAVAILABLE = 'This assistant isn’t available on Slack right now.';
+    /** Shown in the channel's own name, so every channel shares one translation. */
+    private const CHANNEL_NAME = 'Slack';
 
     public function __construct(
         private readonly SlackChannelResolver $resolver,
@@ -40,7 +42,7 @@ class HandleSlackEventAction
         }
 
         // Protected agents are never answered on Slack (defence in depth).
-        if (! $this->gate->allows($app->agent, fn (): ?string => $this->client->postMessage($app->bot_token, $channelId, self::UNAVAILABLE, $threadTs))) {
+        if (! $this->gate->allows($app->agent, fn (): ?string => $this->client->postMessage($app->bot_token, $channelId, ChannelLocale::text($app->agent, 'This assistant isn’t available on :channel right now.', ['channel' => self::CHANNEL_NAME]), $threadTs))) {
             return;
         }
 
@@ -48,7 +50,7 @@ class HandleSlackEventAction
 
         // Instant feedback: a placeholder message the moment the mention
         // lands. Its `ts` is the handle the reply then streams into.
-        $ts = $this->client->postMessage($app->bot_token, $channelId, '_Thinking…_', $threadTs);
+        $ts = $this->client->postMessage($app->bot_token, $channelId, '_'.ChannelLocale::text($app->agent, 'Thinking…').'_', $threadTs);
 
         // Posting failed (kicked from the channel, missing scope, outage) —
         // bail before the pipeline runs so the turn isn't billed for a reply

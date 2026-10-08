@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Whatsapp\Services;
 
+use Domain\Channel\Services\RedactedException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -21,8 +22,6 @@ use Throwable;
  */
 class WhatsappClient
 {
-    private const GRAPH = 'https://graph.facebook.com/v25.0';
-
     /** WhatsApp caps a single text body at 4096 chars. */
     private const MESSAGE_LIMIT = 4096;
 
@@ -113,6 +112,12 @@ class WhatsappClient
         ]);
     }
 
+    /** The versioned Graph base URL; the version comes from `services.meta.graph_version`. */
+    protected function graphBaseUrl(): string
+    {
+        return 'https://graph.facebook.com/'.config('services.meta.graph_version', 'v25.0');
+    }
+
     /**
      * Call a Graph API endpoint; null on transport failure or a Graph error.
      *
@@ -124,8 +129,8 @@ class WhatsappClient
             $pending = Http::withToken($token);
 
             $response = $method === 'get'
-                ? $pending->get(self::GRAPH.$path, $params)
-                : $pending->asJson()->post(self::GRAPH.$path, (object) $params);
+                ? $pending->get($this->graphBaseUrl().$path, $params)
+                : $pending->asJson()->post($this->graphBaseUrl().$path, (object) $params);
 
             $json = $response->json();
 
@@ -137,7 +142,7 @@ class WhatsappClient
 
             return $json;
         } catch (Throwable $e) {
-            Log::warning("WhatsApp {$path} failed", ['error' => $e->getMessage()]);
+            Log::warning("WhatsApp {$path} failed", RedactedException::context($e));
 
             return null;
         }

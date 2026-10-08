@@ -38,7 +38,7 @@ class GrantSubscriptionAction
 
         DB::transaction(function () use ($user, $package, $fixedLimit, $quotaLimit, $endsAt): void {
             // Persist the denormalised plan label (written on trial start + each
-            // renewal, which passes the current to_package).
+            // renewal, which passes the plan derived from the Stripe price).
             $user->billing()->updateOrCreate([], ['plan' => $package]);
 
             // Set quota limits (fixed per package, not cumulative).

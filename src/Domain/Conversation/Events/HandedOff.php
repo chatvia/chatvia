@@ -9,6 +9,11 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * A conversation's handoff state changed (to a human, back to the AI, or
+ * waiting). Broadcast at once to the conversation's presence channel so the
+ * widget can switch between AI and human mode.
+ */
 class HandedOff implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithBroadcasting, InteractsWithSockets, SerializesModels;
@@ -18,14 +23,7 @@ class HandedOff implements ShouldBroadcastNow
         public string $status, // 'ai', 'pending', 'human', 'returned'
         public ?string $adminId = null,
         public ?string $adminName = null,
-    ) {
-        \Log::info('[HandedOff] Broadcasting handoff event', [
-            'channel' => 'presence-chat.'.$this->conversationId,
-            'status' => $this->status,
-            'admin_id' => $this->adminId,
-            'admin_name' => $this->adminName,
-        ]);
-    }
+    ) {}
 
     public function broadcastOn(): array
     {

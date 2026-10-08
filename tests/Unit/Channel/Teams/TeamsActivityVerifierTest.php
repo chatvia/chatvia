@@ -125,3 +125,22 @@ it('rejects a missing or malformed Authorization header', function (): void {
         ->and($verifier->verify('Bearer not-a-jwt', TEAMS_VERIFIER_APP_ID))->toBeNull()
         ->and($verifier->verify('Basic dXNlcjpwYXNz', TEAMS_VERIFIER_APP_ID))->toBeNull();
 });
+
+it('restores the global JWT leeway after verifying, so other JWT checks in the worker stay strict', function (): void {
+    $original = JWT::$leeway;
+    JWT::$leeway = 0;
+
+    try {
+        $verifier = new TeamsActivityVerifier;
+
+        // Within the 300 s Teams skew window: accepted.
+        expect($verifier->verify('Bearer '.teamsConnectorJwt($this, ['exp' => time() - 60]), TEAMS_VERIFIER_APP_ID))->not->toBeNull()
+            ->and(JWT::$leeway)->toBe(0);
+
+        // A failed decode must restore it too.
+        $verifier->verify('Bearer not-a-jwt', TEAMS_VERIFIER_APP_ID);
+        expect(JWT::$leeway)->toBe(0);
+    } finally {
+        JWT::$leeway = $original;
+    }
+});

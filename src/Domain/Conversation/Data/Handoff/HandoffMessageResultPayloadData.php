@@ -14,7 +14,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 class HandoffMessageResultPayloadData extends Data
 {
     public function __construct(
-        public int $id,
+        /** The message's public id (external_id); internal keys never leave the server. */
+        public string $id,
         public string $content,
         public string $role,
         public string $created_at,
@@ -23,7 +24,7 @@ class HandoffMessageResultPayloadData extends Data
     public static function fromMessage(Message $message): self
     {
         return new self(
-            id: $message->id,
+            id: $message->external_id,
             content: $message->content,
             role: $message->role,
             created_at: $message->created_at->toIso8601String(),

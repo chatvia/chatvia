@@ -6,10 +6,10 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class KnowledgeBase
 {
@@ -84,8 +84,9 @@ class KnowledgeBase
 
         if ($results) {
             // Dispatch stats update to background job for better performance.
-            // The stats job only reads chunk ids/scores, never the chunk text.
-            UpdateRetrievalStatsJob::dispatch($results, $agent);
+            // Only the source references go on the queue — never the chunk
+            // text, which is customer content and would sit in Redis.
+            UpdateRetrievalStatsJob::dispatch($this->sourceReferences($results), $agent);
 
             // --- Phase 3: rerank (model call) or DB-confidence filter ---
             // Only rerank if we have multiple results, reranking is enabled in
@@ -148,11 +149,33 @@ class KnowledgeBase
             ->toArray();
     }
 
+    /**
+     * The distinct (chunkable_type, chunkable_id) pairs behind the results —
+     * all the retrieval-stats job needs.
+     *
+     * @return list<array{chunkable_type: string, chunkable_id: int}>
+     */
+    private function sourceReferences(array $results): array
+    {
+        return collect($results)
+            ->map(fn ($result): array => [
+                'chunkable_type' => (string) data_get($result, 'chunkable_type'),
+                'chunkable_id' => (int) data_get($result, 'chunkable_id'),
+            ])
+            ->unique(fn (array $ref): string => $ref['chunkable_type'].':'.$ref['chunkable_id'])
+            ->values()
+            ->all();
+    }
+
     private function rerank(string $query, array $results, EmbeddingsProviderInterface $provider): array
     {
         try {
             $chunks = collect($results)->pluck('chunk')->toArray();
             $rerankedResults = $provider->rerank($query, $chunks);
+
+            if ($rerankedResults === null) {
+                return $this->filterByDbConfidence($results);
+            }
 
             // Get relevance threshold from config (default: 0.5)
             $relevanceThreshold = config('chatvia.vector.search.relevance_threshold');
@@ -171,9 +194,12 @@ class KnowledgeBase
                 })
                 ->values()
                 ->toArray();
-        } catch (Exception $e) {
-            // On error, return original results
-            return $results;
+        } catch (Throwable $e) {
+            // A reranker outage must not take chat down, but it must not widen
+            // the context either: keep the SQL ranking and the usual limit.
+            report($e);
+
+            return $this->filterByDbConfidence($results);
         }
     }
 

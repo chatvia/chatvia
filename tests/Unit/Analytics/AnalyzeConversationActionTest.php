@@ -212,3 +212,25 @@ it('rolls the assigned topic into analytics_agent_topic_daily', function (): voi
         ->and((int) $row->conversation_count)->toBe(1)
         ->and((string) $row->bucket_day)->toBe($conversation->created_at->format('Y-m-d'));
 });
+
+it('leaves the conversation pending when the model output cannot be parsed', function (): void {
+    // Stamping analyzed_at with a guessed "neutral" would count the conversation
+    // in the rollups and the scheduled scan would never retry it.
+    Event::fake([ConversationTopicAssigned::class]);
+
+    $agent = proPlanAgent();
+    acaEnableTopics($agent);
+    attachTopics($agent, ['Billing']);
+    $conversation = conversationFor($agent);
+
+    fakeLlmCompletion('Sorry, I could not analyze that.');
+
+    app(AnalyzeConversationAction::class)->execute($conversation);
+
+    $conversation->refresh();
+    expect($conversation->analyzed_at)->toBeNull()
+        ->and($conversation->sentiment)->toBeNull()
+        ->and($conversation->tone)->toBeNull()
+        ->and(ConversationTopic::query()->where('chat_conversation_id', $conversation->id)->exists())->toBeFalse();
+    Event::assertNotDispatched(ConversationTopicAssigned::class);
+});

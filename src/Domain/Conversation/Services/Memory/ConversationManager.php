@@ -123,17 +123,30 @@ readonly class ConversationManager
 
     public function deleteConversation(string $conversationId, ?string $deletedBy = null): void
     {
-        // Soft delete the conversation
-        $conversation = Conversation::where('external_id', $conversationId)->first();
-        $conversation->messages()->update([
-            'content' => null,
-        ]);
+        DB::transaction(function () use ($conversationId, $deletedBy): void {
+            $conversation = Conversation::where('external_id', $conversationId)->first();
 
-        if ($deletedBy) {
-            $conversation->update(['deleted_by' => $deletedBy]);
-        }
+            // Already deleted (a repeated request, or the prune got there
+            // first): nothing left to erase, but the cache and the session list
+            // below must still forget it.
+            if ($conversation === null) {
+                return;
+            }
 
-        $conversation->delete();
+            // Erase the text, then soft-delete. The bulk update skips the
+            // Message::saving hook, so the BM25 search copy of the text is
+            // cleared here explicitly — otherwise it would outlive the erasure.
+            $conversation->messages()->update([
+                'content' => null,
+                'content_bm25' => null,
+            ]);
+
+            if ($deletedBy) {
+                $conversation->update(['deleted_by' => $deletedBy]);
+            }
+
+            $conversation->delete();
+        });
 
         // Flush every entry tagged with this conversation (messages,
         // sources, anything else conversation-scoped) in one call so
@@ -176,9 +189,11 @@ readonly class ConversationManager
                 ->get()
                 ->each(static fn (Attachment $a) => $a->delete());
 
+            // content_bm25 too: the bulk update skips the Message::saving hook
+            // that normally keeps the BM25 search copy in sync with content.
             Message::query()
                 ->whereIn('chat_conversation_id', $conversationIds)
-                ->update(['content' => null]);
+                ->update(['content' => null, 'content_bm25' => null]);
 
             Conversation::query()
                 ->whereIn('id', $conversationIds)

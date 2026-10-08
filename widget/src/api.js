@@ -1,4 +1,5 @@
 import { authHeaders } from './auth.js';
+import { getApiUrl } from './endpoints.js';
 
 /**
  * Make an API request with proper error handling
@@ -21,8 +22,7 @@ export default async function api({ endpoint, method, headers = {}, body = null 
   // authorized without each call site knowing about auth.
   Object.assign(mergedHeaders, authHeaders(mergedHeaders['X-AGENT-ID']));
 
-  /* global __API_URL__ */
-  const apiUrl = __API_URL__;
+  const apiUrl = getApiUrl();
 
   try {
     const response = await fetch(`${apiUrl}/${endpoint}`, {
@@ -63,8 +63,7 @@ export async function uploadFile({ endpoint, file, headers = {} }) {
   const form = new FormData();
   form.append('file', file);
 
-  /* global __API_URL__ */
-  const apiUrl = __API_URL__;
+  const apiUrl = getApiUrl();
 
   const response = await fetch(`${apiUrl}/${endpoint}`, {
     method: 'POST',

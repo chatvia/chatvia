@@ -4,9 +4,9 @@ namespace Domain\Billing\Actions\Subscriptions;
 
 use Domain\Billing\Data\SubscribeMembersData;
 use Domain\Billing\Enums\Addon;
+use Domain\Billing\Exceptions\AddonNotConfiguredException;
 use Laravel\Cashier\Checkout;
 use Laravel\Cashier\Subscription;
-use RuntimeException;
 
 /**
  * Creates a Cashier subscription of type `members`. The plan's base
@@ -20,7 +20,7 @@ class SubscribeMembersAction
         $priceId = config('billing.addons.members.stripe_price_id');
 
         if (! $priceId) {
-            throw new RuntimeException(
+            throw new AddonNotConfiguredException(
                 'Members addon is not configured. Set STRIPE_MEMBERS_PRICE_ID in your environment.'
             );
         }

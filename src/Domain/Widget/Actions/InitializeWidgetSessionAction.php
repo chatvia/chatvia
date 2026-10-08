@@ -11,13 +11,15 @@ use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\Data\Session\WidgetSessionInitData;
 use Domain\Widget\Data\Session\WidgetSessionInitResultData;
 use Domain\Widget\Services\WidgetVerification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 
 /**
  * Bootstrap a widget session: validate (or mint) the session, validate (or
  * mint) the conversation, and return both identifiers along with flags that
- * tell the widget whether either was just created.
+ * tell the widget whether either was just created. The writes share one
+ * transaction, so a failure never leaves a session without its conversation.
  */
 class InitializeWidgetSessionAction
 {
@@ -28,6 +30,11 @@ class InitializeWidgetSessionAction
     ) {}
 
     public function execute(Agent $agent, WidgetSessionInitData $data, ?User $authUser = null): WidgetSessionInitResultData
+    {
+        return DB::transaction(fn (): WidgetSessionInitResultData => $this->initialize($agent, $data, $authUser));
+    }
+
+    private function initialize(Agent $agent, WidgetSessionInitData $data, ?User $authUser): WidgetSessionInitResultData
     {
         $isNewSession = false;
         $isNewConversation = false;

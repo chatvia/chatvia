@@ -13,6 +13,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsOpenWorld;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
+use Throwable;
 
 #[Description('Get the current weather for a city using OpenWeatherMap. Returns temperature, conditions, humidity, and wind.')]
 #[IsReadOnly]
@@ -43,11 +44,18 @@ class CurrentWeatherTool extends Tool
             return Response::error('No OpenWeatherMap API key was provided. Reconnect the Weather connector with a valid key.');
         }
 
-        $response = Http::timeout(10)->get('https://api.openweathermap.org/data/2.5/weather', [
-            'q' => $validated['location'],
-            'appid' => $apiKey,
-            'units' => $units,
-        ]);
+        // The provider takes the key as a query parameter, and connection
+        // errors carry the full URL in their message — keep that message away
+        // from the model.
+        try {
+            $response = Http::timeout(10)->get(rtrim((string) config('services.openweather.base_url'), '/').'/weather', [
+                'q' => $validated['location'],
+                'appid' => $apiKey,
+                'units' => $units,
+            ]);
+        } catch (Throwable) {
+            return Response::error('Could not reach the weather service — please try again.');
+        }
 
         if ($response->status() === 404) {
             return Response::error("Couldn't find a city called \"{$validated['location']}\".");

@@ -318,7 +318,7 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
 }
 
 .range-slider::-webkit-slider-track {
-    background: hsl(var(--muted));
+    background: var(--muted);
     height: 6px;
     border-radius: 3px;
 }
@@ -326,33 +326,33 @@ const getFrequencyPenaltyLabel = (penalty: number) => {
 .range-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    background: hsl(var(--primary));
+    background: var(--primary);
     height: 20px;
     width: 20px;
     border-radius: 50%;
-    border: 2px solid hsl(var(--background));
+    border: 2px solid var(--background);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     cursor: pointer;
 }
 
 .range-slider::-webkit-slider-thumb:hover {
-    background: hsl(var(--primary) / 0.8);
+    background: color-mix(in srgb, var(--primary) 80%, transparent);
     transform: scale(1.1);
 }
 
 .range-slider::-moz-range-track {
-    background: hsl(var(--muted));
+    background: var(--muted);
     height: 6px;
     border-radius: 3px;
     border: none;
 }
 
 .range-slider::-moz-range-thumb {
-    background: hsl(var(--primary));
+    background: var(--primary);
     height: 20px;
     width: 20px;
     border-radius: 50%;
-    border: 2px solid hsl(var(--background));
+    border: 2px solid var(--background);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     cursor: pointer;
 }

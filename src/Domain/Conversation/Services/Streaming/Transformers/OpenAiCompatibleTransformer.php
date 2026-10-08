@@ -22,6 +22,11 @@ class OpenAiCompatibleTransformer implements StreamTransformer
         $contentMode = 'unknown';
         $finalized = false;
 
+        // Only look for tool calls hidden in the text when tools were actually
+        // offered this turn. Without tools, a reply that starts with `{` is
+        // just a JSON answer and must stream to the user as text.
+        $toolsOffered = $context->offeredToolNames !== [];
+
         try {
             while (! $body->eof()) {
                 if (connection_status() !== CONNECTION_NORMAL || connection_aborted()) {
@@ -94,7 +99,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
                             $leading = ltrim($contentBuffer);
                             if ($leading !== '') {
                                 $first = $leading[0];
-                                if ($first === '{' || $first === '[' || $first === '`') {
+                                if ($toolsOffered && ($first === '{' || $first === '[' || $first === '`')) {
                                     $contentMode = 'json';
                                 } else {
                                     $contentMode = 'text';
@@ -139,9 +144,10 @@ class OpenAiCompatibleTransformer implements StreamTransformer
      * After the upstream stream ends, decide what to do with any content the
      * sniffer held back. If real tool_calls already arrived structurally, the
      * held content is irrelevant and dropped. Otherwise try to parse the
-     * buffered text as a JSON tool call and synthesise a delta so LlmSource
-     * can dispatch it; if that fails, flush the text as a normal delta so
-     * the user still sees the message.
+     * buffered text as a JSON tool call and synthesise a delta so the tool
+     * loop can act on it — but only when the JSON names a tool that was
+     * offered this turn. Anything else (a JSON answer, unparseable text) is
+     * flushed as a normal delta so the user still sees the message.
      */
     private function finalize(ChatContext $context, string $contentBuffer, string $contentMode): Generator
     {
@@ -154,7 +160,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
         }
 
         $extracted = $this->extractToolCalls($contentBuffer);
-        if ($extracted !== []) {
+        if ($extracted !== [] && $this->namesAnOfferedTool($extracted, $context->offeredToolNames)) {
             foreach ($extracted as $index => $call) {
                 $context->applyToolCallDelta([
                     'index' => $index,
@@ -178,6 +184,25 @@ class OpenAiCompatibleTransformer implements StreamTransformer
         $context->appendStreamedMessage($contentBuffer);
         $context->spectraTracker?->appendContent($contentBuffer);
         yield StreamEvent::delta($context->assistantMessageId, $contentBuffer);
+    }
+
+    /**
+     * True when at least one extracted call targets a tool that was offered.
+     * Other names in the same batch still pass through: ToolLoopRunner refuses
+     * them with a tool error, which tells the model the tool does not exist.
+     *
+     * @param  array<int, array{name: string, arguments: array<string, mixed>}>  $calls
+     * @param  array<int, string>  $offeredToolNames
+     */
+    private function namesAnOfferedTool(array $calls, array $offeredToolNames): bool
+    {
+        foreach ($calls as $call) {
+            if (in_array($call['name'], $offeredToolNames, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

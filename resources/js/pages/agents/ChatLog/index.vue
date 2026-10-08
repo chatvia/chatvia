@@ -2,7 +2,16 @@
 import LeadDetailsSheet from '@/components/LeadDetailsSheet.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -421,24 +430,24 @@ watch(liveChatAvailable, (available) => {
         </Dialog>
 
         <!-- Delete Conversation Dialog -->
-        <Dialog v-model:open="showDeleteConversationDialog">
-            <DialogContent class="max-w-md">
-                <DialogHeader>
-                    <DialogTitle>{{ t('agents.chatlog.delete.dialog_title') }}</DialogTitle>
-                    <DialogDescription> {{ t('agents.chatlog.delete.dialog_description') }} </DialogDescription>
-                </DialogHeader>
+        <AlertDialog v-model:open="showDeleteConversationDialog">
+            <AlertDialogContent class="max-w-md">
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{{ t('agents.chatlog.delete.dialog_title') }}</AlertDialogTitle>
+                    <AlertDialogDescription> {{ t('agents.chatlog.delete.dialog_description') }} </AlertDialogDescription>
+                </AlertDialogHeader>
 
-                <DialogFooter>
-                    <Button variant="outline" @click="showDeleteConversationDialog = false" :disabled="isDeletingConversation">
+                <AlertDialogFooter>
+                    <AlertDialogCancel :disabled="isDeletingConversation">
                         {{ t('agents.chatlog.delete.cancel') }}
-                    </Button>
+                    </AlertDialogCancel>
                     <Button variant="destructive" @click="deleteConversation" :disabled="isDeletingConversation">
                         <LoaderCircle v-if="isDeletingConversation" class="me-2 h-4 w-4 animate-spin" />
                         {{ isDeletingConversation ? t('agents.chatlog.delete.deleting') : t('agents.chatlog.delete.delete') }}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
         <!-- Filters Dialog -->
         <ChatLogFilters />

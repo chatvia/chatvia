@@ -8,7 +8,6 @@ use Domain\Membership\Team\Data\AcceptInvitationData;
 use Domain\Membership\Team\Models\Invitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Support\Exceptions\DomainValidationException;
 
 /**
  * Accept a pending team invitation: creates (or attaches) the invited user as a
@@ -21,15 +20,11 @@ class AcceptTeamInvitationController
         Invitation $invitation,
         AcceptTeamInvitationAction $accept,
     ): RedirectResponse {
-        try {
-            $user = $accept->execute(new AcceptInvitationData(
-                invitation: $invitation,
-                password: $request->input('password'),
-                name: $request->input('name'),
-            ));
-        } catch (DomainValidationException $e) {
-            return back()->withErrors([$e->field => $e->getMessage()]);
-        }
+        $user = $accept->execute(new AcceptInvitationData(
+            invitation: $invitation,
+            password: $request->input('password'),
+            name: $request->input('name'),
+        ));
 
         Auth::login($user);
 

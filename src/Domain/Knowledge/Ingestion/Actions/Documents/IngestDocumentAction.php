@@ -34,28 +34,39 @@ class IngestDocumentAction
             'parser' => 'mistral-ocr',
         ];
 
-        // Get the file once and reuse it
+        // Get the file once and reuse it; the local copy is deleted below.
         $file = $sourceFile->readFile();
         $filePath = $file->getPathname();
 
-        // Calculate file checksum for caching
-        $fileChecksum = md5_file($filePath);
+        try {
+            // Calculate file checksum for caching
+            $fileChecksum = md5_file($filePath);
 
-        if ($sourceFile->parser_filepath) {
-            $pages = Storage::get($sourceFile->parser_filepath);
-            $pages = PageData::fromJson($pages);
-        } else {
-            $pages = Cache::remember('files:ocr:'.$fileChecksum, now()->addMonth(), function () use ($filePath) {
-                return $this->documentOCR->fromFile($filePath);
-            });
+            if ($sourceFile->parser_filepath) {
+                $pages = Storage::get($sourceFile->parser_filepath);
+                $pages = PageData::fromJson($pages);
+            } else {
+                $agentStoragePath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id;
 
-            $fileName = Str::uuid()->toString().'.json';
+                $pages = Cache::remember('files:ocr:'.$fileChecksum, now()->addMonth(), function () use ($filePath, $agentStoragePath) {
+                    return $this->documentOCR->fromFile($filePath, $agentStoragePath.'/tmp');
+                });
 
-            $updateValues['parser_filepath'] = Storage::putFileAs(
-                path: 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id,
-                file: new File(create_temp_file($fileName, $pages->toJson())),
-                name: $fileChecksum.'.json',
-            );
+                $fileName = Str::uuid()->toString().'.json';
+                $pagesJsonPath = create_temp_file($fileName, $pages->toJson());
+
+                try {
+                    $updateValues['parser_filepath'] = Storage::putFileAs(
+                        path: $agentStoragePath,
+                        file: new File($pagesJsonPath),
+                        name: $fileChecksum.'.json',
+                    );
+                } finally {
+                    @unlink($pagesJsonPath);
+                }
+            }
+        } finally {
+            @unlink($filePath);
         }
 
         $sourceFile->update($updateValues);

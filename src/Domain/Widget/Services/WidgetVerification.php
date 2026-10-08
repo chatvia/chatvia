@@ -23,9 +23,6 @@ use Illuminate\Support\Str;
  *
  *   2. `verifySessionExternalId` / `verifyConversationId` — resolve a session/conversation
  *      by external id AND confirm it belongs to the agent on the request.
- *      Calling these without an agent argument is reserved for the legacy
- *      paths we still need to migrate and emits no scoping at all; new code
- *      must pass the agent.
  */
 class WidgetVerification
 {
@@ -46,40 +43,61 @@ class WidgetVerification
 
         $widgetSettings = $agent->settings('widget');
 
-        // Dev hosts are only ever in the allow-list while running locally.
-        // In production a spoofed `Origin: localhost` request must NOT pass —
-        // it would bypass the entire allow-list otherwise.
-        $alwaysAllowed = app()->environment('local')
-            ? ['localhost', 'chatvia.test', 'chatvia.ai']
-            : ['chatvia.ai'];
-
-        $allowedSites = array_merge($widgetSettings['sites'], $alwaysAllowed);
+        $allowedSites = array_merge((array) ($widgetSettings['sites'] ?? []), $this->alwaysAllowedOrigins());
 
         return $this->isDomainAllowed($requestingDomain, $allowedSites);
     }
 
     /**
-     * Resolve a chat session by its external id, optionally scoped to a
-     * specific agent. New code must always pass the agent — without it a
-     * caller can submit a session id from agent A while claiming to act on
-     * agent B (cross-agent session hijacking).
+     * Hosts every agent's widget may load on, on top of the customer's own
+     * allow-list: the install's own APP_URL host (where the dashboard
+     * playground and hosted chat embed the widget) plus any extra hosts from
+     * WIDGET_ALWAYS_ALLOWED_ORIGINS — see `chatvia.widget.always_allowed_origins`.
+     * No vendor domain is built in, so a self-hosted install never trusts
+     * someone else's domain. `localhost` is added only in the local
+     * environment: in production a spoofed `Origin: localhost` would otherwise
+     * bypass the whole allow-list.
+     *
+     * @return list<string>
+     */
+    private function alwaysAllowedOrigins(): array
+    {
+        $configured = config('chatvia.widget.always_allowed_origins', []);
+
+        if (is_string($configured)) {
+            $configured = explode(',', $configured);
+        }
+
+        $origins = array_values(array_filter(array_map(
+            static fn (mixed $origin): string => strtolower(trim((string) $origin)),
+            (array) $configured,
+        )));
+
+        if (app()->environment('local')) {
+            $origins[] = 'localhost';
+        }
+
+        return $origins;
+    }
+
+    /**
+     * Resolve a chat session by its external id, scoped to the agent on the
+     * request — so a caller cannot submit a session id from agent A while
+     * acting on agent B (cross-agent session hijacking).
      *
      * On a PROTECTED agent the caller is authenticated; pass that `$user` too so
      * the session is also bound to its owning chatter. Without it the
      * client-supplied session id acts as an unfingerprinted bearer and one
      * signed-in chatter can read another's threads by replaying their id.
      */
-    public function verifySessionExternalId(?string $sessionId, ?Agent $agent = null, ?User $user = null): ?Session
+    public function verifySessionExternalId(?string $sessionId, Agent $agent, ?User $user = null): ?Session
     {
         if (! $sessionId) {
             return null;
         }
 
-        $query = Session::where('external_id', $sessionId);
-
-        if ($agent !== null) {
-            $query->where('agent_id', $agent->id);
-        }
+        $query = Session::where('external_id', $sessionId)
+            ->where('agent_id', $agent->id);
 
         if ($user !== null) {
             $query->where('user_id', $user->id);
@@ -89,12 +107,12 @@ class WidgetVerification
     }
 
     /**
-     * Resolve a chat conversation by its external id, optionally scoped to a
-     * specific agent. Same warning as {@see verifySessionExternalId} — new
-     * code must pass the agent, and the authenticated `$user` on protected
-     * agents so the conversation is bound to its owning chatter.
+     * Resolve a chat conversation by its external id, scoped to the agent on
+     * the request (same reason as {@see verifySessionExternalId}). Pass the
+     * authenticated `$user` on protected agents so the conversation is also
+     * bound to its owning chatter.
      */
-    public function verifyConversationId(?string $conversationId, ?Agent $agent = null, ?User $user = null): ?Conversation
+    public function verifyConversationId(?string $conversationId, Agent $agent, ?User $user = null): ?Conversation
     {
         if (! $conversationId) {
             return null;
@@ -108,17 +126,13 @@ class WidgetVerification
         $query = Conversation::where('external_id', $conversationId)
             ->whereNull('cleared_at');
 
-        if ($agent !== null || $user !== null) {
-            $query->whereHas('session', function ($q) use ($agent, $user): void {
-                if ($agent !== null) {
-                    $q->where('agent_id', $agent->id);
-                }
+        $query->whereHas('session', function ($q) use ($agent, $user): void {
+            $q->where('agent_id', $agent->id);
 
-                if ($user !== null) {
-                    $q->where('user_id', $user->id);
-                }
-            });
-        }
+            if ($user !== null) {
+                $q->where('user_id', $user->id);
+            }
+        });
 
         return $query->first();
     }

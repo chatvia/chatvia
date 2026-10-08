@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
+use Illuminate\Support\Facades\DB;
 use Support\Exceptions\DomainValidationException;
 
 class AddAgentYoutubeVideoAction
@@ -28,16 +29,21 @@ class AddAgentYoutubeVideoAction
         }
 
         /** @var SourceYoutubeVideo $video */
-        $video = SourceYoutubeVideo::create([
-            // Knowledge belongs to the workspace, not whoever added it — key to
-            // the agent's owner so an employee's deletion can't cascade it away.
-            'user_id' => $agent->user_id,
-            'url' => $url,
-            'length' => 0,
-            'status' => SourceStatus::Pending->value,
-        ]);
+        $video = DB::transaction(function () use ($agent, $url): SourceYoutubeVideo {
+            $video = SourceYoutubeVideo::create([
+                // Knowledge belongs to the workspace, not whoever added it — key to
+                // the agent's owner so an employee's deletion can't cascade it away.
+                'user_id' => $agent->user_id,
+                'url' => $url,
+                'length' => 0,
+                'status' => SourceStatus::Pending->value,
+            ]);
 
-        $agent->youtubeVideos()->attach($video->id);
+            $agent->youtubeVideos()->attach($video->id);
+
+            return $video;
+        });
+
         // YoutubeIngestionJob is not yet implemented (the prior path on the model
         // was a TODO no-op). When the job lands, dispatch it here.
 

@@ -24,10 +24,14 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
  * Internal staff panel. Access is gated to UserType::Admin via
  * {@see User::canAccessPanel()}.
  *
- * Staff opt into two-factor auth (app authenticator + recovery codes) from
- * their profile page. To make 2FA mandatory for every admin, pass
- * `isRequired: true` to `multiFactorAuthentication()` below — they will then be
- * forced to set it up on first sign-in.
+ * The panel signs in on its own `admin` guard, not the shared `web` guard. A
+ * session opened by the dashboard login (/login) or the hosted-chat login
+ * therefore never reaches the panel, and staff always go through the panel's
+ * own login, which asks for the authenticator code.
+ *
+ * Two-factor auth (app authenticator + recovery codes) is required: an admin
+ * without it is sent to the set-up page on first sign-in and can't use the
+ * panel until it is done.
  */
 class AdminPanelProvider extends PanelProvider
 {
@@ -38,12 +42,13 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('Chatvia Admin')
+            ->authGuard('admin')
             ->login()
             ->profile()
             ->multiFactorAuthentication([
                 AppAuthentication::make()
                     ->recoverable(),
-            ])
+            ], isRequired: true)
             ->colors([
                 'primary' => Color::Amber,
             ])

@@ -1,0 +1,51 @@
+<?php
+
+use App\Identity\Workspace\Models\User;
+use Filament\Facades\Filament;
+
+/**
+ * The Filament admin panel signs in on its own `admin` guard and requires the
+ * authenticator app (MFA). A session opened by the dashboard login (/login) or
+ * the hosted-chat login lives on the `web` guard and must never open /admin,
+ * otherwise those single-factor logins would skip the panel's MFA.
+ */
+beforeEach(function (): void {
+    // fresh(): load every column, as a real request does (strict mode flags
+    // attributes a factory instance never had).
+    $this->admin = User::factory()->admin()->create()->fresh();
+});
+
+it('does not let a dashboard (web guard) session into the panel', function (): void {
+    $this->actingAs($this->admin, 'web')
+        ->get('/admin')
+        ->assertRedirect(Filament::getPanel('admin')->getLoginUrl());
+});
+
+it('sends a signed-in admin without MFA to the MFA set-up page', function (): void {
+    $this->actingAs($this->admin, 'admin')
+        ->get('/admin')
+        ->assertRedirect(Filament::getPanel('admin')->getSetUpRequiredMultiFactorAuthenticationUrl());
+});
+
+it('lets an admin without MFA open the set-up page', function (): void {
+    $this->actingAs($this->admin, 'admin')
+        ->get(Filament::getPanel('admin')->getSetUpRequiredMultiFactorAuthenticationUrl())
+        ->assertOk();
+});
+
+it('opens the panel for an admin signed in on the panel guard with MFA set up', function (): void {
+    $this->admin->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
+
+    $this->actingAs($this->admin, 'admin')
+        ->get('/admin')
+        ->assertOk();
+});
+
+it('keeps a deactivated admin out of the panel', function (): void {
+    $this->admin->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
+    $this->admin->forceFill(['deactivated_at' => now()])->save();
+
+    $this->actingAs($this->admin, 'admin')
+        ->get('/admin')
+        ->assertForbidden();
+});

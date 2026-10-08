@@ -21,12 +21,12 @@ return [
     | STRIPE_*_PRICE_ID env vars — changing the numbers here without creating
     | matching Stripe prices only changes what the UI shows, not what Stripe bills.
     |
-    | NOTE: The package keys ('starter', 'standard', ...) are stored verbatim in
-    | Stripe subscription metadata (`package` / `to_package`) by the checkout and
-    | plan-change flows, and renewal webhooks look the key back up here. Renaming
-    | a key therefore requires updating the metadata on existing Stripe
-    | subscriptions too — otherwise GrantSubscriptionAction logs a warning and
-    | silently skips the quota grant on their next renewal.
+    | NOTE: Renewal webhooks find the plan by the subscription's Stripe price id
+    | (the STRIPE_*_PRICE_ID values below), so every price a live subscription
+    | can be on must stay listed here. The package keys ('starter', 'standard',
+    | ...) are also stored in Stripe subscription metadata (`package` /
+    | `to_package`) by the checkout and plan-change flows; renewals only fall
+    | back to that metadata for a price that is not in this file.
     |
     */
 

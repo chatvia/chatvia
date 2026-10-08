@@ -2,9 +2,19 @@
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { updateTheme } from '@/composables/useAppearance';
+import { safeStorage } from '@/lib/safeStorage';
 import { Maximize2, Minimize2, PanelLeft, Trash2 } from 'lucide-vue-next';
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -61,8 +71,9 @@ const isIncognitoMode = ref(false);
 const showDeleteDialog = ref(false);
 
 onMounted(() => {
-    // Initialize incognito mode from localStorage
-    const savedIncognitoMode = localStorage.getItem('isIncognitoMode');
+    // Initialize incognito mode from localStorage (safeStorage: the hosted chat
+    // may run in an iframe where storage is blocked).
+    const savedIncognitoMode = safeStorage.get('isIncognitoMode');
     if (savedIncognitoMode !== null) {
         isIncognitoMode.value = savedIncognitoMode === 'true';
         emit('toggleIncognito', isIncognitoMode.value);
@@ -90,7 +101,7 @@ const handleConfirm = () => {
 
 function _toggleIncognitoMode() {
     isIncognitoMode.value = !isIncognitoMode.value;
-    localStorage.setItem('isIncognitoMode', isIncognitoMode.value.toString());
+    safeStorage.set('isIncognitoMode', isIncognitoMode.value.toString());
     emit('toggleIncognito', isIncognitoMode.value);
 }
 
@@ -98,8 +109,7 @@ function toggleSidebar() {
     emit('toggleSidebar');
 }
 function toggleChatExpand() {
-    const result = chatEventBus.toggleChatExpand();
-    console.log('Chat expanded:', result);
+    chatEventBus.toggleChatExpand();
 }
 </script>
 
@@ -154,10 +164,10 @@ function toggleChatExpand() {
                     </Transition>
 
                     <!-- Delete conversation button -->
-                    <Dialog v-model:open="showDeleteDialog">
+                    <AlertDialog v-model:open="showDeleteDialog">
                         <Tooltip>
                             <TooltipTrigger as-child>
-                                <DialogTrigger as-child>
+                                <AlertDialogTrigger as-child>
                                     <Button
                                         v-show="route().current() === 'chat.show'"
                                         variant="ghost"
@@ -167,23 +177,23 @@ function toggleChatExpand() {
                                     >
                                         <Trash2 class="h-[18px] w-[18px]" />
                                     </Button>
-                                </DialogTrigger>
+                                </AlertDialogTrigger>
                             </TooltipTrigger>
                             <TooltipContent side="bottom">{{ t('header.delete_conversation') }}</TooltipContent>
                         </Tooltip>
-                        <DialogContent class="rounded-2xl sm:max-w-[400px]">
-                            <DialogHeader>
-                                <DialogTitle class="text-lg font-semibold">{{ t('header.delete_dialog_title') }}</DialogTitle>
-                                <DialogDescription class="text-muted-foreground mt-1 text-sm">{{
+                        <AlertDialogContent class="rounded-2xl sm:max-w-[400px]">
+                            <AlertDialogHeader>
+                                <AlertDialogTitle class="text-lg font-semibold">{{ t('header.delete_dialog_title') }}</AlertDialogTitle>
+                                <AlertDialogDescription class="text-muted-foreground mt-1 text-sm">{{
                                     t('header.delete_dialog_description')
-                                }}</DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter class="mt-4 gap-2 sm:gap-2">
-                                <Button variant="ghost" @click="showDeleteDialog = false" class="rounded-lg">{{ t('common.cancel') }}</Button>
+                                }}</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter class="mt-4 gap-2 sm:gap-2">
+                                <AlertDialogCancel class="rounded-lg">{{ t('common.cancel') }}</AlertDialogCancel>
                                 <Button variant="destructive" @click="handleConfirm" class="rounded-lg">{{ t('common.delete') }}</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
 
                     <!-- Visitor language switcher -->
                     <LanguageSwitcher v-if="enableLanguageSwitcher" :codes="enabledLanguages" />

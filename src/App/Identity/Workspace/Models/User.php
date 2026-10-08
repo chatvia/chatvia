@@ -345,12 +345,12 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
 
     /**
      * Filament panel gate (FilamentUser contract). Only internal staff
-     * (UserType::Admin) may reach the admin panel; every other account type is
-     * rejected at the panel door.
+     * (UserType::Admin) may reach the admin panel; every other account type,
+     * and a deactivated admin, is rejected at the panel door.
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->isAdmin();
+        return $this->isAdmin() && ! $this->isDeactivated();
     }
 
     public function isWorkspace(): bool
@@ -858,12 +858,13 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * Whether this user may open the control panel. Only chatters are
-     * blocked — admins, workspace owners, and employees all reach the dashboard.
+     * Whether this user may open the control panel. Chatters and deactivated
+     * accounts are blocked — active admins, workspace owners, and employees all
+     * reach the dashboard.
      */
     public function canAccessDashboard(): bool
     {
-        return $this->type !== UserType::Chatter;
+        return $this->type !== UserType::Chatter && ! $this->isDeactivated();
     }
 
     /**

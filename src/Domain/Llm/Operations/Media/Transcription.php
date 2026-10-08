@@ -3,6 +3,7 @@
 namespace Domain\Llm\Operations\Media;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Providers\Scaleway;
 use Illuminate\Support\Facades\Http;
 
 class Transcription
@@ -13,7 +14,7 @@ class Transcription
 
     public function transcribe(string $filePath): string
     {
-        $transcriptionEndpoint = 'https://api.scaleway.ai/ce82c941-d642-4fe0-94d7-b89bee83dd9d/v1/audio/transcriptions';
+        $transcriptionEndpoint = Scaleway::baseUrl().'/audio/transcriptions';
 
         $response = Http::withToken(config('services.scalewayai.api_key'))
             ->timeout(86000)

@@ -4,6 +4,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Helpdesk\Actions\CreateTicketAction;
 use Domain\Helpdesk\Data\CreateTicketData;
 use Domain\Helpdesk\Models\Ticket;
+use Support\Enums\User\UserType;
 
 /*
  * Coverage for the Helpdesk Actions (CreateTicketAction). The Helpdesk domain
@@ -68,5 +69,54 @@ describe('CreateTicketAction', function (): void {
 
         expect($assignee)->not->toBeNull()
             ->and($assignee->isAdmin())->toBeTrue();
+    });
+});
+
+describe('CreateTicketAction assignee fallbacks', function (): void {
+    it('leaves the ticket unassigned instead of writing a 0 foreign key when no admin exists', function (): void {
+        config(['helpdesk.default_assignee_id' => null]);
+        $this->admin->delete();
+        User::query()->where('type', UserType::Admin)->delete();
+
+        $ticket = app(CreateTicketAction::class)->execute(new CreateTicketData(
+            user: User::factory()->create(),
+            title: 't',
+            message: 'm',
+            priority: 'low',
+        ));
+
+        expect($ticket->fresh()->assigned_to)->toBeNull();
+    });
+
+    it('accepts the assignee id as a numeric string, as it arrives from the environment', function (): void {
+        $assignee = User::factory()->create();
+        config(['helpdesk.default_assignee_id' => (string) $assignee->id]);
+
+        $ticket = app(CreateTicketAction::class)->execute(new CreateTicketData(
+            user: User::factory()->create(),
+            title: 't',
+            message: 'm',
+            priority: 'low',
+        ));
+
+        expect($ticket->assigned_to)->toBe($assignee->id)
+            ->and($ticket->assignedTo->is($assignee))->toBeTrue();
+    });
+
+    it('falls back to an admin when the configured assignee no longer exists', function (): void {
+        config(['helpdesk.default_assignee_id' => 999_999_999]);
+
+        $ticket = app(CreateTicketAction::class)->execute(new CreateTicketData(
+            user: User::factory()->create(),
+            title: 't',
+            message: 'm',
+            priority: 'low',
+        ));
+
+        expect(User::find($ticket->assigned_to)?->isAdmin())->toBeTrue();
+    });
+
+    it('ships a helpdesk config file so the setting is readable at all', function (): void {
+        expect(config()->has('helpdesk.default_assignee_id'))->toBeTrue();
     });
 });

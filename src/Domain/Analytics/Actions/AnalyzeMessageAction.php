@@ -9,6 +9,12 @@ use Domain\Billing\Enums\CapabilityEnum;
 use Domain\Conversation\Models\Message;
 use Domain\Llm\Usage\TokenUsageContext;
 
+/**
+ * Per-message sentiment + tone for a visitor message, in one structured LLM
+ * call. Runs only when the plan exposes a dimension and the agent has it
+ * switched on. An unparseable answer saves nothing, so the message keeps no
+ * made-up "neutral" values and is not counted in the rollups.
+ */
 class AnalyzeMessageAction
 {
     public function __construct(
@@ -51,9 +57,13 @@ class AnalyzeMessageAction
         // Attribute the tone/sentiment LLM call's tokens to the workspace (analytics).
         $analysis = $this->usage->track(
             $agent->user_id,
-            fn (): ConversationAnalysisData => $this->analyzer->analyzeMessage($message->content),
+            fn (): ?ConversationAnalysisData => $this->analyzer->analyzeMessage($message->content),
             'analysis',
         );
+
+        if ($analysis === null) {
+            return;
+        }
 
         // Persist both columns regardless (the single call already paid for
         // both) so the `$message->sentiment && $message->tone` guard above

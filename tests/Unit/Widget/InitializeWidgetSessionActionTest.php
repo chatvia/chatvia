@@ -2,6 +2,7 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\Actions\InitializeWidgetSessionAction;
 use Domain\Widget\Data\Session\WidgetSessionInitData;
 
@@ -88,4 +89,19 @@ it('defaults locale to en when no Accept-Language is provided', function (): voi
 
     $mint = Session::query()->where('external_id', $result->session_id)->first();
     expect($mint->locale)->toBe('en');
+});
+
+it('rolls back the new session when the conversation cannot be created', function (): void {
+    $agent = Agent::factory()->create();
+    $sessionsBefore = Session::query()->where('agent_id', $agent->id)->count();
+
+    $memory = Mockery::mock(ChatMemory::class);
+    $memory->shouldReceive('withContext')->andReturnSelf();
+    $memory->shouldReceive('createConversation')->andThrow(new RuntimeException('conversation insert failed'));
+    app()->instance(ChatMemory::class, $memory);
+
+    expect(fn () => app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData()))
+        ->toThrow(RuntimeException::class, 'conversation insert failed');
+
+    expect(Session::query()->where('agent_id', $agent->id)->count())->toBe($sessionsBefore);
 });

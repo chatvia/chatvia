@@ -1,5 +1,4 @@
 import type { StreamCallbacks, StreamDoneData, StreamEnvelope, StreamError, StreamErrorCode, StreamState } from '@/types/stream';
-import { usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 /**
@@ -54,13 +53,14 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
     let abortController: AbortController | null = null;
     let generation = 0;
 
-    function csrfToken(): string {
-        const page = usePage();
-        const fromProps = (page.props as { csrf_token?: string } | undefined)?.csrf_token;
-        if (fromProps) return fromProps;
-
-        const meta = document.querySelector('meta[name="csrf-token"]');
-        return meta?.getAttribute('content') ?? '';
+    /**
+     * CSRF header for the raw fetch() below. axios and the Inertia router read
+     * the XSRF-TOKEN cookie and send it back as X-XSRF-TOKEN on their own;
+     * fetch() does not, so do the same here.
+     */
+    function csrfHeaders(): Record<string, string> {
+        const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+        return match ? { 'X-XSRF-TOKEN': decodeURIComponent(match[1]) } : {};
     }
 
     function synthesizeError(code: StreamErrorCode, message: string, retryable: boolean): StreamError {
@@ -223,7 +223,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
                     'Content-Type': 'application/json',
                     Accept: 'text/event-stream',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken(),
+                    ...csrfHeaders(),
                 },
                 body,
                 credentials: 'same-origin',

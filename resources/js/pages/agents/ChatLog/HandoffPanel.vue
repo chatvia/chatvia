@@ -97,7 +97,6 @@ watch(
     () => handoff.newMessageReceived.value,
     (newMsg) => {
         if (newMsg && currentConversationId.value) {
-            console.log('[HandoffPanel] New message received via WebSocket:', newMsg);
             // Append message directly to the local state (no server refetch needed)
             appendMessage(newMsg);
             scrollToBottom();

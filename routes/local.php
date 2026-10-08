@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Request;
 
 if (app()->isLocal()) {
@@ -16,8 +17,8 @@ if (app()->isLocal()) {
 
     // Test webhook for the Functions feature. Returns a fixed value so we
     // can verify the end-to-end LLM tool-call loop without standing up an
-    // external API. Path lives under /webhooks/* which is excluded from
-    // CSRF in bootstrap/app.php.
+    // external API. The tool runner posts here server-to-server, without a
+    // CSRF token, so this one route skips the CSRF check.
     Route::match(['get', 'post'], '/webhooks/get-weather', function (Request $request) {
         logger()->info(
             json_encode($request->all(), JSON_PRETTY_PRINT)
@@ -28,5 +29,5 @@ if (app()->isLocal()) {
             'weather' => mt_rand(20, 50),
             'unit' => 'celsius',
         ]);
-    })->name('webhooks.get-weather');
+    })->withoutMiddleware(PreventRequestForgery::class)->name('webhooks.get-weather');
 }

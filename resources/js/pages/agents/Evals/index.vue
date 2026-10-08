@@ -5,6 +5,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -903,49 +912,49 @@ const knowledgeAddLabel = computed(() => {
         </Dialog>
 
         <!-- Delete confirmation -->
-        <Dialog v-model:open="isDeleteOpen">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{{ t('agents.evals.index.delete_case_title') }}</DialogTitle>
-                    <DialogDescription>
+        <AlertDialog v-model:open="isDeleteOpen">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{{ t('agents.evals.index.delete_case_title') }}</AlertDialogTitle>
+                    <AlertDialogDescription>
                         {{ t('agents.evals.index.delete_case_description', { name: deletingCase?.name ?? '' }) }}
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button variant="outline" @click="isDeleteOpen = false">{{ t('common.cancel') }}</Button>
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{{ t('common.cancel') }}</AlertDialogCancel>
                     <Button variant="destructive" @click="deleteCase">{{ t('agents.leads.delete') }}</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
         <!-- Delete single run -->
-        <Dialog v-model:open="isDeleteRunOpen">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{{ t('agents.evals.index.delete_run_title') }}</DialogTitle>
-                    <DialogDescription>{{ t('agents.evals.index.delete_run_description') }}</DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button variant="outline" @click="isDeleteRunOpen = false">{{ t('common.cancel') }}</Button>
+        <AlertDialog v-model:open="isDeleteRunOpen">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{{ t('agents.evals.index.delete_run_title') }}</AlertDialogTitle>
+                    <AlertDialogDescription>{{ t('agents.evals.index.delete_run_description') }}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{{ t('common.cancel') }}</AlertDialogCancel>
                     <Button variant="destructive" @click="deleteRun">{{ t('agents.leads.delete') }}</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
         <!-- Clear all runs -->
-        <Dialog v-model:open="isClearOpen">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{{ t('agents.evals.index.clear_runs_title') }}</DialogTitle>
-                    <DialogDescription>
+        <AlertDialog v-model:open="isClearOpen">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{{ t('agents.evals.index.clear_runs_title') }}</AlertDialogTitle>
+                    <AlertDialogDescription>
                         {{ t('agents.evals.index.clear_runs_description', { count: runs.length }, runs.length) }}
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button variant="outline" @click="isClearOpen = false">{{ t('common.cancel') }}</Button>
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{{ t('common.cancel') }}</AlertDialogCancel>
                     <Button variant="destructive" @click="clearRuns">{{ t('agents.evals.index.clear_all') }}</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </AgentLayout>
 </template>

@@ -36,6 +36,7 @@ class RegisterUserRequest extends FormRequest
             password: $this->string('password')->toString(),
             domain: $this->host(),
             registered_ip: $this->ip() ?? '',
+            registered_country_code: $this->country(),
         );
     }
 }

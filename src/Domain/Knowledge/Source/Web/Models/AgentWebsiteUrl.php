@@ -69,6 +69,18 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
         WebsiteUrlTrainJob::dispatch($this, $agent);
     }
 
+    /**
+     * Values `chunk_references.referenceable_type` can hold for a URL: the
+     * morph alias, plus the class name that workers still running the
+     * previous release may write until they restart.
+     *
+     * @return list<string>
+     */
+    public static function referenceTypes(): array
+    {
+        return [(new self)->getMorphClass(), self::class];
+    }
+
     public function chunks(): HasManyThrough
     {
         return $this->hasManyThrough(
@@ -78,7 +90,7 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
             'id',               // Foreign key on Chunk
             'id',               // Local key on Link
             'chunk_id'          // Local key on ChunkReference pointing to Chunk
-        )->where('chunk_references.referenceable_type', AgentWebsiteUrl::class);
+        )->whereIn('chunk_references.referenceable_type', AgentWebsiteUrl::referenceTypes());
     }
 
     protected function casts(): array

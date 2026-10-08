@@ -10,7 +10,6 @@ use App\Http\Controllers\Billing\Home\BillingController;
 use App\Http\Controllers\Billing\Home\BillingDataController;
 use App\Http\Controllers\Billing\Home\BillingUpdateInformationController;
 use App\Http\Controllers\Billing\Invoices\InvoiceController;
-use App\Http\Controllers\Billing\Payments\BillingPaymentMethodAddController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDefaultController;
 use App\Http\Controllers\Billing\Payments\BillingPaymentMethodDeleteController;
@@ -94,7 +93,6 @@ Route::prefix('my')->group(function (): void {
 
         // Payment method management
         Route::get('/payments', BillingPaymentMethodController::class)->name('payment-methods');
-        Route::get('/payments/create', BillingPaymentMethodAddController::class)->name('payment-methods.create');
 
         // Payment method management
         Route::delete('/payments', BillingPaymentMethodDeleteController::class)->name('payment-method.remove');

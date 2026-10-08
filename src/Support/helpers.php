@@ -316,7 +316,16 @@ if (! function_exists('current_agent_from_widget')) {
             return null;
         }
 
-        return AgentModel::where('external_id', $agentId)->first();
+        // Memoized per request (middleware and controller both call this);
+        // keyed by id so a changed header never returns a stale agent.
+        $cache = request()->attributes->get('current_agent_from_widget_memo', []);
+
+        if (! array_key_exists($agentId, $cache)) {
+            $cache[$agentId] = AgentModel::where('external_id', $agentId)->first();
+            request()->attributes->set('current_agent_from_widget_memo', $cache);
+        }
+
+        return $cache[$agentId];
     }
 }
 

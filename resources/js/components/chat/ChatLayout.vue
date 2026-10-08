@@ -7,6 +7,7 @@ import { vOnClickOutside } from '@vueuse/components';
 import { onKeyStroke } from '@vueuse/core';
 import axios from 'axios';
 import { useIsMobile } from '@/composables/useIsMobile';
+import { safeStorage } from '@/lib/safeStorage';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -63,7 +64,7 @@ const isIncognitoMode = ref(false);
 // Save sidebar state to localStorage when it changes
 watch(isSidebarOpen, (newValue) => {
     if (!isMobileDevice.value) {
-        localStorage.setItem('sidebarOpen', String(newValue));
+        safeStorage.set('sidebarOpen', String(newValue));
     }
 });
 
@@ -83,15 +84,15 @@ onMounted(() => {
         if (props.hideSidebarOnPageLoad) {
             // If hideSidebarOnPageLoad prop is true, start with sidebar closed
             isSidebarOpen.value = false;
-            localStorage.setItem('sidebarOpen', 'false');
+            safeStorage.set('sidebarOpen', 'false');
         } else {
             // Use saved state or default behavior
-            const savedSidebarState = localStorage.getItem('sidebarOpen');
+            const savedSidebarState = safeStorage.get('sidebarOpen');
             if (savedSidebarState !== null) {
                 isSidebarOpen.value = savedSidebarState === 'true';
             } else {
                 isSidebarOpen.value = !isMobileDevice.value;
-                localStorage.setItem('sidebarOpen', String(isSidebarOpen.value));
+                safeStorage.set('sidebarOpen', String(isSidebarOpen.value));
             }
         }
     }

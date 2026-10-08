@@ -58,6 +58,19 @@ function bindFakeEmbeddings(): void
 }
 
 /**
+ * Signature + identity headers for a POST to one of our internal MCP routes,
+ * signed exactly as McpClient signs it (postJson sends json_encode($payload)).
+ *
+ * @param  array<string, mixed>  $payload
+ * @param  array<string, string>  $identity
+ * @return array<string, string>
+ */
+function signedInternalMcpHeaders(string $path, array $payload, array $identity): array
+{
+    return array_merge($identity, InternalMcpSignature::headers('POST', $path, (string) json_encode($payload), $identity));
+}
+
+/**
  * Provision + attach the (now opt-in) charts connector to an agent the way a
  * workspace would: an account-level row sharing the central catalog, a
  * membership for each synced charts tool, and the agent pivot. Assumes
@@ -182,18 +195,21 @@ it('403s an unattached agent on the charts route, allows it once attached', func
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
     $agent = Agent::factory()->create();
 
-    $sign = fn (): array => array_merge(InternalMcpSignature::headers(), ['X-Chatvia-Agent-Id' => $agent->external_id]);
+    $identity = ['X-Chatvia-Agent-Id' => $agent->external_id];
     $call = fn (string $tool): array => ['jsonrpc' => '2.0', 'id' => '1', 'method' => 'tools/call', 'params' => ['name' => $tool, 'arguments' => (object) []]];
 
     // Charts is opt-in now: an agent that hasn't enabled it is gated like any other connector.
-    $this->withHeaders($sign())->postJson('/mcp/charts', $call('render-bar-chart'))->assertStatus(403);
+    $this->withHeaders(signedInternalMcpHeaders('/mcp/charts', $call('render-bar-chart'), $identity))
+        ->postJson('/mcp/charts', $call('render-bar-chart'))->assertStatus(403);
     // Forms (also opt-in, not attached) → still gated.
-    $this->withHeaders($sign())->postJson('/mcp/forms', $call('find-forms'))->assertStatus(403);
+    $this->withHeaders(signedInternalMcpHeaders('/mcp/forms', $call('find-forms'), $identity))
+        ->postJson('/mcp/forms', $call('find-forms'))->assertStatus(403);
 
     // Once charts is attached, the per-agent enablement check passes (no longer 403).
     attachCharts($agent);
-    $charts = $this->withHeaders($sign())->postJson('/mcp/charts', $call('render-bar-chart'));
-    expect($charts->getStatusCode())->not->toBe(403);
+    $charts = $this->withHeaders(signedInternalMcpHeaders('/mcp/charts', $call('render-bar-chart'), $identity))
+        ->postJson('/mcp/charts', $call('render-bar-chart'));
+    expect($charts->getStatusCode())->not->toBeIn([401, 403]);
 })->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
 
 it('still authorizes the analytics chat (workspace mode) on the charts route', function (): void {
@@ -203,9 +219,9 @@ it('still authorizes the analytics chat (workspace mode) on the charts route', f
     // The owner "Ask your data" chat reaches /mcp/charts via a signed workspace
     // id, NOT the removed global-builtin carve-out — this must keep working.
     $workspace = Agent::factory()->create()->user;
-    $headers = array_merge(InternalMcpSignature::headers(), ['X-Chatvia-Workspace-Id' => $workspace->external_id]);
     $call = ['jsonrpc' => '2.0', 'id' => '1', 'method' => 'tools/call', 'params' => ['name' => 'render-bar-chart', 'arguments' => (object) []]];
+    $headers = signedInternalMcpHeaders('/mcp/charts', $call, ['X-Chatvia-Workspace-Id' => $workspace->external_id]);
 
     $resp = $this->withHeaders($headers)->postJson('/mcp/charts', $call);
-    expect($resp->getStatusCode())->not->toBe(403);
+    expect($resp->getStatusCode())->not->toBeIn([401, 403]);
 })->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');

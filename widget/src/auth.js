@@ -9,6 +9,8 @@
  * share a credential.
  */
 
+import { getApiUrl } from './endpoints.js';
+
 // agentId -> { token: string, expiresAt: number|null }
 const sessions = new Map();
 
@@ -73,9 +75,8 @@ export class AuthManager {
   async exchange() {
     if (!this.hasBootstrapToken()) return false;
 
-    /* global __API_URL__ */
     try {
-      const response = await fetch(`${__API_URL__}/auth/exchange`, {
+      const response = await fetch(`${getApiUrl()}/auth/exchange`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

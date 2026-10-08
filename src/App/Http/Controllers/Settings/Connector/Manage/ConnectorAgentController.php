@@ -52,6 +52,6 @@ class ConnectorAgentController
         /** @var User $user */
         $user = $request->user();
 
-        return $user->mcpServers()->where('slug', $slug)->firstOrFail();
+        return AgentMcpServer::forSlugScoped($slug, $user);
     }
 }

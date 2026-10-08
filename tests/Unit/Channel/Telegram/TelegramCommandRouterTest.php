@@ -121,3 +121,15 @@ it('rotates to a fresh conversation on /reset, keeping the session', function ()
         ->and($chat->chat_session_id)->toBe($sessionId)
         ->and($chat->chat_conversation_id)->not->toBe($originalConversationId);
 });
+
+it('sends the built-in command texts in the language the owner pinned for the agent', function (): void {
+    $bot = botWithCommands([['command' => 'greet', 'description' => 'Greet', 'type' => 'message', 'value' => 'Hallo {name}!']]);
+    $bot->agent->setSetting(key: 'language', value: 'de', group: 'embed');
+    $bot = $bot->fresh();
+
+    expect(commandRouter()->handle($bot, new TelegramChat, '/start')->text)->toBe('Hallo')
+        ->and(commandRouter()->handle($bot, new TelegramChat, '/help')->text)
+        ->toStartWith('Das kann ich für Sie tun:')
+        ->toContain('/start — Unterhaltung starten')
+        ->and(commandRouter()->handle($bot, new TelegramChat, '/greet')->text)->toBe('Hallo zusammen!');
+});

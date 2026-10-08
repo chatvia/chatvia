@@ -7,7 +7,8 @@ use Support\Exceptions\UnsafeUrlException;
 /**
  * Centralised SSRF guard for every server-side fetch of a user-influenced URL
  * (function webhooks, MCP servers, MCP OAuth discovery, website crawling /
- * training). One chokepoint so the rules can't drift between call sites.
+ * training, SIEM and CRM webhooks). One chokepoint so the rules can't drift
+ * between call sites.
  *
  *  - scheme must be http/https
  *  - host must not resolve to a private / loopback / link-local / reserved IP
@@ -100,12 +101,18 @@ final class SafeUrl
         return in_array($scheme, ['http', 'https'], true) ? $url : null;
     }
 
+    /**
+     * True only for globally routable addresses. GLOBAL_RANGE also rejects the
+     * shared/carrier-grade NAT range (100.64.0.0/10), benchmarking and
+     * documentation ranges, and IPv4-mapped IPv6 forms, which the private and
+     * reserved flags alone let through.
+     */
     public static function isPublicIp(string $ip): bool
     {
         return (bool) filter_var(
             $ip,
             FILTER_VALIDATE_IP,
-            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE | FILTER_FLAG_GLOBAL_RANGE,
         );
     }
 
@@ -114,6 +121,9 @@ final class SafeUrl
      */
     public static function resolve(string $host): array
     {
+        // parse_url() keeps the brackets around an IPv6 literal ("[::1]").
+        $host = trim($host, '[]');
+
         if (filter_var($host, FILTER_VALIDATE_IP)) {
             return [$host];
         }

@@ -3,6 +3,7 @@
 namespace Domain\Channel\Telegram\Actions;
 
 use Domain\Channel\Services\ChannelAccessGate;
+use Domain\Channel\Services\ChannelLocale;
 use Domain\Channel\Telegram\Jobs\HandleTelegramUpdateJob;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
@@ -22,7 +23,8 @@ use Domain\Channel\Telegram\Services\TelegramReplyRunner;
  */
 class HandleTelegramUpdateAction
 {
-    private const UNAVAILABLE = 'This assistant isn’t available on Telegram right now.';
+    /** Shown in the channel's own name, so every channel shares one translation. */
+    private const CHANNEL_NAME = 'Telegram';
 
     public function __construct(
         private readonly TelegramChatResolver $resolver,
@@ -38,7 +40,7 @@ class HandleTelegramUpdateAction
     public function execute(AgentTelegramBot $bot, string $chatId, string $text, array $from = []): void
     {
         // Protected agents are never answered on Telegram (defence in depth).
-        if (! $this->gate->allows($bot->agent, fn () => $this->client->sendMessage($bot->bot_token, $chatId, self::UNAVAILABLE))) {
+        if (! $this->gate->allows($bot->agent, fn () => $this->client->sendMessage($bot->bot_token, $chatId, ChannelLocale::text($bot->agent, 'This assistant isn’t available on :channel right now.', ['channel' => self::CHANNEL_NAME])))) {
             return;
         }
 

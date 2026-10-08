@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agent\Security;
 
+use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,7 +22,7 @@ class AgentRateLimitController
         $security = $agent->settings('security');
 
         return Inertia::render('agents/security/RateLimiting', [
-            'agent' => $agent,
+            'agent' => AgentResourceData::fromModel($agent),
             'securitySettings' => [
                 'chat_rate_limit_per_minute' => (int) $security->get('chat_rate_limit_per_minute', 20),
                 'notify_owner_on_rate_limit' => (bool) $security->get('notify_owner_on_rate_limit', false),

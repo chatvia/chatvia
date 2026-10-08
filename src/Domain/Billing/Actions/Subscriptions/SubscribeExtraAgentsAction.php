@@ -4,9 +4,9 @@ namespace Domain\Billing\Actions\Subscriptions;
 
 use Domain\Billing\Data\SubscribeExtraAgentsData;
 use Domain\Billing\Enums\Addon;
+use Domain\Billing\Exceptions\AddonNotConfiguredException;
 use Laravel\Cashier\Checkout;
 use Laravel\Cashier\Subscription;
-use RuntimeException;
 
 /**
  * Creates a Cashier subscription of type `extra_agents`. The plan's base
@@ -20,7 +20,7 @@ class SubscribeExtraAgentsAction
         $priceId = config('billing.addons.extra_agents.stripe_price_id');
 
         if (! $priceId) {
-            throw new RuntimeException(
+            throw new AddonNotConfiguredException(
                 'Extra Agents addon is not configured. Set STRIPE_EXTRA_AGENT_PRICE_ID in your environment.'
             );
         }

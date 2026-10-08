@@ -33,6 +33,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Contact form
+    |--------------------------------------------------------------------------
+    |
+    | The inbox that receives messages from the public contact form. Leave it
+    | empty to turn the form off: the page then shows a short notice instead.
+    |
+    */
+
+    'contact_email' => env('CONTACT_EMAIL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Languages (shared)
     |--------------------------------------------------------------------------
     |
@@ -234,6 +246,10 @@ return [
             'chunker_input_per_million_tokens' => 0.90,
             'chunker_output_per_million_tokens' => 0.90,
             'embedding_output_per_million_tokens' => 0.90,
+            // Per-million-token prices used for the stored ingestion cost.
+            'embedding_per_million_tokens' => 0.10,
+            'summary_input_per_million_tokens' => 2.0,
+            'summary_output_per_million_tokens' => 8.0,
         ],
 
         'chunker' => [
@@ -564,11 +580,46 @@ return [
         'script_url_embed' => env('WIDGET_SCRIPT_URL', 'http://localhost:3000/dist/embed.js'),
         'chatvia_widget_id' => env('CHATVIA_WIDGET_ID'),
 
+        // Hosts every agent's widget may load on, on top of each agent's own
+        // allowed sites. Always this install's own host (from APP_URL), where
+        // the dashboard playground and hosted chat embed the widget, plus any
+        // extra hosts in WIDGET_ALWAYS_ALLOWED_ORIGINS (comma-separated, e.g.
+        // "example.com,app.example.com"; empty by default), so an install
+        // never trusts an outside domain unless told to.
+        'always_allowed_origins' => array_values(array_unique(array_filter(array_map(
+            static fn (string $host): string => strtolower(trim($host)),
+            [
+                (string) parse_url((string) env('APP_URL', ''), PHP_URL_HOST),
+                ...explode(',', (string) env('WIDGET_ALWAYS_ALLOWED_ORIGINS', '')),
+            ],
+        )))),
+
         // Global per-agent ceilings for the LLM-cost widget stream, keyed on the
         // server-resolved agent so a client cannot multiply its budget (and burn
         // the owner's quota/spend) by rotating X-SESSION-ID or source IPs.
         'stream_per_agent_per_minute' => (int) env('WIDGET_STREAM_PER_AGENT_PER_MINUTE', 120),
         'stream_per_agent_per_hour' => (int) env('WIDGET_STREAM_PER_AGENT_PER_HOUR', 1500),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Security headers
+    |--------------------------------------------------------------------------
+    |
+    | `csp` controls the ContentSecurityPolicy middleware:
+    |   - off          send no security headers at all
+    |   - report-only  send the policy as Content-Security-Policy-Report-Only:
+    |                  browsers only report what it would block, nothing breaks
+    |   - enforce      send Content-Security-Policy, plus X-Frame-Options and
+    |                  (production over HTTPS) HSTS
+    | `csp_report_uri` is an optional endpoint that receives the violation
+    | reports (the `report-uri` directive).
+    |
+    */
+
+    'security' => [
+        'csp' => env('CSP_MODE', 'report-only'),
+        'csp_report_uri' => env('CSP_REPORT_URI'),
     ],
 
 ];

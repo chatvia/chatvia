@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
+use App\Http\Controllers\Concerns\BindsConnectorOAuthToSession;
 use App\Http\Requests\Settings\Connector\SalesforceConnectRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
@@ -21,6 +22,8 @@ use Illuminate\Http\JsonResponse;
  */
 class SalesforceConnectController
 {
+    use BindsConnectorOAuthToSession;
+
     public function __invoke(
         SalesforceConnectRequest $request,
         ConnectorCatalog $catalog,
@@ -42,7 +45,7 @@ class SalesforceConnectController
         $user = $request->user();
 
         try {
-            $url = $flow->beginWithClient($user, $connector, $byo);
+            $url = $flow->beginWithClient($user, $connector, $byo, $this->connectorOAuthSessionBinding($request));
         } catch (McpOAuthException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }

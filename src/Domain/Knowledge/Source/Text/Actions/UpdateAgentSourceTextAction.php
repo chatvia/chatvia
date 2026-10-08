@@ -8,9 +8,11 @@ use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Models\SourceText;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Support\Exceptions\DomainValidationException;
+use Throwable;
 
 class UpdateAgentSourceTextAction
 {
@@ -33,20 +35,36 @@ class UpdateAgentSourceTextAction
             throw new DomainValidationException('content', 'This document requires '.$numberOfPages.' pages.');
         }
 
-        Storage::delete($sourceText->filepath);
+        $oldFilepath = $sourceText->filepath;
 
+        // Write the new file first and remove the old one only after the row
+        // points at the new file, so a failure never leaves the text without
+        // its content.
         $filepath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt';
         Storage::put($filepath, $newContent);
 
-        $sourceText->update([
-            'filepath' => $filepath,
-            'checksum' => $checksum,
-            'length' => $numberOfPages,
-            'status' => SourceStatus::Pending->value,
-            'excerpt' => Str::of($newContent)->limit(200)->replace("\n", ' ')->trim()->toString(),
-        ]);
+        try {
+            DB::transaction(function () use ($sourceText, $filepath, $checksum, $numberOfPages, $newContent): void {
+                $sourceText->update([
+                    'filepath' => $filepath,
+                    'checksum' => $checksum,
+                    'length' => $numberOfPages,
+                    'status' => SourceStatus::Pending->value,
+                    'excerpt' => Str::of($newContent)->limit(200)->replace("\n", ' ')->trim()->toString(),
+                ]);
 
-        $sourceText->chunks()->delete();
+                $sourceText->chunks()->delete();
+            });
+        } catch (Throwable $e) {
+            Storage::delete($filepath);
+
+            throw $e;
+        }
+
+        if ($oldFilepath !== $filepath) {
+            Storage::delete($oldFilepath);
+        }
+
         TextIngestionJob::dispatch($sourceText, $agent);
 
         return true;

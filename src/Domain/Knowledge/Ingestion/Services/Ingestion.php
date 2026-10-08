@@ -36,10 +36,26 @@ class Ingestion
         }
     }
 
+    /**
+     * Cancel the file's chunking batch, if it still exists. Some older media
+     * rows hold the batch id in `internal_ingestion_job_id`, so that column is
+     * tried too; on every other row it is a queue job id and matches no batch.
+     */
     public function cancel(SourceFile $agentFile): void
     {
-        if ($agentFile->internal_chunking_batch_id) {
-            Bus::findBatch($agentFile->internal_chunking_batch_id)->cancel();
+        $batchIds = array_filter([
+            $agentFile->internal_chunking_batch_id,
+            $agentFile->internal_ingestion_job_id,
+        ]);
+
+        foreach ($batchIds as $batchId) {
+            $batch = Bus::findBatch($batchId);
+
+            if ($batch !== null) {
+                $batch->cancel();
+
+                return;
+            }
         }
     }
 }

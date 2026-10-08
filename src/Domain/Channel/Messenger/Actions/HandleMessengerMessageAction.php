@@ -8,6 +8,7 @@ use Domain\Channel\Messenger\Services\MessengerClient;
 use Domain\Channel\Messenger\Services\MessengerReplyRunner;
 use Domain\Channel\Messenger\Services\MessengerThreadResolver;
 use Domain\Channel\Services\ChannelAccessGate;
+use Domain\Channel\Services\ChannelLocale;
 
 /**
  * Handles one inbound Messenger text message end to end: resolve the thread's
@@ -23,7 +24,8 @@ use Domain\Channel\Services\ChannelAccessGate;
  */
 class HandleMessengerMessageAction
 {
-    private const UNAVAILABLE = 'This assistant isn’t available on Messenger right now.';
+    /** Shown in the channel's own name, so every channel shares one translation. */
+    private const CHANNEL_NAME = 'Messenger';
 
     public function __construct(
         private readonly MessengerThreadResolver $resolver,
@@ -35,7 +37,7 @@ class HandleMessengerMessageAction
     public function execute(AgentMessengerPage $page, string $psid, string $text): void
     {
         // Protected agents are never answered on Messenger (defence in depth).
-        if (! $this->gate->allows($page->agent, fn () => $this->client->sendMessage($page->page_access_token, $psid, self::UNAVAILABLE))) {
+        if (! $this->gate->allows($page->agent, fn () => $this->client->sendMessage($page->page_access_token, $psid, ChannelLocale::text($page->agent, 'This assistant isn’t available on :channel right now.', ['channel' => self::CHANNEL_NAME])))) {
             return;
         }
 

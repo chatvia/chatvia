@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Slack\Services;
 
+use Domain\Channel\Services\RedactedException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -114,7 +115,7 @@ class SlackClient
                 ->post("https://slack.com/api/{$method}", (object) $params)
                 ->json();
         } catch (Throwable $e) {
-            Log::warning("Slack {$method} failed", ['error' => $e->getMessage()]);
+            Log::warning("Slack {$method} failed", RedactedException::context($e));
 
             return null;
         }

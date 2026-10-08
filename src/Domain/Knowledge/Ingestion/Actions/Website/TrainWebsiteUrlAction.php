@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlEnhanceJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Ingestion\Models\ChunkReference;
 use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
 use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
@@ -61,9 +62,10 @@ class TrainWebsiteUrlAction
 
         // FireCrawl is a scraping service, not an LLM, so it returns no `usage`
         // block — meter the scraped content with the same tokenizer used
-        // everywhere else and add it to the workspace scope opened by
-        // WebsiteUrlTrainJob. No-op outside a job (no open scope). Counted on
-        // every successful scrape, even when the checksum is unchanged below.
+        // everywhere else and add it to the workspace scope that the
+        // TrackTokenUsage middleware opens around WebsiteUrlTrainJob. No-op
+        // outside such a scope. Counted on every successful scrape, even when
+        // the checksum is unchanged below.
         app(TokenUsageContext::class)->add(TikToken::countTokens($markdown));
 
         $checksum = hash('sha256', $markdown);
@@ -87,11 +89,13 @@ class TrainWebsiteUrlAction
         // Embed only checksums the source doesn't already hold — one batched request.
         $checksums = array_map(static fn (string $chunk): string => hash('sha256', $chunk), $chunks);
 
+        // One query for the chunks this source already holds, keyed by checksum.
         $existing = Chunk::query()
             ->where('chunkable_type', $website->getMorphClass())
             ->where('chunkable_id', $website->id)
             ->whereIn('checksum', $checksums)
-            ->pluck('id', 'checksum');
+            ->get(['id', 'checksum', 'chunk_index'])
+            ->keyBy('checksum');
 
         $missing = array_values(array_filter(
             $chunks,
@@ -104,11 +108,15 @@ class TrainWebsiteUrlAction
             $vectors[hash('sha256', $missing[$i])] = '['.implode(',', $vector).']';
         }
 
+        $enhance = config('chatvia.ai.chunker.enhance') === true;
+        $chunkModels = [];
+
         foreach ($chunks as $idx => $chunk) {
             $chunkChecksum = $checksums[$idx];
 
             if ($existing->has($chunkChecksum)) {
-                $chunkModel = Chunk::query()->findOrFail($existing->get($chunkChecksum));
+                /** @var Chunk $chunkModel */
+                $chunkModel = $existing->get($chunkChecksum);
                 if ($chunkModel->chunk_index !== $idx + 1) {
                     $chunkModel->update(['chunk_index' => $idx + 1]);
                 }
@@ -134,20 +142,27 @@ class TrainWebsiteUrlAction
                 );
             }
 
-            $chunkModel->references()->firstOrCreate([
-                'referenceable_type' => $websiteUrl::class,
-                'referenceable_id' => $websiteUrl->id,
-            ]);
-
-            WebsiteUrlEnhanceJob::dispatchIf(
-                config('chatvia.ai.chunker.enhance') === true,
-                $agent,
-                $websiteUrl,
-                $chunkModel,
-            );
+            $chunkModels[$chunkModel->id] = $chunkModel;
 
             if (($idx + 1) % self::PROGRESS_EVENT_EVERY === 0) {
                 WebsiteIngestionProgressed::dispatch($website, $agent->external_id);
+            }
+        }
+
+        // Link every chunk to this URL in one statement. The primary key
+        // (chunk_id, referenceable_type, referenceable_id) makes a repeat a no-op.
+        ChunkReference::query()->insertOrIgnore(array_map(
+            static fn (int $chunkId): array => [
+                'chunk_id' => $chunkId,
+                'referenceable_type' => $websiteUrl->getMorphClass(),
+                'referenceable_id' => $websiteUrl->id,
+            ],
+            array_keys($chunkModels),
+        ));
+
+        if ($enhance) {
+            foreach ($chunkModels as $chunkModel) {
+                WebsiteUrlEnhanceJob::dispatch($agent, $websiteUrl, $chunkModel);
             }
         }
 

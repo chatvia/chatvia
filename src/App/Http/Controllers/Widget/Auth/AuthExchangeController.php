@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Widget\Auth;
 
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use App\Identity\Workspace\Services\WidgetAuthSessionService;
-use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -23,14 +22,9 @@ class AuthExchangeController
 {
     public function __invoke(
         Request $request,
-        WidgetVerification $widgetVerification,
         AgentSignInTokenService $signInTokens,
         WidgetAuthSessionService $sessions,
     ): JsonResponse {
-        if (! $widgetVerification->verifyByAgentExternalId($request->header('X-AGENT-ID'), $request)) {
-            return response()->json(['error' => 'Domain not allowed'], 403);
-        }
-
         $agent = current_agent_from_widget();
 
         $verified = $signInTokens->verifyWithClaims($request->input('token'), $agent);

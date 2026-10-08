@@ -19,9 +19,10 @@ use Throwable;
  * OAuth callback for the agent-invitation social flow. The pending invitation
  * id was stashed in the session by {@see AgentInvitationSocialStartController};
  * we read it back, look up the row, resolve the social user from the provider,
- * hand off to the accept action, delete the invitation, and redirect to the
- * agent's subdomain with an `auth_token` (the bare callback host can't share
- * a session with the subdomain).
+ * and hand off to the accept action — which checks expiry and deletes the
+ * invitation in the same transaction that activates the chatter. Then we
+ * redirect to the agent's subdomain with an `auth_token` (the bare callback
+ * host can't share a session with the subdomain).
  */
 class AgentInvitationSocialCallbackController
 {
@@ -45,7 +46,7 @@ class AgentInvitationSocialCallbackController
             ->with('agent')
             ->find($pending['invitation_id'] ?? 0);
 
-        if ($invitation === null || $invitation->hasExpired()) {
+        if ($invitation === null) {
             return redirect()->route('login')->with('error', 'Your invitation link expired. Ask for a fresh one.');
         }
 
@@ -62,14 +63,15 @@ class AgentInvitationSocialCallbackController
                 ->stateless()
                 ->redirectUrl(route('agents.invitation.social.callback', ['provider' => $providerEnum->value]))
                 ->user();
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            report($e);
+
             return redirect()->route('login')->with('error', "Couldn't complete the {$providerEnum->value} sign-in.");
         }
 
         try {
             $chatter = $accept->execute(new AcceptAgentInvitationData(
-                agent: $agent,
-                invitedEmail: $invitation->email,
+                invitation: $invitation,
                 name: (string) ($socialUser->getName() ?? $socialUser->getNickname() ?? 'Member'),
                 kind: InvitationCredentialKind::Social,
                 socialEmail: (string) ($socialUser->getEmail() ?? ''),
@@ -79,8 +81,6 @@ class AgentInvitationSocialCallbackController
         } catch (AgentChatterInvitationRejectedException $e) {
             return redirect()->route('login')->with('error', $e->getMessage());
         }
-
-        $invitation->delete();
 
         $authToken = $authTokens->generateToken($agent, $chatter, 5);
 

@@ -65,7 +65,7 @@ class ChatLogConversationsResourceData extends Data
             )
         );
 
-        $leadConversationIds = self::getLeadConversationIds($agent);
+        $leadConversationIds = self::getLeadConversationIds($agent, $conversationIds);
 
         return new self(
             conversations: $conversationsPaginator,
@@ -82,18 +82,24 @@ class ChatLogConversationsResourceData extends Data
     }
 
     /**
+     * @param  Collection<int, int>  $conversationIds  the conversations on the current page
      * @return Collection<int, int>
      */
-    private static function getLeadConversationIds(Agent $agent): Collection
+    private static function getLeadConversationIds(Agent $agent, Collection $conversationIds): Collection
     {
-        // The internal chat_conversation_id of every conversation with a SUBMITTED
-        // form. agent_id pins the row to this agent, so the id is guaranteed to
-        // belong to one of its conversations. Pending rows (a form rendered but
-        // never filled) are not leads, so they're excluded.
+        if ($conversationIds->isEmpty()) {
+            return collect();
+        }
+
+        // The internal chat_conversation_id of each conversation ON THIS PAGE that
+        // has a SUBMITTED form. The list only marks rows the page shows, so there
+        // is no need to load every lead the agent ever captured. agent_id pins the
+        // row to this agent. Pending rows (a form rendered but never filled) are
+        // not leads, so they're excluded.
         return FormSubmission::query()
             ->where('agent_id', $agent->id)
             ->where('status', FormSubmission::STATUS_SUBMITTED)
-            ->whereNotNull('chat_conversation_id')
+            ->whereIn('chat_conversation_id', $conversationIds)
             ->distinct()
             ->pluck('chat_conversation_id');
     }

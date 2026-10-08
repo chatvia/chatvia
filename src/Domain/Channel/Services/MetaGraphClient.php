@@ -60,7 +60,7 @@ abstract class MetaGraphClient
 
             return $json;
         } catch (Throwable $e) {
-            Log::warning("{$this->logLabel()} {$path} failed", ['error' => $e->getMessage()]);
+            Log::warning("{$this->logLabel()} {$path} failed", RedactedException::context($e));
 
             return null;
         }

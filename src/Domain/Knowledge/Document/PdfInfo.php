@@ -4,7 +4,6 @@ namespace Domain\Knowledge\Document;
 
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use InvalidArgumentException;
 use RuntimeException;
@@ -36,11 +35,6 @@ final class PdfInfo
         $this->validatePdfFile($pdfPath);
 
         $command = [$this->pdfInfoPath, $pdfPath];
-
-        Log::info('PDFInfo extraction started', [
-            'input' => $pdfPath,
-            'command' => $command,
-        ]);
 
         $result = Process::timeout($this->timeout)->run($command);
 

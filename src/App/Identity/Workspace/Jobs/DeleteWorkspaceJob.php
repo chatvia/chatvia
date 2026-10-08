@@ -19,6 +19,14 @@ class DeleteWorkspaceJob implements ShouldQueue
     /** Every step is idempotent (skip-if-gone), so retries are safe. */
     public int $tries = 3;
 
+    /**
+     * Seconds to wait before each retry. A failed Stripe cancel stops the
+     * teardown, and a short Stripe outage should be over by the next try.
+     *
+     * @var list<int>
+     */
+    public array $backoff = [60, 600];
+
     public int $timeout = 3600;
 
     public function __construct(public int $userId) {}

@@ -22,10 +22,12 @@ const appVersion = process.env.VITE_APP_VERSION;
 const apiUrl = process.env.VITE_API_URL;
 const scriptUrl = process.env.VITE_SCRIPT_URL;
 
-// Pusher/Reverb configuration for handoff feature
-// Dev fallbacks for local development with Laravel Herd
-const reverbAppKey = process.env.VITE_REVERB_APP_KEY || (isProduction ? '' : 'laravel-herd');
-const reverbHost = process.env.VITE_REVERB_HOST || (isProduction ? '' : 'reverb.herd.test');
+// Pusher/Reverb configuration for the live-agent handoff feature. These are
+// defaults only: an embed tag can override each one at runtime
+// (data-reverb-host / -port / -key / -scheme, see src/endpoints.js). Without a
+// key and host, live chat is disabled.
+const reverbAppKey = process.env.VITE_REVERB_APP_KEY || '';
+const reverbHost = process.env.VITE_REVERB_HOST || '';
 const reverbPort = process.env.VITE_REVERB_PORT || '443';
 const reverbScheme = process.env.VITE_REVERB_SCHEME || 'https';
 
@@ -34,7 +36,9 @@ if (!scriptUrl) {
   console.warn('⚠️  VITE_SCRIPT_URL is not set! The embed script will not work correctly.');
 }
 if (!apiUrl) {
-  console.warn('⚠️  VITE_API_URL is not set! API calls will fail.');
+  console.warn(
+    '⚠️  VITE_API_URL is not set! API calls will fail unless the embed tag sets data-api-url.'
+  );
 }
 
 const sharedEnv = {

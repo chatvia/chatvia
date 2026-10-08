@@ -164,7 +164,7 @@ class MessageManager
     {
         $messages = $this->getMessagesForConversation($conversationId);
         $now = now();
-        $markedCount = 0;
+        $markedIds = [];
 
         // Determine which roles to mark as read based on who is reading
         // Only 'agent' role messages (human admin) need read receipts, not 'assistant' (AI)
@@ -176,21 +176,24 @@ class MessageManager
             // Only mark if it has read_at field (handoff messages) and hasn't been read
             if (in_array($message['role'], $rolesToMark) && array_key_exists('read_at', $message) && empty($message['read_at'])) {
                 $message['read_at'] = $now->timestamp;
-                $markedCount++;
-
-                // Persist to database. Match on external_id — the cached
-                // message id is the external UUID, not the integer PK.
-                Message::where('external_id', $message['id'])->update([
-                    'read_at' => $now,
-                ]);
+                $markedIds[] = $message['id'];
             }
         }
+        unset($message);
 
-        if ($markedCount > 0) {
-            $this->saveMessages($conversationId, $messages);
+        if ($markedIds === []) {
+            return 0;
         }
 
-        return $markedCount;
+        // Persist in one statement. Match on external_id — the cached message
+        // id is the external UUID, not the integer PK.
+        Message::query()->whereIn('external_id', $markedIds)->update([
+            'read_at' => $now,
+        ]);
+
+        $this->saveMessages($conversationId, $messages);
+
+        return count($markedIds);
     }
 
     public function deleteMessage(string $conversationId, string $messageId): void

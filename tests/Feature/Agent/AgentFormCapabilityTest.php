@@ -4,7 +4,10 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
+use Domain\Integration\Connector\Actions\Agent\EnableAgentCapabilityAction;
+use Domain\Integration\Mcp\Services\McpException;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -94,4 +97,17 @@ it('lists each form with its submitted-submission count', function (): void {
         ->assertInertia(fn (Assert $page): AssertableInertia => $page
             ->component('agents/Forms/index')
             ->where('forms.0.submissions_count', 2));
+});
+
+it('still saves the form and reports the error when enabling Forms fails', function (): void {
+    Exceptions::fake();
+
+    $this->mock(EnableAgentCapabilityAction::class)
+        ->shouldReceive('execute')
+        ->andThrow(new McpException('tools/list failed'));
+
+    storeForm($this->user, $this->agent)->assertRedirect();
+
+    expect(FormDefinition::query()->forAgent($this->agent)->count())->toBe(1);
+    Exceptions::assertReported(McpException::class);
 });

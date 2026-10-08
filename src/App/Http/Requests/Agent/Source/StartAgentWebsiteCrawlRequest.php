@@ -4,7 +4,6 @@ namespace App\Http\Requests\Agent\Source;
 
 use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
-use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -74,13 +73,11 @@ class StartAgentWebsiteCrawlRequest extends FormRequest
     private function extractPathFromUrl(string $input): string
     {
         if (preg_match('/^https?:\/\//', $input)) {
-            try {
-                $parsed = parse_url($input);
+            // parse_url() never throws; it returns false for a malformed URL
+            // and null when there is no path.
+            $path = parse_url($input, PHP_URL_PATH);
 
-                return ltrim($parsed['path'] ?? '', '/');
-            } catch (Exception) {
-                return ltrim($input, '/');
-            }
+            return ltrim(is_string($path) ? $path : '', '/');
         }
 
         if (preg_match('/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\//', $input)) {

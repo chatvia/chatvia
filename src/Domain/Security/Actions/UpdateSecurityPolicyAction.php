@@ -9,7 +9,7 @@ use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Exceptions\UnsafeWebhookUrlException;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
-use Symfony\Component\HttpFoundation\IpUtils;
+use Support\Http\SafeUrl;
 
 /**
  * The single write path for the keystone {@see WorkspaceSecurityPolicy}. Guards
@@ -25,13 +25,6 @@ use Symfony\Component\HttpFoundation\IpUtils;
  */
 class UpdateSecurityPolicyAction
 {
-    /** Loopback / private / link-local / reserved ranges blocked for webhook hosts. */
-    private const BLOCKED_RANGES = [
-        '127.0.0.0/8', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16',
-        '169.254.0.0/16', '0.0.0.0/8', '100.64.0.0/10',
-        '::1/128', 'fc00::/7', 'fe80::/10',
-    ];
-
     /** @var array<int, string> */
     private const RETENTION_FIELDS = [
         'retention_conversations_days', 'retention_leads_days', 'retention_audit_days',
@@ -141,6 +134,14 @@ class UpdateSecurityPolicyAction
         ));
     }
 
+    /**
+     * Save-time SSRF check with the same address rules as every other outbound
+     * URL ({@see SafeUrl}: A and AAAA records, only globally routable
+     * addresses). It runs in every environment, since a SIEM endpoint is never
+     * a local mock server, and the webhook must be https because it carries
+     * security events. A host that does not resolve yet is accepted: delivery
+     * re-checks the URL before every send, since DNS can change after saving.
+     */
     private function guardWebhookUrl(?string $url): void
     {
         if ($url === null || $url === '') {
@@ -148,34 +149,20 @@ class UpdateSecurityPolicyAction
         }
 
         $parts = parse_url($url);
-        if ($parts === false || ($parts['scheme'] ?? null) !== 'https' || empty($parts['host'])) {
+        if (! is_array($parts) || strtolower((string) ($parts['scheme'] ?? '')) !== 'https' || empty($parts['host'])) {
             throw UnsafeWebhookUrlException::for('The webhook URL must be a valid https URL.');
         }
 
-        $host = trim($parts['host'], '[]'); // strip IPv6 literal brackets
+        $host = trim((string) $parts['host'], '[]');
 
         if (strtolower($host) === 'localhost') {
             throw UnsafeWebhookUrlException::for('The webhook URL must not point to an internal address.');
         }
 
-        foreach ($this->resolveHost($host) as $ip) {
-            if (IpUtils::checkIp($ip, self::BLOCKED_RANGES)) {
+        foreach (SafeUrl::resolve($host) as $ip) {
+            if (! SafeUrl::isPublicIp($ip)) {
                 throw UnsafeWebhookUrlException::for('The webhook URL must not point to an internal address.');
             }
         }
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function resolveHost(string $host): array
-    {
-        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
-            return [$host];
-        }
-
-        $ips = gethostbynamel($host);
-
-        return $ips === false ? [] : $ips;
     }
 }

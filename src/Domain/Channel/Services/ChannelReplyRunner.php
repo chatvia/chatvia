@@ -2,10 +2,9 @@
 
 namespace Domain\Channel\Services;
 
-use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Services\UserCreditSystem;
+use Domain\Billing\Services\MessageSendGate;
 use Domain\Conversation\Services\AgentChatRateLimiter;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\ChatService;
@@ -26,8 +25,10 @@ use Throwable;
  * per-channel adapters only decide what happens *while* the reply generates
  * (refresh a typing indicator, push streamed partials) via `$onEvent`.
  *
- * Mirrors {@see ChatStreamService}: same owner subscription/credit gate, same
- * source selection (guard-block → Q&A → LLM). The sources persist + bill +
+ * Mirrors {@see ChatStreamService}: the same owner send gate
+ * ({@see MessageSendGate}), the same per-agent rate limit, the same source
+ * selection (guard-block → Q&A → LLM). The fixed replies below are sent in
+ * the agent's channel language ({@see ChannelLocale}). The sources persist + bill +
  * apply output guards as the generator is drained; the final (already
  * redacted/corrected) text lands in `ChatContext::streamedMessage` —
  * mid-drain reads of it are pre-guard, exactly as on the web SSE surface.
@@ -39,7 +40,7 @@ class ChannelReplyRunner
         private readonly LlmSource $llmSource,
         private readonly QASource $qaSource,
         private readonly GuardBlockSource $guardBlockSource,
-        private readonly UserCreditSystem $creditSystem,
+        private readonly MessageSendGate $sendGate,
         private readonly AgentChatRateLimiter $rateLimiter,
     ) {}
 
@@ -60,12 +61,14 @@ class ChannelReplyRunner
         $agent->loadMissing(['agentPrompt', 'llm']);
         $owner = $agent->user;
 
-        if ($owner === null || ! $this->ownerCanReceive($owner)) {
-            return 'Sorry — this assistant is unavailable right now. Please try again later.';
+        // Same gate as the web chat (subscription/trial, then message credits),
+        // so admins and everyone else are treated alike on every surface.
+        if ($owner === null || ! $this->sendGate->admit($owner)->allowed()) {
+            return ChannelLocale::text($agent, 'Sorry — this assistant is unavailable right now. Please try again later.');
         }
 
         if ($agent->llm === null) {
-            return 'Sorry — this assistant is not fully configured yet.';
+            return ChannelLocale::text($agent, 'Sorry — this assistant is not fully configured yet.');
         }
 
         // Per-agent chat rate limit (owner-configurable on the Security page).
@@ -73,7 +76,7 @@ class ChannelReplyRunner
         // the pipeline directly, so the cap is enforced here too — otherwise a
         // visitor could bypass it by messaging through Telegram/Slack/etc.
         if ($this->rateLimiter->exceeded($agent)) {
-            return 'This assistant is receiving too many messages right now. Please try again in a moment.';
+            return ChannelLocale::text($agent, 'This assistant is receiving too many messages right now. Please try again in a moment.');
         }
 
         $data = new StreamRequestData(
@@ -107,16 +110,16 @@ class ChannelReplyRunner
 
             $reply = $this->stripWebOnlyArtifactTags(trim($context->streamedMessage));
 
-            return $reply !== '' ? $reply : 'Sorry — I could not produce a reply.';
+            return $reply !== '' ? $reply : ChannelLocale::text($agent, 'Sorry — I could not produce a reply.');
         } catch (Throwable $e) {
             Log::error('Channel reply failed', [
-                'error' => $e->getMessage(),
+                ...RedactedException::context($e),
                 'source' => $source,
                 'agent_id' => $agent->id,
                 ...$logContext,
             ]);
 
-            return 'Sorry — something went wrong. Please try again.';
+            return ChannelLocale::text($agent, 'Sorry — something went wrong. Please try again.');
         }
     }
 
@@ -139,21 +142,5 @@ class ChannelReplyRunner
             |> (static fn (string $s): string => preg_replace('#<render-form\b[^>]*?/?>#i', '', $s) ?? $s)
             |> (static fn (string $s): string => preg_replace("/[ \t]*\n{3,}/", "\n\n", $s) ?? $s)
             |> trim(...);
-    }
-
-    /**
-     * Same gate the web chat applies to the workspace owner: an active
-     * subscription/trial AND remaining message credits.
-     */
-    private function ownerCanReceive(User $owner): bool
-    {
-        if ($owner->isAdmin()) {
-            return true;
-        }
-
-        $billing = $owner->billing;
-        $subscribed = (bool) ($billing?->subscribed() || $billing?->onTrial());
-
-        return $subscribed && $this->creditSystem->forWorkspace($owner->id)->canSendMessages();
     }
 }

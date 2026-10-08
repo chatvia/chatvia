@@ -8,9 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Support\Concerns\HasExternalId;
 
 /**
- * Immutable per-case result of an eval run — the agent's actual answer (redacted
- * + size-capped), the pass/score, judge rationale, and the RAG sources + tools
- * the agent used. Insert-only (no updated_at), mirroring AgentActivity.
+ * Immutable per-case result of an eval run — the agent's actual answer
+ * (size-capped, with a sha256 of the full text; not redacted), the pass/score,
+ * judge rationale, and the RAG sources + tools the agent used. Insert-only (no
+ * updated_at), mirroring AgentActivity.
  *
  * @property string $external_id
  * @property bool $pass

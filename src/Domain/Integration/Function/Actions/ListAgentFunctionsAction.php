@@ -18,7 +18,8 @@ class ListAgentFunctionsAction
 {
     public function execute(User $user, Agent $agent): AgentFunctionsListResourceData
     {
-        $functions = $user->functions()->orderBy('internal_name')->get();
+        // Functions belong to the workspace owner; a teammate sees the same list.
+        $functions = $user->workspace()->functions()->orderBy('internal_name')->get();
 
         $attachedIds = DB::table('agent_function')
             ->where('agent_id', $agent->id)

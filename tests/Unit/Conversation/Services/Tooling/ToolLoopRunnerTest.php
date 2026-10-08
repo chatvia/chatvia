@@ -178,6 +178,20 @@ function tlrRunner(
     );
 }
 
+/**
+ * OpenAI-shaped tool definitions for the given names — what ToolSelector hands
+ * the runner as the turn's offered tools.
+ *
+ * @return array<int, array<string, mixed>>
+ */
+function tlrTools(string ...$names): array
+{
+    return array_map(static fn (string $name): array => [
+        'type' => 'function',
+        'function' => ['name' => $name, 'description' => $name, 'parameters' => ['type' => 'object', 'properties' => []]],
+    ], $names);
+}
+
 function tlrContext(Agent $agent, Llm $llm): ChatContext
 {
     $requestData = new StreamRequestData(
@@ -395,7 +409,7 @@ it('dispatches an ungated tool call and continues to a final answer', function (
     $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'time?']];
-    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: [['type' => 'function']]);
+    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('get_time'));
     iterator_to_array($generator, preserve_keys: false);
     $paused = $generator->getReturn();
 
@@ -422,7 +436,7 @@ it('pauses the whole turn and persists a pending checkpoint when a tool call nee
     $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(true), new ToolApprovalStore);
 
     $llmMessages = [['role' => 'user', 'content' => 'delete me']];
-    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: [['type' => 'function']]);
+    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('delete_user'));
     $events = iterator_to_array($generator, preserve_keys: false);
     $paused = $generator->getReturn();
 
@@ -455,10 +469,109 @@ it('stops at the configured max_iterations cap instead of looping unbounded', fu
     $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'go']];
-    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: [['type' => 'function']]);
+    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('loop_tool'));
     iterator_to_array($generator, preserve_keys: false);
     $paused = $generator->getReturn();
 
     expect($paused)->toBeFalse()
         ->and($dispatcher->calls)->toHaveCount(2); // exactly max_iterations dispatches, then stop
+});
+
+// --- the offered tool set: the model may only call what it was given -------
+
+it('tells the transformer which tools were offered on the turn', function (): void {
+    $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
+
+    $seen = null;
+    $transformer = tlrTransformer(function (ChatContext $ctx) use (&$seen) {
+        $seen = $ctx->offeredToolNames;
+        yield from [];
+    });
+    $runner = tlrRunner($transformer, tlrDispatcher(), tlrApprovalPolicy(false));
+
+    $llmMessages = [['role' => 'user', 'content' => 'hi']];
+    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('get_time', 'get_weather')), preserve_keys: false);
+
+    expect($seen)->toBe(['get_time', 'get_weather']);
+});
+
+it('refuses a call to a tool that was not offered, without dispatching or gating it', function (): void {
+    $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
+    $dispatcher = tlrDispatcher();
+
+    $turn = 0;
+    $transformer = tlrTransformer(function (ChatContext $ctx) use (&$turn) {
+        if ($turn === 0) {
+            // The model invents a tool that was never offered this turn.
+            $ctx->pendingToolCalls[] = ['id' => 'call_x', 'name' => 'delete_everything', 'arguments' => '{}'];
+        } else {
+            $ctx->appendStreamedMessage('I cannot do that.');
+        }
+        $turn++;
+        yield from [];
+    });
+    // Approval would gate every call — an unoffered call must not even reach it.
+    $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(true));
+
+    $llmMessages = [['role' => 'user', 'content' => 'wipe it']];
+    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('get_time'));
+    iterator_to_array($generator, preserve_keys: false);
+
+    expect($generator->getReturn())->toBeFalse()
+        ->and($dispatcher->calls)->toBe([])
+        ->and(ToolApprovalCheckpoint::query()->count())->toBe(0)
+        ->and($context->toolCallNames)->toBe([])
+        ->and($context->streamedMessage)->toBe('I cannot do that.');
+
+    $toolMessages = array_values(array_filter($llmMessages, fn (array $m): bool => ($m['role'] ?? null) === 'tool'));
+    expect($toolMessages)->toHaveCount(1)
+        ->and($toolMessages[0]['tool_call_id'])->toBe('call_x')
+        ->and($toolMessages[0]['content'])->toBe(sprintf(ToolLoopRunner::UNKNOWN_TOOL_RESULT, 'delete_everything'));
+
+    Event::assertNotDispatched(ToolCallCompleted::class);
+});
+
+it('refuses every tool call when no tools were offered', function (): void {
+    $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
+    $dispatcher = tlrDispatcher();
+
+    $turn = 0;
+    $transformer = tlrTransformer(function (ChatContext $ctx) use (&$turn) {
+        if ($turn++ === 0) {
+            $ctx->pendingToolCalls[] = ['id' => 'call_1', 'name' => 'get_time', 'arguments' => '{}'];
+        }
+        yield from [];
+    });
+    $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
+
+    $llmMessages = [['role' => 'user', 'content' => 'time?']];
+    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: []), preserve_keys: false);
+
+    expect($dispatcher->calls)->toBe([]);
+});
+
+it('runs the offered call and refuses the unoffered one in the same turn', function (): void {
+    $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
+    $dispatcher = tlrDispatcher();
+
+    $turn = 0;
+    $transformer = tlrTransformer(function (ChatContext $ctx) use (&$turn) {
+        if ($turn++ === 0) {
+            $ctx->pendingToolCalls[] = ['id' => 'call_ok', 'name' => 'get_time', 'arguments' => '{}'];
+            $ctx->pendingToolCalls[] = ['id' => 'call_bad', 'name' => 'mcp__other__drop_db', 'arguments' => '{}'];
+        }
+        yield from [];
+    });
+    $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
+
+    $llmMessages = [['role' => 'user', 'content' => 'time?']];
+    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('get_time')), preserve_keys: false);
+
+    expect(array_column($dispatcher->calls, 'name'))->toBe(['get_time']);
+
+    // Both tool_call_ids got a result, so the next model turn stays valid.
+    $results = collect($llmMessages)->where('role', 'tool')->pluck('content', 'tool_call_id')->all();
+    expect($results)->toHaveKeys(['call_ok', 'call_bad'])
+        ->and($results['call_ok'])->toBe('result of get_time')
+        ->and($results['call_bad'])->toContain('not one of the tools available');
 });

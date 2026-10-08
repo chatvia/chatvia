@@ -8,10 +8,18 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+/**
+ * Records that a set of sources was retrieved for an agent: bumps the
+ * all-time counters and emits the per-day rollup event.
+ */
 class UpdateRetrievalStatsAction
 {
     /**
-     * @param  array<int, array{chunkable_type: string, chunkable_id: int|string}>  $results
+     * Each entry is a `{chunkable_type, chunkable_id}` pair. Jobs queued by an
+     * older release pass full search-result rows (stdClass) instead; only the
+     * two keys are read, so both shapes work.
+     *
+     * @param  array<int, array{chunkable_type: string, chunkable_id: int|string}|object>  $results
      */
     public function execute(array $results, int $agentId): void
     {
@@ -19,7 +27,12 @@ class UpdateRetrievalStatsAction
             return;
         }
 
-        $resultsByType = collect($results)->groupBy('chunkable_type');
+        $resultsByType = collect($results)
+            ->map(fn (array|object $result): array => [
+                'chunkable_type' => (string) data_get($result, 'chunkable_type'),
+                'chunkable_id' => data_get($result, 'chunkable_id'),
+            ])
+            ->groupBy('chunkable_type');
 
         $retrieved = [];
 

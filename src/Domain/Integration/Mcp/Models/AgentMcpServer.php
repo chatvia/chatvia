@@ -238,13 +238,12 @@ class AgentMcpServer extends Model
     }
 
     /**
-     * Resolve a workspace-scoped MCP server by slug or 404 if the slug is
-     * unknown to that workspace. Replaces the per-controller `find()` helper
-     * that was copy-pasted across the Settings/Connector controllers.
+     * Resolve an MCP server in the user's workspace by slug, or 404. Servers
+     * belong to the workspace owner, so a teammate resolves the same rows.
      */
     public static function forSlugScoped(string $slug, User $user): self
     {
-        return $user->mcpServers()->where('slug', $slug)->firstOrFail();
+        return $user->workspace()->mcpServers()->where('slug', $slug)->firstOrFail();
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agent\Chatter;
 
 use App\Http\Requests\Agent\Chatter\InviteAgentChatterRequest;
+use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
 use Domain\Membership\Agent\Actions\InviteAgentChatterAction;
@@ -83,7 +84,7 @@ class AgentChatterController
         }
 
         return Inertia::render('agents/Chatters', [
-            'agent' => $agent,
+            'agent' => AgentResourceData::fromModel($agent),
         ]);
     }
 
@@ -108,7 +109,7 @@ class AgentChatterController
 
         return back()->with('invitation', [
             'email' => $invitation->email,
-            'accept_url' => $invitation->accept_url,
+            'accept_url' => route('agents.invitation.show', ['token' => $invitation->token]),
             'expires_at' => $invitation->expires_at->toIso8601String(),
         ]);
     }

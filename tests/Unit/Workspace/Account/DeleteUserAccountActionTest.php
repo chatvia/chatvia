@@ -14,6 +14,11 @@ use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Mockery\MockInterface;
+use Stripe\Exception\ApiConnectionException;
+use Stripe\Exception\InvalidRequestException;
+use Stripe\StripeClient;
+use Stripe\Subscription as StripeSubscription;
 
 beforeEach(function (): void {
     // The teardown wipes users/{external_id} on the default, public and
@@ -236,4 +241,82 @@ it('deletes leads, Sanctum tokens and HTTP sessions the FK cascade would orphan'
     expect(FormSubmission::whereKey($lead->id)->exists())->toBeFalse()
         ->and(DB::table('personal_access_tokens')->whereIn('tokenable_id', [$owner->id, $employee->id])->where('tokenable_type', $owner->getMorphClass())->exists())->toBeFalse()
         ->and(DB::table('sessions')->whereIn('user_id', [$owner->id, $employee->id])->exists())->toBeFalse();
+});
+
+/**
+ * Give the owner a live subscription and stub the StripeClient Cashier
+ * resolves, so `cancelNow()` can be made to fail in a chosen way.
+ */
+function ownerWithLiveSubscription(MockInterface $subscriptions): User
+{
+    $owner = User::factory()->create();
+    $billing = $owner->billing()->firstOrCreate([]);
+    $billing->stripe_id = 'cus_live';
+    $billing->save();
+
+    $billing->subscriptions()->create([
+        'type' => 'default',
+        'stripe_id' => 'sub_live',
+        'stripe_status' => 'active',
+    ]);
+
+    $stripe = Mockery::mock(StripeClient::class);
+    $stripe->subscriptions = $subscriptions;
+    app()->bind(StripeClient::class, fn () => $stripe);
+
+    return $owner;
+}
+
+it('stops the deletion and rethrows when Stripe has a transient failure', function (): void {
+    // A network error is not proof the subscription is gone: deleting the
+    // customer now would leave a live subscription billing them. The job must
+    // fail and retry instead.
+    $subscriptions = Mockery::mock();
+    $subscriptions->shouldReceive('cancel')->andThrow(new ApiConnectionException('Could not connect to Stripe.'));
+    $owner = ownerWithLiveSubscription($subscriptions);
+
+    expect(fn () => app(DeleteUserAccountAction::class)->execute($owner))
+        ->toThrow(ApiConnectionException::class);
+
+    expect(User::whereKey($owner->id)->exists())->toBeTrue()
+        ->and(DB::table('subscriptions')->where('stripe_id', 'sub_live')->value('ends_at'))->toBeNull();
+});
+
+it('rethrows a Stripe rejection when the subscription is still live there', function (): void {
+    $subscriptions = Mockery::mock();
+    $subscriptions->shouldReceive('cancel')->andThrow(
+        InvalidRequestException::factory('Invalid request.', 400, null, null, null, 'parameter_invalid_empty'),
+    );
+    $subscriptions->shouldReceive('retrieve')->andReturn(StripeSubscription::constructFrom(['id' => 'sub_live', 'status' => 'active']));
+    $owner = ownerWithLiveSubscription($subscriptions);
+
+    expect(fn () => app(DeleteUserAccountAction::class)->execute($owner))
+        ->toThrow(InvalidRequestException::class);
+
+    expect(User::whereKey($owner->id)->exists())->toBeTrue();
+});
+
+it('treats a subscription Stripe no longer has as canceled and finishes the deletion', function (): void {
+    $subscriptions = Mockery::mock();
+    $subscriptions->shouldReceive('cancel')->andThrow(
+        InvalidRequestException::factory('No such subscription', 404, null, null, null, 'resource_missing'),
+    );
+    $owner = ownerWithLiveSubscription($subscriptions);
+
+    app(DeleteUserAccountAction::class)->execute($owner);
+
+    expect(User::whereKey($owner->id)->exists())->toBeFalse();
+});
+
+it('treats a subscription Stripe already closed as canceled and finishes the deletion', function (): void {
+    $subscriptions = Mockery::mock();
+    $subscriptions->shouldReceive('cancel')->andThrow(
+        InvalidRequestException::factory('A canceled subscription can only update its cancellation_details and metadata.', 400),
+    );
+    $subscriptions->shouldReceive('retrieve')->andReturn(StripeSubscription::constructFrom(['id' => 'sub_live', 'status' => 'canceled']));
+    $owner = ownerWithLiveSubscription($subscriptions);
+
+    app(DeleteUserAccountAction::class)->execute($owner);
+
+    expect(User::whereKey($owner->id)->exists())->toBeFalse();
 });

@@ -7,6 +7,7 @@ use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Mcp\Actions\SetConnectorAlwaysAvailableAction;
 use Domain\Integration\Mcp\Data\Agent\SetConnectorAlwaysAvailableData;
 use Domain\Integration\Mcp\Exceptions\AlwaysAvailableToolLimitException;
+use Domain\Integration\Mcp\Exceptions\ConnectorNotAttachedException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Support\Facades\DB;
 
@@ -100,5 +101,5 @@ it('refuses a connector that is not attached to the agent', function (): void {
     $server = saaServer($this->agent, 'tutor', attach: false);
 
     expect(fn () => saaAction(['tutor' => 1])->execute($this->agent, $server, new SetConnectorAlwaysAvailableData(always_available: true)))
-        ->toThrow(RuntimeException::class, 'not attached');
+        ->toThrow(ConnectorNotAttachedException::class, 'not attached');
 });

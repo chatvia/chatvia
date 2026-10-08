@@ -8,7 +8,6 @@ use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\DashboardStatsController;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesDownload;
 use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesListController;
-use App\Http\Controllers\KnowledgeFiles\KnowledgeFilesShowController;
 use App\Http\Controllers\Onboarding\CompleteOnboardingController;
 use App\Http\Controllers\Support\SupportController;
 use App\Http\Controllers\Tickets\ChangeTicketPriorityController;
@@ -30,7 +29,6 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard'])->group(function 
         ->middleware('throttle:30,1')
         ->name('analytics.chat.stream');
 
-    Route::get('my/knowledge-base', KnowledgeFilesShowController::class)->name('knowledge-base.show');
     Route::get('my/knowledge-base/list', KnowledgeFilesListController::class)->name('knowledge-base.list');
     Route::get('my/knowledge-base/download/{agentFile}', KnowledgeFilesDownload::class)->name('knowledge-base.download');
 

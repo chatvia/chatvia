@@ -2,26 +2,21 @@
 
 namespace Domain\Conversation\Services\Streaming\Sources;
 
-use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
-use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\ChatStreamService;
-use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
-use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
-use Domain\Conversation\Services\Streaming\Sources\Concerns\AttributesSpectraTurn;
-use Domain\Conversation\Services\Streaming\Sources\Concerns\InjectsToolSystemNote;
-use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Guardrail\Services\GuardrailRecorder;
+use Domain\Guardrail\Services\GuardrailService;
+use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Providers\Mistral;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -34,22 +29,25 @@ use Throwable;
  * LLM is intentionally bypassed — Mistral handles native PDF Q&A directly, no
  * separate OCR + retrieval step.
  *
- * Tool calling IS supported: candidate tools are selected via the same
- * ToolSelector as LlmSource and the loop is driven by the shared
- * ToolLoopRunner, so MCP / webhook tools still fire (and pause for approval)
- * inside PDF conversations.
+ * Tool calling IS supported and the answer passes the same output guardrails:
+ * the envelope, tool loop and finish step are shared with LlmSource through
+ * {@see ToolLoopSource}, so MCP / webhook tools still fire (and pause for
+ * approval) inside PDF conversations. A resumed turn stays on Mistral so the
+ * PDF context (already in the snapshot's latest user turn) keeps flowing.
  */
-class MistralPdfSource
+class MistralPdfSource extends ToolLoopSource
 {
-    use AttributesSpectraTurn, InjectsToolSystemNote;
-
     public function __construct(
         private readonly Mistral $mistral,
-        private readonly ChatService $chatService,
-        private readonly RequestDedupeStore $dedupe,
-        private readonly ToolSelector $toolSelector,
-        private readonly ToolLoopRunner $runner,
-    ) {}
+        ChatService $chatService,
+        RequestDedupeStore $dedupe,
+        ToolSelector $toolSelector,
+        ToolLoopRunner $runner,
+        GuardrailService $guardrails,
+        GuardrailRecorder $guardrailRecorder,
+    ) {
+        parent::__construct($chatService, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder);
+    }
 
     /**
      * @param  array<int, array<string, mixed>>  $llmMessages  Conversation history (last entry is the new user turn).
@@ -58,160 +56,49 @@ class MistralPdfSource
      */
     public function events(ChatContext $context, array $llmMessages, Collection $pdfs): Generator
     {
-        $assistantId = $context->assistantMessageId;
+        $documentUrls = $pdfs->pluck('url')->filter()->values()->all();
 
-        $this->bindSpectraTurn($context);
+        yield from $this->streamTurn($context, $this->withDocumentUrls($llmMessages, $documentUrls));
+    }
 
-        yield StreamEvent::start($assistantId, [
-            'assistant_message_id' => $assistantId,
-            'user_message_id' => $context->userMessageId,
-            'user_message' => $context->payload->message,
-            'request_id' => $context->requestData->requestId,
-            'language' => $context->queryLanguage,
-            'replayed' => false,
-        ]);
+    protected function provider(): LlmProviderInterface
+    {
+        return $this->mistral;
+    }
 
-        try {
-            $documentUrls = $pdfs->pluck('url')->filter()->values()->all();
-            $llmMessages = $this->withDocumentUrls($llmMessages, $documentUrls);
+    protected function modelName(ChatContext $context): string
+    {
+        return (string) config('services.mistral.qa_model', 'mistral-small-latest');
+    }
 
-            $agent = $context->requestData->agent;
-            $toolDefinitions = $this->prepareToolDefinitions($agent, $context);
+    protected function providerSlug(ChatContext $context): string
+    {
+        return 'mistral';
+    }
 
-            if ($toolDefinitions !== []) {
-                $this->injectToolSystemNote($llmMessages, (bool) config('chatvia.agent.tools.approval_enabled', true));
-            }
+    protected function logLabel(): string
+    {
+        return 'Mistral PDF';
+    }
 
-            $paused = yield from $this->runner->run(
-                context: $context,
-                provider: $this->mistral,
-                modelName: $this->qaModel(),
-                providerSlug: 'mistral',
-                llmMessages: $llmMessages,
-                toolDefinitions: $toolDefinitions,
-                extraSettings: $agent->llmSettings(),
-                startIteration: 0,
-            );
-            if ($paused) {
-                return;
-            }
+    protected function upstreamUnavailableMessage(): string
+    {
+        return __('Mistral could not be reached. Please try again.');
+    }
 
-            yield from $this->finishTurn($context);
-        } catch (ClientDisconnected) {
-            $context->markEndTime();
-            $this->safeFinalize($context);
-            $this->rememberForReplay($context, partial: true);
-
-            return;
-        } catch (RequestException|UpstreamStreamClosed $e) {
-            Log::error('Mistral PDF stream upstream error', [
-                'exception' => $e::class,
-                'message' => $e->getMessage(),
-                'response_body' => $this->upstreamBody($e),
-            ]);
-            report($e);
-
-            yield StreamEvent::error(
-                $assistantId,
-                ErrorCode::UpstreamUnavailable,
-                'Mistral could not be reached. Please try again.',
-            );
-            yield StreamEvent::done($assistantId, 'error');
-        } catch (Throwable $e) {
-            Log::error('Mistral PDF stream crashed', [
-                'exception' => $e::class,
-                'message' => $e->getMessage(),
-            ]);
-            report($e);
-
-            yield StreamEvent::error(
-                $assistantId,
-                ErrorCode::Internal,
-                'Something went wrong while answering from the PDF.',
-            );
-            yield StreamEvent::done($assistantId, 'error');
-        }
+    protected function turnFailedMessage(): string
+    {
+        return __('Something went wrong while answering from the PDF.');
     }
 
     /**
-     * Resume a paused PDF turn after the user approved/denied a gated tool
-     * call. Mirrors {@see LlmSource::resume} but stays on Mistral so the PDF
-     * context (already in the snapshot's latest user turn) keeps flowing.
+     * Mistral's actual complaint, so the log shows more than "400 Bad Request".
      *
-     * @param  array<string, string>  $decisions  tool_call_id => 'approve'|'deny'
-     * @return Generator<int, StreamEvent>
+     * @return array<string, mixed>
      */
-    public function resume(ChatContext $context, ToolApprovalCheckpoint $checkpoint, array $decisions): Generator
+    protected function upstreamLogContext(Throwable $e): array
     {
-        $assistantId = $context->assistantMessageId;
-
-        $this->bindSpectraTurn($context);
-
-        yield StreamEvent::start($assistantId, [
-            'assistant_message_id' => $assistantId,
-            'user_message_id' => null,
-            'request_id' => $context->requestData->requestId,
-            'language' => $context->queryLanguage,
-            'replayed' => false,
-            'resumed' => true,
-        ]);
-
-        try {
-            $agent = $context->requestData->agent;
-            $llmMessages = $context->llmMessages;
-
-            yield from $this->runner->applyPendingCalls($context, $llmMessages, $checkpoint->pending_calls, $decisions);
-
-            $toolDefinitions = $this->prepareToolDefinitions($agent, $context);
-
-            $paused = yield from $this->runner->run(
-                context: $context,
-                provider: $this->mistral,
-                modelName: $this->qaModel(),
-                providerSlug: 'mistral',
-                llmMessages: $llmMessages,
-                toolDefinitions: $toolDefinitions,
-                extraSettings: $agent->llmSettings(),
-                startIteration: $checkpoint->iteration + 1,
-            );
-            if ($paused) {
-                return;
-            }
-
-            yield from $this->finishTurn($context);
-        } catch (ClientDisconnected) {
-            $context->markEndTime();
-            $this->safeFinalize($context);
-
-            return;
-        } catch (RequestException|UpstreamStreamClosed $e) {
-            Log::error('Mistral PDF resume upstream error', [
-                'exception' => $e::class,
-                'message' => $e->getMessage(),
-                'response_body' => $this->upstreamBody($e),
-            ]);
-            report($e);
-
-            yield StreamEvent::error(
-                $assistantId,
-                ErrorCode::UpstreamUnavailable,
-                'Mistral could not be reached. Please try again.',
-            );
-            yield StreamEvent::done($assistantId, 'error');
-        } catch (Throwable $e) {
-            Log::error('Mistral PDF resume crashed', [
-                'exception' => $e::class,
-                'message' => $e->getMessage(),
-            ]);
-            report($e);
-
-            yield StreamEvent::error(
-                $assistantId,
-                ErrorCode::Internal,
-                'Something went wrong while continuing the response.',
-            );
-            yield StreamEvent::done($assistantId, 'error');
-        }
+        return ['response_body' => $this->upstreamBody($e)];
     }
 
     /**
@@ -256,11 +143,6 @@ class MistralPdfSource
         return $messages;
     }
 
-    private function qaModel(): string
-    {
-        return (string) config('services.mistral.qa_model', 'mistral-small-latest');
-    }
-
     /**
      * Pull the response body off a Guzzle exception so the log shows
      * Mistral's actual complaint instead of just "400 Bad Request".
@@ -278,68 +160,5 @@ class MistralPdfSource
         $body = (string) $response->getBody();
 
         return mb_strlen($body) > 2000 ? mb_substr($body, 0, 2000).'…[truncated]' : $body;
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function prepareToolDefinitions(Agent $agent, ChatContext $context): array
-    {
-        return $this->toolSelector->selectForTurn(
-            $agent,
-            $context->payload->message,
-            $context->requestData->conversationId,
-        );
-    }
-
-    /**
-     * @return Generator<int, StreamEvent>
-     */
-    private function finishTurn(ChatContext $context): Generator
-    {
-        $assistantId = $context->assistantMessageId;
-
-        if ($context->requestData->streamSources && $context->sources->isNotEmpty()) {
-            yield StreamEvent::sources($assistantId, $context->sources->toArray());
-        }
-
-        $context->markEndTime();
-        $this->chatService->handleChatCompletion($context);
-        $this->rememberForReplay($context);
-
-        yield StreamEvent::done(
-            $assistantId,
-            'complete',
-            $context->getResponseTimeMs(),
-        );
-    }
-
-    private function safeFinalize(ChatContext $context): void
-    {
-        try {
-            $this->chatService->handleChatCompletion($context);
-        } catch (Throwable $e) {
-            report($e);
-        }
-    }
-
-    private function rememberForReplay(ChatContext $context, bool $partial = false): void
-    {
-        $requestId = $context->requestData->requestId;
-        if (! $requestId || $context->streamedMessage === '') {
-            return;
-        }
-
-        try {
-            $this->dedupe->remember(
-                requestId: $requestId,
-                assistantMessageId: $context->assistantMessageId,
-                content: $context->streamedMessage,
-                language: $context->queryLanguage,
-                sources: $context->sources->toArray(),
-            );
-        } catch (Throwable $e) {
-            report($e);
-        }
     }
 }

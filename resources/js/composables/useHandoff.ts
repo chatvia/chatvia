@@ -1,6 +1,5 @@
+import { echo } from '@laravel/echo-vue';
 import axios from 'axios';
-import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
 import { computed, onUnmounted, ref, watch } from 'vue';
 
 // Types
@@ -23,26 +22,8 @@ interface TypingState {
     typerName: string | null;
 }
 
-// Make Pusher globally available
-(window as any).Pusher = Pusher;
-
-// Singleton Echo instance for presence channels
-let echoInstance: Echo<'reverb'> | null = null;
-
-function getEcho(): Echo<'reverb'> {
-    if (!echoInstance) {
-        echoInstance = new Echo({
-            broadcaster: 'reverb',
-            key: import.meta.env.VITE_REVERB_APP_KEY,
-            wsHost: import.meta.env.VITE_REVERB_HOST,
-            wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
-            wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
-            forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
-            enabledTransports: ['ws', 'wss'],
-        });
-    }
-    return echoInstance;
-}
+// Presence channels use the app-wide Echo connection that app.ts sets up with
+// configureEcho(), so the dashboard keeps one Reverb socket and one config.
 
 export function useHandoff(agentId: () => number | null, conversationId: () => string | null) {
     // State
@@ -119,10 +100,9 @@ export function useHandoff(agentId: () => number | null, conversationId: () => s
 
         leaveChannel();
 
-        const echo = getEcho();
         currentChannelName = channelName;
 
-        currentChannel = echo
+        currentChannel = echo()
             .join(channelName)
             .here((members: PresenceMember[]) => {
                 presenceMembers.value = members;
@@ -164,7 +144,7 @@ export function useHandoff(agentId: () => number | null, conversationId: () => s
 
     function leaveChannel() {
         if (currentChannel && currentChannelName) {
-            getEcho().leave(currentChannelName);
+            echo().leave(currentChannelName);
             currentChannel = null;
             currentChannelName = null;
             isConnected.value = false;

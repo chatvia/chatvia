@@ -48,9 +48,10 @@ The project uses environment variables for configuration, managed via `.env` fil
     # Required: CDN/Script URL where the widget files are hosted
     VITE_SCRIPT_URL=https://chatvia.test
     
-    # Optional: Reverb/Pusher configuration for live handoff feature
-    VITE_REVERB_APP_KEY=laravel-herd
-    VITE_REVERB_HOST=reverb.herd.test
+    # Optional: Reverb configuration for the live handoff feature.
+    # Without a key and host, live chat is turned off.
+    VITE_REVERB_APP_KEY=your-reverb-app-key
+    VITE_REVERB_HOST=ws.example.com
     VITE_REVERB_PORT=443
     VITE_REVERB_SCHEME=https
     
@@ -65,6 +66,32 @@ The project uses environment variables for configuration, managed via `.env` fil
     ```
 
 ⚠️ **Important:** Make sure to set `VITE_APP_VERSION` before building. This version determines the directory structure in `dist/` for cache-busting.
+
+### Point a built widget at your own server
+
+The values above are only defaults. You can use one build with any server.
+Add these optional attributes to the embed script tag:
+
+| Attribute | Example | Default |
+|---|---|---|
+| `data-api-url` | `https://chat.example.com/widget` | `VITE_API_URL` |
+| `data-reverb-host` | `ws.example.com` | `VITE_REVERB_HOST` |
+| `data-reverb-port` | `443` | `VITE_REVERB_PORT` |
+| `data-reverb-key` | `your-reverb-app-key` | `VITE_REVERB_APP_KEY` |
+| `data-reverb-scheme` | `https` or `http` | `VITE_REVERB_SCHEME` |
+
+```html
+<script id="chatbot-embed-script"
+    src="https://chat.example.com/widget-assets/embed.js"
+    data-agent-id="YOUR_AGENT_ID"
+    data-api-url="https://chat.example.com/widget"
+    data-reverb-host="ws.example.com"
+    data-reverb-key="your-reverb-app-key"
+    defer></script>
+```
+
+If `VITE_SCRIPT_URL` is not set, the embed script loads the widget bundle from
+the same folder as `embed.js`.
 
 ## Running Locally
 

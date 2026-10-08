@@ -21,6 +21,7 @@ readonly class StreamController
         $sessionId = $request->header('X-SESSION-ID');
         $conversationId = $request->header('X-CONVERSATION-ID');
         $agent = current_agent_from_widget();
+        abort_if($agent === null, 404);
 
         // Session must belong to THIS agent — without scoping a caller can
         // submit a session id minted under agent A and stream against agent B.

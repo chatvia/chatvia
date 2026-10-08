@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent\Settings;
 
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AgentSettingsController
 {
@@ -12,11 +13,9 @@ class AgentSettingsController
         Agent $agent,
         string $group,
     ): void {
-        $this->assertGroup($group);
+        $request->validate($this->rulesFor($group));
 
-        $request->validate(config('model-settings.validation.'.$group));
-
-        $settings = array_keys(config('model-settings.defaults.'.Agent::class.'.'.$group));
+        $settings = $this->keysOf($group);
 
         $values = array_filter(
             $request->only($settings),
@@ -33,21 +32,41 @@ class AgentSettingsController
         Agent $agent,
         string $group,
     ): void {
-        $this->assertGroup($group);
+        // 404 for a group this endpoint does not manage.
+        $this->rulesFor($group);
 
-        $key = $request->input('key');
+        // Only a setting that belongs to this group may be deleted — never an
+        // arbitrary key from the input.
+        $key = $request->validate([
+            'key' => ['required', 'string', Rule::in($this->keysOf($group))],
+        ])['key'];
 
-        if ($key) {
-            $agent->settingsDelete($group, $key);
-        }
+        $agent->settingsDelete($group, $key);
     }
 
-    private function assertGroup(string $group): void
+    /**
+     * The validation rules of a group this endpoint may write. Only groups
+     * that have both defaults and rules are open here; any other group (for
+     * example one saved by its own endpoint) is a 404.
+     *
+     * @return array<string, mixed>
+     */
+    private function rulesFor(string $group): array
     {
-        $groups = collect(config('model-settings.defaults.'.Agent::class))->keys()->toArray();
+        $rules = config('model-settings.validation.'.$group);
 
-        if (! in_array($group, $groups, true)) {
-            abort(404);
-        }
+        abort_unless(is_array($rules) && $this->keysOf($group) !== [], 404);
+
+        return $rules;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function keysOf(string $group): array
+    {
+        $defaults = config('model-settings.defaults.'.Agent::class.'.'.$group);
+
+        return is_array($defaults) ? array_keys($defaults) : [];
     }
 }

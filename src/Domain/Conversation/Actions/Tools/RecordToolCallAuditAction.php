@@ -5,6 +5,7 @@ namespace Domain\Conversation\Actions\Tools;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Listeners\RecordToolCallAudit;
 use Domain\Conversation\Models\AgentActivity;
+use Support\Text\Utf8;
 
 /**
  * Writes one immutable governance audit row (`agent_activity`) for a completed
@@ -71,7 +72,7 @@ class RecordToolCallAuditAction
                 return [$redacted, false];
             }
 
-            return [substr($encoded, 0, $max), true];
+            return [Utf8::truncateBytes($encoded, $max), true];
         }
 
         return $this->cap($raw, $max);
@@ -108,6 +109,7 @@ class RecordToolCallAuditAction
             return [$text, false];
         }
 
-        return [substr($text, 0, $max), true];
+        // Cut on a character boundary so the stored text stays valid UTF-8.
+        return [Utf8::truncateBytes($text, $max), true];
     }
 }

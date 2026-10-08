@@ -44,6 +44,15 @@
                                     </a>
                                 </div>
                             </div>
+                        @elseif (! ($contactEnabled ?? false))
+                            <!-- No inbox configured (chatvia.contact_email) -->
+                            <h1 class="h2 font-playfair-display text-slate-800 mb-3">Contact us</h1>
+                            <p class="text-slate-600 mb-6">
+                                The contact form is not available on this site right now.
+                            </p>
+                            <a href="{{ route('home') }}" class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium">
+                                ← Return to homepage
+                            </a>
                         @else
                             <!-- Form -->
                             <h1 class="h2 font-playfair-display text-slate-800 mb-3">Contact us</h1>
@@ -51,7 +60,7 @@
                                 Questions about the product, pricing, or security? Send us a message and we'll reply within one business day.
                             </p>
 
-                            <form action="{{ route('contact') }}" method="POST">
+                            <form action="{{ route('contact.submit') }}" method="POST">
                                 @csrf
                                 <div class="space-y-4">
                                     <div>

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { connectorLogoUrl } from '@/lib/connectorLogo';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,7 +43,7 @@ const salesforceOpen = ref(false);
 
 function logoUrl(c: Connector | null): string | null {
     if (!c) return null;
-    return c.logoUrl ?? `https://cdn.simpleicons.org/${c.icon}/${c.brandColor}`;
+    return connectorLogoUrl(c);
 }
 
 function matches(row: ConnectorRow): boolean {

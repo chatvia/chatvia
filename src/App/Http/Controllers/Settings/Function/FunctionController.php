@@ -20,7 +20,8 @@ class FunctionController
 {
     public function edit(Request $request): Response
     {
-        $functions = $request->user()->functions()
+        // Functions belong to the workspace owner; teammates see the same list.
+        $functions = $request->user()->workspace()->functions()
             ->withCount('agents')
             ->latest()
             ->get()
@@ -68,7 +69,7 @@ class FunctionController
         /** @var User $user */
         $user = $request->user();
 
-        $user->functions()->where('external_id', $external_id)->delete();
+        $user->workspace()->functions()->where('external_id', $external_id)->delete();
 
         return back();
     }

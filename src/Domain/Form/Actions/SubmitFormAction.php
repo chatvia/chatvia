@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Persist one inline-form submission. One transaction:
  *   1. atomically claim the form (lockForUpdate, pending → submitted, once),
- *   2. store the answers on the submission (encrypted at rest),
+ *   2. store the answers on the submission (plaintext JSON in `values`),
  *   3. flip the owning message's artifact to submitted for reload state,
  *   4. fire {@see FormSubmitted} (→ CRM webhook).
  *
@@ -111,8 +111,9 @@ class SubmitFormAction
     /**
      * Flip the form artifact's status on the owning assistant message so a reload
      * renders it read-only. Bound by the artifact — we only write into a message
-     * that actually carries this instance. PII values are NOT copied here (they
-     * stay only in the encrypted submission).
+     * that actually carries this instance. The answers (often personal data)
+     * are NOT copied here: they live only on the submission row, so deleting
+     * the submission removes them everywhere.
      */
     private function writeSubmittedStateToMessage(?Message $message, string $formInstanceId): void
     {

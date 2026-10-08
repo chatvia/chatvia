@@ -4,9 +4,9 @@ import strip from '@rollup/plugin-strip';
 
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
-  
+
   // Use VITE_API_URL directly
-  const apiUrl = env.VITE_API_URL;
+  const apiUrl = env.VITE_API_URL || '';
   const scriptUrl = env.VITE_SCRIPT_URL;
   const isProduction = mode === 'production';
 
@@ -64,7 +64,13 @@ export default defineConfig(({ command, mode }) => {
     define: {
       __APP_VERSION__: JSON.stringify(env.VITE_APP_VERSION),
       __API_URL__: JSON.stringify(apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl),
-      __SCRIPT_URL__: JSON.stringify(scriptUrl)
+      __SCRIPT_URL__: JSON.stringify(scriptUrl),
+      __DEV__: JSON.stringify(!isProduction),
+      // Live-agent handoff (Reverb) — same env keys as rollup.config.js.
+      __REVERB_APP_KEY__: JSON.stringify(env.VITE_REVERB_APP_KEY || ''),
+      __REVERB_HOST__: JSON.stringify(env.VITE_REVERB_HOST || ''),
+      __REVERB_PORT__: JSON.stringify(env.VITE_REVERB_PORT || '443'),
+      __REVERB_SCHEME__: JSON.stringify(env.VITE_REVERB_SCHEME || 'https')
     }
   };
 });

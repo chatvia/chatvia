@@ -2,11 +2,14 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
 use Domain\Membership\Agent\Actions\InviteWorkspaceChatterAction;
 use Domain\Membership\Agent\Data\InviteWorkspaceChatterData;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
+use Domain\Membership\Agent\Notifications\AgentChatterInvitationNotification;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Notification;
 use Support\Enums\User\UserType;
 
 /**
@@ -70,4 +73,38 @@ it('grants the selected agents to an existing chatter under the same workspace',
     expect(User::query()->where('email', 'member@example.com')->count())->toBe(1)
         ->and($agents[0]->chatters()->whereKey($existing->id)->exists())->toBeTrue()
         ->and($agents[1]->chatters()->whereKey($existing->id)->exists())->toBeTrue();
+});
+
+it('sends the invitation email with the token link once the transaction commits', function (): void {
+    Notification::fake();
+    [, $agents] = workspaceWithAgents(2);
+
+    $result = app(InviteWorkspaceChatterAction::class)->execute(new InviteWorkspaceChatterData(
+        email: 'new@example.com',
+        agents: $agents,
+    ));
+
+    Notification::assertSentOnDemand(
+        AgentChatterInvitationNotification::class,
+        fn (AgentChatterInvitationNotification $notification, array $channels, object $notifiable): bool => ($notifiable->routes['mail'] ?? null) === 'new@example.com'
+            && $notification->acceptUrl() === route('agents.invitation.show', ['token' => $result->token]),
+    );
+});
+
+it('sends no invitation email when a later step fails and the transaction rolls back', function (): void {
+    Notification::fake();
+    [, $agents] = workspaceWithAgents(2);
+
+    $grant = Mockery::mock(GrantAgentMembershipAction::class);
+    $grant->shouldReceive('execute')->andThrow(new RuntimeException('grant failed'));
+    app()->instance(GrantAgentMembershipAction::class, $grant);
+
+    expect(fn () => app(InviteWorkspaceChatterAction::class)->execute(new InviteWorkspaceChatterData(
+        email: 'new@example.com',
+        agents: $agents,
+    )))->toThrow(RuntimeException::class, 'grant failed');
+
+    // The token was rolled back, so an email carrying it would be a dead link.
+    expect(AgentChatterInvitation::query()->where('email', 'new@example.com')->exists())->toBeFalse();
+    Notification::assertNothingSent();
 });

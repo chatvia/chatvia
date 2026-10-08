@@ -96,15 +96,24 @@ it('rejects a non-https webhook URL (SSRF guard)', function (): void {
     ))->toThrow(UnsafeWebhookUrlException::class);
 });
 
-it('rejects a webhook URL pointing at an internal address (SSRF guard)', function (): void {
+it('rejects a webhook URL pointing at an internal address (SSRF guard)', function (string $url): void {
+    // The save-time check is strict in every environment, testing included.
     $user = User::factory()->create();
 
     expect(fn () => app(UpdateSecurityPolicyAction::class)->execute(
         $user,
-        new WorkspaceSecurityPolicyData(webhook_url: 'https://127.0.0.1/siem'),
+        new WorkspaceSecurityPolicyData(webhook_url: $url),
         policyActor($user),
     ))->toThrow(UnsafeWebhookUrlException::class);
-});
+
+    expect(WorkspaceSecurityPolicy::forWorkspace($user->id)->webhook_url)->toBeNull();
+})->with([
+    'IPv4 loopback' => 'https://127.0.0.1/siem',
+    'carrier-grade NAT' => 'https://100.64.0.1/siem',
+    'IPv6 loopback' => 'https://[::1]/siem',
+    'IPv6 unique-local' => 'https://[fd12::1]/siem',
+    'IPv4-mapped IPv6' => 'https://[::ffff:10.0.0.1]/siem',
+]);
 
 it('resolves a single memoized policy through the user accessor', function (): void {
     $user = User::factory()->create();

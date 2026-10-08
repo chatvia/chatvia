@@ -12,11 +12,12 @@ use Domain\Llm\Usage\AttributesTokenUsage;
 use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
 class TextEnhanceChunkJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
-    use \Illuminate\Foundation\Queue\Queueable, TracksTokenUsage;
+    use Queueable, TracksTokenUsage;
 
     public int $tries = 3;
 
@@ -56,8 +57,14 @@ class TextEnhanceChunkJob implements AttributesTokenUsage, ShouldBeUnique, Shoul
         report($e);
     }
 
+    /**
+     * The source can be a SourceText or a SourceFile (media), whose ids
+     * overlap, so the morph alias is part of the key.
+     */
     public function uniqueId(): string
     {
-        return 'agent:'.$this->agent->id.':sources:text:'.$this->sourceText->id.':page:'.$this->page->pageNumber;
+        return 'agent:'.$this->agent->id
+            .':sources:'.$this->sourceText->getMorphClass().':'.$this->sourceText->id
+            .':page:'.$this->page->pageNumber;
     }
 }

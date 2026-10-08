@@ -11,10 +11,12 @@ use Domain\Conversation\Actions\Messages\StoreMessageAction;
 use Domain\Conversation\Data\Messages\ChatInputPayload;
 use Domain\Conversation\Data\Messages\ChatOutputPayload;
 use Domain\Conversation\Events\SessionLocationUnknown;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Bus;
@@ -344,5 +346,34 @@ it('does not dispatch AnalyzeMessageJob for an assistant turn', function (): voi
         'total_cost' => 0.0,
     ]))->execute($agent, $output);
 
+    Bus::assertNotDispatched(AnalyzeMessageJob::class);
+});
+
+it('writes nothing and queues nothing when one of its writes fails', function (): void {
+    Event::fake([MessageSent::class, SessionLocationUnknown::class]);
+
+    $agent = Agent::factory()->create();
+    $action = makeStoreMessageAction(fakeLlmProvider());
+
+    // An existing message already owns this external id, so the message
+    // insert fails AFTER the session and conversation rows were written.
+    $taken = $action->execute($agent, makeInputPayload($agent));
+    Event::fake([MessageSent::class, SessionLocationUnknown::class]);
+    Bus::fake();
+
+    $payload = makeInputPayload($agent, [
+        'external_message_id' => $taken->external_id,
+        'ip_address' => '203.0.113.7',
+    ]);
+
+    expect(fn (): Message => $action->execute($agent, $payload))->toThrow(QueryException::class);
+
+    // All-or-nothing: the half-written session + conversation are rolled back…
+    expect(Session::query()->where('external_id', $payload->external_session_id)->exists())->toBeFalse()
+        ->and(Conversation::query()->where('external_id', $payload->external_conversation_id)->exists())->toBeFalse();
+
+    // …and no follow-up work was queued for rows that never committed.
+    Event::assertNotDispatched(MessageSent::class);
+    Event::assertNotDispatched(SessionLocationUnknown::class);
     Bus::assertNotDispatched(AnalyzeMessageJob::class);
 });

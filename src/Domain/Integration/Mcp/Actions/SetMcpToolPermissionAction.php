@@ -5,10 +5,10 @@ namespace Domain\Integration\Mcp\Actions;
 use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Mcp\Data\McpToolPermissionData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
+use Domain\Integration\Mcp\Exceptions\McpToolNotFoundException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 /**
  * Set a single tool's `permission` (allow / approval / blocked) inside a
@@ -16,8 +16,8 @@ use RuntimeException;
  * toggles the per-workspace `mcp_server_tool` membership row (the tool id is a
  * connector_tools.id); a custom server toggles its own `mcp_tools` row.
  *
- * Throws when the tool doesn't belong to the given server so the caller can
- * surface a 404. Busts the compiled tool-pool cache for every agent the server
+ * Throws {@see McpToolNotFoundException} when the tool doesn't belong to the
+ * given server so the caller can surface a 404. Busts the compiled tool-pool cache for every agent the server
  * is attached to, since the pool excludes blocked tools.
  */
 class SetMcpToolPermissionAction
@@ -53,7 +53,7 @@ class SetMcpToolPermissionAction
             ->update(['permission' => $permission->value]);
 
         if ($updated === 0) {
-            throw new RuntimeException('Tool not found.');
+            throw McpToolNotFoundException::onServer($connectorToolId, (string) $server->slug);
         }
     }
 
@@ -63,7 +63,7 @@ class SetMcpToolPermissionAction
         $tool = $server->tools()->whereKey($toolId)->first();
 
         if ($tool === null) {
-            throw new RuntimeException('Tool not found.');
+            throw McpToolNotFoundException::onServer($toolId, (string) $server->slug);
         }
 
         $tool->forceFill(['permission' => $permission])->save();

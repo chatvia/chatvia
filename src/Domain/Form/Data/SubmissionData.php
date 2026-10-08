@@ -7,9 +7,9 @@ use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
- * One submission for the Forms → Submissions view. `values` is decrypted here
- * for the authorized workspace owner's dashboard (the same PII the old Leads
- * page showed).
+ * One submission for the Forms → Submissions view, shown to the authorized
+ * workspace owner. `values` holds the visitor's answers as submitted, which
+ * can include personal data.
  */
 #[TypeScript]
 class SubmissionData extends Data

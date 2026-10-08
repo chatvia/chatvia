@@ -18,8 +18,6 @@ use Domain\Channel\Services\PlainTextFormatter;
  */
 class MessengerClient extends MetaGraphClient
 {
-    private const GRAPH = 'https://graph.facebook.com/v25.0';
-
     /** Messenger caps a single text message at 2000 chars. */
     private const MESSAGE_LIMIT = 2000;
 
@@ -108,7 +106,7 @@ class MessengerClient extends MetaGraphClient
 
     protected function graphBaseUrl(): string
     {
-        return self::GRAPH;
+        return 'https://graph.facebook.com/'.config('services.meta.graph_version', 'v25.0');
     }
 
     protected function messageLimit(): int

@@ -773,8 +773,6 @@ const barSnippet = computed(() => {
         `    src="${props.embedScriptUrl}"`,
         `    data-agent-id="${props.agent.external_id}"`,
         '    data-mode="bar"',
-        `    data-trigger="${barBehaviorForm.trigger}"`,
-        `    data-placement="${barBehaviorForm.placement}"`,
     ];
     if (isProtected.value) lines.push('    data-auth="YOUR_SIGNED_TOKEN"');
     lines.push('    defer><\/script>');

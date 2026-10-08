@@ -14,6 +14,7 @@ use Laravel\Mcp\Server\Tool;
 use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsOpenWorld;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
+use Throwable;
 
 #[Description('Convert an amount between currencies using current exchange rates. Source defaults to USD.')]
 #[IsReadOnly]
@@ -47,27 +48,9 @@ class ExchangeRateTool extends Tool
             return Response::error('No ExchangeRate-API key was provided. Reconnect the Currency Converter connector with a valid key.');
         }
 
-        // Rates change once daily and are identical for every key, so cache the
-        // USD base table for an hour, shared across customers.
-        $rates = Cache::remember(
-            'exchange_rates:USD',
-            now()->addHour(),
-            function () use ($apiKey) {
-                $response = Http::timeout(10)
-                    ->get("https://v6.exchangerate-api.com/v6/{$apiKey}/latest/USD");
-
-                if ($response->failed()) {
-                    return null;
-                }
-                $body = $response->json();
-
-                return ($body['result'] ?? null) === 'success' ? $body['conversion_rates'] : null;
-            }
-        );
+        $rates = $this->usdRates($apiKey);
 
         if ($rates === null) {
-            Cache::forget('exchange_rates:USD');
-
             return Response::error('Could not fetch exchange rates — please try again.');
         }
 
@@ -101,6 +84,45 @@ class ExchangeRateTool extends Tool
             'converted' => round($converted, 6),
             'rate' => round($rate, 6),
         ]);
+    }
+
+    /**
+     * The USD rate table for this API key, cached for an hour. The cache is
+     * per key (by hash) so one workspace's key never answers for another's —
+     * an invalid or over-quota key must fail on its own.
+     *
+     * @return array<string, float|int>|null
+     */
+    private function usdRates(string $apiKey): ?array
+    {
+        $cacheKey = 'exchange_rates:USD:'.hash('sha256', $apiKey);
+
+        $cached = Cache::get($cacheKey);
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        // The provider takes the key in the URL path. Connection errors carry
+        // that URL in their message, so they are swallowed here rather than
+        // surfaced to the model or the logs.
+        $baseUrl = rtrim((string) config('services.exchange_rate.base_url'), '/');
+
+        try {
+            $response = Http::timeout(10)->get($baseUrl.'/'.rawurlencode($apiKey).'/latest/USD');
+        } catch (Throwable) {
+            return null;
+        }
+
+        $body = $response->successful() ? $response->json() : null;
+        $rates = is_array($body) && ($body['result'] ?? null) === 'success' && is_array($body['conversion_rates'] ?? null)
+            ? $body['conversion_rates']
+            : null;
+
+        if ($rates !== null) {
+            Cache::put($cacheKey, $rates, now()->addHour());
+        }
+
+        return $rates;
     }
 
     /**

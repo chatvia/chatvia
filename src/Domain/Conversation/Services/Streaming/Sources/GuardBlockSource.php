@@ -30,7 +30,7 @@ class GuardBlockSource
     public function events(ChatContext $context): Generator
     {
         $assistantId = $context->assistantMessageId;
-        $refusal = $context->guardRefusal ?? 'Sorry, I can’t help with that request.';
+        $refusal = $context->guardRefusal ?? __('Sorry, I can’t help with that request.');
 
         $context->appendStreamedMessage($refusal);
 

@@ -301,7 +301,6 @@ declare namespace Domain {
                     export type StatsResourceData = {
                         total_messages: number;
                         total_conversations: number;
-                        total_members: number;
                         total_user_messages: number;
                         unique_sessions: number;
                         avg_response_time: number | null;
@@ -464,7 +463,7 @@ declare namespace Domain {
                     message: Domain.Conversation.Data.Handoff.HandoffMessageResultPayloadData;
                 };
                 export type HandoffMessageResultPayloadData = {
-                    id: number;
+                    id: string;
                     content: string;
                     role: string;
                     created_at: string;
@@ -712,7 +711,8 @@ declare namespace Domain {
                         parameters_schema: Record<string, any>;
                         webhook_url: string;
                         webhook_method: string;
-                        webhook_headers: Record<string, string>[];
+                        webhook_header_names: string[];
+                        has_webhook_headers: boolean;
                         auth_type: string;
                         timeout_ms: number;
                         max_response_bytes: number;
@@ -724,10 +724,14 @@ declare namespace Domain {
                     };
                     export type AgentFunctionRowData = {
                         id: string;
+                        external_id: string;
                         internal_name: string;
                         display_name: string | null;
                         description: string | null;
+                        webhook_url: string;
+                        webhook_method: string;
                         is_enabled: boolean;
+                        last_error: string | null;
                         is_attached: boolean;
                     };
                     export type AgentFunctionsListResourceData = {

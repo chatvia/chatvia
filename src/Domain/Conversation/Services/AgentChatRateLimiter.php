@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 
 /**
- * Per-agent sliding 60-second message cap (the `security` settings group).
- * Counts every accepted message toward the agent's bucket; when the bucket is
- * full the turn is refused and, if the owner opted in, an alert event is
+ * Per-agent message cap per fixed 60-second window (the `security` settings
+ * group). The window starts with the first message and resets 60 seconds
+ * later. Every message counts toward the agent's bucket; once the count passes
+ * the cap the turn is refused and, if the owner opted in, an alert event is
  * dispatched. A limit of 0 disables the cap.
  *
  * Shared by every chat surface so the cap applies uniformly regardless of where
@@ -28,10 +29,13 @@ class AgentChatRateLimiter
     /** How long the per-agent security config is cached (seconds). */
     private const CONFIG_TTL = 300;
 
+    /** Length of one counting window (seconds). */
+    private const WINDOW_SECONDS = 60;
+
     /**
      * Record this turn against the agent's bucket and report whether it is now
-     * over the cap. Dispatches {@see AgentRateLimitExceeded} (once, when over)
-     * if the owner enabled alerts.
+     * over the cap. Dispatches {@see AgentRateLimitExceeded} for every refused
+     * turn when the owner enabled alerts (the listener throttles the email).
      */
     public function exceeded(Agent $agent): bool
     {
@@ -41,19 +45,21 @@ class AgentChatRateLimiter
             return false;
         }
 
-        $key = 'agent-chat-rate:'.$agent->id;
+        // One atomic increment decides: each concurrent request gets its own
+        // count, so a burst can't slip past the cap between a separate
+        // "check" and "hit". Refused turns count too, but the window is fixed,
+        // so that never extends it.
+        $hits = RateLimiter::increment('agent-chat-rate:'.$agent->id, self::WINDOW_SECONDS);
 
-        if (RateLimiter::tooManyAttempts($key, $limit)) {
-            if ($notify) {
-                AgentRateLimitExceeded::dispatch($agent, $limit);
-            }
-
-            return true;
+        if ($hits <= $limit) {
+            return false;
         }
 
-        RateLimiter::hit($key, 60);
+        if ($notify) {
+            AgentRateLimitExceeded::dispatch($agent, $limit);
+        }
 
-        return false;
+        return true;
     }
 
     /**

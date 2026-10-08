@@ -97,8 +97,31 @@ class McpOAuthRegistrar
             'registration_client_uri' => $body['registration_client_uri'] ?? null,
             'token_endpoint' => $metadata->tokenEndpoint,
             'authorization_endpoint' => $metadata->authorizationEndpoint,
-            'metadata' => $body,
+            'metadata' => $this->publicRegistrationFields($body),
         ]);
+    }
+
+    /**
+     * The `metadata` column is plain jsonb, while the secrets in a
+     * registration response (client_secret, registration_access_token) have
+     * their own encrypted columns. Keep only descriptive, non-secret fields
+     * so no credential ends up in plain text.
+     *
+     * @param  array<string, mixed>  $body
+     * @return array<string, mixed>
+     */
+    private function publicRegistrationFields(array $body): array
+    {
+        return ['source' => 'dynamic_registration'] + array_intersect_key($body, array_flip([
+            'client_id_issued_at',
+            'client_secret_expires_at',
+            'client_name',
+            'redirect_uris',
+            'grant_types',
+            'response_types',
+            'token_endpoint_auth_method',
+            'scope',
+        ]));
     }
 
     public function redirectUri(): string

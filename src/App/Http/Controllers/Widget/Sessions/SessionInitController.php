@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Widget\Sessions;
 use Domain\Widget\Actions\InitializeWidgetSessionAction;
 use Domain\Widget\Data\Session\WidgetSessionInitData;
 use Domain\Widget\Data\Session\WidgetSessionInitResultData;
-use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -13,13 +12,8 @@ class SessionInitController
 {
     public function __invoke(
         Request $request,
-        WidgetVerification $widgetVerification,
         InitializeWidgetSessionAction $initialize,
     ): JsonResponse|WidgetSessionInitResultData {
-        if (! $widgetVerification->verifyByAgentExternalId($request->header('X-AGENT-ID'), $request)) {
-            return response()->json(['error' => 'Domain not allowed'], 403);
-        }
-
         $data = new WidgetSessionInitData(
             existingSessionId: $request->header('X-SESSION-ID'),
             existingConversationId: $request->header('X-CONVERSATION-ID'),

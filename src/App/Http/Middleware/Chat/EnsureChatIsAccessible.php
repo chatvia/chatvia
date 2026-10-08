@@ -58,7 +58,7 @@ class EnsureChatIsAccessible
         }
 
         if ($agent->is_public === false && $userAuthenticated === false) {
-            $isAuthLogin = str_starts_with($currentRouteName, 'chat.login');
+            $isAuthLogin = str_starts_with((string) $currentRouteName, 'chat.login');
 
             if ($isAuthLogin === false && ! in_array($currentRouteName, $allowedRoutesWithoutAuth, true)) {
                 return to_route('chat.login.show');

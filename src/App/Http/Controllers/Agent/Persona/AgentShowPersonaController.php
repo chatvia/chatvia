@@ -21,7 +21,7 @@ class AgentShowPersonaController
 
         return Inertia::render('agents/Persona', [
             'agent' => AgentResourceData::fromModel($agent),
-            'prompts' => $request->user()->prompts()
+            'prompts' => $request->user()->workspace()->prompts()
                 ->latest()
                 ->get()
                 ->map(fn (AgentPrompt $p): array => [

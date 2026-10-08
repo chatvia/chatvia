@@ -42,16 +42,16 @@ class IngestMediaAction
         ]);
 
         if ($sourceFile->parser_filepath) {
-            $file = $sourceFile->readFile();
-            $transcription = $file->getContent();
+            // A retry reuses the stored transcript instead of the audio itself.
+            $transcription = $sourceFile->readContents('parser_filepath');
         } else {
-            $file = $sourceFile->readFile();
-
-            $transcription = Cache::remember('ingestion:media:transcription:file:'.$sourceFile->checksum, now()->addMonth(), function () use ($file) {
+            // The audio is only downloaded on a cache miss, and the local copy
+            // is deleted once it has been transcribed.
+            $transcription = Cache::remember('ingestion:media:transcription:file:'.$sourceFile->checksum, now()->addMonth(), fn (): string => $sourceFile->withLocalFile(function ($file): string {
                 $compressedFilePath = $this->audioCompressor->process($file->getPathname());
 
                 return $this->transcription->transcribe($compressedFilePath);
-            });
+            }));
 
             $filePath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/audio/'.Str::uuid()->toString().'.txt';
 
@@ -97,7 +97,7 @@ class IngestMediaAction
 
         $sourceFile->update([
             'expected_chunks' => count($texts),
-            'internal_ingestion_job_id' => $batch->id,
+            'internal_chunking_batch_id' => $batch->id,
             'took_in_seconds' => $tookInSeconds,
         ]);
     }

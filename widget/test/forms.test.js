@@ -102,7 +102,8 @@ describe('inline form artifact', () => {
 
     expect(apiMock).toHaveBeenCalledTimes(1);
     const req = apiMock.mock.calls[0][0];
-    expect(req.endpoint).toBe('widget/forms/fi-1/submit');
+    // api() prefixes the widget API base URL (…/widget), so the endpoint is relative to it.
+    expect(req.endpoint).toBe('forms/fi-1/submit');
     expect(req.method).toBe('POST');
     const body = JSON.parse(req.body);
     expect(body.fields).toEqual({ name: 'Jane', email: 'jane@acme.com', topic: 'sales', msg: '' });

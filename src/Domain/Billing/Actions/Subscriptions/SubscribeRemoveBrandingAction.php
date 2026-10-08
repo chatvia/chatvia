@@ -4,9 +4,9 @@ namespace Domain\Billing\Actions\Subscriptions;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Enums\Addon;
+use Domain\Billing\Exceptions\AddonNotConfiguredException;
 use Laravel\Cashier\Checkout;
 use Laravel\Cashier\Subscription;
-use RuntimeException;
 
 /**
  * Creates a Cashier subscription of type `remove_branding` — a flat monthly
@@ -22,7 +22,7 @@ class SubscribeRemoveBrandingAction
         $priceId = config('billing.addons.remove_branding.stripe_price_id');
 
         if (! $priceId) {
-            throw new RuntimeException(
+            throw new AddonNotConfiguredException(
                 'Remove Branding addon is not configured. Set STRIPE_REMOVE_BRANDING_PRICE_ID in your environment.'
             );
         }

@@ -28,7 +28,7 @@ it('builds a PKCE authorize URL from the supplied client + endpoints', function 
         tokenEndpoint: 'https://login.salesforce.com/services/oauth2/token',
     );
 
-    $url = app(McpOAuthFlow::class)->beginWithClient($user, $connector, $byo);
+    $url = app(McpOAuthFlow::class)->beginWithClient($user, $connector, $byo, 'session-binding');
 
     expect($url)->toStartWith('https://login.salesforce.com/services/oauth2/authorize?')
         ->and($url)->toContain('client_id=CONSUMER_KEY_123')

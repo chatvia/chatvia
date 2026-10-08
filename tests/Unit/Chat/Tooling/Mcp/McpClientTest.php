@@ -3,8 +3,10 @@
 namespace Tests\Unit\Chat\Tooling\Mcp;
 
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Mcp\Services\InternalMcpSignature;
 use Domain\Integration\Mcp\Services\McpClient;
 use Domain\Integration\Mcp\Services\McpException;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -219,5 +221,100 @@ class McpClientTest extends TestCase
         $this->expectExceptionMessage('method not found');
 
         (new McpClient)->fetchTools($this->server());
+    }
+
+    /**
+     * Answers initialize / tools/call like a minimal MCP server.
+     */
+    private function fakeMcpServer(): void
+    {
+        Http::fake(function ($request) {
+            $body = $request->data();
+            $method = $body['method'] ?? '';
+
+            if ($method === 'initialize') {
+                return Http::response(['jsonrpc' => '2.0', 'id' => $body['id'], 'result' => ['protocolVersion' => '2025-06-18']]);
+            }
+            if ($method === 'tools/call') {
+                return Http::response([
+                    'jsonrpc' => '2.0',
+                    'id' => $body['id'],
+                    'result' => ['content' => [['type' => 'text', 'text' => 'ok']], 'isError' => false],
+                ]);
+            }
+
+            return Http::response('', 202);
+        });
+    }
+
+    private function internalServer(?string $connectorSlug): AgentMcpServer
+    {
+        $server = $this->server();
+        $server->connector_slug = $connectorSlug;
+        $server->url = rtrim((string) config('app.url'), '/').'/mcp/charts';
+        $server->auth_type = 'none';
+        $server->auth_value = null;
+
+        return $server;
+    }
+
+    public function test_first_party_server_requests_carry_a_signature_over_body_and_identity(): void
+    {
+        $this->fakeMcpServer();
+
+        (new McpClient)->callTool($this->internalServer('charts'), 'render-bar-chart', ['title' => 'x'], [
+            'X-Chatvia-Agent-Id' => 'agent-uuid',
+            'X-Chatvia-User-Id' => 'user-uuid',
+        ]);
+
+        $signed = 0;
+        Http::assertSent(function (ClientRequest $request) use (&$signed): bool {
+            $verified = InternalMcpSignature::verify(
+                $request->header(InternalMcpSignature::TIMESTAMP_HEADER)[0] ?? null,
+                $request->header(InternalMcpSignature::SIGNATURE_HEADER)[0] ?? null,
+                $request->method(),
+                (string) parse_url($request->url(), PHP_URL_PATH),
+                $request->body(),
+                InternalMcpSignature::identityHeadersFrom($request->headers()),
+            );
+            $signed += $verified ? 1 : 0;
+
+            return $verified;
+        });
+
+        // initialize, notifications/initialized and tools/call are all signed.
+        $this->assertSame(3, $signed);
+    }
+
+    public function test_custom_server_pointing_at_an_internal_url_is_not_signed(): void
+    {
+        $this->fakeMcpServer();
+
+        // A workspace's own server that merely uses our /mcp/ URL has no
+        // connector_slug, so it must not receive our proof-of-origin.
+        (new McpClient)->callTool($this->internalServer(null), 'render-bar-chart', []);
+
+        Http::assertNotSent(fn (ClientRequest $request): bool => $request->hasHeader(InternalMcpSignature::SIGNATURE_HEADER));
+    }
+
+    public function test_third_party_server_is_never_signed(): void
+    {
+        $this->fakeMcpServer();
+
+        (new McpClient)->callTool($this->server(), 'ping', [], ['X-Chatvia-Agent-Id' => 'agent-uuid']);
+
+        Http::assertNotSent(fn (ClientRequest $request): bool => $request->hasHeader(InternalMcpSignature::SIGNATURE_HEADER));
+    }
+
+    public function test_first_party_server_ignores_stored_custom_headers(): void
+    {
+        $this->fakeMcpServer();
+
+        $server = $this->internalServer('charts');
+        $server->headers = [['key' => 'X-Chatvia-Workspace-Id', 'value' => 'someone-else']];
+
+        (new McpClient)->callTool($server, 'render-bar-chart', [], ['X-Chatvia-Agent-Id' => 'agent-uuid']);
+
+        Http::assertNotSent(fn (ClientRequest $request): bool => $request->hasHeader('X-Chatvia-Workspace-Id'));
     }
 }

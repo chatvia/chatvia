@@ -10,7 +10,7 @@ use Domain\Conversation\Topic\Models\Topic;
  * ConversationAnalyzer makes one LLM call and parses a JSON object into a
  * ConversationAnalysisData. The parsing must be defensive: constrain topic ids
  * to the agent's allowed set, drop suggestions that duplicate existing topics,
- * and never throw on malformed output.
+ * and never throw on malformed output — it returns null so nothing is saved.
  *
  * @return array{0: Agent, 1: array<string, int>}
  */
@@ -68,16 +68,15 @@ it('drops a suggested label that duplicates an existing topic name', function ()
     expect($result->suggestedTopics)->toBe(['New Theme']);
 });
 
-it('returns safe defaults when the model output is not valid JSON', function (): void {
+it('returns null instead of a guessed result when the model output is not valid JSON', function (string $content): void {
     [$agent] = agentWithTopics(['Billing']);
 
-    fakeLlmCompletion('Sorry, I could not analyze that.');
+    fakeLlmCompletion($content);
 
-    $result = app(ConversationAnalyzer::class)->analyze('User: hello', $agent);
-
-    expect($result->topicIds)->toBe([])
-        ->and($result->suggestedTopics)->toBe([])
-        ->and($result->sentiment)->toBe(SentimentEnum::NEUTRAL)
-        ->and($result->tone)->toBe(ToneEnum::NEUTRAL)
-        ->and($result->language)->toBeNull();
-});
+    expect(app(ConversationAnalyzer::class)->analyze('User: hello', $agent))->toBeNull()
+        ->and(app(ConversationAnalyzer::class)->analyzeMessage('hello'))->toBeNull();
+})->with([
+    'prose' => 'Sorry, I could not analyze that.',
+    'empty' => '',
+    'cut off' => '{"sentiment": "neg',
+]);

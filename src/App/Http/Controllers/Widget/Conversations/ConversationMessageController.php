@@ -19,6 +19,7 @@ class ConversationMessageController
         }
 
         $agent = current_agent_from_widget();
+        abort_if($agent === null, 404);
 
         // Conversation must belong to this agent — otherwise an attacker with a
         // conversation id from agent A can pull its history while spoofing agent B.

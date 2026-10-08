@@ -108,10 +108,12 @@ class McpClient
 
         if (! is_array($result)) {
             $error = $callResponse['body']['error'] ?? null;
-            $message = is_array($error) && isset($error['message'])
-                ? (string) $error['message']
-                : 'tool/call did not return a result';
-            throw new McpException($message);
+
+            if (is_array($error) && isset($error['message'])) {
+                throw McpException::reportedByServer((string) $error['message'], (string) $error['message']);
+            }
+
+            throw new McpException('tool/call did not return a result');
         }
 
         $this->closeSession($server, $sessionId, $identityHeaders);
@@ -131,8 +133,7 @@ class McpClient
         }
 
         try {
-            app(McpOAuthFlow::class)->refresh($server);
-            $server->refresh();
+            app(McpOAuthFlow::class)->refreshIfStale($server);
         } catch (Throwable $e) {
             // Don't hard-fail here — let the upstream return 401 so the
             // user-facing surface (last_error on the row) shows the real
@@ -145,27 +146,52 @@ class McpClient
     }
 
     /**
+     * Send one HTTP request to the server. The JSON body is encoded here (not
+     * by the HTTP client) so the exact bytes can be signed for our own
+     * built-in servers. A null payload sends an empty-bodied DELETE.
+     *
+     * @param  array<string, mixed>|null  $payload
+     * @param  array<string, string>  $identityHeaders
+     */
+    private function send(AgentMcpServer $server, ?string $sessionId, ?array $payload, array $identityHeaders = []): Response
+    {
+        $httpMethod = $payload === null ? 'DELETE' : 'POST';
+        $body = $payload === null ? '' : json_encode($payload, JSON_THROW_ON_ERROR);
+
+        $request = $this->request($server, $sessionId, $identityHeaders, $httpMethod, $body);
+
+        return $payload === null
+            ? $request->delete($server->url)
+            : $request->withBody($body, 'application/json')->post($server->url);
+    }
+
+    /**
      * Build a fresh PendingRequest for a single MCP call. Always builds anew
      * so headers can't accumulate across calls — Laravel's withHeaders uses
      * array_merge_recursive, which would nest repeated keys into arrays
      * (sending the same header twice on the wire). Notion in particular
      * treats two `Mcp-Session-Id` headers as a comma-joined value and
      * 404s the request as "Session not found".
-     */
-    /**
+     *
      * @param  array<string, string>  $identityHeaders
      */
-    private function request(AgentMcpServer $server, ?string $sessionId, array $identityHeaders = []): PendingRequest
+    private function request(AgentMcpServer $server, ?string $sessionId, array $identityHeaders, string $httpMethod, string $body): PendingRequest
     {
+        $firstParty = InternalMcpSignature::isFirstPartyServer($server);
+
         $headers = [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json, text/event-stream',
             'MCP-Protocol-Version' => self::PROTOCOL_VERSION,
         ];
 
-        foreach ((array) ($server->headers ?? []) as $h) {
-            if (isset($h['key'], $h['value'])) {
-                $headers[$h['key']] = $h['value'];
+        // Our own servers never take custom headers, so nothing user-defined
+        // can slip into the signed identity headers.
+        if (! $firstParty) {
+            foreach ((array) ($server->headers ?? []) as $h) {
+                if (isset($h['key'], $h['value'])) {
+                    $headers[$h['key']] = $h['value'];
+                }
             }
         }
 
@@ -185,15 +211,21 @@ class McpClient
         // public host can't 30x into internal infrastructure. Skipped in local.
         SafeUrl::assert($server->url);
 
-        // Proof-of-origin for OUR OWN built-in MCP endpoints so they reject
-        // anonymous internet callers. Never sent to third-party servers.
-        if (InternalMcpSignature::isInternalUrl($server->url)) {
-            $headers = array_merge($headers, InternalMcpSignature::headers());
-        }
-
         // Identity headers are stamped last so a server's custom headers
         // can't shadow them.
         $headers = array_merge($headers, $identityHeaders);
+
+        // Proof-of-origin for OUR OWN built-in MCP endpoints so they reject
+        // anonymous internet callers. It signs the method, path, body and the
+        // identity headers. Never sent to third-party servers.
+        if ($firstParty) {
+            $headers = array_merge($headers, InternalMcpSignature::headers(
+                $httpMethod,
+                $server->url,
+                $body,
+                InternalMcpSignature::identityHeadersFrom($headers),
+            ));
+        }
 
         return Http::timeout(max(1, (int) ceil($server->timeout_ms / 1000)))
             ->withOptions(SafeUrl::clientOptions())
@@ -217,13 +249,12 @@ class McpClient
         $id = (string) Str::uuid();
 
         try {
-            $response = $this->request($server, $sessionId, $identityHeaders)
-                ->post($server->url, [
-                    'jsonrpc' => '2.0',
-                    'id' => $id,
-                    'method' => $method,
-                    'params' => $params,
-                ]);
+            $response = $this->send($server, $sessionId, [
+                'jsonrpc' => '2.0',
+                'id' => $id,
+                'method' => $method,
+                'params' => $params,
+            ], $identityHeaders);
         } catch (Throwable $e) {
             throw new McpException('Could not reach MCP server: '.$e->getMessage(), previous: $e);
         }
@@ -233,7 +264,7 @@ class McpClient
                 'MCP server returned HTTP %d: %s',
                 $response->status(),
                 mb_substr((string) $response->body(), 0, 200),
-            ));
+            ), $response->status());
         }
 
         $body = $this->decodeResponseBody($response);
@@ -250,7 +281,10 @@ class McpClient
         if (isset($body['error']['message'])) {
             // Surface the protocol-level error as an exception; callers may
             // catch and convert it to a user-facing string.
-            throw new McpException('MCP error from '.$method.': '.(string) $body['error']['message']);
+            throw McpException::reportedByServer(
+                'MCP error from '.$method.': '.(string) $body['error']['message'],
+                (string) $body['error']['message'],
+            );
         }
 
         return [
@@ -268,12 +302,11 @@ class McpClient
     private function notify(AgentMcpServer $server, ?string $sessionId, string $method, array|object $params = [], array $identityHeaders = []): void
     {
         try {
-            $this->request($server, $sessionId, $identityHeaders)
-                ->post($server->url, [
-                    'jsonrpc' => '2.0',
-                    'method' => $method,
-                    'params' => $params,
-                ]);
+            $this->send($server, $sessionId, [
+                'jsonrpc' => '2.0',
+                'method' => $method,
+                'params' => $params,
+            ], $identityHeaders);
         } catch (Throwable) {
             // Notifications are best-effort.
         }
@@ -291,7 +324,7 @@ class McpClient
         // Streamable HTTP servers expect DELETE on the same endpoint with
         // the session header to release server-side state.
         try {
-            $this->request($server, $sessionId, $identityHeaders)->delete($server->url);
+            $this->send($server, $sessionId, null, $identityHeaders);
         } catch (Throwable) {
             // Best-effort.
         }

@@ -6,22 +6,27 @@ use App\Identity\Workspace\Models\User;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Listeners\SendSecurityEventToSiem;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
-use Illuminate\Support\Facades\Http;
+use Support\Exceptions\UnsafeUrlException;
+use Support\Http\SignedWebhookSender;
 
 /**
  * Delivers a {@see SecurityEventOccurred} to the workspace's configured SIEM
- * endpoint — an HMAC-SHA256-signed JSON POST. Requires the `siemWebhook`
- * capability (Pro / Enterprise), re-checked here so a stale webhook left on a
+ * endpoint — an HMAC-SHA256-signed JSON POST sent through
+ * {@see SignedWebhookSender}, which re-checks the URL against SSRF right before
+ * sending and never follows redirects. Requires the `siemWebhook` capability
+ * (Pro / Enterprise), re-checked here so a stale webhook left on a
  * since-downgraded workspace stops delivering even if `webhook_enabled` is set.
  *
  * On a non-2xx response or transport error it throws, so the queued
- * {@see SendSecurityEventToSiem} retries; that
- * listener's failed() handler tracks consecutive failures and auto-disables a
- * dead endpoint.
+ * {@see SendSecurityEventToSiem} retries; that listener's failed() handler
+ * tracks consecutive failures and auto-disables a dead endpoint. An unsafe URL
+ * throws {@see UnsafeUrlException}, which the listener fails without retrying.
  */
 class DeliverSecurityWebhookAction
 {
-    private const TIMEOUT_SECONDS = 10;
+    public function __construct(
+        private readonly SignedWebhookSender $sender,
+    ) {}
 
     public function execute(SecurityEventOccurred $event): void
     {
@@ -33,17 +38,12 @@ class DeliverSecurityWebhookAction
             return;
         }
 
-        $body = (string) json_encode($this->payload($event));
-        $signature = hash_hmac('sha256', $body, (string) $policy->webhook_secret);
-
-        Http::timeout(self::TIMEOUT_SECONDS)
-            ->withHeaders([
-                'X-Chatvia-Event' => $event->action,
-                'X-Chatvia-Signature' => 'sha256='.$signature,
-            ])
-            ->withBody($body, 'application/json')
-            ->post($policy->webhook_url)
-            ->throw();
+        $this->sender->send(
+            url: (string) $policy->webhook_url,
+            event: $event->action,
+            payload: $this->payload($event),
+            secret: (string) $policy->webhook_secret,
+        );
 
         $policy->forceFill([
             'webhook_failures' => 0,

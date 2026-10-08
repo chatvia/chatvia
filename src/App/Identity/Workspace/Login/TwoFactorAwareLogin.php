@@ -12,12 +12,17 @@ use Illuminate\Support\Facades\Auth;
  *
  * Mirrors the session bookkeeping Fortify's RedirectIfTwoFactorAuthenticatable
  * does, so a 2FA-confirmed user is routed to the challenge screen instead of
- * being signed in by a single-factor path.
+ * being signed in by a single-factor path. A deactivated account is turned
+ * away here, so neither path can sign it in.
  */
 class TwoFactorAwareLogin
 {
     public static function redirect(User $user, string $intendedUrl, bool $remember = false): RedirectResponse
     {
+        if ($user->isDeactivated()) {
+            return redirect()->route('login')->with('error', __('Your account has been deactivated.'));
+        }
+
         if ($user->two_factor_secret !== null && $user->two_factor_confirmed_at !== null) {
             session([
                 'login.id' => $user->getAuthIdentifier(),

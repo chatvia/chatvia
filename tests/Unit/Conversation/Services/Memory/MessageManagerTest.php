@@ -8,6 +8,7 @@ use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session as ChatSession;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Services\Memory\MessageManager;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 
@@ -90,4 +91,33 @@ it('persists feedback straight to the DB and still fires analytics when the cach
         && $event->conversationExternalId === $conversation->external_id
         // Model attribution lives only in the cache, so it's null here.
         && $event->llmExternalName === null);
+});
+
+it('marks every unread operator message read with a single update', function (): void {
+    [$conversation, $session, $agent] = makeFeedbackConversation();
+    $manager = makeMessageManager($session, $agent);
+
+    $ids = [];
+    foreach (['First reply', 'Second reply'] as $text) {
+        $id = $manager->addMessage($conversation->external_id, 'agent', $text);
+        Message::create([
+            'external_id' => $id,
+            'chat_conversation_id' => $conversation->id,
+            'role' => 'agent',
+            'content' => $text,
+        ]);
+        $ids[] = $id;
+    }
+
+    DB::enableQueryLog();
+    $marked = $manager->markMessagesAsRead($conversation->external_id, 'user');
+    $updates = collect(DB::getQueryLog())->filter(fn (array $q): bool => str_starts_with($q['query'], 'update "chat_messages"'));
+    DB::disableQueryLog();
+
+    expect($marked)->toBe(2)
+        ->and($updates)->toHaveCount(1)
+        ->and(Message::query()->whereIn('external_id', $ids)->whereNull('read_at')->count())->toBe(0);
+
+    // Already read: nothing left to mark, no write.
+    expect($manager->markMessagesAsRead($conversation->external_id, 'user'))->toBe(0);
 });

@@ -55,8 +55,12 @@ class Ticket extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * The staff user handling the ticket. The column is `assigned_to`, not the
+     * `assigned_to_id` Eloquent would guess from the method name.
+     */
     public function assignedTo(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 }

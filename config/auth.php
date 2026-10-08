@@ -42,6 +42,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Filament admin panel (/admin). Its own guard, so a sign-in through
+        // the dashboard or hosted-chat login never opens the panel: staff
+        // always pass the panel's own login with its MFA step.
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
     ],
 
     /*

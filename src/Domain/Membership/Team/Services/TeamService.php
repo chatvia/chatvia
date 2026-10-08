@@ -19,16 +19,22 @@ use Illuminate\Support\Facades\DB;
 
 class TeamService
 {
+    /**
+     * Create the user's first team with its default roles, in one transaction
+     * so a failure never leaves a team without roles.
+     */
     public function createDefaultTeam(User $user): Team
     {
-        $team = Team::create([
-            'name' => $user->name."'s Team",
-            'user_id' => $user->id,
-        ]);
+        return DB::transaction(function () use ($user): Team {
+            $team = Team::create([
+                'name' => $user->name."'s Team",
+                'user_id' => $user->id,
+            ]);
 
-        $this->createDefaultRoles($team);
+            $this->createDefaultRoles($team);
 
-        return $team;
+            return $team;
+        });
     }
 
     /**

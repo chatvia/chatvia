@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Teams\Services;
 
+use Domain\Channel\Services\RedactedException;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -99,7 +100,7 @@ class TeamsClient
         try {
             $response = Http::withToken($token)->asJson()->{$method}($url, $payload);
         } catch (Throwable $e) {
-            Log::warning('Teams connector call failed', ['url' => $url, 'error' => $e->getMessage()]);
+            Log::warning('Teams connector call failed', ['url' => $url, ...RedactedException::context($e)]);
 
             return null;
         }
@@ -157,7 +158,7 @@ class TeamsClient
                 'scope' => self::TOKEN_SCOPE,
             ]);
         } catch (Throwable $e) {
-            Log::warning('Teams token request failed', ['error' => $e->getMessage()]);
+            Log::warning('Teams token request failed', RedactedException::context($e));
 
             return null;
         }

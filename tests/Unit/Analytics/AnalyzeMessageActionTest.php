@@ -115,7 +115,9 @@ it('is idempotent: skips a message that already has sentiment AND tone', functio
     Event::assertNotDispatched(MessageAnalyzed::class);
 });
 
-it('returns NEUTRAL/NEUTRAL on a malformed analyzer response without throwing', function (): void {
+it('saves nothing and rolls nothing up on a malformed analyzer response', function (): void {
+    // A guessed NEUTRAL/NEUTRAL would be counted in the daily rollups as if the
+    // model had said so, and the idempotency guard would then block any retry.
     Event::fake([MessageAnalyzed::class]);
 
     $agent = proPlanAgent();
@@ -127,6 +129,7 @@ it('returns NEUTRAL/NEUTRAL on a malformed analyzer response without throwing', 
     app(AnalyzeMessageAction::class)->execute($message->external_id);
 
     $message->refresh();
-    expect($message->sentiment)->toBe(SentimentEnum::NEUTRAL->value)
-        ->and($message->tone)->toBe(ToneEnum::NEUTRAL->value);
+    expect($message->sentiment)->toBeNull()
+        ->and($message->tone)->toBeNull();
+    Event::assertNotDispatched(MessageAnalyzed::class);
 });

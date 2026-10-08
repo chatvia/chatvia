@@ -21,7 +21,10 @@ use Support\Localization\Language\Models\Language;
  * Everything the one call produces is stored — plan capabilities gate what the
  * customer can VIEW (enforced on the analytics routes), not what we analyze:
  * the inference is already spent, so discarding results would only waste it.
- * `analyzed_at` is stamped exactly once, making the batch idempotent.
+ * `analyzed_at` is stamped exactly once, making the batch idempotent. When the
+ * model's answer cannot be parsed nothing is saved and `analyzed_at` stays
+ * null, so the next scheduled pass tries again instead of recording a
+ * made-up "neutral" result.
  */
 class AnalyzeConversationAction
 {
@@ -56,6 +59,10 @@ class AnalyzeConversationAction
             ->implode("\n");
 
         $analysis = $this->analyzer->analyze($transcript, $agent);
+
+        if ($analysis === null) {
+            return;
+        }
 
         // Topics are the one dimension recorded straight from this batch call
         // (sentiment/tone roll up from the per-message pass instead). Honour the

@@ -8,15 +8,20 @@ use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Data\AcceptAgentInvitationData;
 use Domain\Membership\Agent\Enums\InvitationCredentialKind;
 use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
+use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Support\Enums\User\UserType;
 
 /**
- * Finalize a signed agent-member invitation. The chatter row is already in
- * the DB (provisioned by {@see InviteAgentChatterAction}) with a random
- * password and `email_verified_at = null`; this action just turns them from
- * "pending" into "active" once they pick a credential.
+ * Finalize an agent-chatter invitation. The chatter row is already in the DB
+ * (provisioned by {@see InviteAgentChatterAction}) with a random password and
+ * `email_verified_at = null`; this action turns them from "pending" into
+ * "active" once they pick a credential.
+ *
+ * The invitation row is locked, checked (still there, not expired) and deleted
+ * inside the same transaction as the account update, so a link can be used
+ * only once even when two accepts race, and a failed accept leaves it usable.
  *
  * Two paths (discriminated on {@see AcceptAgentInvitationData::$kind}):
  *   - Password — set their real password from the form.
@@ -35,18 +40,22 @@ class AcceptAgentInvitationAction
 {
     public function execute(AcceptAgentInvitationData $data): User
     {
+        $invitedEmail = $data->invitation->email;
+
         if ($data->kind === InvitationCredentialKind::Social) {
             $socialEmail = (string) $data->socialEmail;
-            if (! hash_equals(strtolower($data->invitedEmail), strtolower($socialEmail))) {
+            if (! hash_equals(strtolower($invitedEmail), strtolower($socialEmail))) {
                 throw new AgentChatterInvitationRejectedException(
                     'email',
-                    "This invitation was sent to {$data->invitedEmail}. Sign in with the {$data->socialProvider?->value} account that uses the same email.",
+                    "This invitation was sent to {$invitedEmail}. Sign in with the {$data->socialProvider?->value} account that uses the same email.",
                 );
             }
         }
 
         return DB::transaction(function () use ($data): User {
-            $chatter = $this->resolveInvitedChatter($data->agent, $data->invitedEmail);
+            $invitation = $this->lockValidInvitation($data->invitation);
+
+            $chatter = $this->resolveInvitedChatter($invitation->agent, $invitation->email);
 
             $fields = [
                 'name' => $data->name !== '' ? $data->name : $chatter->name,
@@ -66,8 +75,43 @@ class AcceptAgentInvitationAction
                 );
             }
 
+            // Single use: the link stops working in the same commit that
+            // activates the account.
+            $invitation->delete();
+
             return $chatter;
         });
+    }
+
+    /**
+     * Re-read the invitation under a row lock and make sure it can still be
+     * used. A concurrent accept that already deleted it, an expired link, or a
+     * deleted agent all reject.
+     */
+    private function lockValidInvitation(AgentChatterInvitation $given): AgentChatterInvitation
+    {
+        /** @var AgentChatterInvitation|null $invitation */
+        $invitation = AgentChatterInvitation::query()
+            ->whereKey($given->getKey())
+            ->where('token', $given->token)
+            ->lockForUpdate()
+            ->first();
+
+        if ($invitation === null || $invitation->agent === null) {
+            throw new AgentChatterInvitationRejectedException(
+                'invitation',
+                'This invitation is no longer valid. Ask the agent owner to send a new one.',
+            );
+        }
+
+        if ($invitation->hasExpired()) {
+            throw new AgentChatterInvitationRejectedException(
+                'invitation',
+                'This invitation has expired. Ask the agent owner to send a new one.',
+            );
+        }
+
+        return $invitation;
     }
 
     private function resolveInvitedChatter(Agent $agent, string $email): User

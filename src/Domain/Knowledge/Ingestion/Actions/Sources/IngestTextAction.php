@@ -26,9 +26,7 @@ class IngestTextAction
         $sourceText->update(['status' => SourceStatus::Processing->value]);
         TextIngestionStarted::dispatch($sourceText, $agent);
 
-        $file = $sourceText->readFile();
-
-        $texts = collect($this->splitter->split($file->getContent()));
+        $texts = collect($this->splitter->split($sourceText->readContents()));
 
         $jobs = collect($texts)->map(fn (PageData $page): TextChunkIngestionJob => new TextChunkIngestionJob($agent, $sourceText, $page));
 

@@ -1,0 +1,361 @@
+<?php
+
+namespace Domain\Conversation\Services\Streaming\Sources;
+
+use Domain\Conversation\Models\ToolApprovalCheckpoint;
+use Domain\Conversation\Services\ChatContext;
+use Domain\Conversation\Services\ChatService;
+use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
+use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
+use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
+use Domain\Conversation\Services\Streaming\Sources\Concerns\AttributesSpectraTurn;
+use Domain\Conversation\Services\Streaming\Sources\Concerns\InjectsToolSystemNote;
+use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
+use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
+use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
+use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Guardrail\Data\GuardResultData;
+use Domain\Guardrail\Services\GuardrailRecorder;
+use Domain\Guardrail\Services\GuardrailService;
+use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Usage\TokenUsageContext;
+use Generator;
+use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Facades\Log;
+use Throwable;
+
+/**
+ * Shared turn envelope for every streaming source that runs the agentic tool
+ * loop ({@see LlmSource}, {@see MistralPdfSource}). It owns everything the
+ * sources must do the same way: the `start` event, tool selection, the
+ * error-to-event mapping, the partial save on a client disconnect, the
+ * approval resume, and the finish step — which always runs the output
+ * guardrails before the answer is saved. A subclass only says which provider
+ * and model to stream from and how to word its errors.
+ */
+abstract class ToolLoopSource
+{
+    use AttributesSpectraTurn, InjectsToolSystemNote;
+
+    public function __construct(
+        protected readonly ChatService $chatService,
+        protected readonly RequestDedupeStore $dedupe,
+        protected readonly ToolSelector $toolSelector,
+        protected readonly ToolLoopRunner $runner,
+        protected readonly GuardrailService $guardrails,
+        protected readonly GuardrailRecorder $guardrailRecorder,
+    ) {}
+
+    /** The provider the tool loop streams the completion from. */
+    abstract protected function provider(): LlmProviderInterface;
+
+    /** The provider-side model name for this turn. */
+    abstract protected function modelName(ChatContext $context): string;
+
+    /** The provider slug used for cost tracking. */
+    abstract protected function providerSlug(ChatContext $context): string;
+
+    /** Short prefix for log lines, e.g. "Chat" or "Mistral PDF". */
+    abstract protected function logLabel(): string;
+
+    /** User-facing error when the upstream provider cannot be reached. */
+    abstract protected function upstreamUnavailableMessage(): string;
+
+    /** User-facing error when a fresh turn fails for any other reason. */
+    abstract protected function turnFailedMessage(): string;
+
+    /**
+     * Extra fields for the upstream-error log line. Empty by default.
+     *
+     * @return array<string, mixed>
+     */
+    protected function upstreamLogContext(Throwable $e): array
+    {
+        return [];
+    }
+
+    /**
+     * Stream a fresh turn using the v1 envelope:
+     *   1. yield `start`
+     *   2. tool loop via {@see ToolLoopRunner}: stream the model, relay deltas,
+     *      and on tool_calls either dispatch them inline or — if any call is
+     *      gated by human approval — checkpoint the turn, emit
+     *      `awaiting_approval`, and stop (the client resumes via resume()).
+     *   3. on a final answer: output guardrails, `sources`, persist, `done`
+     *
+     * @param  array<int, array<string, mixed>>  $llmMessages
+     * @return Generator<int, StreamEvent>
+     */
+    protected function streamTurn(ChatContext $context, array $llmMessages): Generator
+    {
+        $assistantId = $context->assistantMessageId;
+
+        // Bind every Spectra::stream() record produced during this turn to a
+        // shared trace_id (whole agentic chain = one operation) and to the
+        // owning workspace so anonymous-widget turns are attributed too.
+        $this->bindSpectraTurn($context);
+
+        yield StreamEvent::start($assistantId, [
+            'assistant_message_id' => $assistantId,
+            'user_message_id' => $context->userMessageId,
+            // Masked user text (PII redacted) so the client can swap the raw
+            // message it rendered optimistically — mirrors the answer `replace`.
+            'user_message' => $context->payload->message,
+            'request_id' => $context->requestData->requestId,
+            'language' => $context->queryLanguage,
+            'replayed' => false,
+        ]);
+
+        try {
+            $toolDefinitions = $this->prepareToolDefinitions($context);
+
+            // When the turn has tools, add one system note: a guard against
+            // claiming an action succeeded without a real tool result, plus (when
+            // approval is on) a heads-up that the app shows the Approve/Deny
+            // prompt automatically. The per-call gating decision is still made in
+            // the runner — we don't probe the policy per candidate tool.
+            if ($toolDefinitions !== []) {
+                $this->injectToolSystemNote($llmMessages, (bool) config('chatvia.agent.tools.approval_enabled', true));
+            }
+
+            $paused = yield from $this->runner->run(
+                context: $context,
+                provider: $this->provider(),
+                modelName: $this->modelName($context),
+                providerSlug: $this->providerSlug($context),
+                llmMessages: $llmMessages,
+                toolDefinitions: $toolDefinitions,
+                extraSettings: $context->requestData->agent->llmSettings(),
+                startIteration: 0,
+            );
+            if ($paused) {
+                return;
+            }
+
+            yield from $this->finishTurn($context);
+        } catch (ClientDisconnected) {
+            // Keep the partial answer so a quick retry with the same request id
+            // replays it instead of paying for a second upstream call.
+            $this->finishAfterDisconnect($context, rememberForReplay: true);
+        } catch (RequestException|UpstreamStreamClosed $e) {
+            yield from $this->failTurn($context, $e, 'stream', ErrorCode::UpstreamUnavailable, $this->upstreamUnavailableMessage());
+        } catch (Throwable $e) {
+            yield from $this->failTurn($context, $e, 'stream', ErrorCode::Internal, $this->turnFailedMessage());
+        }
+    }
+
+    /**
+     * Resume a paused turn after the user approved/denied the gated tool
+     * call(s). Applies the decisions, then continues the same tool loop on the
+     * same provider and streams the continuation under the original assistant
+     * message id.
+     *
+     * @param  array<string, string>  $decisions  tool_call_id => 'approve'|'deny'
+     * @return Generator<int, StreamEvent>
+     */
+    public function resume(ChatContext $context, ToolApprovalCheckpoint $checkpoint, array $decisions): Generator
+    {
+        $assistantId = $context->assistantMessageId;
+
+        // Keep resumed-turn upstream calls under the same trace_id as the
+        // original paused turn (and the same workspace attribution), so the
+        // whole approval-gated chain is one trace.
+        $this->bindSpectraTurn($context);
+
+        yield StreamEvent::start($assistantId, [
+            'assistant_message_id' => $assistantId,
+            'user_message_id' => null,
+            'request_id' => $context->requestData->requestId,
+            'language' => $context->queryLanguage,
+            'replayed' => false,
+            'resumed' => true,
+        ]);
+
+        try {
+            // The snapshot is a value array; mutate a local copy. It already
+            // carries the provider-specific user turn (e.g. PDF chunks) and the
+            // tool system note, so neither is added again here.
+            $llmMessages = $context->llmMessages;
+
+            // Apply the user's decisions to the paused turn's calls before
+            // continuing — approved/auto run for real, denied get a synthetic
+            // result so the turn stays valid and the model continues naturally.
+            yield from $this->runner->applyPendingCalls($context, $llmMessages, $checkpoint->pending_calls, $decisions);
+
+            $paused = yield from $this->runner->run(
+                context: $context,
+                provider: $this->provider(),
+                modelName: $this->modelName($context),
+                providerSlug: $this->providerSlug($context),
+                llmMessages: $llmMessages,
+                toolDefinitions: $this->prepareToolDefinitions($context),
+                extraSettings: $context->requestData->agent->llmSettings(),
+                startIteration: $checkpoint->iteration + 1,
+            );
+            if ($paused) {
+                return;
+            }
+
+            yield from $this->finishTurn($context);
+        } catch (ClientDisconnected) {
+            $this->finishAfterDisconnect($context, rememberForReplay: false);
+        } catch (RequestException|UpstreamStreamClosed $e) {
+            yield from $this->failTurn($context, $e, 'resume', ErrorCode::UpstreamUnavailable, $this->upstreamUnavailableMessage());
+        } catch (Throwable $e) {
+            yield from $this->failTurn($context, $e, 'resume', ErrorCode::Internal, __('Something went wrong while continuing the response.'));
+        }
+    }
+
+    /**
+     * The turn's candidate tools, in OpenAI shape. Approval is communicated to
+     * the model by a single system note (see injectToolSystemNote), not by
+     * annotating each tool — so this stays a pure pass-through with no
+     * per-candidate-tool policy lookups.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function prepareToolDefinitions(ChatContext $context): array
+    {
+        return $this->toolSelector->selectForTurn(
+            $context->requestData->agent,
+            $context->payload->message,
+            $context->requestData->conversationId,
+        );
+    }
+
+    /**
+     * Close a turn that produced a final answer. Output guardrails always run
+     * first, so no source can save or replay an answer the guards would have
+     * redacted or replaced.
+     *
+     * @return Generator<int, StreamEvent>
+     */
+    protected function finishTurn(ChatContext $context): Generator
+    {
+        $assistantId = $context->assistantMessageId;
+
+        // The corrected text becomes the persisted + replayed message; a
+        // `replace` event tells the client to swap what it already streamed.
+        $corrected = $this->applyOutputGuard($context);
+        if ($corrected !== null) {
+            yield StreamEvent::replace($assistantId, $corrected);
+        }
+
+        if ($context->requestData->streamSources && $context->sources->isNotEmpty()) {
+            yield StreamEvent::sources($assistantId, $context->sources->toArray());
+        }
+
+        $context->markEndTime();
+        $this->chatService->handleChatCompletion($context);
+        $this->rememberForReplay($context);
+
+        yield StreamEvent::done(
+            $assistantId,
+            'complete',
+            $context->getResponseTimeMs(),
+        );
+    }
+
+    /**
+     * Log + report a failed turn and tell the client with a typed error event.
+     *
+     * @return Generator<int, StreamEvent>
+     */
+    private function failTurn(ChatContext $context, Throwable $e, string $phase, ErrorCode $code, string $message): Generator
+    {
+        $upstream = $code === ErrorCode::UpstreamUnavailable;
+
+        Log::error(sprintf('%s %s %s', $this->logLabel(), $phase, $upstream ? 'upstream error' : 'crashed'), [
+            'exception' => $e::class,
+            'message' => $e->getMessage(),
+            ...($upstream ? $this->upstreamLogContext($e) : []),
+        ]);
+        report($e);
+
+        yield StreamEvent::error($context->assistantMessageId, $code, $message);
+        yield StreamEvent::done($context->assistantMessageId, 'error');
+    }
+
+    /**
+     * Output guardrails: redact PII / replace a toxic answer. When a guard
+     * fires, the streamed text is swapped for the corrected one and the event
+     * is recorded. Returns the corrected text, or null when nothing changed.
+     */
+    private function applyOutputGuard(ChatContext $context): ?string
+    {
+        $original = $context->streamedMessage;
+        if ($original === '') {
+            return null;
+        }
+
+        // The output-guardrail LLM call runs outside the context-build track()
+        // scope, so wrap it to attribute its tokens to the workspace.
+        $guard = app(TokenUsageContext::class)->track(
+            $context->requestData->agent->user_id,
+            fn (): GuardResultData => $this->guardrails->inspectOutput($context->requestData->agent, $original),
+            'guardrail',
+        );
+
+        if (! $guard->triggered()) {
+            return null;
+        }
+
+        $context->resetStreamedMessage();
+        $context->appendStreamedMessage($guard->text);
+        // Record the corrected (masked / safe) text — the audit snippet must
+        // not store the raw answer's PII.
+        $this->guardrailRecorder->record($context, $guard->text, $guard);
+
+        return $guard->text;
+    }
+
+    /**
+     * Save the partial answer after the client went away. Nobody is listening
+     * any more, but the text is still stored and shown in the history, so it
+     * passes the same output guardrails as a full answer. A failure here is
+     * reported, never thrown — there is no client left to tell.
+     */
+    private function finishAfterDisconnect(ChatContext $context, bool $rememberForReplay): void
+    {
+        $context->markEndTime();
+
+        try {
+            $this->applyOutputGuard($context);
+        } catch (Throwable $e) {
+            // Without a verdict from the guards the partial answer is not kept.
+            report($e);
+
+            return;
+        }
+
+        try {
+            $this->chatService->handleChatCompletion($context);
+        } catch (Throwable $e) {
+            report($e);
+        }
+
+        if ($rememberForReplay) {
+            $this->rememberForReplay($context);
+        }
+    }
+
+    private function rememberForReplay(ChatContext $context): void
+    {
+        $requestId = $context->requestData->requestId;
+        if (! $requestId || $context->streamedMessage === '') {
+            return;
+        }
+
+        try {
+            $this->dedupe->remember(
+                requestId: $requestId,
+                assistantMessageId: $context->assistantMessageId,
+                content: $context->streamedMessage,
+                language: $context->queryLanguage,
+                sources: $context->sources->toArray(),
+            );
+        } catch (Throwable $e) {
+            report($e);
+        }
+    }
+}

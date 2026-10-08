@@ -1,4 +1,5 @@
 import { authHeaders } from './auth.js';
+import { getApiUrl } from './endpoints.js';
 import { debug } from './utils.js';
 
 export function createSSEClient(agent_id, session_id, conversation_id, callbacks = {}) {
@@ -34,8 +35,7 @@ export function createSSEClient(agent_id, session_id, conversation_id, callbacks
     isStreaming = true;
     let isDone = false;
 
-    /* global __API_URL__ */
-    const sendUrl = __API_URL__ + '/stream';
+    const sendUrl = getApiUrl() + '/stream';
 
     // Transient, worker-/gateway-level failures: the POST was rejected before a
     // worker ran it (nothing persisted server-side), so re-sending the same turn

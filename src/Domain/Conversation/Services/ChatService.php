@@ -12,6 +12,7 @@ use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\Data\StreamRequestData;
 use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Knowledge\Ingestion\Services\Search\KnowledgeBase;
@@ -61,8 +62,11 @@ readonly class ChatService
         // Input guardrails (PII / injection / topic / toxicity). PII redaction
         // applies to what the LLM sees; a genuine injection / off-topic / toxic
         // message sets $guard->blocked, and the turn routes to GuardBlockSource
-        // (no LLM call, no credit) — see ChatStreamService.
-        $guard = $this->guardrails->inspectInput($data->agent, $data->message->message);
+        // (no LLM call, no credit) — see ChatStreamService. A run that opts out
+        // of guards (evals) gets the message back untouched.
+        $guard = $data->guardrailsEnabled
+            ? $this->guardrails->inspectInput($data->agent, $data->message->message)
+            : GuardResultData::clean($data->message->message);
 
         // The guarded text has PII masked (identical to the original when there's
         // no PII). It becomes BOTH what we persist/display AND — when PII was
@@ -291,7 +295,7 @@ readonly class ChatService
     {
         $agent = $context->requestData->agent;
 
-        if (! $this->guardrails->enabledFor($agent)) {
+        if (! $context->requestData->guardrailsEnabled || ! $this->guardrails->enabledFor($agent)) {
             return $sources;
         }
 

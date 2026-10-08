@@ -19,7 +19,6 @@ use App\Http\Middleware\Chat\EnsureChatIsAccessible;
 use App\Http\Middleware\Chat\RedirectToAgent;
 use App\Http\Middleware\Chat\ResolveAgentFromSubdomain;
 use App\Http\Middleware\Web\ContentSecurityPolicy;
-use App\Http\Middleware\Web\ForceWww;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use App\Http\Middleware\Web\SetLocale;
@@ -76,20 +75,21 @@ $app = Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
             RequirePasswordSetup::class,
             EnsureWorkspaceNetworkAllowed::class,
-            //            ContentSecurityPolicy::class,
+            // Also covers the hosted chat: chat routes run the `web` group too.
+            // CSP_MODE (config/chatvia.php) picks off / report-only / enforce.
+            ContentSecurityPolicy::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
-            //            ForceWww::class,
         ]);
 
+        // RedirectToAgent is not listed here: chat routes already run it as
+        // part of the `web` group above.
         $middleware->group('chat', [
             ResolveAgentFromSubdomain::class,
-            RedirectToAgent::class,
             AuthenticateChatterUsingToken::class,
             AuthenticateChatViaSignInToken::class,
             EnsureChatIsAccessible::class,
             EnsureAgentHasMessagesCapacity::class,
-            //            ContentSecurityPolicy::class,
             ChatHandleInertiaRequests::class,
         ]);
 
@@ -110,11 +110,13 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'localizationRedirect' => LaravelLocalizationRedirectFilter::class,
         ]);
 
+        // Exempt only endpoints that the session cookie doesn't authenticate:
+        // the embeddable widget (token auth) and server-to-server webhooks
+        // (Stripe, ingestion). The hosted chat (/chat/*) is cookie-authenticated,
+        // so it keeps CSRF protection: its frontend sends the XSRF-TOKEN cookie
+        // back as the X-XSRF-TOKEN header.
         $middleware->preventRequestForgery(except: [
-            '/chat/*',
-            '/embed/*',
             '/widget/*',
-            '/webhooks/*',
             '/stripe/*',
             '/ingestion/*',
         ]);

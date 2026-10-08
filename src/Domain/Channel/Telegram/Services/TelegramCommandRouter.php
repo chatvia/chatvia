@@ -2,6 +2,7 @@
 
 namespace Domain\Channel\Telegram\Services;
 
+use Domain\Channel\Services\ChannelLocale;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
 
@@ -25,7 +26,11 @@ class TelegramCommandRouter
     /** Built-in command names — always present, can't be deleted or renamed. */
     public const RESERVED = ['start', 'reset', 'help'];
 
-    /** Code defaults for the built-ins, overlaid with the agent's stored edits. */
+    /**
+     * Code defaults for the built-ins (English source text), overlaid with the
+     * agent's stored edits. Translated into the agent's channel language when
+     * used — see {@see builtinDefaults()}.
+     */
     private const BUILTIN_DEFAULTS = [
         'start' => ['description' => 'Start the conversation', 'type' => 'message', 'value' => 'Hello'],
         'reset' => ['description' => 'Start a new conversation', 'type' => 'message', 'value' => 'Started a new conversation. What would you like to talk about?'],
@@ -68,15 +73,15 @@ class TelegramCommandRouter
 
         // /help with no custom text auto-lists the available commands.
         if ($name === 'help' && $value === '') {
-            return TelegramCommandOutcome::message($this->autoHelp($commands));
+            return TelegramCommandOutcome::message($this->autoHelp($bot, $commands));
         }
 
         // Never let /start go silent.
         if ($name === 'start' && $value === '') {
-            $value = 'Hello';
+            $value = ChannelLocale::text($bot->agent, 'Hello');
         }
 
-        $value = $this->interpolate($value, $from);
+        $value = $this->interpolate($bot, $value, $from);
 
         return $entry['type'] === 'prompt'
             ? TelegramCommandOutcome::prompt($value)
@@ -131,7 +136,7 @@ class TelegramCommandRouter
 
         $result = [];
 
-        foreach (self::BUILTIN_DEFAULTS as $name => $default) {
+        foreach ($this->builtinDefaults($bot) as $name => $default) {
             $entry = $stored[$name] ?? [];
             $result[$name] = [
                 'command' => $name,
@@ -155,6 +160,25 @@ class TelegramCommandRouter
         }
 
         return $result;
+    }
+
+    /**
+     * The built-in defaults with their texts in the agent's channel language.
+     *
+     * @return array<string, array{description: string, type: string, value: string}>
+     */
+    private function builtinDefaults(AgentTelegramBot $bot): array
+    {
+        $locale = ChannelLocale::for($bot->agent);
+
+        return array_map(
+            static fn (array $default): array => [
+                ...$default,
+                'description' => (string) __($default['description'], [], $locale),
+                'value' => $default['value'] === '' ? '' : (string) __($default['value'], [], $locale),
+            ],
+            self::BUILTIN_DEFAULTS,
+        );
     }
 
     /** Parse "/cmd@botname args" → "cmd" (lowercased), or null when it isn't a command. */
@@ -181,19 +205,23 @@ class TelegramCommandRouter
     }
 
     /** Replace the {name} placeholder with the sender's first name (or a neutral fallback). */
-    private function interpolate(string $value, array $from): string
+    private function interpolate(AgentTelegramBot $bot, string $value, array $from): string
     {
+        if (! str_contains($value, '{name}')) {
+            return $value;
+        }
+
         $name = trim((string) ($from['first_name'] ?? ''));
 
-        return str_replace('{name}', $name !== '' ? $name : 'there', $value);
+        return str_replace('{name}', $name !== '' ? $name : ChannelLocale::text($bot->agent, 'there'), $value);
     }
 
     /**
      * @param  array<string, array{command: string, description: string, type: string, value: string}>  $commands
      */
-    private function autoHelp(array $commands): string
+    private function autoHelp(AgentTelegramBot $bot, array $commands): string
     {
-        $lines = ['Here is what I can do:', ''];
+        $lines = [ChannelLocale::text($bot->agent, 'Here is what I can do:'), ''];
 
         foreach ($commands as $name => $entry) {
             $description = trim($entry['description']);
@@ -201,7 +229,7 @@ class TelegramCommandRouter
         }
 
         $lines[] = '';
-        $lines[] = 'Or just send a message — you can ask me anything.';
+        $lines[] = ChannelLocale::text($bot->agent, 'Or just send a message — you can ask me anything.');
 
         return implode("\n", $lines);
     }

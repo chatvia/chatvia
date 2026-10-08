@@ -40,6 +40,34 @@ class Billing
         ]);
     }
 
+    /**
+     * The plan key and billing cycle behind a Stripe price, or null when the
+     * price is not one of the configured plan prices (an add-on price, or an
+     * archived price that is no longer in the config). Unlike
+     * {@see getPackageByPriceId()} this never falls back to the default
+     * package, so a caller can tell "unknown price" apart from "starter".
+     *
+     * @return array{package: string, is_yearly: bool}|null
+     */
+    public function planForPriceId(?string $priceId): ?array
+    {
+        if ($priceId === null || $priceId === '') {
+            return null;
+        }
+
+        foreach ((array) config('billing.packages', []) as $key => $package) {
+            if (($package['stripe_monthly_price_id'] ?? null) === $priceId) {
+                return ['package' => (string) $key, 'is_yearly' => false];
+            }
+
+            if (($package['stripe_yearly_price_id'] ?? null) === $priceId) {
+                return ['package' => (string) $key, 'is_yearly' => true];
+            }
+        }
+
+        return null;
+    }
+
     public function getFreePackage(): ?array
     {
         // Since free package is removed, return starter as default
@@ -132,7 +160,7 @@ class Billing
     private function calculateSavings(int $monthlyPrice, int $yearlyPrice): array
     {
         if ($monthlyPrice === 0 || $yearlyPrice === 0) {
-            return ['amount' => 0, 'percentage' => 0, 'formatted' => '$0'];
+            return ['amount' => 0, 'percentage' => 0, 'formatted' => $this->formatPrice(0)];
         }
 
         $yearlyEquivalent = $monthlyPrice * 12;

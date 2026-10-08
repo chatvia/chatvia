@@ -9,6 +9,10 @@ use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
+/**
+ * Queued wrapper around {@see AnalyzeConversationAction} for the scheduled
+ * end-of-life conversation analysis. Runs on the configured analytics queue.
+ */
 class AnalyzeConversationJob implements AttributesTokenUsage, ShouldQueue
 {
     use Queueable, TracksTokenUsage;
@@ -17,7 +21,7 @@ class AnalyzeConversationJob implements AttributesTokenUsage, ShouldQueue
 
     public function __construct(public Conversation $conversation)
     {
-        $this->onQueue('analytics');
+        $this->onQueue((string) config('chatvia.analytics.queue', 'analytics'));
     }
 
     public function tokenWorkspaceId(): ?int

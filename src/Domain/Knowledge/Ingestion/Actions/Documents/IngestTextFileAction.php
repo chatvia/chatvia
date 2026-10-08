@@ -38,14 +38,12 @@ class IngestTextFileAction
             return;
         }
 
-        $file = $sourceFile->readFile();
-
         // Ebooks are structured text — extract their markdown with Pandoc so
         // chunk.fit's title-based splitting has headings to work with. Raw
         // text files are already chunk-ready and read as-is.
         $text = $sourceFile->isEbook()
-            ? $this->pandoc->toMarkdown($file->getPathname(), $sourceFile->extension())
-            : $file->getContent();
+            ? $sourceFile->withLocalFile(fn ($file): string => $this->pandoc->toMarkdown($file->getPathname(), $sourceFile->extension()))
+            : $sourceFile->readContents();
 
         $pages = collect($this->chunker->splitByTitle($text))
             ->values()

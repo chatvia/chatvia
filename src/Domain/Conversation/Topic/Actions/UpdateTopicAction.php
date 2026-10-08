@@ -2,27 +2,36 @@
 
 namespace Domain\Conversation\Topic\Actions;
 
-use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\Topic;
 use Support\Exceptions\DomainValidationException;
+use Support\Exceptions\SystemTopicProtectedException;
 
+/**
+ * Renames / re-describes a workspace topic. Topics belong to the workspace
+ * owner (the agent's user), so any teammate who can manage the agent may edit
+ * them; system topics are read-only for everyone.
+ */
 class UpdateTopicAction
 {
     /**
-     * @throws DomainValidationException
+     * @throws SystemTopicProtectedException when the topic is a system topic
+     * @throws DomainValidationException when the topic is not the workspace's, or the name is taken
      */
-    public function execute(Topic $topic, User $user, string $newTopic, string $description): Topic
+    public function execute(Agent $agent, Topic $topic, string $newTopic, string $description): Topic
     {
         if ($topic->isSystem()) {
-            throw new DomainValidationException('topic', 'System topics cannot be modified');
+            throw new SystemTopicProtectedException('topic', 'System topics cannot be modified');
         }
 
-        if ($topic->user_id !== $user->id) {
+        // Key to the workspace owner — topics are created with the agent's
+        // user_id, never the acting teammate's.
+        if ($topic->user_id !== $agent->user_id) {
             throw new DomainValidationException('topic', 'You can only update your own topics');
         }
 
         $duplicate = Topic::query()
-            ->where('user_id', $user->id)
+            ->where('user_id', $agent->user_id)
             ->where('topic', $newTopic)
             ->where('id', '!=', $topic->id)
             ->exists();

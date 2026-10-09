@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Billing\Actions\Account;
 
 use Domain\Billing\Data\Account\PaymentMethodData;
+use Laravel\Cashier\PaymentMethod;
 
 /**
  * Removes a saved payment method from the workspace's Stripe customer.
@@ -15,7 +18,7 @@ class DeletePaymentMethodAction
         // Cashier's `Billable` trait lives on `UserBilling`, not `User`.
         $paymentMethod = $data->user->accountBillingOrFail()->findPaymentMethod($data->paymentMethodId);
 
-        if (! $paymentMethod) {
+        if (! $paymentMethod instanceof PaymentMethod) {
             return false;
         }
 

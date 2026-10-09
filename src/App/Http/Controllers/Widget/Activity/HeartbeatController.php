@@ -39,7 +39,7 @@ readonly class HeartbeatController
         // with a guessed id could move another visitor's activity time.
         $conversation = $findConversation->execute((string) $conversationId, $sessionId, $agent);
 
-        if (! $conversation) {
+        if (! $conversation instanceof Conversation) {
             return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 

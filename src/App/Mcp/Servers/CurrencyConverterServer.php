@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\Currency\ExchangeRateTool;
@@ -28,6 +30,7 @@ class CurrencyConverterServer extends Server
      *
      * @var array<int, class-string<Tool>>
      */
+    #[\Override]
     protected array $tools = [
         ExchangeRateTool::class,
     ];
@@ -35,10 +38,12 @@ class CurrencyConverterServer extends Server
     /**
      * @var array<int, class-string<Server\Resource>>
      */
+    #[\Override]
     protected array $resources = [];
 
     /**
      * @var array<int, class-string<Prompt>>
      */
+    #[\Override]
     protected array $prompts = [];
 }

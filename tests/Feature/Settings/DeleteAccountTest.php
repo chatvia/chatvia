@@ -18,7 +18,7 @@ function deletionConfirmUrl(User $user, ?Closure $tamper = null): string
         ['userId' => $user->id],
     );
 
-    return $tamper ? $tamper($url) : $url;
+    return $tamper instanceof Closure ? $tamper($url) : $url;
 }
 
 it('shows the delete page to a workspace owner with their agents and subscription state', function (): void {

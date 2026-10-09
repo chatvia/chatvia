@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Billing\Concerns;
 
 use Domain\Billing\Data\Stripe\CheckoutUrlsData;

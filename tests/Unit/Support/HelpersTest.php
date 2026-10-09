@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * The small global helpers in src/Support/helpers.php. prompt() has its own
  * test (PromptHelperTest).

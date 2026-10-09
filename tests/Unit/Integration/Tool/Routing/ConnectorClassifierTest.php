@@ -63,7 +63,7 @@ it('fails open (null) when the provider throws', function (): void {
     $provider = Mockery::mock(LlmProviderInterface::class);
     $provider->shouldReceive('completion')->andThrow(new RuntimeException('llm down'));
 
-    expect((new ConnectorClassifier($provider))->classify($agent, 'open a ticket'))->toBeNull();
+    expect(new ConnectorClassifier($provider)->classify($agent, 'open a ticket'))->toBeNull();
 });
 
 it('fails open (null) on an unparseable response', function (): void {

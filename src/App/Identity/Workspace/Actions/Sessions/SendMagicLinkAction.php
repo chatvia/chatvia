@@ -21,7 +21,7 @@ use MagicLink\MagicLink;
  */
 class SendMagicLinkAction
 {
-    private const LIFETIME_MINUTES = 15;
+    private const int LIFETIME_MINUTES = 15;
 
     public function execute(SendMagicLinkData $data, string $redirectUrl, ?Agent $agent = null): void
     {
@@ -33,7 +33,7 @@ class SendMagicLinkAction
             return;
         }
 
-        if ($agent !== null && ! $user->canAccessAgent($agent)) {
+        if ($agent instanceof Agent && ! $user->canAccessAgent($agent)) {
             return;
         }
 

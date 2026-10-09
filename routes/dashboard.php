@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Analytics\AnalyticsChatController;
 use App\Http\Controllers\Analytics\AnalyticsChatStreamController;
 use App\Http\Controllers\Billing\Capabilities\CapabilityController;

@@ -32,7 +32,7 @@ readonly class ResolveToolApprovalController
         // The checkpoint must belong to this agent and to the same chat session
         // that created it — a different visitor cannot resolve it.
         abort_unless(
-            $agent !== null
+            $agent instanceof Agent
             && $approval->agent_id === $agent->id
             && $approval->approvalContext()->externalSessionId === $this->session->findOrStart($agent),
             403,

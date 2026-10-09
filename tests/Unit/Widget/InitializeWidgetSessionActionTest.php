@@ -86,7 +86,7 @@ it('defaults locale to en when no Accept-Language is provided', function (): voi
 
     $result = app(InitializeWidgetSessionAction::class)->execute(
         $agent,
-        iwsInitData(acceptLanguage: null),
+        iwsInitData(),
     );
 
     $mint = Session::query()->where('external_id', $result->session_id)->first();

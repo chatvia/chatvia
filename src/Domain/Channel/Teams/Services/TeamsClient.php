@@ -25,9 +25,9 @@ use Throwable;
 class TeamsClient
 {
     /** Teams rejects activities whose total payload exceeds ~28 KB. */
-    private const MESSAGE_LIMIT = 25000;
+    private const int MESSAGE_LIMIT = 25000;
 
-    private const TOKEN_SCOPE = 'https://api.botframework.com/.default';
+    private const string TOKEN_SCOPE = 'https://api.botframework.com/.default';
 
     /**
      * Validate the bot's credentials by requesting a Bot Framework token —

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Channel\Teams\Data;
 
 use Spatie\LaravelData\Data;

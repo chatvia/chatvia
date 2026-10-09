@@ -358,14 +358,14 @@ describe('Stripe webhook', function (): void {
         try {
             Cashier::$registersRoutes = true;
 
-            (new AppServiceProvider(app()))->register();
+            new AppServiceProvider(app())->register();
 
             expect(Cashier::$registersRoutes)->toBeFalse();
 
             Cashier::$registersRoutes = true;
             config(['billing.enabled' => true]);
 
-            (new AppServiceProvider(app()))->register();
+            new AppServiceProvider(app())->register();
 
             expect(Cashier::$registersRoutes)->toBeTrue();
         } finally {
@@ -389,7 +389,7 @@ describe('booting', function (): void {
 
             config(['billing.enabled' => true]);
 
-            expect(fn () => (fn () => $this->assertProductionSecurityConfig())->call($provider))
+            expect(fn (): null => (fn () => $this->assertProductionSecurityConfig())->call($provider))
                 ->toThrow(RuntimeException::class, 'STRIPE_WEBHOOK_SECRET');
         } finally {
             app()->detectEnvironment(fn (): string => 'testing');

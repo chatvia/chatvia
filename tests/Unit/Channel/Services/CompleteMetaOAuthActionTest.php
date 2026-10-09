@@ -17,7 +17,7 @@ function fakeCompleteOAuth(?string $userToken): MetaOAuthClient
     {
         public ?string $exchangedWith = null;
 
-        public function __construct(private ?string $userToken) {}
+        public function __construct(private readonly ?string $userToken) {}
 
         public function exchangeCodeForUserToken(string $code, ?string $redirectUri = null): ?string
         {
@@ -39,7 +39,7 @@ function fakeCompleteOAuth(?string $userToken): MetaOAuthClient
 }
 
 it('lists the granted Pages for Messenger', function (): void {
-    $accounts = (new CompleteMetaOAuthAction(fakeCompleteOAuth('USER')))->execute(MetaOAuthChannel::Messenger, 'code');
+    $accounts = new CompleteMetaOAuthAction(fakeCompleteOAuth('USER'))->execute(MetaOAuthChannel::Messenger, 'code');
 
     expect($accounts)->toHaveCount(1)
         ->and($accounts[0])->toBeInstanceOf(MetaPageData::class);
@@ -49,12 +49,12 @@ it('lists the IG accounts for Instagram, exchanging with the Instagram callback 
     config(['services.meta.instagram_redirect' => 'https://app.example/ig/callback']);
     $oauth = fakeCompleteOAuth('USER');
 
-    $accounts = (new CompleteMetaOAuthAction($oauth))->execute(MetaOAuthChannel::Instagram, 'code');
+    $accounts = new CompleteMetaOAuthAction($oauth)->execute(MetaOAuthChannel::Instagram, 'code');
 
     expect($accounts[0])->toBeInstanceOf(InstagramAccountData::class)
         ->and($oauth->exchangedWith)->toBe('https://app.example/ig/callback');
 });
 
 it('returns nothing when the code exchange fails', function (): void {
-    expect((new CompleteMetaOAuthAction(fakeCompleteOAuth(null)))->execute(MetaOAuthChannel::Messenger, 'code'))->toBe([]);
+    expect(new CompleteMetaOAuthAction(fakeCompleteOAuth(null))->execute(MetaOAuthChannel::Messenger, 'code'))->toBe([]);
 });

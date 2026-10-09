@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Agent\Analytics\Topic;
 
 use App\Http\Requests\Agent\Analytics\AnalyticsDateRangeRequest;

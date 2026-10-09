@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Agent\Channel\AgentInstagramChannelController;
 use App\Http\Controllers\Agent\Channel\AgentMessengerChannelController;
 use App\Http\Controllers\Agent\Chunks\AgentChunkImageViewController;

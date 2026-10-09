@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Knowledge\Ingestion\Services\Chunking;
 
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;

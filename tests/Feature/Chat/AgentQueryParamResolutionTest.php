@@ -34,7 +34,7 @@ it('resolves an agent from the ?agent= query param on the apex domain', function
     $request->setLaravelSession(app('session.store'));
 
     $called = false;
-    $response = app(ResolveAgentFromSubdomain::class)->handle($request, function () use (&$called) {
+    $response = app(ResolveAgentFromSubdomain::class)->handle($request, function () use (&$called): Response {
         $called = true;
 
         return new Response('next');
@@ -72,7 +72,7 @@ it('keeps the agent sticky via the session on a later param-less request', funct
     $second->setLaravelSession($session);
 
     $called = false;
-    $response = app(ResolveAgentFromSubdomain::class)->handle($second, function () use (&$called) {
+    $response = app(ResolveAgentFromSubdomain::class)->handle($second, function () use (&$called): Response {
         $called = true;
 
         return new Response('next');
@@ -90,7 +90,7 @@ it('renders AgentNotFound for an unknown ?agent= value', function (): void {
     $request->setLaravelSession(app('session.store'));
 
     $called = false;
-    $response = app(ResolveAgentFromSubdomain::class)->handle($request, function () use (&$called) {
+    $response = app(ResolveAgentFromSubdomain::class)->handle($request, function () use (&$called): Response {
         $called = true;
 
         return new Response('next');
@@ -132,7 +132,7 @@ it('does not redirect when already on a /chat path', function (): void {
     $request = Request::create('https://chatvia.test/chat', 'GET', ['agent' => $agent->external_id]);
 
     $called = false;
-    $response = app(RedirectToAgent::class)->handle($request, function () use (&$called) {
+    $response = app(RedirectToAgent::class)->handle($request, function () use (&$called): Response {
         $called = true;
 
         return new Response('next');

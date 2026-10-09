@@ -28,14 +28,12 @@ test('posts the expected envelope to the Scaleway rerank endpoint', function ():
 
     (new Qwen3Reranker)->rerank('what is the largest ocean?', ['a', 'b']);
 
-    Http::assertSent(function (Request $request): bool {
-        return $request->method() === 'POST'
-            && $request->url() === 'https://api.scaleway.test/project-x/v1/rerank'
-            && $request->hasHeader('Authorization', 'Bearer test-key')
-            && $request['model'] === 'qwen3-embedding-8b'
-            && $request['query'] === 'what is the largest ocean?'
-            && $request['documents'] === ['a', 'b'];
-    });
+    Http::assertSent(fn (Request $request): bool => $request->method() === 'POST'
+        && $request->url() === 'https://api.scaleway.test/project-x/v1/rerank'
+        && $request->hasHeader('Authorization', 'Bearer test-key')
+        && $request['model'] === 'qwen3-embedding-8b'
+        && $request['query'] === 'what is the largest ocean?'
+        && $request['documents'] === ['a', 'b']);
 });
 
 test('maps Scaleway results to {index, relevance_score} pairs preserving order', function (): void {
@@ -70,7 +68,7 @@ test('sends the configured rerank model and caps results at three by default', f
 });
 
 test('fails with a clear message when the API key is missing', function (): void {
-    config()->set('services.scalewayai.api_key', null);
+    config()->set('services.scalewayai.api_key');
 
     expect(fn (): array => (new Qwen3Reranker)->rerank('q', ['a']))
         ->toThrow(RuntimeException::class, 'reranker API key is not configured');

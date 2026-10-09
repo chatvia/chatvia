@@ -78,11 +78,9 @@ it('dispatches a job for a verified message activity', function (): void {
         ->assertOk()
         ->assertJson(['ok' => true]);
 
-    Bus::assertDispatched(HandleTeamsActivityJob::class, function ($job) {
-        return $job->activity['conversation']['id'] === 'a:1conversation'
-            && $job->activity['text'] === 'hello agent'
-            && $job->bot->is($this->teamsBot);
-    });
+    Bus::assertDispatched(HandleTeamsActivityJob::class, fn ($job) => $job->activity['conversation']['id'] === 'a:1conversation'
+        && $job->activity['text'] === 'hello agent'
+        && $job->bot->is($this->teamsBot));
 });
 
 it('verifies the JWT against this bot’s App ID', function (): void {

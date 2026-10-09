@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Knowledge\Source\File\Data;
 
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;

@@ -18,7 +18,7 @@ use Tests\Support\Teams\FakeTeamsClient;
 it('stores the bot when Entra accepts the credentials', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
 
-    $bot = (new ConnectTeamsBotAction(new FakeTeamsClient, new ChannelConnectionGuard))
+    $bot = new ConnectTeamsBotAction(new FakeTeamsClient, new ChannelConnectionGuard)
         ->execute($agent, new ConnectTeamsData('f5e1f9d2-1111-2222-3333-444455556666', 'client-secret-value'));
 
     expect($bot)->not->toBeNull()
@@ -33,7 +33,7 @@ it('stores the bot when Entra accepts the credentials', function (): void {
 it('stores the tenant id for single-tenant bots', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
 
-    $bot = (new ConnectTeamsBotAction(new FakeTeamsClient, new ChannelConnectionGuard))
+    $bot = new ConnectTeamsBotAction(new FakeTeamsClient, new ChannelConnectionGuard)
         ->execute($agent, new ConnectTeamsData('f5e1f9d2-1111-2222-3333-444455556666', 'client-secret-value', 'a0b1c2d3-9999-8888-7777-666655554444'));
 
     expect($bot->tenant_id)->toBe('a0b1c2d3-9999-8888-7777-666655554444');
@@ -44,7 +44,7 @@ it('throws a rejection and stores nothing when Entra rejects the credentials', f
     $client = new FakeTeamsClient;
     $client->credentialsValid = false;
 
-    expect(fn (): AgentTeamsBot => (new ConnectTeamsBotAction($client, new ChannelConnectionGuard))
+    expect(fn (): AgentTeamsBot => new ConnectTeamsBotAction($client, new ChannelConnectionGuard)
         ->execute($agent, new ConnectTeamsData('f5e1f9d2-1111-2222-3333-444455556666', 'wrong-secret')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::Rejected));
 
@@ -67,7 +67,7 @@ it('reconnecting updates the same row and rotates the webhook secret', function 
 it('refuses a protected agent before calling Entra', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
 
-    expect(fn (): AgentTeamsBot => (new ConnectTeamsBotAction(new FakeTeamsClient, new ChannelConnectionGuard))
+    expect(fn (): AgentTeamsBot => new ConnectTeamsBotAction(new FakeTeamsClient, new ChannelConnectionGuard)
         ->execute($agent, new ConnectTeamsData('f5e1f9d2-1111-2222-3333-444455556666', 'client-secret-value')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::ProtectedAgent));
 

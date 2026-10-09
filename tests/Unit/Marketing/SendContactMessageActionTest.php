@@ -26,7 +26,7 @@ it('mails the message to the inbox with the sender as reply-to', function (): vo
 });
 
 it('renders every field of the message', function (): void {
-    $html = (new ContactMail(contactMessage()))->render();
+    $html = new ContactMail(contactMessage())->render();
 
     expect($html)->toContain('Jane')
         ->toContain('jane@example.com')
@@ -35,7 +35,7 @@ it('renders every field of the message', function (): void {
 });
 
 it('leaves the company line out when none was given', function (): void {
-    expect((new ContactMail(contactMessage(company: null)))->render())->not->toContain('Company:');
+    expect(new ContactMail(contactMessage(company: null))->render())->not->toContain('Company:');
 });
 
 it('sends nothing when no inbox is configured', function (?string $inbox): void {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Chat\Auth;
 use App\Http\Chat\HostedChatAgent;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Identity\Workspace\Actions\Sessions\LoginUserToAgentAction;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\RateLimiter;
@@ -22,7 +23,7 @@ class ChatLoginController
     ): RedirectResponse {
         $user = $loginToAgent->execute($request->toData(), $agent);
 
-        if (! $user) {
+        if (! $user instanceof User) {
             RateLimiter::hit($request->throttleKey());
 
             throw ValidationException::withMessages([

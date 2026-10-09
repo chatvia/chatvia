@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Identity\Workspace\Services;
 
 use App\Identity\Workspace\Models\User;
@@ -37,7 +39,7 @@ final readonly class TeamPermissionPolicy
 
         $team = $this->teamOf($user);
 
-        if ($team === null) {
+        if (! $team instanceof Team) {
             return false;
         }
 
@@ -53,7 +55,7 @@ final readonly class TeamPermissionPolicy
 
         $team = $this->teamOf($user);
 
-        if ($team === null || ! $this->teams->canAccessAgent($user, $team, $agent)) {
+        if (! $team instanceof Team || ! $this->teams->canAccessAgent($user, $team, $agent)) {
             return false;
         }
 

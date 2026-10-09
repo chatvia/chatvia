@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
  */
 class FormDefinitionFactory extends Factory
 {
+    #[\Override]
     protected $model = FormDefinition::class;
 
     /**

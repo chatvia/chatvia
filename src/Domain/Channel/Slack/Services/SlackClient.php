@@ -19,7 +19,7 @@ use Throwable;
 class SlackClient
 {
     /** Slack rejects message text over 40k chars. */
-    private const MESSAGE_LIMIT = 40000;
+    private const int MESSAGE_LIMIT = 40000;
 
     /**
      * Validate a bot token and return the app's identity, or null if invalid.

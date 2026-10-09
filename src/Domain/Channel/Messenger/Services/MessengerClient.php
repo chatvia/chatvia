@@ -19,7 +19,7 @@ use Domain\Channel\Services\PlainTextFormatter;
 class MessengerClient extends MetaGraphClient
 {
     /** Messenger caps a single text message at 2000 chars. */
-    private const MESSAGE_LIMIT = 2000;
+    private const int MESSAGE_LIMIT = 2000;
 
     /**
      * Validate a page access token and return the page's identity, or null if

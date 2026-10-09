@@ -122,8 +122,8 @@ class ChannelReplyRunner
             message: new StreamRequestMessageData(model: $agent->llm, message: $turn->message),
             externalSessionId: $turn->sessionExternalId,
             conversationId: $turn->conversationExternalId,
-            source: $turn->source->value,
             saveUserMessageImmediately: true,
+            source: $turn->source->value,
             requestId: $turn->requestIdPrefix.Str::uuid(),
         ));
         $context = $this->chatService->enrichContextWithKnowledge($context);
@@ -135,7 +135,7 @@ class ChannelReplyRunner
         };
 
         foreach ($events as $_event) {
-            if ($onProgress !== null) {
+            if ($onProgress instanceof Closure) {
                 $onProgress($context->streamedMessage);
             }
         }

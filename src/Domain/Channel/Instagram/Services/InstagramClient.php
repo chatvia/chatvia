@@ -20,7 +20,7 @@ use Domain\Channel\Services\PlainTextFormatter;
 class InstagramClient extends MetaGraphClient
 {
     /** Instagram caps a single text message at 1000 chars. */
-    private const MESSAGE_LIMIT = 1000;
+    private const int MESSAGE_LIMIT = 1000;
 
     /**
      * Subscribe the linked Page to its `messages` field — this transitively

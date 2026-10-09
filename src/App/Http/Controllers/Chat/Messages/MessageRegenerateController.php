@@ -7,6 +7,7 @@ use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\RegenerateMessageRequest;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Messages\RegenerateMessageAction;
+use Domain\Conversation\Data\Messages\RegeneratedTurnData;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -27,7 +28,7 @@ class MessageRegenerateController
             $request->userMessageId(),
         );
 
-        if ($result === null) {
+        if (! $result instanceof RegeneratedTurnData) {
             return response()->json(['error' => __('User message not found')], 404);
         }
 

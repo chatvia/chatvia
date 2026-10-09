@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Admin\Resources\Workspaces\Pages;
 
 use App\Admin\Resources\Workspaces\WorkspaceResource;
@@ -10,5 +12,6 @@ use Filament\Resources\Pages\ViewRecord;
  */
 class ViewWorkspace extends ViewRecord
 {
+    #[\Override]
     protected static string $resource = WorkspaceResource::class;
 }

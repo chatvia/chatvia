@@ -42,7 +42,7 @@ class GetTopUsersTool extends AnalyticsTool
             'messages' => $user->messages,
         ], $data->topUsers);
 
-        $summary = empty($top)
+        $summary = $top === []
             ? sprintf('No identified users sent messages %s yet.', $period->label)
             : sprintf(
                 'Most active %s: %s with %s messages. %s identified users in total, %s new visitors.',

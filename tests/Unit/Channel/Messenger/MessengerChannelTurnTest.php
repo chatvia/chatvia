@@ -66,7 +66,7 @@ it('resolves the thread, sends the agent reply, and stamps last_message_at', fun
 it('keeps one thread mapping across multiple inbound messages', function (): void {
     $page = messengerTurnPage();
     $client = new FakeMessengerClient;
-    $action = (new StubChannelReplyRunner('ok'))->handler();
+    $action = new StubChannelReplyRunner('ok')->handler();
 
     $action->execute(messengerTurnAdapter($client, $page, '900'), 'first');
     $action->execute(messengerTurnAdapter($client, $page, '900'), 'second');

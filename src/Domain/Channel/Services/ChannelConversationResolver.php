@@ -60,7 +60,7 @@ abstract class ChannelConversationResolver
             // conversation() excludes soft-deleted rows, so a retention-pruned
             // conversation reads as missing here.
             if ($existing->conversation()->exists()) {
-                if ($onReuse !== null) {
+                if ($onReuse instanceof Closure) {
                     $onReuse($existing);
                 }
 
@@ -78,7 +78,7 @@ abstract class ChannelConversationResolver
         // The three writes (session, conversation, mapping) must land together:
         // a failure on the final write would otherwise leak an orphan Session +
         // Conversation that no channel row points at.
-        return DB::transaction(function () use ($agent, $name, $context, $source, $identity) {
+        return DB::transaction(function () use ($agent, $name, $context, $source, $identity): Model {
             $session = Session::create([
                 'agent_id' => $agent->id,
                 'user_id' => null,

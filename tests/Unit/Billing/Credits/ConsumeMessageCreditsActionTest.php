@@ -136,7 +136,7 @@ it('does not charge twice when a retry follows a failure after the increment com
     $failing->shouldReceive('forWorkspace')->andReturnSelf();
     $failing->shouldReceive('refreshCanSendMessages')->once()->andThrow(new RuntimeException('cache unavailable'));
 
-    expect(fn () => (new ConsumeMessageCreditsAction($failing, app(Entitlements::class), app(AutoRechargePolicy::class)))->execute($user->id, $llm->id, chargeKey: 'charge-retry'))
+    expect(fn () => new ConsumeMessageCreditsAction($failing, app(Entitlements::class), app(AutoRechargePolicy::class))->execute($user->id, $llm->id, chargeKey: 'charge-retry'))
         ->toThrow(RuntimeException::class, 'cache unavailable');
 
     expect((int) $credit->usage()->value('messages'))->toBe(4);
@@ -156,7 +156,7 @@ it('releases the charge key when the increment rolls back so the retry charges',
     $failing->shouldReceive('forWorkspace')->andReturnSelf();
     $failing->shouldReceive('updateAfterCreditConsumption')->once()->andThrow(new RuntimeException('deadlock'));
 
-    expect(fn () => (new ConsumeMessageCreditsAction($failing, app(Entitlements::class), app(AutoRechargePolicy::class)))->execute($user->id, $llm->id, chargeKey: 'charge-rollback'))
+    expect(fn () => new ConsumeMessageCreditsAction($failing, app(Entitlements::class), app(AutoRechargePolicy::class))->execute($user->id, $llm->id, chargeKey: 'charge-rollback'))
         ->toThrow(RuntimeException::class, 'deadlock');
 
     expect((int) $credit->usage()->value('messages'))->toBe(0);
@@ -186,5 +186,5 @@ it('gives every credits job its own charge key and reuses it when the job is ret
 
     // A job queued before the key existed must still unserialise: the property
     // needs a declared default, not a promoted constructor parameter.
-    expect((new ReflectionProperty(UpdateUserCreditsJob::class, 'chargeKey'))->hasDefaultValue())->toBeTrue();
+    expect(new ReflectionProperty(UpdateUserCreditsJob::class, 'chargeKey')->hasDefaultValue())->toBeTrue();
 });

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Api\V1\Agent\AgentController;
 use App\Http\Controllers\Api\V1\Agent\AgentFunctionAttachmentController;
 use App\Http\Controllers\Api\V1\Agent\AgentMcpAttachmentController;

@@ -33,7 +33,7 @@ class RenewedPlanResolver
 
         $plan = $this->planForAnyPrice($invoice->linePriceIds);
 
-        if ($plan !== null) {
+        if ($plan instanceof PlanSelectionData) {
             return $plan;
         }
 
@@ -53,7 +53,7 @@ class RenewedPlanResolver
         foreach ($priceIds as $priceId) {
             $plan = $this->plans->planForPrice($priceId);
 
-            if ($plan !== null) {
+            if ($plan instanceof PlanSelectionData) {
                 return $plan;
             }
         }
@@ -86,7 +86,7 @@ class RenewedPlanResolver
      */
     private function localPriceIds(?Subscription $subscription): array
     {
-        if ($subscription === null) {
+        if (! $subscription instanceof Subscription) {
             return [];
         }
 

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Widget\WidgetHeaders;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -37,7 +38,7 @@ class RateLimitServiceProvider extends ServiceProvider
         // per server-resolved agent is stacked on top: an attacker cannot drain
         // a public agent's message quota (and trigger auto-recharge) by
         // multiplying sessions. Applies to /widget/stream and attachments.
-        RateLimiter::for('widget-stream', function (Request $request) {
+        RateLimiter::for('widget-stream', function (Request $request): array {
             $sessionKey = $request->header(WidgetHeaders::SESSION_ID) ?: $request->ip();
 
             $limits = [
@@ -46,7 +47,7 @@ class RateLimitServiceProvider extends ServiceProvider
 
             $agent = WidgetAgent::from($request);
 
-            if ($agent) {
+            if ($agent instanceof Agent) {
                 $limits[] = Limit::perMinute((int) config('chatvia.widget.stream_per_agent_per_minute', 120))
                     ->by('widget-stream|agent|'.$agent->id);
                 $limits[] = Limit::perHour((int) config('chatvia.widget.stream_per_agent_per_hour', 1500))

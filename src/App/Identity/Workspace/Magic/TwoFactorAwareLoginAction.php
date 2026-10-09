@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Identity\Workspace\Magic;
 
 use App\Http\Auth\MagicLinkSignIn;

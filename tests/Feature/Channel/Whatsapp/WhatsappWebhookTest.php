@@ -109,13 +109,11 @@ it('dispatches a job for a valid, signed message — with the sender name from t
         ->assertOk()
         ->assertJson(['ok' => true]);
 
-    Bus::assertDispatched(HandleWhatsappMessageJob::class, function ($job) {
-        return $job->waId === '4915551234567'
-            && $job->text === 'hello'
-            && $job->messageId === 'wamid.AAA1'
-            && $job->name === 'Sam'
-            && $job->number->is($this->number);
-    });
+    Bus::assertDispatched(HandleWhatsappMessageJob::class, fn ($job) => $job->waId === '4915551234567'
+        && $job->text === 'hello'
+        && $job->messageId === 'wamid.AAA1'
+        && $job->name === 'Sam'
+        && $job->number->is($this->number));
 });
 
 it('ignores a request with a bad signature', function (): void {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Settings\Account\DataExportController;
 use App\Http\Controllers\Settings\Account\DeleteAccountController;
 use App\Http\Controllers\Settings\Account\PasskeyController;

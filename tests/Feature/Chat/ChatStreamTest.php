@@ -41,7 +41,7 @@ function bindFakeStreamingLlm(string ...$tokens): void
     }
     $sse .= "data: [DONE]\n\n";
 
-    $fake = new class($sse) implements LlmProviderInterface
+    $fake = new readonly class($sse) implements LlmProviderInterface
     {
         public function __construct(private string $sse) {}
 
@@ -55,7 +55,7 @@ function bindFakeStreamingLlm(string ...$tokens): void
             throw new RuntimeException('client() not used');
         }
 
-        public function completion(array $data): void
+        public function completion(array $data): never
         {
             throw new RuntimeException('completion() not used');
         }
@@ -87,12 +87,12 @@ function bindFakeStreamingLlm(string ...$tokens): void
     // otherwise the test env has no embedding API key and the request 500s.
     app()->instance(EmbeddingsProviderInterface::class, new class implements EmbeddingsProviderInterface
     {
-        public function embed(string $text, bool $returnAsText = false): string|array
+        public function embed(string $text, bool $returnAsText = false): array
         {
             return array_fill(0, 1024, 0.1);
         }
 
-        public function embedQuery(string $text, bool $returnAsText = false): string|array
+        public function embedQuery(string $text, bool $returnAsText = false): array
         {
             return array_fill(0, 1024, 0.1);
         }

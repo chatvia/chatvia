@@ -117,7 +117,7 @@ class TokenUsageContext
      */
     public function current(): ?int
     {
-        return $this->stack === [] ? null : $this->stack[array_key_last($this->stack)]['workspace'];
+        return $this->stack === [] ? null : array_last($this->stack)['workspace'];
     }
 
     /**

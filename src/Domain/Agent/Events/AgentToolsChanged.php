@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Agent\Events;
 
 use Domain\Agent\Listeners\ForgetAgentToolPool;

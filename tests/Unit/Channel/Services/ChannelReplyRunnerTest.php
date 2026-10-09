@@ -11,8 +11,7 @@ use Domain\Channel\Services\ChannelReplyRunner;
 function stripArtifactTags(string $reply): string
 {
     $runner = app(ChannelReplyRunner::class);
-    $method = (new ReflectionClass(ChannelReplyRunner::class))->getMethod('stripWebOnlyArtifactTags');
-    $method->setAccessible(true);
+    $method = new ReflectionClass(ChannelReplyRunner::class)->getMethod('stripWebOnlyArtifactTags');
 
     return $method->invoke($runner, $reply);
 }

@@ -55,13 +55,13 @@ class AppearanceTextResolver
      */
     public function localize(Collection $appearance, ?string $configuredLanguage, ?string $acceptLanguage): Collection
     {
-        $locale = ($configuredLanguage !== null && $configuredLanguage !== '' && $configuredLanguage !== 'auto')
+        $locale = (! in_array($configuredLanguage, [null, '', 'auto'], true))
             ? $configuredLanguage
             : $acceptLanguage;
 
         $resolved = array_filter(
             $this->resolve($appearance, $locale),
-            static fn ($value): bool => $value !== null,
+            static fn (?string $value): bool => $value !== null,
         );
 
         return $appearance->merge($resolved);

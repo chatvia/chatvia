@@ -19,23 +19,23 @@ use Illuminate\Foundation\Events\Dispatchable;
  *
  * Build it via {@see self::for()}, which denormalizes the {@see SecurityActorData}.
  */
-final class SecurityEventOccurred
+final readonly class SecurityEventOccurred
 {
     use Dispatchable;
 
     public function __construct(
-        public readonly int $workspaceId,
-        public readonly string $action,
-        public readonly ?int $userId,
-        public readonly ?string $userName,
-        public readonly ?string $userEmail,
-        public readonly ?string $ip,
-        public readonly ?string $userAgent,
-        public readonly ?string $targetType,
-        public readonly ?string $targetId,
-        public readonly ?string $targetLabel,
-        public readonly string $metadata,
-        public readonly string $outcome,
+        public int $workspaceId,
+        public string $action,
+        public ?int $userId,
+        public ?string $userName,
+        public ?string $userEmail,
+        public ?string $ip,
+        public ?string $userAgent,
+        public ?string $targetType,
+        public ?string $targetId,
+        public ?string $targetLabel,
+        public string $metadata,
+        public string $outcome,
     ) {}
 
     /**

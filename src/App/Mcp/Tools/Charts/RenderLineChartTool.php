@@ -80,7 +80,7 @@ class RenderLineChartTool extends EChartsTool
     {
         $xAxis = $this->withAxisName([
             'type' => $input['xAxisType'] ?? 'category',
-            'data' => array_map('strval', $input['xAxis']),
+            'data' => array_map(strval(...), $input['xAxis']),
             'boundaryGap' => false,
         ], $input, 'xAxisLabel');
 

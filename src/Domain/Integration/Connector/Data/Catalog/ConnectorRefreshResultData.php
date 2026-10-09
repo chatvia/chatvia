@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Connector\Data\Catalog;
 
 use Domain\Integration\Mcp\Data\Resources\AgentMcpServerData;

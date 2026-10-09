@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Support\Whatsapp;
 
 use Domain\Channel\Whatsapp\Services\WhatsappClient;
@@ -33,25 +35,25 @@ class FakeWhatsappClient extends WhatsappClient
 
     public function subscribeWaba(string $token, string $wabaId): bool
     {
-        $this->subscriptions[] = compact('token', 'wabaId');
+        $this->subscriptions[] = ['token' => $token, 'wabaId' => $wabaId];
 
         return true;
     }
 
     public function registerNumber(string $token, string $phoneNumberId, string $pin): bool
     {
-        $this->registrations[] = compact('token', 'phoneNumberId', 'pin');
+        $this->registrations[] = ['token' => $token, 'phoneNumberId' => $phoneNumberId, 'pin' => $pin];
 
         return true;
     }
 
     public function sendMessage(string $token, string $phoneNumberId, string $to, string $markdown): void
     {
-        $this->sent[] = compact('token', 'phoneNumberId', 'to', 'markdown');
+        $this->sent[] = ['token' => $token, 'phoneNumberId' => $phoneNumberId, 'to' => $to, 'markdown' => $markdown];
     }
 
     public function sendTypingIndicator(string $token, string $phoneNumberId, string $messageId): void
     {
-        $this->typing[] = compact('token', 'phoneNumberId', 'messageId');
+        $this->typing[] = ['token' => $token, 'phoneNumberId' => $phoneNumberId, 'messageId' => $messageId];
     }
 }

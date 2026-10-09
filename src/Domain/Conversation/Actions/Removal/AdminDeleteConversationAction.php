@@ -40,7 +40,7 @@ class AdminDeleteConversationAction
 
         // Record WHO deleted it. `deleted_by` is varchar(10) — too narrow for
         // an email — so the acting user's id is stored.
-        $deletedBy = $actor !== null ? (string) $actor->id : Conversation::DELETED_BY_ADMIN;
+        $deletedBy = $actor instanceof User ? (string) $actor->id : Conversation::DELETED_BY_ADMIN;
 
         DB::transaction(function () use ($agent, $conversation, $session, $deletedBy): void {
             $this->deleteConversation->execute(

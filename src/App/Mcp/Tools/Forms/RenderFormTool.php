@@ -3,6 +3,8 @@
 namespace App\Mcp\Tools\Forms;
 
 use App\Mcp\McpCallerContext;
+use Domain\Agent\Models\Agent;
+use Domain\Conversation\Models\Conversation;
 use Domain\Form\Actions\RenderInlineFormAction;
 use Domain\Form\Data\InlineFormData;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -31,10 +33,10 @@ class RenderFormTool extends Tool
         if ($caller->conversationExternalId === null) {
             return Response::error('Missing X-Chatvia-Conversation-Id header — a form can only be rendered inside an active chat conversation.');
         }
-        if ($caller->agent === null) {
+        if (! $caller->agent instanceof Agent) {
             return Response::error("Unknown agent \"{$caller->agentExternalId}\".");
         }
-        if ($caller->conversation === null) {
+        if (! $caller->conversation instanceof Conversation) {
             return Response::error('Conversation not found or does not belong to this agent.');
         }
 
@@ -51,7 +53,7 @@ class RenderFormTool extends Tool
         $requested = trim($validated['slug']);
         $outcome = $render->execute($caller->agent, $caller->conversation, $requested);
 
-        if ($outcome->form !== null) {
+        if ($outcome->form instanceof InlineFormData) {
             return $this->rendered($outcome->form);
         }
 

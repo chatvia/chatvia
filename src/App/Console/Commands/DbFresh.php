@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use Illuminate\Console\Attributes\Description;
@@ -30,9 +32,9 @@ class DbFresh extends Command
      * must be dropped first. On the way UP we go in dependency order with
      * `vector` first.
      */
-    private const EXTENSIONS_DOWN = ['vchord_bm25', 'vchord', 'pg_tokenizer'];
+    private const array EXTENSIONS_DOWN = ['vchord_bm25', 'vchord', 'pg_tokenizer'];
 
-    private const EXTENSIONS_UP = ['vector', 'pg_trgm', 'pg_tokenizer', 'vchord', 'vchord_bm25'];
+    private const array EXTENSIONS_UP = ['vector', 'pg_trgm', 'pg_tokenizer', 'vchord', 'vchord_bm25'];
 
     public function handle(): int
     {

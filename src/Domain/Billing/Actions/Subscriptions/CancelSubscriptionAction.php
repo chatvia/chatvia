@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Billing\Data\Stripe\StripeMetadata;
 use Domain\Billing\Data\Subscriptions\StripeScheduleData;
 use Laravel\Cashier\Cashier;
+use Laravel\Cashier\Subscription;
 
 /**
  * Cancels the workspace's plan subscription at the end of the current period.
@@ -19,7 +20,7 @@ class CancelSubscriptionAction
     {
         $subscription = $user->accountBilling()?->ownedSubscription('default');
 
-        if ($subscription === null) {
+        if (! $subscription instanceof Subscription) {
             return;
         }
 

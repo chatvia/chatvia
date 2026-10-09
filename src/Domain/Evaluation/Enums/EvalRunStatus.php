@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Evaluation\Enums;
 
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;

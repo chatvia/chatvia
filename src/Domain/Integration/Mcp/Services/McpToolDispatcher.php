@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Mcp\Services;
 
 use Domain\Agent\Models\Agent;
@@ -44,7 +46,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
         // Shared per-request lookup: the display + approval steps already
         // loaded this row for the same call.
         $server = $this->servers->attachedToAgent($agent, $slug);
-        if (! $server) {
+        if (! $server instanceof AgentMcpServer) {
             return $this->error("MCP server \"{$slug}\" is not attached to this agent or is disabled.");
         }
 

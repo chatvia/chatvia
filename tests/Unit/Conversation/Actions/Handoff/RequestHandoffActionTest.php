@@ -57,12 +57,10 @@ it('transitions handoff_status from ai to pending and broadcasts HandedOff', fun
     expect($result)->toBe(HandoffStatus::Pending)
         ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Pending);
 
-    Event::assertDispatched(HandedOff::class, function (HandedOff $event) use ($conversation): bool {
-        return $event->conversationId === $conversation->external_id
-            && $event->status === 'pending'
-            && $event->adminId === null
-            && $event->adminName === null;
-    });
+    Event::assertDispatched(HandedOff::class, fn (HandedOff $event): bool => $event->conversationId === $conversation->external_id
+        && $event->status === 'pending'
+        && $event->adminId === null
+        && $event->adminName === null);
 });
 
 it('returns "human" without dispatching when the conversation is already with a human', function (): void {

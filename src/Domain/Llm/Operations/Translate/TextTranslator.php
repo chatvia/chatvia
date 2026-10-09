@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Llm\Operations\Translate;
 
 use Domain\Llm\Data\Chat\ChatMessageData;

@@ -122,11 +122,9 @@ it('never leaks the webhook secret into audit metadata, only a rotation flag', f
         policyActor($user),
     );
 
-    Event::assertDispatched(SecurityEventOccurred::class, function (SecurityEventOccurred $e): bool {
-        return $e->action === SecurityAuditAction::PolicyChanged->value
-            && str_contains($e->metadata, 'webhook_secret_rotated')
-            && ! str_contains($e->metadata, 'shh-secret');
-    });
+    Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyChanged->value
+        && str_contains($e->metadata, 'webhook_secret_rotated')
+        && ! str_contains($e->metadata, 'shh-secret'));
 });
 
 it('rejects a non-https webhook URL (SSRF guard)', function (): void {

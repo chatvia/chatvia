@@ -23,12 +23,12 @@ use Throwable;
  */
 class TeamsActivityVerifier
 {
-    private const OPENID_CONFIGURATION = 'https://login.botframework.com/v1/.well-known/openidconfiguration';
+    private const string OPENID_CONFIGURATION = 'https://login.botframework.com/v1/.well-known/openidconfiguration';
 
-    private const ISSUER = 'https://api.botframework.com';
+    private const string ISSUER = 'https://api.botframework.com';
 
     /** Accept this much clock skew on exp/nbf (mirrors the HMAC channels' replay window). */
-    private const LEEWAY_SECONDS = 300;
+    private const int LEEWAY_SECONDS = 300;
 
     /**
      * @return array<string, mixed>|null the verified token claims, or null when the request is not genuine

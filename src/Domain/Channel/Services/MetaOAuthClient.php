@@ -231,7 +231,7 @@ class MetaOAuthClient
             ]), $byId);
         }
 
-        $pages = array_map(static fn (array $page): MetaPageData => MetaPageData::from($page), array_values($byId));
+        $pages = array_map(MetaPageData::from(...), array_values($byId));
 
         $context = [
             'personal_pages' => $personalCount,

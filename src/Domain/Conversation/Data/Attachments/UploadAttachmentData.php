@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Conversation\Data\Attachments;
 
 use Domain\Conversation\Actions\Attachments\StoreAttachmentAction;

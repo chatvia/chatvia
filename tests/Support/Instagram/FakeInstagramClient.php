@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Support\Instagram;
 
 use Domain\Channel\Instagram\Services\InstagramClient;
@@ -25,7 +27,7 @@ class FakeInstagramClient extends InstagramClient
 
     public function subscribeAccount(string $pageToken, string $pageId): bool
     {
-        $this->subscriptions[] = compact('pageToken', 'pageId');
+        $this->subscriptions[] = ['pageToken' => $pageToken, 'pageId' => $pageId];
 
         return true;
     }

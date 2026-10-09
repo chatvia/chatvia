@@ -39,7 +39,7 @@ function slackHandleApp(bool $public = true): AgentSlackApp
  */
 function slackHandle(FakeSlackClient $client, StubChannelReplyRunner $runner, AgentSlackApp $app, string $channelId, string $text, ?string $threadTs = null): void
 {
-    (new HandleSlackEventAction($runner->handler()))->execute(
+    new HandleSlackEventAction($runner->handler())->execute(
         new SlackAdapter($client, new SlackChannelResolver(app(StartConversationAction::class), $client), $app, $channelId, $threadTs),
         $text,
     );

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class MessageFactory extends Factory
 {
+    #[\Override]
     protected $model = Message::class;
 
     /**
@@ -21,18 +22,18 @@ class MessageFactory extends Factory
      */
     public function definition(): array
     {
-        $role = $this->faker->randomElement(['user', 'assistant']);
+        $role = fake()->randomElement(['user', 'assistant']);
 
         return [
             'chat_conversation_id' => Conversation::factory(),
-            'generation_id' => $this->faker->optional(0.5)->uuid(),
-            'content' => $this->faker->paragraphs(rand(1, 3), true),
+            'generation_id' => fake()->optional(0.5)->uuid(),
+            'content' => fake()->paragraphs(random_int(1, 3), true),
             'metadata' => null,
             'role' => $role,
             'llm_id' => $role === 'assistant' ? $this->getRandomLlmId() : null,
-            'confidence_score' => $role === 'assistant' ? $this->faker->optional(0.7)->randomFloat(4, 0.7, 1) : null,
-            'feedback' => $this->faker->optional(0.2)->randomElement(['positive', 'negative']),
-            'response_time_ms' => $role === 'assistant' ? $this->faker->numberBetween(500, 5000) : null,
+            'confidence_score' => $role === 'assistant' ? fake()->optional(0.7)->randomFloat(4, 0.7, 1) : null,
+            'feedback' => fake()->optional(0.2)->randomElement(['positive', 'negative']),
+            'response_time_ms' => $role === 'assistant' ? fake()->numberBetween(500, 5000) : null,
         ];
     }
 
@@ -43,7 +44,7 @@ class MessageFactory extends Factory
     {
         $llmIds = Llm::pluck('id')->toArray();
 
-        return $llmIds ? $this->faker->randomElement($llmIds) : null;
+        return $llmIds ? fake()->randomElement($llmIds) : null;
     }
 
     /**
@@ -51,7 +52,7 @@ class MessageFactory extends Factory
      */
     public function fromUser(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'role' => 'user',
             'llm_id' => null,
             'confidence_score' => null,
@@ -64,11 +65,11 @@ class MessageFactory extends Factory
      */
     public function fromAssistant(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'role' => 'assistant',
             'llm_id' => $this->getRandomLlmId(),
-            'confidence_score' => $this->faker->randomFloat(4, 0.7, 1),
-            'response_time_ms' => $this->faker->numberBetween(500, 5000),
+            'confidence_score' => fake()->randomFloat(4, 0.7, 1),
+            'response_time_ms' => fake()->numberBetween(500, 5000),
         ]);
     }
 
@@ -77,7 +78,7 @@ class MessageFactory extends Factory
      */
     public function withPositiveFeedback(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'feedback' => 'positive',
         ]);
     }
@@ -87,7 +88,7 @@ class MessageFactory extends Factory
      */
     public function withNegativeFeedback(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'feedback' => 'negative',
         ]);
     }
@@ -97,7 +98,7 @@ class MessageFactory extends Factory
      */
     public function withMetadata(array $metadata): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'metadata' => $metadata,
         ]);
     }

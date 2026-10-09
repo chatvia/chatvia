@@ -51,7 +51,7 @@ class KnowledgeEnricher
         // Q&A matches on the stored message, not the rewritten query.
         $qaMatch = $this->findQaMatch($agent, $context->payload->message);
 
-        if ($qaMatch !== null) {
+        if ($qaMatch instanceof QaMatchData) {
             $context->setQaMatch($qaMatch);
             $context->setConfidenceScore($qaMatch->confidenceScore);
 

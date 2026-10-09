@@ -38,11 +38,11 @@ use Psr\Http\Message\ResponseInterface;
  */
 function fakeLlmProvider(bool $supportsCost = false, ?array $usage = null): LlmProviderInterface
 {
-    return new class($supportsCost, $usage) implements LlmProviderInterface
+    return new readonly class($supportsCost, $usage) implements LlmProviderInterface
     {
         public function __construct(
-            private readonly bool $supportsCost,
-            private readonly ?array $usage,
+            private bool $supportsCost,
+            private ?array $usage,
         ) {}
 
         public function stream(string $model, array $messages, array $settings = []): ResponseInterface
@@ -55,7 +55,7 @@ function fakeLlmProvider(bool $supportsCost = false, ?array $usage = null): LlmP
             throw new RuntimeException('client() not used in StoreAssistantMessageAction tests');
         }
 
-        public function completion(array $data): void
+        public function completion(array $data): never
         {
             throw new RuntimeException('completion() not used in StoreAssistantMessageAction tests');
         }

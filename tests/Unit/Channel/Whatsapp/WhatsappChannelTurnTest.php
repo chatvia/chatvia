@@ -65,7 +65,7 @@ it('resolves the chat, sends the agent reply, and stamps last_message_at', funct
 it('keeps one chat mapping across multiple inbound messages', function (): void {
     $number = whatsappTurnNumber();
     $client = new FakeWhatsappClient;
-    $action = (new StubChannelReplyRunner('ok'))->handler();
+    $action = new StubChannelReplyRunner('ok')->handler();
 
     $action->execute(whatsappTurnAdapter($client, $number, '900', 'wamid.1'), 'first');
     $action->execute(whatsappTurnAdapter($client, $number, '900', 'wamid.2'), 'second');

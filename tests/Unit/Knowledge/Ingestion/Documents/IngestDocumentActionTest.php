@@ -72,9 +72,7 @@ it('routes ingestion via a Bus batch named with the SourceFile id', function ():
 
     app()->make(IngestDocumentAction::class, ['parser' => idaFakeParser()])->execute($sourceFile, $agent);
 
-    Bus::assertBatched(function ($batch) use ($sourceFile): bool {
-        return str_contains((string) $batch->name, (string) $sourceFile->id);
-    });
+    Bus::assertBatched(fn ($batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
 })->skip('Bus batch shape depends on whether parser_filepath has chunks present; covered by ingestion feature path.');
 
 it('reads the document with the configured parser and records the parser name', function (): void {

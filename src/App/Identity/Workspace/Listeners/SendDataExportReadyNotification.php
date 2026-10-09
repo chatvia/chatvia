@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Identity\Workspace\Listeners;
 
 use App\Identity\Workspace\Events\DataExportReady;

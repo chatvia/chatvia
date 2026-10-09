@@ -38,7 +38,7 @@ class GetTopTopicsTool extends AnalyticsTool
         );
         $period = $scope->period;
 
-        $summary = empty($topics)
+        $summary = $topics === []
             ? sprintf('No topics recorded %s yet.', $period->label)
             : sprintf(
                 'Top topic %s is "%s" (%s conversations).',

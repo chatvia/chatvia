@@ -9,6 +9,7 @@ use Domain\Conversation\Actions\Activity\MarkMessagesReadAction;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Enums\MessageReader;
+use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Conversation\WidgetMarkReadResultData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -39,7 +40,7 @@ readonly class MarkReadController
 
         // Without this check anyone with a conversation id could mark another
         // visitor's messages as read.
-        if (! $findConversation->execute((string) $conversationId, $sessionId, $agent)) {
+        if (! $findConversation->execute((string) $conversationId, $sessionId, $agent) instanceof Conversation) {
             return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Form\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
@@ -9,7 +11,7 @@ use Illuminate\Foundation\Events\Dispatchable;
  * capture path. Fully denormalized, answers included, so the queued CRM
  * webhook listener never has to re-read the submission row.
  */
-final class FormSubmitted
+final readonly class FormSubmitted
 {
     use Dispatchable;
 
@@ -17,14 +19,14 @@ final class FormSubmitted
      * @param  array<string, mixed>  $values  Submission answers keyed by field.
      */
     public function __construct(
-        public readonly int $agentId,
-        public readonly int $workspaceId,
-        public readonly int $submissionId,
-        public readonly string $formSlug,
-        public readonly string $formType,
-        public readonly ?string $conversationExternalId,
-        public readonly bool $created,
-        public readonly string $source,
-        public readonly array $values,
+        public int $agentId,
+        public int $workspaceId,
+        public int $submissionId,
+        public string $formSlug,
+        public string $formType,
+        public ?string $conversationExternalId,
+        public bool $created,
+        public string $source,
+        public array $values,
     ) {}
 }

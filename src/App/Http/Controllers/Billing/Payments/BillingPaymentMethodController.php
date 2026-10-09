@@ -21,7 +21,7 @@ class BillingPaymentMethodController
         $billing = $user->accountBilling();
 
         return Inertia::render('billing/PaymentMethods', [
-            'paymentMethods' => $billing->paymentMethods()->map(function (PaymentMethod $paymentMethod) use ($billing) {
+            'paymentMethods' => $billing->paymentMethods()->map(function (PaymentMethod $paymentMethod) use ($billing): array {
                 $stripe = $paymentMethod->asStripePaymentMethod();
                 $default = $billing->defaultPaymentMethod();
                 $defaultId = $default instanceof PaymentMethod

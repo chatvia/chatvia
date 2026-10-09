@@ -33,5 +33,5 @@ it('stamps the conversation and the signed-in chatter when known', function (): 
         'X-Chatvia-Metadata' => 'null',
         'X-Chatvia-Conversation-Id' => 'conv-uuid',
         'X-Chatvia-Chatter-Id' => 'chatter-uuid',
-    ])->and(ToolCallerIdentity::headers($agent, null, null))->not->toHaveKeys(['X-Chatvia-Conversation-Id', 'X-Chatvia-Chatter-Id']);
+    ])->and(ToolCallerIdentity::headers($agent))->not->toHaveKeys(['X-Chatvia-Conversation-Id', 'X-Chatvia-Chatter-Id']);
 });

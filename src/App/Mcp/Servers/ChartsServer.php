@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\Charts\RenderBarChartTool;
@@ -59,6 +61,7 @@ class ChartsServer extends Server
      *
      * @var array<int, class-string<Tool>>
      */
+    #[\Override]
     protected array $tools = [
         RenderBarChartTool::class,
         RenderLineChartTool::class,
@@ -77,10 +80,12 @@ class ChartsServer extends Server
     /**
      * @var array<int, class-string<Server\Resource>>
      */
+    #[\Override]
     protected array $resources = [];
 
     /**
      * @var array<int, class-string<Prompt>>
      */
+    #[\Override]
     protected array $prompts = [];
 }

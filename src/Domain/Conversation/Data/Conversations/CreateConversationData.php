@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Conversation\Data\Conversations;
 
 use Domain\Conversation\Actions\Conversations\CreateConversationAction;

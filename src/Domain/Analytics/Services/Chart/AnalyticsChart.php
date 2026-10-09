@@ -53,7 +53,7 @@ final class AnalyticsChart
             'tooltip' => ['trigger' => 'axis'],
             'legend' => ['show' => count($built) > 1, 'top' => 'bottom'],
             'grid' => ['left' => 50, 'right' => 30, 'top' => $title ? 50 : 20, 'bottom' => count($built) > 1 ? 40 : 20, 'containLabel' => true],
-            'xAxis' => ['type' => 'category', 'data' => array_map('strval', array_values($categories)), 'boundaryGap' => false],
+            'xAxis' => ['type' => 'category', 'data' => array_map(strval(...), array_values($categories)), 'boundaryGap' => false],
             'yAxis' => ['type' => 'value'],
             'series' => $built,
         ], $title);

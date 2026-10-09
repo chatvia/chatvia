@@ -41,7 +41,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
-        dirname(__DIR__).'/src/App/Console/Commands',
+        __DIR__.'/../src/App/Console/Commands',
     ])
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -132,7 +132,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
         $middleware->trustProxies(at: match (true) {
             $trustedProxies === '*', $trustedProxies === '' => $isLocal ? '*' : [],
-            default => array_values(array_filter(array_map('trim', explode(',', $trustedProxies)))),
+            default => array_values(array_filter(array_map(trim(...), explode(',', $trustedProxies)))),
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {

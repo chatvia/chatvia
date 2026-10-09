@@ -7,6 +7,7 @@ use Domain\Billing\Data\Subscriptions\SchedulePlanChangeData;
 use Domain\Billing\Data\Subscriptions\StripeScheduleData;
 use Domain\Billing\Services\PlanCatalog;
 use Laravel\Cashier\Cashier;
+use Laravel\Cashier\Subscription;
 
 /**
  * Schedules a move to another plan at the end of the current billing period,
@@ -29,7 +30,7 @@ class SchedulePlanChangeAction
         $userBilling = $user->accountBilling();
         $subscription = $userBilling?->subscribed() ? $userBilling->ownedSubscription('default') : null;
 
-        if ($subscription === null) {
+        if (! $subscription instanceof Subscription) {
             return false;
         }
 

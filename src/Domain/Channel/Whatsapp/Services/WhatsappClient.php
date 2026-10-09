@@ -20,7 +20,7 @@ use Domain\Channel\Services\MetaGraphClient;
 class WhatsappClient extends MetaGraphClient
 {
     /** WhatsApp caps a single text body at 4096 chars. */
-    private const MESSAGE_LIMIT = 4096;
+    private const int MESSAGE_LIMIT = 4096;
 
     /**
      * Validate an access token + phone number id pair and return the number's

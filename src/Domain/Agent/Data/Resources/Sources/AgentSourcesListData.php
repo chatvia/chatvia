@@ -30,12 +30,10 @@ class AgentSourcesListData extends Data
                 filename: $source->filename,
                 filetype: $source->filetype,
                 length: $source->length,
-                agents: $source->agents->map(function ($agent) {
-                    return [
-                        'id' => $agent->id,
-                        'name' => $agent->name,
-                    ];
-                })->toArray(),
+                agents: $source->agents->map(fn ($agent) => [
+                    'id' => $agent->id,
+                    'name' => $agent->name,
+                ])->toArray(),
             );
         }
 

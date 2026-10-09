@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Auth\Social;
 
-use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
 
@@ -11,7 +12,7 @@ use Laravel\Socialite\Two\AbstractProvider;
  */
 final class GoogleAuthController
 {
-    public function __invoke(Request $request)
+    public function __invoke()
     {
         /** @var AbstractProvider $provider */
         $provider = Socialite::driver('google');

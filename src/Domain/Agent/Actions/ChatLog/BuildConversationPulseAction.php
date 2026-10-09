@@ -82,9 +82,7 @@ class BuildConversationPulseAction
             );
         }
 
-        /** @var ChatLogPulseMessageData $first */
         $first = $points->first();
-        /** @var ChatLogPulseMessageData $last */
         $last = $points->last();
         /** @var ChatLogPulseMessageData $low */
         $low = $points->sortBy('sentiment_score')->first();

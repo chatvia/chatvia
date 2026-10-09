@@ -4,6 +4,7 @@ namespace App\Http\Resources\Api\V1\Conversations;
 
 use Domain\Billing\Enums\Capability;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\DataCollection;
@@ -36,7 +37,7 @@ class ConversationDetailData extends Data
             ->orderBy('id')
             ->limit(500)
             ->get()
-            ->map(fn ($m): ConversationMessageData => ConversationMessageData::fromModel($m));
+            ->map(fn (Message $m): ConversationMessageData => ConversationMessageData::fromModel($m));
 
         return new self(
             id: $conversation->external_id,

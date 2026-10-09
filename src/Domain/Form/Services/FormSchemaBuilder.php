@@ -14,7 +14,7 @@ namespace Domain\Form\Services;
 class FormSchemaBuilder
 {
     /** Normalized type → FormKit input type. */
-    private const FORMKIT_TYPES = [
+    private const array FORMKIT_TYPES = [
         'text' => 'text',
         'email' => 'email',
         'tel' => 'tel',
@@ -146,7 +146,7 @@ class FormSchemaBuilder
         return array_values(array_map(static fn (array $o): array => [
             'value' => (string) ($o['value'] ?? ''),
             'label' => (string) ($o['label'] ?? ($o['value'] ?? '')),
-        ], array_filter($options, 'is_array')));
+        ], array_filter($options, is_array(...))));
     }
 
     /**

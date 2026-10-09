@@ -6,6 +6,7 @@ use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Requests\Chat\Forms\SubmitInlineFormRequest;
 use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Models\Conversation;
 use Domain\Form\Actions\SubmitFormAction;
 use Domain\Form\Data\SubmitFormData;
 use Domain\Form\Enums\FormClaimFailure;
@@ -38,7 +39,7 @@ class SubmitInlineFormController
             $agent,
             $this->widgetUser($request),
         );
-        abort_unless($conversation !== null, JsonResponse::HTTP_FORBIDDEN);
+        abort_unless($conversation instanceof Conversation, JsonResponse::HTTP_FORBIDDEN);
 
         try {
             $result = $action->execute(new SubmitFormData(

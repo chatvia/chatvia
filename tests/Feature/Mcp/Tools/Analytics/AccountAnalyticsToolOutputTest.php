@@ -306,7 +306,7 @@ function seededAnalyticsDb(): Connection
 function analyticsCaller(?User $workspace): void
 {
     $request = Request::create('/mcp/account-analytics', 'POST');
-    if ($workspace !== null) {
+    if ($workspace instanceof User) {
         $request->headers->set('X-Chatvia-Workspace-Id', $workspace->external_id);
     }
 

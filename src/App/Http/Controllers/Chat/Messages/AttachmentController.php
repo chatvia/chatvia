@@ -40,7 +40,7 @@ class AttachmentController
     {
         $externalId = (string) ($request->header('X-CONVERSATION-ID') ?: self::PENDING_CONVERSATION);
 
-        if ($externalId === self::PENDING_CONVERSATION || $agent === null) {
+        if ($externalId === self::PENDING_CONVERSATION || ! $agent instanceof Agent) {
             return null;
         }
 

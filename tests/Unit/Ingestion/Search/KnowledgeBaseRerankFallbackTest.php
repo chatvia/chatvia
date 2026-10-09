@@ -50,7 +50,7 @@ function kbFallbackProvider(bool $rerankThrows): void
         }
     });
 
-    app()->instance(Reranker::class, new class($rerankThrows) implements Reranker
+    app()->instance(Reranker::class, new readonly class($rerankThrows) implements Reranker
     {
         public function __construct(private bool $rerankThrows) {}
 

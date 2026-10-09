@@ -34,7 +34,7 @@ class SetSecurityOverride extends Command
 
         $workspace = $this->workspace((string) $this->argument('workspace'));
 
-        if ($workspace === null) {
+        if (! $workspace instanceof User) {
             $this->error('No workspace owner matches that email or id.');
 
             return self::FAILURE;

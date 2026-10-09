@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Tool\Actions\Embedding;
 
+use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
@@ -70,13 +73,13 @@ class EmbedConnectorToolsAction
     private function connectorContext(string $connectorSlug): string
     {
         $preset = $this->catalog->find($connectorSlug);
-        if ($preset !== null) {
+        if ($preset instanceof ConnectorData) {
             return trim($preset->name."\n".$preset->description);
         }
 
         foreach ((array) config('mcp.builtin', []) as $entry) {
             if (($entry['slug'] ?? null) === $connectorSlug) {
-                return trim((string) ($entry['name'] ?? '')."\n".(string) ($entry['description'] ?? ''));
+                return trim(($entry['name'] ?? '')."\n".($entry['description'] ?? ''));
             }
         }
 

@@ -137,7 +137,7 @@ class UpdateSecurityPolicyRequest extends FormRequest
             ip_allowlist: $this->cleanList('ip_allowlist'),
             geo_mode: GeoMode::from((string) $this->input('geo_mode')),
             // Lowercase to match the countries table + the geo-IP provider's codes.
-            geo_countries: array_values(array_unique(array_map('strtolower', $this->cleanList('geo_countries')))),
+            geo_countries: array_values(array_unique(array_map(strtolower(...), $this->cleanList('geo_countries')))),
             webhook_url: $this->blankToNull($this->input('webhook_url')),
             // Write-only: a blank value leaves the stored secret untouched.
             webhook_secret: $this->blankToNull($this->input('webhook_secret')),

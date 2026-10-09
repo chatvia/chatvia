@@ -58,7 +58,7 @@ class AnalyzeConversationAction
 
         $analysis = $this->analyzer->analyze($this->transcript($messages), $agent);
 
-        if ($analysis === null) {
+        if (! $analysis instanceof ConversationAnalysisData) {
             return;
         }
 

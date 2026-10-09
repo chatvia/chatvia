@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Agent\Widget;
 
 use Domain\Agent\Data\Settings\Copy\BubbleData;

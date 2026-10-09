@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Mcp\Tools\Perplexity;
 
 use Laravel\Mcp\Server\Attributes\Description;

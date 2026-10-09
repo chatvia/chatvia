@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use Domain\Agent\Models\Agent;
@@ -11,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class AgentStarterFactory extends Factory
 {
+    #[\Override]
     protected $model = AgentStarter::class;
 
     public function definition(): array

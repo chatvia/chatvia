@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Widget\Data\Activity;
 
 use Domain\Conversation\Enums\MessageFeedback;

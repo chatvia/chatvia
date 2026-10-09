@@ -35,7 +35,7 @@ class ExportSubmissionsCsvAction
         }
 
         $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, [...array_map(fn (string $k): string => $labels[$k] ?? $k, $fields), 'Submitted at']);
+        fputcsv($handle, [...array_map(fn (string $k): string => $labels[$k] ?? $k, $fields), 'Submitted at'], escape: '\\');
 
         foreach ($query->cursor() as $submission) {
             $row = [];
@@ -43,7 +43,7 @@ class ExportSubmissionsCsvAction
                 $row[] = $this->csvSafe($submission->field($key) ?? '');
             }
             $row[] = optional($submission->submitted_at)->toDateTimeString() ?? '';
-            fputcsv($handle, $row);
+            fputcsv($handle, $row, escape: '\\');
         }
 
         rewind($handle);

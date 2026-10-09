@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Channel\Services\Replies;
 
 use Domain\Channel\Contracts\ChannelConversationMapping;
@@ -26,14 +28,14 @@ class TypingReplyStrategy
     public function deliver(SendsTypingIndicator $channel, ChannelConversationMapping $conversation, string $message): void
     {
         $channel->sendTyping();
-        $lastTyping = self::now();
+        $lastTyping = $this->now();
 
         $reply = $this->runner->reply(
             ChannelTurnData::for($channel, $conversation, $message),
             function () use ($channel, &$lastTyping): void {
-                if (self::now() - $lastTyping >= $channel->typingRefreshSeconds()) {
+                if ($this->now() - $lastTyping >= $channel->typingRefreshSeconds()) {
                     $channel->sendTyping();
-                    $lastTyping = self::now();
+                    $lastTyping = $this->now();
                 }
             },
         );
@@ -42,7 +44,7 @@ class TypingReplyStrategy
     }
 
     /** Seconds since the epoch, from the app clock so tests can travel in time. */
-    private static function now(): float
+    private function now(): float
     {
         return now()->getPreciseTimestamp(3) / 1000;
     }

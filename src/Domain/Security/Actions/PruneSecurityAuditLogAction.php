@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Security\Actions;
 
 use Domain\Security\Models\SecurityAuditLog;

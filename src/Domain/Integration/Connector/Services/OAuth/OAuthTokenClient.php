@@ -65,7 +65,7 @@ class OAuthTokenClient
         try {
             SafeUrl::assert($tokenEndpoint);
         } catch (Throwable $e) {
-            throw new McpOAuthException($grant->blockedMessage(), previous: $e);
+            throw new McpOAuthException($grant->blockedMessage(), $e->getCode(), previous: $e);
         }
 
         try {
@@ -74,7 +74,7 @@ class OAuthTokenClient
                 ->withHeaders(['Accept' => 'application/json'])
                 ->post($tokenEndpoint, $form);
         } catch (Throwable $e) {
-            throw new McpOAuthException($grant->failedMessage($e->getMessage()), previous: $e);
+            throw new McpOAuthException($grant->failedMessage($e->getMessage()), $e->getCode(), previous: $e);
         }
 
         if ($response->failed()) {

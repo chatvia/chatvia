@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Agent\Data\Resources\Sources;
 
 use Domain\Agent\Queries\AgentSourceCountsQuery;

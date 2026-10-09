@@ -32,7 +32,7 @@ final class RequestMacros
 
     private static function registerHostMacros(): void
     {
-        Request::macro('subdomain', function () {
+        Request::macro('subdomain', function (): ?string {
             $host = $this->getHost();
             $dots = substr_count($host, '.');
 

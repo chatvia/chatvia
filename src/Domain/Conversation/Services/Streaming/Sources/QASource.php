@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Conversation\Services\Streaming\Sources;
 
+use Domain\Conversation\Data\Turn\QaMatchData;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
@@ -45,7 +48,7 @@ class QaSource
 
             yield StreamEvent::delta($assistantId, $answer);
 
-            if ($context->requestData->streamSources && $qaMatch !== null) {
+            if ($context->requestData->streamSources && $qaMatch instanceof QaMatchData) {
                 yield StreamEvent::sources($assistantId, [[
                     'id' => $qaMatch->id,
                     'chunk' => $answer,

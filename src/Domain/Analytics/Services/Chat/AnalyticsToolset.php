@@ -68,7 +68,7 @@ class AnalyticsToolset
      */
     private function toolClasses(string $serverClass): array
     {
-        $tools = (new ReflectionClass($serverClass))->getDefaultProperties()['tools'] ?? [];
+        $tools = new ReflectionClass($serverClass)->getDefaultProperties()['tools'] ?? [];
 
         return is_array($tools) ? $tools : [];
     }

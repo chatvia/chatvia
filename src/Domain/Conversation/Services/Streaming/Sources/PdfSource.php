@@ -20,6 +20,7 @@ use Domain\Llm\Usage\TokenUsageContext;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Collection;
+use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 /**
@@ -167,7 +168,7 @@ class PdfSource extends ToolLoopSource
             return null;
         }
         $response = $e->getResponse();
-        if ($response === null) {
+        if (! $response instanceof ResponseInterface) {
             return null;
         }
 

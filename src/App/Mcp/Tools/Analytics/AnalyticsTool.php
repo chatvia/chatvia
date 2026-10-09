@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools\Analytics;
 
+use App\Identity\Workspace\Models\User;
 use App\Mcp\McpCallerContext;
 use Domain\Analytics\Data\Account\AnalyticsFilterData;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
@@ -41,7 +42,7 @@ abstract class AnalyticsTool extends Tool
     {
         $input = $request->validate($this->rules());
 
-        if ($caller->workspace === null) {
+        if (! $caller->workspace instanceof User) {
             return Response::error('No workspace context for this analytics request.');
         }
 

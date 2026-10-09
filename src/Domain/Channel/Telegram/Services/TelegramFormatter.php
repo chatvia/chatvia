@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Channel\Telegram\Services;
 
 use Domain\Channel\Services\MarkdownDomFormatter;

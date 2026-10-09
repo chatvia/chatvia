@@ -26,8 +26,8 @@ use Illuminate\Support\Facades\DB;
 class InviteWorkspaceChatterAction
 {
     public function __construct(
-        private InviteAgentChatterAction $inviteToAgent,
-        private GrantAgentMembershipAction $grant,
+        private readonly InviteAgentChatterAction $inviteToAgent,
+        private readonly GrantAgentMembershipAction $grant,
     ) {}
 
     public function execute(InviteWorkspaceChatterData $data): AgentChatterInvitationData

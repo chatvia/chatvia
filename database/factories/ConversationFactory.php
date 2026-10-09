@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ConversationFactory extends Factory
 {
+    #[\Override]
     protected $model = Conversation::class;
 
     /**
@@ -23,8 +24,8 @@ class ConversationFactory extends Factory
     {
         return [
             'chat_session_id' => Session::factory(),
-            'source' => $this->faker->randomElement(ConversationSource::cases()),
-            'title' => $this->faker->optional(0.7)->sentence(3),
+            'source' => fake()->randomElement(ConversationSource::cases()),
+            'title' => fake()->optional(0.7)->sentence(3),
         ];
     }
 
@@ -32,11 +33,9 @@ class ConversationFactory extends Factory
     public function configure(): static
     {
         return $this->afterMaking(function (Conversation $conversation): void {
-            if ($conversation->agent_id === null) {
-                $conversation->agent_id = Session::query()
-                    ->whereKey($conversation->chat_session_id)
-                    ->value('agent_id');
-            }
+            $conversation->agent_id ??= Session::query()
+                ->whereKey($conversation->chat_session_id)
+                ->value('agent_id');
         });
     }
 
@@ -45,7 +44,7 @@ class ConversationFactory extends Factory
      */
     public function withTitle(string $title): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'title' => $title,
         ]);
     }
@@ -55,7 +54,7 @@ class ConversationFactory extends Factory
      */
     public function withoutTitle(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'title' => null,
         ]);
     }
@@ -66,7 +65,7 @@ class ConversationFactory extends Factory
      */
     public function expiresAt(\DateTimeInterface $expiresAt): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'expires_at' => $expiresAt,
         ]);
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Settings\Account\ApiKeyController;
 use App\Http\Controllers\Settings\Chatter\SettingsChatterController;
 use App\Http\Controllers\Settings\Connector\Catalog\ConnectController;

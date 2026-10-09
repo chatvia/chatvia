@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Agent\AgentController;
 use App\Http\Controllers\Agent\AgentManagerController;
 use App\Http\Controllers\Agent\Analytics\Overview\AgentAnalyticsController;

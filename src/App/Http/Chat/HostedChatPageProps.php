@@ -29,7 +29,7 @@ final class HostedChatPageProps
             'enableLanguageSwitcher' => (bool) ($embed?->get('show_language_switcher') ?? true),
             // The languages the owner enabled restrict the header switcher;
             // none means every platform language.
-            'enabledLanguages' => $agent !== null ? array_keys($agent->enabledLanguages()) : [],
+            'enabledLanguages' => $agent instanceof Agent ? array_keys($agent->enabledLanguages()) : [],
             'locale' => $embed?->get('language') ?: 'auto',
         ];
     }

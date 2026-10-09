@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
 use Support\Autoload\LegacyNamespaceAutoloader;
 
 /**
@@ -11,11 +12,11 @@ use Support\Autoload\LegacyNamespaceAutoloader;
  * DomainServiceProvider at boot.
  */
 it('maps the old spellings to the current class names', function (): void {
-    expect(LegacyNamespaceAutoloader::currentName('Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer'))
-        ->toBe('Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer')
-        ->and(LegacyNamespaceAutoloader::currentName('Domain\Knowledge\Ingestion\Data\OCR\PageData'))
-        ->toBe('Domain\Knowledge\Ingestion\Data\Ocr\PageData')
-        ->and(LegacyNamespaceAutoloader::currentName('Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer'))->toBeNull();
+    expect(LegacyNamespaceAutoloader::currentName(AgentQuestionAnswer::class))
+        ->toBe(Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer::class)
+        ->and(LegacyNamespaceAutoloader::currentName(Domain\Knowledge\Ingestion\Data\OCR\PageData::class))
+        ->toBe(PageData::class)
+        ->and(LegacyNamespaceAutoloader::currentName(Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer::class))->toBeNull();
 });
 
 it('adds prefixes registered later without registering the loader twice', function (): void {
@@ -29,8 +30,8 @@ it('adds prefixes registered later without registering the loader twice', functi
 
 it('unserializes a page queued under the old namespace spelling', function (): void {
     $legacy = str_replace(
-        'Domain\Knowledge\Ingestion\Data\Ocr\PageData',
-        'Domain\Knowledge\Ingestion\Data\OCR\PageData',
+        PageData::class,
+        Domain\Knowledge\Ingestion\Data\OCR\PageData::class,
         serialize(new PageData(pageNumber: 3, content: 'Old page', checksum: 'c')),
     );
 

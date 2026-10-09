@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Marketing;
 
 /**
@@ -41,7 +43,7 @@ final class CompanyDetails
 
         $lines = preg_split('/\R|\\\\n/', $address) ?: [];
 
-        return array_values(array_filter(array_map('trim', $lines), fn (string $line): bool => $line !== ''));
+        return array_values(array_filter(array_map(trim(...), $lines), fn (string $line): bool => $line !== ''));
     }
 
     /** The address on one line, e.g. for a sentence or a PDF header. */

@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Actions\Messages;
 
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Data\Messages\RegeneratedTurnData;
 use Domain\Conversation\Services\Memory\ChatMemory;
 
@@ -23,7 +24,7 @@ class RegenerateMessageAction
     {
         $userMessage = $this->memory->withScope($scope)->getMessageById($userMessageId);
 
-        if ($userMessage === null) {
+        if (! $userMessage instanceof MessageData) {
             return null;
         }
 

@@ -15,7 +15,7 @@ function dcaValidate(): ?string
 {
     $error = null;
 
-    (new DocumentChatAvailable(app(DocumentLlm::class)))->validate('file', null, function (string $message) use (&$error): void {
+    new DocumentChatAvailable(app(DocumentLlm::class))->validate('file', null, function (string $message) use (&$error): void {
         $error = $message;
     });
 

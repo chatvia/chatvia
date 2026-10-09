@@ -16,7 +16,7 @@ use Throwable;
 class TelegramClient
 {
     /** Telegram caps a single message at 4096 chars. */
-    private const MESSAGE_LIMIT = 4096;
+    private const int MESSAGE_LIMIT = 4096;
 
     /**
      * Validate a token and return the bot's identity, or null if invalid.

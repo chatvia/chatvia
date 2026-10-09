@@ -22,7 +22,7 @@ final readonly class DocumentLlm
 
     public function isAvailable(): bool
     {
-        return $this->provider !== null;
+        return $this->provider instanceof LlmProviderEnum;
     }
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Identity\Chatter\Data;
 
 use App\Identity\Workspace\Models\User;

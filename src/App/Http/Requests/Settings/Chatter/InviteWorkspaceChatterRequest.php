@@ -80,7 +80,7 @@ class InviteWorkspaceChatterRequest extends FormRequest
     /** @return Collection<int, Agent> */
     private function resolveAgents(): Collection
     {
-        if ($this->resolvedAgents !== null) {
+        if ($this->resolvedAgents instanceof Collection) {
             return $this->resolvedAgents;
         }
 

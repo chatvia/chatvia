@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use Domain\Billing\Models\UserUsage;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class UserUsageFactory extends Factory
 {
+    #[\Override]
     protected $model = UserUsage::class;
 
     public function definition(): array

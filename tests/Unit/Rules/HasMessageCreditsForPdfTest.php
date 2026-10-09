@@ -23,7 +23,7 @@ function rulePdfUpload(): UploadedFile
 
 function stubPdfPages(int $pages): void
 {
-    app()->instance(PdfInfo::class, new class($pages)
+    app()->instance(PdfInfo::class, new readonly class($pages)
     {
         public function __construct(private int $pages) {}
 
@@ -51,7 +51,7 @@ function workspaceWithMessages(int $messages): User
 function runCreditsRule(?int $workspaceUserId, mixed $value): bool
 {
     $failed = false;
-    (new HasMessageCreditsForPdf(app(Entitlements::class), $workspaceUserId))->validate('file', $value, function () use (&$failed): void {
+    new HasMessageCreditsForPdf(app(Entitlements::class), $workspaceUserId)->validate('file', $value, function () use (&$failed): void {
         $failed = true;
     });
 

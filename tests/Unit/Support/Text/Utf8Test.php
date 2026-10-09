@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Support\Text\Utf8;
 
 it('returns short text unchanged', function (): void {

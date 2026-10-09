@@ -8,6 +8,7 @@ use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
+use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolSearchHitData;
 use Domain\Integration\Tool\Routing\SemanticToolRouter;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
@@ -196,7 +197,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
         // Shipped set via the REAL router (hybrid search → per-scope relevance
         // gate), so the eval always reflects the full live pipeline.
         $shipped = $router->route($case['query'], $agent);
-        $shippedNames = array_map(static fn ($e): string => $e->name, $shipped);
+        $shippedNames = array_map(static fn (ToolEntry $e): string => $e->name, $shipped);
 
         $rank = array_search($expected, $rankedNames, true);
         $rank = $rank === false ? null : $rank + 1;
@@ -212,17 +213,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
         // is STARVATION — the bar dropped the right mutation and the model can't
         // call it. That's the cost the write threshold has to be tuned against.
         $expectedInShipped = in_array($expected, $shippedNames, true);
-
-        // The metric that matters: a WRITE tool from a DIFFERENT connector than
-        // the labelled answer. In-set = the model could pick it; top1 = the
-        // router actively put a wrong mutation first.
-        $wrongWriteInSet = false;
-        foreach ($shippedNames as $name) {
-            if ($name !== $expected && $scopeOf($name) === 'write' && $connectorOf($name) !== $case['connector']) {
-                $wrongWriteInSet = true;
-                break;
-            }
-        }
+        $wrongWriteInSet = array_any($shippedNames, fn (string $name): bool => $name !== $expected && $scopeOf($name) === 'write' && $connectorOf($name) !== $case['connector']);
         $wrongWriteTop1 = $shippedTop1Name !== null
             && $shippedTop1Name !== $expected
             && $scopeOf($shippedTop1Name) === 'write'

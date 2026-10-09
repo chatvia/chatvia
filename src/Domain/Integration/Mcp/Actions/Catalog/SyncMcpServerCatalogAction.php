@@ -2,6 +2,7 @@
 
 namespace Domain\Integration\Mcp\Actions\Catalog;
 
+use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Data\McpToolDefinitionData;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -81,7 +82,7 @@ class SyncMcpServerCatalogAction
         }
 
         $preset = $this->catalog->find($server->connector_slug);
-        if ($preset === null || $preset->description === '') {
+        if (! $preset instanceof ConnectorData || $preset->description === '') {
             return;
         }
 

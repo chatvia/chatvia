@@ -50,8 +50,6 @@ class SourceFileDataResource extends Data
      */
     public static function fromFiles(Collection $files): \Illuminate\Support\Collection
     {
-        return $files->map(function (SourceFile $file): self {
-            return self::fromFile($file);
-        });
+        return $files->map(fn (SourceFile $file): self => self::fromFile($file));
     }
 }

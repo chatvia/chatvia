@@ -171,8 +171,8 @@ function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner)
     $shared = [$replyRecorder, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), $recorder, app(TokenUsageContext::class)];
 
     $events = match ($source) {
-        'pdf' => (new PdfSource(new DocumentLlm(LlmProviderEnum::MISTRAL), ...$shared))->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
-        default => (new LlmSource(app(LlmProviderInterface::class), ...$shared))->events($context, [['role' => 'user', 'content' => 'Hello']]),
+        'pdf' => new PdfSource(new DocumentLlm(LlmProviderEnum::MISTRAL), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
+        default => new LlmSource(app(LlmProviderInterface::class), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']]),
     };
 
     return [$events, $replyRecorder, $recorder];
@@ -232,7 +232,6 @@ it('ends a PDF turn with a clear error, saving nothing, when no LLM can read PDF
     $replyRecorder = tlsReplyRecorder();
     $runner = tlsRunner(function (): Generator {
         throw new RuntimeException('The tool loop must not run without a document LLM.');
-        yield;
     });
 
     $source = new PdfSource(new DocumentLlm(null), $replyRecorder, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), tlsRecorder(), app(TokenUsageContext::class));

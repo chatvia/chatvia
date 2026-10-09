@@ -54,9 +54,9 @@ class ChatCache
      */
     public function putUntil(string $key, mixed $value, ?CarbonInterface $until): void
     {
-        $until === null
-            ? $this->tagsFor(null)->forever($key, CacheCipher::encrypt($value))
-            : $this->tagsFor(null)->put($key, CacheCipher::encrypt($value), $until);
+        $until instanceof CarbonInterface
+            ? $this->tagsFor(null)->put($key, CacheCipher::encrypt($value), $until)
+            : $this->tagsFor(null)->forever($key, CacheCipher::encrypt($value));
     }
 
     public function get(string $key, mixed $default = [], ?string $conversationId = null): mixed

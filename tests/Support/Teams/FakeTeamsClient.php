@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Support\Teams;
 
 use Domain\Channel\Teams\Models\AgentTeamsBot;
@@ -31,14 +33,14 @@ class FakeTeamsClient extends TeamsClient
 
     public function postMessage(AgentTeamsBot $bot, string $serviceUrl, string $conversationId, string $markdown): ?string
     {
-        $this->posted[] = compact('serviceUrl', 'conversationId', 'markdown');
+        $this->posted[] = ['serviceUrl' => $serviceUrl, 'conversationId' => $conversationId, 'markdown' => $markdown];
 
         return $this->nextActivityId;
     }
 
     public function updateMessage(AgentTeamsBot $bot, string $serviceUrl, string $conversationId, string $activityId, string $markdown): bool
     {
-        $this->updates[] = compact('serviceUrl', 'conversationId', 'activityId', 'markdown');
+        $this->updates[] = ['serviceUrl' => $serviceUrl, 'conversationId' => $conversationId, 'activityId' => $activityId, 'markdown' => $markdown];
 
         return true;
     }

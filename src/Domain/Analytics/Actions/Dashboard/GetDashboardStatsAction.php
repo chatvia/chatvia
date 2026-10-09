@@ -55,7 +55,7 @@ class GetDashboardStatsAction
             conversations: (int) $this->rollup()->where('workspace_id', $owner->id)->sum('conversations_started'),
             active_sessions: $this->activeSessions($owner->id),
             knowledge_sources: $this->knowledgeSources($agentIds),
-            team: new TeamSizeData(members: $team ? $team->members()->count() : 0),
+            team: new TeamSizeData(members: $team instanceof Team ? $team->members()->count() : 0),
             weekly_usage: $this->dailyReplies($owner->id, 7, 'D'),
             monthly_usage: $this->dailyReplies($owner->id, 30, 'j'),
             usage: $this->usage($owner, $credits),
@@ -90,7 +90,7 @@ class GetDashboardStatsAction
             available: $credits->available(),
             limit: $credits->limit(),
             cycle: $cycle === null ? null : new BillingCycleData($cycle['started_at'], $cycle['ends_at']),
-            trend: $team === null ? MessagesTrendData::none() : $this->messagesTrend($owner->id),
+            trend: $team instanceof Team ? $this->messagesTrend($owner->id) : MessagesTrendData::none(),
         );
     }
 
@@ -172,7 +172,7 @@ class GetDashboardStatsAction
         return (int) $this->rollup()
             ->where('workspace_id', $workspaceId)
             ->where('bucket_hour', '>=', $from)
-            ->when($to !== null, fn (Builder $query) => $query->where('bucket_hour', '<', $to))
+            ->when($to instanceof Carbon, fn (Builder $query) => $query->where('bucket_hour', '<', $to))
             ->sum('assistant_messages');
     }
 

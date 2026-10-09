@@ -77,7 +77,7 @@ final readonly class AgentAccessPolicy
 
         $team = $this->teamOf($user);
 
-        return $user->isEmployee() && $team !== null
+        return $user->isEmployee() && $team instanceof Team
             ? $this->teams->accessibleAgents($user, $team)->toBase()
             : collect();
     }
@@ -86,7 +86,7 @@ final readonly class AgentAccessPolicy
     {
         $team = $this->teamOf($user);
 
-        return $team !== null
+        return $team instanceof Team
             && $agent->team_id === $team->id
             && $this->teams->canAccessAgent($user, $team, $agent);
     }

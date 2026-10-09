@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Billing\Actions\ChatterAllowance;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Models\UserCredit;
 use Domain\Billing\Services\ChatterMessageAllowance;
 
 /**
@@ -25,7 +28,7 @@ class RecordChatterMessageAction
 
         $credit = $this->openPeriod->execute($chatter);
 
-        if ($credit === null) {
+        if (! $credit instanceof UserCredit) {
             return;
         }
 

@@ -46,7 +46,7 @@ final readonly class InstagramInboundMessageData
             foreach ($events as $event) {
                 $message = is_array($event) ? self::fromEvent($accountId, $event) : null;
 
-                if ($message !== null) {
+                if ($message instanceof InstagramInboundMessageData) {
                     $messages[] = $message;
                 }
             }

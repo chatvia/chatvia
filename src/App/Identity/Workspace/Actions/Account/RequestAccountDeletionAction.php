@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\URL;
  */
 class RequestAccountDeletionAction
 {
-    private const LIFETIME_MINUTES = 30;
+    private const int LIFETIME_MINUTES = 30;
 
     public function execute(User $user): void
     {

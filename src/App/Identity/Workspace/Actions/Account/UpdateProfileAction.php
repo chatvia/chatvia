@@ -5,6 +5,7 @@ namespace App\Identity\Workspace\Actions\Account;
 use App\Identity\Workspace\Data\Account\UpdateProfileData;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\ProfilePhotoStorage;
+use Illuminate\Http\UploadedFile;
 
 /**
  * Saves the profile: name, email (a changed email must be verified again) and
@@ -29,7 +30,7 @@ class UpdateProfileAction
             $user->email_verified_at = null;
         }
 
-        if ($data->photo) {
+        if ($data->photo instanceof UploadedFile) {
             $user->profile_image_path = $this->photos->store($user, $data->photo);
         }
 

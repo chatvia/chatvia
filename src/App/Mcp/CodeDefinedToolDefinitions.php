@@ -21,7 +21,7 @@ final readonly class CodeDefinedToolDefinitions implements BuiltinToolDefinition
 
     public function forServer(string $serverClass): array
     {
-        $toolClasses = (array) ((new ReflectionClass($serverClass))->getDefaultProperties()['tools'] ?? []);
+        $toolClasses = (array) (new ReflectionClass($serverClass)->getDefaultProperties()['tools'] ?? []);
 
         return McpToolDefinitionData::listFrom(array_map(
             fn (string $toolClass): array => $this->tool($toolClass)->toArray(),

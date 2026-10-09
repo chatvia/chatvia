@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Function\Services;
 
 use Domain\Integration\Function\Enums\FunctionAuthType;

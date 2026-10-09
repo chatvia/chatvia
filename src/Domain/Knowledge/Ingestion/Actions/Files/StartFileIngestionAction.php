@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Knowledge\Ingestion\Actions\Files;
 
 use Domain\Agent\Models\Agent;

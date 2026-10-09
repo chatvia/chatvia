@@ -182,7 +182,7 @@ class TopicsSeeder extends Seeder
 
         // Get all conversations for this user's agents
         $agentIds = Agent::where('user_id', $user->id)->pluck('id');
-        $conversations = Conversation::whereHas('session', function ($query) use ($agentIds) {
+        $conversations = Conversation::whereHas('session', function ($query) use ($agentIds): void {
             $query->whereIn('agent_id', $agentIds);
         })->whereDoesntHave('topics')->get();
 

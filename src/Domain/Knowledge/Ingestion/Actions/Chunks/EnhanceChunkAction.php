@@ -61,7 +61,7 @@ class EnhanceChunkAction
             ),
             'summary' => $enhancement->summary,
             'is_enhanced' => true,
-            ...($visuals !== null ? ['metadata' => $visuals->toMetadata()] : []),
+            ...($visuals instanceof PageVisualsData ? ['metadata' => $visuals->toMetadata()] : []),
         ]);
     }
 

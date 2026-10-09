@@ -50,7 +50,7 @@ final class McpCallerResolver
     /** The conversation, but only when it belongs to the calling agent. */
     private function conversation(?Agent $agent, ?string $externalId): ?Conversation
     {
-        if ($agent === null || $externalId === null) {
+        if (! $agent instanceof Agent || $externalId === null) {
             return null;
         }
 

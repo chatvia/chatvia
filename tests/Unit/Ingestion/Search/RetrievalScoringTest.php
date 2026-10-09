@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Knowledge\Retrieval\Services\RetrievalScoring;
 
 describe('confidenceScore', function (): void {

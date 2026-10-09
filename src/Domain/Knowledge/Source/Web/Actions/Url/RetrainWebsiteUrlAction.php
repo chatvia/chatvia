@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Knowledge\Source\Web\Actions\Url;
 
 use Domain\Agent\Models\Agent;

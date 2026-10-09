@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Mcp\Tools\Analytics;
 
+use App\Identity\Workspace\Models\User;
 use App\Mcp\McpCallerContext;
+use Domain\Analytics\Data\Account\Usage\BillingCycleUsageData;
 use Domain\Analytics\Queries\Account\Usage\BillingCycleUsageQuery;
 use Domain\Analytics\Services\Chart\AnalyticsChart;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -35,12 +39,12 @@ class GetBillingCycleUsageTool extends Tool
     {
         $request->validate([]);
 
-        if ($caller->workspace === null) {
+        if (! $caller->workspace instanceof User) {
             return Response::error('No workspace context for this analytics request.');
         }
 
         $cycle = $cycles->get($caller->workspace);
-        if ($cycle === null) {
+        if (! $cycle instanceof BillingCycleUsageData) {
             return Response::make(Response::text('There is no active billing cycle on this account right now.'))
                 ->withStructuredContent(['has_active_cycle' => false]);
         }

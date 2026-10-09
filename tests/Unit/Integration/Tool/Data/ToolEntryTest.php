@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Domain\Integration\Tool\Enums\ToolKind;

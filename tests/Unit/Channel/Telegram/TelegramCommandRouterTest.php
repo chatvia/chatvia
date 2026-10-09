@@ -101,7 +101,7 @@ it('registers a "/" menu of built-ins followed by custom commands', function ():
     $bot = botWithCommands([['command' => 'pricing', 'description' => 'See our plans', 'type' => 'prompt', 'value' => 'Explain pricing']]);
     $client = new FakeTelegramClient;
 
-    (new TelegramCommandRouter(app(TelegramChatResolver::class), $client))->sync($bot);
+    new TelegramCommandRouter(app(TelegramChatResolver::class), $client)->sync($bot);
 
     expect($client->commands)->toHaveCount(1)
         ->and(array_column($client->commands[0]['commands'], 'command'))->toBe(['start', 'reset', 'help', 'pricing']);

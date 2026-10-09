@@ -140,7 +140,7 @@ class SubmitFormAction
      */
     private function markArtifactSubmitted(?Message $message, string $formInstanceId): void
     {
-        if ($message === null) {
+        if (! $message instanceof Message) {
             return;
         }
 

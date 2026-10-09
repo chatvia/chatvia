@@ -44,7 +44,7 @@ class EnsureWidgetIsAccessible
     {
         $agent = WidgetAgent::from($request);
 
-        if ($agent === null) {
+        if (! $agent instanceof Agent) {
             return response()->json(['error' => 'Could not verify the agent'], Response::HTTP_FORBIDDEN);
         }
 

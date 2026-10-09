@@ -80,9 +80,7 @@ it('dispatches a job for a valid, signed mention', function (): void {
         ->assertOk()
         ->assertJson(['ok' => true]);
 
-    Bus::assertDispatched(HandleSlackEventJob::class, function ($job) {
-        return $job->channelId === 'C123CHAN' && $job->text === '<@U0BOT> hello' && $job->app->is($this->slackApp);
-    });
+    Bus::assertDispatched(HandleSlackEventJob::class, fn ($job) => $job->channelId === 'C123CHAN' && $job->text === '<@U0BOT> hello' && $job->app->is($this->slackApp));
 });
 
 it('dispatches a job for a signed direct message', function (): void {

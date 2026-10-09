@@ -42,7 +42,7 @@ class ChatLogMessagesResourceData extends Data
         return new self(
             messages: $messages,
             conversation_title: $conversationTitle,
-            lead: $lead ? ChatLogLeadData::fromLead($lead) : null,
+            lead: $lead instanceof FormSubmission ? ChatLogLeadData::fromLead($lead) : null,
             handoff: $handoff,
         );
     }

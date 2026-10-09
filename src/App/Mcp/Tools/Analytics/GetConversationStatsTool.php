@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Mcp\Tools\Analytics;
 
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
+use Domain\Analytics\Data\Account\DailyCountData;
 use Domain\Analytics\Queries\Account\Activity\ConversationStatsQuery;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -36,7 +39,7 @@ class GetConversationStatsTool extends AnalyticsTool
             number_format($data->conversations),
             $data->avgMessagesPerConversation !== null ? number_format((float) $data->avgMessagesPerConversation, 1) : '0',
             $data->avgDurationSeconds !== null ? ' and about '.number_format((float) $data->avgDurationSeconds).'s long' : '',
-            $busiest ? ' Busiest day was '.$busiest->date.' ('.number_format($busiest->count).' conversations).' : '',
+            $busiest instanceof DailyCountData ? ' Busiest day was '.$busiest->date.' ('.number_format($busiest->count).' conversations).' : '',
         );
 
         return Response::make(Response::text($summary))->withStructuredContent([
@@ -44,7 +47,7 @@ class GetConversationStatsTool extends AnalyticsTool
             'conversations' => $data->conversations,
             'avg_messages_per_conversation' => $data->avgMessagesPerConversation,
             'avg_duration_seconds' => $data->avgDurationSeconds,
-            'busiest_day' => $busiest ? ['date' => $busiest->date, 'conversations' => $busiest->count] : null,
+            'busiest_day' => $busiest instanceof DailyCountData ? ['date' => $busiest->date, 'conversations' => $busiest->count] : null,
         ]);
     }
 }

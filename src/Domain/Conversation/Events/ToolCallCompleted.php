@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Conversation\Events;
 
 use Domain\Conversation\Listeners\RecordToolCallAudit;
@@ -17,35 +19,35 @@ use Illuminate\Foundation\Events\Dispatchable;
  * write one immutable `agent_activity` row without touching the streaming hot
  * path. `userName === null` means an anonymous visitor.
  */
-final class ToolCallCompleted
+final readonly class ToolCallCompleted
 {
     use Dispatchable;
 
     public function __construct(
-        public readonly int $agentId,
-        public readonly string $agentName,
-        public readonly int $workspaceId,
+        public int $agentId,
+        public string $agentName,
+        public int $workspaceId,
         // Actor (a chatter). Null = anonymous visitor.
-        public readonly ?int $userId,
-        public readonly ?string $userName,
+        public ?int $userId,
+        public ?string $userName,
         // Correlation.
-        public readonly ?string $conversationExternalId,
-        public readonly string $traceId,
-        public readonly ?string $requestId,
-        public readonly string $toolCallId,
+        public ?string $conversationExternalId,
+        public string $traceId,
+        public ?string $requestId,
+        public string $toolCallId,
         // Tool + connector. toolName is UNPREFIXED (e.g. current-weather-tool).
-        public readonly string $toolName,
-        public readonly string $toolKind,            // mcp | function
-        public readonly ?string $connectorSlug,
-        public readonly ?string $connectorName,
+        public string $toolName,
+        public string $toolKind,            // mcp | function
+        public ?string $connectorSlug,
+        public ?string $connectorName,
         // Payload (redaction + size-cap applied by the recorder Action).
-        public readonly string $arguments,           // raw JSON args from the LLM
-        public readonly ?string $resultText,
-        public readonly bool $isError,
+        public string $arguments,           // raw JSON args from the LLM
+        public ?string $resultText,
+        public bool $isError,
         // Outcome.
-        public readonly ?int $latencyMs,
-        public readonly bool $gated,
-        public readonly string $approvalOutcome,     // auto | approved | denied | rate_limited
-        public readonly ?string $decidedAt = null,   // set when a gated call was resolved
+        public ?int $latencyMs,
+        public bool $gated,
+        public string $approvalOutcome,     // auto | approved | denied | rate_limited
+        public ?string $decidedAt = null,   // set when a gated call was resolved
     ) {}
 }

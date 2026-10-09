@@ -4,6 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
+use Domain\Form\Data\FormMatchData;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Domain\Form\Queries\FindFormsForAgentQuery;
@@ -51,7 +52,7 @@ it('flags nothing without a conversation', function (): void {
     $matches = app(FindFormsForAgentQuery::class)->get($this->agent, null, 'book a demo');
 
     expect($matches)->not->toBeEmpty()
-        ->and(array_filter($matches, fn ($match): bool => $match->alreadySubmitted))->toBe([]);
+        ->and(array_filter($matches, fn (FormMatchData $match): bool => $match->alreadySubmitted))->toBe([]);
 });
 
 it('returns nothing for an agent without active forms', function (): void {

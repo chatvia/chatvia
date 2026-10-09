@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\Api\V1\Tools;
 
 use Domain\Integration\Function\Enums\FunctionWebhookMethod;

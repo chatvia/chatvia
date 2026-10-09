@@ -47,7 +47,7 @@ readonly class BroadcastAuthorizer
 
         $conversation = $this->findConversation($matches[1], $sessionExternalId, $agent);
 
-        if ($conversation === null) {
+        if (! $conversation instanceof Conversation) {
             return BroadcastDenialReason::UnknownConversation;
         }
 
@@ -77,7 +77,7 @@ readonly class BroadcastAuthorizer
             ->whereHas('session', function (Builder $session) use ($sessionExternalId, $agent): void {
                 $session->where('external_id', $sessionExternalId);
 
-                if ($agent !== null) {
+                if ($agent instanceof Agent) {
                     $session->where('agent_id', $agent->id);
                 }
             })

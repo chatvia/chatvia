@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Membership\Team\Data;
 
 use Spatie\LaravelData\Data;

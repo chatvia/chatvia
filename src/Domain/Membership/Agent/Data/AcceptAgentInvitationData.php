@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Membership\Agent\Data;
 
 use App\Identity\Workspace\Enums\SocialProvider;

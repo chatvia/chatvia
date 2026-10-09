@@ -53,7 +53,7 @@ class DeliverSecurityWebhookAction
 
     private function shouldDeliver(?WorkspaceSecurityPolicy $policy, SecurityEventOccurred $event): bool
     {
-        if ($policy === null || ! $policy->webhook_enabled || blank($policy->webhook_url) || blank($policy->webhook_secret)) {
+        if (! $policy instanceof WorkspaceSecurityPolicy || ! $policy->webhook_enabled || blank($policy->webhook_url) || blank($policy->webhook_secret)) {
             return false;
         }
 

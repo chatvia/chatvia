@@ -7,6 +7,7 @@ use App\Http\Resources\Handoff\HandoffMessageResultData;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Handoff\SendHandoffAdminMessageAction;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
 
 /**
  * The operator who holds a conversation replies to the visitor. Agent access
@@ -30,7 +31,7 @@ class SendHandoffMessageController
 
         $message = $sendMessage->execute($request->toData($conversation));
 
-        abort_if($message === null, 500, __('Failed to send message.'));
+        abort_if(! $message instanceof Message, 500, __('Failed to send message.'));
 
         return HandoffMessageResultData::fromMessage($message);
     }

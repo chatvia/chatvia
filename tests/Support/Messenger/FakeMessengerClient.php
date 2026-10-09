@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Support\Messenger;
 
 use Domain\Channel\Messenger\Services\MessengerClient;
@@ -33,7 +35,7 @@ class FakeMessengerClient extends MessengerClient
 
     public function subscribePage(string $token, string $pageId): bool
     {
-        $this->subscriptions[] = compact('token', 'pageId');
+        $this->subscriptions[] = ['token' => $token, 'pageId' => $pageId];
 
         return true;
     }
@@ -45,11 +47,11 @@ class FakeMessengerClient extends MessengerClient
 
     public function sendMessage(string $token, string $psid, string $markdown): void
     {
-        $this->sent[] = compact('token', 'psid', 'markdown');
+        $this->sent[] = ['token' => $token, 'psid' => $psid, 'markdown' => $markdown];
     }
 
     public function sendTypingAction(string $token, string $psid): void
     {
-        $this->typing[] = compact('token', 'psid');
+        $this->typing[] = ['token' => $token, 'psid' => $psid];
     }
 }

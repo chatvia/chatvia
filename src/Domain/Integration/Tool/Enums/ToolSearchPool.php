@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Tool\Enums;
 
 use Domain\Integration\Tool\Search\ToolHybridSearch;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Conversation\Actions\Conversations;
 
 use Domain\Conversation\Data\Memory\ChatScopeData;

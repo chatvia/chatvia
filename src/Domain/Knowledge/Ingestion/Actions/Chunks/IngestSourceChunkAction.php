@@ -31,7 +31,7 @@ class IngestSourceChunkAction
     {
         $chunk = $this->createChunk->execute($data->agent, $data->source, $data->page);
 
-        if ($chunk === null) {
+        if (! $chunk instanceof Chunk) {
             return;
         }
 

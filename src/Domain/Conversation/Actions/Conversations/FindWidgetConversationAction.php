@@ -33,7 +33,7 @@ class FindWidgetConversationAction
             ->where('external_id', $conversationExternalId)
             ->whereHas('session', function ($q) use ($sessionExternalId, $agent): void {
                 $q->where('external_id', $sessionExternalId);
-                if ($agent !== null) {
+                if ($agent instanceof Agent) {
                     $q->where('agent_id', $agent->id);
                 }
             })

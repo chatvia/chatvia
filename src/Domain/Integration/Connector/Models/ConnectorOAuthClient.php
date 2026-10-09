@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Connector\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Guarded;

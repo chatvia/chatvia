@@ -52,7 +52,6 @@ class WorkspaceSecurityPolicyData extends Data
             geo_mode: $policy->geo_mode,
             geo_countries: $policy->geo_countries ?? [],
             webhook_url: $policy->webhook_url,
-            webhook_secret: null,
             webhook_enabled: $policy->webhook_enabled,
             webhook_events: $policy->webhook_events,
             scim_enabled: $policy->scim_enabled,

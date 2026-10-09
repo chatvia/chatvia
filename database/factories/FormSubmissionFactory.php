@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class FormSubmissionFactory extends Factory
 {
+    #[\Override]
     protected $model = FormSubmission::class;
 
     /**

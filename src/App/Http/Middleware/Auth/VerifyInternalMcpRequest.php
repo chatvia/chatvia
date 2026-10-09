@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\Auth;
 
+use App\Identity\Workspace\Models\User;
 use App\Mcp\McpCallerContext;
 use App\Mcp\McpCallerResolver;
 use Closure;
@@ -56,7 +57,7 @@ class VerifyInternalMcpRequest
 
         $caller = $this->callers->resolve($request);
 
-        if ($caller->workspace === null && ! $this->agentHasConnectorEnabled($request, $caller->agent)) {
+        if (! $caller->workspace instanceof User && ! $this->agentHasConnectorEnabled($request, $caller->agent)) {
             return response()->json([
                 'error' => 'This tool is not enabled for this caller.',
             ], 403);
@@ -88,7 +89,7 @@ class VerifyInternalMcpRequest
 
     private function agentHasConnectorEnabled(Request $request, ?Agent $agent): bool
     {
-        if ($agent === null) {
+        if (! $agent instanceof Agent) {
             return false;
         }
 

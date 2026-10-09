@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Connector\Services\Salesforce;
 
 use Domain\Integration\Connector\Data\OAuth\BringYourOwnOAuthData;

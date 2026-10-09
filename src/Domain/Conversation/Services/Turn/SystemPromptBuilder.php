@@ -52,7 +52,7 @@ class SystemPromptBuilder
             $prompt .= "\n\n".prompt('chatter/identity', ['name' => $data->chatterName]);
         }
 
-        $business = array_filter($agent->settings('business')->toArray(), static fn ($value): bool => filled($value));
+        $business = array_filter($agent->settings('business')->toArray(), filled(...));
 
         if ($business !== []) {
             $prompt .= "\n\n".prompt('business/profile', [

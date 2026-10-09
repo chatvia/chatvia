@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Billing\Actions\Trials\StartTrialCheckoutAction;
 use Domain\Billing\Data\Stripe\CheckoutUrlsData;
 use Domain\Billing\Data\Trials\StartTrialCheckoutData;

@@ -2,7 +2,11 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Actions\Analytics\BuildAgentStatsAction;
+use Domain\Agent\Data\Resources\Stats\ConversationTrendData;
+use Domain\Agent\Data\Resources\Stats\DailyMessagesData;
+use Domain\Agent\Data\Resources\Stats\MessageByDayData;
 use Domain\Agent\Data\Resources\Stats\StatsResourceData;
+use Domain\Agent\Data\Resources\Stats\TopKnowledgeData;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\DateRangeData;
 use Illuminate\Support\Carbon;
@@ -38,7 +42,7 @@ it('reports the document classification of the most accessed files', function ()
 
     $stats = app(BuildAgentStatsAction::class)->execute($agent, DateRangeData::fromDates(null, null));
 
-    expect(array_map(static fn ($file): array => $file->toArray(), $stats->top_knowledge))->toBe([
+    expect(array_map(static fn (TopKnowledgeData $file): array => $file->toArray(), $stats->top_knowledge))->toBe([
         ['name' => 'pricing.pdf', 'type' => 'pricing_sheet', 'accessed' => 7],
         ['name' => 'notes.txt', 'type' => 'unknown', 'accessed' => 2],
     ]);
@@ -47,7 +51,7 @@ it('reports the document classification of the most accessed files', function ()
 it('no longer exposes the always-zero total_members field', function (): void {
     expect(array_map(
         static fn (ReflectionParameter $p): string => $p->getName(),
-        (new ReflectionMethod(StatsResourceData::class, '__construct'))->getParameters(),
+        new ReflectionMethod(StatsResourceData::class, '__construct')->getParameters(),
     ))->not->toContain('total_members');
 });
 
@@ -72,10 +76,10 @@ it('builds the daily series for the selected range, not the last days before tod
 
     $stats = app(BuildAgentStatsAction::class)->execute($agent, DateRangeData::fromDates('2026-03-09', '2026-03-11'));
 
-    expect(array_map(static fn ($day): array => $day->toArray(), $stats->conversations_trend))
+    expect(array_map(static fn (ConversationTrendData $day): array => $day->toArray(), $stats->conversations_trend))
         ->toBe([['date' => '2026-03-10', 'conversations' => 2]])
-        ->and(array_map(static fn ($day): array => $day->toArray(), $stats->daily_messages))
+        ->and(array_map(static fn (DailyMessagesData $day): array => $day->toArray(), $stats->daily_messages))
         ->toBe([['date' => '2026-03-10', 'messages' => 4]])
-        ->and(array_column(array_map(static fn ($day): array => $day->toArray(), $stats->messages_last_week), 'value'))
+        ->and(array_column(array_map(static fn (MessageByDayData $day): array => $day->toArray(), $stats->messages_last_week), 'value'))
         ->toBe([0, 4, 0]);
 });

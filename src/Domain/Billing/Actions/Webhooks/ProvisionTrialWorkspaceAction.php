@@ -52,7 +52,7 @@ class ProvisionTrialWorkspaceAction
     {
         $user = $this->accountFor($checkout);
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             return null;
         }
 

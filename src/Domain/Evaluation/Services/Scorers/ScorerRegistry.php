@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Evaluation\Services\Scorers;
 
 use Domain\Evaluation\Enums\ScorerType;

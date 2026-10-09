@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Identity\Workspace\Actions\Account;
 
 use App\Identity\Workspace\Models\User;
@@ -47,7 +49,7 @@ class DeleteEmployeeAction
      * Every one is `user_id`-cascading except `mcp_servers` (SET NULL) — both
      * lose the row's workspace value on delete, so reassign before deleting.
      */
-    private const REASSIGNABLE_TABLES = [
+    private const array REASSIGNABLE_TABLES = [
         'agent_prompts',
         'source_files',
         'source_texts',

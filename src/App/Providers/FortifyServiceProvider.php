@@ -109,7 +109,7 @@ class FortifyServiceProvider extends ServiceProvider
         //     simple credential stuffing on a single account.
         //   - 30/hour per IP — long-term cap against a botnet rotating
         //     emails from one IP. Slow attacks still fall under this ceiling.
-        RateLimiter::for('login', function (Request $request) {
+        RateLimiter::for('login', function (Request $request): array {
             $email = Str::lower((string) $request->input(Fortify::username()));
             $ip = (string) $request->ip();
 
@@ -122,7 +122,7 @@ class FortifyServiceProvider extends ServiceProvider
         // Two-factor challenge: keyed by the pending-login session id so a
         // single user can't hammer codes. 5/min plus a 20/hour ceiling stops
         // patient TOTP guessing without locking out fat fingers.
-        RateLimiter::for('two-factor', function (Request $request) {
+        RateLimiter::for('two-factor', function (Request $request): array {
             $key = (string) $request->session()->get('login.id');
 
             return [

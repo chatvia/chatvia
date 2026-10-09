@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Llm\Data\Chat;
 
 use Spatie\LaravelData\Data;
@@ -43,7 +45,7 @@ final class ChatRequestData extends Data
             $payload['max_tokens'] = $this->maxTokens;
         }
 
-        if ($this->responseSchema !== null) {
+        if ($this->responseSchema instanceof ResponseSchemaData) {
             $payload['response_format'] = $this->responseSchema->toResponseFormat();
         }
 

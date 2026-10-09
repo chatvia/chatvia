@@ -25,7 +25,7 @@ class SubmitInlineFormController
         #[HostedChatAgent] ?Agent $agent,
         SubmitFormAction $action,
     ): JsonResponse {
-        abort_unless($agent !== null && $formInstance->agent_id === $agent->id, 404);
+        abort_unless($agent instanceof Agent && $formInstance->agent_id === $agent->id, 404);
 
         $conversation = $formInstance->conversation;
         abort_unless($conversation !== null, 404);

@@ -25,10 +25,10 @@ use Throwable;
 class BuiltinToolRouter
 {
     /** vchordrq + BM25 indexes were built against this dim (Qwen3-Embedding). */
-    private const EMBEDDING_DIMS = 1024;
+    private const int EMBEDDING_DIMS = 1024;
 
     /** RRF constant — the Cormack et al. default, as in ToolHybridSearch. */
-    private const RRF_K = 60;
+    private const int RRF_K = 60;
 
     public function __construct(
         private readonly EmbeddingsProviderInterface $embeddings,

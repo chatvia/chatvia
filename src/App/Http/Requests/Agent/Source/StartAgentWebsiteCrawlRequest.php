@@ -53,7 +53,7 @@ class StartAgentWebsiteCrawlRequest extends FormRequest
             return $paths;
         }
 
-        $pathList = array_map('trim', explode(',', $paths));
+        $pathList = array_map(trim(...), explode(',', $paths));
         $sanitized = [];
 
         foreach ($pathList as $path) {

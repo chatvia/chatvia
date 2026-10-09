@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\BindsConnectorOAuthToSession;
 use App\Http\Requests\Settings\Connector\SalesforceConnectRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\OAuth\BeginBringYourOwnClientOAuthAction;
+use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Connector\Services\Salesforce\SalesforceEndpointBuilder;
@@ -29,7 +30,7 @@ class SalesforceConnectController
         BeginBringYourOwnClientOAuthAction $begin,
     ): JsonResponse {
         $connector = $catalog->find('salesforce');
-        abort_unless($connector !== null && $connector->requiresClientId && ! $connector->comingSoon, 404);
+        abort_unless($connector instanceof ConnectorData && $connector->requiresClientId && ! $connector->comingSoon, 404);
 
         /** @var User $user */
         $user = $request->user();

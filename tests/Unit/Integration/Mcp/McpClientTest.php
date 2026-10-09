@@ -143,7 +143,7 @@ class McpClientTest extends TestCase
             'X-Chatvia-User-Id' => 'user-uuid',
         ]);
 
-        Http::assertSent(function ($request) {
+        Http::assertSent(function ($request): bool {
             $body = $request->data();
 
             return ($body['method'] ?? null) === 'tools/call'
@@ -186,7 +186,7 @@ class McpClientTest extends TestCase
 
         app(McpClient::class)->fetchTools($this->server());
 
-        Http::assertSent(function ($request) {
+        Http::assertSent(function ($request): bool {
             $body = $request->data();
             if (($body['method'] ?? null) !== 'tools/list') {
                 return false;
@@ -209,13 +209,11 @@ class McpClientTest extends TestCase
 
     public function test_throws_on_protocol_error(): void
     {
-        Http::fake(function ($request) {
-            return Http::response([
-                'jsonrpc' => '2.0',
-                'id' => $request->data()['id'] ?? null,
-                'error' => ['code' => -32601, 'message' => 'method not found'],
-            ]);
-        });
+        Http::fake(fn ($request) => Http::response([
+            'jsonrpc' => '2.0',
+            'id' => $request->data()['id'] ?? null,
+            'error' => ['code' => -32601, 'message' => 'method not found'],
+        ]));
 
         $this->expectException(McpException::class);
         $this->expectExceptionMessage('method not found');

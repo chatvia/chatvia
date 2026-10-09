@@ -13,6 +13,7 @@ use Support\Localization\Country\Models\Country;
  */
 class SessionFactory extends Factory
 {
+    #[\Override]
     protected $model = Session::class;
 
     /**
@@ -25,11 +26,11 @@ class SessionFactory extends Factory
         return [
             'agent_id' => Agent::factory(),
             'user_id' => null,
-            'ip_address' => $this->faker->ipv4(),
-            'country_id' => $this->faker->optional(0.8)->randomElement(
+            'ip_address' => fake()->ipv4(),
+            'country_id' => fake()->optional(0.8)->randomElement(
                 Country::pluck('id')->toArray() ?: [null]
             ),
-            'user_agent' => $this->faker->userAgent(),
+            'user_agent' => fake()->userAgent(),
         ];
     }
 
@@ -38,7 +39,7 @@ class SessionFactory extends Factory
      */
     public function forUser(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'user_id' => User::factory(),
         ]);
     }
@@ -48,7 +49,7 @@ class SessionFactory extends Factory
      */
     public function withCountry(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'country_id' => Country::inRandomOrder()->first()?->id,
         ]);
     }
@@ -58,7 +59,7 @@ class SessionFactory extends Factory
      */
     public function withoutCountry(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'country_id' => null,
         ]);
     }
@@ -68,7 +69,7 @@ class SessionFactory extends Factory
      */
     public function anonymous(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'user_id' => null,
         ]);
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Knowledge\Source\Web\Policies;
 
 use Domain\Knowledge\Source\Concerns\AuthorizesWorkspaceOwnedSource;

@@ -15,7 +15,7 @@ beforeEach(function (): void {
 it('writes the agent starters as an ordered list and assigns each an id', function (): void {
     $result = app(SetAgentStartersAction::class)->execute($this->agent, [
         new StarterData(null, 'First?', 'SparklesIcon'),
-        new StarterData(null, 'Second?', null),
+        new StarterData(null, 'Second?'),
     ]);
 
     expect(array_column($result, 'text'))->toBe(['First?', 'Second?'])
@@ -30,9 +30,9 @@ it('writes the agent starters as an ordered list and assigns each an id', functi
 it('replaces existing starters and keeps a single row', function (): void {
     $action = app(SetAgentStartersAction::class);
 
-    $action->execute($this->agent, [new StarterData(null, 'old', null)]);
+    $action->execute($this->agent, [new StarterData(null, 'old')]);
     $action->execute($this->agent->fresh(), [
-        new StarterData(null, 'new-a', null),
+        new StarterData(null, 'new-a'),
         new StarterData(null, 'new-b', 'BoltIcon'),
     ]);
 
@@ -56,7 +56,7 @@ it('stores the AI translations the translator returns', function (): void {
         ->shouldReceive('translate')->once()->andReturn(['k0' => ['de' => 'Hallo?', 'fr' => 'Salut ?']]);
 
     $result = app(SetAgentStartersAction::class)->execute($this->agent, [
-        new StarterData(null, 'Hello?', null),
+        new StarterData(null, 'Hello?'),
     ]);
 
     expect($result[0]->translations)->toBe(['de' => 'Hallo?', 'fr' => 'Salut ?']);
@@ -75,7 +75,7 @@ it('translates only the enabled languages', function (): void {
         });
 
     app(SetAgentStartersAction::class)->execute($this->agent->fresh(), [
-        new StarterData(null, 'Hello?', null),
+        new StarterData(null, 'Hello?'),
     ]);
 
     expect(array_keys($captured))->toBe(['de', 'fr']);
@@ -90,7 +90,7 @@ it('preserves manual overrides and skips re-translation when the text is unchang
 
     $action = app(SetAgentStartersAction::class);
 
-    $first = $action->execute($this->agent->fresh(), [new StarterData(null, 'Hi?', null)]);
+    $first = $action->execute($this->agent->fresh(), [new StarterData(null, 'Hi?')]);
     $id = $first[0]->id;
 
     // Same text + a hand-typed German override → the translator must NOT run again.

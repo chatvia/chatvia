@@ -43,7 +43,7 @@ class EnsureWorkspaceNetworkAllowed
 
         $rules = $this->networkRules($user->workspace()->id);
 
-        if ($rules === null) {
+        if (! $rules instanceof NetworkRulesData) {
             return $next($request);
         }
 

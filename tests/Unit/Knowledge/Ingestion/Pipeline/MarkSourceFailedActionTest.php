@@ -67,7 +67,7 @@ it('marks a text failed when its ingestion job fails, instead of leaving it inge
     $agent = Agent::factory()->create();
     $text = msfText($agent);
 
-    (new TextIngestionJob($text, $agent))->failed(new RuntimeException('splitter down'));
+    new TextIngestionJob($text, $agent)->failed(new RuntimeException('splitter down'));
 
     expect($text->fresh()->status)->toBe(SourceStatus::Failed);
     Event::assertDispatched(TextIngestionStarted::class, fn (TextIngestionStarted $event): bool => $event->agentExternalId === $agent->external_id);

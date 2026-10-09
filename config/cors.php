@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
 
     /*
@@ -25,7 +27,7 @@ return [
      * to migrate to a per-tenant model (see AUDIT.md SEC-01).
      */
     'allowed_origins' => array_values(array_filter(array_map(
-        'trim',
+        trim(...),
         explode(',', (string) env('CORS_ALLOWED_ORIGINS', '*'))
     ))),
 

@@ -72,7 +72,7 @@ function tlrProvider(): LlmProviderInterface
             throw new RuntimeException('client() not used in ToolLoopRunner tests');
         }
 
-        public function completion(array $data): void
+        public function completion(array $data): never
         {
             throw new RuntimeException('completion() not used in ToolLoopRunner tests');
         }
@@ -136,7 +136,7 @@ function tlrApprovalPolicy(bool $requires): ToolApprovalPolicy
 {
     return new class($requires) extends ToolApprovalPolicy
     {
-        public function __construct(private bool $requires) {}
+        public function __construct(private readonly bool $requires) {}
 
         public function requiresApproval(Agent $agent, ToolName $tool): bool
         {
@@ -152,7 +152,7 @@ function tlrApprovalPolicy(bool $requires): ToolApprovalPolicy
  */
 function tlrTransformer(Closure $onTransform): StreamTransformer
 {
-    return new class($onTransform) implements StreamTransformer
+    return new readonly class($onTransform) implements StreamTransformer
     {
         public function __construct(private Closure $onTransform) {}
 
@@ -325,7 +325,7 @@ it('emits a governance audit event with outcome denied for a denied gated call',
 
     Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->toolName === 'delete_everything'
         && $e->approvalOutcome === 'denied'
-        && $e->gated === true);
+        && $e->gated);
 });
 
 it('dispatches an approved gated call and appends its tool result', function (): void {
@@ -469,7 +469,7 @@ it('pauses the whole turn and persists a pending checkpoint when a tool call nee
         ->and($checkpoint->pending_calls[0]['name'])->toBe('delete_user');
 
     // the stream terminates with an awaiting_approval `done`
-    $last = $events[array_key_last($events)];
+    $last = array_last($events);
     expect($last->data['reason'])->toBe('awaiting_approval');
 });
 

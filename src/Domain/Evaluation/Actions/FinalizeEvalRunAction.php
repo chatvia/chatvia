@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Evaluation\Actions;
 
 use Domain\Evaluation\Enums\EvalRunStatus;

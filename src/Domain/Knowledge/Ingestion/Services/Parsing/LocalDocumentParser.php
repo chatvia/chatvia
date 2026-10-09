@@ -92,7 +92,7 @@ class LocalDocumentParser implements DocumentParser
         $pages = explode(self::PAGE_BREAK, $text);
 
         // The form feed after the last page leaves one empty entry at the end.
-        if (count($pages) > 1 && trim((string) end($pages)) === '') {
+        if (count($pages) > 1 && trim(end($pages)) === '') {
             array_pop($pages);
         }
 

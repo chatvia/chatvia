@@ -292,7 +292,7 @@ class McpClient
                 'params' => $params,
             ], $identityHeaders);
         } catch (Throwable $e) {
-            throw new McpException('Could not reach MCP server: '.$e->getMessage(), previous: $e);
+            throw new McpException('Could not reach MCP server: '.$e->getMessage(), $e->getCode(), previous: $e);
         }
 
         if ($response->failed()) {
@@ -318,7 +318,7 @@ class McpClient
             // Surface the protocol-level error as an exception; callers may
             // catch and convert it to a user-facing string.
             throw McpException::reportedByServer(
-                'MCP error from '.$method.': '.(string) $body['error']['message'],
+                'MCP error from '.$method.': '.$body['error']['message'],
                 (string) $body['error']['message'],
             );
         }

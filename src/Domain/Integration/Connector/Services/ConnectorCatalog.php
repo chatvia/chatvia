@@ -97,7 +97,7 @@ class ConnectorCatalog
     public function canonicalUrl(string $connectorSlug): ?string
     {
         $preset = $this->find($connectorSlug);
-        if ($preset !== null) {
+        if ($preset instanceof ConnectorData) {
             return $preset->mcpUrl !== '' ? $preset->mcpUrl : null;
         }
 

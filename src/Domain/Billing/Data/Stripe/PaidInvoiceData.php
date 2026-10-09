@@ -54,7 +54,7 @@ final readonly class PaidInvoiceData
     /** Whether the invoice belongs to a subscription (and not a one-off charge). */
     public function isForSubscription(): bool
     {
-        return $this->subscriptionMetadata !== null;
+        return $this->subscriptionMetadata instanceof StripeMetadata;
     }
 
     public function opensSubscription(): bool

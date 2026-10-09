@@ -18,6 +18,7 @@ use Tighten\Ziggy\Ziggy;
  */
 class HandleInertiaRequests extends Middleware
 {
+    #[\Override]
     protected $rootView = 'app';
 
     /**

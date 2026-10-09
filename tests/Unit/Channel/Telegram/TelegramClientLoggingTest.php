@@ -33,8 +33,6 @@ it('logs a failed Telegram call without the bot token', function (): void {
     $client->sendChatAction($token, 42);
     expect($client->getMe($token))->toBeNull();
 
-    Log::shouldHaveReceived('warning')->twice()->withArgs(function (string $message, array $context = []): bool {
-        return ! str_contains($message.json_encode($context), 'AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw')
-            && str_contains((string) ($context['message'] ?? ''), '/bot[redacted]/');
-    });
+    Log::shouldHaveReceived('warning')->twice()->withArgs(fn (string $message, array $context = []): bool => ! str_contains($message.json_encode($context), 'AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw')
+        && str_contains((string) ($context['message'] ?? ''), '/bot[redacted]/'));
 });

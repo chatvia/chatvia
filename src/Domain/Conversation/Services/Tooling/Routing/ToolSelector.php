@@ -55,7 +55,7 @@ class ToolSelector
         // whole pool is pinned there is nothing left to search: skip the
         // router and its embedding call outright.
         $pinned = $this->alwaysAvailable->resolve($agent, $pool);
-        $pinnedNames = array_fill_keys(self::names($pinned), true);
+        $pinnedNames = array_fill_keys($this->names($pinned), true);
         $searchable = array_filter($pool, static fn (ToolEntry $entry): bool => ! isset($pinnedNames[$entry->name]));
 
         if ($searchable === []) {
@@ -77,7 +77,7 @@ class ToolSelector
         }
 
         // Union the always-on tools with whatever the router returned.
-        $withPinned = self::union($routed, $pinned);
+        $withPinned = $this->union($routed, $pinned);
 
         if ($withPinned === []) {
             Log::debug('ToolSelector: routing returned no tools', [
@@ -88,7 +88,7 @@ class ToolSelector
             return [];
         }
 
-        $withSticky = self::union($withPinned, $this->stickyTools($agent, $conversationId));
+        $withSticky = $this->union($withPinned, $this->stickyTools($agent, $conversationId));
 
         // Drop tools whose connector isn't allowed on this conversation's surface
         // (e.g. Interactive Charts outside Hosted Chat). Runs last so a sticky or
@@ -99,12 +99,12 @@ class ToolSelector
             'agent_id' => $agent->id,
             'conversation_id' => $conversationId,
             'shipped_count' => count($shipped),
-            'always_on_added' => array_slice(self::names($withPinned), count($routed)),
-            'sticky_added' => array_slice(self::names($withSticky), count($withPinned)),
-            'shipped_names' => self::names($shipped),
+            'always_on_added' => array_slice($this->names($withPinned), count($routed)),
+            'sticky_added' => array_slice($this->names($withSticky), count($withPinned)),
+            'shipped_names' => $this->names($shipped),
         ]);
 
-        return self::toOpenAiTools($shipped);
+        return $this->toOpenAiTools($shipped);
     }
 
     /**
@@ -120,10 +120,10 @@ class ToolSelector
         Log::debug('ToolSelector: whole pool is always-on; routing skipped', [
             'agent_id' => $agent->id,
             'conversation_id' => $conversationId,
-            'shipped_names' => self::names($shipped),
+            'shipped_names' => $this->names($shipped),
         ]);
 
-        return self::toOpenAiTools($shipped);
+        return $this->toOpenAiTools($shipped);
     }
 
     /**
@@ -143,7 +143,7 @@ class ToolSelector
             'error' => $e->getMessage(),
         ]);
 
-        return self::toOpenAiTools($pool);
+        return $this->toOpenAiTools($pool);
     }
 
     /**
@@ -175,9 +175,9 @@ class ToolSelector
      * @param  array<int, ToolEntry>  $extra
      * @return array<int, ToolEntry>
      */
-    private static function union(array $base, array $extra): array
+    private function union(array $base, array $extra): array
     {
-        $seen = array_fill_keys(self::names($base), true);
+        $seen = array_fill_keys($this->names($base), true);
 
         foreach ($extra as $entry) {
             if (! isset($seen[$entry->name])) {
@@ -193,7 +193,7 @@ class ToolSelector
      * @param  array<int, ToolEntry>  $entries
      * @return array<int, string>
      */
-    private static function names(array $entries): array
+    private function names(array $entries): array
     {
         return array_map(static fn (ToolEntry $entry): string => $entry->name, $entries);
     }
@@ -202,7 +202,7 @@ class ToolSelector
      * @param  array<int, ToolEntry>  $entries
      * @return array<int, array<string, mixed>>
      */
-    private static function toOpenAiTools(array $entries): array
+    private function toOpenAiTools(array $entries): array
     {
         return array_map(static fn (ToolEntry $entry): array => $entry->toOpenAiFormat(), $entries);
     }

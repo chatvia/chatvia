@@ -27,7 +27,7 @@ class SaveFormDefinitionAction
             'is_active' => $data->is_active,
         ];
 
-        if ($existing !== null) {
+        if ($existing instanceof FormDefinition) {
             $existing->update($attributes);
 
             return $existing;

@@ -40,7 +40,7 @@ class GetChannelBreakdownTool extends AnalyticsTool
             'pct' => $channel->pct,
         ], $data->channels);
 
-        $summary = empty($channels)
+        $summary = $channels === []
             ? sprintf('No conversations across any channel %s.', $period->label)
             : sprintf(
                 'Busiest channel %s is %s with %s conversations (%s%% of %s total).',

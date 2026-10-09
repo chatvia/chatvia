@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Support;
 
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
@@ -28,7 +30,7 @@ class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
 
     public function embedBatch(array $texts): array
     {
-        return array_map(fn (string $text): array => $this->vectorFor($text), $texts);
+        return array_map($this->vectorFor(...), $texts);
     }
 
     public function getDimensions(): int

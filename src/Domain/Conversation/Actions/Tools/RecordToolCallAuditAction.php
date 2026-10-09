@@ -84,7 +84,7 @@ class RecordToolCallAuditAction
      */
     private function redact(array $data): array
     {
-        $keys = array_map('strtolower', (array) config('chatvia.governance.redact_keys', []));
+        $keys = array_map(strtolower(...), (array) config('chatvia.governance.redact_keys', []));
 
         foreach ($data as $key => $value) {
             if (is_string($key) && in_array(strtolower($key), $keys, true)) {

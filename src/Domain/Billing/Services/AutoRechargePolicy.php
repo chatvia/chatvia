@@ -24,7 +24,7 @@ final readonly class AutoRechargePolicy
 
     public function isEnabled(?UserBilling $billing): bool
     {
-        return $billing !== null && $billing->auto_recharge_enabled;
+        return $billing instanceof UserBilling && $billing->auto_recharge_enabled;
     }
 
     /**

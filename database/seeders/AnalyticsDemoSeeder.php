@@ -38,10 +38,10 @@ class AnalyticsDemoSeeder extends Seeder
     use SkipsInProduction;
 
     /** Days of synthetic history to fabricate. */
-    private const DAYS = 30;
+    private const int DAYS = 30;
 
     /** Hour-of-day weights (UTC) — bias toward business hours. */
-    private const HOUR_WEIGHTS = [
+    private const array HOUR_WEIGHTS = [
         0 => 1, 1 => 1, 2 => 1, 3 => 1, 4 => 1, 5 => 1,
         6 => 2, 7 => 3, 8 => 4,
         9 => 7, 10 => 8, 11 => 8, 12 => 7, 13 => 7, 14 => 9, 15 => 9, 16 => 8,
@@ -49,10 +49,10 @@ class AnalyticsDemoSeeder extends Seeder
     ];
 
     /** Synthetic sentiment distribution (skews positive). */
-    private const SENTIMENT_WEIGHTS = ['positive' => 55, 'neutral' => 30, 'negative' => 15];
+    private const array SENTIMENT_WEIGHTS = ['positive' => 55, 'neutral' => 30, 'negative' => 15];
 
     /** Synthetic tone distribution. */
-    private const TONE_WEIGHTS = ['neutral' => 40, 'satisfied' => 30, 'confused' => 12, 'frustrated' => 10, 'urgent' => 8];
+    private const array TONE_WEIGHTS = ['neutral' => 40, 'satisfied' => 30, 'confused' => 12, 'frustrated' => 10, 'urgent' => 8];
 
     public function run(): void
     {

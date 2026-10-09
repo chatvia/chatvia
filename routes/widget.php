@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Widget\Activity\FeedbackController;
 use App\Http\Controllers\Widget\Activity\HeartbeatController;
 use App\Http\Controllers\Widget\Activity\MarkReadController;

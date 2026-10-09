@@ -43,7 +43,7 @@ class GetGeographyStatsTool extends AnalyticsTool
             'pct' => $country->pct,
         ], $data->countries);
 
-        $summary = empty($countries)
+        $summary = $countries === []
             ? sprintf('No location data %s yet.', $period->label)
             : sprintf(
                 'Top country %s is %s (%s conversations, %s%%).',

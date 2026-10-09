@@ -48,10 +48,8 @@ it('increments the retrieval counter on the source and the agent_sources pivot',
         ->and($pivot->last_retrieved_at)->not->toBeNull();
 
     // The rollup event carries the agent, the resolved label and the morph type.
-    Event::assertDispatched(SourceRetrieved::class, function (SourceRetrieved $event) use ($agent, $source, $type): bool {
-        return $event->agentId === $agent->id
-            && collect($event->sources)->contains(fn (array $r): bool => $r['type'] === $type && $r['id'] === $source->id);
-    });
+    Event::assertDispatched(SourceRetrieved::class, fn (SourceRetrieved $event): bool => $event->agentId === $agent->id
+        && collect($event->sources)->contains(fn (array $r): bool => $r['type'] === $type && $r['id'] === $source->id));
 });
 
 it('skips groups whose chunkable_type is not a real class — no UPDATE is issued', function (): void {

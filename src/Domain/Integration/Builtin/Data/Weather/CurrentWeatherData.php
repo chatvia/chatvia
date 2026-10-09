@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Builtin\Data\Weather;
 
 use Domain\Integration\Builtin\Enums\WeatherUnits;

@@ -14,7 +14,7 @@ class UpdatePromptRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->prompt() !== null;
+        return $this->prompt() instanceof AgentPrompt;
     }
 
     /**
@@ -45,7 +45,7 @@ class UpdatePromptRequest extends FormRequest
 
     private function prompt(): ?AgentPrompt
     {
-        if ($this->prompt !== null) {
+        if ($this->prompt instanceof AgentPrompt) {
             return $this->prompt;
         }
 

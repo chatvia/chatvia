@@ -36,7 +36,7 @@ class ReceiveMessengerMessagesAction
 
             $page = $pages[$message->pageId];
 
-            if ($page === null || $message->senderId === $page->page_id) {
+            if (! $page instanceof AgentMessengerPage || $message->senderId === $page->page_id) {
                 continue;
             }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Support\Localization\Language\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;

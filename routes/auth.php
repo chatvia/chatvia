@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Agent\Invitations\AcceptAgentInvitationController;
 use App\Http\Controllers\Agent\Invitations\AgentInvitationController;
 use App\Http\Controllers\Agent\Invitations\AgentInvitationSocialCallbackController;

@@ -17,9 +17,9 @@ class ProfilePhotoStorage
 {
     // Avatars render small (≤96px); a 200×200 square is plenty for retina and
     // keeps the stored file tiny. We never persist the original upload.
-    private const SIZE = 200;
+    private const int SIZE = 200;
 
-    private const QUALITY = 82;
+    private const int QUALITY = 82;
 
     /**
      * Crop to a centered square, downscale, re-encode, and store the photo,

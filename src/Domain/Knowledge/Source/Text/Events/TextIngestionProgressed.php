@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Knowledge\Source\Text\Events;
 
 use Domain\Knowledge\Source\Text\Models\SourceText;

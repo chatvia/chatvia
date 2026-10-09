@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Agent\Source\File;
 
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;

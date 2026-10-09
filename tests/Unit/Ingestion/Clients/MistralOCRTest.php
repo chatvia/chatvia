@@ -35,15 +35,13 @@ it('posts the expected OCR envelope with bearer auth', function (): void {
 
     app(MistralOcr::class)->fromUrl('https://files.test/manual.pdf');
 
-    Http::assertSent(function (Request $request): bool {
-        return $request->method() === 'POST'
-            && $request->url() === 'https://api.mistral.ai/v1/ocr'
-            && $request->hasHeader('Authorization', 'Bearer test-key')
-            && $request['model'] === 'mistral-ocr-latest'
-            && $request['document'] === ['type' => 'document_url', 'document_url' => 'https://files.test/manual.pdf']
-            && $request['table_format'] === 'markdown'
-            && $request['include_image_base64'] === true;
-    });
+    Http::assertSent(fn (Request $request): bool => $request->method() === 'POST'
+        && $request->url() === 'https://api.mistral.ai/v1/ocr'
+        && $request->hasHeader('Authorization', 'Bearer test-key')
+        && $request['model'] === 'mistral-ocr-latest'
+        && $request['document'] === ['type' => 'document_url', 'document_url' => 'https://files.test/manual.pdf']
+        && $request['table_format'] === 'markdown'
+        && $request['include_image_base64'] === true);
 });
 
 it('sends images under image_url instead of document_url', function (): void {
@@ -58,9 +56,7 @@ it('sends images under image_url instead of document_url', function (): void {
 
     app(MistralOcr::class)->fromImageUrl('https://files.test/scan.png');
 
-    Http::assertSent(function (Request $request): bool {
-        return $request['document'] === ['type' => 'image_url', 'image_url' => 'https://files.test/scan.png'];
-    });
+    Http::assertSent(fn (Request $request): bool => $request['document'] === ['type' => 'image_url', 'image_url' => 'https://files.test/scan.png']);
 });
 
 it('maps an OCR page to PageData with stripped content, checksum, images, tables, hyperlinks', function (): void {

@@ -71,7 +71,7 @@ final readonly class SocialOauthCallback
             $this->providerEmailVerified($socialUser),
         );
 
-        if (! $user) {
+        if (! $user instanceof \App\Identity\Workspace\Models\User) {
             return to_route('login')->with('error', __('No account found!'));
         }
 

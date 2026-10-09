@@ -48,7 +48,7 @@ class ChunkFitClientTest extends TestCase
 
         $this->assertSame(['First chunk text.', 'Second chunk text.'], $chunks);
 
-        Http::assertSent(fn (Request $request) => $request->method() === 'POST'
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST'
             && $request->url() === 'https://chunk.fit/api/v1/unstructured/splitters/text'
             && $request->hasHeader('Authorization', 'Bearer test-key')
             && $request['text'] === 'Long body of text.'

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Admin\AdminPanelProvider;
+use App\Providers\AdminSettingsServiceProvider;
 use App\Providers\ApiDocsServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\AuthServiceProvider;
@@ -18,6 +19,8 @@ use App\Providers\TelescopeServiceProvider;
 use App\Providers\TypeScriptTransformerServiceProvider;
 
 return [
+    // First: the other providers boot with the admin panel's saved settings.
+    AdminSettingsServiceProvider::class,
     AppServiceProvider::class,
     HttpMacroServiceProvider::class,
     AuthServiceProvider::class,

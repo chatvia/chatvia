@@ -2,6 +2,8 @@
 
 Chatvia uses AI services for several steps: answering in chat, reading documents, splitting text, searching, and turning speech into text. When you run Chatvia on your own server, you choose a service for each step in your `.env` file.
 
+You can also enter the API keys in the admin panel, under **Settings → AI providers**. A key saved there is stored encrypted and is used instead of the key in `.env`. The choice of service for each step stays in `.env`.
+
 You do not need an account with every service. Most steps have a built-in option that runs on your server, or you can turn the step off. With the value `auto`, Chatvia uses the hosted service when its API key is set, and the built-in option (or "off") when it is not.
 
 ## Overview

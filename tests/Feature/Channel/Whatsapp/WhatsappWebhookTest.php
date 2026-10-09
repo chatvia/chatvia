@@ -109,7 +109,7 @@ it('dispatches a job for a valid, signed message — with the sender name from t
         ->assertOk()
         ->assertJson(['ok' => true]);
 
-    Bus::assertDispatched(HandleWhatsappMessageJob::class, fn ($job) => $job->waId === '4915551234567'
+    Bus::assertDispatched(HandleWhatsappMessageJob::class, fn ($job): bool => $job->waId === '4915551234567'
         && $job->text === 'hello'
         && $job->messageId === 'wamid.AAA1'
         && $job->name === 'Sam'

@@ -20,7 +20,7 @@ it('sends a text message with the documented Cloud API payload', function (): vo
 
     $this->client->sendMessage('token-x', '111222333', '4915551234567', 'Hello **there**');
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), '/111222333/messages')
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/111222333/messages')
         && $request->hasHeader('Authorization', 'Bearer token-x')
         && $request['messaging_product'] === 'whatsapp'
         && $request['recipient_type'] === 'individual'
@@ -53,7 +53,7 @@ it('marks read and shows typing off the inbound wamid in one call', function ():
 
     $this->client->sendTypingIndicator('token-x', '111222333', 'wamid.IN9');
 
-    Http::assertSent(fn ($request) => str_contains($request->url(), '/111222333/messages')
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/111222333/messages')
         && $request['messaging_product'] === 'whatsapp'
         && $request['status'] === 'read'
         && $request['message_id'] === 'wamid.IN9'

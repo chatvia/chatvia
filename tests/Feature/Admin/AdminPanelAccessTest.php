@@ -4,10 +4,14 @@ use App\Identity\Workspace\Models\User;
 use Filament\Facades\Filament;
 
 /**
- * The Filament admin panel signs in on its own `admin` guard and requires the
- * authenticator app (MFA). A session opened by the dashboard login (/login) or
- * the hosted-chat login lives on the `web` guard and must never open /admin,
- * otherwise those single-factor logins would skip the panel's MFA.
+ * The Filament admin panel signs in on its own `admin` guard. A session opened
+ * by the dashboard login (/login) or the hosted-chat login lives on the `web`
+ * guard and must never open /admin, so the panel's own login (and its optional
+ * authenticator-app MFA) is always used.
+ *
+ * MFA is offered but not required (AdminPanelProvider `isRequired: false`, an
+ * operator choice). Staff tools (Horizon, Telescope, Pulse, Spectra) still
+ * require MFA — see StaffToolsAccess.
  */
 beforeEach(function (): void {
     // fresh(): load every column, as a real request does (strict mode flags
@@ -21,15 +25,9 @@ it('does not let a dashboard (web guard) session into the panel', function (): v
         ->assertRedirect(Filament::getPanel('admin')->getLoginUrl());
 });
 
-it('sends a signed-in admin without MFA to the MFA set-up page', function (): void {
+it('opens the panel for an admin without MFA, because MFA is optional', function (): void {
     $this->actingAs($this->admin, 'admin')
         ->get('/admin')
-        ->assertRedirect(Filament::getPanel('admin')->getSetUpRequiredMultiFactorAuthenticationUrl());
-});
-
-it('lets an admin without MFA open the set-up page', function (): void {
-    $this->actingAs($this->admin, 'admin')
-        ->get(Filament::getPanel('admin')->getSetUpRequiredMultiFactorAuthenticationUrl())
         ->assertOk();
 });
 

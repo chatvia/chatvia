@@ -17,6 +17,7 @@ use Domain\Widget\Data\Session\WidgetSessionInitData;
  *  - Reusing a valid same-agent session does not mint a new one.
  *  - An existing session id that belongs to a DIFFERENT agent must be
  *    ignored, and a fresh session minted for the requesting agent.
+ *  - A remembered conversation is resumed only inside its own session.
  *  - is_new_session/is_new_conversation flags reflect what actually happened.
  *  - Accept-Language is parsed down to the 2-letter ISO code on a freshly
  *    minted session; default 'en' when absent.
@@ -132,4 +133,22 @@ it('resumes a remembered conversation of the same agent', function (): void {
     expect($again->conversation_id)->toBe($first->conversation_id)
         ->and($again->is_new_conversation)->toBeFalse()
         ->and($again->is_new_session)->toBeFalse();
+});
+
+it('starts a new conversation when the remembered one belongs to another session', function (): void {
+    $agent = Agent::factory()->create();
+    $first = app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData());
+
+    // The widget lost its session id but still remembers the conversation.
+    $again = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
+        ...iwsInitData()->toArray(),
+        'existingConversationId' => $first->conversation_id,
+    ]));
+
+    $conversation = Conversation::query()->where('external_id', $again->conversation_id)->firstOrFail();
+
+    expect($again->is_new_session)->toBeTrue()
+        ->and($again->conversation_id)->not->toBe($first->conversation_id)
+        ->and($again->is_new_conversation)->toBeTrue()
+        ->and($conversation->session->external_id)->toBe($again->session_id);
 });

@@ -9,6 +9,7 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpClient;
 use Domain\Integration\Mcp\Services\McpToolDispatcher;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -18,8 +19,13 @@ use Throwable;
  * pointed at the internal route and identify the caller with
  * `X-Chatvia-Workspace-Id`. McpClient HMAC-signs first-party servers,
  * including that header, so the call satisfies VerifyInternalMcpRequest's
- * workspace mode. The result envelope is read the same way the agent path
- * reads it ({@see McpToolResultData}).
+ * workspace mode. McpClient reads the result envelope for both paths
+ * ({@see McpToolResultData}).
+ *
+ * A call that throws gives the model a fixed sentence, never the exception
+ * message: transport messages can carry internal URLs, response bodies or
+ * stack details. The log gets the exception type and the tool name only, not
+ * the workspace.
  */
 class AnalyticsToolDispatcher
 {
@@ -35,16 +41,20 @@ class AnalyticsToolDispatcher
     public function dispatch(User $workspace, string $toolName, string $url, array $arguments): ToolDispatchResult
     {
         try {
-            $result = McpToolResultData::fromEnvelope($this->client->callTool($this->serverFor($url), $toolName, $arguments, [
+            $result = $this->client->callTool($this->serverFor($url), $toolName, $arguments, [
                 'X-Chatvia-Workspace-Id' => $workspace->external_id,
-            ]));
+            ]);
         } catch (Throwable $e) {
-            return ToolDispatchResult::error('Tool error: '.$e->getMessage());
+            Log::warning('Analytics tool call failed', [
+                'tool' => $toolName,
+                'exception' => $e::class,
+                'code' => $e->getCode(),
+            ]);
+
+            return ToolDispatchResult::error('The tool failed unexpectedly. Try again later.');
         }
 
-        return $result->isError
-            ? ToolDispatchResult::error($result->text)
-            : new ToolDispatchResult($result->text, $result->artifacts());
+        return $result->toDispatchResult();
     }
 
     /**

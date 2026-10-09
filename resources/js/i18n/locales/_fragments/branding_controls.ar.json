@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "تعذّر رفع الصورة الرمزية",
+                "logo_upload_error": "تعذّر رفع الشعار",
+                "avatar_remove_error": "تعذّر إزالة الصورة الرمزية",
+                "logo_remove_error": "تعذّر إزالة الشعار"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "أسود",
+                "red": "أحمر",
+                "orange": "برتقالي",
+                "amber": "كهرماني",
+                "yellow": "أصفر",
+                "lime": "ليموني",
+                "green": "أخضر",
+                "emerald": "زمردي",
+                "teal": "أزرق مخضر",
+                "cyan": "سماوي",
+                "sky": "أزرق سماوي",
+                "blue": "أزرق",
+                "indigo": "نيلي",
+                "violet": "بنفسجي",
+                "purple": "أرجواني",
+                "fuchsia": "فوشيا",
+                "pink": "وردي",
+                "rose": "زهري",
+                "slate": "رمادي أردوازي",
+                "gray": "رمادي",
+                "zinc": "رمادي زنكي",
+                "neutral": "محايد",
+                "stone": "حجري"
+            }
+        }
+    }
+}

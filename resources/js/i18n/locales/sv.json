@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "Kopplingar"
             },
-            "overview": {
-                "coming_soon": "{type} kommer snart",
-                "under_development": "Den här funktionen är under utveckling.",
-                "files": {
-                    "label": "Filer",
-                    "description": "Ladda upp och hantera dokument (PDF, Word, m.m.)"
-                },
-                "text": {
-                    "label": "Text",
-                    "description": "Lägg till eget textinnehåll och anteckningar direkt"
-                },
-                "web": {
-                    "label": "Webbplats",
-                    "description": "Crawla webbplatser och webbsidor för kunskap"
-                },
-                "audio": {
-                    "label": "Ljud",
-                    "description": "Ladda upp ljudfiler och poddar för transkribering"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Ladda upp videofiler för transkribering och analys"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Importera YouTube-videor och extrahera transkript"
-                },
-                "qa": {
-                    "label": "Q&A",
-                    "description": "Skapa svar på viktiga frågor"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Inspelningen laddades upp!",
                 "recording_uploaded_description": "\"{name}\" har lagts till i dina ljudkällor.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "Det gick inte att uppdatera Q&A-posten",
                 "deleted": "Q&A-posten togs bort",
                 "delete_failed": "Det gick inte att ta bort Q&A-posten",
-                "unlinked": "Q&A-posten kopplades bort",
-                "unlink_failed": "Det gick inte att koppla bort Q&A-posten",
                 "load_entries_failed": "Det gick inte att läsa in Q&A-posterna",
                 "status": {
                     "ingested": "Inläst",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "F{number}:",
                 "edit_action": "Redigera",
                 "created_at": "Skapad {date}",
-                "used_by_agents": "Används av {count} agenter",
                 "delete_title": "Ta bort Q&A-post",
                 "delete_description": "Är du säker på att du vill ta bort den här Q&A-posten? Åtgärden kan inte ångras.",
                 "remove_question": "Ta bort fråga",
@@ -1664,10 +1629,8 @@
                 "colors_error": "Det gick inte att spara färger",
                 "avatar_updated": "Avatar uppdaterad",
                 "logo_updated": "Logotyp uppdaterad",
-                "upload_error": "Det gick inte att ladda upp {key}",
                 "avatar_removed": "Avatar borttagen",
                 "logo_removed": "Logotyp borttagen",
-                "remove_error": "Det gick inte att ta bort {key}",
                 "hosted_saved": "Beteende för Hosted Chat sparat",
                 "widget_saved": "Chatt-widget-beteende sparat",
                 "bar_saved": "Kommandorad-beteende sparat",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "Det gick inte att spara länken till integritetspolicyn",
                 "branding_saved": "Varumärke uppdaterat",
                 "languages_saved": "Språk sparade",
-                "languages_error": "Det gick inte att spara språk"
+                "languages_error": "Det gick inte att spara språk",
+                "avatar_upload_error": "Det gick inte att ladda upp avataren",
+                "logo_upload_error": "Det gick inte att ladda upp logotypen",
+                "avatar_remove_error": "Det gick inte att ta bort avataren",
+                "logo_remove_error": "Det gick inte att ta bort logotypen"
             },
             "settings": {
                 "composer_title": "Kompositoralternativ",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "Färgintensitet",
             "light": "Ljus",
-            "dark": "Mörk"
+            "dark": "Mörk",
+            "colors": {
+                "black": "Svart",
+                "red": "Röd",
+                "orange": "Orange",
+                "amber": "Bärnsten",
+                "yellow": "Gul",
+                "lime": "Lime",
+                "green": "Grön",
+                "emerald": "Smaragd",
+                "teal": "Blågrön",
+                "cyan": "Cyan",
+                "sky": "Himmelsblå",
+                "blue": "Blå",
+                "indigo": "Indigo",
+                "violet": "Violett",
+                "purple": "Lila",
+                "fuchsia": "Fuchsia",
+                "pink": "Rosa",
+                "rose": "Rosenröd",
+                "slate": "Skiffer",
+                "gray": "Grå",
+                "zinc": "Zink",
+                "neutral": "Neutral",
+                "stone": "Sten"
+            }
         },
         "color_theme_picker": {
             "title": "Välj färgtema",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "automatisk",
             "outcome_approved": "godkänd",
             "outcome_denied": "nekad",
-            "outcome_rate_limited": "hastighetsbegränsad"
+            "outcome_rate_limited": "hastighetsbegränsad",
+            "outcome_not_offered": "inte erbjuden"
         },
         "attach_file": {
             "title": "Välj från redan tränade filer",

@@ -69,10 +69,11 @@ class McpOAuthRegistrar
 
         try {
             // SSRF guard: registrationEndpoint comes from upstream-discovered
-            // metadata. Re-validate and disable redirects before POSTing.
-            SafeUrl::assert($metadata->registrationEndpoint);
+            // metadata. Re-validate, pin the checked address and disable
+            // redirects before POSTing.
+            $clientOptions = SafeUrl::pinnedClientOptions($metadata->registrationEndpoint);
 
-            $response = Http::withOptions(SafeUrl::clientOptions())->withHeaders([
+            $response = Http::withOptions($clientOptions)->withHeaders([
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ])->post($metadata->registrationEndpoint, $payload);

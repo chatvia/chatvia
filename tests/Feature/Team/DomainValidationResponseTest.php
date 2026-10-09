@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserQuota;
 use Domain\Conversation\Topic\Models\Topic;
+use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
 
 /**
@@ -36,4 +37,24 @@ it('turns a domain rejection into a 422 with the same message for JSON callers',
         ->assertUnprocessable()
         ->assertJsonPath('message', 'Topic already associated with this agent')
         ->assertJsonValidationErrors(['topic_id' => 'Topic already associated with this agent']);
+});
+
+it('refuses to delete a role a member still holds with a field error', function (): void {
+    $owner = User::factory()->create();
+    app(TeamService::class)->createDefaultTeam($owner);
+    $owner->billing()->firstOrCreate([]);
+    UserQuota::firstOrCreate(['user_id' => $owner->id], config('billing.packages.starter.quota_limits.fixed', []));
+
+    $team = $owner->primaryTeam();
+    $this->actingAs($owner)->post(route('teams.create-role', $team), ['name' => 'Support', 'all_agents' => true]);
+    $role = Role::query()->where('team_id', $team->id)->where('name', 'Support')->firstOrFail();
+    $team->members()->attach(User::factory()->create()->id, ['role_id' => $role->id]);
+
+    $this->actingAs($owner)
+        ->from('/previous')
+        ->delete(route('teams.delete-role', ['team' => $team, 'roleId' => $role->id]))
+        ->assertRedirect('/previous')
+        ->assertSessionHasErrors(['role' => 'Cannot delete this role. 1 member(s) are assigned to it.']);
+
+    expect(Role::query()->whereKey($role->id)->exists())->toBeTrue();
 });

@@ -18,6 +18,8 @@ use App\Identity\Workspace\Listeners\SendMagicLinkEmail;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Observers\UserObserver;
 use App\Identity\Workspace\Services\PasswordAuthenticator;
+use App\Marketing\Events\ContactMessageSubmitted;
+use App\Marketing\Listeners\SendContactEmail;
 use App\Marketing\Models\Post;
 use App\Marketing\Observers\PostObserver;
 use App\Mcp\CodeDefinedToolDefinitions;
@@ -324,6 +326,7 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(AgentChatterInvited::class, SendAgentChatterInvitationEmail::class);
         Event::listen(TeamInvitationCreated::class, SendTeamInvitationEmail::class);
         Event::listen(MagicLinkRequested::class, SendMagicLinkEmail::class);
+        Event::listen(ContactMessageSubmitted::class, SendContactEmail::class);
         Event::listen(MessageCreditsLow::class, TriggerAutoRecharge::class);
         Event::listen(DataExportReady::class, SendDataExportReadyNotification::class);
         Event::listen(WebhookReceived::class, HandleStripeWebhook::class);

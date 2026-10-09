@@ -63,14 +63,14 @@ class OAuthTokenClient
     private function request(OAuthGrant $grant, string $tokenEndpoint, array $form): OAuthTokenSetData
     {
         try {
-            SafeUrl::assert($tokenEndpoint);
+            $clientOptions = SafeUrl::pinnedClientOptions($tokenEndpoint);
         } catch (Throwable $e) {
             throw new McpOAuthException($grant->blockedMessage(), $e->getCode(), previous: $e);
         }
 
         try {
             $response = Http::asForm()
-                ->withOptions(SafeUrl::clientOptions())
+                ->withOptions($clientOptions)
                 ->withHeaders(['Accept' => 'application/json'])
                 ->post($tokenEndpoint, $form);
         } catch (Throwable $e) {

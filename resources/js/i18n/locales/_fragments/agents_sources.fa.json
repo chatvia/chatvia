@@ -27,38 +27,6 @@
                 "markdown": "Markdown",
                 "connectors": "اتصال‌دهنده‌ها"
             },
-            "overview": {
-                "coming_soon": "{type} به زودی",
-                "under_development": "این ویژگی در حال توسعه است.",
-                "files": {
-                    "label": "فایل‌ها",
-                    "description": "آپلود و مدیریت اسناد (PDF، Word و غیره)"
-                },
-                "text": {
-                    "label": "متن",
-                    "description": "افزودن محتوای متنی و یادداشت‌های سفارشی به صورت مستقیم"
-                },
-                "web": {
-                    "label": "وب‌سایت",
-                    "description": "خزش وب‌سایت‌ها و صفحات وب برای دانش"
-                },
-                "audio": {
-                    "label": "صدا",
-                    "description": "آپلود فایل‌های صوتی و پادکست‌ها برای رونویسی"
-                },
-                "video": {
-                    "label": "ویدیو",
-                    "description": "آپلود فایل‌های ویدیویی برای رونویسی و تحلیل"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "وارد کردن ویدیوهای YouTube و استخراج متن"
-                },
-                "qa": {
-                    "label": "پرسش و پاسخ",
-                    "description": "تهیه پاسخ برای سوالات کلیدی"
-                }
-            },
             "audio": {
                 "recording_uploaded": "ضبط با موفقیت آپلود شد!",
                 "recording_uploaded_description": "«{name}» به منابع صوتی شما اضافه شد.",
@@ -195,8 +163,6 @@
                 "update_failed": "به‌روزرسانی پرسش و پاسخ ناموفق بود",
                 "deleted": "پرسش و پاسخ با موفقیت حذف شد",
                 "delete_failed": "حذف پرسش و پاسخ ناموفق بود",
-                "unlinked": "پرسش و پاسخ با موفقیت جدا شد",
-                "unlink_failed": "جداسازی پرسش و پاسخ ناموفق بود",
                 "load_entries_failed": "بارگذاری موارد پرسش و پاسخ ناموفق بود",
                 "status": {
                     "ingested": "پردازش شده",
@@ -223,7 +189,6 @@
                 "question_prefix": "س{number}:",
                 "edit_action": "ویرایش",
                 "created_at": "ایجاد شده در {date}",
-                "used_by_agents": "استفاده شده توسط {count} دستیار",
                 "delete_title": "حذف پرسش و پاسخ",
                 "delete_description": "آیا مطمئن هستید که می‌خواهید این پرسش و پاسخ را حذف کنید؟ این عمل قابل بازگشت نیست."
             },

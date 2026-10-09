@@ -11,8 +11,9 @@ use Illuminate\Foundation\Events\Dispatchable;
 /**
  * Fired once per tool-call decision at the dispatch choke point
  * ({@see ToolLoopRunner}), for every outcome — `auto` (ran without gating),
- * `approved`/`denied` (gated, resolved by the actor), and `rate_limited`
- * (blocked by the access policy).
+ * `approved`/`denied` (gated, resolved by the actor), `rate_limited`
+ * (blocked by the access policy) and `not_offered` (a tool the agent was not
+ * given on that turn, refused before any gate).
  *
  * It carries the full governance record as scalars (denormalized agent/user
  * names + connector) so the queued {@see RecordToolCallAudit} listener can
@@ -47,7 +48,7 @@ final readonly class ToolCallCompleted
         // Outcome.
         public ?int $latencyMs,
         public bool $gated,
-        public string $approvalOutcome,     // auto | approved | denied | rate_limited
+        public string $approvalOutcome,     // a ToolCallOutcome value
         public ?string $decidedAt = null,   // set when a gated call was resolved
     ) {}
 }

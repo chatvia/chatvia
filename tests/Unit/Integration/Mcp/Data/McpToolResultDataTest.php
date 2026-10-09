@@ -37,3 +37,23 @@ it('falls back to the JSON envelope when there is no text part, and keeps the er
         ->and($result->isError)->toBeTrue()
         ->and($result->artifacts())->toBe([]);
 });
+
+it('becomes a dispatch result: text plus blocks, or a flagged error without blocks', function (): void {
+    $ok = McpToolResultData::fromEnvelope([
+        'content' => [['type' => 'text', 'text' => 'done']],
+        'structuredContent' => ['form' => ['form_instance_id' => 'abc']],
+    ])->toDispatchResult();
+
+    $failed = McpToolResultData::fromEnvelope([
+        'content' => [['type' => 'text', 'text' => 'nope']],
+        'isError' => true,
+        'structuredContent' => ['form' => ['form_instance_id' => 'abc']],
+    ])->toDispatchResult();
+
+    expect($ok->text)->toBe('done')
+        ->and($ok->isError)->toBeFalse()
+        ->and($ok->artifacts)->toBe([['kind' => 'form', 'data' => ['form_instance_id' => 'abc']]])
+        ->and($failed->text)->toBe('nope')
+        ->and($failed->isError)->toBeTrue()
+        ->and($failed->artifacts)->toBe([]);
+});

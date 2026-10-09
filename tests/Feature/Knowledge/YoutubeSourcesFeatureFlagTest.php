@@ -77,3 +77,26 @@ it('shares the switch with the dashboard so the entry point can hide', function 
     'off' => false,
     'on' => true,
 ]);
+
+it('adds a video as JSON and answers a refused link with a url field error', function (): void {
+    config(['chatvia.features.youtube_sources' => true]);
+    $route = route('agents.sources.youtube.store', ['agent' => $this->agent->external_id]);
+
+    $this->actingAs($this->user)
+        ->postJson($route, ['url' => 'https://youtu.be/abcdefghijk'])
+        ->assertOk()
+        ->assertJsonStructure(['message']);
+
+    // Passes the request's URL check but holds no video id.
+    $this->actingAs($this->user)
+        ->postJson($route, ['url' => 'https://www.youtube.com/channel'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['url' => 'Could not extract video ID from URL.']);
+
+    $this->actingAs($this->user)
+        ->postJson($route, ['url' => $this->video->url])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('url');
+
+    expect($this->agent->youtubeVideos()->count())->toBe(2);
+});

@@ -26,18 +26,6 @@
 
     @stack('preload')
 
-    <style>
-        @keyframes marquee {
-            0% {
-                transform: translateX(0%);
-            }
-
-            100% {
-                transform: translateX(-50%);
-            }
-        }
-    </style>
-
 </head>
 
 <body class="font-inter antialiased bg-white text-slate-800 tracking-normal">

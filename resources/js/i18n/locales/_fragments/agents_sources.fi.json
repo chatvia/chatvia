@@ -27,38 +27,6 @@
                 "markdown": "Markdown",
                 "connectors": "Liittimet"
             },
-            "overview": {
-                "coming_soon": "{type} tulossa pian",
-                "under_development": "Tämä ominaisuus on parhaillaan kehitteillä.",
-                "files": {
-                    "label": "Tiedostot",
-                    "description": "Lataa ja hallinnoi asiakirjoja (PDF, Word jne.)"
-                },
-                "text": {
-                    "label": "Teksti",
-                    "description": "Lisää mukautettua tekstisisältöä ja muistiinpanoja suoraan"
-                },
-                "web": {
-                    "label": "Verkkosivusto",
-                    "description": "Indeksoi verkkosivustoja ja -sivuja tietokantaan"
-                },
-                "audio": {
-                    "label": "Ääni",
-                    "description": "Lataa äänitiedostoja ja podcasteja litterointia varten"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Lataa videotiedostoja litterointia ja analyysia varten"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Tuo YouTube-videoita ja pura tekstitykset"
-                },
-                "qa": {
-                    "label": "K&V",
-                    "description": "Laadi vastauksia keskeisiin kysymyksiin"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Äänitys ladattu onnistuneesti!",
                 "recording_uploaded_description": "\"{name}\" on lisätty äänilähteisiisi.",
@@ -195,8 +163,6 @@
                 "update_failed": "K&V-merkinnän päivittäminen epäonnistui",
                 "deleted": "K&V-merkintä poistettu onnistuneesti",
                 "delete_failed": "K&V-merkinnän poistaminen epäonnistui",
-                "unlinked": "K&V-merkintä irrotettu onnistuneesti",
-                "unlink_failed": "K&V-merkinnän irrottaminen epäonnistui",
                 "load_entries_failed": "K&V-merkintöjen lataaminen epäonnistui",
                 "status": {
                     "ingested": "Sisällytetty",
@@ -223,7 +189,6 @@
                 "question_prefix": "K{number}:",
                 "edit_action": "Muokkaa",
                 "created_at": "Luotu {date}",
-                "used_by_agents": "{count} agentin käytössä",
                 "delete_title": "Poista K&V-merkintä",
                 "delete_description": "Haluatko varmasti poistaa tämän K&V-merkinnän? Tätä toimintoa ei voi peruuttaa."
             },

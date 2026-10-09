@@ -21,10 +21,11 @@ use Symfony\Component\HttpFoundation\Response;
  * server-side tool loop.
  *
  * Two checks:
- *   1. Proof-of-origin — a fresh HMAC attached by McpClient over the method,
- *      path, body and every `X-Chatvia-*` identity header
- *      ({@see InternalMcpSignature}). Rejects anonymous internet callers and
- *      any change to the body or identity headers of a captured request.
+ *   1. Proof-of-origin — a fresh, one-time HMAC attached by McpClient over the
+ *      method, path, body and every `X-Chatvia-*` identity header
+ *      ({@see InternalMcpSignature}). Rejects anonymous internet callers, any
+ *      change to the body or identity headers of a captured request, and a
+ *      second copy of the same request.
  *   2. Authorisation — for a `tools/call`, EITHER:
  *      a. Per-agent enablement: the agent named in the identity header has THIS
  *         built-in connector attached + enabled (so a tool only runs for agents

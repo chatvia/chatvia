@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "无法上传头像",
+                "logo_upload_error": "无法上传 Logo",
+                "avatar_remove_error": "无法移除头像",
+                "logo_remove_error": "无法移除 Logo"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "黑色",
+                "red": "红色",
+                "orange": "橙色",
+                "amber": "琥珀色",
+                "yellow": "黄色",
+                "lime": "青柠色",
+                "green": "绿色",
+                "emerald": "翡翠绿",
+                "teal": "蓝绿色",
+                "cyan": "青色",
+                "sky": "天蓝色",
+                "blue": "蓝色",
+                "indigo": "靛蓝色",
+                "violet": "紫罗兰色",
+                "purple": "紫色",
+                "fuchsia": "品红色",
+                "pink": "粉色",
+                "rose": "玫瑰色",
+                "slate": "石板灰",
+                "gray": "灰色",
+                "zinc": "锌灰",
+                "neutral": "中性灰",
+                "stone": "石色"
+            }
+        }
+    }
+}

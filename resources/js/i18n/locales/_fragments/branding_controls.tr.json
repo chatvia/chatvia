@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "Avatar yüklenemedi",
+                "logo_upload_error": "Logo yüklenemedi",
+                "avatar_remove_error": "Avatar kaldırılamadı",
+                "logo_remove_error": "Logo kaldırılamadı"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "Siyah",
+                "red": "Kırmızı",
+                "orange": "Turuncu",
+                "amber": "Kehribar",
+                "yellow": "Sarı",
+                "lime": "Limon yeşili",
+                "green": "Yeşil",
+                "emerald": "Zümrüt",
+                "teal": "Deniz yeşili",
+                "cyan": "Camgöbeği",
+                "sky": "Gök mavisi",
+                "blue": "Mavi",
+                "indigo": "Çivit",
+                "violet": "Menekşe",
+                "purple": "Mor",
+                "fuchsia": "Fuşya",
+                "pink": "Pembe",
+                "rose": "Gül",
+                "slate": "Arduvaz",
+                "gray": "Gri",
+                "zinc": "Çinko",
+                "neutral": "Nötr",
+                "stone": "Taş"
+            }
+        }
+    }
+}

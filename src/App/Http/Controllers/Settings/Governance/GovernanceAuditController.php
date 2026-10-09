@@ -14,8 +14,8 @@ use Inertia\Response;
 
 /**
  * The Governed MCP Gateway audit log — a read-only, workspace-scoped view of
- * every tool call an agent made (auto / approved / denied / rate-limited),
- * across ALL of the workspace's agents. Gated by the `account.governance` team
+ * every tool call an agent made (one row per ToolCallOutcome), across ALL of
+ * the workspace's agents. Gated by the `account.governance` team
  * permission. The per-agent view lives at {@see AgentAuditController}.
  */
 class GovernanceAuditController

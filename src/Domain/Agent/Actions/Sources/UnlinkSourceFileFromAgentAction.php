@@ -11,19 +11,23 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
  * Detaches a knowledge file from one agent without deleting the file, which
  * stays in the workspace's shared file pool.
  *
- * By design this refuses a file that several agents use (the dashboard shows
- * "linked to multiple agents"), so a shared file is only managed from the
- * workspace pool.
+ * Only a shared file can be unlinked: one that at least one other agent of the
+ * workspace still uses. The dashboard offers "Unlink" only for such a file and
+ * "Delete" otherwise. A file no agent uses would stay in the pool but drop out
+ * of the workspace's quota count, so the last link is never removed here.
  */
 class UnlinkSourceFileFromAgentAction
 {
     /**
-     * Returns true if unlinked, false if the file is linked to multiple agents
-     * (in which case caller should refuse).
+     * @return bool true when unlinked; false when this agent does not use the
+     *              file or no other agent does, so the caller should refuse
      */
     public function execute(Agent $agent, SourceFile $file): bool
     {
-        if ($file->agents()->count() > 1) {
+        $usedByThisAgent = $agent->files()->whereKey($file->id)->exists();
+        $usedByAnotherAgent = $file->agents()->where('agents.id', '!=', $agent->id)->exists();
+
+        if (! $usedByThisAgent || ! $usedByAnotherAgent) {
             return false;
         }
 

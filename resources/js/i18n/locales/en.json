@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "Connectors"
             },
-            "overview": {
-                "coming_soon": "{type} Coming Soon",
-                "under_development": "This feature is currently under development.",
-                "files": {
-                    "label": "Files",
-                    "description": "Upload and manage documents (PDF, Word, etc.)"
-                },
-                "text": {
-                    "label": "Text",
-                    "description": "Add custom text content and notes directly"
-                },
-                "web": {
-                    "label": "Website",
-                    "description": "Crawl websites and web pages for knowledge"
-                },
-                "audio": {
-                    "label": "Audio",
-                    "description": "Upload audio files and podcasts for transcription"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Upload video files for transcription and analysis"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Import YouTube videos and extract transcripts"
-                },
-                "qa": {
-                    "label": "Q&A",
-                    "description": "Craft responses for key questions"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Recording uploaded successfully!",
                 "recording_uploaded_description": "\"{name}\" has been added to your audio sources.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "Failed to update Q&A entry",
                 "deleted": "Q&A entry deleted successfully",
                 "delete_failed": "Failed to delete Q&A entry",
-                "unlinked": "Q&A entry unlinked successfully",
-                "unlink_failed": "Failed to unlink Q&A entry",
                 "load_entries_failed": "Failed to load Q&A entries",
                 "status": {
                     "ingested": "Ingested",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "Q{number}:",
                 "edit_action": "Edit",
                 "created_at": "Created {date}",
-                "used_by_agents": "Used by {count} agents",
                 "delete_title": "Delete Q&A Entry",
                 "delete_description": "Are you sure you want to delete this Q&A entry? This action cannot be undone.",
                 "remove_question": "Remove question",
@@ -1664,10 +1629,8 @@
                 "colors_error": "Could not save colors",
                 "avatar_updated": "Avatar updated",
                 "logo_updated": "Logo updated",
-                "upload_error": "Could not upload {key}",
                 "avatar_removed": "Avatar removed",
                 "logo_removed": "Logo removed",
-                "remove_error": "Could not remove {key}",
                 "hosted_saved": "Hosted Chat behaviour saved",
                 "widget_saved": "Chat Widget behaviour saved",
                 "bar_saved": "Command Bar behaviour saved",
@@ -1679,7 +1642,11 @@
                 "privacy_saved": "Privacy policy link saved",
                 "privacy_error": "Could not save privacy policy link",
                 "languages_saved": "Languages saved",
-                "languages_error": "Could not save languages"
+                "languages_error": "Could not save languages",
+                "avatar_upload_error": "Could not upload the avatar",
+                "logo_upload_error": "Could not upload the logo",
+                "avatar_remove_error": "Could not remove the avatar",
+                "logo_remove_error": "Could not remove the logo"
             },
             "settings": {
                 "composer_title": "Composer options",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "Color Intensity",
             "light": "Light",
-            "dark": "Dark"
+            "dark": "Dark",
+            "colors": {
+                "black": "Black",
+                "red": "Red",
+                "orange": "Orange",
+                "amber": "Amber",
+                "yellow": "Yellow",
+                "lime": "Lime",
+                "green": "Green",
+                "emerald": "Emerald",
+                "teal": "Teal",
+                "cyan": "Cyan",
+                "sky": "Sky",
+                "blue": "Blue",
+                "indigo": "Indigo",
+                "violet": "Violet",
+                "purple": "Purple",
+                "fuchsia": "Fuchsia",
+                "pink": "Pink",
+                "rose": "Rose",
+                "slate": "Slate",
+                "gray": "Gray",
+                "zinc": "Zinc",
+                "neutral": "Neutral",
+                "stone": "Stone"
+            }
         },
         "color_theme_picker": {
             "title": "Choose Color Theme",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "auto",
             "outcome_approved": "approved",
             "outcome_denied": "denied",
-            "outcome_rate_limited": "rate limited"
+            "outcome_rate_limited": "rate limited",
+            "outcome_not_offered": "not offered"
         },
         "attach_file": {
             "title": "Choose from Already Trained Files",

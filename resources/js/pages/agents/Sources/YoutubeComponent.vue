@@ -13,11 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useYoutubeVideos } from '@/composables/agents/sources/useYoutubeVideos';
-import { useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Plus, Youtube } from 'lucide-vue-next';
 import { onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { toast } from 'vue-sonner';
 
 const props = defineProps<{
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
@@ -25,27 +23,20 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const { videos, isLoading, isInitialLoad, loadVideos, retrainVideo, isDeleteDialogOpen, confirmDelete, deleteVideo } = useYoutubeVideos(
-    props.agent.external_id,
-);
-
-const youtubeForm = useForm({
-    url: '',
-});
-
-function submitYoutubeUrl(): void {
-    youtubeForm.post(route('agents.sources.youtube.store', { agent: props.agent.external_id }), {
-        preserveScroll: true,
-        onSuccess: () => {
-            youtubeForm.reset();
-            toast.success(t('agents.sources.youtube.added'));
-            loadVideos();
-        },
-        onError: (errors) => {
-            toast.error(errors.url || t('agents.sources.youtube.add_failed'));
-        },
-    });
-}
+const {
+    videos,
+    isLoading,
+    isInitialLoad,
+    loadVideos,
+    newUrl,
+    isAdding,
+    urlError,
+    addVideo,
+    retrainVideo,
+    isDeleteDialogOpen,
+    confirmDelete,
+    deleteVideo,
+} = useYoutubeVideos(props.agent.external_id);
 
 onMounted(loadVideos);
 </script>
@@ -64,25 +55,25 @@ onMounted(loadVideos);
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form class="space-y-4" @submit.prevent="submitYoutubeUrl">
+                    <form class="space-y-4" @submit.prevent="addVideo">
                         <div class="space-y-2">
                             <Label for="youtube-url">{{ t('agents.sources.youtube.url_label') }}</Label>
                             <div class="flex gap-2">
                                 <Input
                                     id="youtube-url"
-                                    v-model="youtubeForm.url"
+                                    v-model="newUrl"
                                     type="url"
                                     placeholder="https://www.youtube.com/watch?v=..."
-                                    :disabled="youtubeForm.processing"
+                                    :disabled="isAdding"
                                     class="flex-1"
                                 />
-                                <Button type="submit" :disabled="youtubeForm.processing || !youtubeForm.url">
-                                    <LoaderCircle v-if="youtubeForm.processing" class="me-2 h-4 w-4 animate-spin" />
+                                <Button type="submit" :disabled="isAdding || !newUrl">
+                                    <LoaderCircle v-if="isAdding" class="me-2 h-4 w-4 animate-spin" />
                                     <Plus v-else class="me-2 h-4 w-4" />
                                     {{ t('agents.sources.youtube.add_video') }}
                                 </Button>
                             </div>
-                            <InputError :message="youtubeForm.errors.url" />
+                            <InputError :message="urlError" />
                         </div>
                     </form>
                 </CardContent>

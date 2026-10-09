@@ -3,7 +3,10 @@
 namespace Domain\Integration\Tool\Routing;
 
 use Domain\Agent\Models\Agent;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Services\StructuredCompletion;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -31,7 +34,7 @@ use Throwable;
 class ConnectorClassifier
 {
     public function __construct(
-        private readonly LlmProviderInterface $provider,
+        private readonly StructuredCompletion $completion,
     ) {}
 
     /**
@@ -50,9 +53,7 @@ class ConnectorClassifier
         $slugs = array_keys($connectors);
 
         try {
-            $response = $this->provider->completion($this->routeRequest($slugs, $connectors, $userMessage));
-
-            $content = $response->json('choices.0.message.content');
+            $reply = $this->completion->send($this->routeRequest($slugs, $connectors, $userMessage));
         } catch (Throwable $e) {
             Log::warning('ConnectorClassifier failed; skipping connector routing this turn', [
                 'agent_id' => $agent->id,
@@ -62,7 +63,7 @@ class ConnectorClassifier
             return null;
         }
 
-        $picked = $this->parse(is_string($content) ? $content : null, $slugs);
+        $picked = $this->picked($reply->data, $slugs);
 
         // An empty pick ("no connector needed") is treated as "don't prune" rather
         // than "drop every write" — failing open keeps a misfire from starving the
@@ -86,37 +87,32 @@ class ConnectorClassifier
      *
      * @param  list<string>  $slugs
      * @param  array<string, string>  $connectors  slug => "name: description"
-     * @return array<string, mixed>
      */
-    private function routeRequest(array $slugs, array $connectors, string $userMessage): array
+    private function routeRequest(array $slugs, array $connectors, string $userMessage): ChatRequestData
     {
-        return [
-            'model' => config('chatvia.ai.models.connector_router', config('chatvia.ai.models.guardrail')),
-            'temperature' => 0,
-            'response_format' => [
-                'type' => 'json_schema',
-                'json_schema' => [
-                    'name' => 'connector_route',
-                    'schema' => [
-                        'type' => 'object',
-                        'additionalProperties' => false,
-                        'required' => ['connectors'],
-                        'properties' => [
-                            'connectors' => [
-                                'type' => 'array',
-                                // enum = the reachable set: the model can only
-                                // return connectors the agent actually has.
-                                'items' => ['type' => 'string', 'enum' => $slugs],
-                            ],
-                        ],
-                    ],
+        $schema = [
+            'type' => 'object',
+            'additionalProperties' => false,
+            'required' => ['connectors'],
+            'properties' => [
+                'connectors' => [
+                    'type' => 'array',
+                    // enum = the reachable set: the model can only return
+                    // connectors the agent actually has.
+                    'items' => ['type' => 'string', 'enum' => $slugs],
                 ],
             ],
-            'messages' => [
-                ['role' => 'system', 'content' => $this->systemPrompt()],
-                ['role' => 'user', 'content' => $this->userPrompt($userMessage, $connectors)],
-            ],
         ];
+
+        return new ChatRequestData(
+            model: (string) config('chatvia.ai.models.connector_router', config('chatvia.ai.models.guardrail')),
+            messages: [
+                ChatMessageData::system($this->systemPrompt()),
+                ChatMessageData::user($this->userPrompt($userMessage, $connectors)),
+            ],
+            temperature: 0.0,
+            responseSchema: new ResponseSchemaData('connector_route', $schema, strict: false),
+        );
     }
 
     private function systemPrompt(): string
@@ -145,23 +141,16 @@ class ConnectorClassifier
     }
 
     /**
+     * The picked slugs from the decoded reply; empty when the reply held no
+     * usable `connectors` list.
+     *
+     * @param  array<array-key, mixed>|null  $data
      * @param  list<string>  $reachable
      * @return list<string>
      */
-    private function parse(?string $content, array $reachable): array
+    private function picked(?array $data, array $reachable): array
     {
-        if (! is_string($content) || $content === '') {
-            return [];
-        }
-
-        $start = strpos($content, '{');
-        $end = strrpos($content, '}');
-        if ($start === false || $end === false || $end < $start) {
-            return [];
-        }
-
-        $data = json_decode(substr($content, $start, $end - $start + 1), true);
-        $picked = is_array($data) ? ($data['connectors'] ?? null) : null;
+        $picked = $data['connectors'] ?? null;
         if (! is_array($picked)) {
             return [];
         }

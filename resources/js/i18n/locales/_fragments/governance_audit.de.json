@@ -1,0 +1,7 @@
+{
+    "shared": {
+        "audit_table": {
+            "outcome_not_offered": "nicht angeboten"
+        }
+    }
+}

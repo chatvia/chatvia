@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agent\Source\Youtube;
 
 use App\Http\Requests\Agent\Source\Youtube\AddYoutubeVideoRequest;
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Youtube\Actions\AddAgentYoutubeVideoAction;
@@ -14,7 +13,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Support\Exceptions\DomainValidationException;
 
 /**
  * The agent's YouTube sources: the page, the list, adding and removing a video.
@@ -41,19 +39,15 @@ class AgentYoutubeController
         ]);
     }
 
+    /**
+     * A JSON endpoint, like the rest of this controller: the page calls it
+     * with the API client. A link the action refuses (no video id, already
+     * added) becomes a 422 with the `url` field error through the global
+     * DomainValidationException mapping.
+     */
     public function store(AddYoutubeVideoRequest $request, Agent $agent, AddAgentYoutubeVideoAction $add): JsonResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-
-        try {
-            $add->execute($agent, $user, $request->videoUrl());
-        } catch (DomainValidationException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-                'errors' => [$e->field => [$e->getMessage()]],
-            ], 422);
-        }
+        $add->execute($agent, $request->videoUrl());
 
         return response()->json(['message' => __('YouTube video added successfully.')]);
     }

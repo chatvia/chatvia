@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Settings\Connector;
 
+use Domain\Integration\Mcp\Data\McpScopePermissionData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Illuminate\Foundation\Http\FormRequest;
@@ -29,13 +30,11 @@ class SetConnectorToolsScopePermissionRequest extends FormRequest
         ];
     }
 
-    public function scope(): McpToolScope
+    public function toData(): McpScopePermissionData
     {
-        return McpToolScope::from($this->string('scope')->toString());
-    }
-
-    public function permission(): McpToolPermission
-    {
-        return McpToolPermission::from($this->string('permission')->toString());
+        return new McpScopePermissionData(
+            scope: McpToolScope::from($this->string('scope')->toString()),
+            permission: McpToolPermission::from($this->string('permission')->toString()),
+        );
     }
 }

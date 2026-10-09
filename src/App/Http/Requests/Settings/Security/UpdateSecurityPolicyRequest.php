@@ -178,9 +178,9 @@ class UpdateSecurityPolicyRequest extends FormRequest
         }
 
         // countries.code is stored lowercase; the geo-IP provider may return either case.
-        $name = Country::query()->where('code', strtolower($code))->value('name');
+        $country = Country::query()->where('code', strtolower($code))->first(['code', 'name']);
 
-        return $name !== null ? (string) __($name) : strtoupper($code);
+        return $country?->localizedName() ?? strtoupper($code);
     }
 
     private function hasStoredWebhookSecret(): bool

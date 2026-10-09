@@ -2,8 +2,9 @@
 
 namespace Domain\Evaluation\Actions;
 
-use Domain\Billing\Contracts\Entitlements;
+use Domain\Billing\Enums\MessageAdmission;
 use Domain\Billing\Jobs\UpdateUserCreditsJob;
+use Domain\Billing\Services\MessageSendGate;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Events\EvalCaseScored;
@@ -28,7 +29,7 @@ class ScoreEvalCaseAction
     public function __construct(
         private readonly EvalAgentRunner $runner,
         private readonly ScorerRegistry $scorers,
-        private readonly Entitlements $entitlements,
+        private readonly MessageSendGate $sendGate,
     ) {}
 
     public function execute(EvalRun $run, EvalCase $case): EvalResult
@@ -44,15 +45,13 @@ class ScoreEvalCaseAction
             );
         }
 
-        // Credits can run dry mid-suite (each case consumes one message), so
-        // re-check the same gate live chat uses before spending an LLM call.
-        if (! $this->entitlements->hasMessageCapacity($agent->user_id)) {
-            return $this->record(
-                $run,
-                $case,
-                ScoreResultData::fail(0.0, 'Message limit reached — the case was skipped without running the agent.'),
-                new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), 'Message limit reached.'),
-            );
+        // Credits can run dry (or the subscription end) mid-suite, since each
+        // case consumes one message, so re-check the same gate live chat uses
+        // before spending an LLM call.
+        $admission = $this->sendGate->admit($agent->user);
+
+        if (! $admission->allowed()) {
+            return $this->recordSkipped($run, $case, $admission);
         }
 
         $result = $this->runner->run($agent, $case->input);
@@ -73,6 +72,22 @@ class ScoreEvalCaseAction
             : $this->scorers->for($case->scorer_type)->score($case, $result);
 
         return $this->record($run, $case, $score, $result);
+    }
+
+    /**
+     * A failing result for a case the send gate refused, without running the
+     * agent (so no LLM call and no charge).
+     */
+    private function recordSkipped(EvalRun $run, EvalCase $case, MessageAdmission $admission): EvalResult
+    {
+        $reason = $admission === MessageAdmission::SubscriptionInactive ? 'Subscription inactive' : 'Message limit reached';
+
+        return $this->record(
+            $run,
+            $case,
+            ScoreResultData::fail(0.0, $reason.' — the case was skipped without running the agent.'),
+            new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), $reason.'.'),
+        );
     }
 
     private function record(EvalRun $run, EvalCase $case, ScoreResultData $score, AgentRunResultData $result): EvalResult

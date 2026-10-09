@@ -2,9 +2,9 @@
 
 namespace Domain\Knowledge\Document\Concerns;
 
+use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Knowledge\Document\Conversion\LibreOffice;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -113,9 +113,9 @@ trait HasStorageFile
             $field,
         );
 
-        // Resolved via a direct lookup because the models sharing this trait
-        // don't all expose a user() relation.
-        $ownerExternalId = DB::table('users')->where('id', $this->user_id)->value('external_id');
+        // Looked up by key because not every model sharing this trait has a
+        // user() relation.
+        $ownerExternalId = User::query()->whereKey($this->user_id)->value('external_id');
         $pdfPath = 'users/'.$ownerExternalId.'/tmp/'.Str::uuid()->toString().'.pdf';
 
         try {

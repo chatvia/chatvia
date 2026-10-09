@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Embedding\Rerank;
 
 use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Llm\Providers\Scaleway;
 use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Http;
@@ -35,15 +36,9 @@ class Qwen3Reranker implements Reranker
         app(TokenUsageContext::class)->addFromResponse($response);
 
         /** @var list<array{index: int|string, relevance_score: float|string}> $results */
-        $results = $response->json('results');
+        $results = $response->json('results') ?? [];
 
-        return collect($results)
-            ->map(fn (array $item): array => [
-                'index' => (int) $item['index'],
-                'relevance_score' => (float) $item['relevance_score'],
-            ])
-            ->values()
-            ->all();
+        return array_values(array_map(RerankedDocumentData::fromResult(...), $results));
     }
 
     public function isEnabled(): bool

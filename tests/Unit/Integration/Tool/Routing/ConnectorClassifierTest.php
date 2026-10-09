@@ -3,9 +3,9 @@
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Tool\Routing\ConnectorClassifier;
-use Domain\Llm\Contracts\LlmProviderInterface;
-use Illuminate\Http\Client\Response;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 function attachClassifierConnector(Agent $agent, string $slug, string $name, string $description): void
 {
@@ -25,16 +25,12 @@ function attachClassifierConnector(Agent $agent, string $slug, string $name, str
     DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id]);
 }
 
-/** Build a classifier whose provider returns a fixed completion body. */
+/** A classifier whose model answers with a fixed reply. */
 function classifierReturning(string $content): ConnectorClassifier
 {
-    $response = Mockery::mock(Response::class);
-    $response->shouldReceive('json')->with('choices.0.message.content')->andReturn($content);
+    fakeLlmCompletion($content);
 
-    $provider = Mockery::mock(LlmProviderInterface::class);
-    $provider->shouldReceive('completion')->andReturn($response);
-
-    return new ConnectorClassifier($provider);
+    return app(ConnectorClassifier::class);
 }
 
 it('returns the picked connectors, constrained to the reachable set', function (): void {
@@ -56,14 +52,24 @@ it('returns null (prune nothing) when the model picks no connector', function ()
     expect(classifierReturning('{"connectors":[]}')->classify($agent, 'hello there'))->toBeNull();
 });
 
-it('fails open (null) when the provider throws', function (): void {
+it('fails open (null) when the provider fails', function (): void {
     $agent = Agent::factory()->create();
     attachClassifierConnector($agent, 'zendesk', 'Zendesk', 'Customer support');
 
-    $provider = Mockery::mock(LlmProviderInterface::class);
-    $provider->shouldReceive('completion')->andThrow(new RuntimeException('llm down'));
+    config(['services.scalewayai.api_key' => 'test-key']);
+    Http::fake(['*' => Http::response(['error' => 'llm down'], 503)]);
 
-    expect(new ConnectorClassifier($provider)->classify($agent, 'open a ticket'))->toBeNull();
+    expect(app(ConnectorClassifier::class)->classify($agent, 'open a ticket'))->toBeNull();
+});
+
+it('asks for a JSON reply limited to the reachable connectors', function (): void {
+    $agent = Agent::factory()->create();
+    attachClassifierConnector($agent, 'zendesk', 'Zendesk', 'Customer support');
+
+    classifierReturning('{"connectors":["zendesk"]}')->classify($agent, 'open a ticket');
+
+    Http::assertSent(fn (Request $request): bool => $request['response_format']['json_schema']['schema']['properties']['connectors']['items']['enum'] === ['zendesk']
+        && (float) $request['temperature'] === 0.0);
 });
 
 it('fails open (null) on an unparseable response', function (): void {

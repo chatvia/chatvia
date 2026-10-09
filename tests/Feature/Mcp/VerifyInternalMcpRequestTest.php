@@ -120,3 +120,73 @@ it('resolves no caller for a call that runs no tool', function (): void {
 
     expect(app(McpCallerContext::class)->workspace)->toBeNull();
 });
+
+it('rejects an identical copy of a request it already accepted', function (): void {
+    $call = internalToolCall('get-account-overview-tool');
+    $headers = internalSignedHeaders('/mcp/account-analytics', $call, $this->identity);
+
+    $this->withHeaders($headers)->postJson('/mcp/account-analytics', $call)->assertOk();
+    $this->withHeaders($headers)->postJson('/mcp/account-analytics', $call)->assertStatus(401);
+});
+
+it('signs each request with its own nonce, so two identical calls both pass', function (): void {
+    $call = internalToolCall('get-account-overview-tool');
+
+    $this->withHeaders(internalSignedHeaders('/mcp/account-analytics', $call, $this->identity))
+        ->postJson('/mcp/account-analytics', $call)->assertOk();
+    $this->withHeaders(internalSignedHeaders('/mcp/account-analytics', $call, $this->identity))
+        ->postJson('/mcp/account-analytics', $call)->assertOk();
+});
+
+it('rejects a request whose nonce was removed or swapped', function (): void {
+    $call = internalToolCall();
+    $headers = internalSignedHeaders('/mcp/account-analytics', $call, $this->identity);
+
+    $swapped = [...$headers, InternalMcpSignature::NONCE_HEADER => str_repeat('a', 40)];
+    $this->withHeaders($swapped)->postJson('/mcp/account-analytics', $call)->assertStatus(401);
+
+    unset($headers[InternalMcpSignature::NONCE_HEADER]);
+    $this->withHeaders($headers)->postJson('/mcp/account-analytics', $call)->assertStatus(401);
+});
+
+/**
+ * Headers as the previous release signed them: no nonce in the request or
+ * in the signed identity lines.
+ *
+ * @param  array<string, mixed>  $payload
+ * @param  array<string, string>  $identity
+ * @return array<string, string>
+ */
+function internalHeadersWithoutNonce(string $path, array $payload, array $identity): array
+{
+    $timestamp = (string) now()->timestamp;
+    $lines = collect($identity)
+        ->mapWithKeys(fn (string $value, string $name): array => [strtolower($name) => $value])
+        ->sortKeys()
+        ->map(fn (string $value, string $name): string => $name.':'.trim($value))
+        ->implode("\n");
+    $canonical = implode("\n", [$timestamp, 'POST', $path, hash('sha256', (string) json_encode($payload)), $lines]);
+
+    return [
+        ...$identity,
+        InternalMcpSignature::TIMESTAMP_HEADER => $timestamp,
+        InternalMcpSignature::SIGNATURE_HEADER => hash_hmac('sha256', $canonical, InternalMcpSignature::secret()),
+    ];
+}
+
+it('refuses a request signed without a nonce by default', function (): void {
+    $call = internalToolCall('get-account-overview-tool');
+
+    $this->withHeaders(internalHeadersWithoutNonce('/mcp/account-analytics', $call, $this->identity))
+        ->postJson('/mcp/account-analytics', $call)
+        ->assertStatus(401);
+});
+
+it('accepts a request signed without a nonce while the deploy flag allows it', function (): void {
+    config(['services.builtin_mcp.allow_missing_nonce' => true]);
+    $call = internalToolCall('get-account-overview-tool');
+
+    $this->withHeaders(internalHeadersWithoutNonce('/mcp/account-analytics', $call, $this->identity))
+        ->postJson('/mcp/account-analytics', $call)
+        ->assertOk();
+});

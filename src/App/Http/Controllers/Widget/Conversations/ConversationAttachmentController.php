@@ -34,7 +34,7 @@ class ConversationAttachmentController
 
         // Scoped to this agent and session, so a forged conversation id cannot
         // attach an upload to another visitor's conversation.
-        $conversation = $findConversation->execute($conversationId, $sessionId, $agent);
+        $conversation = $findConversation->execute($conversationId, $sessionId, $agent, $this->widgetUser($request));
         abort_if(! $conversation, JsonResponse::HTTP_FORBIDDEN, 'Invalid thread');
 
         $attachment = $action->execute($request->toData($agent, $conversation->id));

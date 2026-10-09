@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "Tidak dapat mengunggah avatar",
+                "logo_upload_error": "Tidak dapat mengunggah logo",
+                "avatar_remove_error": "Tidak dapat menghapus avatar",
+                "logo_remove_error": "Tidak dapat menghapus logo"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "Hitam",
+                "red": "Merah",
+                "orange": "Oranye",
+                "amber": "Amber",
+                "yellow": "Kuning",
+                "lime": "Limau",
+                "green": "Hijau",
+                "emerald": "Zamrud",
+                "teal": "Hijau toska",
+                "cyan": "Sian",
+                "sky": "Biru langit",
+                "blue": "Biru",
+                "indigo": "Nila",
+                "violet": "Violet",
+                "purple": "Ungu",
+                "fuchsia": "Fuchsia",
+                "pink": "Merah muda",
+                "rose": "Mawar",
+                "slate": "Batu tulis",
+                "gray": "Abu-abu",
+                "zinc": "Seng",
+                "neutral": "Netral",
+                "stone": "Batu"
+            }
+        }
+    }
+}

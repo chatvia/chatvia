@@ -40,6 +40,27 @@ class ConversationQueryBuilder extends Builder
         });
     }
 
+    /**
+     * Conversations a widget visitor may still reach: in a session of this
+     * agent (and, on a protected agent, of the signed-in chatter), and not
+     * cleared by the visitor. A cleared thread stays in the workspace's chat
+     * log but never comes back on the widget, even when its id is replayed.
+     * Every widget lookup by a client-supplied conversation id applies this.
+     *
+     * @return self<TModel>
+     */
+    public function reachableByWidgetVisitor(int $agentId, ?int $chatterId = null): self
+    {
+        return $this->whereNull('cleared_at')
+            ->whereHas('session', static function (Builder $session) use ($agentId, $chatterId): void {
+                $session->where('agent_id', $agentId);
+
+                if ($chatterId !== null) {
+                    $session->where('user_id', $chatterId);
+                }
+            });
+    }
+
     /** @return self<TModel> */
     public function withSessionAndTopic(): self
     {

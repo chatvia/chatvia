@@ -5,7 +5,7 @@ use Domain\Integration\Function\Actions\CreateAgentFunctionAction;
 use Domain\Integration\Function\Actions\UpdateAgentFunctionAction;
 use Domain\Integration\Function\Data\FunctionDefinitionData;
 use Domain\Integration\Function\Models\AgentFunction;
-use Illuminate\Validation\ValidationException;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * The create/update Actions shared by the dashboard and the API: names
@@ -45,10 +45,10 @@ it('rejects a duplicate name on create and on rename', function (): void {
     $other = app(CreateAgentFunctionAction::class)->execute($owner, apiFunctionPayload(['internal_name' => 'other'] + $base));
 
     expect(fn () => app(CreateAgentFunctionAction::class)->execute($owner, apiFunctionPayload(['internal_name' => 'taken'] + $base)))
-        ->toThrow(ValidationException::class);
+        ->toThrow(DomainValidationException::class);
 
     expect(fn () => app(UpdateAgentFunctionAction::class)->execute($other, apiFunctionPayload(['internal_name' => 'taken'])))
-        ->toThrow(ValidationException::class);
+        ->toThrow(DomainValidationException::class);
 
     // Renaming to its own current name is not a clash.
     expect(app(UpdateAgentFunctionAction::class)->execute($other, apiFunctionPayload(['internal_name' => 'other']))->internal_name)

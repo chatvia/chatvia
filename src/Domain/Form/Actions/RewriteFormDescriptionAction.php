@@ -3,8 +3,10 @@
 namespace Domain\Form\Actions;
 
 use Domain\Form\Data\RewriteFormDescriptionData;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Operations\Query\TitleGenerator;
+use Domain\Llm\Services\LlmChat;
 use Illuminate\Support\Str;
 
 /**
@@ -15,7 +17,7 @@ use Illuminate\Support\Str;
  */
 class RewriteFormDescriptionAction
 {
-    public function __construct(private readonly LlmProviderInterface $provider) {}
+    public function __construct(private readonly LlmChat $chat) {}
 
     public function execute(RewriteFormDescriptionData $data): string
     {
@@ -25,17 +27,17 @@ class RewriteFormDescriptionAction
             'Current instruction: '.(filled($data->agent_instructions) ? trim($data->agent_instructions) : '(empty)'),
         ])->implode("\n");
 
-        $content = $this->provider->completion([
-            'model' => config('chatvia.ai.models.form_description'),
-            'temperature' => 0.4,
-            'max_tokens' => 160,
-            'messages' => [
-                ['role' => 'system', 'content' => prompt('forms/rewrite-description')],
-                ['role' => 'user', 'content' => $context],
+        $content = $this->chat->send(new ChatRequestData(
+            model: (string) config('chatvia.ai.models.form_description'),
+            messages: [
+                ChatMessageData::system(prompt('forms/rewrite-description')),
+                ChatMessageData::user($context),
             ],
-        ])->throw()->json('choices.0.message.content');
+            temperature: 0.4,
+            maxTokens: 160,
+        ))->content;
 
         // Models routinely wrap a single-line answer in quotes — strip them.
-        return Str::of((string) $content)->trim()->trim('"')->trim()->toString();
+        return Str::of($content)->trim()->trim('"')->trim()->toString();
     }
 }

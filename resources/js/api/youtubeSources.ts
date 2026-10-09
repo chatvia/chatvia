@@ -1,6 +1,6 @@
 /**
- * The agent's YouTube sources: list the videos, delete one, or train one
- * again. Adding a video is an Inertia form visit on the page.
+ * The agent's YouTube sources: list the videos, add one by its link, delete
+ * one, or train one again.
  */
 import { del, get, post } from './http';
 
@@ -19,6 +19,11 @@ export interface YoutubeVideo {
 
 export function fetchYoutubeVideos(agentId: string): Promise<YoutubeVideo[]> {
     return get<YoutubeVideo[]>(route('agents.sources.youtube.index', { agent: agentId }));
+}
+
+/** Adds a video by its link. A refused link rejects with a 422 whose `url` field error says why. */
+export async function addYoutubeVideo(agentId: string, url: string): Promise<void> {
+    await post(route('agents.sources.youtube.store', { agent: agentId }), { url });
 }
 
 export async function deleteYoutubeVideo(agentId: string, videoId: number): Promise<void> {

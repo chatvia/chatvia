@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Knowledge\Retrieval\Data\RetrievalSettingsData;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
@@ -145,11 +146,11 @@ class KnowledgeBase
 
         $kept = array_filter(
             $ranked,
-            static fn (array $item): bool => $settings->relevanceThreshold === null || $item['relevance_score'] >= $settings->relevanceThreshold,
+            static fn (RerankedDocumentData $item): bool => $settings->relevanceThreshold === null || $item->relevanceScore >= $settings->relevanceThreshold,
         );
 
         return array_map(
-            static fn (array $item): RetrievedChunkData => $candidates[$item['index']]->withRerankScore((float) $item['relevance_score']),
+            static fn (RerankedDocumentData $item): RetrievedChunkData => $candidates[$item->index]->withRerankScore($item->relevanceScore),
             array_slice(array_values($kept), 0, $settings->maxChunks),
         );
     }

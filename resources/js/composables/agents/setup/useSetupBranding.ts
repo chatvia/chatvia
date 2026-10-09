@@ -84,7 +84,7 @@ export function useSetupBranding({ agentId, reloadPreview }: SetupSectionDeps, a
             preview.value = previousPreview;
             URL.revokeObjectURL(objectUrl);
             reloadPreview();
-            toast.error(t('agents.setup.toasts.upload_error', { key }));
+            toast.error(key === 'avatar' ? t('agents.setup.toasts.avatar_upload_error') : t('agents.setup.toasts.logo_upload_error'));
         }
     };
 
@@ -95,7 +95,7 @@ export function useSetupBranding({ agentId, reloadPreview }: SetupSectionDeps, a
             toast.success(key === 'avatar' ? t('agents.setup.toasts.avatar_removed') : t('agents.setup.toasts.logo_removed'));
             reloadPreview();
         } catch {
-            toast.error(t('agents.setup.toasts.remove_error', { key }));
+            toast.error(key === 'avatar' ? t('agents.setup.toasts.avatar_remove_error') : t('agents.setup.toasts.logo_remove_error'));
         }
     };
 

@@ -4,6 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Tools\RecordToolCallAuditAction;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Models\AgentActivity;
+use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Illuminate\Support\Str;
 
 /**
@@ -97,3 +98,17 @@ it('caps an oversized result and flags truncation', function (): void {
     expect(strlen((string) $row->result_text))->toBe(10)
         ->and($row->result_truncated)->toBeTrue();
 });
+
+it('stores every outcome the tool loop can report', function (ToolCallOutcome $outcome): void {
+    // agent_activity.outcome has a Postgres CHECK: an enum case it does not
+    // list would make the queued listener fail and the audit row go missing.
+    $agent = Agent::factory()->create();
+    $event = auditEvent([
+        'agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->user_id,
+        'approvalOutcome' => $outcome->value, 'gated' => $outcome->wasGated(),
+    ]);
+
+    app(RecordToolCallAuditAction::class)->execute($event);
+
+    expect(AgentActivity::query()->latest('id')->first()->outcome)->toBe($outcome->value);
+})->with(ToolCallOutcome::cases());

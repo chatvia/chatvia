@@ -4,6 +4,7 @@ namespace Domain\Widget\Services;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Illuminate\Contracts\Database\Eloquent\Builder;
@@ -79,6 +80,8 @@ class WidgetVerification
      * must not come back on the widget (message list, boot restore, form
      * submit) even when its id is replayed. The row itself stays for the
      * customer's chat log, which reads conversations through its own query.
+     * The session-scoped endpoints apply the same rule through
+     * {@see FindWidgetConversationAction}.
      */
     public function verifyConversationId(?string $conversationId, Agent $agent, ?User $user = null): ?Conversation
     {
@@ -88,14 +91,7 @@ class WidgetVerification
 
         return Conversation::query()
             ->where('external_id', $conversationId)
-            ->whereNull('cleared_at')
-            ->whereHas('session', function (Builder $session) use ($agent, $user): void {
-                $session->where('agent_id', $agent->id);
-
-                if ($user instanceof User) {
-                    $session->where('user_id', $user->id);
-                }
-            })
+            ->reachableByWidgetVisitor($agent->id, $user?->id)
             ->first();
     }
 

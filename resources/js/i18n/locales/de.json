@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "Connectors"
             },
-            "overview": {
-                "coming_soon": "{type} demnächst verfügbar",
-                "under_development": "Diese Funktion befindet sich derzeit in der Entwicklung.",
-                "files": {
-                    "label": "Dateien",
-                    "description": "Dokumente hochladen und verwalten (PDF, Word usw.)"
-                },
-                "text": {
-                    "label": "Text",
-                    "description": "Benutzerdefinierte Textinhalte und Notizen direkt hinzufügen"
-                },
-                "web": {
-                    "label": "Website",
-                    "description": "Websites und Webseiten für die Wissensdatenbank crawlen"
-                },
-                "audio": {
-                    "label": "Audio",
-                    "description": "Audiodateien und Podcasts zur Transkription hochladen"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Videodateien zur Transkription und Analyse hochladen"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "YouTube-Videos importieren und Transkripte extrahieren"
-                },
-                "qa": {
-                    "label": "Q&A",
-                    "description": "Antworten auf häufige Fragen formulieren"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Aufnahme erfolgreich hochgeladen!",
                 "recording_uploaded_description": "\"{name}\" wurde Ihren Audioquellen hinzugefügt.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "Q&A-Eintrag konnte nicht aktualisiert werden",
                 "deleted": "Q&A-Eintrag erfolgreich gelöscht",
                 "delete_failed": "Q&A-Eintrag konnte nicht gelöscht werden",
-                "unlinked": "Verknüpfung des Q&A-Eintrags erfolgreich aufgehoben",
-                "unlink_failed": "Verknüpfung des Q&A-Eintrags konnte nicht aufgehoben werden",
                 "load_entries_failed": "Q&A-Einträge konnten nicht geladen werden",
                 "status": {
                     "ingested": "Eingepflegt",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "F{number}:",
                 "edit_action": "Bearbeiten",
                 "created_at": "Erstellt am {date}",
-                "used_by_agents": "Wird von {count} Agenten verwendet",
                 "delete_title": "Q&A-Eintrag löschen",
                 "delete_description": "Möchten Sie diesen Q&A-Eintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
                 "remove_question": "Frage entfernen",
@@ -1664,10 +1629,8 @@
                 "colors_error": "Farben konnten nicht gespeichert werden",
                 "avatar_updated": "Avatar aktualisiert",
                 "logo_updated": "Logo aktualisiert",
-                "upload_error": "{key} konnte nicht hochgeladen werden",
                 "avatar_removed": "Avatar entfernt",
                 "logo_removed": "Logo entfernt",
-                "remove_error": "{key} konnte nicht entfernt werden",
                 "hosted_saved": "Verhalten des gehosteten Chats gespeichert",
                 "widget_saved": "Chat-Widget-Verhalten gespeichert",
                 "bar_saved": "Befehlsleisten-Verhalten gespeichert",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "Datenschutz-Link konnte nicht gespeichert werden",
                 "branding_saved": "Branding aktualisiert",
                 "languages_saved": "Sprachen gespeichert",
-                "languages_error": "Sprachen konnten nicht gespeichert werden"
+                "languages_error": "Sprachen konnten nicht gespeichert werden",
+                "avatar_upload_error": "Der Avatar konnte nicht hochgeladen werden",
+                "logo_upload_error": "Das Logo konnte nicht hochgeladen werden",
+                "avatar_remove_error": "Der Avatar konnte nicht entfernt werden",
+                "logo_remove_error": "Das Logo konnte nicht entfernt werden"
             },
             "settings": {
                 "composer_title": "Composer-Optionen",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "Farbintensität",
             "light": "Hell",
-            "dark": "Dunkel"
+            "dark": "Dunkel",
+            "colors": {
+                "black": "Schwarz",
+                "red": "Rot",
+                "orange": "Orange",
+                "amber": "Bernstein",
+                "yellow": "Gelb",
+                "lime": "Limette",
+                "green": "Grün",
+                "emerald": "Smaragd",
+                "teal": "Petrol",
+                "cyan": "Cyan",
+                "sky": "Himmelblau",
+                "blue": "Blau",
+                "indigo": "Indigo",
+                "violet": "Violett",
+                "purple": "Lila",
+                "fuchsia": "Fuchsia",
+                "pink": "Pink",
+                "rose": "Rosé",
+                "slate": "Schiefer",
+                "gray": "Grau",
+                "zinc": "Zink",
+                "neutral": "Neutral",
+                "stone": "Stein"
+            }
         },
         "color_theme_picker": {
             "title": "Farbthema auswählen",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "automatisch",
             "outcome_approved": "genehmigt",
             "outcome_denied": "abgelehnt",
-            "outcome_rate_limited": "ratenlimitiert"
+            "outcome_rate_limited": "ratenlimitiert",
+            "outcome_not_offered": "nicht angeboten"
         },
         "attach_file": {
             "title": "Aus bereits trainierten Dateien auswählen",

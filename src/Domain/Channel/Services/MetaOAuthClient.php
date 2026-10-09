@@ -27,7 +27,8 @@ use Throwable;
  * at debug. Never log a token, the app secret or a raw exception message (it
  * can contain the request URL): only presence flags, ids, and
  * {@see RedactedException} context. The token exchanges send the app secret
- * in a POST body, never in a URL.
+ * in a POST body, and the Graph reads send the user or page token as a bearer
+ * token in the Authorization header: neither ever appears in a URL.
  */
 class MetaOAuthClient
 {
@@ -189,10 +190,9 @@ class MetaOAuthClient
         $byId = [];
 
         // 1. Pages the user manages personally.
-        $this->collectPages($this->get('/me/accounts', [
+        $this->collectPages($this->get('/me/accounts', $userToken, [
             'fields' => 'id,name,access_token',
             'limit' => 100,
-            'access_token' => $userToken,
         ]), $byId);
 
         $personalCount = count($byId);
@@ -201,10 +201,9 @@ class MetaOAuthClient
         //    omits these — they only surface by traversing the business, which
         //    needs the `business_management` permission. owned_pages/client_pages
         //    return the page access token directly (fields=access_token).
-        $businesses = $this->get('/me/businesses', [
+        $businesses = $this->get('/me/businesses', $userToken, [
             'fields' => 'id,name',
             'limit' => 100,
-            'access_token' => $userToken,
         ]);
 
         $businessIds = [];
@@ -218,16 +217,14 @@ class MetaOAuthClient
 
             $businessIds[] = $bizId;
 
-            $this->collectPages($this->get("/{$bizId}/owned_pages", [
+            $this->collectPages($this->get("/{$bizId}/owned_pages", $userToken, [
                 'fields' => 'id,name,access_token',
                 'limit' => 100,
-                'access_token' => $userToken,
             ]), $byId);
 
-            $this->collectPages($this->get("/{$bizId}/client_pages", [
+            $this->collectPages($this->get("/{$bizId}/client_pages", $userToken, [
                 'fields' => 'id,name,access_token',
                 'limit' => 100,
-                'access_token' => $userToken,
             ]), $byId);
         }
 
@@ -289,9 +286,8 @@ class MetaOAuthClient
         $out = [];
 
         foreach ($this->pages($userToken) as $page) {
-            $linked = $this->get('/'.$page->id, [
+            $linked = $this->get('/'.$page->id, $page->access_token, [
                 'fields' => 'instagram_business_account{id,username}',
-                'access_token' => $page->access_token,
             ]);
 
             $iba = $linked['instagram_business_account'] ?? null;
@@ -327,12 +323,15 @@ class MetaOAuthClient
     }
 
     /**
+     * A Graph read. The token goes in the Authorization header, which the
+     * Graph API accepts for every GET, so it never lands in a URL.
+     *
      * @param  array<string, mixed>  $query
      * @return array<string, mixed>|null
      */
-    private function get(string $path, array $query): ?array
+    private function get(string $path, string $token, array $query): ?array
     {
-        return $this->request('get', $path, $query);
+        return $this->request('get', $path, $query, $token);
     }
 
     /**
@@ -352,14 +351,14 @@ class MetaOAuthClient
      * @param  array<string, mixed>  $params
      * @return array<string, mixed>|null
      */
-    private function request(string $method, string $path, array $params): ?array
+    private function request(string $method, string $path, array $params, ?string $token = null): ?array
     {
         $url = 'https://graph.facebook.com/'.$this->version().$path;
 
         try {
             $response = $method === 'post'
                 ? Http::asForm()->post($url, $params)
-                : Http::get($url, $params);
+                : Http::withToken((string) $token)->get($url, $params);
             $json = $response->json();
 
             if (! $response->successful() || ! is_array($json) || isset($json['error'])) {

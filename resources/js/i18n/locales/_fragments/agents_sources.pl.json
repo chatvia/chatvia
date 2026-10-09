@@ -27,38 +27,6 @@
                 "markdown": "Markdown",
                 "connectors": "Konektory"
             },
-            "overview": {
-                "coming_soon": "{type} — wkrótce dostępne",
-                "under_development": "Ta funkcja jest obecnie w trakcie tworzenia.",
-                "files": {
-                    "label": "Pliki",
-                    "description": "Przesyłaj i zarządzaj dokumentami (PDF, Word itp.)"
-                },
-                "text": {
-                    "label": "Tekst",
-                    "description": "Dodawaj niestandardowe treści tekstowe i notatki bezpośrednio"
-                },
-                "web": {
-                    "label": "Strona internetowa",
-                    "description": "Indeksuj strony internetowe w celu pozyskania wiedzy"
-                },
-                "audio": {
-                    "label": "Audio",
-                    "description": "Przesyłaj pliki audio i podcasty do transkrypcji"
-                },
-                "video": {
-                    "label": "Wideo",
-                    "description": "Przesyłaj pliki wideo do transkrypcji i analizy"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Importuj filmy z YouTube i wyodrębniaj transkrypcje"
-                },
-                "qa": {
-                    "label": "Q&A",
-                    "description": "Twórz odpowiedzi na kluczowe pytania"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Nagranie zostało pomyślnie przesłane!",
                 "recording_uploaded_description": "\"{name}\" zostało dodane do Twoich źródeł audio.",
@@ -195,8 +163,6 @@
                 "update_failed": "Nie udało się zaktualizować wpisu Q&A",
                 "deleted": "Wpis Q&A został pomyślnie usunięty",
                 "delete_failed": "Nie udało się usunąć wpisu Q&A",
-                "unlinked": "Wpis Q&A został pomyślnie odłączony",
-                "unlink_failed": "Nie udało się odłączyć wpisu Q&A",
                 "load_entries_failed": "Nie udało się wczytać wpisów Q&A",
                 "status": {
                     "ingested": "Przetworzony",
@@ -223,7 +189,6 @@
                 "question_prefix": "P{number}:",
                 "edit_action": "Edytuj",
                 "created_at": "Utworzono {date}",
-                "used_by_agents": "Używane przez {count} agentów",
                 "delete_title": "Usuń wpis Q&A",
                 "delete_description": "Czy na pewno chcesz usunąć ten wpis Q&A? Tej operacji nie można cofnąć."
             },

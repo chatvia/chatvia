@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "اتصال‌دهنده‌ها"
             },
-            "overview": {
-                "coming_soon": "{type} به زودی",
-                "under_development": "این ویژگی در حال توسعه است.",
-                "files": {
-                    "label": "فایل‌ها",
-                    "description": "آپلود و مدیریت اسناد (PDF، Word و غیره)"
-                },
-                "text": {
-                    "label": "متن",
-                    "description": "افزودن محتوای متنی و یادداشت‌های سفارشی به صورت مستقیم"
-                },
-                "web": {
-                    "label": "وب‌سایت",
-                    "description": "خزش وب‌سایت‌ها و صفحات وب برای دانش"
-                },
-                "audio": {
-                    "label": "صدا",
-                    "description": "آپلود فایل‌های صوتی و پادکست‌ها برای رونویسی"
-                },
-                "video": {
-                    "label": "ویدیو",
-                    "description": "آپلود فایل‌های ویدیویی برای رونویسی و تحلیل"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "وارد کردن ویدیوهای YouTube و استخراج متن"
-                },
-                "qa": {
-                    "label": "پرسش و پاسخ",
-                    "description": "تهیه پاسخ برای سوالات کلیدی"
-                }
-            },
             "audio": {
                 "recording_uploaded": "ضبط با موفقیت آپلود شد!",
                 "recording_uploaded_description": "«{name}» به منابع صوتی شما اضافه شد.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "به‌روزرسانی پرسش و پاسخ ناموفق بود",
                 "deleted": "پرسش و پاسخ با موفقیت حذف شد",
                 "delete_failed": "حذف پرسش و پاسخ ناموفق بود",
-                "unlinked": "پرسش و پاسخ با موفقیت جدا شد",
-                "unlink_failed": "جداسازی پرسش و پاسخ ناموفق بود",
                 "load_entries_failed": "بارگذاری موارد پرسش و پاسخ ناموفق بود",
                 "status": {
                     "ingested": "پردازش شده",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "س{number}:",
                 "edit_action": "ویرایش",
                 "created_at": "ایجاد شده در {date}",
-                "used_by_agents": "استفاده شده توسط {count} دستیار",
                 "delete_title": "حذف پرسش و پاسخ",
                 "delete_description": "آیا مطمئن هستید که می‌خواهید این پرسش و پاسخ را حذف کنید؟ این عمل قابل بازگشت نیست.",
                 "remove_question": "حذف پرسش",
@@ -1664,10 +1629,8 @@
                 "colors_error": "ذخیره رنگ‌ها ممکن نبود",
                 "avatar_updated": "آواتار به‌روزرسانی شد",
                 "logo_updated": "لوگو به‌روزرسانی شد",
-                "upload_error": "آپلود {key} ممکن نبود",
                 "avatar_removed": "آواتار حذف شد",
                 "logo_removed": "لوگو حذف شد",
-                "remove_error": "حذف {key} ممکن نبود",
                 "hosted_saved": "رفتار چت میزبانی‌شده ذخیره شد",
                 "widget_saved": "رفتار ویجت گفتگو ذخیره شد",
                 "bar_saved": "رفتار نوار فرمان ذخیره شد",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "ذخیره پیوند سیاست حفظ حریم خصوصی ناموفق بود",
                 "branding_saved": "برندینگ به‌روزرسانی شد",
                 "languages_saved": "زبان‌ها ذخیره شدند",
-                "languages_error": "ذخیره زبان‌ها ممکن نبود"
+                "languages_error": "ذخیره زبان‌ها ممکن نبود",
+                "avatar_upload_error": "آپلود آواتار ممکن نبود",
+                "logo_upload_error": "آپلود لوگو ممکن نبود",
+                "avatar_remove_error": "حذف آواتار ممکن نبود",
+                "logo_remove_error": "حذف لوگو ممکن نبود"
             },
             "settings": {
                 "composer_title": "گزینه‌های نویسنده",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "شدت رنگ",
             "light": "روشن",
-            "dark": "تیره"
+            "dark": "تیره",
+            "colors": {
+                "black": "سیاه",
+                "red": "قرمز",
+                "orange": "نارنجی",
+                "amber": "کهربایی",
+                "yellow": "زرد",
+                "lime": "لیمویی",
+                "green": "سبز",
+                "emerald": "زمردی",
+                "teal": "سبزآبی",
+                "cyan": "فیروزه‌ای",
+                "sky": "آسمانی",
+                "blue": "آبی",
+                "indigo": "نیلی",
+                "violet": "بنفش",
+                "purple": "ارغوانی",
+                "fuchsia": "سرخابی",
+                "pink": "صورتی",
+                "rose": "گلی",
+                "slate": "خاکستری لوحی",
+                "gray": "خاکستری",
+                "zinc": "رویی",
+                "neutral": "خنثی",
+                "stone": "سنگی"
+            }
         },
         "color_theme_picker": {
             "title": "انتخاب تم رنگی",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "خودکار",
             "outcome_approved": "تأیید شده",
             "outcome_denied": "رد شده",
-            "outcome_rate_limited": "محدود شده"
+            "outcome_rate_limited": "محدود شده",
+            "outcome_not_offered": "ارائه‌نشده"
         },
         "attach_file": {
             "title": "انتخاب از فایل‌های آموزش‌دیده",

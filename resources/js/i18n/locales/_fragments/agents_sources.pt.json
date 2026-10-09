@@ -27,38 +27,6 @@
                 "markdown": "Markdown",
                 "connectors": "Conectores"
             },
-            "overview": {
-                "coming_soon": "{type} Em breve",
-                "under_development": "Esta funcionalidade está atualmente em desenvolvimento.",
-                "files": {
-                    "label": "Ficheiros",
-                    "description": "Carregue e gira documentos (PDF, Word, etc.)"
-                },
-                "text": {
-                    "label": "Texto",
-                    "description": "Adicione conteúdo de texto personalizado e notas diretamente"
-                },
-                "web": {
-                    "label": "Website",
-                    "description": "Rastreie websites e páginas web para obter conhecimento"
-                },
-                "audio": {
-                    "label": "Áudio",
-                    "description": "Carregue ficheiros de áudio e podcasts para transcrição"
-                },
-                "video": {
-                    "label": "Vídeo",
-                    "description": "Carregue ficheiros de vídeo para transcrição e análise"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Importe vídeos do YouTube e extraia transcrições"
-                },
-                "qa": {
-                    "label": "P&R",
-                    "description": "Crie respostas para perguntas-chave"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Gravação carregada com sucesso!",
                 "recording_uploaded_description": "\"{name}\" foi adicionado às suas fontes de áudio.",
@@ -195,8 +163,6 @@
                 "update_failed": "Falha ao atualizar a entrada P&R",
                 "deleted": "Entrada P&R eliminada com sucesso",
                 "delete_failed": "Falha ao eliminar a entrada P&R",
-                "unlinked": "Entrada P&R desassociada com sucesso",
-                "unlink_failed": "Falha ao desassociar a entrada P&R",
                 "load_entries_failed": "Falha ao carregar as entradas P&R",
                 "status": {
                     "ingested": "Integrado",
@@ -223,7 +189,6 @@
                 "question_prefix": "P{number}:",
                 "edit_action": "Editar",
                 "created_at": "Criado {date}",
-                "used_by_agents": "Utilizado por {count} agentes",
                 "delete_title": "Eliminar Entrada P&R",
                 "delete_description": "Tem a certeza de que pretende eliminar esta entrada P&R? Esta ação não pode ser anulada."
             },

@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "커넥터"
             },
-            "overview": {
-                "coming_soon": "{type} 출시 예정",
-                "under_development": "이 기능은 현재 개발 중입니다.",
-                "files": {
-                    "label": "파일",
-                    "description": "문서를 업로드하고 관리하세요 (PDF, Word 등)"
-                },
-                "text": {
-                    "label": "텍스트",
-                    "description": "사용자 지정 텍스트 콘텐츠와 메모를 직접 추가하세요"
-                },
-                "web": {
-                    "label": "웹사이트",
-                    "description": "웹사이트와 웹페이지를 크롤링하여 지식을 수집하세요"
-                },
-                "audio": {
-                    "label": "오디오",
-                    "description": "음성 변환을 위해 오디오 파일과 팟캐스트를 업로드하세요"
-                },
-                "video": {
-                    "label": "동영상",
-                    "description": "전사 및 분석을 위해 동영상 파일을 업로드하세요"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "YouTube 동영상을 가져와 자막을 추출합니다"
-                },
-                "qa": {
-                    "label": "Q&A",
-                    "description": "핵심 질문에 대한 답변을 작성하세요"
-                }
-            },
             "audio": {
                 "recording_uploaded": "녹음이 성공적으로 업로드되었습니다!",
                 "recording_uploaded_description": "\"{name}\"이(가) 오디오 소스에 추가되었습니다.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "Q&A 항목 업데이트에 실패했습니다",
                 "deleted": "Q&A 항목이 성공적으로 삭제되었습니다",
                 "delete_failed": "Q&A 항목 삭제에 실패했습니다",
-                "unlinked": "Q&A 항목이 성공적으로 연결 해제되었습니다",
-                "unlink_failed": "Q&A 항목 연결 해제에 실패했습니다",
                 "load_entries_failed": "Q&A 항목을 불러오지 못했습니다",
                 "status": {
                     "ingested": "수집됨",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "Q{number}:",
                 "edit_action": "편집",
                 "created_at": "{date} 생성됨",
-                "used_by_agents": "{count}개 에이전트에서 사용 중",
                 "delete_title": "Q&A 항목 삭제",
                 "delete_description": "이 Q&A 항목을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
                 "remove_question": "질문 삭제",
@@ -1664,10 +1629,8 @@
                 "colors_error": "색상을 저장할 수 없습니다",
                 "avatar_updated": "아바타가 업데이트되었습니다",
                 "logo_updated": "로고가 업데이트되었습니다",
-                "upload_error": "{key}을(를) 업로드할 수 없습니다",
                 "avatar_removed": "아바타가 제거되었습니다",
                 "logo_removed": "로고가 삭제되었습니다",
-                "remove_error": "{key}을(를) 삭제할 수 없습니다",
                 "hosted_saved": "Hosted Chat 동작이 저장되었습니다",
                 "widget_saved": "Chat Widget 동작이 저장되었습니다",
                 "bar_saved": "Command Bar 동작이 저장되었습니다",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "개인정보 처리방침 링크를 저장하지 못했습니다",
                 "branding_saved": "브랜딩이 업데이트되었습니다",
                 "languages_saved": "언어가 저장되었습니다",
-                "languages_error": "언어를 저장할 수 없습니다"
+                "languages_error": "언어를 저장할 수 없습니다",
+                "avatar_upload_error": "아바타를 업로드할 수 없습니다",
+                "logo_upload_error": "로고를 업로드할 수 없습니다",
+                "avatar_remove_error": "아바타를 제거할 수 없습니다",
+                "logo_remove_error": "로고를 삭제할 수 없습니다"
             },
             "settings": {
                 "composer_title": "입력창 옵션",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "색상 강도",
             "light": "밝게",
-            "dark": "어둡게"
+            "dark": "어둡게",
+            "colors": {
+                "black": "검정",
+                "red": "빨강",
+                "orange": "주황",
+                "amber": "호박색",
+                "yellow": "노랑",
+                "lime": "라임",
+                "green": "초록",
+                "emerald": "에메랄드",
+                "teal": "청록",
+                "cyan": "시안",
+                "sky": "하늘색",
+                "blue": "파랑",
+                "indigo": "남색",
+                "violet": "보라",
+                "purple": "자주",
+                "fuchsia": "푸크시아",
+                "pink": "분홍",
+                "rose": "장미색",
+                "slate": "슬레이트",
+                "gray": "회색",
+                "zinc": "징크",
+                "neutral": "뉴트럴",
+                "stone": "스톤"
+            }
         },
         "color_theme_picker": {
             "title": "색상 테마 선택",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "자동",
             "outcome_approved": "승인됨",
             "outcome_denied": "거부됨",
-            "outcome_rate_limited": "속도 제한됨"
+            "outcome_rate_limited": "속도 제한됨",
+            "outcome_not_offered": "제공되지 않음"
         },
         "attach_file": {
             "title": "이미 학습된 파일에서 선택",

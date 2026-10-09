@@ -104,6 +104,25 @@ theme.
 - Fixed listener leaks, chart dates that were one day early west of UTC, and
   the chat composer that did not shrink after sending.
 
+### Fixed
+
+- "Unlink" for a file used by several agents always failed.
+- Signing in with an e-mailed link, and the two-factor challenge, did not work
+  on an agent's own address (hosted chat).
+- The hosted chat showed the PDF upload button when no model could read PDF
+  files, so the upload then failed.
+- Conversation analysis retried a failing conversation every hour forever. It
+  now stops after five attempts.
+- The widget could resume a remembered conversation under a new session, after
+  which typing, feedback and other actions on it failed. It now starts a new
+  conversation in that case.
+- Country names in country pickers and security messages are shown in the
+  user's language.
+- Calls to tools the agent was not offered are now in the tool-call audit log.
+- Internal tool calls carry a one-time value, so a captured call cannot be
+  sent again. Outgoing webhook and tool calls connect to the address that was
+  checked, closing a DNS-rebinding gap.
+
 ### Tooling
 
 - All Composer and npm dependencies were upgraded, including Pest 5,
@@ -140,3 +159,9 @@ theme.
 - Laravel Octane is no longer supported. Run the app with PHP-FPM.
 - Queued jobs and events that were serialized under old class names keep
   working for one release.
+- Restart Horizon right after deploying: workers that still run the old code
+  send internal tool calls without the new one-time value, and those calls are
+  refused. To avoid any refused call during the deploy, set
+  `BUILTIN_MCP_ALLOW_MISSING_NONCE=true` for that one deploy, then remove it.
+- The Postmark mailer and the Slack notification channel were removed; they
+  were not used. Use SMTP or Resend for mail.

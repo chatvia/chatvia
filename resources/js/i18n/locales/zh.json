@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "连接器"
             },
-            "overview": {
-                "coming_soon": "{type} 即将推出",
-                "under_development": "此功能目前正在开发中。",
-                "files": {
-                    "label": "文件",
-                    "description": "上传和管理文档（PDF、Word 等）"
-                },
-                "text": {
-                    "label": "文本",
-                    "description": "直接添加自定义文本内容和备注"
-                },
-                "web": {
-                    "label": "网站",
-                    "description": "抓取网站和网页以获取知识"
-                },
-                "audio": {
-                    "label": "音频",
-                    "description": "上传音频文件和播客以进行转录"
-                },
-                "video": {
-                    "label": "视频",
-                    "description": "上传视频文件以进行转录和分析"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "导入 YouTube 视频并提取字幕文本"
-                },
-                "qa": {
-                    "label": "问答",
-                    "description": "为关键问题精心编写回复"
-                }
-            },
             "audio": {
                 "recording_uploaded": "录音上传成功！",
                 "recording_uploaded_description": "“{name}”已添加到你的音频来源。",
@@ -1211,8 +1179,6 @@
                 "update_failed": "无法更新问答条目",
                 "deleted": "问答条目删除成功",
                 "delete_failed": "无法删除问答条目",
-                "unlinked": "问答条目解除关联成功",
-                "unlink_failed": "无法解除问答条目的关联",
                 "load_entries_failed": "无法加载问答条目",
                 "status": {
                     "ingested": "已导入",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "问 {number}：",
                 "edit_action": "编辑",
                 "created_at": "创建于 {date}",
-                "used_by_agents": "被 {count} 个智能体使用",
                 "delete_title": "删除问答条目",
                 "delete_description": "确定要删除此问答条目吗？此操作无法撤销。",
                 "remove_question": "删除问题",
@@ -1664,10 +1629,8 @@
                 "colors_error": "无法保存颜色",
                 "avatar_updated": "头像已更新",
                 "logo_updated": "Logo 已更新",
-                "upload_error": "无法上传 {key}",
                 "avatar_removed": "头像已移除",
                 "logo_removed": "Logo 已移除",
-                "remove_error": "无法移除 {key}",
                 "hosted_saved": "托管聊天行为已保存",
                 "widget_saved": "聊天挂件行为已保存",
                 "bar_saved": "命令栏行为已保存",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "无法保存隐私政策链接",
                 "branding_saved": "品牌已更新",
                 "languages_saved": "语言已保存",
-                "languages_error": "无法保存语言"
+                "languages_error": "无法保存语言",
+                "avatar_upload_error": "无法上传头像",
+                "logo_upload_error": "无法上传 Logo",
+                "avatar_remove_error": "无法移除头像",
+                "logo_remove_error": "无法移除 Logo"
             },
             "settings": {
                 "composer_title": "输入框选项",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "颜色强度",
             "light": "浅色",
-            "dark": "深色"
+            "dark": "深色",
+            "colors": {
+                "black": "黑色",
+                "red": "红色",
+                "orange": "橙色",
+                "amber": "琥珀色",
+                "yellow": "黄色",
+                "lime": "青柠色",
+                "green": "绿色",
+                "emerald": "翡翠绿",
+                "teal": "蓝绿色",
+                "cyan": "青色",
+                "sky": "天蓝色",
+                "blue": "蓝色",
+                "indigo": "靛蓝色",
+                "violet": "紫罗兰色",
+                "purple": "紫色",
+                "fuchsia": "品红色",
+                "pink": "粉色",
+                "rose": "玫瑰色",
+                "slate": "石板灰",
+                "gray": "灰色",
+                "zinc": "锌灰",
+                "neutral": "中性灰",
+                "stone": "石色"
+            }
         },
         "color_theme_picker": {
             "title": "选择配色主题",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "自动",
             "outcome_approved": "已批准",
             "outcome_denied": "已拒绝",
-            "outcome_rate_limited": "已限流"
+            "outcome_rate_limited": "已限流",
+            "outcome_not_offered": "未提供"
         },
         "attach_file": {
             "title": "从已训练的文件中选择",

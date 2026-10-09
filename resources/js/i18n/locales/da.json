@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "Forbindelser"
             },
-            "overview": {
-                "coming_soon": "{type} kommer snart",
-                "under_development": "Denne funktion er i øjeblikket under udvikling.",
-                "files": {
-                    "label": "Filer",
-                    "description": "Upload og administrer dokumenter (PDF, Word osv.)"
-                },
-                "text": {
-                    "label": "Tekst",
-                    "description": "Tilføj brugerdefineret tekstindhold og noter direkte"
-                },
-                "web": {
-                    "label": "Hjemmeside",
-                    "description": "Gennemsøg hjemmesider og websider for viden"
-                },
-                "audio": {
-                    "label": "Lyd",
-                    "description": "Upload lydfiler og podcasts til transskription"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Upload videofiler til transskription og analyse"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Importér YouTube-videoer og udtræk transskripter"
-                },
-                "qa": {
-                    "label": "Spørgsmål og svar",
-                    "description": "Udform svar på vigtige spørgsmål"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Optagelse uploadet!",
                 "recording_uploaded_description": "\"{name}\" er blevet tilføjet til dine lydkilder.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "Det lykkedes ikke at opdatere spørgsmål og svar-indgang",
                 "deleted": "Spørgsmål og svar-indgang slettet",
                 "delete_failed": "Det lykkedes ikke at slette spørgsmål og svar-indgang",
-                "unlinked": "Spørgsmål og svar-indgang frakobler",
-                "unlink_failed": "Det lykkedes ikke at fjerne tilknytning til spørgsmål og svar-indgang",
                 "load_entries_failed": "Det lykkedes ikke at indlæse spørgsmål og svar-indgange",
                 "status": {
                     "ingested": "Indlæst",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "Sp.{number}:",
                 "edit_action": "Rediger",
                 "created_at": "Oprettet {date}",
-                "used_by_agents": "Brugt af {count} agenter",
                 "delete_title": "Slet spørgsmål og svar-indgang",
                 "delete_description": "Er du sikker på, at du vil slette denne spørgsmål og svar-indgang? Denne handling kan ikke fortrydes.",
                 "remove_question": "Fjern spørgsmål",
@@ -1664,10 +1629,8 @@
                 "colors_error": "Kunne ikke gemme farver",
                 "avatar_updated": "Avatar opdateret",
                 "logo_updated": "Logo opdateret",
-                "upload_error": "Kunne ikke uploade {key}",
                 "avatar_removed": "Avatar fjernet",
                 "logo_removed": "Logo fjernet",
-                "remove_error": "Kunne ikke fjerne {key}",
                 "hosted_saved": "Adfærd for hostet chat gemt",
                 "widget_saved": "Chat-widget-adfærd gemt",
                 "bar_saved": "Kommandolinje-adfærd gemt",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "Kunne ikke gemme link til privatlivspolitik",
                 "branding_saved": "Branding opdateret",
                 "languages_saved": "Sprog gemt",
-                "languages_error": "Kunne ikke gemme sprog"
+                "languages_error": "Kunne ikke gemme sprog",
+                "avatar_upload_error": "Kunne ikke uploade avataren",
+                "logo_upload_error": "Kunne ikke uploade logoet",
+                "avatar_remove_error": "Kunne ikke fjerne avataren",
+                "logo_remove_error": "Kunne ikke fjerne logoet"
             },
             "settings": {
                 "composer_title": "Composer-indstillinger",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "Farveintensitet",
             "light": "Lys",
-            "dark": "Mørk"
+            "dark": "Mørk",
+            "colors": {
+                "black": "Sort",
+                "red": "Rød",
+                "orange": "Orange",
+                "amber": "Rav",
+                "yellow": "Gul",
+                "lime": "Lime",
+                "green": "Grøn",
+                "emerald": "Smaragd",
+                "teal": "Blågrøn",
+                "cyan": "Cyan",
+                "sky": "Himmelblå",
+                "blue": "Blå",
+                "indigo": "Indigo",
+                "violet": "Violet",
+                "purple": "Lilla",
+                "fuchsia": "Fuchsia",
+                "pink": "Lyserød",
+                "rose": "Rosa",
+                "slate": "Skifer",
+                "gray": "Grå",
+                "zinc": "Zink",
+                "neutral": "Neutral",
+                "stone": "Sten"
+            }
         },
         "color_theme_picker": {
             "title": "Vælg farvetema",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "auto",
             "outcome_approved": "godkendt",
             "outcome_denied": "afvist",
-            "outcome_rate_limited": "hastighedsbegrænset"
+            "outcome_rate_limited": "hastighedsbegrænset",
+            "outcome_not_offered": "ikke tilbudt"
         },
         "attach_file": {
             "title": "Vælg fra allerede trænede filer",

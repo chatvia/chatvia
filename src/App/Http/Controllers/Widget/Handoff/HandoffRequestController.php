@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Widget\Handoff;
 
+use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Requests\Widget\WidgetHandoffRequest;
 use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
@@ -16,6 +17,8 @@ use Illuminate\Http\JsonResponse;
  */
 readonly class HandoffRequestController
 {
+    use InteractsWithWidgetRequest;
+
     public function __invoke(
         WidgetHandoffRequest $request,
         #[WidgetAgent] Agent $agent,
@@ -28,7 +31,7 @@ readonly class HandoffRequestController
             return response()->json(['error' => 'Missing session'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $conversation = $findConversation->execute($target->conversationId, $target->sessionId, $agent);
+        $conversation = $findConversation->execute($target->conversationId, $target->sessionId, $agent, $this->widgetUser($request));
 
         if (! $conversation instanceof Conversation) {
             return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);

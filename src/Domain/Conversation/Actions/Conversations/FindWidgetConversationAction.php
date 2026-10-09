@@ -2,26 +2,31 @@
 
 namespace Domain\Conversation\Actions\Conversations;
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Illuminate\Support\Str;
 
 /**
  * Resolve a widget-side conversation by `(agent, session, conversation)` —
- * the conversation must belong to the requesting session, and the session
- * must belong to the requesting agent. Returns null when any link fails so
- * callers can decide the response shape (some endpoints 404, others fall
+ * the conversation must belong to the requesting session, the session to the
+ * requesting agent and, on a protected agent, to the signed-in chatter. A
+ * thread the visitor cleared never resolves. Returns null when any link fails
+ * so callers can decide the response shape (some endpoints 404, others fall
  * back to an "AI" placeholder).
  *
- * Scoping by agent is non-negotiable: without it a caller can submit a
- * session id from agent A while claiming to act on agent B.
+ * It applies the same rule as the widget's other conversation lookups
+ * ({@see ConversationQueryBuilder::reachableByWidgetVisitor()}), plus the
+ * session match, because these endpoints always name the session.
  */
 class FindWidgetConversationAction
 {
     public function execute(
         string $conversationExternalId,
         string $sessionExternalId,
-        ?Agent $agent = null,
+        Agent $agent,
+        ?User $chatter = null,
     ): ?Conversation {
         // External ids are UUIDs; anything else can never match (and would
         // make Postgres reject the query with a 500).
@@ -31,12 +36,8 @@ class FindWidgetConversationAction
 
         return Conversation::query()
             ->where('external_id', $conversationExternalId)
-            ->whereHas('session', function ($q) use ($sessionExternalId, $agent): void {
-                $q->where('external_id', $sessionExternalId);
-                if ($agent instanceof Agent) {
-                    $q->where('agent_id', $agent->id);
-                }
-            })
+            ->inSession($sessionExternalId, $agent->id)
+            ->reachableByWidgetVisitor($agent->id, $chatter?->id)
             ->first();
     }
 }

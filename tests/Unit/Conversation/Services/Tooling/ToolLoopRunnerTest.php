@@ -24,6 +24,7 @@ use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
 use Domain\Integration\Tool\Data\ToolDisplayData;
 use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolDisplayResolver;
 use Domain\Llm\Contracts\LlmProviderInterface;
@@ -514,7 +515,7 @@ it('tells the transformer which tools were offered on the turn', function (): vo
     expect($seen)->toBe(['get_time', 'get_weather']);
 });
 
-it('refuses a call to a tool that was not offered, without dispatching or gating it', function (): void {
+it('refuses a call to a tool that was not offered, without dispatching or gating it, and audits it', function (): void {
     $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
     $dispatcher = tlrDispatcher();
 
@@ -547,7 +548,41 @@ it('refuses a call to a tool that was not offered, without dispatching or gating
         ->and($toolMessages[0]['tool_call_id'])->toBe('call_x')
         ->and($toolMessages[0]['content'])->toBe(sprintf(ToolLoopRunner::UNKNOWN_TOOL_RESULT, 'delete_everything'));
 
-    Event::assertNotDispatched(ToolCallCompleted::class);
+    // The refusal still reaches the governance audit, as its own outcome.
+    Event::assertDispatchedTimes(ToolCallCompleted::class, 1);
+    Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->approvalOutcome === ToolCallOutcome::NotOffered->value
+        && $e->toolCallId === 'call_x'
+        && $e->toolName === 'delete_everything'
+        && $e->toolKind === ToolKind::Function->value
+        && $e->connectorSlug === null
+        && $e->isError
+        && ! $e->gated
+        && $e->decidedAt === null);
+});
+
+it('audits an unoffered MCP-shaped call under its server and a shortened name', function (): void {
+    $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
+
+    $inventedName = 'mcp__other__'.str_repeat('x', 300);
+    $turn = 0;
+    $transformer = tlrTransformer(function (ChatContext $ctx) use (&$turn, $inventedName) {
+        if ($turn++ === 0) {
+            $ctx->pendingToolCalls[] = ['id' => 'call_long', 'name' => $inventedName, 'arguments' => '{"a":1}'];
+        }
+        yield from [];
+    });
+    $runner = tlrRunner($transformer, tlrDispatcher(), tlrApprovalPolicy(false));
+
+    $llmMessages = [['role' => 'user', 'content' => 'go']];
+    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('get_time')), preserve_keys: false);
+
+    // The audit row stores the name in varchar columns, so it is cut to the
+    // same length the log and the model see.
+    Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->approvalOutcome === ToolCallOutcome::NotOffered->value
+        && $e->toolKind === ToolKind::Mcp->value
+        && $e->connectorSlug === 'other'
+        && $e->toolName === mb_substr($inventedName, strlen('mcp__other__'), 100 - strlen('mcp__other__'))
+        && $e->arguments === '{"a":1}');
 });
 
 it('refuses every tool call when no tools were offered', function (): void {

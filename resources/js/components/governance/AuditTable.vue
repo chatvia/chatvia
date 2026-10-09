@@ -47,6 +47,7 @@ const outcomeVariant = (value: string): 'default' | 'secondary' | 'destructive' 
             return 'default';
         case 'denied':
         case 'rate_limited':
+        case 'not_offered':
             return 'destructive';
         default:
             return 'secondary';

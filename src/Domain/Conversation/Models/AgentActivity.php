@@ -15,8 +15,8 @@ use Illuminate\Support\Carbon;
 
 /**
  * Immutable per-tool-call governance audit row (`agent_activity`) for the
- * Governed MCP Gateway — one row per tool decision (auto / approved / denied /
- * rate_limited). Written once by
+ * Governed MCP Gateway — one row per tool decision (a ToolCallOutcome: auto /
+ * approved / denied / rate_limited / not_offered). Written once by
  * {@see RecordToolCallAuditAction} off the
  * streaming hot path; read by the account (Settings → Governance) and per-agent
  * Audit pages.

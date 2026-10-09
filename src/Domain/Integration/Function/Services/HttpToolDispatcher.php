@@ -51,11 +51,12 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         }
 
         // Dispatch-time SSRF guard: re-validate the (DNS-resolved) host right
-        // before connecting and disable redirect following, so a webhook that
-        // passed save-time validation cannot point/redirect at internal
-        // infrastructure (cloud metadata, RFC1918, loopback).
+        // before connecting, connect to the address that was checked and
+        // disable redirect following, so a webhook that passed save-time
+        // validation cannot point/redirect at internal infrastructure (cloud
+        // metadata, RFC1918, loopback).
         try {
-            SafeUrl::assert($function->webhook_url);
+            $clientOptions = SafeUrl::pinnedClientOptions($function->webhook_url);
         } catch (UnsafeUrlException $e) {
             $this->record($function, $agent, error: 'blocked unsafe webhook url');
 
@@ -80,7 +81,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
             $headers = array_merge($headers, $this->signatureHeaders($secret, $payload));
         }
 
-        return $this->send($function, $agent, $method, $payload, $headers);
+        return $this->send($function, $agent, $method, $payload, $headers, $clientOptions);
     }
 
     /**
@@ -112,14 +113,15 @@ class HttpToolDispatcher implements ToolDispatcherInterface
 
     /**
      * @param  array<string, string>  $headers
+     * @param  array<string, mixed>  $clientOptions  From {@see SafeUrl::pinnedClientOptions()}.
      */
-    private function send(AgentFunction $function, Agent $agent, FunctionWebhookMethod $method, string $payload, array $headers): ToolDispatchResult
+    private function send(AgentFunction $function, Agent $agent, FunctionWebhookMethod $method, string $payload, array $headers, array $clientOptions): ToolDispatchResult
     {
         $start = microtime(true);
 
         try {
             $request = Http::timeout(max(1, (int) ceil($function->timeout_ms / 1000)))
-                ->withOptions(SafeUrl::clientOptions())
+                ->withOptions($clientOptions)
                 ->withHeaders($headers);
 
             $response = $method === FunctionWebhookMethod::Get

@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "Liittimet"
             },
-            "overview": {
-                "coming_soon": "{type} tulossa pian",
-                "under_development": "Tämä ominaisuus on parhaillaan kehitteillä.",
-                "files": {
-                    "label": "Tiedostot",
-                    "description": "Lataa ja hallinnoi asiakirjoja (PDF, Word jne.)"
-                },
-                "text": {
-                    "label": "Teksti",
-                    "description": "Lisää mukautettua tekstisisältöä ja muistiinpanoja suoraan"
-                },
-                "web": {
-                    "label": "Verkkosivusto",
-                    "description": "Indeksoi verkkosivustoja ja -sivuja tietokantaan"
-                },
-                "audio": {
-                    "label": "Ääni",
-                    "description": "Lataa äänitiedostoja ja podcasteja litterointia varten"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Lataa videotiedostoja litterointia ja analyysia varten"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Tuo YouTube-videoita ja pura tekstitykset"
-                },
-                "qa": {
-                    "label": "K&V",
-                    "description": "Laadi vastauksia keskeisiin kysymyksiin"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Äänitys ladattu onnistuneesti!",
                 "recording_uploaded_description": "\"{name}\" on lisätty äänilähteisiisi.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "K&V-merkinnän päivittäminen epäonnistui",
                 "deleted": "K&V-merkintä poistettu onnistuneesti",
                 "delete_failed": "K&V-merkinnän poistaminen epäonnistui",
-                "unlinked": "K&V-merkintä irrotettu onnistuneesti",
-                "unlink_failed": "K&V-merkinnän irrottaminen epäonnistui",
                 "load_entries_failed": "K&V-merkintöjen lataaminen epäonnistui",
                 "status": {
                     "ingested": "Sisällytetty",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "K{number}:",
                 "edit_action": "Muokkaa",
                 "created_at": "Luotu {date}",
-                "used_by_agents": "{count} agentin käytössä",
                 "delete_title": "Poista K&V-merkintä",
                 "delete_description": "Haluatko varmasti poistaa tämän K&V-merkinnän? Tätä toimintoa ei voi peruuttaa.",
                 "remove_question": "Poista kysymys",
@@ -1664,10 +1629,8 @@
                 "colors_error": "Värejä ei voitu tallentaa",
                 "avatar_updated": "Avatar päivitetty",
                 "logo_updated": "Logo päivitetty",
-                "upload_error": "Kohteen {key} lataaminen epäonnistui",
                 "avatar_removed": "Avatar poistettu",
                 "logo_removed": "Logo poistettu",
-                "remove_error": "Kohteen {key} poistaminen epäonnistui",
                 "hosted_saved": "Isännöidyn chatin käyttäytyminen tallennettu",
                 "widget_saved": "Chat-widgetin käyttäytyminen tallennettu",
                 "bar_saved": "Komentopalkin käyttäytyminen tallennettu",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "Tietosuojakäytännön linkkiä ei voitu tallentaa",
                 "branding_saved": "Brändäys päivitetty",
                 "languages_saved": "Kielet tallennettu",
-                "languages_error": "Kieliä ei voitu tallentaa"
+                "languages_error": "Kieliä ei voitu tallentaa",
+                "avatar_upload_error": "Avatarin lataaminen epäonnistui",
+                "logo_upload_error": "Logon lataaminen epäonnistui",
+                "avatar_remove_error": "Avatarin poistaminen epäonnistui",
+                "logo_remove_error": "Logon poistaminen epäonnistui"
             },
             "settings": {
                 "composer_title": "Kirjoittajan asetukset",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "Värin intensiteetti",
             "light": "Vaalea",
-            "dark": "Tumma"
+            "dark": "Tumma",
+            "colors": {
+                "black": "Musta",
+                "red": "Punainen",
+                "orange": "Oranssi",
+                "amber": "Meripihka",
+                "yellow": "Keltainen",
+                "lime": "Limetti",
+                "green": "Vihreä",
+                "emerald": "Smaragdi",
+                "teal": "Sinivihreä",
+                "cyan": "Syaani",
+                "sky": "Taivaansininen",
+                "blue": "Sininen",
+                "indigo": "Indigo",
+                "violet": "Violetti",
+                "purple": "Purppura",
+                "fuchsia": "Fuksia",
+                "pink": "Vaaleanpunainen",
+                "rose": "Ruusu",
+                "slate": "Liuske",
+                "gray": "Harmaa",
+                "zinc": "Sinkki",
+                "neutral": "Neutraali",
+                "stone": "Kivi"
+            }
         },
         "color_theme_picker": {
             "title": "Valitse väriteema",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "automaattinen",
             "outcome_approved": "hyväksytty",
             "outcome_denied": "hylätty",
-            "outcome_rate_limited": "nopeusrajoitettu"
+            "outcome_rate_limited": "nopeusrajoitettu",
+            "outcome_not_offered": "ei tarjottu"
         },
         "attach_file": {
             "title": "Valitse jo koulutetuista tiedostoista",

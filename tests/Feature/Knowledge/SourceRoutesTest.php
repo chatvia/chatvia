@@ -96,3 +96,24 @@ it('lists the workspace pools to a teammate', function (): void {
         ->assertOk()
         ->assertJsonPath('0.id', $website->id);
 });
+
+it('unlinks a shared file from the agent and refuses its last link', function (): void {
+    $other = createAgent($this->owner);
+    $shared = AgentFileFactory::new()->create(['user_id' => $this->owner->id]);
+    $this->agent->files()->attach($shared->id);
+    $other->files()->attach($shared->id);
+    $onlyHere = AgentFileFactory::new()->create(['user_id' => $this->owner->id]);
+    $this->agent->files()->attach($onlyHere->id);
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.sources.files.unlink', [$this->agent, $shared->id]))
+        ->assertOk();
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.sources.files.unlink', [$this->agent, $onlyHere->id]))
+        ->assertStatus(400);
+
+    expect($this->agent->files()->whereKey($shared->id)->exists())->toBeFalse()
+        ->and($other->files()->whereKey($shared->id)->exists())->toBeTrue()
+        ->and($this->agent->files()->whereKey($onlyHere->id)->exists())->toBeTrue();
+});

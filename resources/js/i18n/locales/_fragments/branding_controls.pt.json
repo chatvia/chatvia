@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "Não foi possível carregar o avatar",
+                "logo_upload_error": "Não foi possível carregar o logótipo",
+                "avatar_remove_error": "Não foi possível remover o avatar",
+                "logo_remove_error": "Não foi possível remover o logótipo"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "Preto",
+                "red": "Vermelho",
+                "orange": "Laranja",
+                "amber": "Âmbar",
+                "yellow": "Amarelo",
+                "lime": "Lima",
+                "green": "Verde",
+                "emerald": "Esmeralda",
+                "teal": "Azul-petróleo",
+                "cyan": "Ciano",
+                "sky": "Azul-celeste",
+                "blue": "Azul",
+                "indigo": "Índigo",
+                "violet": "Violeta",
+                "purple": "Roxo",
+                "fuchsia": "Fúcsia",
+                "pink": "Rosa",
+                "rose": "Rosado",
+                "slate": "Ardósia",
+                "gray": "Cinzento",
+                "zinc": "Zinco",
+                "neutral": "Neutro",
+                "stone": "Pedra"
+            }
+        }
+    }
+}

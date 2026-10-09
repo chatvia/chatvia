@@ -1,0 +1,7 @@
+{
+    "shared": {
+        "audit_table": {
+            "outcome_not_offered": "제공되지 않음"
+        }
+    }
+}

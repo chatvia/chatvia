@@ -6,8 +6,10 @@ use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Function\Services\HttpToolDispatcher;
 use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Support\Http\SafeUrl;
 
 it('stamps the agent and owner identity headers on the webhook request', function (): void {
     $user = User::factory()->create();
@@ -162,4 +164,28 @@ it('names the configured brand in the User-Agent', function (): void {
     (new HttpToolDispatcher)->dispatch($agent, ToolCallData::named('lookup_order', '{}'));
 
     Http::assertSent(fn ($request): bool => $request->header('User-Agent') === ['AcmeChat/Tools']);
+});
+
+it('connects to the webhook address it checked, not a fresh DNS answer', function (): void {
+    [$agent] = htdFunction();
+    app()['env'] = 'production';
+    $answers = [['93.184.216.34'], ['10.0.0.5']];
+    SafeUrl::resolveHostsUsing(function (string $host) use (&$answers): array {
+        return array_shift($answers) ?? ['10.0.0.5'];
+    });
+
+    $pinned = null;
+    Http::fake(function (ClientRequest $request, array $options) use (&$pinned) {
+        $pinned = $options['curl'][CURLOPT_RESOLVE] ?? null;
+
+        return Http::response('{"ok":true}', 200);
+    });
+
+    try {
+        (new HttpToolDispatcher)->dispatch($agent, ToolCallData::named('lookup_order', '{}'));
+    } finally {
+        SafeUrl::resolveHostsUsing(null);
+    }
+
+    expect($pinned)->toBe(['hooks.example.test:443:93.184.216.34']);
 });

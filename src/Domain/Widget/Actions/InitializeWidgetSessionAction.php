@@ -48,7 +48,7 @@ class InitializeWidgetSessionAction
         $isNewSession = ! $session instanceof Session;
         $session ??= $this->startSession($agent, $data, $authUser);
 
-        $conversationId = $this->resumeConversation($agent, $data, $authUser)?->external_id;
+        $conversationId = $this->resumeConversation($agent, $session, $data, $authUser)?->external_id;
         $isNewConversation = $conversationId === null;
         $conversationId ??= $this->startConversation->execute(
             new ChatScopeData($agent, $session->external_id),
@@ -108,15 +108,26 @@ class InitializeWidgetSessionAction
      * The conversation the widget remembered, under the same agent and chatter
      * scoping as the session: a conversation from another agent or chatter
      * never comes back here, even when its id is sent.
+     *
+     * It must also belong to the session this visit uses. The widget's
+     * session-scoped endpoints refuse a conversation of another session, so
+     * resuming one would hand back a thread the visitor cannot use. Its own
+     * session is not adopted instead: a conversation id alone must not grant
+     * access to every other conversation of that session.
      */
-    private function resumeConversation(Agent $agent, WidgetSessionInitData $data, ?User $authUser): ?Conversation
+    private function resumeConversation(Agent $agent, Session $session, WidgetSessionInitData $data, ?User $authUser): ?Conversation
     {
         if (! $data->existingConversationId) {
             return null;
         }
 
         $conversation = $this->widgetVerification->verifyConversationId($data->existingConversationId, $agent, $authUser);
-        $conversation?->update(['last_activity_at' => now()]);
+
+        if ($conversation?->chat_session_id !== $session->id) {
+            return null;
+        }
+
+        $conversation->update(['last_activity_at' => now()]);
 
         return $conversation;
     }

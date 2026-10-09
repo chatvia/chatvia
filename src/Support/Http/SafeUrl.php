@@ -2,6 +2,7 @@
 
 namespace Support\Http;
 
+use Closure;
 use Support\Exceptions\UnsafeUrlException;
 
 /**
@@ -18,9 +19,21 @@ use Support\Exceptions\UnsafeUrlException;
  * localhost mock servers; production and all other environments are enforced.
  * Redirect following must be disabled by the caller (see clientOptions()) so a
  * public host cannot 30x-redirect into an internal address after validation.
+ *
+ * A caller that sends the request itself should use pinnedClientOptions(): it
+ * runs the same checks and also makes the HTTP client connect to the
+ * addresses that were checked, instead of looking the host up a second time
+ * (a DNS answer that changes in between could point at an internal address).
  */
 final class SafeUrl
 {
+    /**
+     * Replacement for DNS lookups, set by tests only.
+     *
+     * @var (Closure(string): list<string>)|null
+     */
+    private static ?Closure $resolver = null;
+
     /**
      * Guzzle/Http options that callers MUST apply so a validated public URL
      * cannot redirect into an internal target after the check.
@@ -33,11 +46,52 @@ final class SafeUrl
     }
 
     /**
+     * Checks the URL like {@see assert()} and returns the client options to
+     * send it with: redirects off and, when the host is a name, the name
+     * pinned to the addresses that were just checked (curl's CURLOPT_RESOLVE).
+     * The URL keeps its host name, so TLS certificate checks and SNI work as
+     * usual. In local and testing, where the address check is skipped,
+     * nothing is pinned.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws UnsafeUrlException
+     */
+    public static function pinnedClientOptions(string $url): array
+    {
+        $addresses = self::checkedAddresses($url);
+        $options = self::clientOptions();
+        $host = trim((string) parse_url($url, PHP_URL_HOST), '[]');
+
+        if ($addresses === [] || filter_var($host, FILTER_VALIDATE_IP)) {
+            return $options;
+        }
+
+        $options['curl'] = [CURLOPT_RESOLVE => [self::resolveEntry($url, $host, $addresses)]];
+
+        return $options;
+    }
+
+    /**
      * Throw if the URL is unsafe to fetch server-side.
      *
      * @throws UnsafeUrlException
      */
     public static function assert(string $url): void
+    {
+        self::checkedAddresses($url);
+    }
+
+    /**
+     * Runs every check and returns the addresses the host resolved to, all of
+     * them public. Empty in local and testing, where the address check is
+     * skipped.
+     *
+     * @return list<string>
+     *
+     * @throws UnsafeUrlException
+     */
+    private static function checkedAddresses(string $url): array
     {
         $parts = parse_url($url);
 
@@ -58,7 +112,7 @@ final class SafeUrl
         // Allow localhost/private targets in local + automated tests so dev mock
         // servers and the suite work; production/staging are enforced.
         if (app()->environment('local', 'testing')) {
-            return;
+            return [];
         }
 
         $ips = self::resolve($host);
@@ -71,6 +125,38 @@ final class SafeUrl
                 throw new UnsafeUrlException('The URL resolves to a private or reserved address.');
             }
         }
+
+        return $ips;
+    }
+
+    /**
+     * One CURLOPT_RESOLVE entry, "host:port:address[,address…]". IPv4
+     * addresses come first so a server without IPv6 connects at once; IPv6
+     * addresses are written in brackets, as curl expects.
+     *
+     * @param  list<string>  $addresses
+     */
+    private static function resolveEntry(string $url, string $host, array $addresses): string
+    {
+        $port = parse_url($url, PHP_URL_PORT)
+            ?? (strtolower((string) parse_url($url, PHP_URL_SCHEME)) === 'https' ? 443 : 80);
+
+        usort($addresses, static fn (string $a, string $b): int => str_contains($a, ':') <=> str_contains($b, ':'));
+
+        $written = array_map(static fn (string $ip): string => str_contains($ip, ':') ? '['.$ip.']' : $ip, $addresses);
+
+        return $host.':'.$port.':'.implode(',', $written);
+    }
+
+    /**
+     * Answer DNS lookups with the given callback instead of the network, or
+     * restore real lookups with null. For tests.
+     *
+     * @param  (Closure(string): list<string>)|null  $resolver
+     */
+    public static function resolveHostsUsing(?Closure $resolver): void
+    {
+        self::$resolver = $resolver;
     }
 
     /**
@@ -118,6 +204,10 @@ final class SafeUrl
 
         if (filter_var($host, FILTER_VALIDATE_IP)) {
             return [$host];
+        }
+
+        if (self::$resolver instanceof Closure) {
+            return (self::$resolver)($host);
         }
 
         $records = @dns_get_record($host, DNS_A | DNS_AAAA);

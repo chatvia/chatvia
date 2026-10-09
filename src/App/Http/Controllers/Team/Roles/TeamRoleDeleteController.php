@@ -6,11 +6,11 @@ use Domain\Membership\Team\Actions\Roles\DeleteTeamRoleAction;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Support\Exceptions\DomainValidationException;
 
 /**
  * Deletes a custom team role. Only the owner may; the owner and admin roles
- * are protected, and a role that members still hold is refused with a flash.
+ * are protected. A role that members still hold is refused by the action, and
+ * the global exception mapping turns that into a `role` field error.
  */
 class TeamRoleDeleteController
 {
@@ -26,11 +26,7 @@ class TeamRoleDeleteController
 
         abort_if($role->isProtected(), 403, __('Cannot delete the owner or admin role.'));
 
-        try {
-            $delete->execute($team, $role);
-        } catch (DomainValidationException $e) {
-            return back()->with('error', $e->getMessage());
-        }
+        $delete->execute($team, $role);
 
         return back()->with('success', __('Role deleted successfully.'));
     }

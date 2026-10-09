@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "아바타를 업로드할 수 없습니다",
+                "logo_upload_error": "로고를 업로드할 수 없습니다",
+                "avatar_remove_error": "아바타를 제거할 수 없습니다",
+                "logo_remove_error": "로고를 삭제할 수 없습니다"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "검정",
+                "red": "빨강",
+                "orange": "주황",
+                "amber": "호박색",
+                "yellow": "노랑",
+                "lime": "라임",
+                "green": "초록",
+                "emerald": "에메랄드",
+                "teal": "청록",
+                "cyan": "시안",
+                "sky": "하늘색",
+                "blue": "파랑",
+                "indigo": "남색",
+                "violet": "보라",
+                "purple": "자주",
+                "fuchsia": "푸크시아",
+                "pink": "분홍",
+                "rose": "장미색",
+                "slate": "슬레이트",
+                "gray": "회색",
+                "zinc": "징크",
+                "neutral": "뉴트럴",
+                "stone": "스톤"
+            }
+        }
+    }
+}

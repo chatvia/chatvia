@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 
 /**
@@ -7,10 +8,10 @@ use Domain\Knowledge\Embedding\Rerank\NullReranker;
  * keep their original order and nothing is dropped.
  */
 it('keeps the candidates in their original order with a top score', function (): void {
-    expect((new NullReranker)->rerank('q', ['a', 'b', 'c']))->toBe([
-        ['index' => 0, 'relevance_score' => 1.0],
-        ['index' => 1, 'relevance_score' => 1.0],
-        ['index' => 2, 'relevance_score' => 1.0],
+    expect((new NullReranker)->rerank('q', ['a', 'b', 'c']))->toEqual([
+        new RerankedDocumentData(0, 1.0),
+        new RerankedDocumentData(1, 1.0),
+        new RerankedDocumentData(2, 1.0),
     ]);
 });
 

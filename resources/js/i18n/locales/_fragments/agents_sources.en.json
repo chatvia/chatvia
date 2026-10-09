@@ -27,38 +27,6 @@
                 "markdown": "Markdown",
                 "connectors": "Connectors"
             },
-            "overview": {
-                "coming_soon": "{type} Coming Soon",
-                "under_development": "This feature is currently under development.",
-                "files": {
-                    "label": "Files",
-                    "description": "Upload and manage documents (PDF, Word, etc.)"
-                },
-                "text": {
-                    "label": "Text",
-                    "description": "Add custom text content and notes directly"
-                },
-                "web": {
-                    "label": "Website",
-                    "description": "Crawl websites and web pages for knowledge"
-                },
-                "audio": {
-                    "label": "Audio",
-                    "description": "Upload audio files and podcasts for transcription"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Upload video files for transcription and analysis"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Import YouTube videos and extract transcripts"
-                },
-                "qa": {
-                    "label": "Q&A",
-                    "description": "Craft responses for key questions"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Recording uploaded successfully!",
                 "recording_uploaded_description": "\"{name}\" has been added to your audio sources.",
@@ -195,8 +163,6 @@
                 "update_failed": "Failed to update Q&A entry",
                 "deleted": "Q&A entry deleted successfully",
                 "delete_failed": "Failed to delete Q&A entry",
-                "unlinked": "Q&A entry unlinked successfully",
-                "unlink_failed": "Failed to unlink Q&A entry",
                 "load_entries_failed": "Failed to load Q&A entries",
                 "status": {
                     "ingested": "Ingested",
@@ -223,7 +189,6 @@
                 "question_prefix": "Q{number}:",
                 "edit_action": "Edit",
                 "created_at": "Created {date}",
-                "used_by_agents": "Used by {count} agents",
                 "delete_title": "Delete Q&A Entry",
                 "delete_description": "Are you sure you want to delete this Q&A entry? This action cannot be undone."
             },

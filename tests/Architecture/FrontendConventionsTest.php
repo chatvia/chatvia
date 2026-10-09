@@ -49,7 +49,17 @@ $frontendOffenders = function (string $pattern, array $allowed = []) use ($front
     return $offenders;
 };
 
-$frontendSource = fn (string $relative): string => (string) file_get_contents($frontendRoot.'/'.$relative);
+/**
+ * Source of one file under resources/js. A renamed or moved file fails the test
+ * instead of reading as an empty string, which would pass every check silently.
+ */
+$frontendSource = function (string $relative) use ($frontendRoot): string {
+    $path = $frontendRoot.'/'.$relative;
+
+    expect(is_file($path))->toBeTrue("resources/js/{$relative} does not exist; update the path in this test");
+
+    return (string) file_get_contents($path);
+};
 
 it('never wraps a theme CSS variable in hsl()', function () use ($frontendOffenders): void {
     // Theme variables hold full color functions (`--primary: hsl(0 0% 9%)`), so
@@ -67,12 +77,16 @@ it('does not load web fonts from Google at runtime', function () use ($frontendO
     expect($frontendOffenders('/fonts\.(googleapis|gstatic)\.com/'))->toBe([]);
 });
 
-it('leaves no console.log debug output in the frontend', function () use ($frontendOffenders): void {
+it('leaves no console.log debug output in the frontend', function () use ($frontendOffenders, $frontendRoot): void {
     // These files show console.log inside code samples for customers.
     $codeSamples = [
         'pages/agents/Deploy.vue',
         'pages/agents/security/Identity.examples.ts',
     ];
+
+    foreach ($codeSamples as $sample) {
+        expect(is_file($frontendRoot.'/'.$sample))->toBeTrue("resources/js/{$sample} does not exist; update the allowlist");
+    }
 
     expect($frontendOffenders('/console\.log\(/', $codeSamples))->toBe([]);
 });

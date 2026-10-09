@@ -104,8 +104,8 @@ class McpClientTest extends TestCase
 
         $result = app(McpClient::class)->callTool($this->server(), 'ping', []);
 
-        $this->assertFalse($result['isError']);
-        $this->assertSame('pong', $result['content'][0]['text']);
+        $this->assertFalse($result->isError);
+        $this->assertSame('pong', $result->text);
     }
 
     public function test_call_tool_stamps_caller_identity_headers(): void

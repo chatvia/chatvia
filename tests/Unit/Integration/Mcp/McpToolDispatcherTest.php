@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Mcp\Data\McpToolResultData;
 use Domain\Integration\Mcp\Events\McpToolInvoked;
 use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -37,7 +38,7 @@ beforeEach(function (): void {
 });
 
 it('logs argument keys but never their values', function (): void {
-    $this->client->shouldReceive('callTool')->andReturn(['content' => [['type' => 'text', 'text' => 'ok']]]);
+    $this->client->shouldReceive('callTool')->andReturn(McpToolResultData::fromEnvelope(['content' => [['type' => 'text', 'text' => 'ok']]]));
     Log::spy();
 
     app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
@@ -108,3 +109,28 @@ it('refuses a name without both a server slug and a tool, without calling the se
     expect($result->isError)->toBeTrue()
         ->and($result->text)->toBe("Tool error: Tool \"{$name}\" is not a recognized MCP tool.");
 })->with(['mcp__crm', 'mcp____lookup', 'mcp__crm__']);
+
+it('hands the model the tool text and the UI the renderable blocks', function (): void {
+    $this->client->shouldReceive('callTool')->andReturn(McpToolResultData::fromEnvelope([
+        'content' => [['type' => 'text', 'text' => 'chart ready']],
+        'structuredContent' => ['echarts_option' => ['series' => []]],
+    ]));
+
+    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
+
+    expect($result->text)->toBe('chart ready')
+        ->and($result->isError)->toBeFalse()
+        ->and($result->artifacts)->toBe([['kind' => 'echarts_option', 'data' => ['series' => []]]]);
+});
+
+it('marks a failure the tool reports itself as a tool error', function (): void {
+    $this->client->shouldReceive('callTool')->andReturn(McpToolResultData::fromEnvelope([
+        'content' => [['type' => 'text', 'text' => 'no such customer']],
+        'isError' => true,
+    ]));
+
+    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
+
+    expect($result->text)->toBe('Tool error: no such customer')
+        ->and($result->isError)->toBeTrue();
+});

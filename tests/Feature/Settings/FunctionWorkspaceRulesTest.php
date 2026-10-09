@@ -10,8 +10,8 @@ use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Spatie\Permission\PermissionRegistrar;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * Webhook functions are workspace resources: teammates with account.functions
@@ -136,7 +136,7 @@ describe('function names are unique per workspace', function (): void {
             webhook_url: 'https://example.com/webhook',
             webhook_method: FunctionWebhookMethod::Post,
             auth_type: FunctionAuthType::None,
-        )))->toThrow(ValidationException::class);
+        )))->toThrow(DomainValidationException::class);
     });
 
     it('rejects an API rename onto an existing name with a 422', function (): void {
@@ -147,7 +147,8 @@ describe('function names are unique per workspace', function (): void {
         $this->withHeaders(['Authorization' => 'Bearer '.$token, 'Accept' => 'application/json'])
             ->patchJson('/api/v1/functions/'.$fn->external_id, ['internal_name' => 'taken_name'])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('internal_name');
+            ->assertJsonValidationErrors('internal_name')
+            ->assertJsonPath('errors.internal_name.0', 'A function with this name already exists in your workspace.');
     });
 });
 

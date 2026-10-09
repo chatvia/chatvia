@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "آپلود آواتار ممکن نبود",
+                "logo_upload_error": "آپلود لوگو ممکن نبود",
+                "avatar_remove_error": "حذف آواتار ممکن نبود",
+                "logo_remove_error": "حذف لوگو ممکن نبود"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "سیاه",
+                "red": "قرمز",
+                "orange": "نارنجی",
+                "amber": "کهربایی",
+                "yellow": "زرد",
+                "lime": "لیمویی",
+                "green": "سبز",
+                "emerald": "زمردی",
+                "teal": "سبزآبی",
+                "cyan": "فیروزه‌ای",
+                "sky": "آسمانی",
+                "blue": "آبی",
+                "indigo": "نیلی",
+                "violet": "بنفش",
+                "purple": "ارغوانی",
+                "fuchsia": "سرخابی",
+                "pink": "صورتی",
+                "rose": "گلی",
+                "slate": "خاکستری لوحی",
+                "gray": "خاکستری",
+                "zinc": "رویی",
+                "neutral": "خنثی",
+                "stone": "سنگی"
+            }
+        }
+    }
+}

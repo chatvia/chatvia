@@ -8,6 +8,7 @@ use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Actions\Messages\BroadcastChatTypingAction;
+use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Auth\WidgetAckData;
 use Illuminate\Http\JsonResponse;
 
@@ -31,7 +32,7 @@ class TypingController
             $agent,
         );
 
-        if (! $conversation) {
+        if (! $conversation instanceof Conversation) {
             return response()->json(['error' => 'Unauthorized'], JsonResponse::HTTP_FORBIDDEN);
         }
 

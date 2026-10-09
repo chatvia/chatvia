@@ -102,7 +102,7 @@ class FunctionSchemaValidator
      */
     private function validateRequired(mixed $required, array $propertyNames): array
     {
-        if (! (is_array($required) && array_is_list($required))) {
+        if (! is_array($required) || ! array_is_list($required)) {
             return ['The parameters schema "required" must be an array of property names.'];
         }
 

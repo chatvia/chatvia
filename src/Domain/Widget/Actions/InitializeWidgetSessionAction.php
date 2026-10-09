@@ -45,7 +45,7 @@ class InitializeWidgetSessionAction
     private function initialize(Agent $agent, WidgetSessionInitData $data, ?User $authUser): WidgetSessionInitResultData
     {
         $session = $this->resumeSession($agent, $data, $authUser);
-        $isNewSession = $session === null;
+        $isNewSession = ! $session instanceof Session;
         $session ??= $this->startSession($agent, $data, $authUser);
 
         $conversationId = $this->resumeConversation($agent, $data, $authUser)?->external_id;

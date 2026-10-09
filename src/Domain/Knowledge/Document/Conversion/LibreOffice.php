@@ -16,13 +16,13 @@ use RuntimeException;
  */
 class LibreOffice
 {
-    private string $libreOfficeExecPath;
+    private readonly string $libreOfficeExecPath;
 
-    private string $cacheDir;
+    private readonly string $cacheDir;
 
     private int $timeout = 3600;
 
-    private array $allowedFormats;
+    private readonly array $allowedFormats;
 
     /** Set once `soffice --version` has succeeded in this PHP process. */
     private static bool $installationVerified = false;

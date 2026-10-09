@@ -60,7 +60,7 @@ function noopLlmProvider(): LlmProviderInterface
             throw new RuntimeException('client() not used in LlmSource tests');
         }
 
-        public function completion(array $data): void
+        public function completion(array $data): never
         {
             throw new RuntimeException('completion() not used in LlmSource tests');
         }

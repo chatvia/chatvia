@@ -71,7 +71,7 @@ class ToolRelevanceGate
 
         $candidateLimit = max((int) config('chatvia.agent.tools.routing.rerank_candidates', 12), 1);
         $pool = array_slice(array_values($candidates), 0, $candidateLimit);
-        $documents = array_map(static fn (ToolEntry $e): string => self::document($e), $pool);
+        $documents = array_map($this->document(...), $pool);
 
         try {
             // top_n = candidate count so we get a score for every candidate and do
@@ -149,7 +149,7 @@ class ToolRelevanceGate
      * carries keyword signal (`mcp__github__search_issues`), the description
      * carries intent — both help the cross-encoder.
      */
-    private static function document(ToolEntry $entry): string
+    private function document(ToolEntry $entry): string
     {
         return trim($entry->name."\n".$entry->description);
     }

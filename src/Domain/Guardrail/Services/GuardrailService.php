@@ -106,7 +106,7 @@ class GuardrailService
 
         $toxicity = $settings->toxicity ? $this->blockingToxicity($pii->text) : null;
 
-        if ($toxicity === null) {
+        if (! $toxicity instanceof ClassifierVerdictData) {
             return new GuardResultData(text: $pii->text, verdicts: $verdicts);
         }
 

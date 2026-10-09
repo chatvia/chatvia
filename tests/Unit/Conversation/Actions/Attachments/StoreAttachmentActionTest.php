@@ -35,7 +35,7 @@ function realTextUpload(): UploadedFile
 function fakePageCount(int $pages): void
 {
     // PdfInfo is final; swap a duck-typed stand-in under the same container key.
-    app()->instance(PdfInfo::class, new class($pages)
+    app()->instance(PdfInfo::class, new readonly class($pages)
     {
         public function __construct(private int $pages) {}
 

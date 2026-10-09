@@ -59,7 +59,6 @@ it('stores custom system instructions when no library prompt is supplied', funct
         name: 'Custom-prompt Bot',
         team_id: $this->team->external_id,
         is_public: false,
-        prompt_id: null,
         system_instructions: 'You are a helpful assistant.',
     ));
 

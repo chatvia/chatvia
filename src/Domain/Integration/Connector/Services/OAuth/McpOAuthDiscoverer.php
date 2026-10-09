@@ -136,7 +136,7 @@ class McpOAuthDiscoverer
                 continue;
             }
 
-            $servers = array_values(array_filter($body['authorization_servers'], 'is_string'));
+            $servers = array_values(array_filter($body['authorization_servers'], is_string(...)));
             if ($servers !== []) {
                 return $servers;
             }

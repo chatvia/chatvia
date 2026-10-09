@@ -24,11 +24,9 @@ it('force-grants the suite to any workspace and audits the change', function ():
     expect(WorkspaceSecurityPolicy::forWorkspace($workspace->id)->security_override)->toBeTrue()
         ->and(Feature::for($workspace->fresh())->active(SecurityFeature::Security->value))->toBeTrue();
 
-    Event::assertDispatched(SecurityEventOccurred::class, function (SecurityEventOccurred $e) use ($workspace): bool {
-        return $e->action === SecurityAuditAction::PolicyChanged->value
-            && $e->workspaceId === $workspace->id
-            && str_contains($e->metadata, 'security_override');
-    });
+    Event::assertDispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyChanged->value
+        && $e->workspaceId === $workspace->id
+        && str_contains($e->metadata, 'security_override'));
 });
 
 it('is a no-op (no audit event) when the override is unchanged', function (): void {

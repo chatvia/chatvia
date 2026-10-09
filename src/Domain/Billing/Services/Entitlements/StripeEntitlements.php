@@ -30,7 +30,7 @@ final readonly class StripeEntitlements implements Entitlements
     {
         $billing = $user->accountBilling();
 
-        return (bool) ($billing?->subscribed() || $billing?->onTrial());
+        return $billing?->subscribed() || $billing?->onTrial();
     }
 
     public function hasMessageCapacity(int $workspaceId): bool

@@ -25,7 +25,7 @@ function itfFakeChunkFit(array $chunks): ChunkFitClient
 {
     return new class($chunks) extends ChunkFitClient
     {
-        public function __construct(private array $chunks) {}
+        public function __construct(private readonly array $chunks) {}
 
         public function splitByTitle(string $text): array
         {
@@ -38,7 +38,7 @@ function itfFakePandoc(string $markdown): Pandoc
 {
     return new class($markdown) extends Pandoc
     {
-        public function __construct(private string $markdown) {}
+        public function __construct(private readonly string $markdown) {}
 
         public function toMarkdown(string $path, string $extension): string
         {

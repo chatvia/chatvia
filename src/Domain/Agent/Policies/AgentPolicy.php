@@ -41,7 +41,7 @@ class AgentPolicy
      */
     public function create(User $user, ?Team $team = null): Response
     {
-        if ($team === null) {
+        if (! $team instanceof Team) {
             return Response::denyAsNotFound(__('No team found. Please select or create a team first.'));
         }
 

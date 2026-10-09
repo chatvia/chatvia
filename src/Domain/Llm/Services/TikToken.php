@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Llm\Services;
 
 use Yethee\Tiktoken\Encoder;
@@ -16,7 +18,7 @@ class TikToken
 
     private static function getEncoder(): Encoder
     {
-        if (self::$encoder === null) {
+        if (! self::$encoder instanceof Encoder) {
             $provider = new EncoderProvider;
             self::$encoder = $provider->getForModel('gpt-4');
         }

@@ -18,7 +18,7 @@ it('marks the source file failed when a long ingestion job times out', function 
     $agent = Agent::factory()->create();
     $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id, 'status' => 'ingesting']);
 
-    $job = (new $jobClass($file, $agent))->withFakeQueueInteractions();
+    $job = new $jobClass($file, $agent)->withFakeQueueInteractions();
 
     expect($job->timeout)->toBe($timeout);
 

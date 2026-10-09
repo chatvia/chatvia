@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use Domain\Integration\Mcp\Enums\McpToolPermission;
@@ -12,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ConnectorToolFactory extends Factory
 {
+    #[\Override]
     protected $model = ConnectorTool::class;
 
     /**
@@ -20,9 +23,9 @@ class ConnectorToolFactory extends Factory
     public function definition(): array
     {
         return [
-            'connector_slug' => $this->faker->unique()->slug(2),
-            'name' => $this->faker->unique()->word(),
-            'description' => $this->faker->sentence(),
+            'connector_slug' => fake()->unique()->slug(2),
+            'name' => fake()->unique()->word(),
+            'description' => fake()->sentence(),
             'input_schema' => ['type' => 'object', 'properties' => []],
             'annotations' => null,
             'scope' => McpToolScope::Write,

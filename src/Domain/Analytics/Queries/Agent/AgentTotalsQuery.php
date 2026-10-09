@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Analytics\Queries\Agent;
 
 use Domain\Agent\Models\Agent;
@@ -98,22 +100,22 @@ SQL;
             assistantMessages: (int) ($row->total_assistant ?? 0),
             userMessages: (int) ($row->total_user ?? 0),
             conversations: (int) ($row->total_conversations ?? 0),
-            avgResponseMs: self::floatOrNull($row->avg_response_ms),
+            avgResponseMs: $this->floatOrNull($row->avg_response_ms),
             totalTokens: (int) ($row->total_tokens ?? 0),
-            avgTokensPerReply: self::floatOrNull($row->avg_tokens),
+            avgTokensPerReply: $this->floatOrNull($row->avg_tokens),
             positiveFeedback: (int) ($row->positive_feedback ?? 0),
             negativeFeedback: (int) ($row->negative_feedback ?? 0),
             conversationsWithFeedback: (int) ($row->conversations_with_feedback ?? 0),
-            avgMessagesPerConversation: self::floatOrNull($row->avg_messages_per_conversation),
-            avgConversationSeconds: self::floatOrNull($row->avg_conversation_duration_seconds),
-            avgFirstResponseSeconds: self::floatOrNull($row->avg_first_response_seconds),
+            avgMessagesPerConversation: $this->floatOrNull($row->avg_messages_per_conversation),
+            avgConversationSeconds: $this->floatOrNull($row->avg_conversation_duration_seconds),
+            avgFirstResponseSeconds: $this->floatOrNull($row->avg_first_response_seconds),
             peakHour: $row->peak_hour !== null ? (int) $row->peak_hour : null,
             firstDataDate: $row->first_data_date ? (string) $row->first_data_date : null,
             uniqueSessions: (int) ($row->unique_sessions ?? 0),
         );
     }
 
-    private static function floatOrNull(mixed $value): ?float
+    private function floatOrNull(mixed $value): ?float
     {
         return $value !== null ? (float) $value : null;
     }

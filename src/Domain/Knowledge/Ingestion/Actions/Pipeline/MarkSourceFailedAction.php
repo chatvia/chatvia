@@ -26,7 +26,7 @@ class MarkSourceFailedAction
 {
     public function execute(SourceFile|SourceText|SourceWebsite|AgentWebsiteUrl $source, Agent $agent, ?Throwable $exception = null): void
     {
-        if ($exception !== null) {
+        if ($exception instanceof Throwable) {
             report($exception);
         }
 

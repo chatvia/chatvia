@@ -37,7 +37,7 @@ class CompleteConnectorOAuthAction
     {
         $pending = $this->states->pull($callback->state);
 
-        if ($pending === null) {
+        if (! $pending instanceof PendingOAuthState) {
             throw new McpOAuthException('This connection request has expired or was already used. Please try again.');
         }
 

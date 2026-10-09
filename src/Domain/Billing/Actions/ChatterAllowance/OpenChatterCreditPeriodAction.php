@@ -24,7 +24,7 @@ class OpenChatterCreditPeriodAction
     {
         $current = $this->allowance->currentCredit($chatter);
 
-        if ($current !== null) {
+        if ($current instanceof UserCredit) {
             return $current;
         }
 

@@ -57,7 +57,7 @@ function attachmentDeleteAgent(bool $isPublic = true): Agent
 
 function makeAttachment(Agent $agent, ?Conversation $conversation = null, ?int $messageId = null): Attachment
 {
-    $convPart = $conversation ? $conversation->external_id : 'pending';
+    $convPart = $conversation instanceof Conversation ? $conversation->external_id : 'pending';
     $uuid = (string) Str::uuid();
     $filepath = sprintf('users/%s/agents/%s/attachments/%s/%s.pdf', $agent->workspaceExternalId(), $agent->external_id, $convPart, $uuid);
 

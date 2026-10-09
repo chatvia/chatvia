@@ -25,7 +25,7 @@ class MaxPdfPagesTest extends TestCase
     {
         // PdfInfo is final, so swap in a stand-in under the same container key.
         // The rule only calls getInfo()->length, so duck-typing is enough.
-        $this->app->instance(PdfInfo::class, new class($pages)
+        $this->app->instance(PdfInfo::class, new readonly class($pages)
         {
             public function __construct(private int $pages) {}
 
@@ -41,7 +41,7 @@ class MaxPdfPagesTest extends TestCase
         $this->fakePageCount(11);
 
         $failed = false;
-        (new MaxPdfPages(max: 10))->validate('file', $this->pdfUpload(), function () use (&$failed): void {
+        new MaxPdfPages(max: 10)->validate('file', $this->pdfUpload(), function () use (&$failed): void {
             $failed = true;
         });
 
@@ -53,7 +53,7 @@ class MaxPdfPagesTest extends TestCase
         $this->fakePageCount(10);
 
         $failed = false;
-        (new MaxPdfPages(max: 10))->validate('file', $this->pdfUpload(), function () use (&$failed): void {
+        new MaxPdfPages(max: 10)->validate('file', $this->pdfUpload(), function () use (&$failed): void {
             $failed = true;
         });
 
@@ -64,7 +64,7 @@ class MaxPdfPagesTest extends TestCase
     {
         // No PdfInfo bound — if the rule tried to read pages this would error.
         $failed = false;
-        (new MaxPdfPages(max: 10))->validate('file', 'not-a-file', function () use (&$failed): void {
+        new MaxPdfPages(max: 10)->validate('file', 'not-a-file', function () use (&$failed): void {
             $failed = true;
         });
 

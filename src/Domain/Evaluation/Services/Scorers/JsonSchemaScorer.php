@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Evaluation\Services\Scorers;
 
 use Domain\Evaluation\Data\AgentRunResultData;
@@ -21,7 +23,7 @@ class JsonSchemaScorer implements ScorerInterface
             return ScoreResultData::fail(0.0, 'Output is not valid JSON.');
         }
 
-        $required = array_map('strval', (array) ($case->scorer_config['required'] ?? []));
+        $required = array_map(strval(...), (array) ($case->scorer_config['required'] ?? []));
         $missing = array_values(array_filter(
             $required,
             fn (string $key): bool => ! array_key_exists($key, $decoded),

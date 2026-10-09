@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Mcp\Tools\Perplexity;
 
 use Domain\Integration\Builtin\Data\Perplexity\PerplexityAnswerData;
 use Domain\Integration\Builtin\Data\Perplexity\PerplexitySandboxExecutionData;
+use Domain\Integration\Builtin\Data\Perplexity\PerplexitySandboxRunData;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -69,7 +72,7 @@ class PerplexityRunCodeTool extends PerplexityAgentTool
     {
         $sandbox = $answer->sandbox;
 
-        if ($sandbox === null) {
+        if (! $sandbox instanceof PerplexitySandboxRunData) {
             return [];
         }
 

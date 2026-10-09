@@ -42,7 +42,7 @@ class ChatLogWriter
         // on the session.
         $session = Session::firstOrCreate(
             ['external_id' => $sessionExternalId, 'agent_id' => $agent->id],
-            $userTurn !== null ? $this->newSessionAttributes($userTurn) : [],
+            $userTurn instanceof UserTurnData ? $this->newSessionAttributes($userTurn) : [],
         );
 
         $updates = $this->activityStamp($session->last_activity_at);
@@ -149,7 +149,7 @@ class ChatLogWriter
      */
     private function activityStamp(?CarbonInterface $lastActivityAt): array
     {
-        return $lastActivityAt === null || $lastActivityAt->lt(now()->subMinute())
+        return ! $lastActivityAt instanceof CarbonInterface || $lastActivityAt->lt(now()->subMinute())
             ? ['last_activity_at' => now()]
             : [];
     }

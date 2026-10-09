@@ -26,7 +26,7 @@ final readonly class AgentVisibility
      */
     public function query(User $user, ?Team $currentTeam): AgentQueryBuilder
     {
-        $granted = $currentTeam !== null && ! $user->ownsTeam($currentTeam)
+        $granted = $currentTeam instanceof Team && ! $user->ownsTeam($currentTeam)
             ? $this->teams->accessibleAgents($user, $currentTeam)->pluck('id')->all()
             : [];
 

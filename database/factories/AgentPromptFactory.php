@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class AgentPromptFactory extends Factory
 {
+    #[\Override]
     protected $model = AgentPrompt::class;
 
     public function definition(): array

@@ -3,8 +3,10 @@
 namespace App\Http\Middleware\Auth;
 
 use App\Http\Chat\HostedChatAgent;
+use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Closure;
+use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,13 +41,13 @@ class AuthenticateChatViaSignInToken
 
         $agent = HostedChatAgent::from($request);
 
-        if ($agent === null) {
+        if (! $agent instanceof Agent) {
             return $next($request);
         }
 
         $user = $this->tokens->verify($token, $agent);
 
-        if ($user !== null) {
+        if ($user instanceof User) {
             Auth::guard('web')->login($user);
         }
 

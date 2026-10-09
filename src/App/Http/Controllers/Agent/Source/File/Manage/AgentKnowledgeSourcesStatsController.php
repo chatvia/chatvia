@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Agent\Source\File\Manage;
 
 use Domain\Agent\Data\Resources\Sources\AgentSourcesStatsData;

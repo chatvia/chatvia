@@ -27,7 +27,7 @@ class StoreAttachmentAction
         // ::create() to never overwrite it.
         $extension = strtolower($data->file->getClientOriginalExtension() ?: 'pdf');
         $directory = trim($data->directory, '/');
-        $filename = (string) Str::uuid().'.'.$extension;
+        $filename = Str::uuid().'.'.$extension;
         $filepath = $directory.'/'.$filename;
 
         Storage::disk(Attachment::DISK)

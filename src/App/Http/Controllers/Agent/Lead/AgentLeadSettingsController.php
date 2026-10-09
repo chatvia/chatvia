@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Agent\Lead;
 
 use App\Http\Requests\Agent\Lead\UpdateLeadSettingsRequest;

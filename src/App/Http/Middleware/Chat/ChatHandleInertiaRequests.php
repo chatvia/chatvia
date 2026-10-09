@@ -15,6 +15,7 @@ use Tighten\Ziggy\Ziggy;
  */
 class ChatHandleInertiaRequests extends Middleware
 {
+    #[\Override]
     protected $rootView = 'app';
 
     /**

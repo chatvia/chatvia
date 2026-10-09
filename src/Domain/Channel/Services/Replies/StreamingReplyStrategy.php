@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Channel\Services\Replies;
 
 use Domain\Channel\Contracts\ChannelConversationMapping;
@@ -33,13 +35,13 @@ class StreamingReplyStrategy
             return false;
         }
 
-        $lastPush = self::now();
+        $lastPush = $this->now();
         $lastPushed = '';
 
         $reply = $this->runner->reply(
             ChannelTurnData::for($channel, $conversation, $message),
             function (string $replySoFar) use ($channel, $messageId, &$lastPush, &$lastPushed): void {
-                if (self::now() - $lastPush < $channel->streamThrottleSeconds()) {
+                if ($this->now() - $lastPush < $channel->streamThrottleSeconds()) {
                     return;
                 }
 
@@ -50,7 +52,7 @@ class StreamingReplyStrategy
                     $lastPushed = $partial;
                 }
 
-                $lastPush = self::now();
+                $lastPush = $this->now();
             },
         );
 
@@ -60,7 +62,7 @@ class StreamingReplyStrategy
     }
 
     /** Seconds since the epoch, from the app clock so tests can travel in time. */
-    private static function now(): float
+    private function now(): float
     {
         return now()->getPreciseTimestamp(3) / 1000;
     }

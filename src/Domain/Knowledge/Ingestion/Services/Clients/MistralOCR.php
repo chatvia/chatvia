@@ -61,21 +61,17 @@ class MistralOcr
 
         $pages = $response->json('pages');
 
-        return collect($pages)->map(function (array $page) {
+        return collect($pages)->map(function (array $page): PageData {
 
             $images = [];
             $tables = [];
 
             if ($page['images']) {
-                $images = collect($page['images'])->map(function ($image) {
-                    return $image['image_base64'];
-                })->toArray();
+                $images = collect($page['images'])->map(fn ($image) => $image['image_base64'])->toArray();
             }
 
             if ($page['tables']) {
-                $tables = collect($page['tables'])->map(function (array $table) {
-                    return $table['content'];
-                })->toArray();
+                $tables = collect($page['tables'])->map(fn (array $table) => $table['content'])->toArray();
             }
 
             $text = str(Markdown::convert($page['markdown'])->getContent())

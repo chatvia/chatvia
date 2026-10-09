@@ -6,6 +6,7 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
+use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
@@ -22,12 +23,12 @@ function bindFakeEmbeddings(): void
 {
     app()->instance(EmbeddingsProviderInterface::class, new class implements EmbeddingsProviderInterface
     {
-        public function embed(string $text, bool $returnAsText = false): string|array
+        public function embed(string $text, bool $returnAsText = false): array
         {
             return array_fill(0, 1024, 0.1);
         }
 
-        public function embedQuery(string $text, bool $returnAsText = false): string|array
+        public function embedQuery(string $text, bool $returnAsText = false): array
         {
             return array_fill(0, 1024, 0.1);
         }
@@ -161,7 +162,7 @@ it('does not make charts ambient — an unattached agent gets neither charts nor
     $agent = Agent::factory()->create(); // nothing attached
 
     $names = array_map(
-        static fn ($entry): string => $entry->name,
+        static fn (ToolEntry $entry): string => $entry->name,
         app(ToolRegistry::class)->for($agent),
     );
 
@@ -178,7 +179,7 @@ it('surfaces charts tools once the agent attaches the connector', function (): v
     attachCharts($agent);
 
     $names = array_map(
-        static fn ($entry): string => $entry->name,
+        static fn (ToolEntry $entry): string => $entry->name,
         app(ToolRegistry::class)->for($agent),
     );
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Form\Data;
 
 use Domain\Conversation\Models\Conversation;

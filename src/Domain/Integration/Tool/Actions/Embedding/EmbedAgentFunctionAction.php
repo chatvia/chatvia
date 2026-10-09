@@ -34,7 +34,7 @@ class EmbedAgentFunctionAction
         try {
             // Include the display name alongside the internal name + description
             // so retrieval matches on the user-facing label too.
-            $name = trim((string) ($function->display_name ?? '')."\n".$function->internal_name);
+            $name = trim(($function->display_name ?? '')."\n".$function->internal_name);
             $text = trim($name."\n\n".$function->description);
             $function->forceFill([
                 'embedding' => $this->embeddings->embed($text),

@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Evaluation\Actions\ListKnowledgeQuestionCandidatesAction;
+use Domain\Evaluation\Data\KnowledgeQuestionCandidateData;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 
@@ -34,7 +35,7 @@ it('lists QA-pair questions, deduped, and flags ones already used as a case inpu
         'active' => true,
     ]);
 
-    $candidates = array_map(fn ($candidate): array => $candidate->toArray(), app(ListKnowledgeQuestionCandidatesAction::class)->execute($agent));
+    $candidates = array_map(fn (KnowledgeQuestionCandidateData $candidate): array => $candidate->toArray(), app(ListKnowledgeQuestionCandidatesAction::class)->execute($agent));
 
     $questions = array_column($candidates, 'question');
 

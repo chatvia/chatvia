@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Membership\Team\Listeners;
 
 use Domain\Membership\Team\Events\TeamInvitationCreated;

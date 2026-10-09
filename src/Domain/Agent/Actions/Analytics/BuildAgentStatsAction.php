@@ -53,9 +53,9 @@ class BuildAgentStatsAction
             total_user_messages: $totals->userMessages,
             unique_sessions: $totals->uniqueSessions,
             avg_response_time: $totals->avgResponseMs !== null ? round($totals->avgResponseMs / 1000, 1) : null,
-            avg_first_response_time: self::roundOrNull($totals->avgFirstResponseSeconds),
-            avg_messages_per_conversation: self::roundOrNull($totals->avgMessagesPerConversation),
-            avg_conversation_duration: self::roundOrNull($totals->avgConversationSeconds),
+            avg_first_response_time: $this->roundOrNull($totals->avgFirstResponseSeconds),
+            avg_messages_per_conversation: $this->roundOrNull($totals->avgMessagesPerConversation),
+            avg_conversation_duration: $this->roundOrNull($totals->avgConversationSeconds),
             avg_tokens_per_message: $totals->avgTokensPerReply !== null ? (int) round($totals->avgTokensPerReply) : null,
             total_tokens_used: $totals->totalTokens,
             peak_activity_hour: $totals->peakHour,
@@ -66,7 +66,7 @@ class BuildAgentStatsAction
                 total: $totals->positiveFeedback + $totals->negativeFeedback,
             ),
             messages_last_week: $this->everyDay($replies, $range->start, $range->end),
-            country_usage: array_map(self::countryUsage(...), $this->countries->get($agent)),
+            country_usage: array_map($this->countryUsage(...), $this->countries->get($agent)),
             daily_messages: array_map(
                 static fn (DailyCountData $day): DailyMessagesData => new DailyMessagesData($day->date, $day->count),
                 $replies,
@@ -77,7 +77,7 @@ class BuildAgentStatsAction
             ),
             activity_by_hour: $this->byHour($agent),
             activity_by_day_of_week: $this->byWeekday($agent),
-            top_knowledge: array_map(self::topKnowledge(...), $this->knowledge->topFiles($agent)),
+            top_knowledge: array_map($this->topKnowledge(...), $this->knowledge->topFiles($agent)),
             first_data_date: $totals->firstDataDate,
             last_updated: now()->toDateTimeImmutable(),
         );
@@ -142,17 +142,17 @@ class BuildAgentStatsAction
         );
     }
 
-    private static function countryUsage(CountryShareData $country): CountryUsageData
+    private function countryUsage(CountryShareData $country): CountryUsageData
     {
         return new CountryUsageData($country->code, $country->name, $country->conversations, $country->pct);
     }
 
-    private static function topKnowledge(FileUsageData $file): TopKnowledgeData
+    private function topKnowledge(FileUsageData $file): TopKnowledgeData
     {
         return new TopKnowledgeData($file->filename, $file->classification ?? 'unknown', $file->retrievals);
     }
 
-    private static function roundOrNull(?float $value): ?float
+    private function roundOrNull(?float $value): ?float
     {
         return $value !== null ? round($value, 1) : null;
     }

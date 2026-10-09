@@ -116,7 +116,7 @@ class ChatContext
 
     public ?string $guardRefusal = null;
 
-    private float $startTime;
+    private readonly float $startTime;
 
     private ?float $endTime = null;
 
@@ -202,15 +202,13 @@ class ChatContext
 
     public function hasQaMatch(): bool
     {
-        return $this->qaMatch !== null;
+        return $this->qaMatch instanceof QaMatchData;
     }
 
     public function markEndTime(): void
     {
         // Only set endTime once (first call wins)
-        if ($this->endTime === null) {
-            $this->endTime = microtime(true);
-        }
+        $this->endTime ??= microtime(true);
     }
 
     public function getResponseTimeMs(): int

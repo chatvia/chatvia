@@ -111,7 +111,7 @@ function toolLoopBindLlm(string ...$sseBodies): void
             throw new RuntimeException('client() not used');
         }
 
-        public function completion(array $data): void
+        public function completion(array $data): never
         {
             throw new RuntimeException('completion() not used');
         }
@@ -141,12 +141,12 @@ function toolLoopBindLlm(string ...$sseBodies): void
 
     app()->instance(EmbeddingsProviderInterface::class, new class implements EmbeddingsProviderInterface
     {
-        public function embed(string $text, bool $returnAsText = false): string|array
+        public function embed(string $text, bool $returnAsText = false): array
         {
             return array_fill(0, 1024, 0.1);
         }
 
-        public function embedQuery(string $text, bool $returnAsText = false): string|array
+        public function embedQuery(string $text, bool $returnAsText = false): array
         {
             return array_fill(0, 1024, 0.1);
         }

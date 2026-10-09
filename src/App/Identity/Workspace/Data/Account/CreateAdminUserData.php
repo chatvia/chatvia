@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Identity\Workspace\Data\Account;
 
 use App\Identity\Workspace\Actions\Account\CreateAdminUserAction;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Llm\Exceptions;
 
 use RuntimeException;

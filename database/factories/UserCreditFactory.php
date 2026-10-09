@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use Domain\Billing\Models\UserCredit;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class UserCreditFactory extends Factory
 {
+    #[\Override]
     protected $model = UserCredit::class;
 
     /**
@@ -20,9 +23,9 @@ class UserCreditFactory extends Factory
     public function definition(): array
     {
         return [
-            'messages' => $this->faker->numberBetween(50, 200),
-            'started_at' => now()->subDays($this->faker->numberBetween(1, 30)),
-            'ends_at' => now()->addDays($this->faker->numberBetween(1, 30)),
+            'messages' => fake()->numberBetween(50, 200),
+            'started_at' => now()->subDays(fake()->numberBetween(1, 30)),
+            'ends_at' => now()->addDays(fake()->numberBetween(1, 30)),
         ];
     }
 }

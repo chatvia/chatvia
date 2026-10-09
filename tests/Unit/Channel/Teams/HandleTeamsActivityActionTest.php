@@ -40,7 +40,7 @@ function teamsHandleBot(bool $public = true): AgentTeamsBot
  */
 function teamsHandle(FakeTeamsClient $client, StubChannelReplyRunner $runner, AgentTeamsBot $bot, array $activity): void
 {
-    (new HandleTeamsActivityAction($runner->handler()))->execute(
+    new HandleTeamsActivityAction($runner->handler())->execute(
         new TeamsAdapter($client, new TeamsChatResolver(app(StartConversationAction::class)), $bot, TeamsActivityData::fromArray($activity)),
     );
 }

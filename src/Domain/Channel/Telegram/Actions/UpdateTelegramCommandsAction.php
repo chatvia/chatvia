@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Channel\Telegram\Actions;
 
 use Domain\Channel\Telegram\Models\AgentTelegramBot;

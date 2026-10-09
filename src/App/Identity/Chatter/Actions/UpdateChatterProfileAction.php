@@ -5,6 +5,7 @@ namespace App\Identity\Chatter\Actions;
 use App\Identity\Chatter\Data\UpdateChatterProfileData;
 use App\Identity\Workspace\Services\PasswordAuthenticator;
 use App\Identity\Workspace\Services\ProfilePhotoStorage;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -42,7 +43,7 @@ class UpdateChatterProfileAction
             $user->password = Hash::make($data->newPassword);
         }
 
-        if ($data->photo) {
+        if ($data->photo instanceof UploadedFile) {
             $user->profile_image_path = $this->photos->store($user, $data->photo);
         }
 

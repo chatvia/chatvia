@@ -15,13 +15,9 @@ class DatabaseServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        PostgresGrammar::macro('typeBm25vector', function () {
-            return 'bm25_catalog.bm25vector';
-        });
+        PostgresGrammar::macro('typeBm25vector', fn () => 'bm25_catalog.bm25vector');
 
-        Blueprint::macro('bm25vector', function (string $column) {
-            return $this->addColumn('bm25vector', $column);
-        });
+        Blueprint::macro('bm25vector', fn (string $column) => $this->addColumn('bm25vector', $column));
 
         $this->dropTokenizerExtensionBeforeWipe();
     }

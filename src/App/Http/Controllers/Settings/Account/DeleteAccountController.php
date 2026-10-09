@@ -26,7 +26,7 @@ class DeleteAccountController
      * Session key holding the unix timestamp at which the email confirmation
      * link was opened. `destroy()` requires this to be present and fresh.
      */
-    private const CONFIRMED_AT_KEY = 'account_deletion_confirmed_at';
+    private const string CONFIRMED_AT_KEY = 'account_deletion_confirmed_at';
 
     /** How long (seconds) a confirmed deletion stays armed before it lapses. */
     private const CONFIRMATION_TTL = 30 * 60;

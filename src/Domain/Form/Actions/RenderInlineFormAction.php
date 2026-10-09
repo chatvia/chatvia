@@ -52,7 +52,7 @@ class RenderInlineFormAction
 
         $definition = $this->match($active, $requestedForm);
 
-        if ($definition === null) {
+        if (! $definition instanceof FormDefinition) {
             return RenderFormOutcomeData::notFound($active->take(self::SLUG_HINT_LIMIT)->pluck('slug')->all());
         }
 

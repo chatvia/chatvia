@@ -7,6 +7,7 @@ use App\Http\Chat\HostedChatSession;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
+use Domain\Conversation\Models\Session;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -41,15 +42,15 @@ class ConversationSearchController
         }
 
         // A search is a read: look up the visitor's session, never create one.
-        $sessionId = $agent !== null ? $chatSession->find($agent) : null;
+        $sessionId = $agent instanceof Agent ? $chatSession->find($agent) : null;
 
-        if ($agent === null || $sessionId === null) {
+        if (! $agent instanceof Agent || $sessionId === null) {
             return [];
         }
 
         $session = $verification->verifySessionExternalId($sessionId, $agent);
 
-        if ($session === null) {
+        if (! $session instanceof Session) {
             return [];
         }
 

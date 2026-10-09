@@ -35,7 +35,7 @@ final readonly class OAuthServerMetadata
             // (the MCP authorization spec requires clients to refuse then).
             codeChallengeMethodsSupported: array_values(array_map(
                 strval(...),
-                array_filter((array) ($payload['code_challenge_methods_supported'] ?? []), 'is_scalar'),
+                array_filter((array) ($payload['code_challenge_methods_supported'] ?? []), is_scalar(...)),
             )),
         );
     }

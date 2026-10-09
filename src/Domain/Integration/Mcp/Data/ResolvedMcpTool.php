@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Mcp\Data;
 
 use Domain\Integration\Mcp\Enums\McpToolPermission;

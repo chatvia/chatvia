@@ -37,7 +37,7 @@ final readonly class HostedChatAgent implements ContextualAttribute
     {
         $agent = self::from($container->make('request'));
 
-        if ($agent === null && $parameter !== null && ! $parameter->allowsNull()) {
+        if (! $agent instanceof Agent && $parameter instanceof ReflectionParameter && ! $parameter->allowsNull()) {
             abort(Response::HTTP_NOT_FOUND);
         }
 

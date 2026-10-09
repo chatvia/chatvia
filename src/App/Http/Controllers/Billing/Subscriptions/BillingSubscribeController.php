@@ -17,7 +17,7 @@ class BillingSubscribeController
     {
         $checkout = $subscribe->execute($request->toData());
 
-        if (! $checkout) {
+        if (! $checkout instanceof Checkout) {
             return to_route('dashboard');
         }
 

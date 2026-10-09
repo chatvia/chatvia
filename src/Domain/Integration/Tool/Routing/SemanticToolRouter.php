@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Tool\Routing;
 
 use Domain\Agent\Models\Agent;

@@ -31,7 +31,7 @@ it('stores the IG account + page token encrypted and subscribes the linked page'
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeInstagramClient;
 
-    $account = (new ConnectInstagramAccountAction($client, new ChannelConnectionGuard))->execute($agent, instagramAccount('EAAG-page-token-value-here'));
+    $account = new ConnectInstagramAccountAction($client, new ChannelConnectionGuard)->execute($agent, instagramAccount('EAAG-page-token-value-here'));
 
     $row = AgentInstagramAccount::query()->firstOrFail();
 
@@ -70,7 +70,7 @@ it('reconnects in place — one account row per agent, page token replaced', fun
 it('refuses a protected agent and stores nothing', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
 
-    expect(fn (): AgentInstagramAccount => (new ConnectInstagramAccountAction(new FakeInstagramClient, new ChannelConnectionGuard))
+    expect(fn (): AgentInstagramAccount => new ConnectInstagramAccountAction(new FakeInstagramClient, new ChannelConnectionGuard)
         ->execute($agent, instagramAccount('EAAG-token')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::ProtectedAgent));
 

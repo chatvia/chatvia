@@ -8,6 +8,7 @@ use Domain\Billing\Services\MessageSendGate;
 use Domain\Conversation\Actions\Handoff\SendVisitorHandoffMessageAction;
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
+use Domain\Conversation\Data\Turn\ReplaySnapshotData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
@@ -68,7 +69,7 @@ readonly class ChatStreamService
     {
         $replay = $this->replay($data);
 
-        if ($replay !== null) {
+        if ($replay instanceof Generator) {
             return $replay;
         }
 
@@ -95,7 +96,7 @@ readonly class ChatStreamService
     {
         $checkpoint = $this->approvalStore->claim($approval->external_id);
 
-        if ($checkpoint === null) {
+        if (! $checkpoint instanceof ToolApprovalCheckpoint) {
             return $this->errorSource->events(
                 ErrorCode::Internal,
                 __('This action was already handled or has expired.'),
@@ -106,7 +107,7 @@ readonly class ChatStreamService
         $context = $this->contexts->forResume($checkpoint);
         $conversation = $this->conversation($context->requestData);
 
-        if ($conversation !== null && $conversation->pdfAttachments()->exists()) {
+        if ($conversation instanceof Conversation && $conversation->pdfAttachments()->exists()) {
             return $this->pdfSource->resume($context, $checkpoint, $data->decisions);
         }
 
@@ -124,7 +125,7 @@ readonly class ChatStreamService
 
         $snapshot = $this->dedupe->find($data->requestId);
 
-        return $snapshot !== null && $snapshot->content !== ''
+        return $snapshot instanceof ReplaySnapshotData && $snapshot->content !== ''
             ? $this->replaySource->events($data->requestId, $snapshot)
             : null;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Evaluation\Data;
 
 use Domain\Evaluation\Enums\EvalQuestionSource;

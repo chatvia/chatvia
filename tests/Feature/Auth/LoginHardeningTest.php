@@ -36,7 +36,7 @@ describe('deactivated accounts', function (): void {
     });
 
     it('cannot sign in with a magic link sent before the deactivation', function (): void {
-        $response = (new MagicLinkSignIn($this->user->id, route('dashboard')))->run();
+        $response = new MagicLinkSignIn($this->user->id, route('dashboard'))->run();
 
         expect($response->getTargetUrl())->toBe(route('login'))
             ->and(Auth::guard('web')->check())->toBeFalse();

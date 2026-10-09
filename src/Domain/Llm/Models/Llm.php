@@ -75,6 +75,7 @@ class Llm extends Model
         ];
     }
 
+    #[\Override]
     protected $attributes = [
         'is_reasoning' => false,
         'credits' => 1,

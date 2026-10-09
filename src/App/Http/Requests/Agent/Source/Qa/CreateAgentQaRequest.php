@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Agent\Source\Qa;
 
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;

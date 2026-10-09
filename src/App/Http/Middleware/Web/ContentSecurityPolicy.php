@@ -39,7 +39,7 @@ class ContentSecurityPolicy
      * The trial sign-up form POSTs to us and we redirect to Stripe Checkout.
      * Browsers apply form-action to that redirect too.
      */
-    private const STRIPE_CHECKOUT_ORIGIN = 'https://checkout.stripe.com';
+    private const string STRIPE_CHECKOUT_ORIGIN = 'https://checkout.stripe.com';
 
     public function handle(Request $request, Closure $next): Response
     {

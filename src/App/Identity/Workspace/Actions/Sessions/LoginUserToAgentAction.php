@@ -36,7 +36,7 @@ class LoginUserToAgentAction
     {
         $user = $this->authenticator->findUserByCredentials($data->email, $data->password);
 
-        if ($user === null || $user->isDeactivated()) {
+        if (! $user instanceof User || $user->isDeactivated()) {
             return null;
         }
 

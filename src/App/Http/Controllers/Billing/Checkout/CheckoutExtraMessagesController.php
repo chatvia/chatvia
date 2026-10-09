@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Billing\Checkout;
 
 use App\Http\Requests\Billing\BuyExtraMessageCreditsRequest;

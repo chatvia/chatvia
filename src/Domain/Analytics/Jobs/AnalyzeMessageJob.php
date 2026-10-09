@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Analytics\Jobs;
 
 use Domain\Analytics\Actions\Analysis\AnalyzeMessageAction;

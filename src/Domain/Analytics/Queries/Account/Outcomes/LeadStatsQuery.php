@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Analytics\Queries\Account\Outcomes;
 
 use Domain\Analytics\Data\Account\AnalyticsScopeData;

@@ -42,7 +42,7 @@ class TeamRoleResolver
     {
         $role = $this->roleFor($user, $team);
 
-        return $role !== null && $role->hasPermissionTo($permission);
+        return $role instanceof Role && $role->hasPermissionTo($permission);
     }
 
     /**
@@ -59,7 +59,7 @@ class TeamRoleResolver
 
         $role = $this->roleFor($user, $team);
 
-        if (! $role) {
+        if (! $role instanceof Role) {
             return [];
         }
 

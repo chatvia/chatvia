@@ -18,7 +18,7 @@ final class Crawler
      * sitemap can't balloon into thousands of URL rows. The UI can still pass a
      * smaller explicit limit via CrawlerData.
      */
-    public const DEFAULT_LIMIT = 1000;
+    public const int DEFAULT_LIMIT = 1000;
 
     /**
      * Reduce a seed URL to its origin (scheme://host[:port]) for discovery.
@@ -77,7 +77,7 @@ final class Crawler
 
     private function filterUrls(array $links, ?string $includePaths = null, ?string $excludePaths = null): array
     {
-        if (empty($links)) {
+        if ($links === []) {
             return [];
         }
 
@@ -115,7 +115,7 @@ final class Crawler
 
     private function matchesPatterns(string $urlPath, string $patterns): bool
     {
-        $patternList = array_map('trim', explode(',', $patterns));
+        $patternList = array_map(trim(...), explode(',', $patterns));
 
         foreach ($patternList as $pattern) {
             $pattern = ltrim($pattern, '/');

@@ -75,10 +75,7 @@ class ChunkFitClient
                 ->asJson()
                 ->post($endpoint, $body);
         } catch (Throwable $e) {
-            throw new ChunkFitException(
-                'Failed to reach chunk.fit: '.$e->getMessage(),
-                previous: $e,
-            );
+            throw new ChunkFitException('Failed to reach chunk.fit: '.$e->getMessage(), $e->getCode(), previous: $e);
         }
 
         if ($response->failed()) {
@@ -105,7 +102,7 @@ class ChunkFitClient
 
         return array_values(array_filter(
             array_map(fn ($chunk): ?string => is_string($chunk) ? trim($chunk) : null, $chunks),
-            fn ($chunk): bool => $chunk !== null && $chunk !== '',
+            fn (?string $chunk): bool => $chunk !== null && $chunk !== '',
         ));
     }
 

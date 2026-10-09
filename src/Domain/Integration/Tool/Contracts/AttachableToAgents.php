@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Tool\Contracts;
 
 use Domain\Agent\Models\Agent;

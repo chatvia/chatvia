@@ -36,7 +36,7 @@ class ReceiveInstagramMessagesAction
 
             $account = $accounts[$message->accountId];
 
-            if ($account === null || $message->senderId === $account->ig_id) {
+            if (! $account instanceof AgentInstagramAccount || $message->senderId === $account->ig_id) {
                 continue;
             }
 

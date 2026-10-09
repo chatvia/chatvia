@@ -5,6 +5,7 @@ namespace Domain\Billing\Actions\Webhooks;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Subscriptions\GrantSubscriptionAction;
 use Domain\Billing\Data\Stripe\PaidInvoiceData;
+use Domain\Billing\Data\Subscriptions\PlanSelectionData;
 use Domain\Billing\Data\Subscriptions\StripeScheduleData;
 use Domain\Billing\Models\UserBilling;
 use Domain\Billing\Services\RenewedPlanResolver;
@@ -44,7 +45,7 @@ class GrantRenewalAction
         $billing = UserBilling::forStripeCustomer($invoice->customerId);
         $user = $billing?->user;
 
-        if ($billing === null || $user === null) {
+        if (! $billing instanceof UserBilling || $user === null) {
             Log::warning('User not found for invoice payment', ['customer' => $invoice->customerId]);
 
             return;
@@ -60,7 +61,7 @@ class GrantRenewalAction
         $subscription = $billing->ownedSubscription('default');
         $plan = $this->plans->resolve($invoice, $billing, $subscription);
 
-        if ($plan === null) {
+        if (! $plan instanceof PlanSelectionData) {
             Log::info('Skipping renewal invoice that is not for the plan subscription', [
                 'invoice_id' => $invoice->invoiceId,
                 'customer' => $invoice->customerId,
@@ -85,7 +86,7 @@ class GrantRenewalAction
      */
     private function endTrial(?Subscription $subscription, User $user): void
     {
-        if ($subscription === null || ! $subscription->onTrial()) {
+        if (! $subscription instanceof Subscription || ! $subscription->onTrial()) {
             return;
         }
 
@@ -99,7 +100,7 @@ class GrantRenewalAction
 
     private function clearAppliedPlanChange(PaidInvoiceData $invoice, ?Subscription $subscription): void
     {
-        if ($subscription === null || ! $invoice->subscriptionMetadata?->hasPendingChange()) {
+        if (! $subscription instanceof Subscription || ! $invoice->subscriptionMetadata?->hasPendingChange()) {
             return;
         }
 

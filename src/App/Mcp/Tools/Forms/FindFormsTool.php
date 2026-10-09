@@ -3,6 +3,8 @@
 namespace App\Mcp\Tools\Forms;
 
 use App\Mcp\McpCallerContext;
+use Domain\Agent\Models\Agent;
+use Domain\Conversation\Models\Conversation;
 use Domain\Form\Data\FormMatchData;
 use Domain\Form\Queries\FindFormsForAgentQuery;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -30,14 +32,14 @@ class FindFormsTool extends Tool
             return Response::error('Missing X-Chatvia-Agent-Id identity header.');
         }
 
-        if ($caller->agent === null) {
+        if (! $caller->agent instanceof Agent) {
             return Response::error("Unknown agent \"{$caller->agentExternalId}\".");
         }
 
         // Forms only render on the web surfaces. On messaging channels (Telegram,
         // Slack, …) there's no inline-form artifact, so don't surface forms at all —
         // keep the model helping conversationally, mirroring RenderFormTool.
-        if ($caller->conversation !== null && ! $caller->conversation->source->isWeb()) {
+        if ($caller->conversation instanceof Conversation && ! $caller->conversation->source->isWeb()) {
             return Response::make(Response::text(
                 'This channel cannot display forms. Keep helping the visitor conversationally.'
             ))->withStructuredContent(['forms' => []]);

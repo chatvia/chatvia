@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Admin\AdminPanelProvider;
 use App\Providers\ApiDocsServiceProvider;
 use App\Providers\AppServiceProvider;

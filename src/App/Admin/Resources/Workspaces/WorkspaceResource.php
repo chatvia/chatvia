@@ -25,14 +25,19 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class WorkspaceResource extends Resource
 {
+    #[\Override]
     protected static ?string $model = User::class;
 
+    #[\Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 
+    #[\Override]
     protected static ?string $recordTitleAttribute = 'name';
 
+    #[\Override]
     protected static ?string $modelLabel = 'workspace';
 
+    #[\Override]
     protected static ?string $pluralModelLabel = 'workspaces';
 
     /**

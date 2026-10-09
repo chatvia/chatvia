@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
 
     // Languages the public site is served in — kept in lock-step with the dashboard

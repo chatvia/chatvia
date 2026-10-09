@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Knowledge\Source\Youtube\Observers;
 
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;

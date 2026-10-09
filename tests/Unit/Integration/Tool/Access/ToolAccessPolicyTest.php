@@ -17,7 +17,7 @@ function tapFakeApprovalPolicy(bool $requires): ToolApprovalPolicy
 {
     return new class($requires) extends ToolApprovalPolicy
     {
-        public function __construct(private bool $requires) {}
+        public function __construct(private readonly bool $requires) {}
 
         public function requiresApproval(Agent $agent, ToolName $tool): bool
         {

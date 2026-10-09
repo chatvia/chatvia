@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Marketing\Mail;
 
 use App\Marketing\Data\ContactMessageData;
@@ -19,8 +21,8 @@ class ContactMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Contact form: '.$this->contact->name,
             replyTo: [new Address($this->contact->email, $this->contact->name)],
+            subject: 'Contact form: '.$this->contact->name,
         );
     }
 

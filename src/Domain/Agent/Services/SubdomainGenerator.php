@@ -38,7 +38,7 @@ class SubdomainGenerator
         for ($attempt = 0; $attempt < self::ATTEMPTS; $attempt++) {
             $name = self::clean($this->suggest());
 
-            if ($name !== null && ! self::isTaken($name)) {
+            if ($name !== null && ! $this->isTaken($name)) {
                 return $name;
             }
         }
@@ -82,12 +82,12 @@ class SubdomainGenerator
     {
         do {
             $name = 'agent-'.Str::lower(Str::random(8));
-        } while (self::isTaken($name));
+        } while ($this->isTaken($name));
 
         return $name;
     }
 
-    private static function isTaken(string $name): bool
+    private function isTaken(string $name): bool
     {
         return in_array($name, self::RESERVED, true) || Agent::query()->where('sub_domain', $name)->exists();
     }

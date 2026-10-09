@@ -7,6 +7,7 @@ use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Actions\Handoff\EndHandoffChatAction;
+use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Session\WidgetEndChatResultData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,7 +34,7 @@ readonly class EndChatController
 
         $conversation = $findConversation->execute($conversationId, $sessionId, $agent);
 
-        if (! $conversation) {
+        if (! $conversation instanceof Conversation) {
             return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData as Capabilities;
 
 /**

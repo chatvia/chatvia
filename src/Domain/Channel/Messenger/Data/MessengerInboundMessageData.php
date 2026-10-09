@@ -39,7 +39,7 @@ final readonly class MessengerInboundMessageData
             foreach ((array) ($entry['messaging'] ?? []) as $event) {
                 $message = is_array($event) ? self::fromEvent($pageId, $event) : null;
 
-                if ($message !== null) {
+                if ($message instanceof MessengerInboundMessageData) {
                     $messages[] = $message;
                 }
             }

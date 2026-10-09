@@ -6,6 +6,7 @@ use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Handoff\WidgetHandoffStatusData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,7 +34,7 @@ readonly class HandoffStatusController
         $conversationId = (string) $conversationId;
         $conversation = $findConversation->execute($conversationId, $sessionId, $agent);
 
-        return $conversation
+        return $conversation instanceof Conversation
             ? WidgetHandoffStatusData::fromConversation($conversation, $conversationId)
             : WidgetHandoffStatusData::unhandedOff($conversationId);
     }

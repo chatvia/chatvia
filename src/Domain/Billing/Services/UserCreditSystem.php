@@ -202,7 +202,7 @@ class UserCreditSystem
         $workspace = $this->workspace();
         $credit = $this->activeCreditOf($workspace);
 
-        if ($workspace === null || $credit === null) {
+        if (! $workspace instanceof User || ! $credit instanceof UserCredit) {
             return 0;
         }
 

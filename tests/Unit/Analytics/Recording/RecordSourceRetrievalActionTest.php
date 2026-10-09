@@ -3,6 +3,7 @@
 use Domain\Analytics\Actions\Recording\RecordSourceRetrievalAction;
 use Domain\Analytics\Data\Recording\SourceRetrievalRecordData;
 use Domain\Analytics\Events\SourceRetrieved;
+use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -10,7 +11,7 @@ it('upserts and increments per-source retrieval rollups', function (): void {
     $action = app(RecordSourceRetrievalAction::class);
     $agentId = 940001;
     $userId = 500001;
-    $type = 'Domain\\Knowledge\\Source\\File\\Models\\SourceFile';
+    $type = SourceFile::class;
     $when = Carbon::parse('2026-06-01 09:00');
 
     $action->execute(SourceRetrievalRecordData::fromEvent(new SourceRetrieved($agentId, $userId, [

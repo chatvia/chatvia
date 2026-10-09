@@ -71,10 +71,8 @@ it('charges the price off-session and records the addon, reserving the debounce 
     $debounceAtChargeTime = null;
     $mock->shouldReceive('invoicePrice')
         ->once()
-        ->with('price_extra_1000', 2, [], m::on(function (array $options): bool {
-            return ($options['metadata']['id'] ?? null) === 'auto_recharge_credits'
-                && ($options['metadata']['messages'] ?? null) === 2000;
-        }))
+        ->with('price_extra_1000', 2, [], m::on(fn (array $options): bool => ($options['metadata']['id'] ?? null) === 'auto_recharge_credits'
+            && ($options['metadata']['messages'] ?? null) === 2000))
         ->andReturnUsing(function () use ($billing, &$debounceAtChargeTime): Invoice {
             // Capture the committed debounce at the moment Stripe is hit: the
             // reservation must land BEFORE the charge so a killed worker

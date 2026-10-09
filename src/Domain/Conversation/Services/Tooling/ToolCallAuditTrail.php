@@ -46,6 +46,7 @@ class ToolCallAuditTrail
         }
 
         ToolCallCompleted::dispatch(
+            arguments: $call->arguments,
             agentId: (int) $agent->id,
             agentName: (string) $agent->name,
             workspaceId: (int) $agent->user_id,
@@ -59,7 +60,6 @@ class ToolCallAuditTrail
             toolKind: $call->kind->value,
             connectorSlug: $connectorSlug,
             connectorName: $isMcp ? $call->label : null,
-            arguments: $call->arguments,
             resultText: $result->text,
             isError: $result->isError,
             latencyMs: $latencyMs,

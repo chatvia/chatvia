@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Conversation\Services\Streaming\Sources;
 
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;

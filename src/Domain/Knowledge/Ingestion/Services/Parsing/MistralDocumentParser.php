@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Knowledge\Ingestion\Services\Parsing;
 
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Identity\Workspace\Data\DataExport;
 
 use App\Identity\Workspace\Models\User;

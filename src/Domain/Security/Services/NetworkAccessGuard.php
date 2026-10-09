@@ -64,7 +64,7 @@ class NetworkAccessGuard
             return true;
         }
 
-        $listed = in_array(strtolower($country), array_map('strtolower', $geoCountries), true);
+        $listed = in_array(strtolower($country), array_map(strtolower(...), $geoCountries), true);
 
         return $geoMode === GeoMode::Allow ? $listed : ! $listed;
     }

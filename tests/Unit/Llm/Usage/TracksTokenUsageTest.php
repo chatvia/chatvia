@@ -47,7 +47,7 @@ it('finds the jobs that opt into token tracking', function (): void {
 
 it('keeps TrackTokenUsage in the middleware of every job using TracksTokenUsage', function (): void {
     foreach (classesUsingTracksTokenUsage() as $class) {
-        $job = (new ReflectionClass($class))->newInstanceWithoutConstructor();
+        $job = new ReflectionClass($class)->newInstanceWithoutConstructor();
 
         $middleware = collect($job->middleware())->map(fn (object $m): string => $m::class)->all();
 
@@ -57,7 +57,7 @@ it('keeps TrackTokenUsage in the middleware of every job using TracksTokenUsage'
 });
 
 it('runs the FireCrawl throttle before token tracking on website training', function (): void {
-    $job = (new ReflectionClass(WebsiteUrlTrainJob::class))->newInstanceWithoutConstructor();
+    $job = new ReflectionClass(WebsiteUrlTrainJob::class)->newInstanceWithoutConstructor();
 
     expect(array_map(fn (object $m): string => $m::class, $job->middleware()))
         ->toBe([ThrottleFirecrawl::class, TrackTokenUsage::class]);

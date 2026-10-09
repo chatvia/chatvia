@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Analytics\Data\Account\Activity;
 
 use Domain\Analytics\Data\Account\HourCountData;

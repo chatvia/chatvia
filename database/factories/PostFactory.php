@@ -6,14 +6,18 @@ use App\Marketing\Models\Post;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
+/**
+ * @extends Factory<Post>
+ */
 class PostFactory extends Factory
 {
+    #[\Override]
     protected $model = Post::class;
 
     public function definition(): array
     {
-        $title = $this->faker->sentence();
-        $body = $this->faker->paragraph();
+        $title = fake()->sentence();
+        $body = fake()->paragraph();
 
         return [
             'title' => $title,

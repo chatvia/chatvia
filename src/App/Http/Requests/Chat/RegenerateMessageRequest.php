@@ -27,7 +27,7 @@ class RegenerateMessageRequest extends FormRequest
 {
     public function authorize(#[HostedChatAgent] ?Agent $agent): bool
     {
-        if ($agent === null) {
+        if (! $agent instanceof Agent) {
             return false;
         }
 

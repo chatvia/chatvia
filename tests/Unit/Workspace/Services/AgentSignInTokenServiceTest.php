@@ -148,7 +148,7 @@ describe('compact HMAC credential', function (): void {
     it('rejects a tampered signature', function (): void {
         $token = $this->service->issueHmac($this->owner, $this->agent)['token'];
         // Flip the last hex char.
-        $tampered = substr($token, 0, -1).(substr($token, -1) === '0' ? '1' : '0');
+        $tampered = substr($token, 0, -1).(str_ends_with($token, '0') ? '1' : '0');
 
         expect($this->service->verify($tampered, $this->agent))->toBeNull();
     });

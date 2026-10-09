@@ -62,7 +62,7 @@ class ConnectTokenConnectorAction
         } catch (Throwable $e) {
             $this->undo($server, $previous, $attributes);
 
-            throw new McpException($this->humanize($e->getMessage()), previous: $e);
+            throw new McpException($this->humanize($e->getMessage()), $e->getCode(), previous: $e);
         }
 
         return new ProvisionedMcpServerData(

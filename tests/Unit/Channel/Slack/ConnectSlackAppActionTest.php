@@ -21,7 +21,7 @@ it('connects an app, stores its secrets encrypted, and records the bot identity'
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeSlackClient;
 
-    $app = (new ConnectSlackAppAction($client, new ChannelConnectionGuard))->execute($agent, new ConnectSlackData('xoxb-1111-token-value', 'signing-secret-value-12345678'));
+    $app = new ConnectSlackAppAction($client, new ChannelConnectionGuard)->execute($agent, new ConnectSlackData('xoxb-1111-token-value', 'signing-secret-value-12345678'));
 
     expect($app)->not->toBeNull();
 
@@ -45,7 +45,7 @@ it('throws a rejection and stores nothing when Slack rejects the token', functio
     $client = new FakeSlackClient;
     $client->identity = null; // Slack: invalid token.
 
-    expect(fn (): AgentSlackApp => (new ConnectSlackAppAction($client, new ChannelConnectionGuard))->execute($agent, new ConnectSlackData('xoxb-bogus', 'signing-secret-value-12345678')))
+    expect(fn (): AgentSlackApp => new ConnectSlackAppAction($client, new ChannelConnectionGuard)->execute($agent, new ConnectSlackData('xoxb-bogus', 'signing-secret-value-12345678')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::Rejected));
 
     expect(AgentSlackApp::query()->count())->toBe(0);
@@ -73,7 +73,7 @@ it('reconnects in place — one app row per agent, secrets rotated', function ()
 it('refuses a protected agent before calling Slack', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
 
-    expect(fn (): AgentSlackApp => (new ConnectSlackAppAction(new FakeSlackClient, new ChannelConnectionGuard))
+    expect(fn (): AgentSlackApp => new ConnectSlackAppAction(new FakeSlackClient, new ChannelConnectionGuard)
         ->execute($agent, new ConnectSlackData('xoxb-1111-token-value', 'signing-secret-value-12345678')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::ProtectedAgent));
 

@@ -77,7 +77,7 @@ class McpOAuthRegistrar
                 'Content-Type' => 'application/json',
             ])->post($metadata->registrationEndpoint, $payload);
         } catch (Throwable $e) {
-            throw new McpOAuthException('Dynamic client registration failed: '.$e->getMessage(), previous: $e);
+            throw new McpOAuthException('Dynamic client registration failed: '.$e->getMessage(), $e->getCode(), previous: $e);
         }
 
         if ($response->failed()) {

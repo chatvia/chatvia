@@ -53,9 +53,7 @@ it('dispatches a job for a valid, authenticated update', function (): void {
         ->assertOk()
         ->assertJson(['ok' => true]);
 
-    Bus::assertDispatched(HandleTelegramUpdateJob::class, function ($job) {
-        return $job->chatId === '555' && $job->text === 'hello' && $job->bot->is($this->bot);
-    });
+    Bus::assertDispatched(HandleTelegramUpdateJob::class, fn ($job) => $job->chatId === '555' && $job->text === 'hello' && $job->bot->is($this->bot));
 });
 
 it('ignores an update whose header secret does not match', function (): void {

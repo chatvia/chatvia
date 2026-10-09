@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Channel\Telegram\Actions;
 
 use Domain\Channel\Actions\HandleChannelMessageAction;
@@ -7,6 +9,7 @@ use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Services\Replies\TypingReplyStrategy;
 use Domain\Channel\Telegram\Jobs\HandleTelegramUpdateJob;
 use Domain\Channel\Telegram\Services\TelegramAdapter;
+use Domain\Channel\Telegram\Services\TelegramCommandOutcome;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 
 /**
@@ -39,7 +42,7 @@ class HandleTelegramUpdateAction
         // or an unknown /command, returns null and runs the pipeline as-is.
         $outcome = $this->commands->handle($channel->bot(), $chat, $text, $channel->sender());
 
-        if ($outcome !== null && ! $outcome->runThroughAgent) {
+        if ($outcome instanceof TelegramCommandOutcome && ! $outcome->runThroughAgent) {
             $channel->sendMessage($outcome->text);
         } else {
             $this->replies->deliver($channel, $chat, $outcome?->text ?? $text);

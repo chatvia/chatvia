@@ -27,10 +27,10 @@ use Illuminate\Support\Facades\RateLimiter;
 class AgentChatRateLimiter
 {
     /** How long the per-agent security config is cached (seconds). */
-    private const CONFIG_TTL = 300;
+    private const int CONFIG_TTL = 300;
 
     /** Length of one counting window (seconds). */
-    private const WINDOW_SECONDS = 60;
+    private const int WINDOW_SECONDS = 60;
 
     /**
      * Record this turn against the agent's bucket and report whether it is now

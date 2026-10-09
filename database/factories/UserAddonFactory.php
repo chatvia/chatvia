@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use Domain\Billing\Models\UserAddon;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class UserAddonFactory extends Factory
 {
+    #[\Override]
     protected $model = UserAddon::class;
 
     public function definition(): array
@@ -17,7 +20,7 @@ class UserAddonFactory extends Factory
         return [
             'type' => 'extra_message_credits',
             'amount' => 1000,
-            'stripe_id' => 'cs_test_'.$this->faker->bothify('??????????'),
+            'stripe_id' => 'cs_test_'.fake()->bothify('??????????'),
             'started_at' => now(),
             'ends_at' => now()->addMonth(),
         ];

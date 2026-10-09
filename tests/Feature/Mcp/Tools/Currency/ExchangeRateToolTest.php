@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Mcp\McpCallerContext;
 use App\Mcp\Servers\CurrencyConverterServer;
 use App\Mcp\Tools\Currency\ExchangeRateTool;

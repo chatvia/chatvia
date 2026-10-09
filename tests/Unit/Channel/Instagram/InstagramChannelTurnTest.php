@@ -62,7 +62,7 @@ it('resolves the thread, sends the agent reply, and stamps last_message_at', fun
 it('keeps one thread mapping across multiple inbound messages', function (): void {
     $account = instagramTurnAccount();
     $client = new FakeInstagramClient;
-    $action = (new StubChannelReplyRunner('ok'))->handler();
+    $action = new StubChannelReplyRunner('ok')->handler();
 
     $action->execute(instagramTurnAdapter($client, $account, '900'), 'first');
     $action->execute(instagramTurnAdapter($client, $account, '900'), 'second');

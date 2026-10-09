@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Channel\Messenger\Jobs;
 
 use Domain\Channel\Actions\HandleChannelMessageAction;

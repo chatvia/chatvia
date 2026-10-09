@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Support\Slack;
 
 use Domain\Channel\Slack\Services\SlackClient;
@@ -39,14 +41,14 @@ class FakeSlackClient extends SlackClient
 
     public function postMessage(string $token, string $channelId, string $markdown, ?string $threadTs = null): ?string
     {
-        $this->posted[] = compact('token', 'channelId', 'markdown', 'threadTs');
+        $this->posted[] = ['token' => $token, 'channelId' => $channelId, 'markdown' => $markdown, 'threadTs' => $threadTs];
 
         return $this->nextTs;
     }
 
     public function updateMessage(string $token, string $channelId, string $ts, string $markdown): bool
     {
-        $this->updates[] = compact('token', 'channelId', 'ts', 'markdown');
+        $this->updates[] = ['token' => $token, 'channelId' => $channelId, 'ts' => $ts, 'markdown' => $markdown];
 
         return true;
     }

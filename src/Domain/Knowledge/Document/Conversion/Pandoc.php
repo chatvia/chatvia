@@ -20,12 +20,12 @@ use RuntimeException;
  */
 class Pandoc
 {
-    private string $binPath;
+    private readonly string $binPath;
 
     private int $timeout = 600;
 
     /** Extension → Pandoc reader name. */
-    private const READERS = [
+    private const array READERS = [
         'epub' => 'epub',
         'fb2' => 'fb2',
     ];
@@ -51,7 +51,7 @@ class Pandoc
             throw new InvalidArgumentException("Input file does not exist: {$path}");
         }
 
-        $reader = self::readerFor($extension);
+        $reader = $this->readerFor($extension);
 
         if ($reader === null) {
             throw new InvalidArgumentException("Unsupported Pandoc format: {$extension}");
@@ -72,7 +72,7 @@ class Pandoc
         return $result->output();
     }
 
-    private static function readerFor(string $extension): ?string
+    private function readerFor(string $extension): ?string
     {
         return self::READERS[strtolower($extension)] ?? null;
     }

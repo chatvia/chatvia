@@ -19,7 +19,7 @@ it('removes the webhook at Telegram and deletes the bot', function (): void {
     ]);
     $client = new FakeTelegramClient;
 
-    (new DisconnectTelegramBotAction($client))->execute($bot);
+    new DisconnectTelegramBotAction($client)->execute($bot);
 
     expect($client->deleted)->toBe(['123:secret-token'])
         ->and(AgentTelegramBot::query()->count())->toBe(0);

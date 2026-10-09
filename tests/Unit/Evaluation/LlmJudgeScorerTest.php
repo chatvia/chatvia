@@ -43,9 +43,9 @@ function judgeRun(string $answer): AgentRunResultData
  */
 function judgeProvider(?string $body, bool $throws = false): LlmProviderInterface
 {
-    return new class($body, $throws) implements LlmProviderInterface
+    return new readonly class($body, $throws) implements LlmProviderInterface
     {
-        public function __construct(private readonly ?string $body, private readonly bool $throws) {}
+        public function __construct(private ?string $body, private bool $throws) {}
 
         public function stream(string $model, array $messages, array $settings = []): ResponseInterface
         {
@@ -93,7 +93,7 @@ function judgeProvider(?string $body, bool $throws = false): LlmProviderInterfac
 it('passes when the judge returns a positive verdict', function (): void {
     $provider = judgeProvider(json_encode(['verdict' => true, 'score' => 0.9, 'rationale' => 'States the 30-day window.']));
 
-    $result = (new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider))))->score(judgeCase(['criteria' => 'Must mention 30 days.']), judgeRun('Refunds within 30 days.'));
+    $result = new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider)))->score(judgeCase(['criteria' => 'Must mention 30 days.']), judgeRun('Refunds within 30 days.'));
 
     expect($result->pass)->toBeTrue()
         ->and($result->score)->toBe(0.9)
@@ -103,7 +103,7 @@ it('passes when the judge returns a positive verdict', function (): void {
 it('fails when the judge returns a negative verdict', function (): void {
     $provider = judgeProvider(json_encode(['verdict' => false, 'score' => 0.1, 'rationale' => 'No refund window stated.']));
 
-    $result = (new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider))))->score(judgeCase(['criteria' => 'Must mention 30 days.']), judgeRun('We do not offer refunds.'));
+    $result = new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider)))->score(judgeCase(['criteria' => 'Must mention 30 days.']), judgeRun('We do not offer refunds.'));
 
     expect($result->pass)->toBeFalse()
         ->and($result->score)->toBe(0.1);
@@ -112,7 +112,7 @@ it('fails when the judge returns a negative verdict', function (): void {
 it('clamps an out-of-range score into 0..1', function (): void {
     $provider = judgeProvider(json_encode(['verdict' => true, 'score' => 4.5, 'rationale' => 'ok']));
 
-    $result = (new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider))))->score(judgeCase(['criteria' => 'x']), judgeRun('answer'));
+    $result = new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider)))->score(judgeCase(['criteria' => 'x']), judgeRun('answer'));
 
     expect($result->score)->toBe(1.0);
 });
@@ -120,7 +120,7 @@ it('clamps an out-of-range score into 0..1', function (): void {
 it('fails (not passes) when the judge call throws', function (): void {
     $provider = judgeProvider(null, throws: true);
 
-    $result = (new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider))))->score(judgeCase(['criteria' => 'x']), judgeRun('answer'));
+    $result = new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider)))->score(judgeCase(['criteria' => 'x']), judgeRun('answer'));
 
     expect($result->pass)->toBeFalse()
         ->and($result->rationale)->toContain('Judge call failed');
@@ -129,7 +129,7 @@ it('fails (not passes) when the judge call throws', function (): void {
 it('fails when the judge returns unparseable content', function (): void {
     $provider = judgeProvider('I cannot produce JSON today.');
 
-    $result = (new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider))))->score(judgeCase(['criteria' => 'x']), judgeRun('answer'));
+    $result = new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider)))->score(judgeCase(['criteria' => 'x']), judgeRun('answer'));
 
     expect($result->pass)->toBeFalse()
         ->and($result->rationale)->toContain('no parseable verdict');
@@ -138,7 +138,7 @@ it('fails when the judge returns unparseable content', function (): void {
 it('fails without calling the judge when no criteria are configured', function (): void {
     $provider = judgeProvider(null, throws: true); // would throw if ever called
 
-    $result = (new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider))))->score(judgeCase([]), judgeRun('answer'));
+    $result = new LlmJudgeScorer(new StructuredCompletion(new LlmChat($provider)))->score(judgeCase([]), judgeRun('answer'));
 
     expect($result->pass)->toBeFalse()
         ->and($result->rationale)->toContain('No grading criteria');

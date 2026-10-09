@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Connector;
 use App\Http\Requests\Connector\ConnectorOAuthCallbackRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\OAuth\CompleteConnectorOAuthAction;
+use Domain\Integration\Connector\Data\OAuth\ConnectorOAuthCallbackData;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -29,7 +30,7 @@ class ConnectorOAuthCallbackController
         }
 
         $callback = $request->toData();
-        if ($callback === null) {
+        if (! $callback instanceof ConnectorOAuthCallbackData) {
             return redirect('/')->with('error', __('OAuth callback is missing required parameters.'));
         }
 

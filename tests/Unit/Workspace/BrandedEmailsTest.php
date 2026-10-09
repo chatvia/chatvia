@@ -17,7 +17,7 @@ beforeEach(function (): void {
 });
 
 it('names the brand in the trial welcome email', function (): void {
-    $mail = (new TrialWelcomeNotification('starter'))->toMail(User::factory()->make());
+    $mail = new TrialWelcomeNotification('starter')->toMail(User::factory()->make());
 
     expect($mail->subject)->toBe('Welcome to Acme Chat - Your Account is Ready!')
         ->and($mail->greeting)->toBe('Welcome to Acme Chat!')
@@ -27,7 +27,7 @@ it('names the brand in the trial welcome email', function (): void {
 it('names the brand in the translated trial welcome email', function (): void {
     App::setLocale('de');
 
-    $mail = (new TrialWelcomeNotification('starter'))->toMail(User::factory()->make());
+    $mail = new TrialWelcomeNotification('starter')->toMail(User::factory()->make());
 
     expect($mail->greeting)->toBe('Willkommen bei Acme Chat!');
 });
@@ -43,8 +43,8 @@ it('names the brand in the data export and account deletion emails', function ()
         'expires_at' => now()->addDay(),
     ]);
 
-    $export = (new DataExportReadyNotification($export))->toMail($user);
-    $deletion = (new AccountDeletionConfirmationNotification('https://app.example/confirm', 'Sam'))->toMail($user);
+    $export = new DataExportReadyNotification($export)->toMail($user);
+    $deletion = new AccountDeletionConfirmationNotification('https://app.example/confirm', 'Sam')->toMail($user);
 
     expect($export->subject)->toBe('Your Acme Chat data export is ready')
         ->and($deletion->introLines[0])->toBe('We received a request to permanently delete your Acme Chat account.');

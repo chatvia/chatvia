@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Identity\Chatter\Listeners;
 
 use App\Identity\Chatter\Events\ChatterPasswordResetRequested;

@@ -27,7 +27,7 @@ function cccBuildOrphanAttachment(int $count, ?Agent $agent = null): array
     $agent ??= Agent::factory()->create();
 
     $session = Session::factory()->create(['agent_id' => $agent->id]);
-    $conversation = Conversation::factory()->create(['chat_session_id' => $session->id]);
+    Conversation::factory()->create(['chat_session_id' => $session->id]);
 
     // Create the rows with NO conversation binding so they remain orphans
     // that claimAttachments() can claim.
@@ -61,13 +61,10 @@ it('caps the number of attachments bound to a new conversation at config(chatvia
     $data = new CreateConversationData(
         scope: new ChatScopeData($agent, (string) Str::uuid()),
         message: 'Hello',
-        attachmentIds: $orphanIds,
-        chatterUserId: null,
         ipAddress: '127.0.0.1',
         userAgent: 'Mozilla/5.0',
-        referrerUrl: null,
-        pageUrl: null,
         locale: 'en',
+        attachmentIds: $orphanIds,
     );
 
     $conversationExternalId = app(CreateConversationAction::class)->execute($data);
@@ -100,13 +97,10 @@ it('does NOT re-bind attachments that already belong to a different conversation
     $data = new CreateConversationData(
         scope: new ChatScopeData($agent, (string) Str::uuid()),
         message: 'Hello',
-        attachmentIds: [$alreadyBound->external_id],
-        chatterUserId: null,
         ipAddress: '127.0.0.1',
         userAgent: 'Mozilla/5.0',
-        referrerUrl: null,
-        pageUrl: null,
         locale: 'en',
+        attachmentIds: [$alreadyBound->external_id],
     );
 
     app(CreateConversationAction::class)->execute($data);

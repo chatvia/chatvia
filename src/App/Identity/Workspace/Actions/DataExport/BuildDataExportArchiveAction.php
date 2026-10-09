@@ -43,9 +43,9 @@ use ZipArchive;
  */
 class BuildDataExportArchiveAction
 {
-    private const ARCHIVE_DISK = 'local';
+    private const string ARCHIVE_DISK = 'local';
 
-    private const TEMP_PREFIX = 'data-exports/tmp';
+    private const string TEMP_PREFIX = 'data-exports/tmp';
 
     public function execute(DataExport $export): void
     {

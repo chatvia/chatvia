@@ -27,17 +27,17 @@ use Illuminate\Support\Facades\Storage;
 class BackupDatabase extends Command
 {
     /** Scaleway private (access-controlled) bucket disk — see config/filesystems.php. */
-    private const DISK = 'private';
+    private const string DISK = 'private';
 
     /** Object-key prefix for database dumps within the bucket. */
-    private const PREFIX = 'backups';
+    private const string PREFIX = 'backups';
 
     /**
      * Extensions whose contents must be included so the dump restores cleanly
      * — mirrors the proven server.sh invocation. Without these the bm25 /
      * tokenizer catalogs and vector types come back incomplete.
      */
-    private const EXTENSIONS = ['vector', 'vchord', 'vchord_bm25', 'pg_tokenizer'];
+    private const array EXTENSIONS = ['vector', 'vchord', 'vchord_bm25', 'pg_tokenizer'];
 
     public function handle(): int
     {

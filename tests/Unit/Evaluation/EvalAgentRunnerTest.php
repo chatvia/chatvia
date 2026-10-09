@@ -41,7 +41,7 @@ function fakeChatService(?Closure $onInit = null): ChatService
 
         public function initializeChatContext(StreamRequestData $data): ChatContext
         {
-            if ($this->onInit !== null) {
+            if ($this->onInit instanceof Closure) {
                 ($this->onInit)($data);
             }
 
@@ -83,7 +83,7 @@ function fakeEvalRunner(Closure $onRun, ?Closure $onInit = null): EvalAgentRunne
     $toolSelector->shouldReceive('selectForTurn')->andReturn([]);
 
     $runner = Mockery::mock(ToolLoopRunner::class);
-    $runner->shouldReceive('run')->andReturnUsing(function (ChatContext $context) use ($onRun) {
+    $runner->shouldReceive('run')->andReturnUsing(function (ChatContext $context) use ($onRun): Generator {
         $onRun($context);
 
         return (function () {
@@ -197,7 +197,7 @@ it('runs the tool loop in capture-only mode and returns the intended calls witho
 
     $runner = Mockery::mock(ToolLoopRunner::class);
     $runner->shouldReceive('run')->andReturnUsing(
-        function ($context, $provider, $modelName, $providerSlug, $llmMessages, $toolDefinitions, $extraSettings = [], $startIteration = 0, $captureToolCallsOnly = false) use (&$captureFlag) {
+        function ($context, $provider, $modelName, $providerSlug, $llmMessages, $toolDefinitions, $extraSettings = [], $startIteration = 0, $captureToolCallsOnly = false) use (&$captureFlag): Generator {
             $captureFlag = $captureToolCallsOnly;
             // What the runner records in capture mode: the intended call + its name.
             $context->capturedToolCalls[] = ['name' => 'send_email', 'arguments' => '{"to":"a@b.com"}'];

@@ -100,7 +100,7 @@ final readonly class TranslatableText
     {
         $locale = strtolower(trim((string) $locale));
 
-        if ($locale === '' || $locale === 'auto' || $locale === '*') {
+        if (in_array($locale, ['', 'auto', '*'], true)) {
             return null;
         }
 

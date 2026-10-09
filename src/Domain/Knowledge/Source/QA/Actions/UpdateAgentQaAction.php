@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Knowledge\Source\Qa\Actions;
 
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;

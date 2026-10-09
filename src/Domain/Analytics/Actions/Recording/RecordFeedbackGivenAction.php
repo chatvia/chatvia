@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Analytics\Actions\Recording;
 
 use Domain\Analytics\Data\Recording\FeedbackRecordData;

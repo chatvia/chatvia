@@ -48,16 +48,14 @@ class ChunkFitClientTest extends TestCase
 
         $this->assertSame(['First chunk text.', 'Second chunk text.'], $chunks);
 
-        Http::assertSent(function (Request $request) {
-            return $request->method() === 'POST'
-                && $request->url() === 'https://chunk.fit/api/v1/unstructured/splitters/text'
-                && $request->hasHeader('Authorization', 'Bearer test-key')
-                && $request['text'] === 'Long body of text.'
-                && $request['config']['max_characters'] === 2000
-                && $request['config']['new_after_n_chars'] === 1500
-                && $request['config']['combine_text_under_n_chars'] === 1000
-                && $request['config']['overlap'] === 0;
-        });
+        Http::assertSent(fn (Request $request) => $request->method() === 'POST'
+            && $request->url() === 'https://chunk.fit/api/v1/unstructured/splitters/text'
+            && $request->hasHeader('Authorization', 'Bearer test-key')
+            && $request['text'] === 'Long body of text.'
+            && $request['config']['max_characters'] === 2000
+            && $request['config']['new_after_n_chars'] === 1500
+            && $request['config']['combine_text_under_n_chars'] === 1000
+            && $request['config']['overlap'] === 0);
     }
 
     public function test_trims_chunks_and_drops_empty_entries(): void
@@ -106,7 +104,7 @@ class ChunkFitClientTest extends TestCase
 
     public function test_raises_when_api_key_is_missing(): void
     {
-        config()->set('services.chunkfit.api_key', null);
+        config()->set('services.chunkfit.api_key');
 
         $client = new ChunkFitClient;
 

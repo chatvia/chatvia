@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Billing\Trials;
 
 use App\Http\Auth\TwoFactorAwareSignIn;
+use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\PasswordSetup;
 use Domain\Billing\Actions\Trials\ResolveTrialCheckoutAccountAction;
 use Domain\Billing\Exceptions\InvalidTrialCheckoutException;
@@ -44,7 +45,7 @@ class TrialSuccessController
 
         $user = $result->user;
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             return view('landing.payment-success');
         }
 

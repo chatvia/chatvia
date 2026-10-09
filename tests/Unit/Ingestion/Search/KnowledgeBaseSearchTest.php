@@ -30,7 +30,7 @@ function knowledgeBaseEmbeddingFake(): void
     // identical embeddings (which would hide ranking bugs behind tied distances).
     $next = 0;
     app()->bind(function () use (&$next): EmbeddingsProviderInterface {
-        return new class($next++) implements EmbeddingsProviderInterface
+        return new readonly class($next++) implements EmbeddingsProviderInterface
         {
             public function __construct(private int $seed) {}
 

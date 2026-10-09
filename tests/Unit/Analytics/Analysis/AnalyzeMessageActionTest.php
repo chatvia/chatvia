@@ -72,11 +72,9 @@ it('analyzes a user message, persists sentiment+tone, and dispatches MessageAnal
     expect($message->sentiment)->toBe(SentimentEnum::NEGATIVE->value)
         ->and($message->tone)->toBe(ToneEnum::FRUSTRATED->value);
 
-    Event::assertDispatched(MessageAnalyzed::class, function (MessageAnalyzed $event) use ($agent): bool {
-        return $event->agentId === $agent->id
-            && $event->sentiment === SentimentEnum::NEGATIVE->value
-            && $event->tone === ToneEnum::FRUSTRATED->value;
-    });
+    Event::assertDispatched(MessageAnalyzed::class, fn (MessageAnalyzed $event): bool => $event->agentId === $agent->id
+        && $event->sentiment === SentimentEnum::NEGATIVE->value
+        && $event->tone === ToneEnum::FRUSTRATED->value);
 });
 
 it('skips assistant messages without calling the LLM', function (): void {

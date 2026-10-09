@@ -56,8 +56,8 @@ it('prepends overlap context from the previous chunk when overlap is enabled', f
     }
     $text = implode("\n\n", $paragraphs);
 
-    $noOverlap = (new TokenSplitter(chunkSize: 20, chunkOverlap: 0, normalize: false))->split($text);
-    $withOverlap = (new TokenSplitter(chunkSize: 20, chunkOverlap: 10, normalize: false))->split($text);
+    $noOverlap = new TokenSplitter(chunkSize: 20, chunkOverlap: 0, normalize: false)->split($text);
+    $withOverlap = new TokenSplitter(chunkSize: 20, chunkOverlap: 10, normalize: false)->split($text);
 
     // Overlap is applied after chunking, so the base chunk count is unchanged…
     expect(count($withOverlap))->toBe(count($noOverlap))

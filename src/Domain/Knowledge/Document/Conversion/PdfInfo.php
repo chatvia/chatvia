@@ -12,7 +12,7 @@ use RuntimeException;
  * Reads a PDF's properties (page count, title, page size, …) with poppler's
  * `pdfinfo`. The page count is what the page quota counts.
  */
-final class PdfInfo
+final readonly class PdfInfo
 {
     private string $pdfInfoPath;
 

@@ -90,9 +90,7 @@ it('dispatches a job for a valid, signed message', function (): void {
         ->assertOk()
         ->assertJson(['ok' => true]);
 
-    Bus::assertDispatched(HandleMessengerMessageJob::class, function ($job) {
-        return $job->psid === '24680' && $job->text === 'hello' && $job->page->is($this->page);
-    });
+    Bus::assertDispatched(HandleMessengerMessageJob::class, fn ($job) => $job->psid === '24680' && $job->text === 'hello' && $job->page->is($this->page));
 });
 
 it('ignores a request with a bad signature', function (): void {

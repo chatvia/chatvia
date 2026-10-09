@@ -536,7 +536,7 @@ class Agent extends Model
 
         $codes = array_values(array_filter(
             (array) ($this->settings('appearance')->get('enabled_languages') ?? []),
-            'is_string',
+            is_string(...),
         ));
 
         if ($codes === []) {

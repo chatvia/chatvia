@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Agent\Prompt\Data\Resources;
 
 use Spatie\LaravelData\Attributes\DataCollectionOf;

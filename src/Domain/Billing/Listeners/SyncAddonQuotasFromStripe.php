@@ -5,6 +5,7 @@ namespace Domain\Billing\Listeners;
 use Domain\Billing\Actions\Addons\SyncAddonQuotasAction;
 use Domain\Billing\Data\Stripe\StripeEventData;
 use Domain\Billing\Data\Stripe\StripeMetadata;
+use Domain\Billing\Enums\Addon;
 use Domain\Billing\Models\UserBilling;
 use Laravel\Cashier\Events\WebhookHandled;
 
@@ -43,14 +44,14 @@ class SyncAddonQuotasFromStripe
             return;
         }
 
-        if ($stripeEvent->metadata()->subscriptionAddon() === null) {
+        if (! $stripeEvent->metadata()->subscriptionAddon() instanceof Addon) {
             return;
         }
 
         $customerId = $stripeEvent->object['customer'] ?? null;
         $billing = UserBilling::forStripeCustomer(is_string($customerId) ? $customerId : null);
 
-        if ($billing !== null) {
+        if ($billing instanceof UserBilling) {
             $this->syncAddonQuotas->execute($billing);
         }
     }

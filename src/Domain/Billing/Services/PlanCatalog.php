@@ -81,9 +81,9 @@ class PlanCatalog
     public function packageForPrice(string $priceId): array
     {
         $selection = $this->planForPrice($priceId);
-        $package = $selection !== null ? $this->package($selection->package) : null;
+        $package = $selection instanceof PlanSelectionData ? $this->package($selection->package) : null;
 
-        if ($selection === null || $package === null) {
+        if (! $selection instanceof PlanSelectionData || $package === null) {
             return $this->defaultPackage() ?? [];
         }
 

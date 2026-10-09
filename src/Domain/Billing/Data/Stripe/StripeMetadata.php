@@ -97,7 +97,7 @@ final readonly class StripeMetadata
     {
         return array_key_exists(self::ADDON, $this->values)
             || $this->purchaseType() === PurchaseType::AddonSubscription
-            || $this->subscriptionAddon() !== null;
+            || $this->subscriptionAddon() instanceof Addon;
     }
 
     /** The plan a trial checkout signed up for; starter when it is missing. */

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Middleware\Auth\VerifyInternalMcpRequest;
 use App\Mcp\Servers\AccountAnalyticsServer;
 use App\Mcp\Servers\ChartsServer;

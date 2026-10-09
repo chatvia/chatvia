@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Billing\Addons\UpdateAutoRechargeController;
 use App\Http\Controllers\Billing\Checkout\CheckoutCustomDomainController;
 use App\Http\Controllers\Billing\Checkout\CheckoutExtraAgentsController;

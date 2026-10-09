@@ -15,7 +15,7 @@ beforeEach(function (): void {
     $this->cacheDir = sys_get_temp_dir().'/lo-test-'.uniqid();
     config(['cache.stores.file.path' => $this->cacheDir, 'services.bin.libreoffice' => '/usr/bin/soffice']);
 
-    (new ReflectionProperty(LibreOffice::class, 'installationVerified'))->setValue(null, false);
+    new ReflectionProperty(LibreOffice::class, 'installationVerified')->setValue(null, false);
 });
 
 afterEach(function (): void {
@@ -40,11 +40,9 @@ it('runs no process and creates no directory when constructed', function (): voi
 });
 
 it('removes the profile directory when the conversion fails', function (): void {
-    Process::fake(function (PendingProcess $process) {
-        return in_array('--version', $process->command, true)
-            ? Process::result('LibreOffice 24.8')
-            : Process::result(output: '', errorOutput: 'boom', exitCode: 1);
-    });
+    Process::fake(fn (PendingProcess $process) => in_array('--version', $process->command, true)
+        ? Process::result('LibreOffice 24.8')
+        : Process::result(output: '', errorOutput: 'boom', exitCode: 1));
 
     $input = create_temp_file('doc.docx', 'not really a docx');
 
@@ -54,11 +52,9 @@ it('removes the profile directory when the conversion fails', function (): void 
 });
 
 it('checks the installation only once per process', function (): void {
-    Process::fake(function (PendingProcess $process) {
-        return in_array('--version', $process->command, true)
-            ? Process::result('LibreOffice 24.8')
-            : Process::result(output: '', errorOutput: 'boom', exitCode: 1);
-    });
+    Process::fake(fn (PendingProcess $process) => in_array('--version', $process->command, true)
+        ? Process::result('LibreOffice 24.8')
+        : Process::result(output: '', errorOutput: 'boom', exitCode: 1));
 
     $input = create_temp_file('doc.docx', 'not really a docx');
 

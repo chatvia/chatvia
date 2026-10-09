@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Tool\Data;
 
 use Domain\Integration\Tool\Enums\ToolSearchPool;

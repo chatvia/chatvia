@@ -21,7 +21,7 @@ class AgentVerifyController
         #[WidgetAgent] ?Agent $agent,
         WidgetVerification $widgetVerification,
     ): JsonResponse|WidgetAgentVerifyResultData {
-        if ($agent === null || ! $widgetVerification->isRequestFromAllowedSite($agent, $request)) {
+        if (! $agent instanceof Agent || ! $widgetVerification->isRequestFromAllowedSite($agent, $request)) {
             return response()->json(new WidgetAgentVerifyResultData(verified: false), JsonResponse::HTTP_FORBIDDEN);
         }
 

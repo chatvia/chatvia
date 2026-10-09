@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Conversation\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
@@ -13,14 +15,14 @@ use Illuminate\Foundation\Events\Dispatchable;
  * whole document is sent to the model again on every turn it is in context,
  * so billing charges for those pages on each such turn.
  */
-final class AssistantReplyCompleted
+final readonly class AssistantReplyCompleted
 {
     use Dispatchable;
 
     public function __construct(
-        public readonly int $workspaceId,
-        public readonly int $llmId,
-        public readonly string $assistantMessageId,
-        public readonly int $documentPages = 0,
+        public int $workspaceId,
+        public int $llmId,
+        public string $assistantMessageId,
+        public int $documentPages = 0,
     ) {}
 }

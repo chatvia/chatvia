@@ -4,6 +4,7 @@ use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunkAction;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -22,7 +23,7 @@ it('rewrites class names to the morph alias and drops duplicates', function (): 
 
     DB::table('chunk_references')->insert([
         // Current namespace.
-        ['chunk_id' => $chunkA->id, 'referenceable_type' => 'Domain\\Knowledge\\Source\\Web\\Models\\AgentWebsiteUrl', 'referenceable_id' => 7],
+        ['chunk_id' => $chunkA->id, 'referenceable_type' => AgentWebsiteUrl::class, 'referenceable_id' => 7],
         // An older namespace, same link as an alias row below → duplicate.
         ['chunk_id' => $chunkB->id, 'referenceable_type' => 'App\\Models\\AgentWebsiteUrl', 'referenceable_id' => 8],
         ['chunk_id' => $chunkB->id, 'referenceable_type' => 'agent_website_url', 'referenceable_id' => 8],

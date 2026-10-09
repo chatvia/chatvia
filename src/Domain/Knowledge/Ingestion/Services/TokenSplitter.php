@@ -15,9 +15,9 @@ use Domain\Llm\Services\TikToken;
 class TokenSplitter
 {
     public function __construct(
-        private int $chunkSize = 1000,
-        private int $chunkOverlap = 100,
-        private bool $normalize = true
+        private readonly int $chunkSize = 1000,
+        private readonly int $chunkOverlap = 100,
+        private readonly bool $normalize = true
     ) {}
 
     /**
@@ -91,7 +91,7 @@ class TokenSplitter
 
         // Apply overlap if requested
         if ($this->chunkOverlap > 0 && count($chunks) > 1) {
-            $chunks = $this->applyOverlap($chunks);
+            return $this->applyOverlap($chunks);
         }
 
         return $chunks;
@@ -163,8 +163,9 @@ class TokenSplitter
         }
 
         $result = [$chunks[0]];
+        $counter = count($chunks);
 
-        for ($i = 1; $i < count($chunks); $i++) {
+        for ($i = 1; $i < $counter; $i++) {
             /** @var PageData $prevPageData */
             $prevPageData = $chunks[$i - 1];
             /** @var PageData $currentPageData */

@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
  */
 class AgentFactory extends Factory
 {
+    #[\Override]
     protected $model = Agent::class;
 
     /**
@@ -32,8 +33,8 @@ class AgentFactory extends Factory
 
                 return ($user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user))->id;
             },
-            'name' => $this->faker->words(2, true),
-            'sub_domain' => $this->faker->unique()->slug(),
+            'name' => fake()->words(2, true),
+            'sub_domain' => fake()->unique()->slug(),
             'system_instructions' => 'You are a helpful assistant.',
             'is_public' => false,
         ];

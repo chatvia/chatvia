@@ -41,7 +41,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         $name = $call->name->value;
         $function = $this->findAttachedFunction($agent, $name);
 
-        if (! $function) {
+        if (! $function instanceof AgentFunction) {
             return $this->error("Function \"{$name}\" is not attached to this agent or is disabled.");
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Widget\Data\Settings;
 
 use Spatie\LaravelData\Data;

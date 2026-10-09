@@ -67,18 +67,18 @@ class ListAgentConnectorsAction
      */
     private function featuredRow(ConnectorData $connector, ?AgentMcpServer $server, Collection $alwaysAvailableById): AgentConnectorRowData
     {
-        $attached = $server !== null && $alwaysAvailableById->has($server->id);
+        $attached = $server instanceof AgentMcpServer && $alwaysAvailableById->has($server->id);
 
         $state = match (true) {
             $attached => ConnectorRowState::Attached,
-            $server !== null => ConnectorRowState::Unattached,
+            $server instanceof AgentMcpServer => ConnectorRowState::Unattached,
             default => ConnectorRowState::Available,
         };
 
         return new AgentConnectorRowData(
             connector: $connector,
             state: $state,
-            server: $server !== null ? AgentMcpServerData::fromModel($server) : null,
+            server: $server instanceof AgentMcpServer ? AgentMcpServerData::fromModel($server) : null,
             always_available: $attached && (bool) $alwaysAvailableById->get($server->id, false),
         );
     }

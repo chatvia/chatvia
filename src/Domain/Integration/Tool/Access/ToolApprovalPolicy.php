@@ -5,7 +5,9 @@ namespace Domain\Integration\Tool\Access;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Mcp\Data\ResolvedMcpTool;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpServerLookup;
 use Domain\Integration\Mcp\Services\McpToolPermissionResolver;
 use Domain\Integration\Tool\Data\ToolName;
@@ -74,14 +76,14 @@ class ToolApprovalPolicy
 
         $server = $this->servers->forWorkspace((int) $agent->user_id, $slug);
 
-        if (! $server) {
+        if (! $server instanceof AgentMcpServer) {
             return false;
         }
 
         $resolved = $this->permissions->resolve($server, $tool->tool);
 
         // Unknown tool (catalog out of sync) → be safe and gate it.
-        if ($resolved === null) {
+        if (! $resolved instanceof ResolvedMcpTool) {
             return true;
         }
 

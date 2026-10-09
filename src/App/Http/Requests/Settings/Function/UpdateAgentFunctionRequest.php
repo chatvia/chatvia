@@ -25,7 +25,7 @@ class UpdateAgentFunctionRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->findFunction() !== null;
+        return $this->findFunction() instanceof AgentFunction;
     }
 
     /**
@@ -75,7 +75,7 @@ class UpdateAgentFunctionRequest extends FormRequest
                 return;
             }
             $function = $this->findFunction();
-            $canKeep = $function !== null && $function->auth_type->value === $type && $function->auth_config !== null;
+            $canKeep = $function instanceof AgentFunction && $function->auth_type->value === $type && $function->auth_config !== null;
             if (! $canKeep) {
                 $validator->errors()->add('auth_value', 'A credential value is required for this auth type.');
             }
@@ -108,14 +108,14 @@ class UpdateAgentFunctionRequest extends FormRequest
     public function function(): AgentFunction
     {
         $function = $this->findFunction();
-        abort_if($function === null, 404);
+        abort_if(! $function instanceof AgentFunction, 404);
 
         return $function;
     }
 
     private function findFunction(): ?AgentFunction
     {
-        if ($this->function !== null) {
+        if ($this->function instanceof AgentFunction) {
             return $this->function;
         }
 

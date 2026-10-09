@@ -35,5 +35,5 @@ it('reports a failed lookup without the API key and returns no country', functio
 
     Exceptions::assertReported(fn (RuntimeException $e): bool => ! str_contains($e->getMessage(), 'super-secret-key')
         && str_contains($e->getMessage(), '[redacted]')
-        && $e->getPrevious() === null);
+        && ! $e->getPrevious() instanceof Throwable);
 });

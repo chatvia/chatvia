@@ -42,11 +42,9 @@ it('logs argument keys but never their values', function (): void {
 
     app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
 
-    Log::shouldHaveReceived('info')->withArgs(function (string $message, array $context): bool {
-        return $message === 'MCP tool dispatched'
-            && $context['arg_keys'] === ['email', 'phone']
-            && ! str_contains((string) json_encode($context), 'jane@example.com');
-    });
+    Log::shouldHaveReceived('info')->withArgs(fn (string $message, array $context): bool => $message === 'MCP tool dispatched'
+        && $context['arg_keys'] === ['email', 'phone']
+        && ! str_contains((string) json_encode($context), 'jane@example.com'));
 });
 
 it('hides transport details from the model and the logs', function (): void {

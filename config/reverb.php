@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
 
     /*
@@ -100,7 +102,7 @@ return [
                     'scheme' => env('REVERB_EXTRA_APP_SCHEME', 'https'),
                     'useTLS' => env('REVERB_EXTRA_APP_SCHEME', 'https') === 'https',
                 ],
-                'allowed_origins' => array_values(array_filter(array_map('trim', explode(',', (string) env('REVERB_EXTRA_APP_ALLOWED_ORIGINS', ''))))),
+                'allowed_origins' => array_values(array_filter(array_map(trim(...), explode(',', (string) env('REVERB_EXTRA_APP_ALLOWED_ORIGINS', ''))))),
                 'ping_interval' => 60,
                 'activity_timeout' => 30,
                 'max_message_size' => 10_000,

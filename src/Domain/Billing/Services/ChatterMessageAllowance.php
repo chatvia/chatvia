@@ -137,7 +137,7 @@ class ChatterMessageAllowance
     {
         $credit = $this->currentCredit($chatter);
 
-        return $credit !== null && (int) ($credit->usage?->messages ?? 0) >= $credit->messages;
+        return $credit instanceof UserCredit && (int) ($credit->usage?->messages ?? 0) >= $credit->messages;
     }
 
     private function cacheKey(int $chatterId): string

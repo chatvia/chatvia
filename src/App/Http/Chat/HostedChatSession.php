@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Chat;
 
 use Domain\Agent\Models\Agent;

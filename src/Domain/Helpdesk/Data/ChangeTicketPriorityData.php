@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Helpdesk\Data;
 
 use Domain\Helpdesk\Models\Ticket;

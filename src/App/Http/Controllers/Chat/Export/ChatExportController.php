@@ -6,6 +6,7 @@ use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\ExportChatRequest;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\ChatExportFormat;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Str;
@@ -62,7 +63,7 @@ readonly class ChatExportController
 
         $message = $this->memory->getMessageById($messageId);
 
-        abort_if($message === null, 404);
+        abort_if(! $message instanceof MessageData, 404);
 
         return [$message->toArray()];
     }

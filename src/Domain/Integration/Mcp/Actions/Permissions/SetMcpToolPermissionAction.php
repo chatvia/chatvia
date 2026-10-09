@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Mcp\Actions\Permissions;
 
 use Domain\Integration\Mcp\Data\McpToolPermissionData;

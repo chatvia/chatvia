@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Tool\Access;
 
 use Domain\Agent\Models\Agent;

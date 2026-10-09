@@ -66,7 +66,7 @@ class TeamAgentAccess
 
         $role = $user->teamRole($team);
 
-        if ($role === null) {
+        if (! $role instanceof Role) {
             return collect();
         }
 

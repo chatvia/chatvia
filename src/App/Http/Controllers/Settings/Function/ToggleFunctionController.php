@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Settings\Function;
 
 use App\Identity\Workspace\Models\User;

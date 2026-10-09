@@ -27,13 +27,13 @@ use Throwable;
 class FormHybridSearch
 {
     /** vchordrq + BM25 indexes were built against this dim. */
-    private const EMBEDDING_DIMS = 1024;
+    private const int EMBEDDING_DIMS = 1024;
 
     /**
      * RRF constant. 60 is the de-facto default (Cormack et al.) — it smooths
      * per-channel rank differences without letting any single top hit dominate.
      */
-    private const RRF_K = 60;
+    private const int RRF_K = 60;
 
     /** Most forms to ever name in one system prompt (the cap + the retrieval K). */
     public const PROMPT_LIMIT = 8;

@@ -13,6 +13,7 @@ use Domain\Agent\Actions\Account\DeleteAgentAction;
 use Domain\Agent\Actions\Account\UpdateApiAgentAction;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentVisibility;
+use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -42,7 +43,7 @@ class AgentController
 
         $team = $request->team();
 
-        if ($team !== null) {
+        if ($team instanceof Team) {
             $query->where('team_id', $team->id);
         }
 

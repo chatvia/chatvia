@@ -57,8 +57,8 @@ it('preserves requires_approval when the caller omits the field', function (): v
         webhook_url: 'https://hooks.example.test/fn',
         webhook_method: FunctionWebhookMethod::Post,
         auth_type: FunctionAuthType::Bearer,
-        auth_value: null,
         auth_header_name: null,
+        auth_value: null,
         requires_approval: new Optional,
     );
 
@@ -79,8 +79,8 @@ it('updates requires_approval when the caller explicitly sends false', function 
         webhook_url: 'https://hooks.example.test/fn',
         webhook_method: FunctionWebhookMethod::Post,
         auth_type: FunctionAuthType::Bearer,
-        auth_value: null,
         auth_header_name: null,
+        auth_value: null,
         requires_approval: false,
     );
 
@@ -99,9 +99,9 @@ it('CLEARS the stored secret when auth_type changes (bearer → hmac) without a 
         parameters_schema: ['type' => 'object', 'properties' => []],
         webhook_url: 'https://hooks.example.test/fn',
         webhook_method: FunctionWebhookMethod::Post,
-        auth_type: FunctionAuthType::Hmac,
-        auth_value: null,     // no fresh secret provided
+        auth_type: FunctionAuthType::Hmac,     // no fresh secret provided
         auth_header_name: null,
+        auth_value: null,
         requires_approval: new Optional,
     );
 
@@ -125,8 +125,8 @@ it('REPLACES the stored secret when auth_type changes AND a new value is provide
         webhook_url: 'https://hooks.example.test/fn',
         webhook_method: FunctionWebhookMethod::Post,
         auth_type: FunctionAuthType::Hmac,
-        auth_value: 'new-hmac-secret',
         auth_header_name: null,
+        auth_value: 'new-hmac-secret',
         requires_approval: new Optional,
     );
 

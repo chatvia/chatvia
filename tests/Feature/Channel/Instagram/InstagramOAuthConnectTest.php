@@ -40,7 +40,7 @@ class FakeInstagramOAuthClient extends MetaOAuthClient
 
     public function pagesWithInstagram(string $userToken): array
     {
-        return array_map(static fn (array $account): InstagramAccountData => InstagramAccountData::from($account), $this->accountsList);
+        return array_map(InstagramAccountData::from(...), $this->accountsList);
     }
 }
 

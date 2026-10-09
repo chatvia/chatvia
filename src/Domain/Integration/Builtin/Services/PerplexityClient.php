@@ -213,6 +213,6 @@ class PerplexityClient
     {
         $output = $body['output'] ?? [];
 
-        return is_array($output) ? array_values(array_filter($output, 'is_array')) : [];
+        return is_array($output) ? array_values(array_filter($output, is_array(...))) : [];
     }
 }

@@ -299,7 +299,7 @@ class ChatSeeder extends Seeder
         // Create sessions with meaningful conversations for each agent
         foreach ($agents as $agent) {
             // Create 8-15 sessions per agent
-            $sessionCount = rand(8, 15);
+            $sessionCount = random_int(8, 15);
 
             for ($i = 0; $i < $sessionCount; $i++) {
                 // Select a random conversation scenario
@@ -338,7 +338,7 @@ class ChatSeeder extends Seeder
                 $messageTime = $conversation->created_at->copy();
 
                 foreach ($scenario['messages'] as $messageData) {
-                    $messageTime = $messageTime->copy()->addMinutes(rand(1, 3));
+                    $messageTime = $messageTime->copy()->addMinutes(random_int(1, 3));
                     $isAssistant = $messageData['role'] === 'assistant';
 
                     $llmId = $isAssistant ? fake()->randomElement($llmIds) : null;
@@ -395,7 +395,7 @@ class ChatSeeder extends Seeder
                             feedback: $messageData['feedback'],
                             llmExternalName: $modelExternalName,
                             countryCode: $country['code'],
-                            occurredAt: $messageTime->copy()->addSeconds(rand(5, 60)),
+                            occurredAt: $messageTime->copy()->addSeconds(random_int(5, 60)),
                         )));
                         $analyticsFired++;
                     }

@@ -30,7 +30,7 @@ function asAgent(Agent $agent, ?Conversation $conversation = null): void
 {
     $request = Request::create('/mcp/forms', 'POST');
     $request->headers->set('X-Chatvia-Agent-Id', $agent->external_id);
-    if ($conversation) {
+    if ($conversation instanceof Conversation) {
         $request->headers->set('X-Chatvia-Conversation-Id', $conversation->external_id);
     }
 

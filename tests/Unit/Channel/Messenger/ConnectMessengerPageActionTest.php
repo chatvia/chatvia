@@ -21,7 +21,7 @@ it('stores the page token encrypted and subscribes the app to the page', functio
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeMessengerClient;
 
-    $page = (new ConnectMessengerPageAction($client, new ChannelConnectionGuard))->execute(
+    $page = new ConnectMessengerPageAction($client, new ChannelConnectionGuard)->execute(
         $agent,
         new MetaPageData(id: '1234567890', name: 'Acme Support', access_token: 'EAAG-page-token-value-here'),
     );
@@ -63,7 +63,7 @@ it('refuses a protected agent and stores nothing', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
     $client = new FakeMessengerClient;
 
-    expect(fn (): AgentMessengerPage => (new ConnectMessengerPageAction($client, new ChannelConnectionGuard))
+    expect(fn (): AgentMessengerPage => new ConnectMessengerPageAction($client, new ChannelConnectionGuard)
         ->execute($agent, new MetaPageData('1234567890', 'Acme Support', 'EAAG-page-token')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::ProtectedAgent));
 

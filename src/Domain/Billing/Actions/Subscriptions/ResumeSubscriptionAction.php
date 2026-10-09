@@ -4,6 +4,7 @@ namespace Domain\Billing\Actions\Subscriptions;
 
 use App\Identity\Workspace\Models\User;
 use Laravel\Cashier\Cashier;
+use Laravel\Cashier\Subscription;
 
 /**
  * Resumes a cancelled plan subscription that is still in its grace period,
@@ -16,7 +17,7 @@ class ResumeSubscriptionAction
     {
         $subscription = $user->accountBilling()?->ownedSubscription('default');
 
-        if (! $subscription) {
+        if (! $subscription instanceof Subscription) {
             return false;
         }
 

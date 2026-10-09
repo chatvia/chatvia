@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Guardrail\Services;
 
 use Domain\Conversation\Services\ChatContext;

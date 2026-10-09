@@ -25,7 +25,7 @@ class AgentSourceAnalyzeFileAction
 
     public function execute(UploadedFile $uploadedFile, User $user, ?Agent $agent = null): KnowledgeAnalyzeResourceData
     {
-        if ($agent !== null && $this->alreadyUploaded($uploadedFile, $user)) {
+        if ($agent instanceof Agent && $this->alreadyUploaded($uploadedFile, $user)) {
             throw new DomainValidationException('file', __('You have already uploaded this file.'));
         }
 

@@ -9,6 +9,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Activity\RecordMessageFeedbackAction;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Auth\WidgetAckData;
 use Illuminate\Http\JsonResponse;
 
@@ -29,7 +30,7 @@ class FeedbackController
         $sessionId = (string) $this->widgetSessionId($request);
         $conversationId = (string) $this->widgetConversationId($request);
 
-        if (! $findConversation->execute($conversationId, $sessionId, $agent)) {
+        if (! $findConversation->execute($conversationId, $sessionId, $agent) instanceof Conversation) {
             return response()->json(['error' => 'Conversation not found.'], JsonResponse::HTTP_NOT_FOUND);
         }
 

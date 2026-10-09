@@ -21,7 +21,7 @@ function fakeWhatsappOauth(?string $token = 'EAAG-business-token-value-xxxx'): M
 {
     return new class($token) extends MetaOAuthClient
     {
-        public function __construct(private ?string $token) {}
+        public function __construct(private readonly ?string $token) {}
 
         public function exchangeEmbeddedSignupCode(string $code): ?string
         {
@@ -38,7 +38,7 @@ it('connects a number: exchanges the code, subscribes the WABA, registers the nu
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeWhatsappClient;
 
-    $number = (new ConnectWhatsappNumberAction(fakeWhatsappOauth(), $client, new ChannelConnectionGuard))->execute(
+    $number = new ConnectWhatsappNumberAction(fakeWhatsappOauth(), $client, new ChannelConnectionGuard)->execute(
         $agent,
         new ConnectWhatsappData(code: 'ES-CODE', wabaId: '999888777666555', phoneNumberId: '111222333444555'),
     );
@@ -72,7 +72,7 @@ it('throws a rejection and stores nothing when the code cannot be exchanged', fu
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeWhatsappClient;
 
-    expect(fn (): AgentWhatsappNumber => (new ConnectWhatsappNumberAction(fakeWhatsappOauth(token: null), $client, new ChannelConnectionGuard))->execute(
+    expect(fn (): AgentWhatsappNumber => new ConnectWhatsappNumberAction(fakeWhatsappOauth(token: null), $client, new ChannelConnectionGuard)->execute(
         $agent,
         new ConnectWhatsappData(code: 'BAD', wabaId: '999', phoneNumberId: '111'),
     ))->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::Rejected));
@@ -87,7 +87,7 @@ it('throws a rejection when Meta rejects the number after a valid code exchange'
     $client = new FakeWhatsappClient;
     $client->number = null; // numberInfo: invalid phone number id
 
-    expect(fn (): AgentWhatsappNumber => (new ConnectWhatsappNumberAction(fakeWhatsappOauth(), $client, new ChannelConnectionGuard))->execute(
+    expect(fn (): AgentWhatsappNumber => new ConnectWhatsappNumberAction(fakeWhatsappOauth(), $client, new ChannelConnectionGuard)->execute(
         $agent,
         new ConnectWhatsappData(code: 'ES-CODE', wabaId: '999', phoneNumberId: '111'),
     ))->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::Rejected));
@@ -101,7 +101,7 @@ it('skips number registration when no PIN is configured', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeWhatsappClient;
 
-    (new ConnectWhatsappNumberAction(fakeWhatsappOauth(), $client, new ChannelConnectionGuard))->execute(
+    new ConnectWhatsappNumberAction(fakeWhatsappOauth(), $client, new ChannelConnectionGuard)->execute(
         $agent,
         new ConnectWhatsappData(code: 'ES-CODE', wabaId: '999888777666555', phoneNumberId: '111222333444555'),
     );
@@ -115,11 +115,11 @@ it('reconnects in place — one number row per agent, token rotated', function (
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeWhatsappClient;
 
-    (new ConnectWhatsappNumberAction(fakeWhatsappOauth('EAAG-first-token-aaaaaaaaaaaa'), $client, new ChannelConnectionGuard))
+    new ConnectWhatsappNumberAction(fakeWhatsappOauth('EAAG-first-token-aaaaaaaaaaaa'), $client, new ChannelConnectionGuard)
         ->execute($agent, new ConnectWhatsappData(code: 'C1', wabaId: '999888777666555', phoneNumberId: '111222333444555'));
     $first = AgentWhatsappNumber::query()->firstOrFail();
 
-    (new ConnectWhatsappNumberAction(fakeWhatsappOauth('EAAG-second-token-bbbbbbbbbb'), $client, new ChannelConnectionGuard))
+    new ConnectWhatsappNumberAction(fakeWhatsappOauth('EAAG-second-token-bbbbbbbbbb'), $client, new ChannelConnectionGuard)
         ->execute($agent, new ConnectWhatsappData(code: 'C2', wabaId: '999888777666555', phoneNumberId: '111222333444555'));
 
     expect(AgentWhatsappNumber::query()->count())->toBe(1);
@@ -133,7 +133,7 @@ it('refuses a protected agent before exchanging the code', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
     $client = new FakeWhatsappClient;
 
-    expect(fn (): AgentWhatsappNumber => (new ConnectWhatsappNumberAction(fakeWhatsappOauth(), $client, new ChannelConnectionGuard))
+    expect(fn (): AgentWhatsappNumber => new ConnectWhatsappNumberAction(fakeWhatsappOauth(), $client, new ChannelConnectionGuard)
         ->execute($agent, new ConnectWhatsappData(code: 'ES-CODE', wabaId: '999888777666555', phoneNumberId: '111222333444555')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::ProtectedAgent));
 

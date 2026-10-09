@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Support\Telegram;
 
 use Domain\Channel\Telegram\Services\TelegramClient;
@@ -36,14 +38,14 @@ class FakeTelegramClient extends TelegramClient
 
     public function setMyCommands(string $token, array $commands): bool
     {
-        $this->commands[] = compact('token', 'commands');
+        $this->commands[] = ['token' => $token, 'commands' => $commands];
 
         return true;
     }
 
     public function setWebhook(string $token, string $url, string $secret): bool
     {
-        $this->webhooks[] = compact('token', 'url', 'secret');
+        $this->webhooks[] = ['token' => $token, 'url' => $url, 'secret' => $secret];
 
         return true;
     }
@@ -57,11 +59,11 @@ class FakeTelegramClient extends TelegramClient
 
     public function sendMessage(string $token, int|string $chatId, string $text): void
     {
-        $this->sent[] = compact('token', 'chatId', 'text');
+        $this->sent[] = ['token' => $token, 'chatId' => $chatId, 'text' => $text];
     }
 
     public function sendChatAction(string $token, int|string $chatId, string $action = 'typing'): void
     {
-        $this->actions[] = compact('token', 'chatId', 'action');
+        $this->actions[] = ['token' => $token, 'chatId' => $chatId, 'action' => $action];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Widget\Conversations;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Widget\WidgetAgent;
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Widget\Actions\EnsureWidgetConversationAction;
 use Domain\Widget\Data\Conversation\WidgetConversationsResultData;
@@ -37,7 +38,7 @@ class ConversationController
 
         // On a protected agent, only list a session that belongs to the
         // signed-in chatter: another chatter's replayed session id shows nothing.
-        if ($widgetUser !== null && ! $widgetVerification->verifySessionExternalId($sessionId, $agent, $widgetUser)) {
+        if ($widgetUser instanceof User && ! $widgetVerification->verifySessionExternalId($sessionId, $agent, $widgetUser)) {
             return new WidgetConversationsResultData(conversations: []);
         }
 

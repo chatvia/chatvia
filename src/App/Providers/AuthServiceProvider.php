@@ -71,7 +71,7 @@ class AuthServiceProvider extends ServiceProvider
     {
         Sanctum::authenticateAccessTokensUsing(
             fn (PersonalAccessToken $token, bool $isValid): bool => $isValid
-                && ! ($token->tokenable instanceof User && $token->tokenable->isDeactivated()),
+                && (! $token->tokenable instanceof User || ! $token->tokenable->isDeactivated()),
         );
     }
 }

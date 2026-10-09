@@ -66,7 +66,7 @@ class WidgetVerification
         return Session::query()
             ->where('external_id', $sessionId)
             ->where('agent_id', $agent->id)
-            ->when($user !== null, fn (Builder $query) => $query->where('user_id', $user?->id))
+            ->when($user instanceof User, fn (Builder $query) => $query->where('user_id', $user?->id))
             ->first();
     }
 
@@ -91,7 +91,7 @@ class WidgetVerification
             ->whereHas('session', function (Builder $session) use ($agent, $user): void {
                 $session->where('agent_id', $agent->id);
 
-                if ($user !== null) {
+                if ($user instanceof User) {
                     $session->where('user_id', $user->id);
                 }
             })

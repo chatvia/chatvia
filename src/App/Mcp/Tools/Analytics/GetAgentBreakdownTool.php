@@ -38,7 +38,7 @@ class GetAgentBreakdownTool extends AnalyticsTool
         ], $this->agents->get($scope));
         $period = $scope->period;
 
-        $summary = empty($agents)
+        $summary = $agents === []
             ? sprintf('No agent activity %s.', $period->label)
             : sprintf(
                 'Busiest agent %s is %s with %s messages across %s conversations.',

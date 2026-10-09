@@ -38,7 +38,7 @@ class StubChannelReplyRunner extends ChannelReplyRunner
         foreach ($this->partials as $partial) {
             Carbon::setTestNow(now()->addSeconds($this->secondsBetweenPartials));
 
-            if ($onProgress !== null) {
+            if ($onProgress instanceof Closure) {
                 $onProgress($partial);
             }
         }

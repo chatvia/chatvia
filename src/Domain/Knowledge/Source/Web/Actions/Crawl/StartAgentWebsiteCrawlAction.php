@@ -47,7 +47,7 @@ class StartAgentWebsiteCrawlAction
                 ->timeout(20)
                 ->get($data->url)
                 ->throw();
-        } catch (UnsafeUrlException $e) {
+        } catch (UnsafeUrlException) {
             throw new DomainValidationException('url', __('This URL is not allowed.'));
         } catch (Throwable $throwable) {
             report($throwable);

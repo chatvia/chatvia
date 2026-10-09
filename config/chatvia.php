@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
 |--------------------------------------------------------------------------
 | Chatvia
@@ -12,7 +14,6 @@
 | e.g. config('chatvia.ai.provider'), config('chatvia.vector.search.mode').
 |
 */
-
 return [
 
     /*

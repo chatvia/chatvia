@@ -37,7 +37,7 @@ class DeleteAttachmentRequest extends FormRequest
             return false;
         }
 
-        if ($agent === null) {
+        if (! $agent instanceof Agent) {
             return false;
         }
 

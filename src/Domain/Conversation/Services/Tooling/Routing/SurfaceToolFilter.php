@@ -49,7 +49,7 @@ class SurfaceToolFilter
 
         $surface = $this->resolveSurface($conversationExternalId);
 
-        if ($surface === null) {
+        if (! $surface instanceof ConversationSource) {
             return $entries;
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Mcp\Servers;
 
 use App\Mcp\Tools\Analytics\GetAccountOverviewTool;
@@ -67,6 +69,7 @@ class AccountAnalyticsServer extends Server
     /**
      * @var array<int, class-string<Tool>>
      */
+    #[\Override]
     protected array $tools = [
         GetAccountOverviewTool::class,
         GetMessageStatsTool::class,
@@ -89,10 +92,12 @@ class AccountAnalyticsServer extends Server
     /**
      * @var array<int, class-string<Server\Resource>>
      */
+    #[\Override]
     protected array $resources = [];
 
     /**
      * @var array<int, class-string<Prompt>>
      */
+    #[\Override]
     protected array $prompts = [];
 }

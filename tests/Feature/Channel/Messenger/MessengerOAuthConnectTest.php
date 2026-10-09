@@ -35,7 +35,7 @@ class FakeMetaOAuthClient extends MetaOAuthClient
 
     public function pages(string $userToken): array
     {
-        return array_map(static fn (array $page): MetaPageData => MetaPageData::from($page), $this->pagesList);
+        return array_map(MetaPageData::from(...), $this->pagesList);
     }
 }
 

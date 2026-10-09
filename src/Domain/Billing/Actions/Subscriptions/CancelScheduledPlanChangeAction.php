@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Billing\Data\Stripe\StripeMetadata;
 use Domain\Billing\Data\Subscriptions\StripeScheduleData;
 use Laravel\Cashier\Cashier;
+use Laravel\Cashier\Subscription;
 
 /**
  * Withdraws a plan change scheduled by {@see SchedulePlanChangeAction}:
@@ -20,7 +21,7 @@ class CancelScheduledPlanChangeAction
         $billing = $user->accountBilling();
         $subscription = $billing?->subscribed() ? $billing->ownedSubscription('default') : null;
 
-        if ($subscription === null) {
+        if (! $subscription instanceof Subscription) {
             return false;
         }
 

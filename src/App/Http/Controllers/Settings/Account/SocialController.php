@@ -19,7 +19,7 @@ class SocialController
      * the enum but aren't wired up to a Socialite driver yet, so we hide them
      * from the settings page rather than offering a broken Connect button.
      */
-    private const SUPPORTED = [
+    private const array SUPPORTED = [
         SocialProvider::Google,
         SocialProvider::Microsoft,
         SocialProvider::Slack,

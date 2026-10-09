@@ -32,7 +32,7 @@ class TelegramCommandRouter
      * agent's stored edits. Translated into the agent's channel language when
      * used — see {@see builtinDefaults()}.
      */
-    private const BUILTIN_DEFAULTS = [
+    private const array BUILTIN_DEFAULTS = [
         'start' => ['description' => 'Start the conversation', 'type' => 'message', 'value' => 'Hello'],
         'reset' => ['description' => 'Start a new conversation', 'type' => 'message', 'value' => 'Started a new conversation. What would you like to talk about?'],
         'help' => ['description' => 'What this assistant can do', 'type' => 'message', 'value' => ''],

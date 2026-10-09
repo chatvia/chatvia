@@ -54,7 +54,7 @@ class McpServerLookup
         if (! array_key_exists($key, $this->attached)) {
             $server = $this->forWorkspace((int) $agent->user_id, $slug);
 
-            $this->attached[$key] = $server !== null
+            $this->attached[$key] = $server instanceof AgentMcpServer
                 && $server->is_enabled
                 // Pivot-only probe: the server row is already loaded.
                 && $agent->mcpServers()->newPivotQuery()->where('mcp_server_id', $server->id)->exists()

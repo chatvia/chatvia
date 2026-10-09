@@ -66,7 +66,7 @@ class AgentSignInTokenService
      */
     public const HMAC_PREFIX = 'cvh1.';
 
-    private const ALGORITHM = 'HS256';
+    private const string ALGORITHM = 'HS256';
 
     public function __construct()
     {

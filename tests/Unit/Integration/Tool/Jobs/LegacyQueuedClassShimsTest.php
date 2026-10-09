@@ -30,15 +30,15 @@ it('revives embed jobs queued under their old Conversation names', function (obj
         ->toBeInstanceOf($job::class)
         ->and($revived->{$property})->toBe($job->{$property});
 })->with([
-    'connector tools' => [new EmbedConnectorToolsJob('acme-crm'), 'Domain\Conversation\Jobs\EmbedConnectorToolsJob', 'connectorSlug'],
-    'function' => [new EmbedFunctionJob(42), 'Domain\Conversation\Jobs\EmbedFunctionJob', 'functionId'],
-    'mcp tools' => [new EmbedMcpToolsJob(7), 'Domain\Conversation\Jobs\EmbedMcpToolsJob', 'mcpServerId'],
+    'connector tools' => [new EmbedConnectorToolsJob('acme-crm'), Domain\Conversation\Jobs\EmbedConnectorToolsJob::class, 'connectorSlug'],
+    'function' => [new EmbedFunctionJob(42), Domain\Conversation\Jobs\EmbedFunctionJob::class, 'functionId'],
+    'mcp tools' => [new EmbedMcpToolsJob(7), Domain\Conversation\Jobs\EmbedMcpToolsJob::class, 'mcpServerId'],
 ]);
 
 it('revives an McpToolInvoked event queued under its old Analytics name', function (): void {
     $event = new McpToolInvoked(1, 2, 3, 'crm', 'lookup', null, 'CRM', null, null, now());
 
-    $revived = reviveUnderOldName($event, 'Domain\Analytics\Events\McpToolInvoked');
+    $revived = reviveUnderOldName($event, Domain\Analytics\Events\McpToolInvoked::class);
 
     expect($revived)->toBeInstanceOf(McpToolInvoked::class)
         ->and($revived->serverSlug)->toBe('crm')

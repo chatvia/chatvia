@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
+    #[\Override]
     protected $model = User::class;
 
     /**
@@ -67,28 +68,28 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'email_verified_at' => null,
         ]);
     }
 
     public function admin(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'type' => UserType::Admin,
         ]);
     }
 
     public function workspace(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'type' => UserType::Workspace,
         ]);
     }
 
     public function employee(?User $workspace = null): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'type' => UserType::Employee,
             'workspace_id' => $workspace?->id ?? User::factory()->workspace(),
         ]);
@@ -100,7 +101,7 @@ class UserFactory extends Factory
      */
     public function chatter(?User $workspace = null): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn (array $attributes): array => [
             'type' => UserType::Chatter,
             'source' => UserSource::Api,
             'email' => null,

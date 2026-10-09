@@ -41,8 +41,8 @@ class ActivityPatternsQuery extends AccountAnalyticsQuery
         return new ActivityPatternsData(
             byHour: $byHour->map(static fn (object $row): HourCountData => new HourCountData((int) $row->hour, (int) $row->conversations))->all(),
             byWeekday: $byDay->map(static fn (object $row): LabelCountData => new LabelCountData(self::DAYS[(int) $row->dow] ?? (string) $row->dow, (int) $row->conversations))->all(),
-            peakHour: $peakHour ? (int) $peakHour->hour : null,
-            busiestWeekday: $peakDay ? (self::DAYS[(int) $peakDay->dow] ?? null) : null,
+            peakHour: $peakHour instanceof stdClass ? (int) $peakHour->hour : null,
+            busiestWeekday: $peakDay instanceof stdClass ? (self::DAYS[(int) $peakDay->dow] ?? null) : null,
         );
     }
 

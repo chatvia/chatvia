@@ -37,7 +37,7 @@ it('transcribes the compressed audio with the configured transcriber and removes
 
     $recording = UploadedFile::fake()->create('clip.webm', 5, 'audio/webm');
 
-    $text = (new TranscribeAudioAction(taaCompressor(), $transcriber))
+    $text = new TranscribeAudioAction(taaCompressor(), $transcriber)
         ->execute($recording->getRealPath(), 'webm');
 
     expect($text)->toBe('hello there')

@@ -1,11 +1,29 @@
 import prettier from 'eslint-config-prettier';
 import vue from 'eslint-plugin-vue';
+import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
 
-import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript';
-
-export default defineConfigWithVueTs(
+// eslint-plugin-vue + typescript-eslint, wired directly. Every SFC script is
+// TypeScript (see `vue/block-lang` below), so there is no need for a wrapper
+// that scans the .vue files to find out which ones are.
+export default defineConfig(
+    // typescript-eslint first: its base config sets the TypeScript parser for
+    // every file, and the Vue config below must replace it for .vue files.
+    tseslint.configs.recommended,
     vue.configs['flat/essential'],
-    vueTsConfigs.recommended,
+    {
+        // vue-eslint-parser hands <script lang="ts"> blocks to the TypeScript
+        // parser, and the core rules TypeScript already checks are off, as
+        // they are for .ts files.
+        files: ['**/*.vue'],
+        languageOptions: {
+            parserOptions: {
+                parser: { js: 'espree', jsx: 'espree', ts: tseslint.parser, tsx: tseslint.parser },
+                extraFileExtensions: ['.vue'],
+            },
+        },
+        rules: tseslint.configs.eslintRecommended.rules,
+    },
     {
         ignores: [
             'vendor',

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Support\Exceptions\DomainValidationException;
+use Support\Http\SafeUrl;
 
 /**
  * StartAgentWebsiteCrawlAction probes the seed URL from our own servers, so it
@@ -21,6 +22,10 @@ use Support\Exceptions\DomainValidationException;
 beforeEach(function (): void {
     Bus::fake();
     Event::fake([WebsiteCrawlStarted::class]);
+});
+
+afterEach(function (): void {
+    SafeUrl::resolveHostsUsing(null);
 });
 
 it('creates and attaches the website, then starts the crawl', function (): void {
@@ -60,15 +65,35 @@ it('rejects a redirect into a private address outside local and testing', functi
     Bus::assertNotDispatched(WebsiteCrawlerJob::class);
 });
 
-it('pins the validated address with curl and keeps redirects off', function (): void {
-    $method = new ReflectionMethod(StartAgentWebsiteCrawlAction::class, 'clientOptions');
+it('connects to the checked address with redirects off outside local and testing', function (): void {
+    app()['env'] = 'production';
+    SafeUrl::resolveHostsUsing(fn (string $host): array => ['93.184.215.14']);
 
-    $v4 = $method->invoke(app(StartAgentWebsiteCrawlAction::class), 'https://docs.example.test/start', '93.184.215.14');
-    $v6 = $method->invoke(app(StartAgentWebsiteCrawlAction::class), 'http://docs.example.test:8080/', '2606:2800:21f:cb07:6820:80da:af6b:8b2c');
-    $none = $method->invoke(app(StartAgentWebsiteCrawlAction::class), 'https://docs.example.test/start', null);
+    $options = null;
+    Http::fake(function (Request $request, array $sent) use (&$options) {
+        $options = $sent;
 
-    expect($v4['allow_redirects'])->toBeFalse()
-        ->and($v4['curl'][CURLOPT_RESOLVE])->toBe(['docs.example.test:443:93.184.215.14'])
-        ->and($v6['curl'][CURLOPT_RESOLVE])->toBe(['docs.example.test:8080:[2606:2800:21f:cb07:6820:80da:af6b:8b2c]'])
-        ->and($none)->toBe(['allow_redirects' => false]);
+        return Http::response('<html></html>', 200);
+    });
+
+    app(StartAgentWebsiteCrawlAction::class)->execute(
+        Agent::factory()->create(),
+        new CrawlerData(url: 'https://docs.example.test/start'),
+    );
+
+    expect($options['allow_redirects'] ?? null)->toBeFalse()
+        ->and($options['curl'][CURLOPT_RESOLVE] ?? null)->toBe(['docs.example.test:443:93.184.215.14']);
+});
+
+it('refuses a seed URL whose host resolves to a private address', function (): void {
+    app()['env'] = 'production';
+    SafeUrl::resolveHostsUsing(fn (string $host): array => ['10.0.0.5']);
+    Http::fake();
+
+    expect(fn () => app(StartAgentWebsiteCrawlAction::class)->execute(
+        Agent::factory()->create(),
+        new CrawlerData(url: 'https://intranet.example.test/'),
+    ))->toThrow(DomainValidationException::class);
+
+    Http::assertNothingSent();
 });

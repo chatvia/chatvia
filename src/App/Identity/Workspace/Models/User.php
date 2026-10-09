@@ -2,7 +2,9 @@
 
 namespace App\Identity\Workspace\Models;
 
+use App\Identity\Workspace\Concerns\HasTeams;
 use App\Identity\Workspace\Concerns\ResolvesTeamMembership;
+use App\Identity\Workspace\Concerns\ResolvesWorkspaceHierarchy;
 use App\Identity\Workspace\Enums\DateFormat;
 use App\Identity\Workspace\Enums\UserSource;
 use App\Identity\Workspace\Enums\UserType;
@@ -12,20 +14,13 @@ use Domain\Agent\Concerns\HasSettings;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\ModelSetting;
 use Domain\Agent\Prompt\Models\AgentPrompt;
+use Domain\Billing\Concerns\InteractsWithWorkspaceBilling;
 use Domain\Billing\Concerns\InteractsWithWorkspaceQuotas;
-use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
-use Domain\Billing\Enums\Addon;
-use Domain\Billing\Enums\Capability;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserBilling;
 use Domain\Billing\Models\UserCredit;
 use Domain\Billing\Models\UserQuota;
-use Domain\Billing\Services\ChatterMessageAllowance;
-use Domain\Billing\Services\MessageCredits;
-use Domain\Billing\Services\PlanCatalog;
-use Domain\Billing\Services\UserCreditSystem;
-use Domain\Billing\Services\WorkspaceConsumption;
 use Domain\Helpdesk\Models\Ticket;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -48,10 +43,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
@@ -73,9 +65,13 @@ use Support\Concerns\HasExternalId;
  *
  * Everything account-wide resolves through {@see workspace()}: a teammate or
  * chatter reads the owner's billing, quotas and agents. The model keeps the
- * identity, relations and auth checks; billing rules live in Domain\Billing
- * and are reached through the thin accessors below (`creditSystem()`,
- * `capabilities`, `quotaLimit()`, …), agent access in {@see AgentAccessPolicy}.
+ * identity, casts and the knowledge/integration relations; the rest lives in
+ * concern traits: {@see ResolvesWorkspaceHierarchy} (owner link, account type,
+ * agent access; the rules in {@see AgentAccessPolicy}), {@see HasTeams} and
+ * {@see ResolvesTeamMembership} (teams, team roles), and the thin accessors
+ * over Domain\Billing in {@see InteractsWithWorkspaceBilling} and
+ * {@see InteractsWithWorkspaceQuotas} (`creditSystem()`, `capabilities`,
+ * `quotaLimit()`, …).
  *
  * @property int $id
  * @property string $external_id
@@ -179,14 +175,13 @@ use Support\Concerns\HasExternalId;
 ])]
 class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasLocalePreference, MustVerifyEmail, PasskeyUser
 {
-    /**
-     * The locale Laravel should render this user's queued/mailed notifications in.
-     * Null (auto) falls back to the app locale, so untranslated emails stay English.
-     */
-    public function preferredLocale(): ?string
-    {
-        return $this->locale;
-    }
+    /** @use HasFactory<UserFactory> */
+    use HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, HasTeams, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, InteractsWithWorkspaceBilling, InteractsWithWorkspaceQuotas, Notifiable, PasskeyAuthenticatable, ResolvesTeamMembership, ResolvesWorkspaceHierarchy, TwoFactorAuthenticatable;
+
+    // Profile photos are public, small and read-heavy, so they live on the
+    // CDN-backed `assets` disk (served via the pull zone) rather than the
+    // Scaleway origin bucket.
+    public const PROFILE_IMAGE_DISK = 'assets';
 
     /**
      * Per-request memo bucket — Inertia's share() lambda + User Appends fan
@@ -196,8 +191,14 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
      */
     private array $memo = [];
 
-    /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, InteractsWithWorkspaceQuotas, Notifiable, PasskeyAuthenticatable, ResolvesTeamMembership, TwoFactorAuthenticatable;
+    /**
+     * The locale Laravel should render this user's queued/mailed notifications in.
+     * Null (auto) falls back to the app locale, so untranslated emails stay English.
+     */
+    public function preferredLocale(): ?string
+    {
+        return $this->locale;
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -215,6 +216,21 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'source' => UserSource::class,
             'date_format' => DateFormat::class,
         ];
+    }
+
+    /**
+     * @template T
+     *
+     * @param  \Closure(): T  $resolver
+     * @return T
+     */
+    private function remember(string $key, \Closure $resolver): mixed
+    {
+        if (! array_key_exists($key, $this->memo)) {
+            $this->memo[$key] = $resolver();
+        }
+
+        return $this->memo[$key];
     }
 
     /**
@@ -253,71 +269,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * Get the effective user (workspace owner if this is an employee/chatter,
-     * otherwise self). Used for resource access like quota, agents, credits, etc.
-     */
-    public function workspace(): self
-    {
-        return $this->parentWorkspace ?? $this;
-    }
-
-    /**
-     * @template T
-     *
-     * @param  \Closure(): T  $resolver
-     * @return T
-     */
-    private function remember(string $key, \Closure $resolver): mixed
-    {
-        if (! array_key_exists($key, $this->memo)) {
-            $this->memo[$key] = $resolver();
-        }
-
-        return $this->memo[$key];
-    }
-
-    /**
-     * Cashier customer for this user's account — the workspace owner's
-     * `UserBilling` row, or null if the workspace has none yet. Use this
-     * anywhere you'd otherwise reach for `$user->subscribed()` etc.
-     */
-    public function accountBilling(): ?UserBilling
-    {
-        return $this->remember('billing', fn (): ?UserBilling => $this->workspace()->billing);
-    }
-
-    /**
-     * Same as `accountBilling()` but asserts the row exists. Use from code
-     * that calls Cashier methods (createSetupIntent, redirectToBillingPortal,
-     * findPaymentMethod, updateStripeCustomer, ...) — those live on the
-     * Billable `UserBilling`, not on `User`. The trial-checkout Stripe webhook
-     * provisions a billing row for every workspace owner, so the null path is
-     * a real bug (workspace mis-wiring, missing provisioning in tests) and
-     * should crash loudly rather than return a misleading null.
-     */
-    public function accountBillingOrFail(): UserBilling
-    {
-        return $this->accountBilling() ?? throw new \RuntimeException(
-            'No UserBilling row for user '.$this->id.'. The trial-checkout webhook provisions one for every workspace owner; tests must create it explicitly.'
-        );
-    }
-
-    /**
-     * Org-wide security & compliance policy for this user's account — the
-     * workspace owner's `WorkspaceSecurityPolicy` row, created on first read so
-     * no caller (middleware, command, Action) ever sees null. Resolved through
-     * `workspace()` and memoized, mirroring `accountBilling()`, so employees and
-     * chatters inherit the workspace answer through a single resolution path.
-     */
-    public function securityPolicy(): WorkspaceSecurityPolicy
-    {
-        return $this->remember(
-            'securityPolicy',
-            fn (): WorkspaceSecurityPolicy => WorkspaceSecurityPolicy::forWorkspace($this->workspace()->id),
-        );
-    }
-
-    /**
      * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with('agents')` / `load('agents')`) builds the relation on a bare
      * instance and returns the wrong rows for an employee/chatter; eager-load
@@ -337,259 +288,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * The plan the account's subscription is on (the default plan without one),
-     * as configured in `config('billing.packages')`.
-     *
-     * @return array<string, mixed>
-     */
-    public function getCurrentPackage(): array
-    {
-        return $this->remember(
-            'currentPackage',
-            fn (): array => app(PlanCatalog::class)->currentPackage($this->accountBilling()),
-        );
-    }
-
-    public function isAdmin(): bool
-    {
-        return $this->type === UserType::Admin;
-    }
-
-    /**
-     * Filament panel gate (FilamentUser contract). Only internal staff
-     * (UserType::Admin) may reach the admin panel; every other account type,
-     * and a deactivated admin, is rejected at the panel door.
-     */
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return $this->isAdmin() && ! $this->isDeactivated();
-    }
-
-    public function isWorkspace(): bool
-    {
-        return in_array($this->type, UserType::workspaceTypes(), true);
-    }
-
-    public function isEmployee(): bool
-    {
-        return $this->type === UserType::Employee;
-    }
-
-    public function isChatter(): bool
-    {
-        return $this->type === UserType::Chatter;
-    }
-
-    /**
-     * Whether the account has a paid subscription or a running trial. Always
-     * true when billing is turned off (see {@see Entitlements}).
-     */
-    public function hasActiveSubscription(): bool
-    {
-        return $this->remember(
-            'hasActiveSubscription',
-            fn (): bool => app(Entitlements::class)->hasActiveBilling($this),
-        );
-    }
-
-    /**
-     * Whether this account may hide the "Powered by Chatvia" badge — the
-     * workspace-wide entitlement that hides it on every agent's widget and
-     * hosted chat. Granted two ways: the plan bundles white-label (Pro and
-     * Enterprise carry the `removeBranding` capability), OR the account owns
-     * the standalone "remove branding" add-on (the path lower tiers use).
-     * Resolved through the account owner's plan + Cashier billing, so
-     * employees/chatters inherit the workspace answer.
-     */
-    public function canHideBranding(): bool
-    {
-        return $this->remember(
-            'canHideBranding',
-            fn (): bool => $this->capabilities->removeBranding
-                || (bool) $this->accountBilling()?->subscribed(Addon::RemoveBranding->value),
-        );
-    }
-
-    /**
-     * The plan features this account has. Resolved by {@see Entitlements}: the
-     * workspace's plan when billing is on, every feature when it is off.
-     *
-     * @return Attribute<BillingPackageCapabilitiesData, never>
-     */
-    public function capabilities(): Attribute
-    {
-        return Attribute::get(
-            fn (): BillingPackageCapabilitiesData => app(Entitlements::class)->capabilities($this),
-        );
-    }
-
-    public function hasCapability(Capability $capability): bool
-    {
-        // `capabilities()` returns the Eloquent Attribute container; calling
-        // it as a method on the instance bypasses the accessor and yields
-        // the wrapper, not the resolved DTO. Access via the magic property
-        // (`$this->capabilities`) so Eloquent runs the get-closure and we
-        // get a `BillingPackageCapabilitiesData` with the named capability.
-        return $this->capabilities->{$capability->value} === true;
-    }
-
-    /**
-     * Knowledge consumption (pages, minutes, links) and the upload-quota check.
-     */
-    public function consumption(): WorkspaceConsumption
-    {
-        return new WorkspaceConsumption($this);
-    }
-
-    /**
-     * Message-credit figures for screens ("X messages left this cycle"). For
-     * the send decision use {@see creditSystem()}.
-     */
-    public function messageCredits(): MessageCredits
-    {
-        return new MessageCredits($this);
-    }
-
-    /**
-     * The id of the plan the account is on (a key of `billing.packages`).
-     *
-     * @return Attribute<mixed, never>
-     */
-    public function plan(): Attribute
-    {
-        return Attribute::get(fn (): mixed => $this->getCurrentPackage()['id']);
-    }
-
-    // Profile photos are public, small and read-heavy, so they live on the
-    // CDN-backed `assets` disk (served via the pull zone) rather than the
-    // Scaleway origin bucket.
-    public const PROFILE_IMAGE_DISK = 'assets';
-
-    /**
-     * @return Attribute<string|null, never>
-     */
-    public function avatar(): Attribute
-    {
-        return Attribute::get(fn (): ?string => $this->profile_image_path
-            ? Storage::disk(self::PROFILE_IMAGE_DISK)->url($this->profile_image_path)
-            : null);
-    }
-
-    /**
-     * @return Attribute<bool, never>
-     */
-    public function isPaid(): Attribute
-    {
-        // Every account is on a trial or a subscription.
-        return Attribute::get(fn (): bool => $this->hasActiveSubscription());
-    }
-
-    /**
-     * Account-scoped via workspace() — **lazy-only**. Eager-loading
-     * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['parentWorkspace.credits', 'credits'])`.
-     *
-     * @return HasMany<UserCredit, self>
-     */
-    public function credits(): HasMany
-    {
-        $workspace = $this->workspace();
-
-        return $workspace->hasMany(UserCredit::class);
-    }
-
-    /**
-     * Account-scoped via workspace() — **lazy-only**. Eager-loading
-     * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['parentWorkspace.credit', 'credit'])`.
-     *
-     * @return HasOne<UserCredit, self>
-     */
-    public function credit(): HasOne
-    {
-        $workspace = $this->workspace();
-
-        return $workspace->hasOne(UserCredit::class)
-            ->where('ends_at', '>=', now())
-            ->latestOfMany('ends_at');
-    }
-
-    /**
-     * Account-scoped via workspace() — **lazy-only**. Eager-loading
-     * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['parentWorkspace.addons', 'addons'])`.
-     *
-     * @return HasMany<UserAddon, self>
-     */
-    public function addons(): HasMany
-    {
-        $workspace = $this->workspace();
-
-        return $workspace->hasMany(UserAddon::class);
-    }
-
-    /**
-     * The workspace's message-credit pool: the send decision and the cached
-     * counters behind it.
-     */
-    public function creditSystem(): UserCreditSystem
-    {
-        return app(UserCreditSystem::class)->forWorkspace($this->workspace()->id);
-    }
-
-    /**
-     * This chatter's OWN per-chatter monthly message-limit credit (latest
-     * period). Unlike {@see credit()} / {@see credits()} / {@see creditSystem()},
-     * which resolve the workspace OWNER's billing pool via `workspace()`,
-     * this binds literally to the chatter's own `user_credits` rows — the home
-     * of the per-chatter cap managed by {@see ChatterMessageAllowance}.
-     * Eager-load `chatterMessageCredit.usage` to render usage without N+1.
-     *
-     * @return HasOne<UserCredit, $this>
-     */
-    public function chatterMessageCredit(): HasOne
-    {
-        return $this->hasOne(UserCredit::class, 'user_id')->latestOfMany('ends_at');
-    }
-
-    /**
-     * External id used as the entity-first storage prefix
-     * (`users/{external_id}/…`). For a user the owner is itself.
-     */
-    public function getUserExternalId(): string
-    {
-        return $this->external_id;
-    }
-
-    public function consumableMessages(): int
-    {
-        return $this->creditSystem()->consumableMessages();
-    }
-
-    /**
-     * @return HasMany<Ticket, $this>
-     */
-    public function tickets(): HasMany
-    {
-        return $this->hasMany(Ticket::class);
-    }
-
-    /**
-     * Account-scoped via workspace() — **lazy-only**. Eager-loading
-     * (`with('quota')` / `load('quota')`) builds the relation on a bare instance
-     * and returns null for an employee/chatter; eager-load through the workspace
-     * leg instead: `loadMissing(['parentWorkspace.quota', 'quota'])` (see AgentTeamController).
-     *
-     * @return HasOne<UserQuota, self>
-     */
-    public function quota(): HasOne
-    {
-        $workspace = $this->workspace();
-
-        return $workspace->hasOne(UserQuota::class);
-    }
-
-    /**
      * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
      * through the workspace leg instead: `loadMissing(['parentWorkspace.sourceFiles', 'sourceFiles'])`.
@@ -604,161 +302,26 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * Get all teams where the user is a member (not owner).
-     *
-     * @return BelongsToMany<Team, $this>
+     * Org-wide security & compliance policy for this user's account — the
+     * workspace owner's `WorkspaceSecurityPolicy` row, created on first read so
+     * no caller (middleware, command, Action) ever sees null. Resolved through
+     * `workspace()` and memoized, mirroring `accountBilling()`, so employees and
+     * chatters inherit the workspace answer through a single resolution path.
      */
-    public function memberTeams(): BelongsToMany
+    public function securityPolicy(): WorkspaceSecurityPolicy
     {
-        return $this
-            ->belongsToMany(Team::class, 'team_user')
-            ->withPivot('role_id');
+        return $this->remember(
+            'securityPolicy',
+            fn (): WorkspaceSecurityPolicy => WorkspaceSecurityPolicy::forWorkspace($this->workspace()->id),
+        );
     }
 
     /**
-     * Get all teams owned by the user.
-     *
-     * @return HasMany<Team, $this>
+     * @return HasMany<Ticket, $this>
      */
-    public function ownedTeams(): HasMany
+    public function tickets(): HasMany
     {
-        return $this->hasMany(Team::class, 'user_id');
-    }
-
-    /**
-     * Check if user owns a specific team.
-     */
-    public function ownsTeam(Team $team): bool
-    {
-        return $team->user_id === $this->id;
-    }
-
-    /**
-     * Check if user is a member or owner of a team.
-     */
-    public function belongsToTeam(Team $team): bool
-    {
-        return $this->ownsTeam($team) || $this->memberTeams->contains($team);
-    }
-
-    /**
-     * The workspace owner this employee/chatter belongs to.
-     *
-     * @return BelongsTo<User, $this>
-     */
-    public function parentWorkspace(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'workspace_id');
-    }
-
-    /**
-     * Get the user's current active team.
-     *
-     * @return BelongsTo<Team, $this>
-     */
-    public function currentTeam(): BelongsTo
-    {
-        return $this->belongsTo(Team::class, 'current_team_id');
-    }
-
-    /**
-     * Switch to a different team.
-     */
-    public function switchTeam(Team $team): bool
-    {
-        if (! $this->belongsToTeam($team)) {
-            return false;
-        }
-
-        $this->update(['current_team_id' => $team->id]);
-
-        return true;
-    }
-
-    /**
-     * Resolve the user's current team WITHOUT persisting one (no DB writes,
-     * safe to call from Inertia share lambdas and other render-time
-     * contexts). Falls back to the user's primary owned team, then to the
-     * first team they're a member of.
-     *
-     * For the writing variant — pick a current team AND persist the choice —
-     * call {@see bootstrapCurrentTeam()} from a session-bootstrap middleware
-     * or registration Action.
-     */
-    public function currentOrPrimaryTeam(): ?Team
-    {
-        return $this->remember('currentTeam', function (): ?Team {
-            if ($this->current_team_id && $this->currentTeam) {
-                return $this->currentTeam;
-            }
-
-            return $this->ownedTeams()->first() ?? $this->memberTeams()->first();
-        });
-    }
-
-    /**
-     * Like {@see currentOrPrimaryTeam()} but persists the choice when the user
-     * had no `current_team_id` set. Call this on session bootstrap or
-     * registration — NOT from render-time code (Inertia share lambda,
-     * Blade composers, etc.) where a silent UPDATE is a foot-gun.
-     */
-    public function bootstrapCurrentTeam(): ?Team
-    {
-        if ($this->current_team_id && $this->currentTeam) {
-            return $this->currentTeam;
-        }
-
-        $team = $this->ownedTeams()->first() ?? $this->memberTeams()->first();
-        if ($team) {
-            $this->update(['current_team_id' => $team->id]);
-            // Invalidate the read cache so subsequent currentOrPrimaryTeam()
-            // calls see the just-stamped row.
-            unset($this->memo['currentTeam']);
-        }
-
-        return $team;
-    }
-
-    /**
-     * Employees (collaborators) this user manages.
-     *
-     * @return HasMany<User, $this>
-     */
-    public function managedUsers(): HasMany
-    {
-        return $this->hasMany(User::class, 'workspace_id')->where('type', UserType::Employee);
-    }
-
-    /**
-     * Chatters this user has provisioned (via the API).
-     *
-     * @return HasMany<User, $this>
-     */
-    public function chatters(): HasMany
-    {
-        return $this->hasMany(User::class, 'workspace_id')->where('type', UserType::Chatter);
-    }
-
-    /**
-     * Every account (teammate or chatter) that belongs to this workspace.
-     *
-     * @return HasMany<User, $this>
-     */
-    public function users(): HasMany
-    {
-        return $this->hasMany(User::class, 'workspace_id');
-    }
-
-    /**
-     * Agents a chatter has been explicitly granted access to (via the
-     * `agent_user` pivot). Empty for non-chatter types; their agent reach is
-     * still resolved through teams + roles via {@see AgentAccessPolicy}.
-     *
-     * @return BelongsToMany<Agent, $this>
-     */
-    public function accessibleAgents(): BelongsToMany
-    {
-        return $this->belongsToMany(Agent::class, 'agent_user');
+        return $this->hasMany(Ticket::class);
     }
 
     /**
@@ -772,60 +335,31 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * Stripe-side billing state. Only workspace owners (and admins) ever have a
-     * row; chatters and employees do not.
-     *
-     * @return HasOne<UserBilling, $this>
+     * @return Attribute<string|null, never>
      */
-    public function billing(): HasOne
+    public function avatar(): Attribute
     {
-        return $this->hasOne(UserBilling::class);
+        return Attribute::get(fn (): ?string => $this->profile_image_path
+            ? Storage::disk(self::PROFILE_IMAGE_DISK)->url($this->profile_image_path)
+            : null);
     }
 
     /**
-     * Check whether this user belongs to a workspace (employee / chatter).
-     * Workspace owners and admins return false.
+     * External id used as the entity-first storage prefix
+     * (`users/{external_id}/…`). For a user the owner is itself.
      */
-    public function belongsToWorkspace(): bool
+    public function getUserExternalId(): string
     {
-        return $this->workspace_id !== null;
+        return $this->external_id;
     }
 
     /**
-     * Whether the user may chat with the agent (see {@see AgentAccessPolicy}).
+     * Filament panel gate (FilamentUser contract). Only internal staff
+     * (UserType::Admin) may reach the admin panel; every other account type,
+     * and a deactivated admin, is rejected at the panel door.
      */
-    public function canAccessAgent(Agent $agent): bool
+    public function canAccessPanel(Panel $panel): bool
     {
-        return app(AgentAccessPolicy::class)->canChat($this, $agent);
-    }
-
-    /**
-     * Every agent the user may chat with, for the chat agent switcher.
-     *
-     * @return \Illuminate\Support\Collection<int, Agent>
-     */
-    public function listAccessibleAgents(): \Illuminate\Support\Collection
-    {
-        return app(AgentAccessPolicy::class)->chattableAgents($this);
-    }
-
-    /**
-     * Whether this user may open the control panel. Chatters and deactivated
-     * accounts are blocked — active admins, workspace owners, and employees all
-     * reach the dashboard.
-     */
-    public function canAccessDashboard(): bool
-    {
-        return $this->type !== UserType::Chatter && ! $this->isDeactivated();
-    }
-
-    /**
-     * Whether the account has been switched off by a workspace admin. A
-     * deactivated chatter is rejected by both widget and hosted-chat auth, so
-     * the off-switch takes effect on their next request.
-     */
-    public function isDeactivated(): bool
-    {
-        return $this->deactivated_at !== null;
+        return $this->isAdmin() && ! $this->isDeactivated();
     }
 }

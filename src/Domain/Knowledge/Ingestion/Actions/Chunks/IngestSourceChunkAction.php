@@ -18,8 +18,9 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
  *
  * Duplicate pages create no chunk, so they report no progress and are not
  * enhanced. Document pages are enhanced with their images and tables; other
- * chunks with their text only. Text sources are always enhanced; file sources
- * only when `chatvia.ai.chunker.enhance` is on.
+ * chunks with their text only. Text sources follow
+ * `chatvia.ai.chunker.enhance_text` (on by default, they are short); file
+ * sources follow `chatvia.ai.chunker.enhance` (off by default).
  */
 class IngestSourceChunkAction
 {
@@ -37,9 +38,16 @@ class IngestSourceChunkAction
 
         $this->reportProgress($data);
 
-        if ($data->source instanceof SourceText || config('chatvia.ai.chunker.enhance') === true) {
+        if ($this->shouldEnhance($data)) {
             $this->queueEnhancement($data, $chunk);
         }
+    }
+
+    private function shouldEnhance(SourceChunkData $data): bool
+    {
+        $setting = $data->source instanceof SourceText ? 'enhance_text' : 'enhance';
+
+        return config("chatvia.ai.chunker.{$setting}") === true;
     }
 
     private function reportProgress(SourceChunkData $data): void

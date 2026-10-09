@@ -83,3 +83,19 @@ it('returns false and leaves the row intact when the attachment was bound betwee
     expect(Attachment::find($attachment->id))->not->toBeNull();
     Storage::disk('public')->assertExists($attachment->filepath);
 });
+
+it('keeps the S3 object when the surrounding delete rolls back', function (): void {
+    $attachment = buildAttachment();
+
+    try {
+        DB::transaction(function () use ($attachment): void {
+            $attachment->delete();
+
+            throw new RuntimeException('boom');
+        });
+    } catch (RuntimeException) {
+    }
+
+    expect(Attachment::find($attachment->id))->not->toBeNull();
+    Storage::disk('public')->assertExists($attachment->filepath);
+});

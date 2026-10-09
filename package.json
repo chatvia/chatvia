@@ -22,7 +22,6 @@
     "@laravel/echo-vue": "^2.3.7",
     "@tailwindcss/typography": "^0.5.20",
     "@types/node": "^26.6.4",
-    "@vue/eslint-config-typescript": "^14.8.0",
     "concurrently": "^10.0.3",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",

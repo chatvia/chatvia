@@ -6,6 +6,7 @@ use App\Mcp\McpCallerContext;
 use App\Mcp\Servers\CurrencyConverterServer;
 use App\Mcp\Tools\Currency\ExchangeRateTool;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 use Laravel\Mcp\Server\Testing\TestResponse;
 
@@ -23,13 +24,13 @@ function convertWithKey(string $key): TestResponse
 it('caches rates per API key and calls the configured base URL', function (): void {
     config(['services.exchange_rate.base_url' => 'https://rates.example.test/v6']);
 
-    Http::fake([
-        'rates.example.test/v6/good-key/latest/USD' => Http::response([
+    Http::fake(fn (ClientRequest $request) => match ($request->header('Authorization')[0] ?? null) {
+        'Bearer good-key' => Http::response([
             'result' => 'success',
             'conversion_rates' => ['USD' => 1, 'EUR' => 0.5],
         ]),
-        'rates.example.test/v6/bad-key/latest/USD' => Http::response(['result' => 'error', 'error-type' => 'invalid-key'], 403),
-    ]);
+        default => Http::response(['result' => 'error', 'error-type' => 'invalid-key'], 403),
+    });
 
     convertWithKey('good-key')->assertOk()->assertSee('5.0000 EUR');
     convertWithKey('good-key')->assertOk();
@@ -40,8 +41,8 @@ it('caches rates per API key and calls the configured base URL', function (): vo
     Http::assertSentCount(2);
 });
 
-it('does not surface connection errors that contain the key-bearing URL', function (): void {
-    Http::fake(fn () => throw new ConnectionException('cURL error 28 for https://v6.exchangerate-api.com/v6/secret-key/latest/USD'));
+it('does not surface connection error details', function (): void {
+    Http::fake(fn () => throw new ConnectionException('cURL error 28: secret-key timed out'));
 
     convertWithKey('secret-key')
         ->assertHasErrors()

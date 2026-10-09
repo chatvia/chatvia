@@ -37,18 +37,17 @@ class StartAgentWebsiteCrawlAction
         }
 
         // SSRF guard on the seed URL before any server-side fetch. The probe
-        // connects to the exact address that was checked, so a DNS answer that
-        // changes between the check and the request can't reach an internal host.
-        $pinnedIp = $this->assertSafe($data->url);
+        // connects to the exact addresses that were checked, so a DNS answer
+        // that changes between the check and the request can't reach an
+        // internal host.
+        $clientOptions = $this->safely(fn (): array => SafeUrl::pinnedClientOptions($data->url));
 
         try {
-            $response = Http::withOptions($this->clientOptions($data->url, $pinnedIp))
+            $response = Http::withOptions($clientOptions)
                 ->connectTimeout(10)
                 ->timeout(20)
                 ->get($data->url)
                 ->throw();
-        } catch (UnsafeUrlException) {
-            throw new DomainValidationException('url', __('This URL is not allowed.'));
         } catch (Throwable $throwable) {
             report($throwable);
             throw new DomainValidationException('url', __('Failed to fetch the website. Please check the URL and try again.'));
@@ -59,7 +58,7 @@ class StartAgentWebsiteCrawlAction
             // it — a public seed must not 30x into an internal address. The
             // target is only stored here; FireCrawl does the actual crawl.
             $location = (string) $response->header('Location');
-            $this->assertSafe($location);
+            $this->safely(fn () => SafeUrl::assert($location));
             $data->url = $location;
         }
 
@@ -85,64 +84,22 @@ class StartAgentWebsiteCrawlAction
     }
 
     /**
-     * Validate the URL and return the public IP the request must connect to,
-     * or null when there is nothing to pin (an IP literal, or the local and
-     * testing environments where SafeUrl allows private targets).
+     * Runs a SafeUrl check and turns its refusal into a validation error on
+     * the `url` field.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $check
+     * @return T
      *
      * @throws DomainValidationException
      */
-    private function assertSafe(string $url): ?string
+    private function safely(callable $check): mixed
     {
         try {
-            SafeUrl::assert($url);
-
-            $host = trim((string) parse_url($url, PHP_URL_HOST), '[]');
-
-            if (filter_var($host, FILTER_VALIDATE_IP) || app()->environment('local', 'testing')) {
-                return null;
-            }
-
-            // Resolve once more and check every answer, then pin the first:
-            // this is the lookup the request will actually use.
-            $ips = SafeUrl::resolve($host);
-
-            if ($ips === []) {
-                throw new UnsafeUrlException('The URL host could not be resolved.');
-            }
-
-            foreach ($ips as $ip) {
-                if (! SafeUrl::isPublicIp($ip)) {
-                    throw new UnsafeUrlException('The URL resolves to a private or reserved address.');
-                }
-            }
-
-            return $ips[0];
+            return $check();
         } catch (UnsafeUrlException $e) {
             throw new DomainValidationException('url', __('This URL is not allowed: :reason', ['reason' => $e->getMessage()]));
         }
-    }
-
-    /**
-     * SafeUrl's options (no redirects) plus curl's host→IP override so the
-     * connection goes to the validated address.
-     *
-     * @return array<string, mixed>
-     */
-    private function clientOptions(string $url, ?string $pinnedIp): array
-    {
-        $options = SafeUrl::clientOptions();
-
-        if ($pinnedIp === null) {
-            return $options;
-        }
-
-        $host = (string) parse_url($url, PHP_URL_HOST);
-        $port = parse_url($url, PHP_URL_PORT)
-            ?? (strtolower((string) parse_url($url, PHP_URL_SCHEME)) === 'https' ? 443 : 80);
-        $address = str_contains($pinnedIp, ':') ? '['.$pinnedIp.']' : $pinnedIp;
-
-        $options['curl'] = [CURLOPT_RESOLVE => [$host.':'.$port.':'.$address]];
-
-        return $options;
     }
 }

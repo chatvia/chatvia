@@ -1,4 +1,9 @@
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
+
+// docs/public, where the screenshots live.
+const publicDir = fileURLToPath(new URL('../public', import.meta.url))
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -11,6 +16,26 @@ export default defineConfig({
   // `auto` follows the OS preference; users can override with the toggle in
   // the nav. Set to `false` to disable the toggle entirely.
   appearance: 'auto',
+
+  markdown: {
+    config(md) {
+      // Screenshots are added over time (see public/screenshots/README.md).
+      // An image under /screenshots/ whose file is not there yet is left out
+      // of the page instead of failing the build; adding the file makes it
+      // appear.
+      const renderImage = md.renderer.rules.image!
+
+      md.renderer.rules.image = (tokens, idx, options, env, self) => {
+        const src = tokens[idx].attrGet('src') ?? ''
+
+        if (src.startsWith('/screenshots/') && !existsSync(publicDir + src)) {
+          return ''
+        }
+
+        return renderImage(tokens, idx, options, env, self)
+      }
+    },
+  },
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],

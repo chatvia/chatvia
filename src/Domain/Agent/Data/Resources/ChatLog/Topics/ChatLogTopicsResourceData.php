@@ -21,6 +21,9 @@ class ChatLogTopicsResourceData extends Data
         public DataCollection $topics,
     ) {}
 
+    /**
+     * @param  Collection<int, Topic>  $topics
+     */
     public static function fromCollection(Collection $topics): self
     {
         return new self(

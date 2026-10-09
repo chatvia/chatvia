@@ -2,6 +2,9 @@
 
 namespace Domain\Agent\Data\Resources\Sources;
 
+use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\File\Models\SourceFile;
+use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
 
 /**
@@ -10,6 +13,9 @@ use Spatie\LaravelData\Data;
  */
 class AgentSourcesListData extends Data
 {
+    /**
+     * @param  list<array{id: int, name: string}>  $agents
+     */
     public function __construct(
         public int $id,
         public string $filename,
@@ -19,9 +25,10 @@ class AgentSourcesListData extends Data
     ) {}
 
     /**
-     * @return AgentSourcesListData[]
+     * @param  Collection<int, SourceFile>  $sources  files with their `agents` relation loaded
+     * @return list<AgentSourcesListData>
      */
-    public static function fromSources($sources): array
+    public static function fromSources(Collection $sources): array
     {
         $data = [];
         foreach ($sources as $source) {
@@ -29,11 +36,11 @@ class AgentSourcesListData extends Data
                 id: $source->id,
                 filename: $source->filename,
                 filetype: $source->filetype,
-                length: $source->length,
-                agents: $source->agents->map(fn ($agent): array => [
+                length: (string) $source->length,
+                agents: $source->agents->map(fn (Agent $agent): array => [
                     'id' => $agent->id,
                     'name' => $agent->name,
-                ])->toArray(),
+                ])->values()->all(),
             );
         }
 

@@ -39,6 +39,7 @@ class FileIngestionProgressed implements ShouldBroadcastNow
         return 'FileIngestionProgressed';
     }
 
+    /** @return array{file_id: int, progress: int} */
     public function broadcastWith(): array
     {
         return [

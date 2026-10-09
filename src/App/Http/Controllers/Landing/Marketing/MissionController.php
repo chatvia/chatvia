@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Landing\Marketing;
 use Illuminate\Contracts\View\View;
 
 /**
- * The public mission page.
+ * Renders the public mission page of the marketing site. It is a static view
+ * with no data.
  */
 class MissionController
 {

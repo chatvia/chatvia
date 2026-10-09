@@ -15,6 +15,7 @@ final class AnalyticsChart
     /**
      * @param  list<string>  $categories
      * @param  list<array{name: string, data: list<int|float>}>  $series
+     * @return array<string, mixed> the ECharts `option` object
      */
     public static function bar(array $categories, array $series, ?string $title = null, bool $horizontal = false): array
     {
@@ -40,6 +41,7 @@ final class AnalyticsChart
     /**
      * @param  list<string>  $categories
      * @param  list<array{name: string, data: list<int|float>}>  $series
+     * @return array<string, mixed> the ECharts `option` object
      */
     public static function line(array $categories, array $series, ?string $title = null): array
     {
@@ -61,6 +63,7 @@ final class AnalyticsChart
 
     /**
      * @param  list<array{name: string, value: int|float}>  $slices
+     * @return array<string, mixed> the ECharts `option` object
      */
     public static function pie(array $slices, ?string $title = null, bool $donut = false): array
     {
@@ -77,6 +80,9 @@ final class AnalyticsChart
         ], $title);
     }
 
+    /**
+     * @return array<string, mixed> the ECharts `option` object
+     */
     public static function gauge(int|float $value, int|float $min = 0, int|float $max = 100, ?string $unit = null, ?string $title = null): array
     {
         return self::withTitle([

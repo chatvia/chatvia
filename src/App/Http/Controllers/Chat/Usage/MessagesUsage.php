@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
  */
 class MessagesUsage
 {
+    /**
+     * @return array{can_send_messages: bool}
+     */
     public function __invoke(Request $request, Entitlements $entitlements): array
     {
         return [

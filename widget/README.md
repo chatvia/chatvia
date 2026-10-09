@@ -41,7 +41,7 @@ The project uses environment variables for configuration, managed via `.env` fil
     VITE_APP_VERSION=1.0.0
     
     # Required: Backend API URL
-    VITE_API_URL=https://chatvia.test/api/widget
+    VITE_API_URL=https://chatvia.test/widget
     
     # Required: CDN/Script URL where the widget files are hosted
     VITE_SCRIPT_URL=https://chatvia.test
@@ -57,10 +57,10 @@ The project uses environment variables for configuration, managed via `.env` fil
     NODE_ENV=production
     
     # API endpoints will be appended to VITE_API_URL:
-    # - Sessions: https://chatvia.test/api/widget/sessions
-    # - Conversations: https://chatvia.test/api/widget/conversations
-    # - Agent verification: https://chatvia.test/api/widget/agents/verify
-    # - SSE Stream: https://chatvia.test/api/widget/stream
+    # - Sessions: https://chatvia.test/widget/sessions/init
+    # - Conversations: https://chatvia.test/widget/conversations
+    # - Agent verification: https://chatvia.test/widget/agents/verify
+    # - SSE Stream: https://chatvia.test/widget/stream
     ```
 
 ⚠️ **Important:** Make sure to set `VITE_APP_VERSION` before building. This version determines the directory structure in `dist/` for cache-busting.

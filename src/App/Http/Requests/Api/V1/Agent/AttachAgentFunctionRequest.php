@@ -6,6 +6,11 @@ use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Data\AttachAgentFunctionData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Public API: validates attaching one of the workspace's functions to an agent
+ * by the function's id. The `agent.sources.train.functions` permission is
+ * checked by the route middleware.
+ */
 class AttachAgentFunctionRequest extends FormRequest
 {
     public function authorize(): bool

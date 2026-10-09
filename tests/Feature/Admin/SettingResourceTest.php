@@ -27,7 +27,8 @@ it('shows a card for every settings group', function (): void {
         $response->assertSee($category->label());
     }
 
-    $response->assertSee(SettingGroup::Meta->label())
+    $response->assertSee(SettingGroup::Instagram->label())
+        ->assertSee(SettingGroup::Whatsapp->label())
         ->assertSee(SettingGroup::Stripe->label())
         ->assertSee(SettingResource::getUrl('edit', ['record' => SettingGroup::GoogleLogin->value]));
 });
@@ -116,11 +117,11 @@ it('removes one saved secret', function (): void {
 });
 
 it('removes every saved value of a group', function (): void {
-    $setting = AdminSetting::forGroup(SettingGroup::Meta);
+    $setting = AdminSetting::forGroup(SettingGroup::Messenger);
     $setting->update(['payload' => ['app_id' => '123', 'app_secret' => 'secret']]);
 
     Livewire::actingAs($this->admin, 'admin')
-        ->test(EditSetting::class, ['record' => SettingGroup::Meta->value])
+        ->test(EditSetting::class, ['record' => SettingGroup::Messenger->value])
         ->callAction('removeSavedValues');
 
     expect($setting->refresh()->payload)->toBeNull();

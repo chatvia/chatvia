@@ -7,7 +7,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * The passkeys settings page.
+ * Renders the passkeys settings page with the signed-in user's own passkeys,
+ * newest first. Adding and removing passkeys go through the authentication
+ * package's own routes.
  */
 class PasskeyController
 {

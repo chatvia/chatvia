@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Models;
 
+use Database\Factories\MessageFactory;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\MessageQueryBuilder;
@@ -116,6 +117,7 @@ use Support\Concerns\HasExternalId;
 #[Table(name: 'chat_messages')]
 class Message extends Model
 {
+    /** @use HasFactory<MessageFactory> */
     use CascadesAttachmentDeletes, HasExternalId, HasFactory;
 
     protected function casts(): array
@@ -192,6 +194,7 @@ class Message extends Model
         return $this->hasMany(Attachment::class, 'chat_message_id');
     }
 
+    /** @return BelongsTo<Llm, $this> */
     public function llm(): BelongsTo
     {
         return $this->belongsTo(Llm::class);
@@ -199,12 +202,15 @@ class Message extends Model
 
     /**
      * Q&A entry linked to this message (when the response has been revised).
+     *
+     * @return BelongsTo<AgentQuestionAnswer, $this>
      */
     public function questionAnswer(): BelongsTo
     {
         return $this->belongsTo(AgentQuestionAnswer::class, 'agent_question_answer_id');
     }
 
+    /** @return MessageQueryBuilder<self> */
     public function newEloquentBuilder($query): MessageQueryBuilder
     {
         return new MessageQueryBuilder($query);

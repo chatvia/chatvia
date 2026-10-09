@@ -23,8 +23,8 @@ beforeEach(function (): void {
     $this->verifyToken = Str::random(32);
     $this->appSecret = 'f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4';
     config([
-        'services.meta.webhook_verify_token' => $this->verifyToken,
-        'services.meta.app_secret' => $this->appSecret,
+        'services.meta.instagram.webhook_verify_token' => $this->verifyToken,
+        'services.meta.instagram.app_secret' => $this->appSecret,
     ]);
     $agent = Agent::factory()->create();
     $this->account = AgentInstagramAccount::create([
@@ -98,6 +98,19 @@ it('ignores a request with a bad signature', function (): void {
     postInstagramEvent(instagramEnvelope(['mid' => 'm1', 'text' => 'hello']), 'wrong-app-secret-000000000000')->assertOk();
 
     Bus::assertNotDispatched(HandleInstagramMessageJob::class);
+});
+
+it('trusts only the Instagram app, not the Messenger app', function (): void {
+    config([
+        'services.meta.messenger.app_secret' => 'messenger-app-secret-0000000000',
+        'services.meta.messenger.webhook_verify_token' => 'messenger-verify-token',
+    ]);
+
+    postInstagramEvent(instagramEnvelope(['mid' => 'm1', 'text' => 'hello']), 'messenger-app-secret-0000000000')->assertOk();
+    Bus::assertNotDispatched(HandleInstagramMessageJob::class);
+
+    $this->get(route('instagram.webhook.verify').'?hub.mode=subscribe&hub.verify_token=messenger-verify-token&hub.challenge=challenge-123')
+        ->assertForbidden();
 });
 
 it('ignores a request with no signature at all', function (): void {

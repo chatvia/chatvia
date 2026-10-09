@@ -13,7 +13,7 @@ class Mistral extends AbstractLlmProvider
     /**
      * Get the headers for API requests.
      *
-     * @return array The headers array
+     * @return array<string, string> The headers array
      */
     public function headers(): array
     {

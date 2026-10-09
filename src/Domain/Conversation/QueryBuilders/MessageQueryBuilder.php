@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
+ * Query scopes for chat-log messages: reading one conversation safely inside
+ * its agent, full-text search over message content, and the first-message
+ * excerpts shown in conversation lists.
+ *
  * @template TModel of Message
  *
  * @extends Builder<TModel>
@@ -19,6 +23,8 @@ class MessageQueryBuilder extends Builder
      * forgets to verify ownership first still gets no rows from another
      * agent's (or tenant's) conversation. The EXISTS probe is a primary-key
      * lookup, so it costs next to nothing.
+     *
+     * @return self<TModel>
      */
     public function forAgentConversation(int $agentId, int $conversationId): self
     {
@@ -34,7 +40,7 @@ class MessageQueryBuilder extends Builder
     /**
      * Restrict to messages whose content matches $term, ranked by BM25 relevance.
      *
-     * Matching is a word-level lexical filter on the (now plaintext) content:
+     * Matching is a word-level lexical filter on the plaintext content:
      * the llmlingua2 tokenizer emits shared subword units, so the bm25 operator
      * alone scores unrelated text weakly-negative (noise) and can't tell a real
      * hit from none. Ranking, however, is BM25 over content_bm25 — `<&>` returns
@@ -42,6 +48,8 @@ class MessageQueryBuilder extends Builder
      * with the same llmlingua2 model used at write time (see Message::booted).
      *
      * Scope (conversation / agent / workspace) and ->limit() at the call site.
+     *
+     * @return self<TModel>
      */
     public function searchContent(string $term): self
     {

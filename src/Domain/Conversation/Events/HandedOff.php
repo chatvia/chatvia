@@ -40,6 +40,7 @@ class HandedOff implements ShouldBroadcastNow
         return 'handoff';
     }
 
+    /** @return array{conversation_id: string, status: string, admin_id: string|null, admin_name: string|null, timestamp: string} */
     public function broadcastWith(): array
     {
         return [

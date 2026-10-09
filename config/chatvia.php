@@ -8,10 +8,10 @@ declare(strict_types=1);
 |--------------------------------------------------------------------------
 |
 | Single home for Chatvia's app-specific configuration. Each top-level key
-| below is a bounded area (agent, ai, vector, analytics, sse, hmac, widget)
-| that used to live in its own config file; they were consolidated here so
-| there's one place to look. Reference values with the `chatvia.` prefix,
-| e.g. config('chatvia.ai.provider'), config('chatvia.vector.search.mode').
+| below is a bounded area (agent, ai, vector, analytics, sse, hmac, widget),
+| kept in one file so there's one place to look. Reference values with the
+| `chatvia.` prefix, e.g. config('chatvia.ai.provider'),
+| config('chatvia.vector.search.mode').
 |
 */
 return [
@@ -586,7 +586,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Agent evaluation (#9 Agent Governance + Evals)
+    | Agent evaluation (eval suites)
     |--------------------------------------------------------------------------
     |
     | Per-agent eval suites run each test case through the agent's REAL pipeline

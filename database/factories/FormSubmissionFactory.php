@@ -9,6 +9,10 @@ use Domain\Form\Models\FormSubmission;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Builds a pending form submission that expires in six hours. Use `submitted()`
+ * for a captured lead and `forDefinition()` to keep the agent in step with the
+ * form.
+ *
  * @extends Factory<FormSubmission>
  */
 class FormSubmissionFactory extends Factory

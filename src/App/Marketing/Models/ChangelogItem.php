@@ -38,6 +38,9 @@ use Illuminate\Support\Carbon;
 ])]
 class ChangelogItem extends Model
 {
+    /**
+     * @return BelongsTo<Changelog, $this>
+     */
     public function changelog(): BelongsTo
     {
         return $this->belongsTo(Changelog::class);

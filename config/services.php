@@ -14,6 +14,11 @@ return [
     | location for this type of information, allowing packages to have
     | a conventional file to locate the various service credentials.
     |
+    | Keys set to null here (OAuth apps, API keys, webhook secrets) are managed
+    | in the admin panel under Settings. They are stored encrypted in the
+    | database and put into this config when the app boots
+    | (App\Admin\Settings\SettingsStore). Do not read them from .env.
+    |
     */
 
     'postmark' => [
@@ -37,7 +42,7 @@ return [
     ],
 
     'resend' => [
-        'key' => env('RESEND_KEY'),
+        'key' => null,
     ],
 
     'slack' => [
@@ -45,51 +50,60 @@ return [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
-        'client_id' => env('SLACK_CLIENT_ID'),
-        'client_secret' => env('SLACK_CLIENT_SECRET'),
-        'redirect' => env('SLACK_REDIRECT_URI'),
+        'client_id' => null,
+        'client_secret' => null,
+        'redirect' => null,
     ],
 
     /*
-     * Chatvia's own Facebook (Meta) app. One app serves every workspace —
-     * customers connect their Pages via Facebook Login for Business instead of
-     * creating their own app. Used by the Messenger channel today; Instagram
-     * and WhatsApp reuse the same app + OAuth core.
+     * One Meta app per channel: Messenger, Instagram and WhatsApp
+     * (Domain\Channel\Enums\MetaApp). Customers connect their Pages, accounts
+     * and numbers through Facebook Login for Business on these apps instead of
+     * creating their own. All values except `graph_version` are managed in the
+     * admin panel (Settings → Channels); an install may enter the same app for
+     * every channel.
+     *
+     *   config_id             Facebook Login for Business configuration. Without
+     *                         it, Messenger and Instagram fall back to a classic
+     *                         `scope` request; WhatsApp Embedded Signup needs it.
+     *   redirect              The fixed OAuth callback (allow-listed in the app).
+     *   webhook_verify_token  The token pasted into the app's webhook settings.
+     *   register_pin          6-digit PIN that registers a connected WhatsApp
+     *                         number for the Cloud API. Never 000000.
      */
     'meta' => [
-        'app_id' => env('META_APP_ID'),
-        'app_secret' => env('META_APP_SECRET'),
-        // Facebook Login for Business configuration id (Use cases → Customize →
-        // Facebook Login for Business → Configurations). Optional — when unset
-        // the authorize URL falls back to a classic `scope` request.
-        'config_id' => env('META_LOGIN_CONFIG_ID'),
-        // Separate Login-for-Business configuration for Instagram (its own
-        // permission set). When unset, the Instagram flow reuses `config_id`.
-        'instagram_config_id' => env('META_INSTAGRAM_LOGIN_CONFIG_ID'),
-        // Separate Login-for-Business configuration for WhatsApp Embedded Signup
-        // (WhatsApp Business Account asset). When unset, reuses `config_id`.
-        'whatsapp_config_id' => env('META_WHATSAPP_LOGIN_CONFIG_ID'),
         'graph_version' => env('META_GRAPH_VERSION', 'v25.0'),
-        // Fixed OAuth redirects — each must be whitelisted in the app's Login
-        // settings. Instagram has its own callback path.
-        'redirect' => env('META_REDIRECT_URI'),
-        'instagram_redirect' => env('META_INSTAGRAM_REDIRECT_URI'),
-        // The single app-level verify token pasted into the app's webhook config
-        // (shared by Messenger + Instagram + WhatsApp).
-        'webhook_verify_token' => env('META_WEBHOOK_VERIFY_TOKEN'),
-        // 6-digit PIN used to register a connected WhatsApp number for the Cloud
-        // API (POST /{phone_number_id}/register). Set a deliberate value, never 000000.
-        'whatsapp_register_pin' => env('META_WHATSAPP_REGISTER_PIN'),
+        'messenger' => [
+            'app_id' => null,
+            'app_secret' => null,
+            'config_id' => null,
+            'redirect' => null,
+            'webhook_verify_token' => null,
+        ],
+        'instagram' => [
+            'app_id' => null,
+            'app_secret' => null,
+            'config_id' => null,
+            'redirect' => null,
+            'webhook_verify_token' => null,
+        ],
+        'whatsapp' => [
+            'app_id' => null,
+            'app_secret' => null,
+            'config_id' => null,
+            'webhook_verify_token' => null,
+            'register_pin' => null,
+        ],
     ],
 
     'openrouter' => [
-        'api_key' => env('OPENROUTER_API_KEY'),
+        'api_key' => null,
         'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
         'completion_endpoint' => env('OPENROUTER_COMPLETION_ENDPOINT', 'https://openrouter.ai/api/v1/chat/completions'),
     ],
 
     'cohere' => [
-        'api_key' => env('COHERE_API_KEY'),
+        'api_key' => null,
         'api_endpoint' => env('COHERE_API_ENDPOINT', 'https://api.cohere.com/v2'),
         'embedding_model' => env('COHERE_EMBEDDING_MODEL', 'embed-v4.0'),
         'embedding_dimensions' => env('COHERE_EMBEDDING_DIMENSIONS', 1024),
@@ -97,34 +111,34 @@ return [
     ],
 
     'jina' => [
-        'api_key' => env('JINA_API_KEY'),
+        'api_key' => null,
         'api_endpoint' => env('JINA_API_ENDPOINT', 'https://api.jina.ai/v1'),
         'embedding_model' => env('JINA_EMBEDDING_MODEL', 'jina-embeddings-v3'),
         'embedding_dimensions' => env('JINA_EMBEDDING_DIMENSIONS', 1024),
     ],
 
     'groq' => [
-        'api_key' => env('GROQ_API_KEY'),
+        'api_key' => null,
         'base_url' => env('GROQ_BASE_URL', 'https://api.groq.com/openai/v1'),
         'completion_endpoint' => env('GROQ_COMPLETION_ENDPOINT', 'https://api.groq.com/openai/v1/chat/completions'),
     ],
 
     'google' => [
-        'client_id' => env('GOOGLE_AUTH_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_AUTH_CLIENT_SECRET'),
-        'redirect' => env('GOOGLE_AUTH_REDIRECT_URI'),
+        'client_id' => null,
+        'client_secret' => null,
+        'redirect' => null,
     ],
 
     'microsoft' => [
-        'client_id' => env('MICROSOFT_CLIENT_ID'),
-        'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
-        'redirect' => env('MICROSOFT_REDIRECT_URI'),
+        'client_id' => null,
+        'client_secret' => null,
+        'redirect' => null,
     ],
 
     'github' => [
-        'client_id' => env('GITHUB_CLIENT_ID'),
-        'client_secret' => env('GITHUB_CLIENT_SECRET'),
-        'redirect' => env('GITHUB_REDIRECT_URI'),
+        'client_id' => null,
+        'client_secret' => null,
+        'redirect' => null,
     ],
 
     'bin' => [
@@ -144,7 +158,7 @@ return [
     ],
 
     'firecrawl' => [
-        'key' => env('FIRECRAWL_API_KEY'),
+        'key' => null,
         'endpoint' => env('FIRECRAWL_API_ENDPOINT', 'https://api.firecrawl.dev/v2'),
 
         // Stage-2 scrape renders JavaScript in a headless browser (so SPA /
@@ -166,12 +180,12 @@ return [
     ],
 
     'ip2location' => [
-        'key' => env('IP2LOCATION_API_KEY'),
+        'key' => null,
         'endpoint' => env('IP2LOCATION_ENDPOINT', 'https://api.ip2location.io'),
     ],
 
     'scalewayai' => [
-        'api_key' => env('SCALEWAYAI_API_KEY'),
+        'api_key' => null,
         // Base URL for chat, embeddings, rerank and transcription. The generic
         // URL uses the API key's default project; set a project URL
         // (https://api.scaleway.ai/{project-id}/v1) to bill a specific project.
@@ -183,7 +197,7 @@ return [
     ],
 
     'mistral' => [
-        'api_key' => env('MISTRAL_API_KEY'),
+        'api_key' => null,
         'base_url' => env('MISTRAL_BASE_URL', 'https://api.mistral.ai/v1'),
         // The PDF chat model is chatvia.ai.models.document_chat.
         'ocr_model' => env('MISTRAL_OCR_MODEL', 'mistral-ocr-latest'),
@@ -211,8 +225,8 @@ return [
     ],
 
     'turnstile' => [
-        'key' => env('TURNSTILE_SITE_KEY'),
-        'secret' => env('TURNSTILE_SECRET_KEY'),
+        'key' => null,
+        'secret' => null,
     ],
 
     // Page-view analytics (production only). Nothing is loaded while the
@@ -223,7 +237,7 @@ return [
     ],
 
     'chunkfit' => [
-        'api_key' => env('CHUNK_FIT_API_KEY'),
+        'api_key' => null,
         'base_url' => env('CHUNK_FIT_BASE_URL', 'https://chunk.fit/api/v1'),
         'timeout' => (int) env('CHUNK_FIT_TIMEOUT', 120),
 

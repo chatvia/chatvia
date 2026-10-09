@@ -24,6 +24,7 @@ class CohereReranker implements Reranker
             $payload['top_n'] = $topN;
         }
 
+        /** @var list<array{index: int|string, relevance_score: float|string}> $results */
         $results = Http::withToken((string) config('services.cohere.api_key'))
             ->throw()
             ->post(rtrim((string) config('services.cohere.api_endpoint'), '/').'/rerank', $payload)

@@ -27,13 +27,21 @@ final readonly class PdfInfo
     public function getInfo(string $pdfPath): FileAnalysisData
     {
         $info = $this->getRawInfo($pdfPath);
+        $pages = $info['pages'] ?? null;
+
+        // pdfinfo prints every value as text. Without a page count the file
+        // cannot be measured against the page quota, so it is rejected.
+        if (! is_numeric($pages)) {
+            throw new RuntimeException('PDFInfo reported no page count.');
+        }
 
         return new FileAnalysisData(
-            length: $info['pages'],
+            length: (int) $pages,
             metadata: $info
         );
     }
 
+    /** @return array<string, string|float> pdfinfo fields keyed by snake_case name (`pages`, `title`, ...) */
     private function getRawInfo(string $pdfPath): array
     {
         $this->validatePdfFile($pdfPath);
@@ -72,6 +80,7 @@ final readonly class PdfInfo
         }
     }
 
+    /** @return array<string, string|float> */
     private function parseOutput(string $output): array
     {
         $output = mb_convert_encoding($output, 'UTF-8', 'UTF-8');

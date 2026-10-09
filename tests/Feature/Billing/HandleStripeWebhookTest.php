@@ -580,7 +580,7 @@ it('refuses to process a webhook when no signing secret is set outside local and
     try {
         expect(fn () => app(HandleStripeWebhook::class)->handle(new WebhookReceived(
             makeSubscriptionCyclePayload('evt_unsigned', 'cus_unsigned')
-        )))->toThrow(RuntimeException::class, 'STRIPE_WEBHOOK_SECRET');
+        )))->toThrow(RuntimeException::class, 'Refusing to process an unsigned Stripe webhook');
 
         expect(UserCredit::where('user_id', $user->id)->count())->toBe(0);
 

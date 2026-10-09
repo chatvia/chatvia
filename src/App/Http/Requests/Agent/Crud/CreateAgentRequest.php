@@ -25,6 +25,9 @@ class CreateAgentRequest extends FormRequest
         return Gate::inspect('create', [Agent::class, $this->selectedTeam()]);
     }
 
+    /**
+     * @return array<string, list<string>>
+     */
     public function rules(): array
     {
         return [

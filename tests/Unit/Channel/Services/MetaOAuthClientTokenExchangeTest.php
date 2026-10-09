@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Channel\Enums\MetaApp;
 use Domain\Channel\Services\MetaOAuthClient;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
@@ -14,9 +15,11 @@ use Illuminate\Support\Facades\Log;
 beforeEach(function (): void {
     config([
         'services.meta.graph_version' => 'v25.0',
-        'services.meta.app_id' => 'APP-ID',
-        'services.meta.app_secret' => 'META-APP-SECRET',
-        'services.meta.redirect' => 'https://chatvia.test/oauth/meta/callback',
+        'services.meta.messenger.app_id' => 'APP-ID',
+        'services.meta.messenger.app_secret' => 'META-APP-SECRET',
+        'services.meta.messenger.redirect' => 'https://chatvia.test/oauth/meta/callback',
+        'services.meta.whatsapp.app_id' => 'WA-APP-ID',
+        'services.meta.whatsapp.app_secret' => 'META-APP-SECRET',
     ]);
 });
 
@@ -27,7 +30,7 @@ it('sends the app secret in the POST body for both token exchanges', function ()
             ->push(['access_token' => 'LONG-TOKEN']),
     ]);
 
-    $token = (new MetaOAuthClient)->exchangeCodeForUserToken('THE-CODE');
+    $token = (new MetaOAuthClient)->exchangeCodeForUserToken(MetaApp::Messenger, 'THE-CODE');
 
     expect($token)->toBe('LONG-TOKEN');
 

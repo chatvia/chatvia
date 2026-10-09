@@ -8,6 +8,10 @@ use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Builds a chat message (user or assistant) inside a fresh conversation.
+ * Assistant messages get a model, a response time and sometimes a confidence
+ * score, like real replies.
+ *
  * @extends Factory<Message>
  */
 class MessageFactory extends Factory

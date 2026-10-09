@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Models;
 
 use App\Identity\Workspace\Models\User;
+use Database\Factories\ConversationFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\HandoffStatus;
@@ -133,6 +134,7 @@ use Support\Localization\Language\Models\Language;
 #[RouteKey('external_id')]
 class Conversation extends Model
 {
+    /** @use HasFactory<ConversationFactory> */
     use CascadesAttachmentDeletes, HasExternalId, HasFactory, SoftDeletes;
 
     /** Placeholder title every conversation is created with until it's named. */
@@ -168,6 +170,7 @@ class Conversation extends Model
         ];
     }
 
+    /** @return ConversationQueryBuilder<self> */
     public function newEloquentBuilder($query): ConversationQueryBuilder
     {
         return new ConversationQueryBuilder($query);
@@ -308,6 +311,8 @@ class Conversation extends Model
 
     /**
      * The admin user who has taken over this conversation (handoff).
+     *
+     * @return BelongsTo<User, $this>
      */
     public function handoffUser(): BelongsTo
     {

@@ -12,6 +12,9 @@ use Illuminate\Support\Collection;
  */
 class ChatterAgentController
 {
+    /**
+     * @return Collection<int, array{id: int, external_id: string, name: string, sub_domain: string|null}>
+     */
     public function __invoke(Request $request): Collection
     {
         /** @var User $user */

@@ -42,6 +42,7 @@ class MessagePosted implements ShouldBroadcastNow
         return 'message';
     }
 
+    /** @return array{id: string, conversation_id: string, content: string, role: string, sender_name: string|null, sender_id: string|null, timestamp: string} */
     public function broadcastWith(): array
     {
         return [

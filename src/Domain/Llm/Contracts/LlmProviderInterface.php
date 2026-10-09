@@ -20,8 +20,8 @@ interface LlmProviderInterface
      * Stream a completion request.
      *
      * @param  string  $model  The model identifier
-     * @param  array  $messages  The messages array
-     * @param  array  $settings  Additional settings for the request
+     * @param  list<array<string, mixed>>  $messages  OpenAI-style chat messages (`role`, `content`, ...)
+     * @param  array<string, mixed>  $settings  Extra request body keys (temperature, tools, ...)
      * @return ResponseInterface The streaming response
      */
     public function stream(string $model, array $messages, array $settings = []): ResponseInterface;
@@ -31,7 +31,7 @@ interface LlmProviderInterface
     /**
      * Execute a completion request.
      *
-     * @param  array  $data  The request data
+     * @param  array<string, mixed>  $data  The full request body
      * @return Response The response
      */
     public function completion(array $data);
@@ -39,7 +39,7 @@ interface LlmProviderInterface
     /**
      * Get the headers for API requests.
      *
-     * @return array The headers array
+     * @return array<string, string> The headers array
      */
     public function headers(): array;
 
@@ -48,7 +48,7 @@ interface LlmProviderInterface
      * Returns null if the provider doesn't support cost tracking.
      *
      * @param  string  $generationId  The generation ID
-     * @return array|null The generation data or null if not supported
+     * @return array<string, mixed>|null The provider's generation record (`tokens_prompt`, `tokens_completion`, `total_cost`, ...) or null if not supported
      */
     public function getGenerationCost(string $generationId): ?array;
 

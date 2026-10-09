@@ -7,6 +7,10 @@ use Domain\Helpdesk\Data\ReplyToTicketData;
 use Domain\Helpdesk\Models\Ticket;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates a reply on a support ticket. Only a user the ticket policy lets
+ * update the ticket may reply to it.
+ */
 class ReplyToTicketRequest extends FormRequest
 {
     public function authorize(): bool

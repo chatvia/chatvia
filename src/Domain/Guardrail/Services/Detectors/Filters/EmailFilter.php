@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
 /**
- * Masks email addresses ([EMAIL_n]).
+ * Masks email addresses as `[EMAIL_n]` in the PII redaction pass. The same
+ * address gets the same number each time it appears, so the masked text stays
+ * readable.
  */
 final class EmailFilter extends PiiFilter
 {

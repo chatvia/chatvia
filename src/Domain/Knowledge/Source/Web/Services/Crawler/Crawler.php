@@ -47,7 +47,7 @@ final class Crawler
      * Reduce raw crawl pages to the final ingest set, preserving each URL's
      * Markdown so the caller can warm the scrape cache in one pass.
      *
-     * @param  array<string, string>  $pages  url => markdown, as returned by Firecrawl::fetchCrawl()
+     * @param  array<string, string>  $pages  url => markdown (empty when discovery returned URLs only)
      * @return array<string, string> filtered & de-duplicated url => markdown
      */
     public function filterPages(CrawlerData $data, array $pages): array
@@ -75,6 +75,10 @@ final class Crawler
         return $result;
     }
 
+    /**
+     * @param  list<string>  $links
+     * @return list<string> the links whose path passes the include/exclude globs
+     */
     private function filterUrls(array $links, ?string $includePaths = null, ?string $excludePaths = null): array
     {
         if ($links === []) {

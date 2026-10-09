@@ -32,6 +32,8 @@ class ChunkQueryBuilder extends Builder
      * Only the chunks of sources the agent uses (its `agent_sources` rows).
      * Chunks belong to sources, not agents, so this is how agent scoping works
      * everywhere; the hybrid search inlines the same filter in its SQL.
+     *
+     * @return self<TModel>
      */
     public function forAgent(int $agentId): self
     {
@@ -46,6 +48,8 @@ class ChunkQueryBuilder extends Builder
 
     /**
      * Chunks that carry LLM-generated questions (a newline-delimited block).
+     *
+     * @return self<TModel>
      */
     public function withQuestions(): self
     {

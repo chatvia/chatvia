@@ -69,18 +69,18 @@ class EditSetting extends EditRecord
                 ->url($consoleUrl, shouldOpenInNewTab: true)
                 ->visible($consoleUrl !== null),
             Action::make('removeSavedValues')
-                ->label('Remove saved values')
+                ->label('Remove all values')
                 ->icon(Heroicon::OutlinedTrash)
                 ->color('danger')
                 ->requiresConfirmation()
-                ->modalDescription('Every value of this group goes back to the value in the .env file.')
+                ->modalDescription('Every value of this group is deleted. The features that use it stop working until you add new values.')
                 ->modalSubmitActionLabel('Remove')
                 ->visible(fn (): bool => $this->record->hasSavedValues())
                 ->action(function (): void {
                     $this->record->update(['payload' => null, 'updated_by' => $this->admin()?->id]);
                     $this->fillForm();
 
-                    Notification::make()->success()->title('Saved values removed')->send();
+                    Notification::make()->success()->title('Values removed')->send();
                 }),
         ];
     }
@@ -104,7 +104,7 @@ class EditSetting extends EditRecord
                             ->icon(fn (): Heroicon => $store->status($group, $this->record)->getIcon()),
                     ])
                     ->columns(2)
-                    ->schema(array_map(fn (SettingField $field): TextInput => $this->input($field, $store), $group->fields())),
+                    ->schema(array_map($this->input(...), $group->fields())),
                 Section::make('Setup')
                     ->description('Register these URLs with the provider.')
                     ->icon(Heroicon::OutlinedLink)
@@ -122,44 +122,30 @@ class EditSetting extends EditRecord
             ]);
     }
 
-    private function input(SettingField $field, SettingsStore $store): TextInput
+    private function input(SettingField $field): TextInput
     {
-        $envValue = $store->envValue($field);
-        $hasEnvValue = filled($envValue);
-
         $input = TextInput::make("payload.{$field->name}")
             ->label($field->label)
             ->helperText($field->help)
             ->password($field->secret)
             ->autocomplete($field->secret ? 'new-password' : 'off')
             ->rules(['nullable', 'string', 'max:2000', ...$field->rules])
-            ->placeholder(fn (): ?string => match (true) {
-                $field->secret && filled($this->record->value($field)) => '•••••••• saved, leave blank to keep',
-                $field->secret && $hasEnvValue => '•••••••• set in .env',
-                ! $field->secret && $hasEnvValue => (string) $envValue,
-                default => null,
-            })
+            // A URL field shows the URL it uses while empty.
+            ->placeholder(fn (): ?string => $field->secret && filled($this->record->value($field))
+                ? '•••••••• saved, leave blank to keep'
+                : $field->defaultValue())
             ->hint(fn (): ?string => match (true) {
                 filled($this->record->value($field)) => 'Saved',
-                $hasEnvValue => 'From .env',
                 $field->required => 'Required',
                 default => null,
             })
-            ->hintIcon(fn (): ?Heroicon => match (true) {
-                filled($this->record->value($field)) => Heroicon::OutlinedLockClosed,
-                $hasEnvValue => Heroicon::OutlinedDocumentText,
-                default => null,
-            })
-            ->hintColor(fn (): string => match (true) {
-                filled($this->record->value($field)) => 'success',
-                $hasEnvValue => 'info',
-                default => 'gray',
-            });
+            ->hintIcon(fn (): ?Heroicon => filled($this->record->value($field)) ? Heroicon::OutlinedLockClosed : null)
+            ->hintColor(fn (): string => filled($this->record->value($field)) ? 'success' : 'gray');
 
-        return $field->secret ? $input->suffixAction($this->forgetAction($field, $hasEnvValue)) : $input;
+        return $field->secret ? $input->suffixAction($this->forgetAction($field)) : $input;
     }
 
-    private function forgetAction(SettingField $field, bool $hasEnvValue): Action
+    private function forgetAction(SettingField $field): Action
     {
         return Action::make('forget')
             ->icon(Heroicon::OutlinedTrash)
@@ -168,9 +154,7 @@ class EditSetting extends EditRecord
             ->visible(fn (): bool => filled($this->record->value($field)))
             ->requiresConfirmation()
             ->modalHeading("Remove the saved {$field->label}?")
-            ->modalDescription($hasEnvValue
-                ? 'The value in the .env file is used again.'
-                : 'There is no value in the .env file, so this stops working until you add one.')
+            ->modalDescription('The features that use it stop working until you add a new value.')
             ->modalSubmitActionLabel('Remove')
             ->action(function () use ($field): void {
                 $this->record->forgetValue($field, $this->admin());

@@ -10,27 +10,23 @@ use Filament\Support\Contracts\HasLabel;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * Whether a settings group has the values it needs, and where they come from.
+ * Whether a settings group has the values it needs.
  */
 enum SettingStatus: string implements HasColor, HasIcon, HasLabel
 {
-    /** Every required value is set, at least one of them saved in the panel. */
+    /** Every required value is saved. */
     case Configured = 'configured';
 
-    /** Every required value is set, all of them from the .env file. */
-    case FromEnv = 'env';
-
-    /** Some required values are set, some are missing. */
+    /** Some values are saved, but a required one is missing. */
     case Incomplete = 'incomplete';
 
-    /** Nothing is set. */
+    /** Nothing is saved. */
     case Missing = 'missing';
 
     public function getLabel(): string
     {
         return match ($this) {
             self::Configured => 'Configured',
-            self::FromEnv => 'From .env',
             self::Incomplete => 'Incomplete',
             self::Missing => 'Not set',
         };
@@ -40,7 +36,6 @@ enum SettingStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Configured => 'success',
-            self::FromEnv => 'info',
             self::Incomplete => 'warning',
             self::Missing => 'gray',
         };
@@ -50,14 +45,8 @@ enum SettingStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Configured => Heroicon::OutlinedCheckCircle,
-            self::FromEnv => Heroicon::OutlinedDocumentText,
             self::Incomplete => Heroicon::OutlinedExclamationTriangle,
             self::Missing => Heroicon::OutlinedMinusCircle,
         };
-    }
-
-    public function isUsable(): bool
-    {
-        return $this === self::Configured || $this === self::FromEnv;
     }
 }

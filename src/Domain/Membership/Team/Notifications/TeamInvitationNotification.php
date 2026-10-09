@@ -18,6 +18,9 @@ class TeamInvitationNotification extends Notification
         public Invitation $invitation
     ) {}
 
+    /**
+     * @return array<int, string>
+     */
     public function via(object $notifiable): array
     {
         return ['mail'];
@@ -43,6 +46,9 @@ class TeamInvitationNotification extends Notification
             ->line(__("If you didn't expect this invitation, you can ignore this email."));
     }
 
+    /**
+     * @return array{invitation_id: int, team_id: int, team_name: string}
+     */
     public function toArray(object $notifiable): array
     {
         return [

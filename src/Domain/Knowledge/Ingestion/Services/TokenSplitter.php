@@ -99,6 +99,8 @@ class TokenSplitter
 
     /**
      * Split a large paragraph by sentences.
+     *
+     * @param  list<PageData>  $chunks  the chunks so far; new ones are appended
      */
     private function splitParagraphIntoChunks(string $paragraph, array &$chunks, int &$chunkIndex): void
     {
@@ -155,6 +157,9 @@ class TokenSplitter
 
     /**
      * Apply overlap by prepending context from previous chunk.
+     *
+     * @param  list<PageData>  $chunks
+     * @return list<PageData>
      */
     private function applyOverlap(array $chunks): array
     {
@@ -166,9 +171,7 @@ class TokenSplitter
         $counter = count($chunks);
 
         for ($i = 1; $i < $counter; $i++) {
-            /** @var PageData $prevPageData */
             $prevPageData = $chunks[$i - 1];
-            /** @var PageData $currentPageData */
             $currentPageData = $chunks[$i];
 
             // Get overlap text from end of previous chunk

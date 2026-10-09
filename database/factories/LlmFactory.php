@@ -7,6 +7,10 @@ use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Builds a model row for the `llms` catalog. Names get a random numeric suffix
+ * because `internal_name` and `external_name` are unique and the seeded catalog
+ * uses the same base names.
+ *
  * @extends Factory<Llm>
  */
 class LlmFactory extends Factory

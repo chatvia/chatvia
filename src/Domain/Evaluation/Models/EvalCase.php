@@ -28,23 +28,36 @@ class EvalCase extends Model
 {
     use HasExternalId;
 
+    /** @return BelongsTo<Agent, $this> */
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     #[Scope]
     protected function forAgent(Builder $query, int $agentId): Builder
     {
         return $query->where('agent_id', $agentId);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     #[Scope]
     protected function forWorkspace(Builder $query, int $workspaceId): Builder
     {
         return $query->where('workspace_id', $workspaceId);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     #[Scope]
     protected function active(Builder $query): Builder
     {

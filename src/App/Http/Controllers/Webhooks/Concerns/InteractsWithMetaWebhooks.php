@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Webhooks\Concerns;
 
+use Domain\Channel\Enums\MetaApp;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -10,7 +11,7 @@ use Illuminate\Http\Response;
  * handshake: a GET verify (`hub.mode` / `hub.verify_token` / `hub.challenge`
  * — PHP mangles the dots to underscores in the query bag) and POSTs signed
  * with `X-Hub-Signature-256`, an HMAC-SHA256 of the raw body keyed with the
- * Meta app secret.
+ * secret of the channel's Meta app ({@see MetaApp}).
  */
 trait InteractsWithMetaWebhooks
 {
@@ -34,12 +35,12 @@ trait InteractsWithMetaWebhooks
     }
 
     /**
-     * Whether the POST carries a valid signature from Chatvia's Meta app. An
-     * unset app secret verifies nothing.
+     * Whether the POST carries a valid signature from the channel's Meta app.
+     * An unset app secret verifies nothing.
      */
-    protected function isSignedByMeta(Request $request): bool
+    protected function isSignedByMeta(Request $request, MetaApp $app): bool
     {
-        $appSecret = (string) config('services.meta.app_secret');
+        $appSecret = $app->appSecret();
 
         return $appSecret !== '' && $this->hasValidMetaSignature($request, $appSecret);
     }

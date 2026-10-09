@@ -109,7 +109,7 @@ class ChunkFitClientTest extends TestCase
         $client = new ChunkFitClient;
 
         $this->expectException(ChunkFitException::class);
-        $this->expectExceptionMessage('CHUNK_FIT_API_KEY');
+        $this->expectExceptionMessage('chunk.fit is not configured');
 
         $client->splitByTitle('text');
     }

@@ -17,6 +17,9 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 #[TypeScript]
 class ChatLogMessagesResourceData extends Data
 {
+    /**
+     * @param  LengthAwarePaginator<int, ChatLogMessageData>  $messages
+     */
     public function __construct(
         public LengthAwarePaginator $messages,
         public ?string $conversation_title,
@@ -24,6 +27,9 @@ class ChatLogMessagesResourceData extends Data
         public ChatLogHandoffStatusData $handoff,
     ) {}
 
+    /**
+     * @param  LengthAwarePaginator<int, Message>  $messages  a page of messages; it is turned into a page of {@see ChatLogMessageData} in place
+     */
     public static function fromPaginator(
         LengthAwarePaginator $messages,
         ChatLogHandoffStatusData $handoff,

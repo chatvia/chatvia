@@ -10,6 +10,11 @@ use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Demo data: gives the demo user a set of default topics and assigns them to
+ * the seeded conversations, so the topic analytics have something to show.
+ * Skipped in production.
+ */
 class TopicsSeeder extends Seeder
 {
     use SkipsInProduction;

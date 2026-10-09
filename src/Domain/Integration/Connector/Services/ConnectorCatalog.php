@@ -23,7 +23,7 @@ class ConnectorCatalog
      */
     public function all(): Collection
     {
-        return collect(config('connectors', []))
+        return collect(config()->array('connectors', []))
             ->filter(fn (array $entry) => $entry['visible'] ?? true)
             ->map(fn (array $entry): ConnectorData => ConnectorData::fromArray($entry))
             ->sortBy(fn (ConnectorData $c): int => $c->priority)

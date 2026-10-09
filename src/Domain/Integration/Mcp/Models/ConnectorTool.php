@@ -2,6 +2,7 @@
 
 namespace Domain\Integration\Mcp\Models;
 
+use Database\Factories\ConnectorToolFactory;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -45,6 +46,7 @@ use Pgvector\Laravel\Vector;
 #[Guarded(['id'])]
 class ConnectorTool extends Model
 {
+    /** @use HasFactory<ConnectorToolFactory> */
     use HasFactory;
 
     protected function casts(): array

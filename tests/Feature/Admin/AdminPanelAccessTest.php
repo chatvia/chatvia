@@ -9,9 +9,10 @@ use Filament\Facades\Filament;
  * guard and must never open /admin, so the panel's own login (and its optional
  * authenticator-app MFA) is always used.
  *
- * MFA is offered but not required (AdminPanelProvider `isRequired: false`, an
- * operator choice). Staff tools (Horizon, Telescope, Pulse, Spectra) still
- * require MFA — see StaffToolsAccess.
+ * MFA is required only in production (AdminPanelProvider
+ * `isRequired: App::isProduction()`); these tests run outside production, where
+ * it is offered but optional. Staff tools (Horizon, Telescope, Pulse, Spectra)
+ * always require MFA — see StaffToolsAccess.
  */
 beforeEach(function (): void {
     // fresh(): load every column, as a real request does (strict mode flags

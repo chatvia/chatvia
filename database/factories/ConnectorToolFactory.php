@@ -10,6 +10,9 @@ use Domain\Integration\Mcp\Models\ConnectorTool;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Builds a row of the shared connector tool catalog: a write tool that needs
+ * approval by default and has no embeddings yet.
+ *
  * @extends Factory<ConnectorTool>
  */
 class ConnectorToolFactory extends Factory

@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * Teaches the schema builder about the Postgres extensions the knowledge base
+ * needs (the `bm25vector` column type from VectorChord-BM25) and keeps
+ * `db:wipe` / `migrate:fresh` working while the pg_tokenizer extension owns its
+ * own tables.
+ */
 class DatabaseServiceProvider extends ServiceProvider
 {
     public function register(): void {}

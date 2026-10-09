@@ -31,11 +31,13 @@ class TikToken
         return count(self::getEncoder()->encode($text));
     }
 
+    /** @return list<int> */
     public static function encode(string $text): array
     {
         return self::getEncoder()->encode($text);
     }
 
+    /** @param  array<int>  $tokens */
     public static function decode(array $tokens): string
     {
         return self::getEncoder()->decode($tokens);

@@ -311,7 +311,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // prompt renders in place rather than 403-ing. Read-only — no mutations.
         Route::get('audit', AgentAuditController::class)->middleware('agent.permission:agent.audit.view')->name('audit');
 
-        // Per-agent Eval Suites (Agent Governance + Evals — Phase 1). View lists
+        // Per-agent Eval Suites. View lists
         // cases + recent runs; manage edits cases and triggers a run (async).
         // The `evals` capability (Standard+) hard-gates the mutations below and the
         // Vue page; the view routes stay open so the LockedFeature card can render.

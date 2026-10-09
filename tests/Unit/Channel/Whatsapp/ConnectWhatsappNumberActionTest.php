@@ -31,7 +31,7 @@ function fakeWhatsappOauth(?string $token = 'EAAG-business-token-value-xxxx'): M
 }
 
 beforeEach(function (): void {
-    config(['services.meta.whatsapp_register_pin' => '123456']);
+    config(['services.meta.whatsapp.register_pin' => '123456']);
 });
 
 it('connects a number: exchanges the code, subscribes the WABA, registers the number, stores the token encrypted', function (): void {
@@ -96,7 +96,7 @@ it('throws a rejection when Meta rejects the number after a valid code exchange'
 });
 
 it('skips number registration when no PIN is configured', function (): void {
-    config(['services.meta.whatsapp_register_pin' => null]);
+    config(['services.meta.whatsapp.register_pin' => null]);
 
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeWhatsappClient;

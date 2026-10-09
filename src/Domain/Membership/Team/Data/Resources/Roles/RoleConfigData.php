@@ -19,6 +19,9 @@ class RoleConfigData extends Data
         public array $permissions,
     ) {}
 
+    /**
+     * @param  array{name: string, description?: string|null, permissions?: list<string>}  $data
+     */
     public static function fromConfig(array $data): self
     {
         return new self(

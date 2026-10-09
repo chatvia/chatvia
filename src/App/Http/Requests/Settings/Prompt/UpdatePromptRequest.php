@@ -8,6 +8,11 @@ use Domain\Agent\Prompt\Models\AgentPrompt;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validates an edit of a saved prompt in the workspace Library. Authorization
+ * fails (403) unless the prompt in the route belongs to the caller's workspace;
+ * the name stays unique within the workspace.
+ */
 class UpdatePromptRequest extends FormRequest
 {
     private ?AgentPrompt $prompt = null;

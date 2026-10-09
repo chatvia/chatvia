@@ -18,9 +18,11 @@ return [
     |
     */
 
-    'key' => env('STRIPE_KEY'),
+    // Managed in the admin panel (Settings → Billing) and set when the app
+    // boots, like the webhook secret below.
+    'key' => null,
 
-    'secret' => env('STRIPE_SECRET'),
+    'secret' => null,
 
     /*
     |--------------------------------------------------------------------------
@@ -47,7 +49,7 @@ return [
     */
 
     'webhook' => [
-        'secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'secret' => null,
         'tolerance' => env('STRIPE_WEBHOOK_TOLERANCE', 300),
         'events' => WebhookCommand::DEFAULT_EVENTS,
     ],

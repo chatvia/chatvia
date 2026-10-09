@@ -3,6 +3,7 @@
 namespace Domain\Agent\Models;
 
 use App\Identity\Workspace\Models\User;
+use Database\Factories\AgentFactory;
 use Domain\Agent\Concerns\HasSettings;
 use Domain\Agent\Events\AgentToolsChanged;
 use Domain\Agent\Observers\AgentObserver;
@@ -146,7 +147,9 @@ use Support\MimeType;
 #[RouteKey('external_id')]
 class Agent extends Model
 {
+    /** @use HasFactory<AgentFactory> */
     use HasFactory;
+
     use HasMessagingChannels;
     use HasSettings {
         HasSettings::settings as protected baseSettings;
@@ -169,9 +172,9 @@ class Agent extends Model
      * The signing secret for this agent's chat (`?token=`) and widget
      * (`data-auth`) sign-in tokens; the customer needs it on their backend to
      * mint HS256 JWTs. Seeded at creation by {@see AgentObserver}, so this is a
-     * pure read on every normal path — the lazy generation is a legacy safety
-     * net for rows created before secrets were seeded and never fires on the
-     * GET render paths. Rotate explicitly via {@see regenerateAuthSecret()}.
+     * pure read on every normal path — the lazy generation is only a safety
+     * net for a row that has no secret yet. Rotate explicitly via
+     * {@see regenerateAuthSecret()}.
      */
     public function ensureAuthSecret(): string
     {
@@ -203,6 +206,8 @@ class Agent extends Model
      * Effective settings for a group — pulled from the agent's own
      * `model_settings` rows (HasSettings trait), with the config defaults
      * underneath.
+     *
+     * @return SupportCollection<string, mixed>
      */
     public function settings(string $group): SupportCollection
     {
@@ -211,8 +216,8 @@ class Agent extends Model
 
     /**
      * Whether a web surface (Hosted Chat, Widget, Command Bar) is enabled for this
-     * agent. Defaults to ON — an agent with no stored `surfaces` setting (every
-     * agent created before this feature) serves all three. Disabling one hides
+     * agent. Defaults to ON — an agent with no stored `surfaces` setting serves
+     * all three. Disabling one hides
      * that surface: Hosted Chat 404s, the Widget/Bar embed doesn't mount.
      */
     public function surfaceEnabled(ConversationSource $surface): bool
@@ -671,31 +676,37 @@ class Agent extends Model
         return $this->resolvedWorkspaceExternalId ??= $this->user()->value('external_id');
     }
 
-    public function wordFiles(): BelongsToMany
+    /** @return MorphToMany<SourceFile, $this, AgentSource> */
+    public function wordFiles(): MorphToMany
     {
         return $this->files()->whereIn('mime_type', MimeType::group('word'));
     }
 
-    public function pdfFiles(): BelongsToMany
+    /** @return MorphToMany<SourceFile, $this, AgentSource> */
+    public function pdfFiles(): MorphToMany
     {
         return $this->files()->whereIn('mime_type', MimeType::group('pdf'));
     }
 
-    public function audioFiles(): BelongsToMany
+    /** @return MorphToMany<SourceFile, $this, AgentSource> */
+    public function audioFiles(): MorphToMany
     {
         return $this->files()->whereIn('mime_type', MimeType::group('audio'));
     }
 
-    public function videoFiles(): BelongsToMany
+    /** @return MorphToMany<SourceFile, $this, AgentSource> */
+    public function videoFiles(): MorphToMany
     {
         return $this->files()->whereIn('mime_type', MimeType::group('video'));
     }
 
+    /** @return BelongsToMany<Topic, $this> */
     public function topics(): BelongsToMany
     {
         return $this->belongsToMany(Topic::class, 'agent_topic');
     }
 
+    /** @return AgentQueryBuilder<self> */
     public function newEloquentBuilder($query): AgentQueryBuilder
     {
         return new AgentQueryBuilder($query);

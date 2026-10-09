@@ -33,8 +33,8 @@ enum PiiFilterType: string
     }
 
     /**
-     * On for a freshly-enabled agent. The previously-always-on identifiers stay
-     * on; region-specific national IDs are opt-in (they overlap with ordinary
+     * On for a freshly-enabled agent. The common identifiers (email, card, US
+     * SSN, phone) are on; region-specific national IDs are opt-in (they overlap with ordinary
      * numbers, so a workspace should choose them deliberately).
      */
     public function enabledByDefault(): bool

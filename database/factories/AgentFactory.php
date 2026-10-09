@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
+ * Builds a private agent, with a new owner unless `user_id` is given. The team
+ * defaults to the owner's primary team, created on the fly when the owner has
+ * none, so every agent satisfies the NOT NULL `team_id`.
+ *
  * @extends Factory<Agent>
  */
 class AgentFactory extends Factory

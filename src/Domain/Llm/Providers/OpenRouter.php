@@ -16,7 +16,7 @@ class OpenRouter extends AbstractLlmProvider
     /**
      * Get the headers for API requests.
      *
-     * @return array The headers array
+     * @return array<string, string> The headers array
      */
     public function headers(): array
     {
@@ -56,7 +56,7 @@ class OpenRouter extends AbstractLlmProvider
      * Returns the raw data object with tokens_prompt, tokens_completion, total_cost, etc.
      *
      * @param  string  $generationId  The generation ID
-     * @return array|null The generation data or null on failure
+     * @return array<string, mixed>|null The generation data or null on failure
      */
     public function getGenerationCost(string $generationId): ?array
     {

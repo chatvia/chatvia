@@ -8,7 +8,9 @@ use App\Identity\Workspace\Actions\Account\CreateAdminUserAction;
 use Spatie\LaravelData\Data;
 
 /**
- * Inputs for {@see CreateAdminUserAction}.
+ * Inputs for {@see CreateAdminUserAction}: the name, email and plain-text
+ * password of a new platform admin. The action hashes the password; this object
+ * never leaves the console command that builds it.
  */
 class CreateAdminUserData extends Data
 {

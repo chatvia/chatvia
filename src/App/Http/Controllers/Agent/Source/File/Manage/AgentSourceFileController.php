@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Agent\Source\File\Manage;
 use App\Http\Requests\Agent\Source\File\ListSourceFilesRequest;
 use Domain\Agent\Data\Resources\Sources\SourceFileDataResource;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Support\MimeType;
 
@@ -17,6 +18,9 @@ use Support\MimeType;
  */
 class AgentSourceFileController
 {
+    /**
+     * @return Collection<int, SourceFileDataResource>
+     */
     public function __invoke(ListSourceFilesRequest $request, Agent $agent): Collection
     {
         $files = $this->filesOfType($agent, $request->fileType())
@@ -31,9 +35,9 @@ class AgentSourceFileController
      * text, Markdown, ebooks, images), i.e. everything except audio and video,
      * which have their own pages.
      *
-     * @return BelongsToMany<SourceFile, Agent>
+     * @return MorphToMany<SourceFile, Agent, AgentSource>
      */
-    private function filesOfType(Agent $agent, ?string $fileType): BelongsToMany
+    private function filesOfType(Agent $agent, ?string $fileType): MorphToMany
     {
         return match ($fileType) {
             'pdf' => $agent->pdfFiles(),

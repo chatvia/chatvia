@@ -2,6 +2,7 @@
 
 namespace Domain\Form\Models;
 
+use Database\Factories\FormDefinitionFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Form\Enums\FormType;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -44,6 +45,7 @@ use Support\Concerns\HasExternalId;
 #[RouteKey('external_id')]
 class FormDefinition extends Model
 {
+    /** @use HasFactory<FormDefinitionFactory> */
     use HasExternalId, HasFactory;
 
     /** The capability (builtin connector) an agent needs to show its forms in chat. */
@@ -89,6 +91,9 @@ class FormDefinition extends Model
         }
     }
 
+    /**
+     * @param  Builder<self>  $query
+     */
     #[Scope]
     protected function forAgent(Builder $query, Agent $agent): void
     {

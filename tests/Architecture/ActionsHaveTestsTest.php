@@ -20,22 +20,7 @@
  * test files (e.g. TakeoverAndReturnConversationActionsTest covers two
  * Actions in one file) work without renaming.
  */
-const UNTESTED_ACTIONS_ALLOWLIST = [
-    'AttachExistingTopicToAgentAction',
-    'BroadcastChatTypingAction',
-    'BuildConversationPulseAction',
-    'CreateQaFromMessageReviseAction',
-    'DetachTopicFromAgentAction',
-    'FindWidgetConversationAction',
-    'ListAccountConnectorsAction',
-    'ListAgentConnectorsAction',
-    'ListAgentConversationsAction',
-    'ListAgentFunctionsAction',
-    'ListAgentVisitorCountriesAction',
-    'ListConnectorToolsAction',
-    'ListConversationMessagesAction',
-    'UnlinkSourceFileFromAgentAction',
-];
+const UNTESTED_ACTIONS_ALLOWLIST = [];
 
 /** Discover all Action class files in src/ and return their basenames sans .php */
 function allActionClassNames(): array
@@ -106,7 +91,7 @@ it('every Action either has a test or is on the explicit allowlist', function ()
         'New Action(s) without a test:',
         ...array_map(fn (string $n): string => "  - {$n}", $newUntested),
         '',
-        'Either add a test (preferred — see CLAUDE.md test conventions)',
+        'Either add a test (preferred — see ARCHITECTURE.md, "Tests")',
         'or add the class short-name to UNTESTED_ACTIONS_ALLOWLIST in this file.',
     ]));
 

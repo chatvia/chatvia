@@ -99,6 +99,7 @@ export default defineConfig({
         {
           text: 'Self-hosting',
           items: [
+            { text: 'Install and run', link: '/guide/self-hosting/' },
             { text: 'AI providers', link: '/guide/self-hosting/ai-providers' },
           ],
         },

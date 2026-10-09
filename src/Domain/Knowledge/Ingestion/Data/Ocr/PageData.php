@@ -39,6 +39,7 @@ final class PageData extends Data
      */
     public static function fromJson(string $json): Collection
     {
+        /** @var list<array<string, mixed>> $pages */
         $pages = json_decode($json, true);
 
         return collect($pages)->map(fn ($page): PageData => new PageData(...$page));

@@ -7,6 +7,11 @@ use Domain\Agent\Data\Account\UpdateAgentData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates a partial update of an agent from the dashboard: name, subdomain,
+ * and either custom system instructions or a saved prompt (never both). Fields
+ * that are absent are left unchanged.
+ */
 class UpdateAgentRequest extends FormRequest
 {
     /**

@@ -10,6 +10,11 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
+/**
+ * Public API: validates creating an agent in one of the workspace's teams.
+ * Takes a name, the team id, whether the agent is public, and either system
+ * instructions or a saved prompt id.
+ */
 class StoreApiAgentRequest extends FormRequest
 {
     /**

@@ -8,6 +8,12 @@ use Domain\Agent\Data\Settings\UpdateAgentDomainData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validates the custom domain of an agent's Hosted Chat. The value must be a
+ * bare hostname (no scheme or path) and must not be the platform's own host; an
+ * empty value clears the domain. Agent access and the `agent.setup` permission
+ * are checked by the route middleware.
+ */
 class UpdateAgentDomainRequest extends FormRequest
 {
     public function authorize(): bool

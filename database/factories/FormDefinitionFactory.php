@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
+ * Builds an active lead-capture form ("Contact us") with name, email and
+ * message fields. It reuses an existing agent when there is one, otherwise it
+ * creates one.
+ *
  * @extends Factory<FormDefinition>
  */
 class FormDefinitionFactory extends Factory

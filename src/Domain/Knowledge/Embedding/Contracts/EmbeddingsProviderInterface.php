@@ -20,6 +20,8 @@ interface EmbeddingsProviderInterface
     /**
      * Generate embeddings for a single text, treating it as a document
      * (content to be indexed and later retrieved).
+     *
+     * @return ($returnAsText is true ? string : array<int, float>) the vector, or its pgvector text literal (`[0.1,0.2,...]`) when $returnAsText is true
      */
     public function embed(string $text, bool $returnAsText = false): string|array;
 
@@ -39,6 +41,8 @@ interface EmbeddingsProviderInterface
      * query-side conventions (Qwen3 instruction prefix, Cohere
      * input_type=search_query, etc.). Providers without such conventions
      * should delegate to embed().
+     *
+     * @return ($returnAsText is true ? string : array<int, float>) the vector, or its pgvector text literal (`[0.1,0.2,...]`) when $returnAsText is true
      */
     public function embedQuery(string $text, bool $returnAsText = false): string|array;
 

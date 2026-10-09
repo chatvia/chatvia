@@ -19,6 +19,9 @@ use Inertia\Response;
  */
 class TicketController
 {
+    /**
+     * @return Collection<int, Ticket>
+     */
     public function index(Request $request): Collection
     {
         return $request->user()

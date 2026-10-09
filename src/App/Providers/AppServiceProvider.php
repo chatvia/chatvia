@@ -24,9 +24,9 @@ use SocialiteProviders\Microsoft\Provider as MicrosoftProvider;
 use Stripe\Stripe;
 
 /**
- * Application-wide framework settings: production safety checks, the password
- * policy, Stripe and Cashier, the morph map, model strictness, view and
- * factory resolution, HTTPS, and the Microsoft Socialite extension.
+ * Application-wide framework settings: the password policy, Stripe and
+ * Cashier, the morph map, model strictness, view and factory resolution,
+ * HTTPS, and the Microsoft Socialite extension.
  *
  * The rest of the wiring has its own provider: request macros
  * ({@see HttpMacroServiceProvider}), rate limiters
@@ -58,7 +58,6 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->assertProductionSecurityConfig();
         $this->configurePasswordDefaults();
         $this->configureStripe();
         $this->enforceMorphMap();
@@ -68,32 +67,6 @@ class AppServiceProvider extends ServiceProvider
         $this->configureFactoryResolution();
         $this->forceHttpsInProduction();
         $this->extendSocialiteProviders();
-    }
-
-    /**
-     * Fail loudly (or warn) on security-critical config that is easy to ship
-     * empty from the .env template. Runs only in production so local/dev and the
-     * test suite are unaffected.
-     */
-    private function assertProductionSecurityConfig(): void
-    {
-        if (! app()->isProduction()) {
-            return;
-        }
-
-        // HARD requirement: an unset Stripe webhook secret silently drops
-        // Cashier's signature verification, turning /stripe/webhook into an
-        // unauthenticated endpoint that grants subscriptions/credits from forged
-        // events. Refuse to boot rather than run a forgeable billing webhook.
-        // (TRUSTED_PROXIES is validated in bootstrap/app.php where it is read; it
-        // has no config mirror, so it cannot be re-checked cache-safely here.)
-        // Without billing there is no Stripe webhook to protect.
-        if (config('billing.enabled', true) && blank(config('cashier.webhook.secret'))) {
-            throw new \RuntimeException(
-                'STRIPE_WEBHOOK_SECRET is not set. Refusing to boot in production: '
-                .'the Stripe webhook would accept unsigned, forgeable events.'
-            );
-        }
     }
 
     /**

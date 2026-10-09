@@ -59,6 +59,7 @@ use Illuminate\Support\Carbon;
 #[Table(name: 'source_website_urls')]
 class AgentWebsiteUrl extends Model implements ChunkableContract
 {
+    /** @return BelongsTo<SourceWebsite, $this> */
     public function agentWebsite(): BelongsTo
     {
         return $this->belongsTo(SourceWebsite::class, 'source_website_id');
@@ -66,8 +67,8 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
 
     /**
      * Values `chunk_references.referenceable_type` can hold for a URL: the
-     * morph alias, plus the class name that workers still running the
-     * previous release may write until they restart.
+     * morph alias, plus the class name, which a queue worker still running
+     * older code may write until it restarts.
      *
      * @return list<string>
      */
@@ -76,6 +77,7 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
         return [(new self)->getMorphClass(), self::class];
     }
 
+    /** @return HasManyThrough<Chunk, ChunkReference, $this> */
     public function chunks(): HasManyThrough
     {
         return $this->hasManyThrough(

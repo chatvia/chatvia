@@ -8,6 +8,9 @@ use Domain\Billing\Models\UserUsage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Builds an empty usage row (no messages, credits or tokens used) for a credit
+ * period. The caller sets `user_credit_id`.
+ *
  * @extends Factory<UserUsage>
  */
 class UserUsageFactory extends Factory

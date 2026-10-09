@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Webhooks;
 
 use App\Http\Controllers\Webhooks\Concerns\InteractsWithMetaWebhooks;
+use Domain\Channel\Enums\MetaApp;
 use Domain\Channel\Messenger\Actions\ReceiveMessengerMessagesAction;
 use Domain\Channel\Messenger\Data\MessengerInboundMessageData;
 use Illuminate\Http\JsonResponse;
@@ -26,12 +27,12 @@ class MessengerWebhookController
 
     public function verify(Request $request): Response
     {
-        return $this->metaChallengeResponse($request, config('services.meta.webhook_verify_token'));
+        return $this->metaChallengeResponse($request, MetaApp::Messenger->webhookVerifyToken());
     }
 
     public function receive(Request $request, ReceiveMessengerMessagesAction $receive): JsonResponse
     {
-        if ($this->isSignedByMeta($request)) {
+        if ($this->isSignedByMeta($request, MetaApp::Messenger)) {
             $receive->execute(MessengerInboundMessageData::listFromWebhook($request->all()));
         }
 

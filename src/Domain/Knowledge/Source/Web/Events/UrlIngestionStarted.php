@@ -8,6 +8,7 @@ use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Support\Carbon;
 
 /**
  * Tells the website's URL list that one page's status changed (training
@@ -35,6 +36,7 @@ class UrlIngestionStarted implements ShouldBroadcastNow
         return 'UrlIngestionStarted';
     }
 
+    /** @return array{id: int, url: string, status: string|null, crawled_at: Carbon|null} */
     public function broadcastWith(): array
     {
         return [

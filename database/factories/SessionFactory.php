@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Support\Localization\Country\Models\Country;
 
 /**
+ * Builds an anonymous visitor session for a fresh agent, usually with a country
+ * picked from the seeded `countries` table.
+ *
  * @extends Factory<Session>
  */
 class SessionFactory extends Factory

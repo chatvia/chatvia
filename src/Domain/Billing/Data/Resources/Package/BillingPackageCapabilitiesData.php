@@ -85,6 +85,9 @@ class BillingPackageCapabilitiesData extends Data
         );
     }
 
+    /**
+     * @param  array<string, bool|int>  $capabilities  a plan's `capabilities` config: feature flags plus `retentionDays`
+     */
     public static function fromArray(array $capabilities): self
     {
         return new self(

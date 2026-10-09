@@ -8,6 +8,7 @@ use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -81,6 +82,7 @@ trait Chunkable
         return min($progress, 99);
     }
 
+    /** @return MorphOne<Chunk, $this> */
     public function summary(): MorphOne
     {
         return $this
@@ -97,13 +99,19 @@ trait Chunkable
      */
     public function images(): array
     {
-        // @> containment hits the GIN index on chunks.metadata; the previous
-        // `jsonb_typeof(metadata->'images')` shape was unindexable.
+        // `@>` containment can use the GIN index on chunks.metadata; a
+        // `jsonb_typeof(metadata->'images')` test could not.
         return $this->chunks()
             ->where('metadata', '@>', '{"images": {}}')
             ->selectRaw("metadata->'images' AS images")
             ->pluck('images')
-            ->flatMap(fn ($json) => collect(is_string($json) ? json_decode($json, true) : (array) $json)->keys())
+            ->flatMap(function (mixed $json): Collection {
+                // The containment filter above guarantees `images` is a JSON object.
+                /** @var array<string, mixed> $images */
+                $images = is_string($json) ? json_decode($json, true) : (array) $json;
+
+                return collect($images)->keys();
+            })
             ->unique()
             ->map(fn (string $path): string => Storage::disk('public')->url($path))
             ->values()

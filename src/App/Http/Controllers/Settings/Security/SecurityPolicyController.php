@@ -17,8 +17,8 @@ use Laravel\Pennant\Feature;
 use Support\Localization\Country\Models\Country;
 
 /**
- * Workspace Security & Compliance settings — Phase 1 surfaces the network access
- * control (IP allowlist + geo). Viewing requires the `account.security` team
+ * Workspace Security & Compliance settings: the network access control (IP
+ * allowlist and country rules). Viewing requires the `account.security` team
  * permission; non-Enterprise workspaces see an upsell teaser (the `entitled`
  * flag). Saving additionally requires the `security` entitlement, enforced by
  * the `features:security` middleware on the update route.

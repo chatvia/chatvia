@@ -37,6 +37,7 @@ class WebsiteIngestionProgressed implements ShouldBroadcastNow
         return 'WebsiteIngestionProgressed';
     }
 
+    /** @return array{website_id: int, progress: int} */
     public function broadcastWith(): array
     {
         return [

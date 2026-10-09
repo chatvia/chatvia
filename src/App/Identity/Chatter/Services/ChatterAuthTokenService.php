@@ -46,6 +46,8 @@ class ChatterAuthTokenService
 
     /**
      * Retrieve cached token data.
+     *
+     * @return array{user_id: int, agent_id: int}|null
      */
     public function getTokenData(string $token): ?array
     {

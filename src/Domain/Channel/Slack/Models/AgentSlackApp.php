@@ -39,6 +39,7 @@ class AgentSlackApp extends Model
         return $this->belongsTo(Agent::class);
     }
 
+    /** @return HasMany<SlackChannel, $this> */
     public function channels(): HasMany
     {
         return $this->hasMany(SlackChannel::class);

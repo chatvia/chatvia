@@ -17,8 +17,8 @@ class CompleteOnboardingController
     /**
      * Mark the signed-in user as onboarded — fired when they finish or skip the
      * first-run welcome tour. A trivial single-column timestamp write with no
-     * rule, transaction, or event, so it stays inline here per the Actions
-     * carve-out in CLAUDE.md rather than behind an Action.
+     * rule, transaction, or event, so it stays inline here (see "Actions" under
+     * "Conventions" in ARCHITECTURE.md) rather than behind an Action.
      *
      * Idempotent: the timestamp is stamped once and left alone on repeat calls,
      * so the original onboarding moment is preserved.

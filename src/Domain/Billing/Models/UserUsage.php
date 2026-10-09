@@ -2,6 +2,7 @@
 
 namespace Domain\Billing\Models;
 
+use Database\Factories\UserUsageFactory;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -38,10 +39,18 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class UserUsage extends Model
 {
+    /** @use HasFactory<UserUsageFactory> */
     use HasFactory;
 
+    /**
+     * The credit period this usage row counts against. The column is
+     * `user_credit_id`, not the `credit_id` Eloquent would guess from the
+     * method name.
+     *
+     * @return BelongsTo<UserCredit, $this>
+     */
     public function credit(): BelongsTo
     {
-        return $this->belongsTo(UserCredit::class);
+        return $this->belongsTo(UserCredit::class, 'user_credit_id');
     }
 }

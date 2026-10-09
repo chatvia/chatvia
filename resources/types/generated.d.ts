@@ -116,7 +116,10 @@ declare namespace Domain {
                             tone: string | null;
                         };
                         export type ChatLogConversationsResourceData = {
-                            conversations: Illuminate.LengthAwarePaginatorInterface;
+                            conversations: Illuminate.LengthAwarePaginatorInterface<
+                                number,
+                                Domain.Agent.Data.Resources.ChatLog.Conversations.ChatLogConversationData
+                            >;
                             lead_conversation_ids: number[];
                         };
                     }
@@ -179,7 +182,7 @@ declare namespace Domain {
                             read_at: string | null;
                         };
                         export type ChatLogMessagesResourceData = {
-                            messages: Illuminate.LengthAwarePaginator;
+                            messages: Illuminate.LengthAwarePaginator<number, Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData>;
                             conversation_title: string | null;
                             lead: Domain.Agent.Data.Resources.ChatLog.Handoff.ChatLogLeadData | null;
                             handoff: Domain.Agent.Data.Resources.ChatLog.Handoff.ChatLogHandoffStatusData;
@@ -805,7 +808,7 @@ declare namespace Domain {
                 description: string;
                 icon: string;
                 context_window: number;
-                features: Array<any>;
+                features: Record<string, boolean>;
                 location: string;
                 is_reasoning: boolean;
                 credits: number;

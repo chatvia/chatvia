@@ -7,6 +7,9 @@ use Domain\Agent\Prompt\Models\AgentPrompt;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Builds a saved prompt for the workspace Library, owned by a fresh workspace
+ * user.
+ *
  * @extends Factory<AgentPrompt>
  */
 class AgentPromptFactory extends Factory

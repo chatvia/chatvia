@@ -40,6 +40,7 @@ class EvalRunProgressed implements ShouldBroadcastNow
         return 'EvalRunProgressed';
     }
 
+    /** @return array{run: array<string, mixed>} */
     public function broadcastWith(): array
     {
         return [

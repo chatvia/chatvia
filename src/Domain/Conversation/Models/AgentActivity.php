@@ -73,12 +73,20 @@ class AgentActivity extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     #[Scope]
     protected function forWorkspace(Builder $query, int $workspaceId): Builder
     {
         return $query->where('workspace_id', $workspaceId);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     #[Scope]
     protected function forAgent(Builder $query, int $agentId): Builder
     {

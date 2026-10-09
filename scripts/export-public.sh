@@ -123,7 +123,10 @@ check_marker() {
     done < <(grep -rnIiF $excludes -- "$marker" . 2>/dev/null | cut -d: -f1,2 | sed 's#^\./##' || true)
 }
 
-check_marker '0.0.0.0' 'production server IP'
+# The address is built from its parts: the literal was scrubbed from this
+# repository's history (git filter-repo --replace-text), so it must not
+# come back as a single string.
+check_marker "$(printf '%s.%s.%s.%s' 195 201 164 31)" 'production server IP'
 check_marker 'ahmad@mayahi.net' 'personal e-mail address' skip-lockfiles
 check_marker 'ahmad.mayahi@gmail.com' 'personal e-mail address' skip-lockfiles
 check_marker 'ce82c941-' 'cloud project id'

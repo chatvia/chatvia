@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth\Social;
 
+use Illuminate\Http\RedirectResponse;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
 
@@ -12,7 +13,7 @@ use Laravel\Socialite\Two\AbstractProvider;
  */
 final class GithubAuthController
 {
-    public function __invoke()
+    public function __invoke(): RedirectResponse
     {
         /** @var AbstractProvider $provider */
         $provider = Socialite::driver('github');

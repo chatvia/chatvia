@@ -6,6 +6,12 @@ use Domain\Agent\Data\Account\UpdateAgentData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Actions\ResolveAgentPromptIdAction;
 
+/**
+ * Saves the dashboard's agent edit form: name, subdomain and persona. Only the
+ * fields the request sent are written. The persona is either a library prompt
+ * or custom instructions, never both: setting one clears the other. Returns a
+ * fresh copy of the agent.
+ */
 class UpdateAgentAction
 {
     public function __construct(

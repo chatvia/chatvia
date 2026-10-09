@@ -57,7 +57,7 @@ trait ResolvesTeamMembership
     /**
      * Check if a team is the user's primary team.
      */
-    public function isPrimaryTeam($team): bool
+    public function isPrimaryTeam(Team $team): bool
     {
         $primaryTeam = $this->primaryTeam();
 

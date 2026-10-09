@@ -19,6 +19,8 @@ abstract class AbstractEmbeddingsProvider implements EmbeddingsProviderInterface
      * query-side conventions (Qwen3 instruction prefix, etc.) override
      * `doEmbedQuery()`; the cache key is keyed on the raw text so the
      * prefix doesn't leak into the key.
+     *
+     * @return ($returnAsText is true ? string : array<int, float>) the vector, or its pgvector text literal (`[0.1,0.2,...]`) when $returnAsText is true
      */
     final public function embedQuery(string $text, bool $returnAsText = false): string|array
     {

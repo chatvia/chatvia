@@ -15,6 +15,9 @@ use Illuminate\Http\Request;
  */
 class AgentWebsiteLinkController
 {
+    /**
+     * @return Paginator<int, AgentWebsiteUrl>
+     */
     public function index(Request $request, Agent $agent, SourceWebsite $website): Paginator
     {
         // {website} binds globally by id — confirm it belongs to this agent so

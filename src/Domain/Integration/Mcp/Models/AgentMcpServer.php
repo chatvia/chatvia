@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -105,7 +104,7 @@ use Support\Concerns\HasExternalId;
 #[RouteKey('external_id')]
 class AgentMcpServer extends Model implements AttachableToAgents
 {
-    use HasExternalId, HasFactory;
+    use HasExternalId;
 
     /**
      * How long one MCP request may take before it times out. Long-running
@@ -164,6 +163,9 @@ class AgentMcpServer extends Model implements AttachableToAgents
         });
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

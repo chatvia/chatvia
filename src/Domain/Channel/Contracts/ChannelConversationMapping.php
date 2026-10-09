@@ -6,6 +6,9 @@ namespace Domain\Channel\Contracts;
 
 use Domain\Channel\Concerns\MapsChannelConversation;
 use Domain\Channel\Services\ChannelConversationResolver;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Session;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -21,8 +24,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 interface ChannelConversationMapping
 {
+    /** @return BelongsTo<Session, covariant Model> */
     public function session(): BelongsTo;
 
+    /** @return BelongsTo<Conversation, covariant Model> */
     public function conversation(): BelongsTo;
 
     /** The external id of the Session this row maps to. */

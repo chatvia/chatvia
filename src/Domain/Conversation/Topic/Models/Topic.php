@@ -15,6 +15,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 /**
+ * A subject a conversation can be about ("Billing", "Shipping", ...). The
+ * conversation analysis tags each conversation with the topics of its agent
+ * (see {@see ConversationTopic}), and the chat log and topic trends read those
+ * tags. A topic without a `user_id` is a system topic shared by every
+ * workspace and cannot be edited; one with a `user_id` belongs to that
+ * workspace. Agents choose their topics through the `agent_topic` pivot.
+ *
  * @property int $id
  * @property int|null $user_id
  * @property string $topic
@@ -45,33 +52,39 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class Topic extends Model
 {
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsToMany<Agent, $this> */
     public function agents(): BelongsToMany
     {
         return $this->belongsToMany(Agent::class, 'agent_topic');
     }
 
+    /** @return BelongsToMany<Conversation, $this> */
     public function conversations(): BelongsToMany
     {
         return $this->belongsToMany(Conversation::class, 'conversation_topics', 'topic_id', 'chat_conversation_id');
     }
 
+    /** @param  Builder<self>  $query */
     #[Scope]
     protected function system(Builder $query): void
     {
         $query->whereNull('user_id');
     }
 
+    /** @param  Builder<self>  $query */
     #[Scope]
     protected function userDefined(Builder $query): void
     {
         $query->whereNotNull('user_id');
     }
 
+    /** @param  Builder<self>  $query */
     #[Scope]
     protected function forUser(Builder $query, User $user): void
     {

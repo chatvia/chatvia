@@ -12,5 +12,5 @@ use Illuminate\Http\Request;
  */
 class BillingSubscribeFailureController
 {
-    public function __invoke(Request $request) {}
+    public function __invoke(Request $request): void {}
 }

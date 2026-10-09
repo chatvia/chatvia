@@ -10,13 +10,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 
 /**
- * The credentials saved in the admin panel are stored encrypted and override
- * the .env values in config, so the code that reads config needs no change.
- */
-
-/**
- * A store that has not applied anything yet, so it takes the config set by the
- * test as the .env values.
+ * The credentials saved in the admin panel are stored encrypted and put into
+ * config, so the code that reads config needs no change. The admin panel is
+ * the only source: .env is not read for these keys.
  */
 function freshSettingsStore(): SettingsStore
 {
@@ -33,15 +29,22 @@ function saveAdminSettings(SettingGroup $group, ?array $payload): AdminSetting
     return $setting;
 }
 
-it('puts saved values in config over the .env values', function (): void {
-    config(['services.google.client_id' => 'env-id', 'services.google.client_secret' => 'env-secret']);
+it('puts saved values in config and empties the rest', function (): void {
+    config(['services.google.client_id' => 'old-id', 'services.google.client_secret' => 'old-secret']);
     $store = freshSettingsStore();
 
     saveAdminSettings(SettingGroup::GoogleLogin, ['client_id' => 'saved-id']);
     $store->apply();
 
     expect(config('services.google.client_id'))->toBe('saved-id')
-        ->and(config('services.google.client_secret'))->toBe('env-secret');
+        ->and(config('services.google.client_secret'))->toBeNull();
+});
+
+it('uses the callback URL of this app for a redirect with nothing saved', function (): void {
+    freshSettingsStore()->apply();
+
+    expect(config('services.google.redirect'))->toBe(url('/auth/google/callback'))
+        ->and(config('services.meta.instagram.redirect'))->toBe(url('/my/channels/instagram/oauth/callback'));
 });
 
 it('stores the payload encrypted', function (): void {
@@ -53,8 +56,7 @@ it('stores the payload encrypted', function (): void {
         ->and(json_decode(Crypt::decryptString($raw), true))->toBe(['secret' => 'sk_test_plaintext']);
 });
 
-it('goes back to the .env value when a saved value is removed', function (): void {
-    config(['services.mistral.api_key' => 'env-key']);
+it('empties a value removed in the panel in a running process', function (): void {
     $store = freshSettingsStore();
 
     $setting = saveAdminSettings(SettingGroup::Mistral, ['api_key' => 'saved-key']);
@@ -64,7 +66,7 @@ it('goes back to the .env value when a saved value is removed', function (): voi
     $setting->forgetValue(SettingGroup::Mistral->fields()[0], null);
     $store->apply();
 
-    expect(config('services.mistral.api_key'))->toBe('env-key')
+    expect(config('services.mistral.api_key'))->toBeNull()
         ->and($setting->fresh()->payload)->toBeNull();
 });
 
@@ -80,16 +82,15 @@ it('applies changes before a queued job runs', function (): void {
     expect(cache('firecrawl-key-seen-by-job'))->toBe('fc-saved');
 });
 
-it('keeps the .env value when a payload cannot be decrypted', function (): void {
+it('skips a payload it cannot decrypt instead of failing', function (): void {
     Exceptions::fake();
-    config(['services.cohere.api_key' => 'env-key']);
     DB::table('admin_settings')->insert(['key' => 'cohere', 'payload' => 'not-ciphertext', 'created_at' => now(), 'updated_at' => now()]);
 
     $store = freshSettingsStore();
     $store->forget();
     $store->apply();
 
-    expect(config('services.cohere.api_key'))->toBe('env-key');
+    expect(config('services.cohere.api_key'))->toBeNull();
     Exceptions::assertReported(DecryptException::class);
 });
 
@@ -106,18 +107,16 @@ it('skips rows of groups that no longer exist', function (): void {
     $store->apply();
 })->throwsNoExceptions();
 
-it('reports where a group gets its values from', function (array $env, ?array $saved, SettingStatus $status): void {
-    config(['services.google.client_id' => $env['id'] ?? null, 'services.google.client_secret' => $env['secret'] ?? null]);
-    $store = freshSettingsStore();
-
+it('reports whether a group has the values it needs', function (?array $saved, SettingStatus $status): void {
     $setting = $saved === null ? null : saveAdminSettings(SettingGroup::GoogleLogin, $saved);
 
-    expect($store->status(SettingGroup::GoogleLogin, $setting))->toBe($status);
+    expect(freshSettingsStore()->status(SettingGroup::GoogleLogin, $setting))->toBe($status);
 })->with([
-    'nothing set' => [[], null, SettingStatus::Missing],
-    'all in .env' => [['id' => 'a', 'secret' => 'b'], null, SettingStatus::FromEnv],
-    'saved over .env' => [['id' => 'a'], ['client_secret' => 'b'], SettingStatus::Configured],
-    'secret missing' => [[], ['client_id' => 'a'], SettingStatus::Incomplete],
+    'nothing saved' => [null, SettingStatus::Missing],
+    'empty row' => [[], SettingStatus::Missing],
+    'secret missing' => [['client_id' => 'a'], SettingStatus::Incomplete],
+    'only the optional redirect' => [['redirect' => 'https://example.com/cb'], SettingStatus::Incomplete],
+    'every required value' => [['client_id' => 'a', 'client_secret' => 'b'], SettingStatus::Configured],
 ]);
 
 it('keeps a blank secret and drops other blank fields when saving an edit', function (): void {
@@ -138,4 +137,53 @@ it('maps every field to a config key that exists', function (): void {
             expect(config()->has($field->config))->toBeTrue("{$group->value}.{$field->name} → {$field->config}");
         }
     }
+});
+
+it('moves the old .env values into the panel without overwriting saved ones', function (): void {
+    saveAdminSettings(SettingGroup::Stripe, ['key' => 'pk_saved_in_panel']);
+
+    putenv('STRIPE_KEY=pk_from_env');
+    putenv('STRIPE_SECRET=sk_from_env');
+    putenv('FIRECRAWL_API_KEY=fc_from_env');
+
+    try {
+        (require database_path('migrations/2026_10_09_204518_move_env_credentials_into_admin_settings.php'))->up();
+    } finally {
+        putenv('STRIPE_KEY');
+        putenv('STRIPE_SECRET');
+        putenv('FIRECRAWL_API_KEY');
+    }
+
+    expect(AdminSetting::forGroup(SettingGroup::Stripe)->payload)->toBe(['key' => 'pk_saved_in_panel', 'secret' => 'sk_from_env'])
+        ->and(AdminSetting::forGroup(SettingGroup::Firecrawl)->payload)->toBe(['api_key' => 'fc_from_env'])
+        ->and(AdminSetting::query()->where('key', SettingGroup::Mistral)->exists())->toBeFalse();
+});
+
+it('copies the one shared Meta app from .env into each channel', function (): void {
+    $env = [
+        'META_APP_ID' => '1029384756',
+        'META_APP_SECRET' => 'meta-secret',
+        'META_WEBHOOK_VERIFY_TOKEN' => 'verify-me',
+        'META_LOGIN_CONFIG_ID' => 'cfg-shared',
+        'META_INSTAGRAM_LOGIN_CONFIG_ID' => 'cfg-instagram',
+        'META_WHATSAPP_REGISTER_PIN' => '482915',
+    ];
+
+    foreach ($env as $name => $value) {
+        putenv("{$name}={$value}");
+    }
+
+    try {
+        (require database_path('migrations/2026_10_09_204518_move_env_credentials_into_admin_settings.php'))->up();
+    } finally {
+        foreach (array_keys($env) as $name) {
+            putenv($name);
+        }
+    }
+
+    $app = ['app_id' => '1029384756', 'app_secret' => 'meta-secret', 'webhook_verify_token' => 'verify-me'];
+
+    expect(AdminSetting::forGroup(SettingGroup::Messenger)->payload)->toBe([...$app, 'config_id' => 'cfg-shared'])
+        ->and(AdminSetting::forGroup(SettingGroup::Instagram)->payload)->toBe([...$app, 'config_id' => 'cfg-instagram'])
+        ->and(AdminSetting::forGroup(SettingGroup::Whatsapp)->payload)->toBe([...$app, 'config_id' => 'cfg-shared', 'register_pin' => '482915']);
 });

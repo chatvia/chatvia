@@ -19,6 +19,9 @@ class BillingPackageFeaturesData extends Data
         public Collection $yearly,
     ) {}
 
+    /**
+     * @param  array{monthly?: list<string>, yearly?: list<string>}  $features
+     */
     public static function fromArray(array $features): self
     {
         return new self(

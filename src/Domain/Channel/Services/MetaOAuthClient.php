@@ -3,14 +3,15 @@
 namespace Domain\Channel\Services;
 
 use Domain\Channel\Data\MetaPageData;
+use Domain\Channel\Enums\MetaApp;
 use Domain\Channel\Instagram\Data\InstagramAccountData;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * OAuth + token-exchange against Chatvia's own Meta app (one app for every
- * workspace — customers no longer create their own). It builds the Facebook
+ * OAuth + token-exchange against Chatvia's own Meta app (shared by every
+ * workspace, so no workspace creates its own). It builds the Facebook
  * Login for Business authorize URL, swaps the returned code for a long-lived
  * user token, and lists the Pages (each carrying its own long-lived page
  * access token) the user just granted. Shared groundwork: Messenger uses it
@@ -55,17 +56,16 @@ class MetaOAuthClient
     public const WHATSAPP_SCOPES = 'whatsapp_business_management,whatsapp_business_messaging,business_management';
 
     /**
-     * Build the Facebook authorize URL. Uses the Login-for-Business `config_id`
-     * when configured (permissions come from the configuration); otherwise it
-     * falls back to a classic `scope` request. `configId`/`redirectUri` let a
-     * channel override the shared defaults (Instagram has its own callback).
+     * Build the Facebook authorize URL for a channel's app. Uses the app's
+     * Login-for-Business `config_id` when configured (permissions come from the
+     * configuration); otherwise it falls back to a classic `scope` request.
      */
-    public function authorizeUrl(string $state, string $scopes, ?string $configId = null, ?string $redirectUri = null): string
+    public function authorizeUrl(MetaApp $app, string $state, string $scopes): string
     {
-        $appId = (string) config('services.meta.app_id');
-        $redirect = (string) ($redirectUri ?: config('services.meta.redirect'));
-        $configId ??= config('services.meta.config_id');
-        $usingConfig = is_string($configId) && $configId !== '';
+        $appId = $app->appId();
+        $redirect = (string) $app->redirectUri();
+        $configId = $app->configId();
+        $usingConfig = $configId !== null;
 
         $params = [
             'client_id' => $appId,
@@ -75,7 +75,7 @@ class MetaOAuthClient
         ];
 
         if ($usingConfig) {
-            $params['config_id'] = (string) $configId;
+            $params['config_id'] = $configId;
         } else {
             $params['scope'] = $scopes;
         }
@@ -86,7 +86,7 @@ class MetaOAuthClient
             'app_id' => $appId,
             'redirect_uri' => $redirect,
             'mode' => $usingConfig ? 'config_id' : 'scope',
-            'config_id' => $usingConfig ? (string) $configId : null,
+            'config_id' => $configId,
             'scopes' => $usingConfig ? null : $scopes,
             'graph_version' => $this->version(),
         ]);
@@ -96,14 +96,14 @@ class MetaOAuthClient
 
     /**
      * Swap the OAuth code for a long-lived user access token (~60 days), or
-     * null on failure. The `redirectUri` MUST match the one used in
-     * {@see authorizeUrl()}.
+     * null on failure. It must be the app (and so the redirect URL) that
+     * {@see authorizeUrl()} used.
      */
-    public function exchangeCodeForUserToken(string $code, ?string $redirectUri = null): ?string
+    public function exchangeCodeForUserToken(MetaApp $app, string $code): ?string
     {
-        $appId = (string) config('services.meta.app_id');
-        $appSecret = (string) config('services.meta.app_secret');
-        $redirect = (string) ($redirectUri ?: config('services.meta.redirect'));
+        $appId = $app->appId();
+        $appSecret = $app->appSecret();
+        $redirect = (string) $app->redirectUri();
 
         Log::debug('Meta OAuth: exchanging code for user token', [
             'has_app_id' => $appId !== '',
@@ -151,8 +151,8 @@ class MetaOAuthClient
      */
     public function exchangeEmbeddedSignupCode(string $code): ?string
     {
-        $appId = (string) config('services.meta.app_id');
-        $appSecret = (string) config('services.meta.app_secret');
+        $appId = MetaApp::Whatsapp->appId();
+        $appSecret = MetaApp::Whatsapp->appSecret();
 
         Log::debug('Meta OAuth: exchanging Embedded Signup code for business token', [
             'has_app_id' => $appId !== '',

@@ -5,6 +5,10 @@ namespace Database\Seeders;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Seeder;
 
+/**
+ * Loads the model catalog (`llms` table) from `database/data/llms.json`,
+ * creating or updating each model by its internal name.
+ */
 class LlmSeeder extends Seeder
 {
     /**

@@ -24,8 +24,8 @@ beforeEach(function (): void {
     $this->verifyToken = Str::random(32);
     $this->appSecret = 'c1d2e3f4a5b6c1d2e3f4a5b6c1d2e3f4';
     config([
-        'services.meta.webhook_verify_token' => $this->verifyToken,
-        'services.meta.app_secret' => $this->appSecret,
+        'services.meta.whatsapp.webhook_verify_token' => $this->verifyToken,
+        'services.meta.whatsapp.app_secret' => $this->appSecret,
     ]);
     $agent = Agent::factory()->create();
     $this->number = AgentWhatsappNumber::create([

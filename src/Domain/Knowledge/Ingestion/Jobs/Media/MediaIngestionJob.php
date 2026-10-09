@@ -27,9 +27,9 @@ class MediaIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQ
 
     public bool $deleteWhenMissingModels = true;
 
-    public $tries = 2;
+    public int $tries = 2;
 
-    public $timeout = 86000;
+    public int $timeout = 86000;
 
     public function __construct(public SourceFile $sourceFile, public Agent $agent)
     {

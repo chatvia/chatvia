@@ -3,6 +3,7 @@
 namespace Domain\Agent\Prompt\Models;
 
 use App\Identity\Workspace\Models\User;
+use Database\Factories\AgentPromptFactory;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
@@ -35,6 +36,7 @@ use Support\Concerns\HasExternalId;
 #[RouteKey('external_id')]
 class AgentPrompt extends Model
 {
+    /** @use HasFactory<AgentPromptFactory> */
     use HasExternalId, HasFactory;
 
     /**

@@ -171,11 +171,11 @@ return [
         // GitHub doesn't support Dynamic Client Registration — you must
         // register an OAuth App at https://github.com/settings/applications/new
         // (callback URL: APP_URL + '/connectors/oauth/callback') and put
-        // the credentials into the env vars below.
+        // the credentials in the admin panel (Settings → Connectors).
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://api.githubcopilot.com/mcp/',
-        'oauth_client_id' => env('GITHUB_OAUTH_CLIENT_ID'),
-        'oauth_client_secret' => env('GITHUB_OAUTH_CLIENT_SECRET'),
+        'oauth_client_id' => null,
+        'oauth_client_secret' => null,
         'oauth_authorization_endpoint' => 'https://github.com/login/oauth/authorize',
         'oauth_token_endpoint' => 'https://github.com/login/oauth/access_token',
         'oauth_scopes' => 'repo read:org read:user user:email gist',
@@ -247,8 +247,8 @@ return [
         // each API in the Cloud Console project.
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://gmailmcp.googleapis.com/mcp/v1',
-        'oauth_client_id' => env('GOOGLE_CONNECTOR_OAUTH_CLIENT_ID'),
-        'oauth_client_secret' => env('GOOGLE_CONNECTOR_OAUTH_CLIENT_SECRET'),
+        'oauth_client_id' => null,
+        'oauth_client_secret' => null,
         'oauth_authorization_endpoint' => 'https://accounts.google.com/o/oauth2/v2/auth',
         'oauth_token_endpoint' => 'https://oauth2.googleapis.com/token',
         'oauth_scopes' => 'https://www.googleapis.com/auth/gmail.readonly',
@@ -266,8 +266,8 @@ return [
         'priority' => 30,
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://calendarmcp.googleapis.com/mcp/v1',
-        'oauth_client_id' => env('GOOGLE_CALENDAR_CLIENT_ID'),
-        'oauth_client_secret' => env('GOOGLE_CALENDAR_CLIENT_SECRET'),
+        'oauth_client_id' => null,
+        'oauth_client_secret' => null,
         'oauth_authorization_endpoint' => 'https://accounts.google.com/o/oauth2/v2/auth',
         'oauth_token_endpoint' => 'https://oauth2.googleapis.com/token',
         'oauth_scopes' => 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
@@ -283,11 +283,11 @@ return [
         'brand_color' => '0F9D58',
         'logo_url' => '/images/logos/connectors/google-drive.svg',
         'priority' => 40,
-        // Shares the GOOGLE_OAUTH_CLIENT_* env vars with Gmail / Calendar — see Gmail entry.
+        // Its OAuth client is set in the admin panel (Settings → Connectors) — see Gmail entry.
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://drivemcp.googleapis.com/mcp/v1',
-        'oauth_client_id' => env('GOOGLE_OAUTH_CLIENT_ID'),
-        'oauth_client_secret' => env('GOOGLE_OAUTH_CLIENT_SECRET'),
+        'oauth_client_id' => null,
+        'oauth_client_secret' => null,
         'oauth_authorization_endpoint' => 'https://accounts.google.com/o/oauth2/v2/auth',
         'oauth_token_endpoint' => 'https://oauth2.googleapis.com/token',
         'oauth_scopes' => 'https://www.googleapis.com/auth/drive.readonly',
@@ -305,11 +305,11 @@ return [
         'priority' => 20,
         // Slack does not support OAuth DCR. Register a Slack app at
         // https://api.slack.com/apps (Redirect URL: APP_URL + '/connectors/oauth/callback')
-        // and put the Client ID / Client Secret in the env vars below.
+        // and enter the Client ID / Client Secret in the admin panel (Settings → Connectors).
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://mcp.slack.com/mcp',
-        'oauth_client_id' => env('SLACK_OAUTH_CLIENT_ID'),
-        'oauth_client_secret' => env('SLACK_OAUTH_CLIENT_SECRET'),
+        'oauth_client_id' => null,
+        'oauth_client_secret' => null,
         'oauth_authorization_endpoint' => 'https://slack.com/oauth/v2_user/authorize',
         'oauth_token_endpoint' => 'https://slack.com/api/oauth.v2.user.access',
         'oauth_scopes' => 'search:read.public channels:history channels:read groups:history groups:read im:history im:read mpim:history mpim:read chat:write users:read',
@@ -400,13 +400,14 @@ return [
         'priority' => 45,
         // HubSpot's hosted MCP authenticates with OAuth 2.1 + PKCE but has no
         // open Dynamic Client Registration: create an "MCP Auth App" in HubSpot
-        // (Settings → Integrations → MCP Auth Apps) to get credentials, then set
-        // the env vars below. Callback URL: APP_URL + '/connectors/oauth/callback'.
+        // (Settings → Integrations → MCP Auth Apps) to get credentials, then enter
+        // them in the admin panel (Settings → Connectors). Callback URL:
+        // APP_URL + '/connectors/oauth/callback'.
         // The requested scopes must match those granted to the MCP Auth App.
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://mcp.hubspot.com',
-        'oauth_client_id' => env('HUBSPOT_OAUTH_CLIENT_ID'),
-        'oauth_client_secret' => env('HUBSPOT_OAUTH_CLIENT_SECRET'),
+        'oauth_client_id' => null,
+        'oauth_client_secret' => null,
         'oauth_authorization_endpoint' => 'https://app.hubspot.com/oauth/authorize',
         'oauth_token_endpoint' => 'https://api.hubapi.com/oauth/v1/token',
         'oauth_scopes' => 'crm.objects.contacts.read crm.objects.companies.read crm.objects.deals.read tickets',
@@ -454,8 +455,8 @@ return [
         // vars below. Callback URL: APP_URL + '/connectors/oauth/callback'.
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://mcp.box.com',
-        'oauth_client_id' => env('BOX_OAUTH_CLIENT_ID'),
-        'oauth_client_secret' => env('BOX_OAUTH_CLIENT_SECRET'),
+        'oauth_client_id' => null,
+        'oauth_client_secret' => null,
         'oauth_authorization_endpoint' => 'https://account.box.com/api/oauth2/authorize',
         'oauth_token_endpoint' => 'https://api.box.com/oauth2/token',
         'oauth_scopes' => 'root_readwrite',
@@ -474,11 +475,11 @@ return [
         // Asana's V2 MCP server (https://mcp.asana.com/v2/mcp) does not support
         // Dynamic Client Registration. Register an OAuth app at
         // https://app.asana.com/0/my-apps, add APP_URL + '/connectors/oauth/callback'
-        // to its redirect URLs (Asana allowlists them), then set the env vars below.
+        // to its redirect URLs (Asana allowlists them), then set them in the admin panel (Settings → Connectors).
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://mcp.asana.com/v2/mcp',
-        'oauth_client_id' => env('ASANA_OAUTH_CLIENT_ID'),
-        'oauth_client_secret' => env('ASANA_OAUTH_CLIENT_SECRET'),
+        'oauth_client_id' => null,
+        'oauth_client_secret' => null,
         'oauth_authorization_endpoint' => 'https://app.asana.com/-/oauth_authorize',
         'oauth_token_endpoint' => 'https://app.asana.com/-/oauth_token',
         'oauth_scopes' => 'default',

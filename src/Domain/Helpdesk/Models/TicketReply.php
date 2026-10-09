@@ -38,11 +38,17 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class TicketReply extends Model
 {
+    /**
+     * @return BelongsTo<Ticket, $this>
+     */
     public function ticket(): BelongsTo
     {
         return $this->belongsTo(Ticket::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

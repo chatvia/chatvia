@@ -24,6 +24,8 @@ export default defineConfigWithVueTs(
             // The embeddable widget is a separate vanilla-JS package with its
             // own package.json and eslint.config.js; lint it from widget/.
             'widget',
+            // Generated from PHP DTOs by `php artisan typescript:transform`.
+            'resources/types/generated.d.ts',
         ],
     },
     {

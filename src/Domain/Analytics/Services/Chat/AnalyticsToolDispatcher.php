@@ -3,10 +3,10 @@
 namespace Domain\Analytics\Services\Chat;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatchResult;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpClient;
 use Domain\Integration\Mcp\Services\McpToolDispatcher;
+use Domain\Integration\Tool\Data\ToolDispatchResult;
 use Throwable;
 
 /**

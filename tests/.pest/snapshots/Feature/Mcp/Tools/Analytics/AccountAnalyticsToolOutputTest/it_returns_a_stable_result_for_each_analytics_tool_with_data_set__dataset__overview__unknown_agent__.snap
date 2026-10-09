@@ -1,0 +1,29 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "This billing cycle: 0 messages (0 in, 0 AI) across 0 conversations from 0 visitors, 0 leads captured."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "incoming_messages": 0,
+        "ai_messages": 0,
+        "total_messages": 0,
+        "conversations": 0,
+        "unique_visitors": 0,
+        "leads": 0,
+        "avg_response_ms": null,
+        "positive_feedback": 0,
+        "negative_feedback": 0,
+        "tokens": 0,
+        "messages_used_this_cycle": 420,
+        "messages_limit_this_cycle": 1000
+    }
+}

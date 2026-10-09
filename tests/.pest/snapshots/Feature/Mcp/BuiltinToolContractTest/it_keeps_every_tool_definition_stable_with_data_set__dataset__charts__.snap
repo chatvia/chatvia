@@ -1,0 +1,819 @@
+[
+    {
+        "name": "render-bar-chart-tool",
+        "title": "Render Bar Chart Tool",
+        "description": "Render an interactive bar chart in the chat. Use for categorical comparisons:\n\"sales by region\", \"top 10 countries by population\", \"monthly visitors\", etc.\n\nInputs:\n  - categories: the labels on the category axis (e.g. [\"Mon\",\"Tue\",\"Wed\"])\n  - series: one or more bars per category. Each series is {name, data[]} where\n    data is aligned with categories. Add `stack` to a string key to stack\n    series sharing that key.\n  - orientation: \"vertical\" (default — bars rise from x-axis) or \"horizontal\"\n    (bars extend from y-axis, good for long category labels).\n\nFor bar+line dual-axis charts use `render-combo-chart` instead.",
+        "inputSchema": {
+            "properties": {
+                "categories": {
+                    "description": "Category labels on the category axis, e.g. [\"Mon\",\"Tue\",\"Wed\"] or [\"USA\",\"China\",\"India\"].",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "series": {
+                    "description": "One or more bar series. For a single grouped chart use multiple series without `stack`. For a stacked chart give each series the same `stack` key.",
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "description": "Series name shown in legend and tooltips.",
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Numeric values, one per category, in the same order as `categories`.",
+                                "items": {
+                                    "type": "number"
+                                },
+                                "type": "array"
+                            },
+                            "stack": {
+                                "description": "Optional stack key. Series sharing the same `stack` value are stacked.",
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "data"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "orientation": {
+                    "description": "Bar orientation. \"vertical\" (default) for standard column charts. \"horizontal\" works better when category labels are long.",
+                    "default": "vertical",
+                    "enum": [
+                        "vertical",
+                        "horizontal"
+                    ],
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Optional chart title shown at the top.",
+                    "type": "string"
+                },
+                "xAxisLabel": {
+                    "description": "Optional x-axis label.",
+                    "type": "string"
+                },
+                "yAxisLabel": {
+                    "description": "Optional y-axis label.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the chart shows. The LLM sees this on follow-up turns; users see the chart, not this text.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "categories",
+                "series",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "render-line-chart-tool",
+        "title": "Render Line Chart Tool",
+        "description": "Render an interactive line chart. Use for trends over time or ordered\ncategories: \"stock price over 5 years\", \"monthly active users\", \"temperature\nby hour\".\n\nInputs:\n  - xAxis: either categorical (months, quarters, country names) or time-based\n    (ISO date strings).\n  - series: one or more lines. Each is {name, data[]} aligned with xAxis.\n    Set `smooth: true` for a curved line, `area: true` to fill underneath.\n\nFor bar+line dual-axis charts use `render-combo-chart` instead.",
+        "inputSchema": {
+            "properties": {
+                "xAxis": {
+                    "description": "X-axis labels in display order. For category axis: [\"Jan\",\"Feb\",...] or country names. For time axis: ISO date strings [\"2024-01-01\",\"2024-02-01\",...].",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "xAxisType": {
+                    "description": "\"category\" (default) for evenly-spaced discrete labels. \"time\" for ISO date strings on a time-scaled axis.",
+                    "default": "category",
+                    "enum": [
+                        "category",
+                        "time"
+                    ],
+                    "type": "string"
+                },
+                "series": {
+                    "description": "One or more line series. Each data array must match the length of `xAxis`.",
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "description": "Series name shown in legend and tooltips.",
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Numeric values, one per xAxis entry, in the same order.",
+                                "items": {
+                                    "type": "number"
+                                },
+                                "type": "array"
+                            },
+                            "smooth": {
+                                "description": "If true, draw a smooth (Bezier) curve instead of straight segments.",
+                                "type": "boolean"
+                            },
+                            "area": {
+                                "description": "If true, fill the area under the line (good for cumulative/volume views).",
+                                "type": "boolean"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "data"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "description": "Optional chart title shown at the top.",
+                    "type": "string"
+                },
+                "xAxisLabel": {
+                    "description": "Optional x-axis label.",
+                    "type": "string"
+                },
+                "yAxisLabel": {
+                    "description": "Optional y-axis label.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the chart shows. The LLM sees this on follow-up turns; users see the chart, not this text.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "xAxis",
+                "series",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "render-pie-chart-tool",
+        "title": "Render Pie Chart Tool",
+        "description": "Render an interactive pie or donut chart. Use for share-of-whole comparisons:\n\"market share by browser\", \"expense breakdown\", \"votes per candidate\".\n\nInputs:\n  - data: array of {name, value} slices.\n  - donut: when true, leaves a hole in the middle (donut chart).\n\nKeep the slice count below ~8 for readability. Long-tail categories should be\ncollapsed into an \"Other\" slice by the caller.",
+        "inputSchema": {
+            "properties": {
+                "data": {
+                    "description": "Pie slices. Order doesn't matter; the chart sorts/colors them.",
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "description": "Slice label.",
+                                "type": "string"
+                            },
+                            "value": {
+                                "description": "Slice magnitude — percentages are computed automatically from these.",
+                                "type": "number"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "value"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "donut": {
+                    "description": "If true, render as a donut (hole in the middle). Default false.",
+                    "default": false,
+                    "type": "boolean"
+                },
+                "title": {
+                    "description": "Optional chart title shown at the top.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the chart shows.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "data",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "render-combo-chart-tool",
+        "title": "Render Combo Chart Tool",
+        "description": "Render a combination bar + line chart with dual y-axes. Use when two metrics\nshare an x-axis but have different scales: \"revenue (bars) vs. profit margin %\n(line)\", \"page views (bars) vs. conversion rate (line)\".\n\nInputs:\n  - categories: shared x-axis labels.\n  - barSeries: one or more bar series mapped to the LEFT y-axis.\n  - lineSeries: one or more line series mapped to the RIGHT y-axis.\n  - leftAxisLabel / rightAxisLabel: optional axis names.\n\nThe two y-axes are independent — the left scales to bar data, the right to\nline data. Don't try to render combos any other way; this is the one tool\nfor the job.",
+        "inputSchema": {
+            "properties": {
+                "categories": {
+                    "description": "Shared x-axis labels, e.g. [\"Q1\",\"Q2\",\"Q3\",\"Q4\"].",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "barSeries": {
+                    "description": "Bar series rendered against the LEFT y-axis. Typical: absolute amounts (revenue, count).",
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "description": "Series name.",
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Numeric values aligned with `categories`.",
+                                "items": {
+                                    "type": "number"
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "data"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "lineSeries": {
+                    "description": "Line series rendered against the RIGHT y-axis. Typical: rates, percentages, ratios.",
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "description": "Series name.",
+                                "type": "string"
+                            },
+                            "data": {
+                                "description": "Numeric values aligned with `categories`.",
+                                "items": {
+                                    "type": "number"
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "data"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "description": "Optional chart title shown at the top.",
+                    "type": "string"
+                },
+                "leftAxisLabel": {
+                    "description": "Optional name for the LEFT y-axis (bar series).",
+                    "type": "string"
+                },
+                "rightAxisLabel": {
+                    "description": "Optional name for the RIGHT y-axis (line series).",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the chart shows.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "categories",
+                "barSeries",
+                "lineSeries",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "render-scatter-chart-tool",
+        "title": "Render Scatter Chart Tool",
+        "description": "Render an interactive scatter or bubble chart. Use for distributions and\ntwo-variable correlations: \"GDP vs life expectancy\", \"user age vs session\nlength\", \"company revenue vs employee count\".\n\nInputs:\n  - series: one or more groups of points. Each point is {x, y}. Add a `size`\n    field to any point to make it a bubble chart (point area scales with size).\n  - xAxisLabel / yAxisLabel: optional axis names.\n\nIf you pass `size` on points, you're making a bubble chart — typically used\nwhen you want a third dimension (population, market cap, etc.).",
+        "inputSchema": {
+            "properties": {
+                "series": {
+                    "description": "One or more scatter series. Different series get different colors.",
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "description": "Group/series name shown in legend.",
+                                "type": "string"
+                            },
+                            "points": {
+                                "description": "Points in this series.",
+                                "items": {
+                                    "properties": {
+                                        "x": {
+                                            "description": "X coordinate.",
+                                            "type": "number"
+                                        },
+                                        "y": {
+                                            "description": "Y coordinate.",
+                                            "type": "number"
+                                        },
+                                        "size": {
+                                            "description": "Optional bubble size value (relative magnitude — the renderer normalizes across all points).",
+                                            "type": "number"
+                                        },
+                                        "label": {
+                                            "description": "Optional per-point label shown in tooltip.",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "required": [
+                                        "x",
+                                        "y"
+                                    ]
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "points"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "description": "Optional chart title.",
+                    "type": "string"
+                },
+                "xAxisLabel": {
+                    "description": "Optional x-axis label.",
+                    "type": "string"
+                },
+                "yAxisLabel": {
+                    "description": "Optional y-axis label.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the chart shows.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "series",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "render-radar-chart-tool",
+        "title": "Render Radar Chart Tool",
+        "description": "Render an interactive radar (spider) chart. Use for multi-axis comparisons\nacross the same set of dimensions: \"iPhone vs Pixel across battery, camera,\nperformance\", \"player stats across attack, defense, speed, accuracy\".\n\nInputs:\n  - indicators: the axes radiating from the center. Each is {name, max}.\n    Use `max` to set the upper bound per axis (allows different scales).\n  - series: each entry is one shape on the chart — {name, values[]}.\n    `values` must be aligned with `indicators` in length and order.\n\nLower-is-better axes (price, weight, latency): invert the values BEFORE passing\nthem in, or describe the axis as \"inverse price\" so the chart reads correctly.",
+        "inputSchema": {
+            "properties": {
+                "indicators": {
+                    "description": "At least 3 axes. Each axis has its own scale via `max`.",
+                    "minItems": 3,
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "description": "Axis label, e.g. \"Battery life\", \"Camera quality\".",
+                                "type": "string"
+                            },
+                            "max": {
+                                "description": "Upper bound for this axis. Different axes can have different maxes (e.g. battery hours vs camera score 0-100).",
+                                "type": "number"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "max"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "series": {
+                    "description": "Each series is one polygon on the chart.",
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "description": "Entity being scored, e.g. \"iPhone 16 Pro\".",
+                                "type": "string"
+                            },
+                            "values": {
+                                "description": "Scores per indicator, in the same order as the `indicators` array.",
+                                "items": {
+                                    "type": "number"
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "values"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "description": "Optional chart title.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the chart shows.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "indicators",
+                "series",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "render-heatmap-chart-tool",
+        "title": "Render Heatmap Chart Tool",
+        "description": "Render an interactive 2D heatmap. Use for matrix-style intensity data:\n\"temperature by month and hour of day\", \"page views by day-of-week and hour\",\n\"conversion rate by source × campaign\".\n\nInputs:\n  - xCategories: labels along the bottom axis.\n  - yCategories: labels along the left axis.\n  - data: cells as {x, y, value} where x and y refer to category NAMES\n    (not indices). Missing cells render as empty — fine to omit them.\n  - minValue / maxValue: optional color scale bounds. Auto-computed if omitted.\n\nThe chart auto-colors low → high using a sequential palette. Sparse matrices\nare fine; only include the cells you have data for.",
+        "inputSchema": {
+            "properties": {
+                "xCategories": {
+                    "description": "Labels along the bottom axis, e.g. [\"00:00\",\"01:00\",...,\"23:00\"].",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "yCategories": {
+                    "description": "Labels along the left axis, e.g. [\"Jan\",\"Feb\",...,\"Dec\"].",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "data": {
+                    "description": "Cells. Refer to categories by name; the tool maps to indices.",
+                    "items": {
+                        "properties": {
+                            "x": {
+                                "description": "Must be one of the entries in xCategories.",
+                                "type": "string"
+                            },
+                            "y": {
+                                "description": "Must be one of the entries in yCategories.",
+                                "type": "string"
+                            },
+                            "value": {
+                                "description": "Intensity at this cell. Color is computed from min/max.",
+                                "type": "number"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "x",
+                            "y",
+                            "value"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "minValue": {
+                    "description": "Optional lower bound for the color scale. Defaults to the minimum value in `data`.",
+                    "type": "number"
+                },
+                "maxValue": {
+                    "description": "Optional upper bound for the color scale. Defaults to the maximum value in `data`.",
+                    "type": "number"
+                },
+                "title": {
+                    "description": "Optional chart title.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the chart shows.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "xCategories",
+                "yCategories",
+                "data",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "render-gauge-chart-tool",
+        "title": "Render Gauge Chart Tool",
+        "description": "Render an interactive gauge (speedometer-style) chart for a single metric\nagainst a scale. Use for progress, completion, KPI status, scores:\n\"73% project completion\", \"API health 92/100\", \"SLA 4.2 / 5\".\n\nInputs:\n  - value: the number to point at.\n  - min / max: scale bounds (default 0 to 100).\n  - unit: optional suffix shown after the value (e.g. \"%\", \" req/s\").\n  - title: the metric name shown above.\n\nOnly one value per gauge — for multiple metrics, render multiple gauges in\nseparate tool calls or pick a different chart type.",
+        "inputSchema": {
+            "properties": {
+                "value": {
+                    "description": "The number the gauge points at, e.g. 73.",
+                    "type": "number"
+                },
+                "min": {
+                    "description": "Lower bound of the scale. Default 0.",
+                    "default": 0,
+                    "type": "number"
+                },
+                "max": {
+                    "description": "Upper bound of the scale. Default 100.",
+                    "default": 100,
+                    "type": "number"
+                },
+                "unit": {
+                    "description": "Optional suffix shown after the value, e.g. \"%\" or \" req/s\".",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Optional metric name shown above the gauge.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the gauge shows.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "value",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "render-sankey-chart-tool",
+        "title": "Render Sankey Chart Tool",
+        "description": "Render an interactive Sankey diagram for flow visualization. Use when showing\nhow a total splits or recombines through stages: \"budget flow from revenue\nthrough expenses to profit\", \"energy flow from sources to consumption\",\n\"user journey from landing → signup → activation → churn/retain\".\n\nInputs:\n  - links: each is {source, target, value}. Source and target are NODE NAMES.\n    Value is the magnitude of flow.\n  - nodes: optional explicit node list as {name}. If omitted, nodes are\n    auto-derived from the unique source/target names in links.\n\nThe diagram must be acyclic — A → B → A would break the layout.",
+        "inputSchema": {
+            "properties": {
+                "links": {
+                    "description": "All flows in the diagram. Nodes are auto-derived from these unless `nodes` is provided.",
+                    "items": {
+                        "properties": {
+                            "source": {
+                                "description": "Source node name. Must match a node either in `nodes` or one auto-derived from another link.",
+                                "type": "string"
+                            },
+                            "target": {
+                                "description": "Target node name. Must match a node either in `nodes` or one auto-derived from another link.",
+                                "type": "string"
+                            },
+                            "value": {
+                                "description": "Flow magnitude — ribbon thickness scales with this value.",
+                                "type": "number"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "source",
+                            "target",
+                            "value"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "nodes": {
+                    "description": "Optional explicit list of nodes. Use this when you want to order nodes or include isolated nodes (no links).",
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "description": "Node label.",
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "description": "Optional chart title.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the diagram shows.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "links",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "render-treemap-chart-tool",
+        "title": "Render Treemap Chart Tool",
+        "description": "Render an interactive treemap — hierarchical data as nested rectangles sized\nby value. Use for hierarchical share-of-whole views: \"companies by sector and\nmarket cap\", \"files by folder and disk size\", \"expenses by category and\nsub-category\".\n\nInputs:\n  - data: an array of nodes. Each node is {name, value?, children?}.\n    Leaves have `value`. Parent nodes can have `value` (sums of children) or\n    omit it and ECharts will sum the children automatically.\n    Nesting can go arbitrarily deep — `children` contains the same shape.\n\nClick rectangles to drill in. Click the breadcrumb at the top to zoom out.",
+        "inputSchema": {
+            "properties": {
+                "data": {
+                    "description": "Top-level nodes. Each node may contain `children` of the same shape, recursively.",
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "description": "Node label.",
+                                "type": "string"
+                            },
+                            "value": {
+                                "description": "Numeric size of this node. Required for leaves. For parents, can be omitted to use the sum of children.",
+                                "type": "number"
+                            },
+                            "children": {
+                                "description": "Optional array of child nodes with the same shape. Nest arbitrarily deep.",
+                                "type": "array"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "description": "Optional chart title.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the chart shows.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "data",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "render-sunburst-chart-tool",
+        "title": "Render Sunburst Chart Tool",
+        "description": "Render an interactive sunburst chart — hierarchical data as concentric rings.\nUse when nesting is meaningful and you want both proportions and hierarchy\nvisible at once: \"continents → countries → cities by population\", \"category\n→ subcategory → product breakdown\", \"kingdom → phylum → class taxonomy\".\n\nInputs:\n  - data: an array of nodes. Each node is {name, value?, children?}.\n    Leaves have `value`. Parents may have `value` (overrides sum of children)\n    or omit it (auto-summed).\n    Nesting is unlimited — `children` contains the same shape.\n\nClick a wedge to zoom into its subtree. Click the center to zoom out.",
+        "inputSchema": {
+            "properties": {
+                "data": {
+                    "description": "Top-level nodes. Each node may contain `children` of the same shape, recursively.",
+                    "items": {
+                        "properties": {
+                            "name": {
+                                "description": "Node label.",
+                                "type": "string"
+                            },
+                            "value": {
+                                "description": "Numeric size of this node. Required for leaves.",
+                                "type": "number"
+                            },
+                            "children": {
+                                "description": "Optional array of child nodes with the same shape. Nest arbitrarily deep.",
+                                "type": "array"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "name"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "title": {
+                    "description": "Optional chart title.",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the chart shows.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "data",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "render-candlestick-chart-tool",
+        "title": "Render Candlestick Chart Tool",
+        "description": "Render an interactive candlestick (OHLC) chart for financial time-series.\nUse for stock prices, crypto, forex, or any time-bucketed open/high/low/close\ndata: \"Bitcoin daily closes for the last 2 years\", \"AAPL weekly OHLC for\nQ4\", \"EUR/USD hourly\".\n\nInputs:\n  - data: each entry is {date, open, high, low, close} — standard OHLC order.\n    The tool converts to ECharts's internal [open, close, low, high] order\n    for you, so don't worry about it.\n  - title / yAxisLabel: optional.\n  - showSlider: default true. The chart always supports wheel/pinch zoom; the\n    slider adds a visible drag handle below.\n\nUp candles (close ≥ open) render green; down candles render red. Built-in\nzoom + pan via dataZoom so 500+ point series stay readable.",
+        "inputSchema": {
+            "properties": {
+                "data": {
+                    "description": "Time-ordered OHLC candles. Use the standard {open, high, low, close} order — the tool handles ECharts's internal swap.",
+                    "items": {
+                        "properties": {
+                            "date": {
+                                "description": "Time bucket label, e.g. \"2024-01-15\" or \"Q1 2025\". Used as the x-axis category.",
+                                "type": "string"
+                            },
+                            "open": {
+                                "description": "Opening price.",
+                                "type": "number"
+                            },
+                            "high": {
+                                "description": "Highest price during the period.",
+                                "type": "number"
+                            },
+                            "low": {
+                                "description": "Lowest price during the period.",
+                                "type": "number"
+                            },
+                            "close": {
+                                "description": "Closing price.",
+                                "type": "number"
+                            }
+                        },
+                        "type": "object",
+                        "required": [
+                            "date",
+                            "open",
+                            "high",
+                            "low",
+                            "close"
+                        ]
+                    },
+                    "type": "array"
+                },
+                "showSlider": {
+                    "description": "Show the visible zoom slider below the chart. Default true. Set false for a cleaner look when the user wants the chart to stay fixed; mouse-wheel zoom still works either way.",
+                    "default": true,
+                    "type": "boolean"
+                },
+                "title": {
+                    "description": "Optional chart title, e.g. \"BTC/USD Daily\".",
+                    "type": "string"
+                },
+                "yAxisLabel": {
+                    "description": "Optional y-axis label, e.g. \"Price (USD)\".",
+                    "type": "string"
+                },
+                "summary": {
+                    "description": "One sentence describing what the chart shows. The LLM sees this on follow-up turns; users see the chart, not this text.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "data",
+                "summary"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    }
+]

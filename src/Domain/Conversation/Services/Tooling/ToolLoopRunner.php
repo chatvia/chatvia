@@ -6,13 +6,19 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
+use Domain\Conversation\Services\Streaming\Sse\ToolCallPhase;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
-use Domain\Conversation\Services\Tooling\Access\ToolAccessDecision;
-use Domain\Conversation\Services\Tooling\Access\ToolAccessPolicy;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
-use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
-use Domain\Conversation\Services\Tooling\Registry\ToolDisplayResolver;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
+use Domain\Integration\Tool\Access\ToolAccessPolicy;
+use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
+use Domain\Integration\Tool\Data\ToolCallData;
+use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Enums\ToolAccessDecision;
+use Domain\Integration\Tool\Enums\ToolCallOutcome;
+use Domain\Integration\Tool\Enums\ToolKind;
+use Domain\Integration\Tool\Registry\ToolDisplayResolver;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Generator;
 use Illuminate\Support\Facades\Log;
@@ -33,6 +39,11 @@ use Throwable;
  * agent's configured provider, `PdfSource` runs it on the document LLM with a
  * PDF-augmented user turn. Each source owns its own start/finish envelope; the
  * runner only handles the iteration and tool plumbing.
+ *
+ * A "pending call" is the array shape below. It is stored as JSON on a
+ * ToolApprovalCheckpoint and read back on resume, so its keys must stay
+ * stable: tool_call_id, name, arguments, requires_approval, access, kind,
+ * label, activity_label, is_builtin, icon_url, brand_color, reason.
  */
 class ToolLoopRunner
 {
@@ -79,8 +90,6 @@ class ToolLoopRunner
         int $startIteration = 0,
         bool $captureToolCallsOnly = false,
     ): Generator {
-        $agent = $context->requestData->agent;
-        $assistantId = $context->assistantMessageId;
         $maxIterations = (int) config('chatvia.agent.tools.max_iterations');
         $iteration = $startIteration;
 
@@ -89,31 +98,12 @@ class ToolLoopRunner
         // dispatch below (an invented or stale name never reaches a backend,
         // so it cannot skip the surface filter, routing or approval).
         $offeredNames = $this->offeredToolNames($toolDefinitions);
+        $settings = $this->completionSettings($extraSettings, $toolDefinitions);
 
         while ($iteration < $maxIterations) {
-            $settings = $extraSettings;
-            if (! empty($toolDefinitions)) {
-                $settings['tools'] = $toolDefinitions;
-                $settings['tool_choice'] = 'auto';
-            }
-
             $context->offeredToolNames = $offeredNames;
 
-            $tracker = Spectra::stream(provider: $providerSlug, model: $modelName);
-            $context->spectraTracker = $tracker;
-
-            try {
-                $response = $provider->stream($modelName, $llmMessages, $settings);
-
-                yield from $this->transformer->transform($response, $context);
-
-                $tracker->finish();
-            } catch (Throwable $e) {
-                Spectra::recordFailure($tracker->getContext(), $e);
-                throw $e;
-            } finally {
-                $context->spectraTracker = null;
-            }
+            yield from $this->streamCompletion($context, $provider, $modelName, $providerSlug, $llmMessages, $settings);
 
             $toolCalls = $context->takeToolCalls();
             if ($toolCalls === []) {
@@ -125,72 +115,27 @@ class ToolLoopRunner
             // continue — and that's the point: an eval grades the decision, not
             // the (expensive, side-effecting) execution.
             if ($captureToolCallsOnly) {
-                foreach ($toolCalls as $tc) {
-                    $context->capturedToolCalls[] = ['name' => $tc['name'], 'arguments' => $tc['arguments']];
-                    $context->toolCallNames[] = $tc['name'];
-                }
+                $this->captureToolCalls($context, $toolCalls);
 
                 return false;
             }
 
             // Persist the assistant turn that requested tools, so the snapshot
             // (and the next iteration) carry it.
-            $llmMessages[] = [
-                'role' => 'assistant',
-                'content' => $context->streamedMessage,
-                'tool_calls' => array_map(static fn (array $tc): array => [
-                    'id' => $tc['id'],
-                    'type' => 'function',
-                    'function' => [
-                        'name' => $tc['name'],
-                        'arguments' => $tc['arguments'],
-                    ],
-                ], $toolCalls),
-            ];
+            $llmMessages[] = $this->assistantToolCallsMessage($context, $toolCalls);
 
-            // Refuse calls to tools that were not offered: answer them with a
-            // tool error right away (the model needs a result for every
-            // tool_call_id) and keep them away from approval and dispatch.
-            $offeredCalls = [];
-            foreach ($toolCalls as $tc) {
-                if (in_array($tc['name'], $offeredNames, true)) {
-                    $offeredCalls[] = $tc;
-
-                    continue;
-                }
-
-                $this->rejectUnofferedCall($context, $llmMessages, $tc);
-            }
-
-            // Resolve display + access decision once for every call in the turn.
-            $calls = $this->buildPendingCalls($agent, $offeredCalls);
-            $needsApproval = array_values(array_filter($calls, static fn (array $c): bool => $c['requires_approval']));
+            // Resolve display + access decision once for every offered call.
+            $calls = $this->buildPendingCalls(
+                $context->requestData->agent,
+                $this->rejectUnofferedCalls($context, $llmMessages, $toolCalls, $offeredNames),
+            );
 
             // If any call is gated, pause the whole turn (OpenAI needs a result
             // for every tool_call_id before the next assistant turn, so we
-            // cannot half-run it). Checkpoint, surface the cards, and stop. Any
-            // Deny (rate-limited) calls in the same turn are resolved on resume.
-            if ($needsApproval !== []) {
-                $checkpoint = $this->approvalStore->persist($context, $llmMessages, $calls, $iteration);
-
-                foreach ($needsApproval as $pc) {
-                    yield StreamEvent::tool(
-                        assistantMessageId: $assistantId,
-                        phase: 'awaiting_approval',
-                        toolCallId: $pc['tool_call_id'],
-                        name: $pc['name'],
-                        args: $pc['arguments'],
-                        kind: $pc['kind'],
-                        label: $pc['label'],
-                        activityLabel: $pc['activity_label'] ?? null,
-                        iconUrl: $pc['icon_url'],
-                        brandColor: $pc['brand_color'],
-                        approvalId: $checkpoint->external_id,
-                        reason: $pc['reason'],
-                    );
-                }
-
-                yield StreamEvent::done($assistantId, 'awaiting_approval');
+            // cannot half-run it). Any Deny (rate-limited) calls in the same
+            // turn are resolved on resume.
+            if (array_any($calls, static fn (array $call): bool => $call['requires_approval'])) {
+                yield from $this->pauseForApproval($context, $llmMessages, $calls, $iteration);
 
                 return true;
             }
@@ -198,13 +143,7 @@ class ToolLoopRunner
             // Nothing gated → resolve every call inline (Allow runs, Deny is
             // blocked + audited).
             foreach ($calls as $pc) {
-                if (($pc['access'] ?? null) === ToolAccessDecision::Deny->value) {
-                    yield from $this->denyCall($context, $llmMessages, $pc, 'rate_limited', self::RATE_LIMITED_RESULT);
-
-                    continue;
-                }
-
-                yield from $this->dispatchToolCall($context, $llmMessages, $pc);
+                yield from $this->resolveUngatedCall($context, $llmMessages, $pc);
             }
 
             // Drop the visible text buffer between iterations so the final
@@ -233,8 +172,8 @@ class ToolLoopRunner
             $decision = $decisions[$toolCallId] ?? null;
 
             // Rate-limited at gate time — blocked regardless of the human's call.
-            if (($pc['access'] ?? null) === ToolAccessDecision::Deny->value) {
-                yield from $this->denyCall($context, $llmMessages, $pc, 'rate_limited', self::RATE_LIMITED_RESULT);
+            if ($this->isRateLimited($pc)) {
+                yield from $this->denyCall($context, $llmMessages, $pc, ToolCallOutcome::RateLimited, self::RATE_LIMITED_RESULT);
 
                 continue;
             }
@@ -246,36 +185,198 @@ class ToolLoopRunner
                     'content' => self::DENIED_RESULT,
                 ];
 
-                $this->emitToolCallAudit($context, $pc, 'denied', self::DENIED_RESULT, false, null, decided: true);
+                $this->emitToolCallAudit($context, $pc, ToolCallOutcome::Denied, ToolDispatchResult::text(self::DENIED_RESULT), decided: true);
 
                 continue;
             }
 
             // Auto (never gated) or approved → run it for real.
-            $outcome = $requires ? 'approved' : 'auto';
+            $outcome = $requires ? ToolCallOutcome::Approved : ToolCallOutcome::Auto;
             yield from $this->dispatchToolCall($context, $llmMessages, $pc, $outcome, decided: $requires);
         }
     }
 
     /**
+     * The settings sent with every completion of the loop: the per-turn extras
+     * plus the offered tools, when there are any.
+     *
+     * @param  array<string, mixed>  $extraSettings
+     * @param  array<int, array<string, mixed>>  $toolDefinitions
+     * @return array<string, mixed>
+     */
+    private function completionSettings(array $extraSettings, array $toolDefinitions): array
+    {
+        if ($toolDefinitions === []) {
+            return $extraSettings;
+        }
+
+        return [...$extraSettings, 'tools' => $toolDefinitions, 'tool_choice' => 'auto'];
+    }
+
+    /**
+     * Stream one completion through the transformer, tracking its cost.
+     *
+     * @param  array<int, array<string, mixed>>  $llmMessages
+     * @param  array<string, mixed>  $settings
+     * @return Generator<int, StreamEvent>
+     */
+    private function streamCompletion(ChatContext $context, LlmProviderInterface $provider, string $modelName, string $providerSlug, array $llmMessages, array $settings): Generator
+    {
+        $tracker = Spectra::stream(provider: $providerSlug, model: $modelName);
+        $context->spectraTracker = $tracker;
+
+        try {
+            $response = $provider->stream($modelName, $llmMessages, $settings);
+
+            yield from $this->transformer->transform($response, $context);
+
+            $tracker->finish();
+        } catch (Throwable $e) {
+            Spectra::recordFailure($tracker->getContext(), $e);
+            throw $e;
+        } finally {
+            $context->spectraTracker = null;
+        }
+    }
+
+    /**
+     * @param  array<int, array{id: string, name: string, arguments: string}>  $toolCalls
+     */
+    private function captureToolCalls(ChatContext $context, array $toolCalls): void
+    {
+        foreach ($toolCalls as $tc) {
+            $context->capturedToolCalls[] = ['name' => $tc['name'], 'arguments' => $tc['arguments']];
+            $context->toolCallNames[] = $tc['name'];
+        }
+    }
+
+    /**
+     * The assistant message that requested the tools, in the OpenAI shape.
+     *
+     * @param  array<int, array{id: string, name: string, arguments: string}>  $toolCalls
+     * @return array<string, mixed>
+     */
+    private function assistantToolCallsMessage(ChatContext $context, array $toolCalls): array
+    {
+        return [
+            'role' => 'assistant',
+            'content' => $context->streamedMessage,
+            'tool_calls' => array_map(static fn (array $tc): array => [
+                'id' => $tc['id'],
+                'type' => 'function',
+                'function' => [
+                    'name' => $tc['name'],
+                    'arguments' => $tc['arguments'],
+                ],
+            ], $toolCalls),
+        ];
+    }
+
+    /**
+     * Refuse calls to tools that were not offered: answer them with a tool
+     * error right away (the model needs a result for every tool_call_id) and
+     * keep them away from approval and dispatch. Returns the offered calls.
+     *
+     * @param  array<int, array<string, mixed>>  $llmMessages
+     * @param  array<int, array{id: string, name: string, arguments: string}>  $toolCalls
+     * @param  array<int, string>  $offeredNames
+     * @return array<int, array{id: string, name: string, arguments: string}>
+     */
+    private function rejectUnofferedCalls(ChatContext $context, array &$llmMessages, array $toolCalls, array $offeredNames): array
+    {
+        $offeredCalls = [];
+
+        foreach ($toolCalls as $tc) {
+            if (in_array($tc['name'], $offeredNames, true)) {
+                $offeredCalls[] = $tc;
+
+                continue;
+            }
+
+            $this->rejectUnofferedCall($context, $llmMessages, $tc);
+        }
+
+        return $offeredCalls;
+    }
+
+    /**
+     * Checkpoint the turn, surface an approval card for every gated call, and
+     * end the stream until the user decides.
+     *
+     * @param  array<int, array<string, mixed>>  $llmMessages
+     * @param  array<int, array<string, mixed>>  $calls
+     * @return Generator<int, StreamEvent>
+     */
+    private function pauseForApproval(ChatContext $context, array $llmMessages, array $calls, int $iteration): Generator
+    {
+        $checkpoint = $this->approvalStore->persist($context, $llmMessages, $calls, $iteration);
+
+        foreach ($calls as $pc) {
+            if (! $pc['requires_approval']) {
+                continue;
+            }
+
+            yield StreamEvent::tool(
+                assistantMessageId: $context->assistantMessageId,
+                phase: ToolCallPhase::AwaitingApproval,
+                toolCallId: $pc['tool_call_id'],
+                name: $pc['name'],
+                args: $pc['arguments'],
+                kind: $pc['kind'],
+                label: $pc['label'],
+                activityLabel: $pc['activity_label'] ?? null,
+                iconUrl: $pc['icon_url'],
+                brandColor: $pc['brand_color'],
+                approvalId: $checkpoint->external_id,
+                reason: $pc['reason'],
+            );
+        }
+
+        yield StreamEvent::done($context->assistantMessageId, 'awaiting_approval');
+    }
+
+    /**
+     * Run an ungated call, or block it when the rate limit denied it.
+     *
+     * @param  array<int, array<string, mixed>>  $llmMessages
+     * @param  array<string, mixed>  $pc
+     * @return Generator<int, StreamEvent>
+     */
+    private function resolveUngatedCall(ChatContext $context, array &$llmMessages, array $pc): Generator
+    {
+        if ($this->isRateLimited($pc)) {
+            yield from $this->denyCall($context, $llmMessages, $pc, ToolCallOutcome::RateLimited, self::RATE_LIMITED_RESULT);
+
+            return;
+        }
+
+        yield from $this->dispatchToolCall($context, $llmMessages, $pc);
+    }
+
+    /**
+     * @param  array<string, mixed>  $pc
+     */
+    private function isRateLimited(array $pc): bool
+    {
+        return ($pc['access'] ?? null) === ToolAccessDecision::Deny->value;
+    }
+
+    /**
      * Dispatch one tool call, emitting `start`/`end` events, appending the
-     * `role: 'tool'` result, and recording the governance audit. `$pc` is a
-     * resolved call: tool_call_id, name, arguments, kind, label, icon_url,
-     * brand_color, access.
+     * `role: 'tool'` result, and recording the governance audit.
      *
      * @param  array<int, array<string, mixed>>  $llmMessages
      * @param  array<string, mixed>  $pc
      * @param  bool  $decided  true when a human resolved a gated call (sets decided_at)
      * @return Generator<int, StreamEvent>
      */
-    private function dispatchToolCall(ChatContext $context, array &$llmMessages, array $pc, string $outcome = 'auto', bool $decided = false): Generator
+    private function dispatchToolCall(ChatContext $context, array &$llmMessages, array $pc, ToolCallOutcome $outcome = ToolCallOutcome::Auto, bool $decided = false): Generator
     {
-        $agent = $context->requestData->agent;
         $assistantId = $context->assistantMessageId;
 
         yield StreamEvent::tool(
             assistantMessageId: $assistantId,
-            phase: 'start',
+            phase: ToolCallPhase::Start,
             toolCallId: $pc['tool_call_id'],
             name: $pc['name'],
             args: $pc['arguments'],
@@ -288,13 +389,12 @@ class ToolLoopRunner
         );
 
         $start = microtime(true);
-        $dispatched = $this->dispatcher->dispatch(
-            $agent,
+        $dispatched = $this->dispatcher->dispatch($context->requestData->agent, ToolCallData::named(
             $pc['name'],
             $pc['arguments'],
             $context->requestData->conversationId,
             $context->requestData->chatterExternalId,
-        );
+        ));
         $latencyMs = (int) round((microtime(true) - $start) * 1000);
 
         $context->toolCallNames[] = $pc['name'];
@@ -311,14 +411,14 @@ class ToolLoopRunner
 
         yield StreamEvent::tool(
             assistantMessageId: $assistantId,
-            phase: 'end',
+            phase: ToolCallPhase::End,
             toolCallId: $pc['tool_call_id'],
             name: $pc['name'],
             result: $dispatched->text,
             artifacts: $dispatched->artifacts !== [] ? $dispatched->artifacts : null,
         );
 
-        $this->emitToolCallAudit($context, $pc, $outcome, $dispatched->text, $dispatched->isError, $latencyMs, $decided);
+        $this->emitToolCallAudit($context, $pc, $outcome, $dispatched, $latencyMs, $decided);
     }
 
     /**
@@ -330,13 +430,11 @@ class ToolLoopRunner
      * @param  array<string, mixed>  $pc
      * @return Generator<int, StreamEvent>
      */
-    private function denyCall(ChatContext $context, array &$llmMessages, array $pc, string $outcome, string $message, bool $decided = false): Generator
+    private function denyCall(ChatContext $context, array &$llmMessages, array $pc, ToolCallOutcome $outcome, string $message): Generator
     {
-        $assistantId = $context->assistantMessageId;
-
         yield StreamEvent::tool(
-            assistantMessageId: $assistantId,
-            phase: 'end',
+            assistantMessageId: $context->assistantMessageId,
+            phase: ToolCallPhase::End,
             toolCallId: $pc['tool_call_id'],
             name: $pc['name'],
             result: $message,
@@ -348,7 +446,7 @@ class ToolLoopRunner
             'content' => $message,
         ];
 
-        $this->emitToolCallAudit($context, $pc, $outcome, $message, false, null, $decided);
+        $this->emitToolCallAudit($context, $pc, $outcome, ToolDispatchResult::text($message));
     }
 
     /**
@@ -404,8 +502,9 @@ class ToolLoopRunner
     private function buildPendingCalls(Agent $agent, array $toolCalls): array
     {
         return array_map(function (array $tc) use ($agent): array {
-            $display = $this->displayResolver->resolve($agent, $tc['name']);
-            $decision = $this->accessPolicy->decide($agent, $tc['name']);
+            $name = ToolName::parse($tc['name']);
+            $display = $this->displayResolver->resolve($agent, $name);
+            $decision = $this->accessPolicy->decide($agent, $name);
             $requires = $decision === ToolAccessDecision::RequiresApproval;
 
             return [
@@ -414,12 +513,12 @@ class ToolLoopRunner
                 'arguments' => $tc['arguments'],
                 'requires_approval' => $requires,
                 'access' => $decision->value,
-                'kind' => $display['kind'],
-                'label' => $display['label'],
-                'activity_label' => $display['activity_label'],
-                'is_builtin' => $display['is_builtin'],
-                'icon_url' => $display['icon_url'],
-                'brand_color' => $display['brand_color'],
+                'kind' => $display->kind->value,
+                'label' => $display->label,
+                'activity_label' => $display->activityLabel,
+                'is_builtin' => $display->isBuiltin,
+                'icon_url' => $display->iconUrl,
+                'brand_color' => $display->brandColor,
                 'reason' => $requires ? self::APPROVAL_REASON : null,
             ];
         }, $toolCalls);
@@ -433,16 +532,21 @@ class ToolLoopRunner
      *
      * @param  array<string, mixed>  $pc
      */
-    private function emitToolCallAudit(ChatContext $context, array $pc, string $outcome, ?string $resultText, bool $isError, ?int $latencyMs, bool $decided): void
+    private function emitToolCallAudit(ChatContext $context, array $pc, ToolCallOutcome $outcome, ToolDispatchResult $result, ?int $latencyMs = null, bool $decided = false): void
     {
         $rd = $context->requestData;
         $agent = $rd->agent;
-        $kind = (string) ($pc['kind'] ?? 'function');
-        [$connectorSlug, $toolName] = $this->toolOrigin((string) $pc['name'], $kind);
+        $kind = ToolKind::tryFrom((string) ($pc['kind'] ?? '')) ?? ToolKind::Function;
+
+        // No DB lookup — the connector display name comes from the already
+        // resolved display label.
+        $name = ToolName::parse((string) $pc['name']);
+        $connectorSlug = $kind === ToolKind::Mcp ? $name->serverSlug : null;
+        $toolName = $kind === ToolKind::Mcp ? $name->tool : $name->value;
 
         // First-party builtin capabilities (charts, forms, leads) are excluded
         // from the governance audit — they run directly and aren't logged.
-        if ($kind === 'mcp' && $connectorSlug !== null && $this->catalog->isBuiltinSlug($connectorSlug)) {
+        if ($connectorSlug !== null && $this->catalog->isBuiltinSlug($connectorSlug)) {
             return;
         }
 
@@ -457,38 +561,17 @@ class ToolLoopRunner
             requestId: $rd->requestId,
             toolCallId: (string) $pc['tool_call_id'],
             toolName: $toolName,
-            toolKind: $kind,
+            toolKind: $kind->value,
             connectorSlug: $connectorSlug,
             // For MCP tools the display label IS the connector/server name.
-            connectorName: $kind === 'mcp' ? ($pc['label'] ?? null) : null,
+            connectorName: $kind === ToolKind::Mcp ? ($pc['label'] ?? null) : null,
             arguments: (string) ($pc['arguments'] ?? ''),
-            resultText: $resultText,
-            isError: $isError,
+            resultText: $result->text,
+            isError: $result->isError,
             latencyMs: $latencyMs,
-            gated: in_array($outcome, ['approved', 'denied'], true),
-            approvalOutcome: $outcome,
+            gated: $outcome->wasGated(),
+            approvalOutcome: $outcome->value,
             decidedAt: $decided ? now()->toIso8601String() : null,
         );
-    }
-
-    /**
-     * Split a tool name into [connector_slug, unprefixed_tool_name]. For an MCP
-     * tool `mcp__{slug}__{tool}` → [slug, tool]; for a webhook function → [null,
-     * name]. No DB lookup — the connector display name comes from the already
-     * resolved display label.
-     *
-     * @return array{0: ?string, 1: string}
-     */
-    private function toolOrigin(string $name, string $kind): array
-    {
-        if ($kind !== 'mcp' || ! str_starts_with($name, 'mcp__')) {
-            return [null, $name];
-        }
-
-        $parts = explode('__', substr($name, 5), 2);
-        $slug = ($parts[0] ?? '') !== '' ? $parts[0] : null;
-        $tool = $parts[1] ?? $name;
-
-        return [$slug, $tool];
     }
 }

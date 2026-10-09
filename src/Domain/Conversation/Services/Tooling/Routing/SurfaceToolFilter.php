@@ -4,10 +4,11 @@ namespace Domain\Conversation\Services\Tooling\Routing;
 
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Services\Tooling\Registry\ToolEntry;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolName;
 use Illuminate\Support\Str;
 
 /**
@@ -58,7 +59,7 @@ class SurfaceToolFilter
         // ({@see AgentMcpServer::makeSlug}), so it matches the compiled tool name.
         $prefixes = $restricted
             ->reject(static fn (ConnectorData $c): bool => in_array($surface->value, $c->surfaces ?? [], true))
-            ->map(static fn (ConnectorData $c): string => 'mcp__'.AgentMcpServer::makeSlug($c->slug).'__')
+            ->map(static fn (ConnectorData $c): string => ToolName::mcpPrefix(AgentMcpServer::makeSlug($c->slug)))
             ->values()
             ->all();
 

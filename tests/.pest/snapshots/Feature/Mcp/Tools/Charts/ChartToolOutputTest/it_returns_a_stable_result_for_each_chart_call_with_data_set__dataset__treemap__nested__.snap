@@ -1,0 +1,76 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Market cap by sector."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "formatter": "{b}: {c}"
+            },
+            "series": [
+                {
+                    "type": "treemap",
+                    "data": [
+                        {
+                            "name": "Tech",
+                            "children": [
+                                {
+                                    "name": "Apple",
+                                    "value": 3
+                                },
+                                {
+                                    "name": "Bad node"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Energy",
+                            "value": 2
+                        }
+                    ],
+                    "roam": false,
+                    "leafDepth": 2,
+                    "label": {
+                        "show": true,
+                        "formatter": "{b}"
+                    },
+                    "upperLabel": {
+                        "show": true,
+                        "height": 24
+                    },
+                    "levels": [
+                        {
+                            "itemStyle": {
+                                "borderColor": "#fff",
+                                "borderWidth": 2,
+                                "gapWidth": 2
+                            }
+                        },
+                        {
+                            "itemStyle": {
+                                "borderColor": "#fff",
+                                "borderWidth": 1,
+                                "gapWidth": 1
+                            }
+                        },
+                        {
+                            "itemStyle": {
+                                "borderColor": "#fff",
+                                "borderWidth": 1,
+                                "gapWidth": 1
+                            }
+                        }
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Market cap",
+                "left": "center"
+            }
+        }
+    }
+}

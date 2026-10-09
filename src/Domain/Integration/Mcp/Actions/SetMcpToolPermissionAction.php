@@ -2,12 +2,12 @@
 
 namespace Domain\Integration\Mcp\Actions;
 
-use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Mcp\Data\McpToolPermissionData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Exceptions\McpToolNotFoundException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
+use Domain\Integration\Tool\Registry\ToolRegistry;
 use Illuminate\Support\Facades\DB;
 
 /**

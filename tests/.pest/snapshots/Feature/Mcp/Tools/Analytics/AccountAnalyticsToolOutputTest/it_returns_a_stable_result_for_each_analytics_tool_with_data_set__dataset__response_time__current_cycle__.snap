@@ -1,0 +1,23 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Avg reply this billing cycle: 1,475ms (p95 2,730ms, slowest 3,000ms), first reply ~3.3s."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "replies_measured": 4,
+        "avg_response_ms": 1475,
+        "p50_response_ms": 1050,
+        "p95_response_ms": 2730,
+        "max_response_ms": 3000,
+        "avg_first_response_seconds": 3.3
+    }
+}

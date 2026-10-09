@@ -1,0 +1,102 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Busiest this billing cycle around 09:00 UTC, most on Sunday."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "peak_hour_utc": 9,
+        "busiest_weekday": "Sunday",
+        "by_hour": [
+            {
+                "hour": 9,
+                "conversations": 3
+            },
+            {
+                "hour": 14,
+                "conversations": 2
+            },
+            {
+                "hour": 20,
+                "conversations": 2
+            },
+            {
+                "hour": 21,
+                "conversations": 3
+            }
+        ],
+        "by_weekday": [
+            {
+                "day": "Sunday",
+                "conversations": 5
+            },
+            {
+                "day": "Monday",
+                "conversations": 2
+            },
+            {
+                "day": "Wednesday",
+                "conversations": 1
+            },
+            {
+                "day": "Friday",
+                "conversations": 2
+            }
+        ],
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis",
+                "axisPointer": {
+                    "type": "shadow"
+                }
+            },
+            "legend": {
+                "show": false,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 50,
+                "bottom": 20,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [
+                    "09:00",
+                    "14:00",
+                    "20:00",
+                    "21:00"
+                ]
+            },
+            "yAxis": {
+                "type": "value"
+            },
+            "series": [
+                {
+                    "type": "bar",
+                    "name": "Conversations",
+                    "data": [
+                        3,
+                        2,
+                        2,
+                        3
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Activity by hour (UTC) — this billing cycle",
+                "left": "center"
+            }
+        }
+    }
+}

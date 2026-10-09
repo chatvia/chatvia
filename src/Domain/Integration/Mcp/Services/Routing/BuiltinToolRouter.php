@@ -2,8 +2,8 @@
 
 namespace Domain\Integration\Mcp\Services\Routing;
 
-use Domain\Conversation\Services\Tooling\Routing\ToolHybridSearch;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
+use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;

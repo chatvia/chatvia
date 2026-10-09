@@ -1,0 +1,29 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "All time: 10 messages (5 in, 5 AI) across 4 conversations from 4 visitors, 3 leads captured. Avg response 1,480ms. Feedback: 2👍 / 1👎."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "all_time",
+            "label": "all time",
+            "start": "2020-01-01",
+            "end": "2026-06-15"
+        },
+        "incoming_messages": 5,
+        "ai_messages": 5,
+        "total_messages": 10,
+        "conversations": 4,
+        "unique_visitors": 4,
+        "leads": 3,
+        "avg_response_ms": 1480,
+        "positive_feedback": 2,
+        "negative_feedback": 1,
+        "tokens": 580,
+        "messages_used_this_cycle": 420,
+        "messages_limit_this_cycle": 1000
+    }
+}

@@ -1,0 +1,158 @@
+[
+    {
+        "name": "web_search",
+        "title": "Perplexity Web Search Tool",
+        "description": "Quick web search for facts, recent events, news, prices, or anything that may have changed since training. Returns a short, cited answer. Use this for simple, single-shot lookups.",
+        "inputSchema": {
+            "properties": {
+                "query": {
+                    "description": "The natural-language question or topic to look up, e.g. \"who won the last European football cup\".",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "query"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true,
+            "openWorldHint": true
+        }
+    },
+    {
+        "name": "fetch_url",
+        "title": "Perplexity Fetch Url Tool",
+        "description": "Read the full contents of a specific web page. Use when you already have the URL and need what is on that page — optionally with a question to answer from it. Not a search; use web_search to find pages.",
+        "inputSchema": {
+            "properties": {
+                "url": {
+                    "description": "The absolute URL of the page to read, e.g. \"https://example.com/pricing\".",
+                    "type": "string"
+                },
+                "question": {
+                    "description": "Optional: what to answer or extract from the page. Omit to get the page contents.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "url"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true,
+            "openWorldHint": true
+        }
+    },
+    {
+        "name": "finance_search",
+        "title": "Perplexity Finance Search Tool",
+        "description": "Look up real-time market and company financial data — stock quotes, financials, earnings, market movers. Use for questions about tickers, share prices, or company fundamentals; use web_search for general news.",
+        "inputSchema": {
+            "properties": {
+                "query": {
+                    "description": "The financial question, naming the company or ticker, e.g. \"NVDA current share price\" or \"Apple latest quarterly earnings\".",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "query"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true,
+            "openWorldHint": true
+        }
+    },
+    {
+        "name": "people_search",
+        "title": "Perplexity People Search Tool",
+        "description": "Find structured public profile data about a person — role, company, background, public profiles. Use when the question is about who someone is; use web_search for news stories that merely mention a person.",
+        "inputSchema": {
+            "properties": {
+                "query": {
+                    "description": "Who to look up, with any disambiguating context, e.g. \"Lisa Su, CEO of AMD\" or \"Jane Doe, robotics researcher at ETH\".",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "query"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true,
+            "openWorldHint": true
+        }
+    },
+    {
+        "name": "ask",
+        "title": "Perplexity Ask Tool",
+        "description": "Ask Perplexity a question and get a thorough, reasoned answer synthesized from live web sources. Use when the question needs explanation, comparison, or step-by-step reasoning — not just a single fact.",
+        "inputSchema": {
+            "properties": {
+                "query": {
+                    "description": "The natural-language question or topic to look up on the live web, e.g. \"who won the last European football cup\" or \"compare the latest iPhone and Pixel cameras\".",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "query"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true,
+            "openWorldHint": true
+        }
+    },
+    {
+        "name": "research",
+        "title": "Perplexity Research Tool",
+        "description": "Deep, comprehensive web research across many sources, returning a detailed and well-cited report. Slower than web_search or ask — use only for complex, multi-faceted topics that genuinely need depth.",
+        "inputSchema": {
+            "properties": {
+                "query": {
+                    "description": "The natural-language question or topic to look up on the live web, e.g. \"who won the last European football cup\" or \"compare the latest iPhone and Pixel cameras\".",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "query"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true,
+            "openWorldHint": true
+        }
+    },
+    {
+        "name": "run_code",
+        "title": "Perplexity Run Code Tool",
+        "description": "Run code in an isolated sandbox to compute, analyze, or transform data — calculations, parsing, simulations. Describe the task (optionally with code to run) and get the program output plus an explanation. Nothing on your side is touched; the sandbox is remote and throwaway.",
+        "inputSchema": {
+            "properties": {
+                "task": {
+                    "description": "What to compute or analyze, e.g. \"calculate the monthly payment on a €300k loan at 3.8% over 25 years\". May include code to execute verbatim.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "task"
+            ]
+        },
+        "annotations": {
+            "openWorldHint": true
+        }
+    }
+]

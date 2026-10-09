@@ -1,0 +1,52 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Visitors per day."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis",
+                "axisPointer": {
+                    "type": "shadow"
+                }
+            },
+            "legend": {
+                "show": false,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 20,
+                "bottom": 20,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [
+                    "Mon",
+                    "Tue",
+                    "Wed"
+                ]
+            },
+            "yAxis": {
+                "type": "value"
+            },
+            "series": [
+                {
+                    "type": "bar",
+                    "name": "Visitors",
+                    "data": [
+                        10,
+                        20.5,
+                        30
+                    ]
+                }
+            ]
+        }
+    }
+}

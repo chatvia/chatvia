@@ -1,0 +1,33 @@
+{
+    "requests": [
+        {
+            "method": "GET",
+            "url": "https://weather.example.test/data/2.5/weather?q=Oslo&appid=weather-key&units=metric",
+            "authorization": null,
+            "body": {
+                "q": "Oslo",
+                "appid": "weather-key",
+                "units": "metric"
+            }
+        }
+    ],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "Weather in Oslo, NO: 4.5°C (feels like 1.2°C), light rain, humidity 81%, wind 3.6 m/s."
+            }
+        ],
+        "isError": false,
+        "structuredContent": {
+            "location": "Oslo",
+            "country": "NO",
+            "temperature": 4.5,
+            "feels_like": 1.2,
+            "units": "metric",
+            "humidity": 81,
+            "wind": 3.6,
+            "conditions": "light rain"
+        }
+    }
+}

@@ -61,11 +61,11 @@ final readonly class StreamEvent
     }
 
     /**
-     * Tool-call lifecycle event. `phase` is one of:
-     *   - 'start'             — the LLM has emitted a complete tool call; about to dispatch
-     *   - 'end'               — the dispatch finished (with `result` or `error`)
-     *   - 'awaiting_approval' — the call is gated by human-in-the-loop approval
-     *                           and will not run until the user approves it
+     * Tool-call lifecycle event. `phase` ({@see ToolCallPhase}) is one of:
+     *   - Start            — the LLM has emitted a complete tool call; about to dispatch
+     *   - End              — the dispatch finished (with `result` or `error`)
+     *   - AwaitingApproval — the call is gated by human-in-the-loop approval
+     *                        and will not run until the user approves it
      *
      * The `start` / `awaiting_approval` phases optionally carry display
      * metadata (`kind`, `label`, `icon_url`, `brand_color`) so the chat UI can
@@ -83,7 +83,7 @@ final readonly class StreamEvent
      */
     public static function tool(
         string $assistantMessageId,
-        string $phase,
+        ToolCallPhase $phase,
         string $toolCallId,
         ?string $name = null,
         ?string $args = null,
@@ -100,7 +100,7 @@ final readonly class StreamEvent
         bool $internal = false,
     ): self {
         $data = [
-            'phase' => $phase,
+            'phase' => $phase->value,
             'tool_call_id' => $toolCallId,
         ];
         if ($name !== null) {

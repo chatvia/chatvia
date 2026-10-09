@@ -1,0 +1,78 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Busiest the selected range around 21:00 UTC, most on Sunday."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "custom",
+            "label": "the selected range",
+            "start": "2026-06-14",
+            "end": "2026-06-14"
+        },
+        "peak_hour_utc": 21,
+        "busiest_weekday": "Sunday",
+        "by_hour": [
+            {
+                "hour": 20,
+                "conversations": 2
+            },
+            {
+                "hour": 21,
+                "conversations": 3
+            }
+        ],
+        "by_weekday": [
+            {
+                "day": "Sunday",
+                "conversations": 5
+            }
+        ],
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis",
+                "axisPointer": {
+                    "type": "shadow"
+                }
+            },
+            "legend": {
+                "show": false,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 50,
+                "bottom": 20,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [
+                    "20:00",
+                    "21:00"
+                ]
+            },
+            "yAxis": {
+                "type": "value"
+            },
+            "series": [
+                {
+                    "type": "bar",
+                    "name": "Conversations",
+                    "data": [
+                        2,
+                        3
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Activity by hour (UTC) — the selected range",
+                "left": "center"
+            }
+        }
+    }
+}

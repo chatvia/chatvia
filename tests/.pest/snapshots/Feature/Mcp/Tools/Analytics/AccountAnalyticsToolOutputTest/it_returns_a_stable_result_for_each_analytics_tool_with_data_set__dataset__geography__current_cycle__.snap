@@ -1,0 +1,116 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Top country this billing cycle is Germany (4 conversations, 57.1%)."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "countries": [
+            {
+                "code": "DE",
+                "name": "Germany",
+                "conversations": 4,
+                "pct": 57.1
+            },
+            {
+                "code": "US",
+                "name": "United States",
+                "conversations": 2,
+                "pct": 28.6
+            },
+            {
+                "code": "NO",
+                "name": "Norway",
+                "conversations": 1,
+                "pct": 14.3
+            }
+        ],
+        "devices": [
+            {
+                "label": "mobile",
+                "count": 5
+            },
+            {
+                "label": "desktop",
+                "count": 1
+            }
+        ],
+        "browsers": [
+            {
+                "label": "Chrome",
+                "count": 4
+            },
+            {
+                "label": "Safari",
+                "count": 2
+            }
+        ],
+        "operating_systems": [
+            {
+                "label": "Android",
+                "count": 3
+            },
+            {
+                "label": "iOS",
+                "count": 2
+            },
+            {
+                "label": "macOS",
+                "count": 1
+            }
+        ],
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis",
+                "axisPointer": {
+                    "type": "shadow"
+                }
+            },
+            "legend": {
+                "show": false,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 50,
+                "bottom": 20,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "value"
+            },
+            "yAxis": {
+                "type": "category",
+                "data": [
+                    "Germany",
+                    "United States",
+                    "Norway"
+                ]
+            },
+            "series": [
+                {
+                    "type": "bar",
+                    "name": "Conversations",
+                    "data": [
+                        4,
+                        2,
+                        1
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Conversations by country — this billing cycle",
+                "left": "center"
+            }
+        }
+    }
+}

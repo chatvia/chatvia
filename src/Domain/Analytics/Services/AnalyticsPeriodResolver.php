@@ -4,19 +4,25 @@ namespace Domain\Analytics\Services;
 
 use App\Identity\Workspace\Models\User;
 use Carbon\CarbonImmutable;
+use Domain\Analytics\Data\Account\AnalyticsFilterData;
+use Domain\Analytics\Enums\AnalyticsPeriod;
 use Domain\Billing\Models\UserCredit;
 
 /**
- * Turns a tool's `period` argument (plus optional explicit start/end dates)
- * into a concrete {@see Period} for a given workspace. The default and most
- * important window is `current_cycle`, derived from the workspace owner's
- * active `user_credits` row (the billing period), so "this cycle" questions
- * line up exactly with what the customer is billed on.
+ * Turns an analytics filter's `period` (plus optional explicit start/end
+ * dates, which win when both are given) into a concrete {@see Period} for a
+ * given workspace. The default and most important window is `current_cycle`,
+ * derived from the workspace owner's active `user_credits` row (the billing
+ * period), so "this cycle" questions line up exactly with what the customer
+ * is billed on.
  */
 class AnalyticsPeriodResolver
 {
-    public function resolve(User $workspace, ?string $period, ?string $start = null, ?string $end = null): Period
+    public function resolve(User $workspace, AnalyticsFilterData $filter): Period
     {
+        $start = $filter->startDate;
+        $end = $filter->endDate;
+
         if ($start !== null && $start !== '' && $end !== null && $end !== '') {
             return new Period(
                 CarbonImmutable::parse($start)->startOfDay(),
@@ -28,20 +34,20 @@ class AnalyticsPeriodResolver
 
         $now = CarbonImmutable::now();
 
-        return match ($period ?: 'current_cycle') {
-            'today' => new Period($now->startOfDay(), $now, 'today', 'today'),
-            'last_7_days' => new Period($now->subDays(6)->startOfDay(), $now, 'last_7_days', 'the last 7 days'),
-            'last_30_days' => new Period($now->subDays(29)->startOfDay(), $now, 'last_30_days', 'the last 30 days'),
-            'this_month' => new Period($now->startOfMonth(), $now, 'this_month', 'this month'),
-            'last_month' => new Period(
+        return match ($filter->period ?? AnalyticsPeriod::CurrentCycle) {
+            AnalyticsPeriod::Today => new Period($now->startOfDay(), $now, 'today', 'today'),
+            AnalyticsPeriod::Last7Days => new Period($now->subDays(6)->startOfDay(), $now, 'last_7_days', 'the last 7 days'),
+            AnalyticsPeriod::Last30Days => new Period($now->subDays(29)->startOfDay(), $now, 'last_30_days', 'the last 30 days'),
+            AnalyticsPeriod::ThisMonth => new Period($now->startOfMonth(), $now, 'this_month', 'this month'),
+            AnalyticsPeriod::LastMonth => new Period(
                 $now->subMonthNoOverflow()->startOfMonth(),
                 $now->subMonthNoOverflow()->endOfMonth(),
                 'last_month',
                 'last month',
             ),
-            'all_time' => new Period(CarbonImmutable::create(2020, 1, 1), $now, 'all_time', 'all time'),
-            'previous_cycle' => $this->previousCycle($workspace, $now),
-            default => $this->currentCycle($workspace, $now),
+            AnalyticsPeriod::AllTime => new Period(CarbonImmutable::create(2020, 1, 1), $now, 'all_time', 'all time'),
+            AnalyticsPeriod::PreviousCycle => $this->previousCycle($workspace, $now),
+            AnalyticsPeriod::CurrentCycle => $this->currentCycle($workspace, $now),
         };
     }
 

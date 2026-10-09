@@ -1,0 +1,24 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "This billing cycle: 3 conversations, averaging 3.0 messages each and about 301s long. Busiest day was 2026-06-12 (2 conversations)."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "conversations": 3,
+        "avg_messages_per_conversation": 3,
+        "avg_duration_seconds": 301,
+        "busiest_day": {
+            "date": "2026-06-12",
+            "conversations": 2
+        }
+    }
+}

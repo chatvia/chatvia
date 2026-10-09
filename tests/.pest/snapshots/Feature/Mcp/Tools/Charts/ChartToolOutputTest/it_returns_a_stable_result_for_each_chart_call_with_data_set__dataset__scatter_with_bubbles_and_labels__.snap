@@ -1,0 +1,74 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Richer countries live longer."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "item"
+            },
+            "legend": {
+                "show": true,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 50,
+                "bottom": 40,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "value",
+                "name": "GDP"
+            },
+            "yAxis": {
+                "type": "value",
+                "name": "Years"
+            },
+            "series": [
+                {
+                    "type": "scatter",
+                    "name": "EU",
+                    "data": [
+                        {
+                            "value": [
+                                1,
+                                2
+                            ],
+                            "name": "DE",
+                            "symbolSize": 24
+                        },
+                        {
+                            "value": [
+                                3,
+                                4
+                            ],
+                            "symbolSize": 44
+                        }
+                    ]
+                },
+                {
+                    "type": "scatter",
+                    "name": "US",
+                    "data": [
+                        {
+                            "value": [
+                                5,
+                                6
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "title": {
+                "text": "GDP vs life expectancy",
+                "left": "center"
+            }
+        }
+    }
+}

@@ -1,0 +1,47 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "One point."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "item"
+            },
+            "legend": {
+                "show": false,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 20,
+                "bottom": 40,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "value"
+            },
+            "yAxis": {
+                "type": "value"
+            },
+            "series": [
+                {
+                    "type": "scatter",
+                    "name": "Points",
+                    "data": [
+                        {
+                            "value": [
+                                0.5,
+                                1
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

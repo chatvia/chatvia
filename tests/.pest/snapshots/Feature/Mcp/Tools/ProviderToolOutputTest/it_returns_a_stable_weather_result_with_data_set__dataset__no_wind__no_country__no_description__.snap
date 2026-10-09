@@ -1,0 +1,33 @@
+{
+    "requests": [
+        {
+            "method": "GET",
+            "url": "https://weather.example.test/data/2.5/weather?q=Calm&appid=weather-key&units=imperial",
+            "authorization": null,
+            "body": {
+                "q": "Calm",
+                "appid": "weather-key",
+                "units": "imperial"
+            }
+        }
+    ],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "Weather in Calm: 70°F (feels like 71°F), n/a, humidity 40%."
+            }
+        ],
+        "isError": false,
+        "structuredContent": {
+            "location": "Calm",
+            "country": "",
+            "temperature": 70,
+            "feels_like": 71,
+            "units": "imperial",
+            "humidity": 40,
+            "wind": null,
+            "conditions": "n/a"
+        }
+    }
+}

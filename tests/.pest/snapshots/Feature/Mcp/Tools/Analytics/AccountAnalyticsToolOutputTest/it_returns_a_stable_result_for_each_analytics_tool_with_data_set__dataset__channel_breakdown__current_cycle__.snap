@@ -1,0 +1,77 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Busiest channel this billing cycle is Chat Widget with 3 conversations (50% of 6 total)."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "total_conversations": 6,
+        "channels": [
+            {
+                "source": "widget",
+                "label": "Chat Widget",
+                "conversations": 3,
+                "pct": 50
+            },
+            {
+                "source": "telegram",
+                "label": "Telegram",
+                "conversations": 2,
+                "pct": 33.3
+            },
+            {
+                "source": "hosted_chat",
+                "label": "Hosted Chat",
+                "conversations": 1,
+                "pct": 16.7
+            }
+        ],
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "item",
+                "formatter": "{b}: {c} ({d}%)"
+            },
+            "legend": {
+                "show": true,
+                "top": "bottom"
+            },
+            "series": [
+                {
+                    "type": "pie",
+                    "radius": "70%",
+                    "avoidLabelOverlap": true,
+                    "label": {
+                        "show": true,
+                        "formatter": "{b}: {d}%"
+                    },
+                    "data": [
+                        {
+                            "name": "Chat Widget",
+                            "value": 3
+                        },
+                        {
+                            "name": "Telegram",
+                            "value": 2
+                        },
+                        {
+                            "name": "Hosted Chat",
+                            "value": 1
+                        }
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Conversations by channel — this billing cycle",
+                "left": "center"
+            }
+        }
+    }
+}

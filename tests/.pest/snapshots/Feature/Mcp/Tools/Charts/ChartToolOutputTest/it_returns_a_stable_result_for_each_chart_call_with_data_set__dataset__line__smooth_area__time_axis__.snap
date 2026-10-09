@@ -1,0 +1,64 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Users grew month over month."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis"
+            },
+            "legend": {
+                "show": true,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 50,
+                "bottom": 40,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "time",
+                "data": [
+                    "2024-01-01",
+                    "2024-02-01"
+                ],
+                "boundaryGap": false,
+                "name": "Month"
+            },
+            "yAxis": {
+                "type": "value",
+                "name": "Users"
+            },
+            "series": [
+                {
+                    "type": "line",
+                    "name": "Users",
+                    "data": [
+                        100,
+                        150
+                    ],
+                    "smooth": true,
+                    "areaStyle": {}
+                },
+                {
+                    "type": "line",
+                    "name": "Churn",
+                    "data": [
+                        5,
+                        7
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Monthly users",
+                "left": "center"
+            }
+        }
+    }
+}

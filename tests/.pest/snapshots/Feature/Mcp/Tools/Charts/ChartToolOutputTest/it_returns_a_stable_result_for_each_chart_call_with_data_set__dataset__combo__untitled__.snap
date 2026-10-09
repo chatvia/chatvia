@@ -1,0 +1,62 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Views vs conversion."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis"
+            },
+            "legend": {
+                "show": true,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 60,
+                "right": 60,
+                "top": 20,
+                "bottom": 40,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [
+                    "Q1"
+                ]
+            },
+            "yAxis": [
+                {
+                    "type": "value",
+                    "position": "left"
+                },
+                {
+                    "type": "value",
+                    "position": "right"
+                }
+            ],
+            "series": [
+                {
+                    "type": "bar",
+                    "name": "Views",
+                    "data": [
+                        10
+                    ],
+                    "yAxisIndex": 0
+                },
+                {
+                    "type": "line",
+                    "name": "CVR",
+                    "data": [
+                        1
+                    ],
+                    "yAxisIndex": 1,
+                    "smooth": true
+                }
+            ]
+        }
+    }
+}

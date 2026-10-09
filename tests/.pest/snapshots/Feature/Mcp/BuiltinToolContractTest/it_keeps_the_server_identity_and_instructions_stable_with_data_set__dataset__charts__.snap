@@ -1,0 +1,7 @@
+{
+    "serverInfo": {
+        "name": "Charts",
+        "version": "2.0.0"
+    },
+    "instructions": "Interactive chart rendering for the chat. Each chart type has its own tool with\na typed schema — pick the right one for the data:\n\n- render-bar-chart     — categorical comparisons (stacked, grouped, horizontal)\n- render-line-chart    — trends over ordered categories or time\n- render-pie-chart     — share-of-whole (pie or donut)\n- render-combo-chart   — bar + line with dual y-axes (revenue vs %)\n- render-scatter-chart — distributions / correlations (with optional bubble sizing)\n- render-radar-chart   — multi-axis comparisons (spider chart)\n- render-heatmap-chart — 2D intensity matrix (e.g. month × hour)\n- render-gauge-chart   — single KPI on a scale (percent, score, progress)\n- render-sankey-chart  — flow diagrams (budgets, journeys, supply chains)\n- render-treemap-chart — hierarchical share-of-whole (nested rectangles)\n- render-sunburst-chart — hierarchical proportions (concentric rings)\n- render-candlestick-chart — OHLC financial time-series (stocks, crypto, forex)\n  with built-in zoom/pan slider for long series\n\nEach tool accepts a clean JSON shape (categories, series, etc.) and a one-line\n`summary` describing what the chart shows. The renderer translates your input\nto Apache ECharts internally — you don't need to know the ECharts option spec.\n\nUse a chart whenever the user would understand data better visually than as a\ntable or paragraph."
+}

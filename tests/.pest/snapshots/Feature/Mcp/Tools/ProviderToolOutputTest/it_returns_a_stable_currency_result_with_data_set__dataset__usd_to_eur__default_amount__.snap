@@ -1,0 +1,26 @@
+{
+    "requests": [
+        {
+            "method": "GET",
+            "url": "https://rates.example.test/v6/rates-key/latest/USD",
+            "authorization": null,
+            "body": []
+        }
+    ],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "1.00 USD = 0.9200 EUR (1 USD = 0.920000 EUR)."
+            }
+        ],
+        "isError": false,
+        "structuredContent": {
+            "from": "USD",
+            "to": "EUR",
+            "amount": 1,
+            "converted": 0.92,
+            "rate": 0.92
+        }
+    }
+}

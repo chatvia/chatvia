@@ -1,7 +1,9 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use App\Mcp\McpCallerContext;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
+use Support\Enums\User\UserType;
 
 /**
  * The internal /mcp/* routes trust the X-Chatvia-* identity headers, so the
@@ -92,4 +94,29 @@ it('only accepts workspace mode on the analytics chat servers', function (): voi
     $this->withHeaders(internalSignedHeaders('/mcp/weather', $call, $this->identity))
         ->postJson('/mcp/weather', $call)
         ->assertStatus(403);
+});
+
+it('hands an authorised tools/call its resolved caller', function (): void {
+    $workspace = User::factory()->create(['type' => UserType::Workspace]);
+    $identity = ['X-Chatvia-Workspace-Id' => $workspace->external_id];
+    $call = internalToolCall('get-account-overview-tool');
+
+    $response = $this->withHeaders(internalSignedHeaders('/mcp/account-analytics', $call, $identity))
+        ->postJson('/mcp/account-analytics', $call)
+        ->assertOk();
+
+    // The tool only answers when it received the workspace from the middleware.
+    expect($response->json('result.isError'))->toBeFalse()
+        ->and($response->json('result.structuredContent.total_messages'))->toBe(0)
+        ->and(app(McpCallerContext::class)->workspace?->is($workspace))->toBeTrue();
+});
+
+it('resolves no caller for a call that runs no tool', function (): void {
+    $call = ['jsonrpc' => '2.0', 'id' => '1', 'method' => 'tools/list', 'params' => (object) []];
+
+    $this->withHeaders(internalSignedHeaders('/mcp/account-analytics', $call, $this->identity))
+        ->postJson('/mcp/account-analytics', $call)
+        ->assertOk();
+
+    expect(app(McpCallerContext::class)->workspace)->toBeNull();
 });

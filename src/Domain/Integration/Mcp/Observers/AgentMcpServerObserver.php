@@ -2,10 +2,10 @@
 
 namespace Domain\Integration\Mcp\Observers;
 
-use Domain\Conversation\Jobs\EmbedMcpToolsJob;
-use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
+use Domain\Integration\Tool\Jobs\EmbedMcpToolsJob;
+use Domain\Integration\Tool\Registry\ToolRegistry;
 use Illuminate\Support\Facades\DB;
 
 /**

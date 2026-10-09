@@ -1,0 +1,21 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "The selected range: 0 conversations, averaging 0 messages each."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "custom",
+            "label": "the selected range",
+            "start": "2025-01-01",
+            "end": "2025-01-02"
+        },
+        "conversations": 0,
+        "avg_messages_per_conversation": null,
+        "avg_duration_seconds": null,
+        "busiest_day": null
+    }
+}

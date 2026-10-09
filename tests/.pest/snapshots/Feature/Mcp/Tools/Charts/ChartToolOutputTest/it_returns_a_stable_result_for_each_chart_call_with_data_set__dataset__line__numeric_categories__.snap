@@ -1,0 +1,48 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Price by year."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis"
+            },
+            "legend": {
+                "show": false,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 20,
+                "bottom": 20,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [
+                    "2023",
+                    "2024"
+                ],
+                "boundaryGap": false
+            },
+            "yAxis": {
+                "type": "value"
+            },
+            "series": [
+                {
+                    "type": "line",
+                    "name": "Price",
+                    "data": [
+                        1.5,
+                        2
+                    ]
+                }
+            ]
+        }
+    }
+}

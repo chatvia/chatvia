@@ -1,0 +1,22 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "No tokens consumed today."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "today",
+            "label": "today",
+            "start": "2026-06-15",
+            "end": "2026-06-15"
+        },
+        "total_tokens": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "avg_tokens_per_reply": 0,
+        "daily": []
+    }
+}

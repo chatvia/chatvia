@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Mcp\Tools\Analytics;
+
+use Domain\Analytics\Data\Account\AnalyticsScopeData;
+use Domain\Analytics\Queries\Account\Activity\ResponseTimeStatsQuery;
+use Laravel\Mcp\Response;
+use Laravel\Mcp\ResponseFactory;
+use Laravel\Mcp\Server\Attributes\Description;
+use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
+use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
+
+/**
+ * get-response-time-stats: AI reply latency.
+ */
+#[Description(<<<'TXT'
+How fast the AI responds, for a period: the average reply time, the median (p50)
+and 95th-percentile (p95), the slowest reply, and the average time to the first
+reply in a conversation. All in milliseconds (first-response in seconds).
+Answers "how fast are replies?", "what's my p95 latency?", "how long until the
+first answer?".
+TXT)]
+#[IsReadOnly]
+#[IsIdempotent]
+class GetResponseTimeStatsTool extends AnalyticsTool
+{
+    public function __construct(private readonly ResponseTimeStatsQuery $responseTimes) {}
+
+    protected function answer(AnalyticsScopeData $scope, array $input): Response|ResponseFactory
+    {
+        $data = $this->responseTimes->get($scope);
+        $period = $scope->period;
+
+        $summary = $data->avgMs === null
+            ? sprintf('No response-time data %s yet.', $period->label)
+            : sprintf(
+                'Avg reply %s: %sms (p95 %sms, slowest %sms)%s.',
+                $period->label,
+                number_format((float) $data->avgMs),
+                number_format((float) $data->p95Ms),
+                number_format((int) $data->maxMs),
+                $data->avgFirstResponseSeconds !== null ? ', first reply ~'.$data->avgFirstResponseSeconds.'s' : '',
+            );
+
+        return Response::make(Response::text($summary))->withStructuredContent([
+            'period' => $this->periodPayload($period),
+            'replies_measured' => $data->repliesMeasured,
+            'avg_response_ms' => $data->avgMs,
+            'p50_response_ms' => $data->p50Ms,
+            'p95_response_ms' => $data->p95Ms,
+            'max_response_ms' => $data->maxMs,
+            'avg_first_response_seconds' => $data->avgFirstResponseSeconds,
+        ]);
+    }
+}

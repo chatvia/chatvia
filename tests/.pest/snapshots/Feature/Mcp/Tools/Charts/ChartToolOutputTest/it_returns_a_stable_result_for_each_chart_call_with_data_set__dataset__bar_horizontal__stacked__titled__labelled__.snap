@@ -1,0 +1,66 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Sales by region, stacked by quarter."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis",
+                "axisPointer": {
+                    "type": "shadow"
+                }
+            },
+            "legend": {
+                "show": true,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 50,
+                "bottom": 40,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "value",
+                "name": "Revenue"
+            },
+            "yAxis": {
+                "type": "category",
+                "data": [
+                    "North",
+                    "South"
+                ],
+                "name": "Region"
+            },
+            "series": [
+                {
+                    "type": "bar",
+                    "name": "Q1",
+                    "data": [
+                        1,
+                        2
+                    ],
+                    "stack": "total"
+                },
+                {
+                    "type": "bar",
+                    "name": "Q2",
+                    "data": [
+                        3,
+                        4
+                    ],
+                    "stack": "total"
+                }
+            ],
+            "title": {
+                "text": "Sales by region",
+                "left": "center"
+            }
+        }
+    }
+}

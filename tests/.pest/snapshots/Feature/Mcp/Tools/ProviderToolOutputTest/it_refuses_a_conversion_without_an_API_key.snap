@@ -1,0 +1,12 @@
+{
+    "requests": [],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "No ExchangeRate-API key was provided. Reconnect the Currency Converter connector with a valid key."
+            }
+        ],
+        "isError": true
+    }
+}

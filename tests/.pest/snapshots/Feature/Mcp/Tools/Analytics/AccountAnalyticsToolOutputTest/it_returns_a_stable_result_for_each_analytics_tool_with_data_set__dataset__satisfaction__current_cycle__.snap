@@ -1,0 +1,71 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "This billing cycle: 2👍 / 1👎 (66.7% positive). AI could not answer 25% of replies."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "positive_feedback": 2,
+        "negative_feedback": 1,
+        "positive_rate_pct": 66.7,
+        "sentiment": {
+            "positive": 3,
+            "neutral": 2,
+            "negative": 1
+        },
+        "ai_replies": 4,
+        "unanswered": 1,
+        "unanswered_rate_pct": 25,
+        "avg_confidence": 0.7,
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "item",
+                "formatter": "{b}: {c} ({d}%)"
+            },
+            "legend": {
+                "show": true,
+                "top": "bottom"
+            },
+            "series": [
+                {
+                    "type": "pie",
+                    "radius": [
+                        "40%",
+                        "70%"
+                    ],
+                    "avoidLabelOverlap": true,
+                    "label": {
+                        "show": true,
+                        "formatter": "{b}: {d}%"
+                    },
+                    "data": [
+                        {
+                            "name": "Positive",
+                            "value": 3
+                        },
+                        {
+                            "name": "Neutral",
+                            "value": 2
+                        },
+                        {
+                            "name": "Negative",
+                            "value": 1
+                        }
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Sentiment — this billing cycle",
+                "left": "center"
+            }
+        }
+    }
+}

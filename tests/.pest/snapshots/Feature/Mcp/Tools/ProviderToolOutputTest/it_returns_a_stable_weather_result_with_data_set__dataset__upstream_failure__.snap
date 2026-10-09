@@ -1,0 +1,23 @@
+{
+    "requests": [
+        {
+            "method": "GET",
+            "url": "https://weather.example.test/data/2.5/weather?q=Broken&appid=weather-key&units=metric",
+            "authorization": null,
+            "body": {
+                "q": "Broken",
+                "appid": "weather-key",
+                "units": "metric"
+            }
+        }
+    ],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "Weather API returned HTTP 500."
+            }
+        ],
+        "isError": true
+    }
+}

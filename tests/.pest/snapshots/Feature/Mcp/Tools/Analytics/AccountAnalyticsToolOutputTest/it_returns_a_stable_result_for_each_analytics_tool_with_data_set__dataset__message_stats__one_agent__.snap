@@ -1,0 +1,29 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "This billing cycle: 2 messages total — 1 incoming, 1 AI replies. up 0% vs the prior period."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "incoming_messages": 1,
+        "ai_messages": 1,
+        "total_messages": 2,
+        "previous_total": 2,
+        "change_pct": 0,
+        "avg_messages_per_conversation": 2,
+        "daily": [
+            {
+                "date": "2026-06-14",
+                "messages": 2
+            }
+        ]
+    }
+}

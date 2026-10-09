@@ -1,0 +1,50 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Flow."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "item",
+                "triggerOn": "mousemove"
+            },
+            "series": [
+                {
+                    "type": "sankey",
+                    "data": [
+                        {
+                            "name": "B"
+                        },
+                        {
+                            "name": "A"
+                        },
+                        {
+                            "name": "Isolated"
+                        }
+                    ],
+                    "links": [
+                        {
+                            "source": "A",
+                            "target": "B",
+                            "value": 1
+                        }
+                    ],
+                    "emphasis": {
+                        "focus": "adjacency"
+                    },
+                    "lineStyle": {
+                        "color": "gradient",
+                        "curveness": 0.5
+                    },
+                    "label": {
+                        "fontSize": 11
+                    }
+                }
+            ]
+        }
+    }
+}

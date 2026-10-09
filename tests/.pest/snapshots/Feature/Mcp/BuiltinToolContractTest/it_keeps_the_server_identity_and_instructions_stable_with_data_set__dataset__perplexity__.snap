@@ -1,0 +1,7 @@
+{
+    "serverInfo": {
+        "name": "Perplexity",
+        "version": "1.0.0"
+    },
+    "instructions": "Live web access powered by Perplexity. Every tool returns a cited answer plus\nthe source URLs. Pick the lightest one that fits the question:\n- web_search: quick factual lookups — recent events, prices, news, anything that may have changed since training.\n- fetch_url: read a specific page when you already have its URL (not a search).\n- finance_search: real-time market data — stock quotes, earnings, company fundamentals.\n- people_search: structured public profile data about a person (who they are, role, company).\n- ask: a thorough, reasoned answer when the question needs explanation, comparison, or step-by-step reasoning.\n- research: deep, multi-source research for complex topics that need a detailed report (slower — use sparingly).\n- run_code: execute code in an isolated remote sandbox for calculations, parsing, or data analysis."
+}

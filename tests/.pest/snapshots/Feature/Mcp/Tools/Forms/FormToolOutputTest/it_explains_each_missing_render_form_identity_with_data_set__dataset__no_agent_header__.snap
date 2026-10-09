@@ -1,0 +1,9 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Missing X-Chatvia-Agent-Id identity header."
+        }
+    ],
+    "isError": true
+}

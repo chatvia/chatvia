@@ -3,8 +3,8 @@
 namespace Domain\Form\Services;
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Services\Tooling\Routing\ToolHybridSearch;
 use Domain\Form\Models\FormDefinition;
+use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

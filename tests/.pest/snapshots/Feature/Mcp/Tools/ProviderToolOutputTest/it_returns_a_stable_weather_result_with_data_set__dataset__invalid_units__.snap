@@ -1,0 +1,12 @@
+{
+    "requests": [],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "units must be either \"metric\" (Celsius) or \"imperial\" (Fahrenheit)."
+            }
+        ],
+        "isError": true
+    }
+}

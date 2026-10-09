@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Middleware\Auth\VerifyInternalMcpRequest;
-use Domain\Integration\Mcp\Services\Servers\AccountAnalyticsServer;
-use Domain\Integration\Mcp\Services\Servers\ChartsServer;
-use Domain\Integration\Mcp\Services\Servers\CurrencyConverterServer;
-use Domain\Integration\Mcp\Services\Servers\FormsServer;
-use Domain\Integration\Mcp\Services\Servers\PerplexityServer;
-use Domain\Integration\Mcp\Services\Servers\WeatherServer;
+use App\Mcp\Servers\AccountAnalyticsServer;
+use App\Mcp\Servers\ChartsServer;
+use App\Mcp\Servers\CurrencyConverterServer;
+use App\Mcp\Servers\FormsServer;
+use App\Mcp\Servers\PerplexityServer;
+use App\Mcp\Servers\WeatherServer;
 use Laravel\Mcp\Facades\Mcp;
 
 /**

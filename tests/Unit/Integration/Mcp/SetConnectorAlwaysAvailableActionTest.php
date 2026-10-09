@@ -2,13 +2,14 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Services\Tooling\Registry\ToolEntry;
-use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Mcp\Actions\SetConnectorAlwaysAvailableAction;
 use Domain\Integration\Mcp\Data\Agent\SetConnectorAlwaysAvailableData;
 use Domain\Integration\Mcp\Exceptions\AlwaysAvailableToolLimitException;
 use Domain\Integration\Mcp\Exceptions\ConnectorNotAttachedException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Enums\ToolKind;
+use Domain\Integration\Tool\Registry\ToolRegistry;
 use Illuminate\Support\Facades\DB;
 
 function saaServer(Agent $agent, string $slug, bool $attach = true, bool $alwaysAvailable = false): AgentMcpServer
@@ -36,7 +37,7 @@ function saaAction(array $toolsPerSlug): SetConnectorAlwaysAvailableAction
     $pool = [];
     foreach ($toolsPerSlug as $slug => $count) {
         foreach (range(1, $count) as $i) {
-            $pool[] = new ToolEntry(kind: 'mcp', sourceId: "mcp_tool:{$slug}{$i}", name: "mcp__{$slug}__tool_{$i}", description: '', parameters: [], embedding: null);
+            $pool[] = new ToolEntry(kind: ToolKind::Mcp, sourceId: "mcp_tool:{$slug}{$i}", name: "mcp__{$slug}__tool_{$i}", description: '', parameters: []);
         }
     }
 

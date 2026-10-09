@@ -1,0 +1,12 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "This channel cannot display forms. Keep helping the visitor conversationally."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "forms": []
+    }
+}

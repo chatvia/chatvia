@@ -1,0 +1,47 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Project 73% done."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "series": [
+                {
+                    "type": "gauge",
+                    "min": 0,
+                    "max": 100,
+                    "progress": {
+                        "show": true,
+                        "width": 18
+                    },
+                    "axisLine": {
+                        "lineStyle": {
+                            "width": 18
+                        }
+                    },
+                    "pointer": {
+                        "show": true
+                    },
+                    "detail": {
+                        "valueAnimation": true,
+                        "formatter": "{value}",
+                        "offsetCenter": [
+                            0,
+                            "70%"
+                        ],
+                        "fontSize": 24
+                    },
+                    "data": [
+                        {
+                            "value": 73,
+                            "name": ""
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

@@ -7,6 +7,9 @@ use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Re-sends a pending team invitation's email.
+ */
 class TeamResendInvitationController
 {
     public function __invoke(
@@ -15,16 +18,10 @@ class TeamResendInvitationController
         int $invitationId,
         ResendTeamInvitationAction $resend,
     ): RedirectResponse {
-        $user = $request->user();
+        abort_if($request->user()->cannot('addTeamMember', $team), 403, __('You are not allowed to resend invitations for this team.'));
 
-        if ($user->cannot('addTeamMember', $team)) {
-            abort(403, 'You are not allowed to resend invitations for this team.');
-        }
+        $resend->execute($team->invitations()->findOrFail($invitationId));
 
-        $invitation = $team->invitations()->findOrFail($invitationId);
-
-        $resend->execute($invitation);
-
-        return back()->with('success', 'Invitation resent.');
+        return back()->with('success', __('Invitation resent.'));
     }
 }

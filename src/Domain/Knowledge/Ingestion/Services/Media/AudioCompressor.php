@@ -7,6 +7,11 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
 
+/**
+ * Re-encodes audio (or a video's sound track, extracted first) with ffmpeg
+ * into a small low-bitrate file (MP3 at 32 kbit/s by default), so long
+ * recordings stay under the transcription service's upload limit.
+ */
 class AudioCompressor
 {
     private const array SUPPORTED_INPUTS = [

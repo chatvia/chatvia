@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1\Chatters;
 
+use App\Http\Controllers\Api\V1\Chatters\Concerns\ResolvesWorkspaceAgents;
 use App\Identity\Workspace\Data\Account\RevokeChatterAgentsData;
 use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Revoke a chatter's access to one or more of your agents by removing their
@@ -17,6 +17,8 @@ use Illuminate\Validation\ValidationException;
 #[Group('Chatters', weight: 90)]
 class RevokeChatterAgentsController
 {
+    use ResolvesWorkspaceAgents;
+
     /**
      * Revoke chatter agent access
      *
@@ -33,22 +35,12 @@ class RevokeChatterAgentsController
         // Scope to the caller's workspace — an unknown or foreign chatter 404s.
         $target = $owner->chatters()->where('external_id', $chatter)->firstOrFail();
 
-        // Resolve the agents scoped to the workspace — the same ownership guard
-        // as creating a chatter, so a foreign or unknown agent id fails loudly
-        // instead of silently no-opping.
-        $agents = $owner->agents()->whereIn('external_id', $payload->agent_ids)->get();
+        // The same ownership guard as creating a chatter: a foreign or unknown
+        // agent id fails loudly instead of silently doing nothing.
+        $agents = $this->workspaceAgentsOrFail($owner, $payload->agent_ids);
 
-        $missing = array_values(
-            array_diff(array_unique($payload->agent_ids), $agents->pluck('external_id')->all())
-        );
-
-        if ($missing !== []) {
-            throw ValidationException::withMessages([
-                'agent_ids' => 'Unknown agent(s): '.implode(', ', $missing).'.',
-            ]);
-        }
-
-        $target->accessibleAgents()->detach($agents->pluck('id')->all());
+        // A single pivot detach — no Action needed.
+        $target->accessibleAgents()->detach($agents->modelKeys());
 
         return response()->noContent();
     }

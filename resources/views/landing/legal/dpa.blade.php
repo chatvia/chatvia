@@ -29,7 +29,7 @@
 
                     <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900 mb-6">
                         <strong>Note:</strong> This DPA becomes effective only when signed by both parties. {{ config('chatvia.brand.name') }}
-                        executes DPAs for customers on <strong>Pro</strong> plans.@if ($companyEmail = \Support\Cms\Marketing\CompanyDetails::email()) To have us countersign, contact
+                        executes DPAs for customers on <strong>Pro</strong> plans.@if ($companyEmail = \App\Marketing\CompanyDetails::email()) To have us countersign, contact
                         <a href="mailto:{{ $companyEmail }}" class="font-medium underline">{{ $companyEmail }}</a>.@endif
                     </div>
 
@@ -132,7 +132,7 @@
                         <p class="text-slate-600">
                             If you have questions about our data processing practices or need a customized agreement,
                             please contact us
-                            @if ($companyEmail = \Support\Cms\Marketing\CompanyDetails::email())
+                            @if ($companyEmail = \App\Marketing\CompanyDetails::email())
                                 at <a href="mailto:{{ $companyEmail }}" class="text-blue-600 hover:underline">{{ $companyEmail }}</a>.
                             @endif
                         </p>

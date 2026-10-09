@@ -2,53 +2,45 @@
 
 namespace App\Http\Controllers\Agent\Source\File\Manage;
 
+use App\Http\Requests\Agent\Source\File\ListSourceFilesRequest;
 use Domain\Agent\Data\Resources\Sources\SourceFileDataResource;
 use Domain\Agent\Models\Agent;
-use Exception;
-use Illuminate\Http\Request;
+use Domain\Knowledge\Source\File\Models\SourceFile;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
 use Support\MimeType;
 
+/**
+ * Lists the agent's files for the Files, Audio and Video pages. Agent access
+ * and the `agent.sources.train.files` permission are checked by the route
+ * middleware.
+ */
 class AgentSourceFileController
 {
-    public function __invoke(Request $request, Agent $agent): Collection
+    public function __invoke(ListSourceFilesRequest $request, Agent $agent): Collection
     {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
-
-        abort_if(
-            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.files'),
-            code: 403,
-        );
-
-        $request->validate([
-            'file_type' => ['nullable', 'in:pdf,word,audio,video'],
-        ]);
-
-        $fileType = $request->input('file_type');
-
-        if ($fileType) {
-            $files = match ($fileType) {
-                'pdf' => $agent->pdfFiles()->withCount(['agents', 'chunks'])->get(),
-                'word' => $agent->wordFiles()->withCount(['agents', 'chunks'])->get(),
-                'audio' => $agent->audioFiles()->withCount(['agents', 'chunks'])->get(),
-                'video' => $agent->videoFiles()->withCount(['agents', 'chunks'])->get(),
-                default => throw new Exception('Invalid file type'),
-            };
-        } else {
-            // Unified Files page: every document the OCR pipeline accepts — PDF,
-            // Word, PowerPoint, Excel, text, Markdown, EPUB, images, … — i.e.
-            // everything EXCEPT audio/video, which have their own nav pages.
-            // (Whitelisting pdf+word previously hid markdown/spreadsheet/etc:
-            // they uploaded fine but never showed in the list.)
-            $files = $agent->files()
-                ->whereNotIn('mime_type', array_merge(MimeType::group('audio'), MimeType::group('video')))
-                ->withCount(['agents', 'chunks'])
-                ->get();
-        }
+        $files = $this->filesOfType($agent, $request->fileType())
+            ->withCount(['agents', 'chunks'])
+            ->get();
 
         return SourceFileDataResource::fromFiles($files);
+    }
+
+    /**
+     * Without a type: every document format the parser accepts (PDF, office,
+     * text, Markdown, ebooks, images), i.e. everything except audio and video,
+     * which have their own pages.
+     *
+     * @return BelongsToMany<SourceFile, Agent>
+     */
+    private function filesOfType(Agent $agent, ?string $fileType): BelongsToMany
+    {
+        return match ($fileType) {
+            'pdf' => $agent->pdfFiles(),
+            'word' => $agent->wordFiles(),
+            'audio' => $agent->audioFiles(),
+            'video' => $agent->videoFiles(),
+            default => $agent->files()->whereNotIn('mime_type', array_merge(MimeType::group('audio'), MimeType::group('video'))),
+        };
     }
 }

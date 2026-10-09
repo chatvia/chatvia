@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Knowledge\Ingestion\Services\Search\RetrievalScoring;
+use Domain\Knowledge\Retrieval\Services\RetrievalScoring;
 
 describe('confidenceScore', function (): void {
     it('returns 0.99 for a single or empty result set', function (): void {

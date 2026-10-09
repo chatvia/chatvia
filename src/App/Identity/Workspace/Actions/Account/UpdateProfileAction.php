@@ -6,6 +6,10 @@ use App\Identity\Workspace\Data\Account\UpdateProfileData;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\ProfilePhotoStorage;
 
+/**
+ * Saves the profile: name, email (a changed email must be verified again) and
+ * photo.
+ */
 class UpdateProfileAction
 {
     public function __construct(

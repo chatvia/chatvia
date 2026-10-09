@@ -4,21 +4,28 @@ namespace App\Http\Requests\Settings\Function;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Rules\SafeWebhookUrl;
-use Domain\Integration\Function\Data\UpdateAgentFunctionData;
+use Domain\Integration\Function\Data\FunctionDefinitionData;
 use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Function\Rules\ValidParametersSchema;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use Spatie\LaravelData\Optional;
 
+/**
+ * The Settings → Functions edit form for one function (`{external_id}` in the
+ * workspace). It replaces the whole definition, except that a blank
+ * credential keeps the stored one when the auth type is unchanged.
+ */
 class UpdateAgentFunctionRequest extends FormRequest
 {
     private ?AgentFunction $function = null;
 
     public function authorize(): bool
     {
-        return $this->function() !== null;
+        return $this->findFunction() !== null;
     }
 
     /**
@@ -41,10 +48,10 @@ class UpdateAgentFunctionRequest extends FormRequest
             'parameters_schema' => [
                 'required',
                 'string',
-                new ValidParametersSchema($this->function()?->parameters_schema?->getArrayCopy()),
+                new ValidParametersSchema($this->findFunction()?->parameters_schema?->getArrayCopy()),
             ],
             'webhook_url' => ['required', 'url', 'max:2048', new SafeWebhookUrl],
-            'webhook_method' => ['sometimes', 'in:POST,GET,PATCH,DELETE'],
+            'webhook_method' => ['sometimes', Rule::enum(FunctionWebhookMethod::class)],
             'auth_type' => ['sometimes', Rule::enum(FunctionAuthType::class)],
             'auth_header_name' => ['nullable', 'required_if:auth_type,header', 'string', 'max:128'],
             'auth_value' => ['nullable', 'string', 'max:8192'],
@@ -67,37 +74,46 @@ class UpdateAgentFunctionRequest extends FormRequest
             if (filled($this->input('auth_value'))) {
                 return;
             }
-            $function = $this->function();
-            $canKeep = $function !== null && $function->auth_type === $type && $function->auth_config !== null;
+            $function = $this->findFunction();
+            $canKeep = $function !== null && $function->auth_type->value === $type && $function->auth_config !== null;
             if (! $canKeep) {
                 $validator->errors()->add('auth_value', 'A credential value is required for this auth type.');
             }
         });
     }
 
-    public function toData(): UpdateAgentFunctionData
+    public function toData(): FunctionDefinitionData
     {
         /** @var array<string, mixed> $schema */
         $schema = json_decode($this->string('parameters_schema')->toString(), true);
 
-        $authValue = $this->input('auth_value');
-        $authHeaderName = $this->input('auth_header_name');
-
-        return new UpdateAgentFunctionData(
+        return new FunctionDefinitionData(
             internal_name: $this->string('internal_name')->toString(),
             display_name: $this->string('display_name')->toString() ?: null,
             description: $this->string('description')->toString(),
             parameters_schema: $schema,
             webhook_url: $this->string('webhook_url')->toString(),
-            webhook_method: $this->string('webhook_method', 'POST')->toString(),
-            auth_type: $this->string('auth_type', 'none')->toString(),
-            auth_header_name: filled($authHeaderName) ? (string) $authHeaderName : null,
-            auth_value: filled($authValue) ? (string) $authValue : null,
-            requires_approval: $this->has('requires_approval') ? $this->boolean('requires_approval') : null,
+            webhook_method: $this->enum('webhook_method', FunctionWebhookMethod::class) ?? FunctionWebhookMethod::Post,
+            auth_type: $this->enum('auth_type', FunctionAuthType::class) ?? FunctionAuthType::None,
+            auth_header_name: filled($this->input('auth_header_name')) ? (string) $this->input('auth_header_name') : null,
+            auth_value: filled($this->input('auth_value')) ? (string) $this->input('auth_value') : null,
+            requires_approval: $this->has('requires_approval') ? $this->boolean('requires_approval') : new Optional,
         );
     }
 
-    private function function(): ?AgentFunction
+    /**
+     * The function being edited. Authorization already 403s when it isn't one
+     * of the workspace's functions.
+     */
+    public function function(): AgentFunction
+    {
+        $function = $this->findFunction();
+        abort_if($function === null, 404);
+
+        return $function;
+    }
+
+    private function findFunction(): ?AgentFunction
     {
         if ($this->function !== null) {
             return $this->function;

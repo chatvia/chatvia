@@ -2,13 +2,16 @@
 
 namespace Domain\Billing\Actions\Account;
 
-use App\Identity\Workspace\Models\User;
+use Domain\Billing\Data\Account\PaymentMethodData;
 
+/**
+ * Makes a saved payment method the default the workspace is charged with.
+ */
 class SetDefaultPaymentMethodAction
 {
-    public function execute(User $user, string $paymentMethodId): void
+    public function execute(PaymentMethodData $data): void
     {
-        $billing = $user->accountBilling();
+        $billing = $data->user->accountBilling();
 
         // Skip the Stripe call when the account has no billing row or no
         // Stripe customer yet — Cashier throws InvalidCustomer otherwise,
@@ -18,6 +21,6 @@ class SetDefaultPaymentMethodAction
             return;
         }
 
-        $billing->updateDefaultPaymentMethod($paymentMethodId);
+        $billing->updateDefaultPaymentMethod($data->paymentMethodId);
     }
 }

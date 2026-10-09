@@ -2,7 +2,9 @@
 
 namespace Domain\Llm\Operations\Translate;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Services\StructuredCompletion;
 
 /**
  * One structured-JSON LLM call that localizes a set of short UI strings into
@@ -14,7 +16,9 @@ use Domain\Llm\Contracts\LlmProviderInterface;
  */
 class TextTranslator
 {
-    public function __construct(public LlmProviderInterface $provider) {}
+    public function __construct(
+        private readonly StructuredCompletion $completion,
+    ) {}
 
     /**
      * @param  array<string, string>  $fields  caller key => base (source) text
@@ -27,43 +31,31 @@ class TextTranslator
             return [];
         }
 
-        $content = $this->provider->completion([
-            'model' => config('chatvia.ai.models.translator'),
-            'temperature' => 0.2,
-            'messages' => [
-                [
-                    'role' => 'system',
-                    'content' => prompt('translate/strings'),
-                ],
-                [
-                    'role' => 'user',
-                    'content' => json_encode(
-                        ['fields' => $fields, 'languages' => $languages],
-                        JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE,
-                    ),
-                ],
+        $reply = $this->completion->send(new ChatRequestData(
+            model: (string) config('chatvia.ai.models.translator'),
+            messages: [
+                ChatMessageData::system(prompt('translate/strings')),
+                ChatMessageData::user(json_encode(
+                    ['fields' => $fields, 'languages' => $languages],
+                    JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE,
+                )),
             ],
-        ])->throw()->json('choices.0.message.content');
+            temperature: 0.2,
+        ));
 
-        return $this->parse(is_string($content) ? $content : '', array_keys($fields), array_keys($languages));
+        return $this->keepRequested($reply->data ?? [], array_keys($fields), array_keys($languages));
     }
 
     /**
-     * Decode the model's JSON and keep only the requested keys/locales as
-     * non-empty strings. Tolerates code fences and surrounding prose.
+     * Keep only the requested keys and locales, as non-empty strings.
      *
+     * @param  array<array-key, mixed>  $json
      * @param  array<int, string>  $fieldKeys
      * @param  array<int, string>  $localeKeys
      * @return array<string, array<string, string>>
      */
-    private function parse(string $content, array $fieldKeys, array $localeKeys): array
+    private function keepRequested(array $json, array $fieldKeys, array $localeKeys): array
     {
-        $json = $this->extractJson($content);
-
-        if (! is_array($json)) {
-            return [];
-        }
-
         $result = [];
 
         foreach ($fieldKeys as $field) {
@@ -83,31 +75,5 @@ class TextTranslator
         }
 
         return $result;
-    }
-
-    private function extractJson(string $content): mixed
-    {
-        $content = trim($content);
-
-        // Strip a ```json … ``` fence if the model wrapped its answer.
-        if (str_starts_with($content, '```')) {
-            $content = preg_replace('/^```[a-zA-Z]*\s*|\s*```$/', '', $content) ?? $content;
-        }
-
-        $decoded = json_decode($content, true);
-
-        if (is_array($decoded)) {
-            return $decoded;
-        }
-
-        // Fall back to the outermost { … } block when prose leaked in.
-        $start = strpos($content, '{');
-        $end = strrpos($content, '}');
-
-        if ($start === false || $end === false || $end <= $start) {
-            return null;
-        }
-
-        return json_decode(substr($content, $start, $end - $start + 1), true);
     }
 }

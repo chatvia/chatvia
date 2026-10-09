@@ -3,7 +3,7 @@
 namespace Domain\Integration\Tool\Actions\Embedding;
 
 use Domain\Integration\Mcp\Models\McpTool;
-use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
+use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 

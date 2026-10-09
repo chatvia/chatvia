@@ -2,18 +2,18 @@
 
 namespace Domain\Widget\Data\Conversation;
 
+use Domain\Conversation\Data\Memory\ConversationData;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
- * Result of fetching (or auto-provisioning) the visitor's conversations
- * for an agent. The conversations array is whatever shape ChatMemory
- * hands back — historically a list of `{id, title, timestamp, visible}`.
+ * The visitor's conversations for an agent, as the widget lists them. Each
+ * entry is the array form of {@see ConversationData} (`id`, `title`,
+ * `timestamp`, `is_visible`, `messages`).
  *
- * Property name MUST stay `conversations`: the widget client (storage.js)
- * reads `data.conversations` directly. The recent Thread→Conversation
- * rename missed this DTO, which made the widget refresh always create a
- * brand-new "New Chat" because it saw an empty list.
+ * The property name must stay `conversations`: the widget script reads
+ * `data.conversations` directly, and an unknown key would look like an empty
+ * list, so the widget would start a new conversation on every page load.
  */
 #[TypeScript]
 class WidgetConversationsResultData extends Data

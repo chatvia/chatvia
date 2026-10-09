@@ -2,10 +2,16 @@
 
 namespace Domain\Knowledge\Ingestion\Services;
 
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
 use Domain\Llm\Services\TikToken;
 
+/**
+ * Splits a long text into parts of about 1,000 tokens (the shared tokenizer's
+ * count) with ~100 tokens of overlap, cutting at paragraph and then sentence
+ * boundaries. Used for text sources and media transcripts; text files and web
+ * pages use the configured TextSplitter.
+ */
 class TokenSplitter
 {
     public function __construct(
@@ -14,6 +20,9 @@ class TokenSplitter
         private bool $normalize = true
     ) {}
 
+    /**
+     * @return list<PageData> the parts in reading order, numbered from 1
+     */
     public function split(string $text): array
     {
         if ($this->normalize) {

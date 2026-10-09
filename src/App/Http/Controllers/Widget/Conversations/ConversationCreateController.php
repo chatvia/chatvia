@@ -2,19 +2,32 @@
 
 namespace App\Http\Controllers\Widget\Conversations;
 
+use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
+use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Enums\ConversationSource;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\Data\Conversation\WidgetConversationStoredData;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * "New chat" in the widget: starts an empty conversation in the visitor's
+ * session.
+ */
 class ConversationCreateController
 {
-    public function __invoke(Request $request, ChatMemory $memory): WidgetConversationStoredData
+    use InteractsWithWidgetRequest;
+
+    public function __invoke(Request $request, StartConversationAction $startConversation): JsonResponse|WidgetConversationStoredData
     {
+        $sessionId = $this->widgetSessionId($request);
+
+        if ($sessionId === null) {
+            return response()->json(['error' => 'Missing session'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
         return new WidgetConversationStoredData(
-            id: $memory
-                ->withContext(current_agent_from_widget(), (string) $request->header('X-SESSION-ID'))
-                ->createConversation('New Chat', ConversationSource::Widget),
+            id: $startConversation->execute(new ChatScopeData($this->widgetAgent(), $sessionId), ConversationSource::Widget),
         );
     }
 }

@@ -3,18 +3,18 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Account\CreateApiAgentAction;
 use Domain\Agent\Data\Account\CreateApiAgentData;
+use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Membership\Team\Services\TeamService;
-use Domain\Prompt\Models\AgentPrompt;
-use Illuminate\Validation\ValidationException;
 use Support\Enums\CreatedVia;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * CreateApiAgentAction is the public-API (`POST /api/v1/agents`), money-gated,
  * transactional agent-creation path. It resolves the target team + (optional)
  * reusable prompt by their external ids, mints the agent stamped `source = api`,
  * and seeds the full topic catalog — all inside one transaction. The team/prompt
- * resolvers fail with a 422-mapped ValidationException, so an unknown id must
+ * resolvers fail with a 422-mapped DomainValidationException, so an unknown id must
  * never create a half-built agent.
  */
 beforeEach(function (): void {
@@ -91,7 +91,7 @@ it('rejects an unknown team id without creating an agent', function (): void {
         name: 'Orphan',
         team_id: '00000000-0000-0000-0000-000000000000',
         is_public: false,
-    )))->toThrow(ValidationException::class);
+    )))->toThrow(DomainValidationException::class);
 
     // The owner's team gains no agent — resolution fails before the insert.
     expect($this->team->agents()->count())->toBe(0);
@@ -106,7 +106,7 @@ it('rejects a prompt id the owner does not own', function (): void {
         team_id: $this->team->external_id,
         is_public: false,
         prompt_id: $strangerPrompt->external_id,
-    )))->toThrow(ValidationException::class);
+    )))->toThrow(DomainValidationException::class);
 
     expect($this->team->agents()->count())->toBe(0);
 });

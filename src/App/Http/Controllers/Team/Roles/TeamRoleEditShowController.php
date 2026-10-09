@@ -3,39 +3,42 @@
 namespace App\Http\Controllers\Team\Roles;
 
 use Domain\Membership\Team\Data\Resources\Roles\TeamRoleData;
+use Domain\Membership\Team\Data\Resources\Team\TeamAgentData;
 use Domain\Membership\Team\Data\Resources\Team\TeamData;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Services\TeamPermissionCatalog;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
+/**
+ * The role editor for an existing custom role. Only the owner may edit roles,
+ * and the owner role itself can never be edited.
+ */
 class TeamRoleEditShowController
 {
     public function __construct(
-        private TeamService $teamService
+        private readonly TeamPermissionCatalog $catalog,
     ) {}
 
-    public function __invoke(Request $request, Team $team, int $roleId)
+    public function __invoke(Request $request, Team $team, int $roleId): Response|RedirectResponse
     {
-        $user = $request->user();
+        abort_if($request->user()->cannot('update', $team), 403, __('Only the team owner can edit roles.'));
 
-        if ($user->cannot('update', $team)) {
-            abort(403, 'Only the team owner can edit roles.');
-        }
+        $role = $team->roles()->with('permissions')->findOrFail($roleId);
 
-        $roleModel = $team->roles()->with('permissions')->findOrFail($roleId);
-
-        if ($roleModel->code === 'owner') {
-            return redirect()->route('teams.show', $team)->with('error', 'Cannot edit the owner role.');
+        if ($role->isOwnerRole()) {
+            return redirect()->route('teams.show', $team)->with('error', __('Cannot edit the owner role.'));
         }
 
         return Inertia::render('teams/roles/Edit', [
             'team' => TeamData::fromModel($team),
-            'role' => TeamRoleData::fromModel($roleModel),
-            'agents' => $this->teamService->teamAgents($team),
-            'permissionsConfig' => $this->teamService->permissionsConfig(),
-            'permissionGroups' => $this->teamService->permissionGroups(),
-            'permissionScopes' => $this->teamService->permissionScopes(),
+            'role' => TeamRoleData::fromModel($role),
+            'agents' => TeamAgentData::collectForTeam($team),
+            'permissionsConfig' => $this->catalog->permissions(),
+            'permissionGroups' => $this->catalog->groups(),
+            'permissionScopes' => $this->catalog->scopes(),
         ]);
     }
 }

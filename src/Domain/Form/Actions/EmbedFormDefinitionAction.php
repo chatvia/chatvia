@@ -4,7 +4,7 @@ namespace Domain\Form\Actions;
 
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Services\FormHybridSearch;
-use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
+use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 

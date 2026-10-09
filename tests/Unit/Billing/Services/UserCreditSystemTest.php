@@ -1,8 +1,11 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Actions\Credits\RecordTokenUsageAction;
+use Domain\Billing\Actions\Credits\StartCreditCycleAction;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserCredit;
+use Domain\Billing\Services\UserCreditSystem;
 use Illuminate\Support\Facades\Cache;
 
 beforeEach(fn () => Cache::flush());
@@ -308,7 +311,7 @@ it('getTotalSentMessages returns 0 when there is no active credit', function ():
 
 // --- tokens: ANALYTICS-only accumulator (tokens never gate or bill) ----------
 
-it('recordTokenUsage accumulates consumed tokens on the usage row (analytics only)', function (): void {
+it('RecordTokenUsageAction accumulates consumed tokens on the usage row (analytics only)', function (): void {
     $user = User::factory()->create();
 
     $credit = UserCredit::factory()->create([
@@ -318,19 +321,43 @@ it('recordTokenUsage accumulates consumed tokens on the usage row (analytics onl
     ]);
     $credit->usage()->create(['tokens' => 0]);
 
-    $system = $user->creditSystem();
-    $system->recordTokenUsage(400_000);
-    $system->recordTokenUsage(150_000);
+    $recordTokenUsage = app(RecordTokenUsageAction::class);
+    $recordTokenUsage->execute($user->id, 400_000);
+    $recordTokenUsage->execute($user->id, 150_000);
+    $recordTokenUsage->execute($user->id, 0);
 
     // Tokens are recorded for insight only — they do NOT affect the send gate
     // (which is messages); this is the "tokens consumed this cycle" figure.
     expect($credit->usage()->first()->tokens)->toBe(550_000);
 });
 
-it('addCredit grants the plan message allowance for the cycle', function (): void {
+it('StartCreditCycleAction grants the plan message allowance for the cycle and closes the previous one', function (): void {
     $user = User::factory()->create();
+    $previous = app(StartCreditCycleAction::class)->execute($user, 1000, now()->addMonth());
 
-    $credit = $user->creditSystem()->addCredit(['messages_limit' => 4000], now()->addMonth());
+    $credit = app(StartCreditCycleAction::class)->execute($user, 4000, now()->addMonth());
 
-    expect($credit->messages)->toBe(4000);
+    expect($credit->messages)->toBe(4000)
+        ->and($credit->started_at->greaterThan($previous->started_at))->toBeTrue()
+        ->and($previous->fresh()->ends_at->isPast())->toBeTrue()
+        ->and($credit->usage()->exists())->toBeTrue()
+        ->and($user->creditSystem()->getTotalSentMessages())->toBe(0)
+        ->and($user->fresh()->credit->id)->toBe($credit->id);
+});
+
+it('scopes forWorkspace() to a new instance so a shared service is never re-pointed', function (): void {
+    $first = User::factory()->create();
+    $second = User::factory()->create();
+    app(StartCreditCycleAction::class)->execute($first, 10, now()->addMonth());
+
+    $shared = app(UserCreditSystem::class);
+    $forFirst = $shared->forWorkspace($first->id);
+    $shared->forWorkspace($second->id);
+
+    expect($forFirst->consumableMessages(refresh: true))->toBe(10);
+});
+
+it('refuses to read the pool before it is scoped to a workspace', function (): void {
+    expect(fn () => app(UserCreditSystem::class)->canSendMessages())
+        ->toThrow(LogicException::class);
 });

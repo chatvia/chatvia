@@ -2,9 +2,7 @@
 
 namespace Domain\Knowledge\Source\Web\Models;
 
-use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
-use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlTrainJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
 use Domain\Knowledge\Source\Enums\SourceStatus;
@@ -17,12 +15,16 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Carbon;
 
 /**
+ * One discovered page of a SourceWebsite (table `source_website_urls`). It
+ * owns no chunks itself: `chunk_references` link it to the website chunks its
+ * content produced, so a page can be retrained or removed on its own.
+ *
  * @property int $id
  * @property int $source_website_id
  * @property string $url
  * @property string|null $text
  * @property string|null $checksum
- * @property string $status
+ * @property SourceStatus $status
  * @property string|null $internal_ingestion_job_id
  * @property string|null $internal_chunking_batch_id
  * @property string|null $failure_reason
@@ -62,13 +64,6 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
         return $this->belongsTo(SourceWebsite::class, 'source_website_id');
     }
 
-    public function train(Agent $agent): void
-    {
-        $this->update(['status' => SourceStatus::Pending->value]);
-
-        WebsiteUrlTrainJob::dispatch($this, $agent);
-    }
-
     /**
      * Values `chunk_references.referenceable_type` can hold for a URL: the
      * morph alias, plus the class name that workers still running the
@@ -97,6 +92,7 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
     {
         return [
             'crawled_at' => 'datetime',
+            'status' => SourceStatus::class,
         ];
     }
 }

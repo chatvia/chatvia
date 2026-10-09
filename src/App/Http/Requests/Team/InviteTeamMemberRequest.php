@@ -10,6 +10,11 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Support\Enums\User\UserType;
 
+/**
+ * Adding someone to a team: either a managed user picked by id or an email
+ * address to invite. Rejects chatters, existing members and duplicate pending
+ * invitations here, so the Action only enforces the owner-side quota rules.
+ */
 class InviteTeamMemberRequest extends FormRequest
 {
     public function authorize(): bool

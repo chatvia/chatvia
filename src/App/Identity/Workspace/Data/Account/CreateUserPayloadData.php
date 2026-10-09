@@ -4,6 +4,9 @@ namespace App\Identity\Workspace\Data\Account;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * API payload for creating a chatter (POST /api/v1/chatters).
+ */
 class CreateUserPayloadData extends Data
 {
     public function __construct(

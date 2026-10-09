@@ -6,6 +6,9 @@ use App\Identity\ApiKey\Data\CreateApiKeyData;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Creates an API key with a name and abilities.
+ */
 class CreateApiKeyRequest extends FormRequest
 {
     public function authorize(): bool

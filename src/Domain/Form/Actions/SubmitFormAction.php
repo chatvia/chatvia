@@ -2,120 +2,143 @@
 
 namespace Domain\Form\Actions;
 
-use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
+use Domain\Form\Data\FormSubmitResultData;
+use Domain\Form\Data\SubmitFormData;
+use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Events\FormSubmitted;
 use Domain\Form\Exceptions\FormNotClaimableException;
+use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Persist one inline-form submission. One transaction:
+ * Persist one inline-form submission, in one transaction:
  *   1. atomically claim the form (lockForUpdate, pending → submitted, once),
  *   2. store the answers on the submission (plaintext JSON in `values`),
  *   3. flip the owning message's artifact to submitted for reload state,
  *   4. fire {@see FormSubmitted} (→ CRM webhook).
  *
- * The unguessable form_instance_id (the submission's external_id) + the claim
- * are the idempotency guard; the binding (agent + conversation) is verified by
- * the calling controller before this runs.
+ * The unguessable form_instance_id (the submission's external_id) and the
+ * claim are the idempotency guard; the binding (agent + conversation) is
+ * checked by the calling controller before this runs.
  */
 class SubmitFormAction
 {
-    /**
-     * @param  array<string, mixed>  $values  Validated field values (restricted to known keys).
-     * @return array{status: string, success_message: string, submitted_values: array<string, mixed>}
-     */
-    public function execute(
-        FormSubmission $submission,
-        Conversation $conversation,
-        array $values,
-        ?string $ip = null,
-        ?string $userAgent = null,
-        ?string $requestId = null,
-        ?string $assistantMessageExternalId = null,
-    ): array {
-        $definition = $submission->definition;
+    private const string DEFAULT_SUCCESS_MESSAGE = 'Thanks — your details have been received.';
 
-        return DB::transaction(function () use ($submission, $conversation, $values, $ip, $userAgent, $requestId, $assistantMessageExternalId, $definition): array {
-            /** @var FormSubmission|null $claimed */
-            $claimed = FormSubmission::query()->whereKey($submission->id)->lockForUpdate()->first();
+    public function execute(SubmitFormData $data): FormSubmitResultData
+    {
+        $definition = $data->submission->definition;
 
-            if ($claimed === null || $claimed->status !== FormSubmission::STATUS_PENDING) {
-                throw FormNotClaimableException::alreadySubmitted();
-            }
-            if ($claimed->isExpired()) {
-                $claimed->forceFill(['status' => FormSubmission::STATUS_EXPIRED])->save();
-                throw FormNotClaimableException::expired();
-            }
+        return DB::transaction(function () use ($data, $definition): FormSubmitResultData {
+            $claimed = $this->claim($data->submission);
 
-            // Keep only fields the definition declares (drop anything extra).
-            $knownKeys = array_column($definition->schema, 'key');
-            $clean = array_intersect_key($values, array_flip($knownKeys));
-            $checksum = FormSubmission::checksum($clean);
+            // Keep only the fields the form declares; drop anything extra.
+            $values = array_intersect_key($data->values, array_flip(array_column($definition->schema, 'key')));
+            $checksum = FormSubmission::checksum($values);
 
-            $message = $assistantMessageExternalId !== null
-                ? Message::query()->where('external_id', $assistantMessageExternalId)->first()
+            $message = $data->assistantMessageExternalId !== null
+                ? Message::query()->where('external_id', $data->assistantMessageExternalId)->first()
                 : null;
 
-            // If this exact answer set is already stored for the form (e.g. the
-            // visitor submitted a second render of the same form), don't keep a
-            // second copy: drop this instance but still show them the submitted
-            // state and a success message — their details are already captured.
-            if ($checksum !== null
-                && FormSubmission::query()->duplicateOf($definition->id, $checksum)->whereKeyNot($claimed->id)->exists()) {
+            // The visitor may send the same answers again (e.g. a second render
+            // of the same form): keep one copy, but still show them the
+            // submitted state — their details are already captured.
+            if ($this->isDuplicate($claimed, $definition, $checksum)) {
                 $claimed->delete();
-                $this->writeSubmittedStateToMessage($message, $submission->external_id);
-
-                return [
-                    'status' => FormSubmission::STATUS_SUBMITTED,
-                    'success_message' => $definition->success_message ?: 'Thanks — your details have been received.',
-                    'submitted_values' => $clean,
-                ];
+                $this->markArtifactSubmitted($message, $data->submission->external_id);
+            } else {
+                $this->store($claimed, $values, $checksum, $message, $data);
+                $this->markArtifactSubmitted($message, $data->submission->external_id);
+                $this->announce($claimed, $definition, $data, $values);
             }
 
-            $claimed->forceFill([
-                'status' => FormSubmission::STATUS_SUBMITTED,
-                'values' => $clean === [] ? null : $clean,
-                'values_checksum' => $checksum,
-                'request_id' => $requestId,
-                'ip_address' => $ip,
-                'user_agent' => $userAgent,
-                'chat_message_id' => $message?->id,
-                'submitted_at' => now(),
-            ])->save();
-
-            $this->writeSubmittedStateToMessage($message, $submission->external_id);
-
-            $agent = $claimed->agent;
-            FormSubmitted::dispatch(
-                $agent->id,
-                $agent->user_id,
-                $claimed->id,
-                $definition->slug,
-                $definition->form_type->value,
-                $conversation->external_id,
-                true,
-                'form',
-                $clean,
+            return new FormSubmitResultData(
+                status: FormSubmissionStatus::Submitted,
+                success_message: $definition->success_message ?: self::DEFAULT_SUCCESS_MESSAGE,
+                submitted_values: $values,
             );
-
-            return [
-                'status' => FormSubmission::STATUS_SUBMITTED,
-                'success_message' => $definition->success_message ?: 'Thanks — your details have been received.',
-                'submitted_values' => $clean,
-            ];
         });
     }
 
     /**
-     * Flip the form artifact's status on the owning assistant message so a reload
-     * renders it read-only. Bound by the artifact — we only write into a message
-     * that actually carries this instance. The answers (often personal data)
-     * are NOT copied here: they live only on the submission row, so deleting
-     * the submission removes them everywhere.
+     * Lock the pending row so two submits of the same form can't both win;
+     * an expired form is marked so and rejected.
      */
-    private function writeSubmittedStateToMessage(?Message $message, string $formInstanceId): void
+    private function claim(FormSubmission $submission): FormSubmission
+    {
+        /** @var FormSubmission|null $claimed */
+        $claimed = FormSubmission::query()->whereKey($submission->id)->lockForUpdate()->first();
+
+        if ($claimed === null || ! $claimed->isPending()) {
+            throw FormNotClaimableException::alreadySubmitted();
+        }
+
+        if ($claimed->isExpired()) {
+            $claimed->forceFill(['status' => FormSubmissionStatus::Expired])->save();
+
+            throw FormNotClaimableException::expired();
+        }
+
+        return $claimed;
+    }
+
+    private function isDuplicate(FormSubmission $claimed, FormDefinition $definition, ?string $checksum): bool
+    {
+        return $checksum !== null
+            && FormSubmission::query()->duplicateOf($definition->id, $checksum)->whereKeyNot($claimed->id)->exists();
+    }
+
+    /**
+     * @param  array<string, mixed>  $values
+     */
+    private function store(FormSubmission $claimed, array $values, ?string $checksum, ?Message $message, SubmitFormData $data): void
+    {
+        $claimed->forceFill([
+            'status' => FormSubmissionStatus::Submitted,
+            'values' => $values === [] ? null : $values,
+            'values_checksum' => $checksum,
+            'request_id' => $data->requestId,
+            'ip_address' => $data->ip,
+            'user_agent' => $data->userAgent,
+            'chat_message_id' => $message?->id,
+            'submitted_at' => now(),
+        ])->save();
+    }
+
+    /**
+     * Tell the rest of the system a contact was captured (the CRM webhook
+     * listens). The event carries the answers, so its listener never re-reads
+     * the row.
+     *
+     * @param  array<string, mixed>  $values
+     */
+    private function announce(FormSubmission $claimed, FormDefinition $definition, SubmitFormData $data, array $values): void
+    {
+        $agent = $claimed->agent;
+
+        FormSubmitted::dispatch(
+            $agent->id,
+            $agent->user_id,
+            $claimed->id,
+            $definition->slug,
+            $definition->form_type->value,
+            $data->conversation->external_id,
+            true,
+            'form',
+            $values,
+        );
+    }
+
+    /**
+     * Flip the form artifact's status on the owning assistant message so a
+     * reload renders it read-only. Only a message that actually carries this
+     * form instance is written. The answers (often personal data) are NOT
+     * copied there: they live only on the submission row, so deleting the
+     * submission removes them everywhere.
+     */
+    private function markArtifactSubmitted(?Message $message, string $formInstanceId): void
     {
         if ($message === null) {
             return;
@@ -124,20 +147,14 @@ class SubmitFormAction
         $metadata = $message->metadata ?? [];
         $artifacts = $metadata['artifacts'] ?? [];
 
-        $found = false;
-        foreach ($artifacts as $i => $artifact) {
-            if (($artifact['kind'] ?? null) === 'form'
-                && ($artifact['data']['form_instance_id'] ?? null) === $formInstanceId) {
-                $artifacts[$i]['data']['status'] = FormSubmission::STATUS_SUBMITTED;
-                $found = true;
-                break;
-            }
-        }
+        $index = array_find_key($artifacts, fn (mixed $artifact): bool => ($artifact['kind'] ?? null) === 'form'
+            && ($artifact['data']['form_instance_id'] ?? null) === $formInstanceId);
 
-        if (! $found) {
+        if ($index === null) {
             return;
         }
 
+        $artifacts[$index]['data']['status'] = FormSubmissionStatus::Submitted->value;
         $metadata['artifacts'] = $artifacts;
         $message->metadata = $metadata;
         $message->save();

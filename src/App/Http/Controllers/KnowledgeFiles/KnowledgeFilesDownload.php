@@ -4,16 +4,20 @@ namespace App\Http\Controllers\KnowledgeFiles;
 
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * Downloads a stored knowledge file of the caller's workspace.
+ */
 class KnowledgeFilesDownload
 {
-    public function __invoke(Request $request, SourceFile $agentFile): StreamedResponse
+    public function __invoke(Request $request, SourceFile $sourceFile): StreamedResponse
     {
-        // {agentFile} binds by integer id and resolves globally, so authorize
-        // ownership before streaming (SourceFilePolicy::view → workspace match).
-        abort_if($request->user()->cannot('view', $agentFile), 404);
+        // {sourceFile} binds globally by id, so ownership is checked before
+        // streaming (SourceFilePolicy::view → workspace match).
+        abort_if($request->user()->cannot('view', $sourceFile), 404);
 
-        return $agentFile->download();
+        return Storage::download($sourceFile->filepath);
     }
 }

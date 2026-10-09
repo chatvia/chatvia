@@ -2,6 +2,10 @@
 
 namespace App\Identity\Workspace\Enums;
 
+/**
+ * Where a data export is in its life: being prepared, ready to download,
+ * failed, or expired (file deleted).
+ */
 enum DataExportStatus: string
 {
     case Pending = 'pending';

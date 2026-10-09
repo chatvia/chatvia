@@ -5,6 +5,10 @@ namespace Domain\Membership\Team\Data\Resources\Roles;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A default role from config('team-permissions.roles'). Its permission list may
+ * hold `*`, meaning every permission code.
+ */
 #[TypeScript]
 class RoleConfigData extends Data
 {

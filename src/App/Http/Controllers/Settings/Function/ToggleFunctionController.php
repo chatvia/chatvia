@@ -3,22 +3,20 @@
 namespace App\Http\Controllers\Settings\Function;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Integration\Function\Actions\ToggleAgentFunctionAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * Flip an account-level function's `enabled` flag. Pulling this off
- * {@see FunctionController} keeps that one to standard CRUD.
+ * Flip a workspace function's on/off switch.
  */
 class ToggleFunctionController
 {
-    public function __invoke(Request $request, string $external_id, ToggleAgentFunctionAction $toggleFunction): RedirectResponse
+    public function __invoke(Request $request, string $external_id): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
 
-        $toggleFunction->execute($user, $external_id);
+        $user->workspace()->functions()->where('external_id', $external_id)->firstOrFail()->toggleEnabled();
 
         return back();
     }

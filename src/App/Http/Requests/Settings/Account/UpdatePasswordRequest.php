@@ -7,6 +7,9 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
+/**
+ * Changes the password; the current one must be given.
+ */
 class UpdatePasswordRequest extends FormRequest
 {
     public function authorize(): bool

@@ -3,8 +3,8 @@
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Domain\Knowledge\Ingestion\Actions\Sources\CreateSourceChunkAction;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunkAction;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Support\Facades\DB;

@@ -2,14 +2,13 @@
 
 namespace App\Identity\Chatter\Actions;
 
+use App\Identity\Chatter\Events\ChatterPasswordResetRequested;
 use App\Identity\Workspace\Models\User;
-use Illuminate\Support\Facades\Password;
 
 /**
- * Trigger a password-reset email for a chat member. We don't pick a new
- * password ourselves — the chatter follows the standard reset link to set
- * their own, which keeps this flow consistent with normal "forgot password"
- * and avoids handing out plaintext credentials through the dashboard.
+ * Starts a password reset for a chatter: the chatter follows the standard reset
+ * link to choose their own password, the same flow as "forgot password". Does
+ * nothing for a token-only chatter without an email.
  */
 class ResetChatterPasswordAction
 {
@@ -19,6 +18,6 @@ class ResetChatterPasswordAction
             return;
         }
 
-        Password::sendResetLink(['email' => $chatter->email]);
+        ChatterPasswordResetRequested::dispatch($chatter);
     }
 }

@@ -4,6 +4,9 @@ namespace Domain\Knowledge\Embedding;
 
 use Illuminate\Support\Facades\Http;
 
+/**
+ * Embeddings from Cohere's hosted API (`services.cohere`).
+ */
 class Cohere extends AbstractEmbeddingsProvider
 {
     public function embed(string $text, bool $returnAsText = false): string|array

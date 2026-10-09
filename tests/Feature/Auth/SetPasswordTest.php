@@ -1,6 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Actions\Fortify\ResetUserPassword;
+use App\Identity\Workspace\Fortify\ResetUserPassword;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\PasswordSetup;
 use Illuminate\Support\Facades\Hash;

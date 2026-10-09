@@ -9,6 +9,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Support\Enums\User\SocialProvider;
 
+/**
+ * Linked social sign-in accounts: list, connect and disconnect.
+ */
 class SocialController
 {
     /**
@@ -63,7 +66,7 @@ class SocialController
         $request->user()->socials()->where('provider', $providerEnum)->delete();
 
         return to_route('account.social.edit')
-            ->with('success', ucfirst($providerEnum->value).' disconnected.');
+            ->with('success', __(':provider disconnected.', ['provider' => ucfirst($providerEnum->value)]));
     }
 
     private function resolveProvider(string $provider): SocialProvider

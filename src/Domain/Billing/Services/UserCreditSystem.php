@@ -3,148 +3,86 @@
 namespace Domain\Billing\Services;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Actions\Credits\ConsumeMessageCreditsAction;
+use Domain\Billing\Actions\Credits\StartCreditCycleAction;
+use Domain\Billing\Enums\MessageCreditAddon;
 use Domain\Billing\Models\UserCredit;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use LogicException;
 
 /**
- * The WORKSPACE message-credit pool: capacity enforcement for one account's
- * billing cycle. Scoped to a workspace — the owner `User` row that holds the
- * subscription, credits and add-ons. Resolve it through
- * {@see User::creditSystem()} (which always passes the workspace id) or call
- * {@see forWorkspace()} directly with a workspace-owner id. Chatters/employees
- * share their workspace's pool; the per-chatter sub-allocation is a separate
- * concern handled by {@see ChatterMessageAllowance}.
+ * Read side of a workspace's message-credit pool: how many messages are left
+ * this billing cycle, how many were sent, and the cached "may this workspace
+ * send another message" flag. The pool belongs to the workspace owner (the
+ * `User` row that holds the subscription, credits and add-ons); employees and
+ * chatters share it. The per-chatter cap is {@see ChatterMessageAllowance}.
  *
- * The send gate ({@see canSendMessages}) is a single cached yes/no flag that
- * encodes BOTH halves of "may this workspace send another message": an active
- * billing state (paid subscription or trial) AND remaining capacity this cycle.
- * The subscription half is read from Cashier's locally-synced tables (never a
- * Stripe API call) and only when the flag is recomputed, so the hot path stays
- * one cache read.
+ * Get an instance for one workspace with {@see forWorkspace()} (or
+ * `User::creditSystem()`); it returns a new object, so a shared container
+ * instance is never re-pointed at another workspace. The class only reads the
+ * database. It keeps its own cache entries up to date; the writes that change
+ * the pool are Actions ({@see StartCreditCycleAction},
+ * {@see ConsumeMessageCreditsAction}).
+ *
+ * The send flag folds BOTH halves of "may this workspace send another message"
+ * into one cached yes/no: an active billing state (paid subscription or trial)
+ * AND remaining capacity this cycle. The billing half is read from Cashier's
+ * locally synced tables, and only when the flag is recomputed, so the hot path
+ * stays one cache read.
  */
 class UserCreditSystem
 {
-    private int $workspaceId;
+    private const string CYCLE_CACHE_KEY = 'workspace:{id}:credit:current';
 
-    private const string CREDIT_CACHE_PREFIX = 'workspace:{id}:credit:current';
+    private const string MESSAGES_SENT_CACHE_KEY = 'workspace:{id}:credit:messages:sent';
 
-    private const string MESSAGES_SENT_CACHE_PREFIX = 'workspace:{id}:credit:messages:sent';
+    private const string CAN_SEND_MESSAGES_CACHE_KEY = 'workspace:{id}:can-send-messages';
 
-    private const string CAN_SEND_MESSAGES_CACHE_PREFIX = 'workspace:{id}:can-send-messages';
+    private const string MESSAGES_AVAILABLE_CACHE_KEY = 'workspace:{id}:credit:messages:available';
 
-    private const string MESSAGES_AVAILABLE_CACHE_PREFIX = 'workspace:{id}:credit:messages:available';
+    public function __construct(private readonly ?int $workspaceId = null) {}
 
     /**
-     * Scope this instance to a workspace, identified by its owner `User` id.
+     * This service scoped to one workspace, identified by its owner's user id.
      */
-    public function forWorkspace(int $workspaceId): static
+    public function forWorkspace(int $workspaceId): self
     {
-        $this->workspaceId = $workspaceId;
-
-        return $this;
+        return new self($workspaceId);
     }
 
     /**
-     * Add credits for a new billing cycle.
-     * This method RESETS all existing active credits before adding new ones.
-     * Each billing cycle starts fresh - credits do NOT accumulate.
-     */
-    public function addCredit(array $quotaLimit, Carbon $endsAt): UserCredit
-    {
-        /** @var User $user */
-        $user = User::find($this->workspaceId);
-
-        // Reset credits: Expire all existing active credits before adding new ones
-        // This ensures each billing cycle starts fresh (non-accumulative)
-        $user->credits()
-            ->where('ends_at', '>=', now())
-            ->update(['ends_at' => now()->subSecond()]);
-
-        // Pick a started_at past any existing row for this user. The
-        // (user_id, started_at) unique index would otherwise collide when two
-        // grants land in the same second (e.g. plan-upgrade webhooks fired
-        // back-to-back).
-        $lastStartedAt = $user->credits()->max('started_at');
-        $startedAt = $lastStartedAt ? max(now(), Carbon::parse($lastStartedAt)->addSecond()) : now();
-
-        /** @var UserCredit $credit */
-        $credit = $user->credits()->create([
-            'started_at' => $startedAt,
-            'messages' => $quotaLimit['messages_limit'],
-            'ends_at' => $endsAt,
-        ]);
-
-        // Only create usage if it doesn't exist
-        if (! $credit->usage()->exists()) {
-            $credit->usage()->create();
-        }
-
-        Cache::put(
-            key: template(self::CREDIT_CACHE_PREFIX, ['id' => $this->workspaceId]),
-            value: [
-                'started_at' => $startedAt,
-                'ends_at' => $endsAt,
-            ],
-            ttl: $endsAt,
-        );
-
-        Cache::put(template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->workspaceId]), 0, $endsAt);
-
-        // Cache available messages and set can-send flag
-        $this->refreshCanSendMessages();
-
-        return $credit;
-    }
-
-    /**
-     * Check if user can send messages (fast cached check).
+     * Fast cached check: may the workspace send another message?
      */
     public function canSendMessages(): bool
     {
-        $cached = Cache::get(template(self::CAN_SEND_MESSAGES_CACHE_PREFIX, ['id' => $this->workspaceId]));
+        $cached = Cache::get($this->key(self::CAN_SEND_MESSAGES_CACHE_KEY));
 
-        // If not cached, calculate and cache it
-        if ($cached === null) {
-            return $this->refreshCanSendMessages();
-        }
-
-        return $cached;
+        return $cached === null ? $this->refreshCanSendMessages() : (bool) $cached;
     }
 
     /**
-     * Set the can-send-messages flag in cache.
+     * Overwrite the cached send flag (three-hour backstop by default, one day
+     * when no TTL is given).
      */
     public function setCanSendMessages(bool $canSend, ?Carbon $ttl = null): void
     {
-        $ttl = $ttl ?? now()->addDay();
-        $cacheId = template(self::CAN_SEND_MESSAGES_CACHE_PREFIX, ['id' => $this->workspaceId]);
-
-        Cache::put(
-            $cacheId,
-            $canSend,
-            $ttl
-        );
+        Cache::put($this->key(self::CAN_SEND_MESSAGES_CACHE_KEY), $canSend, $ttl ?? now()->addDay());
     }
 
     /**
-     * Refresh the can-send-messages flag by checking database.
-     *
-     * The gate is two-factor: the workspace must have an active billing state
-     * (paid subscription or trial) AND remaining capacity this cycle. Both are
-     * folded into the one cached flag so {@see canSendMessages} — the hot path
-     * every chat turn hits — never recomputes either half. An unsubscribed
-     * workspace sitting on leftover credits therefore can't slip a message
-     * through any gate that reads the flag (the eval runner, the capacity
-     * middleware, the chat stream, channel replies).
+     * Recompute the send flag from the database. Both checks are folded into
+     * the cached flag so {@see canSendMessages()} — which every chat turn hits —
+     * never recomputes either one. An unsubscribed workspace sitting on
+     * leftover credits therefore can't slip a message through any gate that
+     * reads the flag (the eval runner, the capacity middleware, the chat
+     * stream, channel replies).
      */
     public function refreshCanSendMessages(): bool
     {
-        // Always refresh the available-messages cache (UI reads it), then AND it
-        // with the billing state for the gate decision.
-        $hasCapacity = $this->refreshAvailableMessages() > 0;
-
-        $canSend = $hasCapacity && $this->workspaceHasActiveBilling();
+        // Always refresh the available-messages cache (the UI reads it), then
+        // AND it with the billing state.
+        $canSend = $this->refreshAvailableMessages() > 0 && $this->workspaceHasActiveBilling();
 
         $this->setCanSendMessages($canSend, now()->addHours(3));
 
@@ -152,177 +90,154 @@ class UserCreditSystem
     }
 
     /**
-     * Whether the workspace has an active billing state — a paid subscription or
-     * an in-progress trial. Reads Cashier's locally-synced subscription tables
-     * via {@see User::hasActiveSubscription()} (a DB read, never a Stripe API
-     * call), and only on a gate recompute (cache miss, post-consumption, a
-     * subscription webhook's refresh, or the 3h backstop) — never on the cached
-     * hot path.
-     */
-    private function workspaceHasActiveBilling(): bool
-    {
-        return User::find($this->workspaceId)?->hasActiveSubscription() ?? false;
-    }
-
-    /**
-     * Refresh the available messages cache from database.
+     * Recompute and cache the messages left this cycle.
      */
     public function refreshAvailableMessages(): int
     {
         $available = $this->calculateAvailableMessages();
 
-        $cacheId = template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->workspaceId]);
-
-        Cache::put(
-            $cacheId,
-            $available,
-            now()->addHour()
-        );
+        Cache::put($this->key(self::MESSAGES_AVAILABLE_CACHE_KEY), $available, now()->addHour());
 
         return $available;
     }
 
     /**
-     * Get available messages from cache or calculate.
+     * Messages left this cycle, from the cache when it is warm.
      */
     public function getAvailableMessages(): int
     {
-        $cached = Cache::get(template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->workspaceId]));
+        $cached = Cache::get($this->key(self::MESSAGES_AVAILABLE_CACHE_KEY));
 
-        if ($cached !== null) {
-            return max(0, (int) $cached);
-        }
-
-        return $this->refreshAvailableMessages();
+        return $cached !== null ? max(0, (int) $cached) : $this->refreshAvailableMessages();
     }
 
     /**
-     * Update cache after consuming messages.
-     * Called by UpdateUserCreditsJob after successful consumption.
-     *
-     * @param  int  $messagesUsed  Number of messages consumed (based on LLM credits multiplier)
+     * Messages left this cycle; pass `refresh: true` to skip the cache.
+     */
+    public function consumableMessages(bool $refresh = false): int
+    {
+        return $refresh ? $this->refreshAvailableMessages() : $this->getAvailableMessages();
+    }
+
+    /**
+     * Keep the counters in step after messages were charged (called inside the
+     * charge transaction of {@see ConsumeMessageCreditsAction}).
      */
     public function updateAfterCreditConsumption(int $messagesUsed = 1): void
     {
-        // Increment sent messages counter
-        Cache::increment(
-            key: template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->workspaceId]),
-            value: $messagesUsed
-        );
-
-        // Decrement available messages cache
-        Cache::decrement(
-            key: template(self::MESSAGES_AVAILABLE_CACHE_PREFIX, ['id' => $this->workspaceId]),
-            value: $messagesUsed
-        );
-    }
-
-    public function getTotalSentMessages(): int
-    {
-        $cached = Cache::get(template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->workspaceId]));
-
-        if ($cached !== null) {
-            return (int) $cached;
-        }
-
-        return $this->refreshSentMessages();
+        Cache::increment($this->key(self::MESSAGES_SENT_CACHE_KEY), $messagesUsed);
+        Cache::decrement($this->key(self::MESSAGES_AVAILABLE_CACHE_KEY), $messagesUsed);
     }
 
     /**
-     * Rebuild the sent-messages counter from the database (the active cycle's
-     * usage row — incremented in lockstep with this cache key by
-     * ConsumeMessageCreditsAction). Covers cache flush/expiry mid-cycle, which
-     * would otherwise show 0 sent on the usage dashboard until the next cycle.
+     * Point the cache at a freshly started cycle: its window, a zero sent
+     * counter, and a recomputed send flag. Called by
+     * {@see StartCreditCycleAction}.
+     */
+    public function startCycle(UserCredit $credit): void
+    {
+        Cache::put(
+            key: $this->key(self::CYCLE_CACHE_KEY),
+            value: ['started_at' => $credit->started_at, 'ends_at' => $credit->ends_at],
+            ttl: $credit->ends_at,
+        );
+
+        Cache::put($this->key(self::MESSAGES_SENT_CACHE_KEY), 0, $credit->ends_at);
+
+        $this->refreshCanSendMessages();
+    }
+
+    /**
+     * Messages sent this cycle, from the cache when it is warm.
+     */
+    public function getTotalSentMessages(): int
+    {
+        $cached = Cache::get($this->key(self::MESSAGES_SENT_CACHE_KEY));
+
+        return $cached !== null ? (int) $cached : $this->refreshSentMessages();
+    }
+
+    /**
+     * Rebuild the sent-messages counter from the active cycle's usage row,
+     * which is incremented in lockstep with the cache key. Covers a cache flush
+     * or expiry mid-cycle, which would otherwise show 0 sent until the next
+     * cycle.
      */
     public function refreshSentMessages(): int
     {
-        /** @var User|null $user */
-        $user = User::find($this->workspaceId);
+        $credit = $this->activeCredit();
+        $sent = (int) ($credit?->usage?->messages ?? 0);
 
-        /** @var UserCredit|null $credit */
-        $credit = $user?->credits()
-            ->where('ends_at', '>=', now())
-            ->with('usage')
-            ->first();
-
-        $sent = ($credit?->usage?->messages ?? 0);
-
-        Cache::put(
-            key: template(self::MESSAGES_SENT_CACHE_PREFIX, ['id' => $this->workspaceId]),
-            value: $sent,
-            ttl: $credit?->ends_at ?? now()->addHour(),
-        );
+        Cache::put($this->key(self::MESSAGES_SENT_CACHE_KEY), $sent, $credit?->ends_at ?? now()->addHour());
 
         return $sent;
     }
 
-    public function consumableMessages(bool $refresh = false): int
+    /**
+     * The workspace's credit row for the current cycle, with its usage loaded.
+     */
+    public function activeCredit(): ?UserCredit
     {
-        if ($refresh) {
-            return $this->refreshAvailableMessages();
-        }
-
-        return $this->getAvailableMessages();
+        return $this->activeCreditOf($this->workspace());
     }
 
     /**
-     * Calculate available messages from database.
-     *
-     * Returns the remaining quota for the workspace's active billing period
-     * (plan limit minus consumed usage), plus the sum of active addons.
-     * Clamped at 0 when usage has overrun the limit. This is the pure capacity
-     * figure — the subscription check lives in the send gate, not here.
+     * Whether the workspace has a paid subscription or a running trial. Reads
+     * Cashier's locally synced tables (never the Stripe API), and only when the
+     * flag is recomputed.
+     */
+    private function workspaceHasActiveBilling(): bool
+    {
+        return $this->workspace()?->hasActiveSubscription() ?? false;
+    }
+
+    /**
+     * The remaining plan quota for the cycle (clamped at 0 when usage overran
+     * it) plus every unexpired credit pack. Packs are a separate pool, so they
+     * stay intact when the plan quota is used up. This is capacity only; the
+     * billing check lives in the send flag.
      */
     private function calculateAvailableMessages(): int
     {
-        /** @var User|null $user */
-        $user = User::find($this->workspaceId);
+        $workspace = $this->workspace();
+        $credit = $this->activeCreditOf($workspace);
 
-        if (! $user) {
-            return 0;
-        }
-
-        /** @var UserCredit|null $credit */
-        $credit = $user->credits()
-            ->where('ends_at', '>=', now())
-            ->with('usage')
-            ->first();
-
-        if (! $credit) {
+        if ($workspace === null || $credit === null) {
             return 0;
         }
 
         $remaining = max(0, $credit->messages - ($credit->usage?->messages ?? 0));
 
-        $addons = (int) $user->addons()
-            ->whereIn('type', ['extra_message_credits', 'auto_recharge_credits'])
+        $packs = (int) $workspace->addons()
+            ->whereIn('type', MessageCreditAddon::values())
             ->where('ends_at', '>=', now())
             ->sum('amount');
 
-        return $remaining + $addons;
+        return $remaining + $packs;
     }
 
-    /**
-     * Record token consumption for ANALYTICS only: increment the active cycle's
-     * usage `tokens` accumulator (real prompt+completion from the provider, with
-     * a TikToken estimate as fallback). Tokens never gate or bill — that's
-     * messages — this is purely the "tokens consumed this cycle" figure shown
-     * on the usage dashboard.
-     */
-    public function recordTokenUsage(int $tokens): void
+    private function activeCreditOf(?User $workspace): ?UserCredit
     {
-        if ($tokens <= 0) {
-            return;
-        }
-
-        /** @var User|null $user */
-        $user = User::find($this->workspaceId);
-
-        /** @var UserCredit|null $credit */
-        $credit = $user?->credits()
+        return $workspace?->credits()
             ->where('ends_at', '>=', now())
+            ->with('usage')
             ->first();
+    }
 
-        $credit?->usage()->increment('tokens', $tokens);
+    private function workspace(): ?User
+    {
+        return User::find($this->workspaceId());
+    }
+
+    private function workspaceId(): int
+    {
+        return $this->workspaceId ?? throw new LogicException(
+            'UserCreditSystem is not scoped to a workspace; call forWorkspace() first.'
+        );
+    }
+
+    private function key(string $template): string
+    {
+        return template($template, ['id' => $this->workspaceId()]);
     }
 }

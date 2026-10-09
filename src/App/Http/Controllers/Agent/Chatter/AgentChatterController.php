@@ -35,7 +35,6 @@ class AgentChatterController
      */
     public function index(Request $request, Agent $agent): Response|array
     {
-
         if ($request->wantsJson()) {
             $agent->loadMissing('user');
             $workspace = $agent->user;
@@ -93,14 +92,6 @@ class AgentChatterController
         Agent $agent,
         InviteAgentChatterAction $invite,
     ): RedirectResponse {
-
-        // Public agents have no concept of members — anyone with the URL can
-        // chat. Refuse the invite so the workspace doesn't pile up unused
-        // chatter rows.
-        if ($agent->is_public) {
-            return back()->withErrors(['email' => 'This agent is public — anyone with the link can chat with it. No invitation is needed.']);
-        }
-
         try {
             $invitation = $invite->execute($request->toData($agent));
         } catch (AgentChatterInvitationRejectedException $e) {
@@ -120,8 +111,7 @@ class AgentChatterController
         string $chatter,
         GrantAgentMembershipAction $grant,
     ): RedirectResponse {
-
-        abort_if($agent->is_public, 422, 'Public agents do not use per-member grants.');
+        abort_if($agent->is_public, 422, __('Public agents do not use per-member grants.'));
 
         $member = $agent->user
             ->chatters()
@@ -139,7 +129,6 @@ class AgentChatterController
         string $chatter,
         RevokeAgentMembershipAction $revoke,
     ): RedirectResponse {
-
         $member = $agent->chatters()->where('users.external_id', $chatter)->firstOrFail();
 
         $revoke->execute($agent, $member);

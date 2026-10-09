@@ -6,6 +6,12 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * An OpenAI-compatible chat-completion provider. The chat engine streams
+ * through stream(); other callers send one request with completion(),
+ * preferably through LlmChat / StructuredCompletion, which take and return
+ * typed objects instead of raw arrays.
+ */
 interface LlmProviderInterface
 {
     /**

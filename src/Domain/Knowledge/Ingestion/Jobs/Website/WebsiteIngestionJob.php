@@ -3,8 +3,8 @@
 namespace Domain\Knowledge\Ingestion\Jobs\Website;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Actions\Pipeline\MarkSourceFailedAction;
 use Domain\Knowledge\Ingestion\Actions\Website\StartWebsiteIngestionAction;
-use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -14,6 +14,10 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Throwable;
 
+/**
+ * Starts training a website's pending URLs. See
+ * {@see StartWebsiteIngestionAction}.
+ */
 class WebsiteIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable;
@@ -36,11 +40,7 @@ class WebsiteIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public function failed(Throwable $e): void
     {
-        $this->website->update(['status' => 'failed']);
-
-        WebsiteCrawlStarted::dispatch($this->website, $this->agent);
-
-        report($e);
+        app(MarkSourceFailedAction::class)->execute($this->website, $this->agent, $e);
     }
 
     public function uniqueId(): string

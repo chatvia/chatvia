@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1\Chatters;
 
+use App\Http\Controllers\Api\V1\Chatters\Concerns\ResolvesWorkspaceAgents;
 use App\Http\Resources\Api\V1\Auth\UserData;
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Data\Account\CreateUserPayloadData;
 use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Your end-users (chatters). Create one here for one or more agents (with an
@@ -20,6 +21,8 @@ use Illuminate\Validation\ValidationException;
 #[Group('Chatters', weight: 90)]
 class ExternalChatterController
 {
+    use ResolvesWorkspaceAgents;
+
     /**
      * Create chatter
      *
@@ -29,29 +32,20 @@ class ExternalChatterController
      *
      * @return array{data: UserData}
      */
-    public function store(Request $request, CreateUserPayloadData $payload, CreateChatterAction $action): array
+    public function store(Request $request, CreateUserPayloadData $payload, CreateChatterAction $createChatter): array
     {
         /** @var User $account */
         $account = $request->user();
         $owner = $account->workspace();
 
-        // Scope the requested agents to the caller's workspace — a chatter can
-        // only be granted agents the workspace owns. Any id that doesn't resolve
-        // to an owned agent fails validation, so a foreign id can't slip through.
-        $agents = $owner->agents()->whereIn('external_id', $payload->agent_ids)->get();
+        $chatter = $createChatter->execute(new CreateChatterData(
+            owner: $owner,
+            agents: $this->workspaceAgentsOrFail($owner, $payload->agent_ids),
+            name: $payload->name,
+            email: $payload->email,
+            password: $payload->password,
+        ));
 
-        $missing = array_values(
-            array_diff(array_unique($payload->agent_ids), $agents->pluck('external_id')->all())
-        );
-
-        if ($missing !== []) {
-            throw ValidationException::withMessages([
-                'agent_ids' => 'Unknown agent(s): '.implode(', ', $missing).'.',
-            ]);
-        }
-
-        return ['data' => UserData::fromModel(
-            $action->execute($owner, $agents, $payload->name, $payload->email, $payload->password)
-        )];
+        return ['data' => UserData::fromModel($chatter)];
     }
 }

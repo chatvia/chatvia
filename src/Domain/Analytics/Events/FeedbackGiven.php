@@ -5,6 +5,9 @@ namespace Domain\Analytics\Events;
 use DateTimeInterface;
 use Illuminate\Foundation\Events\Dispatchable;
 
+/**
+ * A visitor set, switched or cleared the thumbs reaction on an AI reply.
+ */
 class FeedbackGiven
 {
     use Dispatchable;

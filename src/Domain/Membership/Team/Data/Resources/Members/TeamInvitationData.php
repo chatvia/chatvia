@@ -6,6 +6,9 @@ use Domain\Membership\Team\Models\Invitation;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A pending team invitation as listed on the team page.
+ */
 #[TypeScript]
 class TeamInvitationData extends Data
 {

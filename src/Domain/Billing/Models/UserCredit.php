@@ -10,6 +10,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
+ * One billing cycle of a message pool: `messages` is the allowance,
+ * `[started_at, ends_at]` the window. Workspace owners get one per plan cycle;
+ * a chatter with a monthly cap gets one per month.
+ *
  * @property int $id
  * @property int $user_id
  * @property int $messages

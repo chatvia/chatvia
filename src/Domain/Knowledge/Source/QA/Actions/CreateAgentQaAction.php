@@ -1,33 +1,24 @@
 <?php
 
-namespace Domain\Knowledge\Source\QA\Actions;
+namespace Domain\Knowledge\Source\Qa\Actions;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Qa\Data\QaEntryData;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 
+/**
+ * Adds a curated Q&A entry to an agent. When a visitor's message matches one
+ * of its questions, the chat answers with the stored answer instead of the LLM.
+ */
 class CreateAgentQaAction
 {
-    /**
-     * @param  array<int, array{question: string}>  $questions
-     */
-    public function execute(Agent $agent, string $title, array $questions, string $answer): AgentQuestionAnswer
+    public function execute(Agent $agent, QaEntryData $data): AgentQuestionAnswer
     {
-        return AgentQuestionAnswer::create([
+        return AgentQuestionAnswer::query()->create([
             'agent_id' => $agent->id,
-            'title' => $title,
-            'questions' => $this->flatten($questions),
-            'answer' => $answer,
+            'title' => $data->title,
+            'questions' => $data->questionLines(),
+            'answer' => $data->answer,
         ]);
-    }
-
-    /**
-     * @param  array<int, array{question: string}>  $questions
-     */
-    private function flatten(array $questions): string
-    {
-        return collect($questions)
-            ->pluck('question')
-            ->filter()
-            ->implode("\n");
     }
 }

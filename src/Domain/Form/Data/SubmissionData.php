@@ -2,6 +2,7 @@
 
 namespace Domain\Form\Data;
 
+use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormSubmission;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -18,7 +19,7 @@ class SubmissionData extends Data
         public string $external_id,
         /** @var array<string, mixed> */
         public array $values,
-        public string $status,
+        public FormSubmissionStatus $status,
         public ?string $submitted_at,
         public string $created_at,
         public ?string $conversation_external_id,

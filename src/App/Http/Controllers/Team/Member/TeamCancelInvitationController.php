@@ -6,6 +6,9 @@ use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Cancels a pending team invitation. Only the owner may.
+ */
 class TeamCancelInvitationController
 {
     public function __invoke(
@@ -13,14 +16,10 @@ class TeamCancelInvitationController
         Team $team,
         int $invitationId,
     ): RedirectResponse {
-        $user = $request->user();
-
-        if ($user->cannot('removeTeamMember', $team)) {
-            abort(403, 'Only the team owner can cancel invitations.');
-        }
+        abort_if($request->user()->cannot('removeTeamMember', $team), 403, __('Only the team owner can cancel invitations.'));
 
         $team->invitations()->findOrFail($invitationId)->delete();
 
-        return back()->with('success', 'Invitation cancelled.');
+        return back()->with('success', __('Invitation cancelled.'));
     }
 }

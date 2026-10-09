@@ -37,7 +37,6 @@ class SettingsChatterController
      */
     public function index(Request $request): Response|array
     {
-
         if ($request->wantsJson()) {
             $chatters = $request->user()->workspace()
                 ->chatters()
@@ -73,7 +72,6 @@ class SettingsChatterController
         InviteWorkspaceChatterRequest $request,
         InviteWorkspaceChatterAction $invite,
     ): RedirectResponse {
-
         try {
             $invitation = $invite->execute($request->toData());
         } catch (AgentChatterInvitationRejectedException $e) {
@@ -97,7 +95,6 @@ class SettingsChatterController
         string $chatter,
         UpdateChatterAccessAction $update,
     ): WorkspaceChatterRowData {
-
         $member = $this->findChatter($request, $chatter);
 
         $update->execute($request->toData($member));
@@ -117,7 +114,6 @@ class SettingsChatterController
      */
     public function listAgents(Request $request, string $chatter): array
     {
-
         $member = $this->findChatter($request, $chatter);
 
         return $this->buildAgentsPayload($request, $member);
@@ -132,7 +128,6 @@ class SettingsChatterController
         string $agent,
         GrantAgentMembershipAction $grant,
     ): array {
-
         $member = $this->findChatter($request, $chatter);
         $agentModel = $this->findWorkspaceAgent($request, $agent);
 
@@ -150,7 +145,6 @@ class SettingsChatterController
         string $agent,
         RevokeAgentMembershipAction $revoke,
     ): array {
-
         $member = $this->findChatter($request, $chatter);
         $agentModel = $this->findWorkspaceAgent($request, $agent);
 
@@ -164,12 +158,11 @@ class SettingsChatterController
         string $chatter,
         ResetChatterPasswordAction $reset,
     ): RedirectResponse {
-
         $member = $this->findChatter($request, $chatter);
 
         $reset->execute($member);
 
-        return back()->with('success', "Password reset link sent to {$member->email}.");
+        return back()->with('success', __('Password reset link sent to :email.', ['email' => $member->email]));
     }
 
     public function destroy(
@@ -177,12 +170,11 @@ class SettingsChatterController
         string $chatter,
         DeleteChatterAction $delete,
     ): RedirectResponse {
-
         $member = $this->findChatter($request, $chatter);
 
         $delete->execute($member);
 
-        return back()->with('success', "{$member->name} removed.");
+        return back()->with('success', __(':name removed.', ['name' => $member->name]));
     }
 
     /**

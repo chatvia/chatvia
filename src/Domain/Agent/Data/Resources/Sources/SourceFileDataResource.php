@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A knowledge file as the Knowledge page lists it: name, type, size, training
+ * status and progress, and how many agents use it.
+ */
 #[TypeScript]
 class SourceFileDataResource extends Data
 {
@@ -32,7 +36,7 @@ class SourceFileDataResource extends Data
             type: $file->filetype,
             size_in_kb: $file->size_in_kb,
             mime_type: $file->mime_type,
-            status: $file->status,
+            status: $file->status->value,
             length: $file->length,
             progress: $file->ingestionProgress(),
             agents_count: $file->agents_count ?? 0,

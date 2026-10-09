@@ -4,6 +4,9 @@ namespace Domain\Knowledge\Embedding;
 
 use Illuminate\Support\Facades\Http;
 
+/**
+ * Embeddings from Jina AI's hosted API (`services.jina`).
+ */
 class Jina extends AbstractEmbeddingsProvider
 {
     public function embed(string $text, bool $returnAsText = false): string|array

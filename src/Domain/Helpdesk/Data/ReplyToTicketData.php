@@ -6,6 +6,9 @@ use App\Identity\Workspace\Models\User;
 use Domain\Helpdesk\Models\Ticket;
 use Spatie\LaravelData\Data;
 
+/**
+ * Input for replying to a support ticket as its author.
+ */
 class ReplyToTicketData extends Data
 {
     public function __construct(

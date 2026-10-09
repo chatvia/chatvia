@@ -2,13 +2,20 @@
 
 namespace Domain\Analytics\Listeners;
 
-use Domain\Analytics\Actions\RecordConversationTopicAction;
-use Domain\Analytics\Actions\RecordFeedbackGivenAction;
-use Domain\Analytics\Actions\RecordFunctionInvocationAction;
-use Domain\Analytics\Actions\RecordMcpToolInvocationAction;
-use Domain\Analytics\Actions\RecordMessageAnalyzedAction;
-use Domain\Analytics\Actions\RecordMessageSentAction;
-use Domain\Analytics\Actions\RecordSourceRetrievalAction;
+use Domain\Analytics\Actions\Recording\RecordConversationTopicAction;
+use Domain\Analytics\Actions\Recording\RecordFeedbackGivenAction;
+use Domain\Analytics\Actions\Recording\RecordFunctionInvocationAction;
+use Domain\Analytics\Actions\Recording\RecordMcpToolInvocationAction;
+use Domain\Analytics\Actions\Recording\RecordMessageAnalyzedAction;
+use Domain\Analytics\Actions\Recording\RecordMessageSentAction;
+use Domain\Analytics\Actions\Recording\RecordSourceRetrievalAction;
+use Domain\Analytics\Data\Recording\FeedbackRecordData;
+use Domain\Analytics\Data\Recording\FunctionInvocationRecordData;
+use Domain\Analytics\Data\Recording\McpToolInvocationRecordData;
+use Domain\Analytics\Data\Recording\MessageAnalysisRecordData;
+use Domain\Analytics\Data\Recording\MessageSentRecordData;
+use Domain\Analytics\Data\Recording\SourceRetrievalRecordData;
+use Domain\Analytics\Data\Recording\TopicAssignmentRecordData;
 use Domain\Analytics\Events\ConversationTopicAssigned;
 use Domain\Analytics\Events\FeedbackGiven;
 use Domain\Analytics\Events\FunctionInvoked;
@@ -20,6 +27,15 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Events\Dispatcher;
 use Throwable;
 
+/**
+ * Queued subscriber that writes every analytics event into the analytics
+ * tables, off the request path, on the analytics queue. Each handler turns its
+ * event into a record DTO and hands it to the matching Record*Action. The
+ * `chatvia.analytics.enabled` kill-switch skips all of them.
+ *
+ * The handler method names are part of the queued job payload, so they must
+ * not be renamed while jobs may still be waiting in the queue.
+ */
 class RecordAnalytics implements ShouldQueue
 {
     public function __construct(
@@ -37,6 +53,9 @@ class RecordAnalytics implements ShouldQueue
         return (string) config('chatvia.analytics.queue');
     }
 
+    /**
+     * @return array<class-string, string>
+     */
     public function subscribe(Dispatcher $events): array
     {
         return [
@@ -52,69 +71,60 @@ class RecordAnalytics implements ShouldQueue
 
     public function onMessageSent(MessageSent $event): void
     {
-        if (! config('chatvia.analytics.enabled')) {
-            return;
+        if ($this->enabled()) {
+            $this->recordMessageSent->execute(MessageSentRecordData::fromEvent($event));
         }
-
-        $this->recordMessageSent->execute($event);
     }
 
     public function onFeedbackGiven(FeedbackGiven $event): void
     {
-        if (! config('chatvia.analytics.enabled')) {
-            return;
+        if ($this->enabled()) {
+            $this->recordFeedbackGiven->execute(FeedbackRecordData::fromEvent($event));
         }
-
-        $this->recordFeedbackGiven->execute($event);
     }
 
     public function onMessageAnalyzed(MessageAnalyzed $event): void
     {
-        if (! config('chatvia.analytics.enabled')) {
-            return;
+        if ($this->enabled()) {
+            $this->recordMessageAnalyzed->execute(MessageAnalysisRecordData::fromEvent($event));
         }
-
-        $this->recordMessageAnalyzed->execute($event);
     }
 
     public function onConversationTopicAssigned(ConversationTopicAssigned $event): void
     {
-        if (! config('chatvia.analytics.enabled')) {
-            return;
+        if ($this->enabled()) {
+            $this->recordConversationTopic->execute(TopicAssignmentRecordData::fromEvent($event));
         }
-
-        $this->recordConversationTopic->execute($event);
     }
 
     public function onSourceRetrieved(SourceRetrieved $event): void
     {
-        if (! config('chatvia.analytics.enabled')) {
-            return;
+        if ($this->enabled()) {
+            $this->recordSourceRetrieval->execute(SourceRetrievalRecordData::fromEvent($event));
         }
-
-        $this->recordSourceRetrieval->execute($event);
     }
 
     public function onFunctionInvoked(FunctionInvoked $event): void
     {
-        if (! config('chatvia.analytics.enabled')) {
-            return;
+        if ($this->enabled()) {
+            $this->recordFunctionInvocation->execute(FunctionInvocationRecordData::fromEvent($event));
         }
-
-        $this->recordFunctionInvocation->execute($event);
     }
 
     public function onMcpToolInvoked(McpToolInvoked $event): void
     {
-        if (! config('chatvia.analytics.enabled')) {
-            return;
+        if ($this->enabled()) {
+            $this->recordMcpToolInvocation->execute(McpToolInvocationRecordData::fromEvent($event));
         }
-
-        $this->recordMcpToolInvocation->execute($event);
     }
 
     public function failed(object $event, Throwable $exception): void
     {
         report($exception);
+    }
+
+    private function enabled(): bool
+    {
+        return (bool) config('chatvia.analytics.enabled');
     }
 }

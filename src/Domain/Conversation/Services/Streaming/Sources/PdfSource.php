@@ -2,19 +2,21 @@
 
 namespace Domain\Conversation\Services\Streaming\Sources;
 
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Services\ChatContext;
-use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Usage\TokenUsageContext;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Collection;
@@ -39,16 +41,20 @@ use Throwable;
  */
 class PdfSource extends ToolLoopSource
 {
+    /** Longest provider error body written to the log. */
+    private const int MAX_LOGGED_BODY_LENGTH = 2000;
+
     public function __construct(
         private readonly DocumentLlm $documentLlm,
-        ChatService $chatService,
+        AssistantReplyRecorder $replyRecorder,
         RequestDedupeStore $dedupe,
         ToolSelector $toolSelector,
         ToolLoopRunner $runner,
         GuardrailService $guardrails,
         GuardrailRecorder $guardrailRecorder,
+        TokenUsageContext $tokenUsage,
     ) {
-        parent::__construct($chatService, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder);
+        parent::__construct($replyRecorder, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder, $tokenUsage);
     }
 
     /**
@@ -129,31 +135,23 @@ class PdfSource extends ToolLoopSource
      */
     private function withDocumentUrls(array $messages, array $documentUrls): array
     {
-        if ($documentUrls === []) {
+        $lastUserIndex = array_key_last(array_filter(
+            $messages,
+            static fn (array $message): bool => ($message['role'] ?? '') === MessageRole::User->value,
+        ));
+
+        if ($documentUrls === [] || $lastUserIndex === null) {
             return $messages;
         }
 
-        $lastUserIdx = null;
-        foreach ($messages as $i => $m) {
-            if (($m['role'] ?? '') === 'user') {
-                $lastUserIdx = $i;
-            }
-        }
-        if ($lastUserIdx === null) {
-            return $messages;
-        }
+        $text = $messages[$lastUserIndex]['content'] ?? '';
 
-        $existing = $messages[$lastUserIdx]['content'] ?? '';
-        $text = is_string($existing) ? $existing : '';
-
-        $content = [['type' => 'text', 'text' => $text]];
-        foreach ($documentUrls as $url) {
-            $content[] = ['type' => 'document_url', 'document_url' => $url];
-        }
-
-        $messages[$lastUserIdx] = [
-            'role' => 'user',
-            'content' => $content,
+        $messages[$lastUserIndex] = [
+            'role' => MessageRole::User->value,
+            'content' => [
+                ['type' => 'text', 'text' => is_string($text) ? $text : ''],
+                ...array_map(static fn (string $url): array => ['type' => 'document_url', 'document_url' => $url], $documentUrls),
+            ],
         ];
 
         return $messages;
@@ -175,6 +173,8 @@ class PdfSource extends ToolLoopSource
 
         $body = (string) $response->getBody();
 
-        return mb_strlen($body) > 2000 ? mb_substr($body, 0, 2000).'…[truncated]' : $body;
+        return mb_strlen($body) > self::MAX_LOGGED_BODY_LENGTH
+            ? mb_substr($body, 0, self::MAX_LOGGED_BODY_LENGTH).'…[truncated]'
+            : $body;
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Http\Requests\Settings\Prompt;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Prompt\Data\UpdatePromptData;
-use Domain\Prompt\Models\AgentPrompt;
+use Domain\Agent\Prompt\Data\UpdatePromptData;
+use Domain\Agent\Prompt\Models\AgentPrompt;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

@@ -2,14 +2,16 @@
 
 namespace Domain\Conversation\Topic\Data;
 
-use Domain\Agent\Models\Agent;
-use Domain\Analytics\Data\DateRangeData;
-use Illuminate\Support\Carbon;
+use Domain\Conversation\Topic\Queries\TopicTrendsQuery;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\DataCollection;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * The agent's topic charts: each busy topic's daily counts and the totals.
+ * Built by {@see TopicTrendsQuery}.
+ */
 #[TypeScript]
 class TopicsResourceData extends Data
 {
@@ -22,54 +24,4 @@ class TopicsResourceData extends Data
         public DataCollection $total_topics,
         public int $total_count,
     ) {}
-
-    public static function fromAgent(Agent $agent, ?Carbon $startDate = null, ?Carbon $endDate = null): self
-    {
-        $startDate = $startDate ?? DateRangeData::defaultStart();
-        $endDate = $endDate ?? now()->endOfDay();
-
-        $topicsByDate = $agent->topicsByDateRange($startDate, $endDate);
-        $totalTopics = $agent->topTopics($startDate, $endDate);
-
-        // Generate all dates in range
-        $dates = [];
-        $currentDate = $startDate->copy();
-        while ($currentDate->lte($endDate)) {
-            $dates[] = $currentDate->format('Y-m-d');
-            $currentDate->addDay();
-        }
-
-        // Organize data by topic using Data objects
-        $topicsData = [];
-        foreach ($totalTopics as $topic) {
-            $trendData = [];
-            foreach ($dates as $date) {
-                $record = $topicsByDate->first(
-                    fn ($item): bool => $item->topic_id === $topic->topic_id && $item->date === $date
-                );
-
-                $trendData[] = TopicCountByDateData::from([
-                    'date' => $date,
-                    'count' => $record->count ?? 0,
-                ]);
-            }
-
-            $topicsData[] = TopicTrendData::from([
-                'topic_name' => $topic->topic_name,
-                'counts' => new DataCollection(TopicCountByDateData::class, $trendData),
-            ]);
-        }
-
-        $totalTopicsData = $totalTopics->map(fn ($topic): TopicSummaryData => TopicSummaryData::from([
-            'id' => $topic->topic_id,
-            'name' => $topic->topic_name,
-            'count' => $topic->total_count,
-        ]))->toArray();
-
-        return new self(
-            topics_by_date: new DataCollection(TopicTrendData::class, $topicsData),
-            total_topics: new DataCollection(TopicSummaryData::class, $totalTopicsData),
-            total_count: $totalTopics->count(),
-        );
-    }
 }

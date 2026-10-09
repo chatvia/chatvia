@@ -2,9 +2,11 @@
 
 namespace Domain\Integration\Mcp\Services;
 
-use Domain\Integration\Mcp\Enums\McpToolPermission;
+use Domain\Integration\Mcp\Data\ResolvedMcpTool;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Illuminate\Support\Facades\DB;
+use Domain\Integration\Mcp\Models\ConnectorTool;
+use Domain\Integration\Mcp\Models\McpServerTool;
+use Domain\Integration\Mcp\Models\McpTool;
 
 /**
  * Resolves a tool's stored permission (+ description) for a given server,
@@ -26,27 +28,34 @@ class McpToolPermissionResolver
 {
     public function resolve(AgentMcpServer $server, string $toolName): ?ResolvedMcpTool
     {
-        $row = $server->usesCentralCatalog()
-            ? DB::table('mcp_server_tool as mst')
-                ->join('connector_tools as ct', 'ct.id', '=', 'mst.connector_tool_id')
-                ->where('mst.mcp_server_id', $server->id)
-                ->where('ct.connector_slug', $server->connector_slug)
-                ->where('ct.name', $toolName)
-                ->select(['mst.permission', 'ct.description'])
-                ->first()
-            : DB::table('mcp_tools')
-                ->where('mcp_server_id', $server->id)
-                ->where('name', $toolName)
-                ->select(['permission', 'description'])
-                ->first();
+        return $server->usesCentralCatalog()
+            ? $this->fromMembership($server, $toolName)
+            : $this->fromOwnTools($server, $toolName);
+    }
 
-        if ($row === null) {
+    private function fromMembership(AgentMcpServer $server, string $toolName): ?ResolvedMcpTool
+    {
+        /** @var ConnectorTool|null $tool */
+        $tool = $server->connectorTools()
+            ->where('connector_tools.connector_slug', $server->connector_slug)
+            ->where('connector_tools.name', $toolName)
+            ->first(['connector_tools.id', 'connector_tools.description']);
+
+        if ($tool === null) {
             return null;
         }
 
-        return new ResolvedMcpTool(
-            permission: McpToolPermission::from((string) $row->permission),
-            description: $row->description !== null ? (string) $row->description : null,
-        );
+        /** @var McpServerTool $membership */
+        $membership = $tool->getRelation('pivot');
+
+        return new ResolvedMcpTool($membership->permission, $tool->description);
+    }
+
+    private function fromOwnTools(AgentMcpServer $server, string $toolName): ?ResolvedMcpTool
+    {
+        /** @var McpTool|null $tool */
+        $tool = $server->tools()->where('name', $toolName)->first(['permission', 'description']);
+
+        return $tool !== null ? new ResolvedMcpTool($tool->permission, $tool->description) : null;
     }
 }

@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Form\Data\InlineFormData;
 use Domain\Form\Data\RenderFormOutcomeData;
+use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Domain\Form\Services\FormSchemaBuilder;
@@ -63,7 +64,7 @@ class RenderInlineFormAction
             'form_definition_id' => $definition->id,
             'agent_id' => $agent->id,
             'chat_conversation_id' => $conversation->id,
-            'status' => FormSubmission::STATUS_PENDING,
+            'status' => FormSubmissionStatus::Pending,
             'expires_at' => now()->addHours(self::TTL_HOURS),
         ]);
 
@@ -76,7 +77,7 @@ class RenderInlineFormAction
             schema: $this->schemas->toFormKitSchema($definition->schema),
             submitLabel: self::SUBMIT_LABEL,
             successMessage: $definition->success_message ?: self::DEFAULT_SUCCESS_MESSAGE,
-            status: FormSubmission::STATUS_PENDING,
+            status: FormSubmissionStatus::Pending,
             expiresAt: $submission->expires_at,
         ));
     }

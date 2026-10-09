@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Billing\Addons;
 use App\Http\Requests\Billing\UpdateAutoRechargeRequest;
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * Saves the workspace's auto-recharge settings (on/off, the balance that
+ * triggers a recharge, and how many messages to buy).
+ */
 class UpdateAutoRechargeController
 {
     public function __invoke(UpdateAutoRechargeRequest $request): RedirectResponse

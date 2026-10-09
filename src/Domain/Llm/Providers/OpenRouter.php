@@ -6,6 +6,11 @@ use Domain\Llm\AbstractLlmProvider;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Chat completions through OpenRouter, which also reports the exact cost of
+ * each generation. Models without a client of their own are reached through
+ * it.
+ */
 class OpenRouter extends AbstractLlmProvider
 {
     /**

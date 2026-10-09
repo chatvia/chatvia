@@ -2,9 +2,14 @@
 
 namespace Domain\Widget\Data\Handoff;
 
+use Domain\Conversation\Enums\HandoffStatus;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * Answer to a widget visitor's "talk to a human" request: the conversation's
+ * handoff status after the request, with a short explanation.
+ */
 #[TypeScript]
 class WidgetHandoffRequestResultData extends Data
 {
@@ -14,17 +19,18 @@ class WidgetHandoffRequestResultData extends Data
         public string $message,
     ) {}
 
-    public static function make(string $status, string $conversationId): self
+    public static function make(HandoffStatus|string $status, string $conversationId): self
     {
-        $messages = [
-            'human' => 'Already connected to a human agent.',
-            'pending' => 'Your request has been sent. Please wait for an agent to connect.',
-        ];
+        $status = $status instanceof HandoffStatus ? $status->value : $status;
 
         return new self(
             status: $status,
             conversation_id: $conversationId,
-            message: $messages[$status] ?? 'Your request is pending. Please wait for an agent.',
+            message: match ($status) {
+                HandoffStatus::Human->value => 'Already connected to a human agent.',
+                HandoffStatus::Pending->value => 'Your request has been sent. Please wait for an agent to connect.',
+                default => 'Your request is pending. Please wait for an agent.',
+            },
         );
     }
 }

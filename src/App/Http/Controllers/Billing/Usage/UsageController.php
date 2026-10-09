@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Billing\Usage;
 
-use App\Identity\Workspace\Data\Resources\My\Usage\UsageResourceData;
+use Domain\Billing\Data\Resources\Usage\UsageResourceData;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * The usage page, and its JSON: how much of each plan limit the workspace
+ * uses.
+ */
 class UsageController
 {
     public function __invoke(Request $request): Response|UsageResourceData

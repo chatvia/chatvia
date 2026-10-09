@@ -7,6 +7,9 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Removes a signed-in chatter's profile photo.
+ */
 class ChatProfilePhotoDestroyController
 {
     public function __invoke(

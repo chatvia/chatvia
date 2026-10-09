@@ -3,19 +3,25 @@
 namespace Domain\Knowledge\Ingestion\Jobs\Website;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Actions\Chunks\EnhanceChunkAction;
+use Domain\Knowledge\Ingestion\Data\Chunking\EnhanceChunkData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Ingestion\Services\ChunkEnhanceText;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Llm\Usage\AttributesTokenUsage;
 use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
+/**
+ * Enhances one chunk of a scraped web page, from its text only. See
+ * {@see EnhanceChunkAction}.
+ */
 class WebsiteUrlEnhanceJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
-    use \Illuminate\Foundation\Queue\Queueable, TracksTokenUsage;
+    use Queueable, TracksTokenUsage;
 
     public int $tries = 3;
 
@@ -37,9 +43,12 @@ class WebsiteUrlEnhanceJob implements AttributesTokenUsage, ShouldBeUnique, Shou
         return $this->agent->user_id;
     }
 
-    public function handle(ChunkEnhanceText $enhanceText): void
+    public function handle(EnhanceChunkAction $action): void
     {
-        $enhanceText->enhanceText($this->chunk, PageData::fromChunkModel($this->chunk));
+        $action->execute(new EnhanceChunkData(
+            chunk: $this->chunk,
+            page: PageData::fromChunkModel($this->chunk),
+        ));
     }
 
     public function failed(Throwable $e): void

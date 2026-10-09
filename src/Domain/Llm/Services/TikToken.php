@@ -5,6 +5,11 @@ namespace Domain\Llm\Services;
 use Yethee\Tiktoken\Encoder;
 use Yethee\Tiktoken\EncoderProvider;
 
+/**
+ * Counts and splits text into tokens with one shared tokenizer (cl100k, as for
+ * GPT-4). Used for estimates — chunk sizes, prices when a provider reports no
+ * usage — so every estimate counts the same way.
+ */
 class TikToken
 {
     private static ?Encoder $encoder = null;

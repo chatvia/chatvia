@@ -5,9 +5,12 @@ namespace Database\Seeders;
 use Database\Seeders\Demo\DemoCountries;
 use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
-use Domain\Analytics\Actions\RecordFeedbackGivenAction;
-use Domain\Analytics\Actions\RecordMessageAnalyzedAction;
-use Domain\Analytics\Actions\RecordMessageSentAction;
+use Domain\Analytics\Actions\Recording\RecordFeedbackGivenAction;
+use Domain\Analytics\Actions\Recording\RecordMessageAnalyzedAction;
+use Domain\Analytics\Actions\Recording\RecordMessageSentAction;
+use Domain\Analytics\Data\Recording\FeedbackRecordData;
+use Domain\Analytics\Data\Recording\MessageAnalysisRecordData;
+use Domain\Analytics\Data\Recording\MessageSentRecordData;
 use Domain\Analytics\Events\FeedbackGiven;
 use Domain\Analytics\Events\MessageAnalyzed;
 use Domain\Analytics\Events\MessageSent;
@@ -183,7 +186,7 @@ class AnalyticsDemoSeeder extends Seeder
                     $completionTokens = $isUser ? null : random_int(60, 800);
                     $responseMs = $isUser ? null : random_int(900, 5400);
 
-                    $messageSent->execute(new MessageSent(
+                    $messageSent->execute(MessageSentRecordData::fromEvent(new MessageSent(
                         agentId: $agent->id,
                         workspaceId: $agent->user_id,
                         chatterUserId: null,
@@ -197,26 +200,26 @@ class AnalyticsDemoSeeder extends Seeder
                         promptTokens: $promptTokens,
                         completionTokens: $completionTokens,
                         occurredAt: $cursor,
-                    ));
+                    )));
                     $msgCount++;
 
                     // ~85% of user messages get synthetic sentiment + tone so the
                     // Sentiment and Tone analytics pages have demo data; the rest
                     // stay "unspecified" (derived from total user messages).
                     if ($isUser && random_int(1, 100) <= 85) {
-                        $messageAnalyzed->execute(new MessageAnalyzed(
+                        $messageAnalyzed->execute(MessageAnalysisRecordData::fromEvent(new MessageAnalyzed(
                             agentId: $agent->id,
                             workspaceId: $agent->user_id,
                             sentiment: (string) $this->weightedPick(self::SENTIMENT_WEIGHTS),
                             tone: (string) $this->weightedPick(self::TONE_WEIGHTS),
                             occurredAt: $cursor,
-                        ));
+                        )));
                     }
 
                     // ~25% of assistant turns get a reaction; positive skews 70/30.
                     if (! $isUser && random_int(1, 100) <= 25) {
                         $feedback = random_int(1, 100) <= 70 ? 'positive' : 'negative';
-                        $feedbackGiven->execute(new FeedbackGiven(
+                        $feedbackGiven->execute(FeedbackRecordData::fromEvent(new FeedbackGiven(
                             agentId: $agent->id,
                             workspaceId: $agent->user_id,
                             chatterUserId: null,
@@ -226,7 +229,7 @@ class AnalyticsDemoSeeder extends Seeder
                             llmExternalName: $modelUsed,
                             countryCode: $country,
                             occurredAt: $cursor->copy()->addSeconds(random_int(5, 60)),
-                        ));
+                        )));
                         $fbCount++;
                     }
                 }

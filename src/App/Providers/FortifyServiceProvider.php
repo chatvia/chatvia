@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Identity\Workspace\Actions\Fortify\ResetUserPassword;
+use App\Identity\Workspace\Fortify\ResetUserPassword;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\PasswordAuthenticator;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -15,6 +15,11 @@ use Laravel\Fortify\Fortify;
 use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\Passkeys;
 
+/**
+ * Fortify wiring: who may sign in with a password or passkey (no chatters, no
+ * deactivated accounts), the password-reset step, the auth pages, and the
+ * login, two-factor and passkey rate limits.
+ */
 class FortifyServiceProvider extends ServiceProvider
 {
     public function register(): void

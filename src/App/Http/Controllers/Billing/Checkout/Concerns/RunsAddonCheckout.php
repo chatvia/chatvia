@@ -27,7 +27,7 @@ trait RunsAddonCheckout
         } catch (Throwable $e) {
             report($e);
 
-            return back()->withErrors(['addon' => 'Could not start Stripe checkout. Please try again.']);
+            return back()->withErrors(['addon' => __('Could not start Stripe checkout. Please try again.')]);
         }
 
         return $checkout ?? back()->with('success', $noCheckoutMessage);

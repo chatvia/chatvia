@@ -2,7 +2,7 @@
 
 namespace Domain\Knowledge\Ingestion\Services\Clients;
 
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Llm\Providers\Mistral;
 use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Support\Collection;
@@ -15,23 +15,39 @@ use InvalidArgumentException;
  * one PageData per page, with the images and tables found on each page. Used
  * through MistralDocumentParser; the model is `services.mistral.ocr_model`.
  */
-class MistralOCR
+class MistralOcr
 {
     public function __construct(
         public Mistral $mistral
     ) {}
 
     /**
+     * OCR a PDF or office file that Mistral can fetch from the URL.
+     *
      * @return Collection<int,PageData>
      */
-    public function fromUrl(string $url, bool $isImage = false): Collection
+    public function fromUrl(string $url): Collection
     {
-        // Mistral OCR takes images under image_url and everything else (PDF,
-        // Office) under document_url.
-        $document = $isImage
-            ? ['type' => 'image_url', 'image_url' => $url]
-            : ['type' => 'document_url', 'document_url' => $url];
+        return $this->read(['type' => 'document_url', 'document_url' => $url]);
+    }
 
+    /**
+     * OCR an image that Mistral can fetch from the URL (images go under
+     * `image_url`, not `document_url`).
+     *
+     * @return Collection<int,PageData>
+     */
+    public function fromImageUrl(string $url): Collection
+    {
+        return $this->read(['type' => 'image_url', 'image_url' => $url]);
+    }
+
+    /**
+     * @param  array<string, string>  $document  the OCR request's `document` part
+     * @return Collection<int,PageData>
+     */
+    private function read(array $document): Collection
+    {
         $response = $this->mistral
             ->client()
             ->timeout(3600)
@@ -107,7 +123,7 @@ class MistralOCR
         try {
             $tempUrl = Storage::temporaryUrl($filePath, now()->addHour());
 
-            return $this->fromUrl($tempUrl, is_image_file($file));
+            return is_image_file($file) ? $this->fromImageUrl($tempUrl) : $this->fromUrl($tempUrl);
         } finally {
             Storage::delete($filePath);
         }

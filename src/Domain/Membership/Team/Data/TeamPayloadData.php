@@ -4,6 +4,9 @@ namespace Domain\Membership\Team\Data;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * Public-API request body for creating or renaming a team.
+ */
 class TeamPayloadData extends Data
 {
     public function __construct(

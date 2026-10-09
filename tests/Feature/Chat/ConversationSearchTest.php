@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
@@ -31,7 +32,7 @@ it('finds a signed-in chatter\'s conversation by title in their existing session
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
     $agent = createAgent($owner, ['is_public' => false, 'sub_domain' => Str::lower(Str::random(12))]);
-    $chatter = app(CreateChatterAction::class)->execute($owner, $agent, 'Jane');
+    $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($owner, $agent, 'Jane'));
 
     $session = Session::create(['agent_id' => $agent->id, 'user_id' => $chatter->id]);
     $conversation = Conversation::create([

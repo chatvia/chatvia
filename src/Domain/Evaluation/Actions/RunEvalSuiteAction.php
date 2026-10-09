@@ -5,13 +5,14 @@ namespace Domain\Evaluation\Actions;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Contracts\Entitlements;
+use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Events\EvalRunProgressed;
 use Domain\Evaluation\Jobs\ScoreEvalCaseJob;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalRun;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Validation\ValidationException;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * Kicks off a full eval suite for an agent: snapshots the run, fans the active
@@ -23,16 +24,18 @@ class RunEvalSuiteAction
 {
     public function __construct(
         private readonly Entitlements $entitlements,
+        private readonly FinalizeEvalRunAction $finalize,
     ) {}
 
+    /**
+     * @throws DomainValidationException when the workspace has no message credits left
+     */
     public function execute(Agent $agent, ?User $triggeredBy = null): EvalRun
     {
         // Evals bill like live chat — one message per scored case — so a
         // workspace that can't send messages can't start a suite either.
         if (! $this->entitlements->hasMessageCapacity($agent->user_id)) {
-            throw ValidationException::withMessages([
-                'run' => 'No message credits left — every eval case costs one message. Top up or upgrade to run the suite.',
-            ]);
+            throw new DomainValidationException('run', __('No message credits left — every eval case costs one message. Top up or upgrade to run the suite.'));
         }
 
         $cases = EvalCase::query()
@@ -45,7 +48,7 @@ class RunEvalSuiteAction
             'agent_id' => $agent->id,
             'agent_name' => $agent->name,
             'workspace_id' => $agent->user_id,
-            'status' => EvalRun::STATUS_RUNNING,
+            'status' => EvalRunStatus::Running,
             'total_cases' => $cases->count(),
             // Set explicitly so the freshly-created in-memory model (which Eloquent
             // does not re-hydrate from the DB defaults) carries int counts for the
@@ -66,7 +69,7 @@ class RunEvalSuiteAction
         EvalRunProgressed::dispatch($run, $agent->external_id);
 
         if ($cases->isEmpty()) {
-            return app(FinalizeEvalRunAction::class)->execute($run);
+            return $this->finalize->execute($run);
         }
 
         $runId = $run->id;

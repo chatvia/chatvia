@@ -9,14 +9,13 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateAgentRequest extends FormRequest
 {
+    /**
+     * The route already enforces `can.access.agent` (the agent policy) and
+     * `agent.permission:agent.setup`.
+     */
     public function authorize(): bool
     {
-        /** @var User $user */
-        $user = $this->user();
-        /** @var Agent $agent */
-        $agent = $this->route('agent');
-
-        return $user->can('update', $agent);
+        return true;
     }
 
     /**

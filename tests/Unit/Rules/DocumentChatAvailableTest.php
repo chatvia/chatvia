@@ -1,7 +1,7 @@
 <?php
 
+use App\Http\Rules\DocumentChatAvailable;
 use App\Identity\Workspace\Models\User;
-use Domain\Conversation\Rules\DocumentChatAvailable;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Widget\Actions\BuildWidgetSettingsAction;
@@ -15,7 +15,7 @@ function dcaValidate(): ?string
 {
     $error = null;
 
-    (new DocumentChatAvailable)->validate('file', null, function (string $message) use (&$error): void {
+    (new DocumentChatAvailable(app(DocumentLlm::class)))->validate('file', null, function (string $message) use (&$error): void {
         $error = $message;
     });
 

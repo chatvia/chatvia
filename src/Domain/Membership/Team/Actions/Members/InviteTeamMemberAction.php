@@ -5,13 +5,18 @@ namespace Domain\Membership\Team\Actions\Members;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Invitations\CreateTeamInvitationAction;
 use Domain\Membership\Team\Data\InviteTeamMemberData;
-use Domain\Membership\Team\Services\TeamService;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * Adds someone to a team from the team page. Two paths: a user the inviter
+ * already manages is attached straight away under the chosen role; anyone else
+ * gets an emailed invitation ({@see CreateTeamInvitationAction}). Both need the
+ * owner to have an active subscription and a free workspace seat — seats are
+ * shared between teammates and chatters.
+ */
 class InviteTeamMemberAction
 {
     public function __construct(
-        private readonly TeamService $teamService,
         private readonly CreateTeamInvitationAction $createTeamInvitation,
     ) {}
 
@@ -22,15 +27,15 @@ class InviteTeamMemberAction
     {
         $team = $data->team;
 
-        if (! $this->teamService->canInviteMembers($team)) {
-            throw new DomainValidationException('email', 'You need an active subscription to invite team members.');
+        if (! $team->canInviteMembers()) {
+            throw new DomainValidationException('email', __('You need an active subscription to invite team members.'));
         }
 
         /** @var User $owner */
         $owner = $team->owner;
 
         if (! $owner->canAddWorkspaceUser()) {
-            throw new DomainValidationException('email', "You've reached your workspace user limit ({$owner->quotaLimit('workspace_users_limit')}), shared between team members and chatters. Upgrade your plan to invite more.");
+            throw new DomainValidationException('email', __("You've reached your workspace user limit (:limit), shared between team members and chatters. Upgrade your plan to invite more.", ['limit' => $owner->quotaLimit('workspace_users_limit')]));
         }
 
         // Duplicate detection (already-a-member / already-invited) lives in
@@ -41,7 +46,7 @@ class InviteTeamMemberAction
             $existingUser = User::findOrFail($data->userId);
 
             if ($existingUser->workspace_id !== $data->inviter->id) {
-                throw new DomainValidationException('user_id', 'You can only add users you have invited.');
+                throw new DomainValidationException('user_id', __('You can only add users you have invited.'));
             }
 
             $role = $team->roles()->where('code', $data->role)->firstOrFail();

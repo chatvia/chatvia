@@ -2,7 +2,12 @@
 
 namespace Domain\Integration\Mcp\Services;
 
-use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
+use Closure;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
+use Domain\Integration\Mcp\Contracts\AccessTokenRefresher;
+use Domain\Integration\Mcp\Data\McpToolDefinitionData;
+use Domain\Integration\Mcp\Enums\McpAuthType;
+use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
@@ -13,66 +18,51 @@ use Support\Http\SafeUrl;
 use Throwable;
 
 /**
- * Thin JSON-RPC 2.0 client for MCP HTTP / streamable-HTTP servers.
+ * Thin JSON-RPC 2.0 client for MCP streamable-HTTP servers.
  *
  * Each public method opens a fresh session (initialize → notifications/
- * initialized → user method → close) — simple and safe. Session caching is
- * an optimization we can add later if profiling demands it.
- *
- * Streams (text/event-stream upgrades) are not handled in v1; we only
- * consume single-response JSON-RPC for `tools/list` and `tools/call`, which
- * are the two methods the chat flow needs.
+ * initialized → the method → close): simple and safe. Only single-response
+ * JSON-RPC is consumed — `tools/list` and `tools/call`, the two methods the
+ * chat flow needs; an event-stream reply is read as one SSE frame.
  */
 class McpClient
 {
-    private const PROTOCOL_VERSION = '2025-06-18';
+    private const string PROTOCOL_VERSION = '2025-06-18';
 
-    private const CLIENT_VERSION = '1.0';
+    private const string CLIENT_VERSION = '1.0';
+
+    /** How much of a failed response body an error message keeps. */
+    private const int ERROR_BODY_LENGTH = 200;
+
+    public function __construct(
+        private readonly AccessTokenRefresher $tokens,
+        private readonly ConnectorCatalog $catalog,
+    ) {}
 
     /**
-     * Probe a server with `initialize` + `tools/list`. Returns the tool
-     * catalog as the server emits it. Used at connect-time and on manual
-     * refresh; throws McpException on any protocol failure.
+     * Probe a server with `initialize` + `tools/list` and return its tool
+     * catalog. Used at connect time and on refresh; throws McpException on
+     * any protocol failure.
      *
-     * @return array<int, array<string, mixed>>
+     * @return list<McpToolDefinitionData>
      */
     public function fetchTools(AgentMcpServer $server): array
     {
-        $this->ensureFreshToken($server);
+        return $this->inSession($server, [], function (?string $sessionId) use ($server): array {
+            $tools = $this->rpc($server, $sessionId, 'tools/list', (object) [])['body']['result']['tools'] ?? null;
 
-        $sessionId = null;
+            if (! is_array($tools)) {
+                throw new McpException('MCP server returned a malformed tools/list response.');
+            }
 
-        $initResponse = $this->rpc($server, $sessionId, 'initialize', [
-            'protocolVersion' => self::PROTOCOL_VERSION,
-            'capabilities' => (object) [],
-            'clientInfo' => $this->clientInfo(),
-        ]);
-
-        // Streamable-HTTP servers may issue a session id we must echo back.
-        // It arrives as a response header.
-        if ($initResponse['_session_id']) {
-            $sessionId = $initResponse['_session_id'];
-        }
-
-        $this->notify($server, $sessionId, 'notifications/initialized');
-
-        $listResponse = $this->rpc($server, $sessionId, 'tools/list', (object) []);
-
-        $tools = $listResponse['body']['result']['tools'] ?? null;
-
-        if (! is_array($tools)) {
-            throw new McpException('MCP server returned a malformed tools/list response.');
-        }
-
-        $this->closeSession($server, $sessionId);
-
-        return $tools;
+            return McpToolDefinitionData::listFrom($tools);
+        });
     }
 
     /**
-     * Call a tool. Returns the result `content` array exactly as the server
-     * emits it; the caller is responsible for flattening to a string the LLM
-     * can ingest.
+     * Call a tool. Returns the result envelope (`content`, `isError`,
+     * `structuredContent`) exactly as the server emits it; the caller turns it
+     * into what the model reads.
      *
      * @param  array<string, mixed>  $arguments
      * @param  array<string, string>  $identityHeaders  Caller-identity headers (agent + user) stamped on every request in the session.
@@ -80,38 +70,50 @@ class McpClient
      */
     public function callTool(AgentMcpServer $server, string $name, array $arguments, array $identityHeaders = []): array
     {
-        $this->ensureFreshToken($server);
+        return $this->inSession($server, $identityHeaders, function (?string $sessionId) use ($server, $name, $arguments, $identityHeaders): array {
+            $body = $this->rpc($server, $sessionId, 'tools/call', [
+                'name' => $name,
+                'arguments' => $arguments,
+            ], $identityHeaders)['body'];
 
-        $sessionId = null;
+            $result = $body['result'] ?? null;
+            if (is_array($result)) {
+                return $result;
+            }
 
-        $initResponse = $this->rpc($server, $sessionId, 'initialize', [
-            'protocolVersion' => self::PROTOCOL_VERSION,
-            'capabilities' => (object) [],
-            'clientInfo' => $this->clientInfo(),
-        ], $identityHeaders);
-
-        if ($initResponse['_session_id']) {
-            $sessionId = $initResponse['_session_id'];
-        }
-
-        $this->notify($server, $sessionId, 'notifications/initialized', identityHeaders: $identityHeaders);
-
-        $callResponse = $this->rpc($server, $sessionId, 'tools/call', [
-            'name' => $name,
-            'arguments' => $arguments,
-        ], $identityHeaders);
-
-        $result = $callResponse['body']['result'] ?? null;
-
-        if (! is_array($result)) {
-            $error = $callResponse['body']['error'] ?? null;
-
+            $error = $body['error'] ?? null;
             if (is_array($error) && isset($error['message'])) {
                 throw McpException::reportedByServer((string) $error['message'], (string) $error['message']);
             }
 
             throw new McpException('tool/call did not return a result');
-        }
+        });
+    }
+
+    /**
+     * Run one method inside a fresh MCP session: refresh the OAuth token if
+     * needed, do the `initialize` handshake, run `$method` with the session id
+     * the server issued (if any), then release the session.
+     *
+     * @template TResult
+     *
+     * @param  array<string, string>  $identityHeaders
+     * @param  Closure(?string): TResult  $method
+     * @return TResult
+     */
+    private function inSession(AgentMcpServer $server, array $identityHeaders, Closure $method): mixed
+    {
+        $this->ensureFreshToken($server);
+
+        $sessionId = $this->rpc($server, null, 'initialize', [
+            'protocolVersion' => self::PROTOCOL_VERSION,
+            'capabilities' => (object) [],
+            'clientInfo' => $this->clientInfo(),
+        ], $identityHeaders)['_session_id'];
+
+        $this->notify($server, $sessionId, 'notifications/initialized', identityHeaders: $identityHeaders);
+
+        $result = $method($sessionId);
 
         $this->closeSession($server, $sessionId, $identityHeaders);
 
@@ -120,8 +122,8 @@ class McpClient
 
     /**
      * For OAuth-backed connectors, refresh the access token if it is about
-     * to expire so the upcoming JSON-RPC request goes out with a valid
-     * bearer. For token-paste connectors this is a no-op.
+     * to expire so the upcoming request goes out with a valid bearer. A no-op
+     * for token-paste connectors.
      */
     private function ensureFreshToken(AgentMcpServer $server): void
     {
@@ -130,11 +132,10 @@ class McpClient
         }
 
         try {
-            app(McpOAuthFlow::class)->refreshIfStale($server);
+            $this->tokens->refreshIfStale($server);
         } catch (Throwable $e) {
-            // Don't hard-fail here — let the upstream return 401 so the
-            // user-facing surface (last_error on the row) shows the real
-            // upstream message instead of our refresh guess.
+            // Don't fail here — let the server answer 401, so the row's
+            // last_error shows the server's real message instead of our guess.
             Log::warning('MCP token refresh failed', [
                 'server_id' => $server->id,
                 'error' => $e->getMessage(),
@@ -174,30 +175,15 @@ class McpClient
      */
     private function request(AgentMcpServer $server, ?string $sessionId, array $identityHeaders, string $httpMethod, string $body): PendingRequest
     {
-        $firstParty = InternalMcpSignature::isFirstPartyServer($server);
+        $firstParty = $this->isFirstPartyServer($server);
 
         $headers = [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json, text/event-stream',
             'MCP-Protocol-Version' => self::PROTOCOL_VERSION,
+            ...$this->customHeaders($server, $firstParty),
+            ...$this->authHeaders($server),
         ];
-
-        // Our own servers never take custom headers, so nothing user-defined
-        // can slip into the signed identity headers.
-        if (! $firstParty) {
-            foreach ((array) ($server->headers ?? []) as $h) {
-                if (isset($h['key'], $h['value'])) {
-                    $headers[$h['key']] = $h['value'];
-                }
-            }
-        }
-
-        if ($server->auth_type === 'bearer' && $server->auth_value) {
-            $headers['Authorization'] = 'Bearer '.$server->auth_value;
-        }
-        if ($server->auth_type === 'header' && $server->auth_value) {
-            $headers['X-Auth'] = $server->auth_value;
-        }
 
         if ($sessionId) {
             $headers['Mcp-Session-Id'] = $sessionId;
@@ -230,7 +216,60 @@ class McpClient
     }
 
     /**
-     * Send a JSON-RPC request and return the parsed envelope.
+     * Headers the workspace configured on the server. Our own servers never
+     * take custom headers, so nothing user-defined can slip into the signed
+     * identity headers.
+     *
+     * @return array<string, string>
+     */
+    private function customHeaders(AgentMcpServer $server, bool $firstParty): array
+    {
+        if ($firstParty) {
+            return [];
+        }
+
+        $headers = [];
+        foreach ((array) ($server->headers ?? []) as $header) {
+            if (isset($header['key'], $header['value'])) {
+                $headers[$header['key']] = $header['value'];
+            }
+        }
+
+        return $headers;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function authHeaders(AgentMcpServer $server): array
+    {
+        if (! $server->auth_value) {
+            return [];
+        }
+
+        return match ($server->auth_type) {
+            McpAuthType::Bearer => ['Authorization' => 'Bearer '.$server->auth_value],
+            McpAuthType::Header => ['X-Auth' => $server->auth_value],
+            McpAuthType::None => [],
+        };
+    }
+
+    /**
+     * True only for a server row Chatvia itself defines: its connector is a
+     * first-party one served from our own /mcp/ routes and its URL is that
+     * connector's canonical internal URL. A custom server whose URL merely
+     * points at our host has no connector slug and never qualifies.
+     */
+    private function isFirstPartyServer(AgentMcpServer $server): bool
+    {
+        return $this->catalog->sharesCentralCatalog($server->connector_slug, $server->url)
+            && InternalMcpSignature::isInternalUrl($server->url);
+    }
+
+    /**
+     * Send a JSON-RPC request and return the parsed envelope plus the session
+     * id the server issued in its response header (streamable-HTTP servers
+     * may issue one we must echo back).
      *
      * @param  array<string, mixed>|object  $params
      * @param  array<string, string>  $identityHeaders
@@ -260,7 +299,7 @@ class McpClient
             throw new McpException(sprintf(
                 'MCP server returned HTTP %d: %s',
                 $response->status(),
-                mb_substr((string) $response->body(), 0, 200),
+                mb_substr((string) $response->body(), 0, self::ERROR_BODY_LENGTH),
             ), $response->status());
         }
 
@@ -310,6 +349,9 @@ class McpClient
     }
 
     /**
+     * Streamable-HTTP servers expect a DELETE on the same endpoint, with the
+     * session header, to release server-side state. Best-effort.
+     *
      * @param  array<string, string>  $identityHeaders
      */
     private function closeSession(AgentMcpServer $server, ?string $sessionId, array $identityHeaders = []): void
@@ -318,8 +360,6 @@ class McpClient
             return;
         }
 
-        // Streamable HTTP servers expect DELETE on the same endpoint with
-        // the session header to release server-side state.
         try {
             $this->send($server, $sessionId, null, $identityHeaders);
         } catch (Throwable) {
@@ -341,23 +381,24 @@ class McpClient
     {
         $contentType = strtolower((string) $response->header('Content-Type'));
 
-        if (str_contains($contentType, 'text/event-stream')) {
-            $body = (string) $response->body();
-            $dataLines = [];
-            foreach (preg_split('/\r?\n/', $body) as $line) {
-                if (str_starts_with($line, 'data:')) {
-                    $dataLines[] = ltrim(substr($line, 5));
-                }
-            }
-            if ($dataLines === []) {
-                return null;
-            }
-            $decoded = json_decode(implode('', $dataLines), true);
+        if (! str_contains($contentType, 'text/event-stream')) {
+            $decoded = $response->json();
 
             return is_array($decoded) ? $decoded : null;
         }
 
-        $decoded = $response->json();
+        $dataLines = [];
+        foreach (preg_split('/\r?\n/', (string) $response->body()) ?: [] as $line) {
+            if (str_starts_with($line, 'data:')) {
+                $dataLines[] = ltrim(substr($line, 5));
+            }
+        }
+
+        if ($dataLines === []) {
+            return null;
+        }
+
+        $decoded = json_decode(implode('', $dataLines), true);
 
         return is_array($decoded) ? $decoded : null;
     }

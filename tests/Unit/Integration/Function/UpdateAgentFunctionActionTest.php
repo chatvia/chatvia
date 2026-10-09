@@ -2,9 +2,12 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Function\Actions\UpdateAgentFunctionAction;
-use Domain\Integration\Function\Data\UpdateAgentFunctionData;
+use Domain\Integration\Function\Data\FunctionDefinitionData;
+use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Support\Str;
+use Spatie\LaravelData\Optional;
 
 /**
  * UpdateAgentFunctionAction patches an AgentFunction (a webhook tool). The
@@ -43,23 +46,23 @@ function uafBuildFunction(array $overrides = []): array
     return [$owner, $function];
 }
 
-it('preserves requires_approval when the caller omits the field (null)', function (): void {
+it('preserves requires_approval when the caller omits the field', function (): void {
     [$owner, $function] = uafBuildFunction();
 
-    $data = new UpdateAgentFunctionData(
+    $data = new FunctionDefinitionData(
         internal_name: 'write_thing',
         display_name: 'Write Thing',
         description: 'Writes a thing',
         parameters_schema: ['type' => 'object', 'properties' => []],
         webhook_url: 'https://hooks.example.test/fn',
-        webhook_method: 'POST',
-        auth_type: 'bearer',
+        webhook_method: FunctionWebhookMethod::Post,
+        auth_type: FunctionAuthType::Bearer,
         auth_value: null,
         auth_header_name: null,
-        requires_approval: null,
+        requires_approval: new Optional,
     );
 
-    app(UpdateAgentFunctionAction::class)->execute($owner, $function->external_id, $data);
+    app(UpdateAgentFunctionAction::class)->execute($function, $data);
 
     $function->refresh();
     expect($function->requires_approval)->toBeTrue();
@@ -68,20 +71,20 @@ it('preserves requires_approval when the caller omits the field (null)', functio
 it('updates requires_approval when the caller explicitly sends false', function (): void {
     [$owner, $function] = uafBuildFunction();
 
-    $data = new UpdateAgentFunctionData(
+    $data = new FunctionDefinitionData(
         internal_name: 'write_thing',
         display_name: 'Write Thing',
         description: 'Writes a thing',
         parameters_schema: ['type' => 'object', 'properties' => []],
         webhook_url: 'https://hooks.example.test/fn',
-        webhook_method: 'POST',
-        auth_type: 'bearer',
+        webhook_method: FunctionWebhookMethod::Post,
+        auth_type: FunctionAuthType::Bearer,
         auth_value: null,
         auth_header_name: null,
         requires_approval: false,
     );
 
-    app(UpdateAgentFunctionAction::class)->execute($owner, $function->external_id, $data);
+    app(UpdateAgentFunctionAction::class)->execute($function, $data);
 
     expect($function->refresh()->requires_approval)->toBeFalse();
 });
@@ -89,24 +92,24 @@ it('updates requires_approval when the caller explicitly sends false', function 
 it('CLEARS the stored secret when auth_type changes (bearer → hmac) without a fresh value', function (): void {
     [$owner, $function] = uafBuildFunction();
 
-    $data = new UpdateAgentFunctionData(
+    $data = new FunctionDefinitionData(
         internal_name: 'write_thing',
         display_name: 'Write Thing',
         description: 'Writes a thing',
         parameters_schema: ['type' => 'object', 'properties' => []],
         webhook_url: 'https://hooks.example.test/fn',
-        webhook_method: 'POST',
-        auth_type: 'hmac',
+        webhook_method: FunctionWebhookMethod::Post,
+        auth_type: FunctionAuthType::Hmac,
         auth_value: null,     // no fresh secret provided
         auth_header_name: null,
-        requires_approval: null,
+        requires_approval: new Optional,
     );
 
-    app(UpdateAgentFunctionAction::class)->execute($owner, $function->external_id, $data);
+    app(UpdateAgentFunctionAction::class)->execute($function, $data);
 
     $function->refresh();
     // The OLD bearer token must not survive the auth_type change.
-    expect($function->auth_type)->toBe('hmac')
+    expect($function->auth_type)->toBe(FunctionAuthType::Hmac)
         ->and($function->auth_config)
         ->not->toHaveKey('token');
 });
@@ -114,20 +117,20 @@ it('CLEARS the stored secret when auth_type changes (bearer → hmac) without a 
 it('REPLACES the stored secret when auth_type changes AND a new value is provided', function (): void {
     [$owner, $function] = uafBuildFunction();
 
-    $data = new UpdateAgentFunctionData(
+    $data = new FunctionDefinitionData(
         internal_name: 'write_thing',
         display_name: 'Write Thing',
         description: 'Writes a thing',
         parameters_schema: ['type' => 'object', 'properties' => []],
         webhook_url: 'https://hooks.example.test/fn',
-        webhook_method: 'POST',
-        auth_type: 'hmac',
+        webhook_method: FunctionWebhookMethod::Post,
+        auth_type: FunctionAuthType::Hmac,
         auth_value: 'new-hmac-secret',
         auth_header_name: null,
-        requires_approval: null,
+        requires_approval: new Optional,
     );
 
-    app(UpdateAgentFunctionAction::class)->execute($owner, $function->external_id, $data);
+    app(UpdateAgentFunctionAction::class)->execute($function, $data);
 
     expect($function->refresh()->auth_config)->toMatchArray(['secret' => 'new-hmac-secret']);
 });

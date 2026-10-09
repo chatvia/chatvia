@@ -6,6 +6,9 @@ use Domain\Billing\Data\Resources\Quota\BillingQuotaLimitsData;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * The plan the account is on, as shown on the billing page.
+ */
 #[TypeScript]
 class BillingCurrentPackageData extends Data
 {

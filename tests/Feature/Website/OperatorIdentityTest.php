@@ -1,6 +1,6 @@
 <?php
 
-use Support\Cms\Marketing\Models\Post;
+use App\Marketing\Models\Post;
 
 /**
  * Pages must not carry one operator's identity (company, address, VAT,

@@ -2,11 +2,20 @@
 
 namespace Domain\Integration\Connector\Data\Catalog;
 
+use Domain\Integration\Connector\Enums\ConnectorAuthStrategy;
+use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
+use InvalidArgumentException;
 use Spatie\LaravelData\Attributes\Hidden;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * One entry of the connector catalog (config/connectors.php) as a typed
+ * record: how it looks in the UI, how a workspace connects it and, for OAuth
+ * presets, the pre-registered client details. Server-only secrets are
+ * #[Hidden] so they never reach a JSON or Inertia response.
+ */
 #[TypeScript]
 class ConnectorData extends Data
 {
@@ -17,7 +26,7 @@ class ConnectorData extends Data
         public string $category,
         public string $icon,
         public string $brandColor,
-        public string $authStrategy,
+        public ConnectorAuthStrategy $authStrategy,
         public string $mcpUrl,
         // Sort key within each provider group — lower comes first. Required.
         public int $priority,
@@ -77,7 +86,7 @@ class ConnectorData extends Data
         $slug = (string) ($entry['slug'] ?? '');
 
         if (! isset($entry['priority'])) {
-            throw new \InvalidArgumentException("Connector '{$slug}' is missing the required 'priority' key in config/connectors.php.");
+            throw new InvalidArgumentException("Connector '{$slug}' is missing the required 'priority' key in config/connectors.php.");
         }
 
         return new self(
@@ -87,7 +96,7 @@ class ConnectorData extends Data
             category: (string) ($entry['category'] ?? 'Other'),
             icon: (string) ($entry['icon'] ?? 'plug'),
             brandColor: (string) ($entry['brand_color'] ?? '6B7280'),
-            authStrategy: (string) $entry['auth_strategy'],
+            authStrategy: ConnectorAuthStrategy::from((string) $entry['auth_strategy']),
             mcpUrl: (string) $entry['mcp_url'],
             priority: (int) $entry['priority'],
             provider: (string) ($entry['provider'] ?? 'featured'),
@@ -118,7 +127,7 @@ class ConnectorData extends Data
      */
     public function hasPreRegisteredOAuth(): bool
     {
-        return $this->authStrategy === 'oauth'
+        return $this->authStrategy === ConnectorAuthStrategy::Oauth
             && $this->oauthClientId !== null
             && $this->oauthAuthorizationEndpoint !== null
             && $this->oauthTokenEndpoint !== null;
@@ -135,8 +144,22 @@ class ConnectorData extends Data
             return McpServerCategory::from($this->mcpCategory);
         }
 
-        return $this->provider === 'chatvia' && $this->authStrategy === 'none'
+        return $this->provider === 'chatvia' && $this->authStrategy === ConnectorAuthStrategy::None
             ? McpServerCategory::Builtin
             : McpServerCategory::Integration;
+    }
+
+    /**
+     * How a connected server of this connector authenticates its MCP calls:
+     * no credentials for a no-auth preset, otherwise the preset's configured
+     * `auth_type` (a bearer token unless the catalog says otherwise).
+     */
+    public function serverAuthType(): McpAuthType
+    {
+        if ($this->authStrategy === ConnectorAuthStrategy::None) {
+            return McpAuthType::None;
+        }
+
+        return McpAuthType::tryFrom((string) $this->authType) ?? McpAuthType::Bearer;
     }
 }

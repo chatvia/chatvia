@@ -4,7 +4,7 @@ namespace Domain\Agent\Actions\Account;
 
 use Domain\Agent\Data\Account\UpdateAgentData;
 use Domain\Agent\Models\Agent;
-use Domain\Prompt\Actions\ResolveAgentPromptIdAction;
+use Domain\Agent\Prompt\Actions\ResolveAgentPromptIdAction;
 
 class UpdateAgentAction
 {

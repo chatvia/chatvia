@@ -1,15 +1,19 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Data\Messages\ChatInputPayload;
+use Domain\Conversation\Data\Messages\UserTurnData;
+use Domain\Conversation\Data\Tooling\PendingToolCallData;
+use Domain\Conversation\Data\Turn\StreamRequestData;
+use Domain\Conversation\Data\Turn\StreamRequestMessageData;
+use Domain\Conversation\Enums\ToolApprovalDecision;
+use Domain\Conversation\Enums\ToolApprovalStatus;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\ChatContext;
-use Domain\Conversation\Services\Data\StreamRequestData;
-use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
+use Domain\Conversation\Services\Tooling\ToolCallAuditTrail;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
@@ -178,7 +182,7 @@ function tlrRunner(
         displayResolver: tlrDisplayResolver(),
         accessPolicy: new ToolAccessPolicy($policy, new ToolRateLimiter),
         approvalStore: $store ?? new ToolApprovalStore,
-        catalog: app(ConnectorCatalog::class),
+        auditTrail: new ToolCallAuditTrail(app(ConnectorCatalog::class)),
     );
 }
 
@@ -196,6 +200,17 @@ function tlrTools(string ...$names): array
     ], $names);
 }
 
+/**
+ * Stored pending calls (the checkpoint JSON shape) as the runner reads them.
+ *
+ * @param  array<int, array<string, mixed>>  $stored
+ * @return array<int, PendingToolCallData>
+ */
+function tlrPending(array $stored): array
+{
+    return array_map(PendingToolCallData::fromArray(...), $stored);
+}
+
 function tlrContext(Agent $agent, Llm $llm): ChatContext
 {
     $requestData = new StreamRequestData(
@@ -206,7 +221,7 @@ function tlrContext(Agent $agent, Llm $llm): ChatContext
         requestId: 'req_'.Str::random(12),
     );
 
-    $payload = ChatInputPayload::from([
+    $payload = UserTurnData::from([
         'external_session_id' => $requestData->externalSessionId,
         'external_conversation_id' => $requestData->conversationId,
         'external_message_id' => (string) Str::uuid(),
@@ -250,7 +265,7 @@ it('injects the denied-result message and never dispatches a denied gated call',
 
     $llmMessages = [];
     $events = iterator_to_array(
-        $runner->applyPendingCalls($context, $llmMessages, $pendingCalls, ['call_1' => 'deny']),
+        $runner->applyPendingCalls($context, $llmMessages, tlrPending($pendingCalls), ['call_1' => ToolApprovalDecision::Deny]),
         preserve_keys: false,
     );
 
@@ -280,7 +295,7 @@ it('emits a governance audit event with outcome auto for a dispatched call', fun
     ]];
 
     $llmMessages = [];
-    iterator_to_array($runner->applyPendingCalls($context, $llmMessages, $pendingCalls, []), preserve_keys: false);
+    iterator_to_array($runner->applyPendingCalls($context, $llmMessages, tlrPending($pendingCalls), []), preserve_keys: false);
 
     Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->toolName === 'get_weather'
         && $e->approvalOutcome === 'auto'
@@ -306,7 +321,7 @@ it('emits a governance audit event with outcome denied for a denied gated call',
     ]];
 
     $llmMessages = [];
-    iterator_to_array($runner->applyPendingCalls($context, $llmMessages, $pendingCalls, ['call_1' => 'deny']), preserve_keys: false);
+    iterator_to_array($runner->applyPendingCalls($context, $llmMessages, tlrPending($pendingCalls), ['call_1' => ToolApprovalDecision::Deny]), preserve_keys: false);
 
     Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $e): bool => $e->toolName === 'delete_everything'
         && $e->approvalOutcome === 'denied'
@@ -332,7 +347,7 @@ it('dispatches an approved gated call and appends its tool result', function ():
 
     $llmMessages = [];
     iterator_to_array(
-        $runner->applyPendingCalls($context, $llmMessages, $pendingCalls, ['call_1' => 'approve']),
+        $runner->applyPendingCalls($context, $llmMessages, tlrPending($pendingCalls), ['call_1' => ToolApprovalDecision::Approve]),
         preserve_keys: false,
     );
 
@@ -363,7 +378,7 @@ it('runs an ungated (auto) call even without an approval decision', function ():
 
     $llmMessages = [];
     iterator_to_array(
-        $runner->applyPendingCalls($context, $llmMessages, $pendingCalls, []),
+        $runner->applyPendingCalls($context, $llmMessages, tlrPending($pendingCalls), []),
         preserve_keys: false,
     );
 
@@ -449,7 +464,7 @@ it('pauses the whole turn and persists a pending checkpoint when a tool call nee
 
     $checkpoint = ToolApprovalCheckpoint::query()->latest('id')->first();
     expect(ToolApprovalCheckpoint::query()->count())->toBe(1)
-        ->and($checkpoint->status)->toBe(ToolApprovalCheckpoint::STATUS_PENDING)
+        ->and($checkpoint->status)->toBe(ToolApprovalStatus::Pending)
         ->and($checkpoint->pending_calls)->toHaveCount(1)
         ->and($checkpoint->pending_calls[0]['name'])->toBe('delete_user');
 

@@ -5,8 +5,8 @@ namespace Domain\Channel\Messenger\Services;
 use Domain\Channel\Messenger\Models\AgentMessengerPage;
 use Domain\Channel\Messenger\Models\MessengerThread;
 use Domain\Channel\Services\ChannelConversationResolver;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -21,10 +21,10 @@ use Illuminate\Database\Eloquent\Model;
 class MessengerThreadResolver extends ChannelConversationResolver
 {
     public function __construct(
-        ChatMemory $memory,
+        StartConversationAction $startConversation,
         private readonly MessengerClient $client,
     ) {
-        parent::__construct($memory);
+        parent::__construct($startConversation);
     }
 
     public function resolve(AgentMessengerPage $page, string $psid): MessengerThread

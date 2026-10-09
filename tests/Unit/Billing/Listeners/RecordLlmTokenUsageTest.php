@@ -38,7 +38,7 @@ it('flushes the buffer into the active billing cycle usage tokens', function ():
         'ends_at' => now()->addDays(10),
     ]);
     // Seed the starting total the way production does — via increment, not mass
-    // assignment (tokens is written only through UserCreditSystem::recordTokenUsage).
+    // assignment (tokens is written only through RecordTokenUsageAction).
     $credit->usage()->create()->increment('tokens', 1000);
 
     app(RecordLlmTokenUsage::class)->handle(new LlmTokensConsumed($user->id, 250, 'chat'));

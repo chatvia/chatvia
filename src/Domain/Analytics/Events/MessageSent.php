@@ -5,6 +5,11 @@ namespace Domain\Analytics\Events;
 use DateTimeInterface;
 use Illuminate\Foundation\Events\Dispatchable;
 
+/**
+ * A chat message (visitor or AI) was stored. Recorded into the analytics
+ * tables by the queued RecordAnalytics subscriber. Queued payloads hold this
+ * class, so its name and fields must stay compatible.
+ */
 class MessageSent
 {
     use Dispatchable;

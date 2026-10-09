@@ -7,6 +7,10 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates a PDF uploaded from the hosted-chat composer and decides where
+ * it is stored.
+ */
 class UploadAttachmentRequest extends FormRequest
 {
     use ValidatesPdfAttachment;

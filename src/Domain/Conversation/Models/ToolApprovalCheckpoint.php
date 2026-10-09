@@ -3,6 +3,10 @@
 namespace Domain\Conversation\Models;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Tooling\ApprovalContextData;
+use Domain\Conversation\Data\Tooling\PendingToolCallData;
+use Domain\Conversation\Enums\ToolApprovalStatus;
+use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -13,8 +17,9 @@ use Support\Concerns\HasExternalId;
 
 /**
  * A paused agent turn awaiting human approval of one or more tool calls.
- * Created by LlmSource when the tool loop hits a gated call; consumed once by
- * the resume flow, which applies the user's decisions and continues streaming.
+ * Created by the tool loop when it hits a gated call (through
+ * {@see ToolApprovalStore}); claimed once by the resume flow, which applies
+ * the person's decisions and continues streaming.
  *
  * @property int $id
  * @property string $external_id
@@ -23,7 +28,7 @@ use Support\Concerns\HasExternalId;
  * @property string $assistant_message_id
  * @property string|null $request_id
  * @property int $iteration
- * @property string $status
+ * @property ToolApprovalStatus $status
  * @property array<int, array<string, mixed>> $messages_snapshot
  * @property array<int, array<string, mixed>> $pending_calls
  * @property array<string, mixed> $context
@@ -41,15 +46,10 @@ class ToolApprovalCheckpoint extends Model
 {
     use HasExternalId;
 
-    public const string STATUS_PENDING = 'pending';
-
-    public const string STATUS_RESOLVED = 'resolved';
-
-    public const string STATUS_EXPIRED = 'expired';
-
     protected function casts(): array
     {
         return [
+            'status' => ToolApprovalStatus::class,
             'messages_snapshot' => 'array',
             'pending_calls' => 'array',
             'context' => 'array',
@@ -68,10 +68,27 @@ class ToolApprovalCheckpoint extends Model
      */
     public function isResumable(): bool
     {
-        if ($this->status !== self::STATUS_PENDING) {
+        if ($this->status !== ToolApprovalStatus::Pending) {
             return false;
         }
 
         return $this->expires_at === null || $this->expires_at->isFuture();
+    }
+
+    /**
+     * Every tool call of the paused turn (gated and not), with its decision
+     * and display details.
+     *
+     * @return array<int, PendingToolCallData>
+     */
+    public function pendingToolCalls(): array
+    {
+        return array_map(PendingToolCallData::fromArray(...), $this->pending_calls);
+    }
+
+    /** What the paused turn needs to resume. */
+    public function approvalContext(): ApprovalContextData
+    {
+        return ApprovalContextData::fromArray($this->context);
     }
 }

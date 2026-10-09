@@ -3,19 +3,17 @@
 namespace App\Http\Controllers\Agent\Source\Connector;
 
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Connector\Actions\Catalog\ListConnectorToolsAction;
 use Domain\Integration\Connector\Data\Catalog\ConnectorToolsResourceData;
-use Domain\Integration\Mcp\Actions\ListConnectorToolsAction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Illuminate\Http\Request;
 
+/**
+ * The tool list of a connector attached to this agent.
+ */
 class AgentConnectorToolController
 {
-    public function __invoke(
-        Request $request,
-        Agent $agent,
-        string $slug,
-        ListConnectorToolsAction $list,
-    ): ConnectorToolsResourceData {
+    public function __invoke(Agent $agent, string $slug, ListConnectorToolsAction $list): ConnectorToolsResourceData
+    {
         $server = AgentMcpServer::query()
             ->attachedToAgent($agent)
             ->where('slug', $slug)

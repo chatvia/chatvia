@@ -8,6 +8,9 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * The change-password settings page.
+ */
 class PasswordController
 {
     public function edit(): Response

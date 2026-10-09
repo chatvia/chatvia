@@ -2,78 +2,80 @@
 
 namespace Domain\Knowledge\Ingestion\Services\Chunking;
 
-use Domain\Knowledge\Ingestion\Data\Chunking\DocumentChunk;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkEnhancementData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Data\Chat\ChatUsageData;
+use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Exceptions\InvalidStructuredReplyException;
 use Domain\Llm\Operations\Pricing\CostCalculator;
+use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TikToken;
 
+/**
+ * Asks the chunker LLM (`chatvia.ai.models.chunker`) for a summary of one page
+ * and the questions it answers, with the neighbouring pages as context. The
+ * reply must follow a strict JSON schema. The summary is later prepended to the
+ * chunk before embedding ("contextual retrieval"); the questions get their own
+ * embedding.
+ */
 class Chunker
 {
     public function __construct(
-        public LlmProviderInterface $provider,
+        private readonly StructuredCompletion $completion,
+        private readonly CostCalculator $costCalculator,
     ) {}
 
-    public function chunkDocument(PageData $page, ?PageData $prevPage = null, ?PageData $nextPage = null): DocumentChunk
+    /**
+     * @throws InvalidStructuredReplyException when the reply holds no JSON
+     */
+    public function enhancePage(PageData $page, ?PageData $previousPage = null, ?PageData $nextPage = null): ChunkEnhancementData
     {
         $systemPrompt = prompt('chunking/document-chunking-system');
 
         $userPrompt = prompt('chunking/document-chunking-user', [
-            'previous_page' => $prevPage?->content,
+            'previous_page' => $previousPage?->content,
             'target_page' => $page->content,
             'next_page' => $nextPage?->content,
         ]);
 
-        $res = $this->provider->completion([
-            'model' => config('chatvia.ai.models.chunker'),
-            'temperature' => 0.0,
-            'max_tokens' => 8096,
-            'messages' => [
-                [
-                    'role' => 'system',
-                    'content' => $systemPrompt,
-                ],
-                [
-                    'role' => 'user',
-                    'content' => $userPrompt,
-                ],
+        $reply = $this->completion->send(new ChatRequestData(
+            model: (string) config('chatvia.ai.models.chunker'),
+            messages: [
+                ChatMessageData::system($systemPrompt),
+                ChatMessageData::user($userPrompt),
             ],
-            'response_format' => [
-                'type' => 'json_schema',
-                'json_schema' => [
-                    'name' => 'document_chunk',
-                    'strict' => true,
-                    'schema' => $this->documentChunkSchema(),
-                ],
-            ],
-        ])->throw();
+            temperature: 0.0,
+            maxTokens: 8096,
+            responseSchema: new ResponseSchemaData('document_chunk', $this->documentChunkSchema()),
+        ));
 
-        $content = (string) $res->json('choices.0.message.content');
-
-        $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+        $data = $reply->requireData();
 
         // Bill from the provider's own token counts; estimate only when the
         // response carries no usage block.
-        $usage = $res->json('usage') ?: [
+        $usage = $reply->response->usage ?? ChatUsageData::fromUsage([
             'prompt_tokens' => TikToken::countTokens($systemPrompt.$userPrompt),
-            'completion_tokens' => TikToken::countTokens($content),
-        ];
+            'completion_tokens' => TikToken::countTokens($reply->response->content),
+        ]);
 
-        return DocumentChunk::from([
-            'chunk' => $page->content,
-            'summary' => $decoded['summary'],
-            'questions' => $decoded['questions'],
-            'cost' => app(CostCalculator::class)->costInCentsFromUsage(
+        return new ChunkEnhancementData(
+            summary: (string) ($data['summary'] ?? ''),
+            questions: array_values(array_filter((array) ($data['questions'] ?? []), is_string(...))),
+            cost: $this->costCalculator->costInCentsFromUsage(
                 usage: $usage,
                 pricePerInputMilToken: (float) config('chatvia.ai.pricing.chunker_input_per_million_tokens'),
                 pricePerOutputMilToken: (float) config('chatvia.ai.pricing.chunker_output_per_million_tokens'),
             ),
-        ]);
+        );
     }
 
     /**
      * Strict JSON schema for the chunker response — the LLM MUST return
      * exactly this shape, no XML tags, no closing-tag truncation risk.
+     *
+     * @return array<string, mixed>
      */
     private function documentChunkSchema(): array
     {

@@ -4,6 +4,11 @@ namespace Domain\Membership\Team\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
 
+/**
+ * Who may view and manage a team. Viewing needs membership; changing the team,
+ * its members and its roles is reserved to the owner, except inviting, which a
+ * teammate may do with the `team.invite` permission.
+ */
 class TeamPolicy
 {
     use HandlesAuthorization;

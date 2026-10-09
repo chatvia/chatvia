@@ -7,6 +7,9 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Support\Enums\User\DateFormat;
 
+/**
+ * The preferences form: date format and, optionally, language.
+ */
 class UpdatePreferencesRequest extends FormRequest
 {
     public function authorize(): bool

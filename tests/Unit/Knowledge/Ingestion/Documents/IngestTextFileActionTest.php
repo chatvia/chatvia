@@ -2,7 +2,7 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Document\Pandoc;
+use Domain\Knowledge\Document\Conversion\Pandoc;
 use Domain\Knowledge\Ingestion\Actions\Documents\IngestTextFileAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
@@ -51,7 +51,7 @@ function itfAction(ChunkFitClient|TextSplitter $splitter, ?Pandoc $pandoc = null
 {
     $splitter = $splitter instanceof ChunkFitClient ? new ChunkFitTextSplitter($splitter) : $splitter;
 
-    return new IngestTextFileAction($splitter, $pandoc ?? itfFakePandoc(''));
+    return app()->make(IngestTextFileAction::class, ['splitter' => $splitter, 'pandoc' => $pandoc ?? itfFakePandoc('')]);
 }
 
 it('is idempotent: an already-ingested SourceFile returns immediately', function (): void {
@@ -88,7 +88,7 @@ it('finishes cleanly with a terminal broadcast when the file yields no chunks', 
 
     Bus::assertNothingBatched();
     Event::assertDispatched(FileIngestionProgressed::class);
-    expect($sourceFile->fresh()->status)->toBe(SourceStatus::Completed->value)
+    expect($sourceFile->fresh()->status)->toBe(SourceStatus::Completed)
         ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(0)
         ->and($sourceFile->fresh()->parser)->toBe('chunkfit');
 });
@@ -108,7 +108,7 @@ it('fans real chunks out through a Bus batch named with the SourceFile id', func
     itfAction(itfFakeChunkFit(['# Title', 'Body text.']))->execute($sourceFile, $agent);
 
     Bus::assertBatched(fn ($batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
-    expect($sourceFile->fresh()->status)->toBe(SourceStatus::Processing->value)
+    expect($sourceFile->fresh()->status)->toBe(SourceStatus::Processing)
         ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(2)
         ->and($sourceFile->fresh()->parser)->toBe('chunkfit');
 });
@@ -132,7 +132,7 @@ it('extracts ebook (.epub/.fb2) text via Pandoc before chunking', function (): v
         ->execute($sourceFile, $agent);
 
     Bus::assertBatched(fn ($batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
-    expect($sourceFile->fresh()->status)->toBe(SourceStatus::Processing->value)
+    expect($sourceFile->fresh()->status)->toBe(SourceStatus::Processing)
         ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(2)
         ->and($sourceFile->fresh()->parser)->toBe('chunkfit');
 });

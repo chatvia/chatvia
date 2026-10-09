@@ -2,15 +2,18 @@
 
 namespace Domain\Channel\Whatsapp\Jobs;
 
-use Domain\Channel\Whatsapp\Actions\HandleWhatsappMessageAction;
+use Domain\Channel\Actions\HandleChannelMessageAction;
 use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
+use Domain\Channel\Whatsapp\Services\WhatsappAdapter;
+use Domain\Channel\Whatsapp\Services\WhatsappChatResolver;
+use Domain\Channel\Whatsapp\Services\WhatsappClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
 /**
  * Carries one inbound WhatsApp message from the webhook (which must answer
  * quickly or Meta retries and eventually disables the subscription) to
- * {@see HandleWhatsappMessageAction} on the queue. `$messageId` is the
+ * {@see HandleChannelMessageAction} (as a {@see WhatsappAdapter}) on the queue. `$messageId` is the
  * inbound wamid — the handle for the read-receipt + typing indicator.
  */
 class HandleWhatsappMessageJob implements ShouldQueue
@@ -28,8 +31,11 @@ class HandleWhatsappMessageJob implements ShouldQueue
         public readonly ?string $name = null,
     ) {}
 
-    public function handle(HandleWhatsappMessageAction $action): void
+    public function handle(HandleChannelMessageAction $action, WhatsappClient $client, WhatsappChatResolver $resolver): void
     {
-        $action->execute($this->number, $this->waId, $this->text, $this->messageId, $this->name);
+        $action->execute(
+            new WhatsappAdapter($client, $resolver, $this->number, $this->waId, $this->messageId, $this->name),
+            $this->text,
+        );
     }
 }

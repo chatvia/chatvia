@@ -10,6 +10,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * A one-off pack of extra messages added to a workspace's pool for a month,
+ * bought through Checkout or charged by auto-recharge. `type` is a
+ * MessageCreditAddon value.
+ *
  * @property int $id
  * @property int $user_id
  * @property string $type

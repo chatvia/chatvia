@@ -4,6 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Billing\Jobs\UpdateUserCreditsJob;
 use Domain\Evaluation\Actions\ScoreEvalCaseAction;
 use Domain\Evaluation\Data\AgentRunResultData;
+use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Events\EvalCaseScored;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalRun;
@@ -34,7 +35,7 @@ function scoringFixtures(string $value = 'paris'): array
         'agent_id' => $agent->id,
         'agent_name' => $agent->name,
         'workspace_id' => $agent->user_id,
-        'status' => EvalRun::STATUS_RUNNING,
+        'status' => EvalRunStatus::Running,
         'total_cases' => 1,
         'started_at' => now(),
     ]);
@@ -92,7 +93,7 @@ it('scores a tool_call case from the captured (never executed) tool call', funct
         'agent_id' => $agent->id,
         'agent_name' => $agent->name,
         'workspace_id' => $agent->user_id,
-        'status' => EvalRun::STATUS_RUNNING,
+        'status' => EvalRunStatus::Running,
         'total_cases' => 1,
         'started_at' => now(),
     ]);

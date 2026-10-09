@@ -2,50 +2,23 @@
 
 namespace App\Http\Controllers\Landing\Blog;
 
-use Illuminate\Contracts\View\Factory;
+use App\Marketing\Enums\ChangelogChangeType;
+use App\Marketing\Models\Changelog;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
-use Support\Cms\Changelog\Models\Changelog;
 
+/**
+ * The public changelog page: every release, newest first, with its changes
+ * grouped by type ({@see ChangelogChangeType}).
+ */
 class ChangelogController
 {
-    /**
-     * Handle the incoming request.
-     */
-    public function __invoke(Request $request): Factory|View
+    public function __invoke(): View
     {
-        $changelogs = Changelog::with('items')
-            ->orderBy('release_date', 'desc')
-            ->get();
-
-        $changeTypes = config('changelog.change_types', [
-            'new_features' => [
-                'label' => 'New Features',
-                'color' => 'green',
-                'icon' => '✓',
-            ],
-            'improvements' => [
-                'label' => 'Improvements',
-                'color' => 'blue',
-                'icon' => '↑',
-            ],
-            'bug_fixes' => [
-                'label' => 'Bug Fixes',
-                'color' => 'yellow',
-                'icon' => '🔧',
-            ],
-            'breaking_changes' => [
-                'label' => 'Breaking Changes',
-                'color' => 'red',
-                'icon' => '⚠️',
-            ],
-            'core_features' => [
-                'label' => 'Core Features',
-                'color' => 'green',
-                'icon' => '✓',
-            ],
+        return view('changelog', [
+            'changelogs' => Changelog::query()
+                ->with('items')
+                ->orderByDesc('release_date')
+                ->get(),
         ]);
-
-        return view('changelog', compact('changelogs', 'changeTypes'));
     }
 }

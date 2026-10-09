@@ -2,9 +2,13 @@
 
 namespace Domain\Billing\Actions\Account;
 
-use Domain\Billing\Data\UpdateBillingInformationData;
+use Domain\Billing\Data\Account\UpdateBillingInformationData;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Saves the workspace's billing name, email and address locally and on the
+ * Stripe customer.
+ */
 class UpdateBillingInformationAction
 {
     public function execute(UpdateBillingInformationData $data): void

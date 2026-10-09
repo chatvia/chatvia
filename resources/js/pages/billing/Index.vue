@@ -61,7 +61,7 @@ const billingData = ref<Domain.Billing.Data.Resources.Subscription.BillingResour
 const isLoadingBilling = ref(true);
 
 // Usage data
-const usageData = ref<App.Identity.Workspace.Data.Resources.My.Usage.UsageResourceData | null>(null);
+const usageData = ref<Domain.Billing.Data.Resources.Usage.UsageResourceData | null>(null);
 const isLoadingUsage = ref(true);
 
 const fetchBillingData = async () => {

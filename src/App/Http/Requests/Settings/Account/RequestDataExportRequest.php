@@ -6,6 +6,9 @@ use App\Identity\Workspace\Data\DataExport\RequestDataExportData;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Asks for a GDPR export of the account's data.
+ */
 class RequestDataExportRequest extends FormRequest
 {
     public function authorize(): bool

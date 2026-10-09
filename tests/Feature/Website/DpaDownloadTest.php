@@ -12,9 +12,12 @@ beforeEach(function (): void {
     {
         public int $renders = 0;
 
+        public string $lastHtml = '';
+
         public function generatePdf(string $html, ?string $headerHtml, ?string $footerHtml, PdfOptions $options): string
         {
             $this->renders++;
+            $this->lastHtml = $html;
 
             return '%PDF-fake-'.$this->renders;
         }
@@ -57,4 +60,23 @@ it('names the PDF after the configured brand', function (): void {
     $response = $this->get(route('dpa.download', ['company_name' => 'Example GmbH']))->assertOk();
 
     expect((string) $response->headers->get('Content-Disposition'))->toContain('acme-chat-DPA-example-gmbh');
+});
+
+it('fills the customer details into the agreement and leaves empty ones out', function (): void {
+    $this->get(route('dpa.download', [
+        'company_name' => 'Acme GmbH',
+        'registration_number' => 'HRB 12345',
+        'country' => 'Germany',
+        'contact_email' => 'legal@acme.example',
+        'signatory_name' => 'Jane Doe',
+        'signatory_title' => 'CEO',
+        'registered_address' => '',
+    ]))->assertOk();
+
+    expect($this->driver->lastHtml)
+        ->toContain('Acme GmbH')
+        ->toContain('(reg. no. HRB 12345)')
+        ->toContain('Germany')
+        ->toContain('legal@acme.example')
+        ->toContain('Jane Doe, CEO');
 });

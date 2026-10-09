@@ -3,18 +3,25 @@
 namespace Domain\Knowledge\Ingestion\Jobs\Document;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Ingestion\Actions\Documents\EnhanceDocumentChunkAction;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Actions\Chunks\EnhanceChunkAction;
+use Domain\Knowledge\Ingestion\Data\Chunking\EnhanceChunkData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Llm\Usage\AttributesTokenUsage;
 use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
+/**
+ * Enhances the chunk of one document page, including its images and tables
+ * (saved under the agent's storage folder). See {@see EnhanceChunkAction}.
+ */
 class DocumentEnhanceChunkJob implements AttributesTokenUsage, ShouldQueue
 {
-    use \Illuminate\Foundation\Queue\Queueable, TracksTokenUsage;
+    use Queueable, TracksTokenUsage;
 
     public int $tries = 3;
 
@@ -39,16 +46,15 @@ class DocumentEnhanceChunkJob implements AttributesTokenUsage, ShouldQueue
         return $this->agent->user_id;
     }
 
-    public function handle(EnhanceDocumentChunkAction $action): void
+    public function handle(EnhanceChunkAction $action): void
     {
-        $action->execute(
-            $this->agent,
-            $this->sourceFile,
-            $this->chunk,
-            $this->page,
-            $this->previousPage,
-            $this->nextPage,
-        );
+        $action->execute(new EnhanceChunkData(
+            chunk: $this->chunk,
+            page: $this->page,
+            previousPage: $this->previousPage,
+            nextPage: $this->nextPage,
+            imageDirectory: KnowledgeStoragePath::forAgent($this->agent),
+        ));
     }
 
     public function failed(Throwable $e): void

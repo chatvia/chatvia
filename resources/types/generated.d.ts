@@ -1,4 +1,51 @@
 declare namespace App {
+    namespace Http {
+        namespace Resources {
+            namespace Handoff {
+                export type HandoffMarkReadResultData = {
+                    marked_count: number;
+                };
+                export type HandoffMessageResultData = {
+                    success: boolean;
+                    message: App.Http.Resources.Handoff.HandoffMessageResultPayloadData;
+                };
+                export type HandoffMessageResultPayloadData = {
+                    id: string;
+                    content: string;
+                    role: Domain.Conversation.Enums.MessageRole;
+                    created_at: string;
+                };
+                export type HandoffReturnResultData = {
+                    success: boolean;
+                    message: string;
+                    handoff_status: Domain.Conversation.Enums.HandoffStatus;
+                };
+                export type HandoffSummaryData = {
+                    conversation_id: string;
+                    user_name: string;
+                    user_email: string | null;
+                    last_message: string | null;
+                    last_message_at: string | null;
+                    requested_at: string;
+                    session_id: string;
+                };
+                export type HandoffTakeoverResultData = {
+                    success: boolean;
+                    message: string;
+                    handoff_status: Domain.Conversation.Enums.HandoffStatus;
+                    user_name: string | null;
+                    user_email: string | null;
+                };
+                export type HandoffTypingResultData = {
+                    success: boolean;
+                };
+                export type PendingHandoffsResourceData = {
+                    pending: App.Http.Resources.Handoff.HandoffSummaryData[];
+                    count: number;
+                };
+            }
+        }
+    }
     namespace Identity {
         namespace Chatter {
             namespace Data {
@@ -15,38 +62,6 @@ declare namespace App {
                     is_deactivated: boolean;
                     deactivation_reason: string | null;
                 };
-            }
-        }
-        namespace Workspace {
-            namespace Data {
-                namespace Resources {
-                    namespace My {
-                        namespace Usage {
-                            export type UsageResourceData = {
-                                subscription: App.Identity.Workspace.Data.Resources.My.Usage.UsageSubscriptionData;
-                                agents: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
-                                pages: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
-                                minutes: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
-                                links: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
-                                messages: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
-                                tokens: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
-                                teams: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
-                                members: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
-                                unlimited: boolean;
-                            };
-                            export type UsageStatsData = {
-                                limit: number;
-                                used: number;
-                                remaining: number;
-                            };
-                            export type UsageSubscriptionData = {
-                                plan: string;
-                                started_at: string | null;
-                                ends_at: string | null;
-                            };
-                        }
-                    }
-                }
             }
         }
     }
@@ -320,6 +335,27 @@ declare namespace Domain {
                 };
             }
         }
+        namespace Prompt {
+            namespace Data {
+                namespace Resources {
+                    export type AgentPromptPickerData = {
+                        id: string;
+                        name: string;
+                        prompt: string;
+                    };
+                    export type AgentPromptPickerListData = {
+                        data: Domain.Agent.Prompt.Data.Resources.AgentPromptPickerData[];
+                    };
+                    export type AgentPromptRowData = {
+                        id: string;
+                        name: string;
+                        prompt: string;
+                        agents_count: number;
+                        created_at: string | null;
+                    };
+                }
+            }
+        }
     }
     namespace Billing {
         namespace Data {
@@ -430,58 +466,39 @@ declare namespace Domain {
                         current_period_start: number;
                     };
                 }
+                namespace Usage {
+                    export type UsageResourceData = {
+                        subscription: Domain.Billing.Data.Resources.Usage.UsageSubscriptionData;
+                        agents: Domain.Billing.Data.Resources.Usage.UsageStatsData;
+                        pages: Domain.Billing.Data.Resources.Usage.UsageStatsData;
+                        minutes: Domain.Billing.Data.Resources.Usage.UsageStatsData;
+                        links: Domain.Billing.Data.Resources.Usage.UsageStatsData;
+                        messages: Domain.Billing.Data.Resources.Usage.UsageStatsData;
+                        tokens: Domain.Billing.Data.Resources.Usage.UsageStatsData;
+                        teams: Domain.Billing.Data.Resources.Usage.UsageStatsData;
+                        members: Domain.Billing.Data.Resources.Usage.UsageStatsData;
+                        unlimited: boolean;
+                    };
+                    export type UsageStatsData = {
+                        limit: number;
+                        used: number;
+                        remaining: number;
+                    };
+                    export type UsageSubscriptionData = {
+                        plan: string;
+                        started_at: string | null;
+                        ends_at: string | null;
+                    };
+                }
             }
         }
     }
     namespace Conversation {
-        namespace Data {
-            namespace Handoff {
-                export type HandoffMarkReadResultData = {
-                    marked_count: number;
-                };
-                export type HandoffMessageResultData = {
-                    success: boolean;
-                    message: Domain.Conversation.Data.Handoff.HandoffMessageResultPayloadData;
-                };
-                export type HandoffMessageResultPayloadData = {
-                    id: string;
-                    content: string;
-                    role: string;
-                    created_at: string;
-                };
-                export type HandoffReturnResultData = {
-                    success: boolean;
-                    message: string;
-                    handoff_status: string;
-                };
-                export type HandoffSummaryData = {
-                    conversation_id: string;
-                    user_name: string;
-                    user_email: string | null;
-                    last_message: string | null;
-                    last_message_at: string | null;
-                    requested_at: string;
-                    session_id: string;
-                };
-                export type HandoffTakeoverResultData = {
-                    success: boolean;
-                    message: string;
-                    handoff_status: string;
-                    user_name: string | null;
-                    user_email: string | null;
-                };
-                export type HandoffTypingResultData = {
-                    success: boolean;
-                };
-                export type PendingHandoffsResourceData = {
-                    pending: Domain.Conversation.Data.Handoff.HandoffSummaryData[];
-                    count: number;
-                };
-            }
-        }
         namespace Enums {
             export type ConversationSource =
                 'hosted_chat' | 'widget' | 'bar' | 'telegram' | 'slack' | 'messenger' | 'whatsapp' | 'msteams' | 'instagram';
+            export type HandoffStatus = 'ai' | 'pending' | 'human' | 'returned';
+            export type MessageRole = 'user' | 'assistant' | 'agent';
         }
         namespace Topic {
             namespace Data {
@@ -541,7 +558,7 @@ declare namespace Domain {
                 export type EvalRunResourceData = {
                     id: number;
                     external_id: string;
-                    status: string;
+                    status: Domain.Evaluation.Enums.EvalRunStatus;
                     total_cases: number;
                     passed_count: number;
                     failed_count: number;
@@ -556,6 +573,9 @@ declare namespace Domain {
                     created_at: string;
                 };
             }
+        }
+        namespace Enums {
+            export type EvalRunStatus = 'running' | 'completed' | 'failed';
         }
     }
     namespace Form {
@@ -576,11 +596,14 @@ declare namespace Domain {
             export type SubmissionData = {
                 external_id: string;
                 values: Record<string, any>;
-                status: string;
+                status: Domain.Form.Enums.FormSubmissionStatus;
                 submitted_at: string | null;
                 created_at: string;
                 conversation_external_id: string | null;
             };
+        }
+        namespace Enums {
+            export type FormSubmissionStatus = 'pending' | 'submitted' | 'expired';
         }
     }
     namespace Integration {
@@ -588,7 +611,7 @@ declare namespace Domain {
             namespace Data {
                 namespace Account {
                     export type AccountConnectorRowData = {
-                        kind: 'featured' | 'custom';
+                        kind: Domain.Integration.Connector.Enums.ConnectorRowKind;
                         connector: Domain.Integration.Connector.Data.Catalog.ConnectorData | null;
                         server: Domain.Integration.Mcp.Data.Resources.AgentMcpServerData | null;
                     };
@@ -606,13 +629,9 @@ declare namespace Domain {
                         data: Domain.Integration.Mcp.Data.Resources.AgentMcpServerData;
                         is_attached: boolean;
                     };
-                    export type AgentConnectorRefreshResultData = {
-                        data: Domain.Integration.Mcp.Data.Resources.AgentMcpServerData;
-                        tools_count: number;
-                    };
                     export type AgentConnectorRowData = {
                         connector: Domain.Integration.Connector.Data.Catalog.ConnectorData;
-                        state: 'attached' | 'unattached' | 'available';
+                        state: Domain.Integration.Connector.Enums.ConnectorRowState;
                         server: Domain.Integration.Mcp.Data.Resources.AgentMcpServerData | null;
                         always_available: boolean;
                     };
@@ -629,7 +648,7 @@ declare namespace Domain {
                         category: string;
                         icon: string;
                         brandColor: string;
-                        authStrategy: string;
+                        authStrategy: Domain.Integration.Connector.Enums.ConnectorAuthStrategy;
                         mcpUrl: string;
                         priority: number;
                         provider: string;
@@ -648,6 +667,10 @@ declare namespace Domain {
                         oauthAuthorizationEndpoint: string | null;
                         oauthTokenEndpoint: string | null;
                         oauthScopes: string | null;
+                    };
+                    export type ConnectorRefreshResultData = {
+                        data: Domain.Integration.Mcp.Data.Resources.AgentMcpServerData;
+                        tools_count: number;
                     };
                     export type ConnectorToolData = {
                         id: number;
@@ -675,6 +698,11 @@ declare namespace Domain {
                         always_available: boolean;
                     };
                 }
+            }
+            namespace Enums {
+                export type ConnectorAuthStrategy = 'none' | 'token' | 'oauth';
+                export type ConnectorRowKind = 'featured' | 'custom';
+                export type ConnectorRowState = 'attached' | 'unattached' | 'available';
             }
         }
         namespace Function {
@@ -905,27 +933,6 @@ declare namespace Domain {
             }
         }
     }
-    namespace Prompt {
-        namespace Data {
-            namespace Resources {
-                export type AgentPromptPickerData = {
-                    id: string;
-                    name: string;
-                    prompt: string;
-                };
-                export type AgentPromptPickerListData = {
-                    data: Domain.Prompt.Data.Resources.AgentPromptPickerData[];
-                };
-                export type AgentPromptRowData = {
-                    id: string;
-                    name: string;
-                    prompt: string;
-                    agents_count: number;
-                    created_at: string | null;
-                };
-            }
-        }
-    }
     namespace Security {
         namespace Data {
             export type WorkspaceSecurityPolicyData = {
@@ -934,9 +941,9 @@ declare namespace Domain {
                 retention_audit_days: number | null;
                 retention_analytics_days: number | null;
                 anonymize_after_days: number | null;
-                ip_allowlist_mode: string;
+                ip_allowlist_mode: Domain.Security.Enums.IpAllowlistMode;
                 ip_allowlist: string[];
-                geo_mode: string;
+                geo_mode: Domain.Security.Enums.GeoMode;
                 geo_countries: string[];
                 webhook_url: string | null;
                 webhook_secret: string | null;
@@ -944,6 +951,10 @@ declare namespace Domain {
                 webhook_events: string[] | null;
                 scim_enabled: boolean;
             };
+        }
+        namespace Enums {
+            export type GeoMode = 'off' | 'allow' | 'deny';
+            export type IpAllowlistMode = 'off' | 'dashboard' | 'dashboard_api';
         }
     }
     namespace Widget {
@@ -954,6 +965,14 @@ declare namespace Domain {
                 };
                 export type WidgetAgentVerifyResultData = {
                     verified: boolean;
+                };
+                export type WidgetAuthTokenData = {
+                    auth_token: string;
+                    expires_at: string;
+                };
+                export type WidgetBroadcastAuthData = {
+                    auth: string;
+                    channel_data: string;
                 };
             }
             namespace Conversation {
@@ -999,7 +1018,7 @@ declare namespace Domain {
                     url: string;
                     logo_url: string;
                 };
-                export type WidgetSettingsResourceData = {
+                export type WidgetSettingsData = {
                     protected: boolean;
                     widget_enabled: boolean;
                     bar_enabled: boolean;

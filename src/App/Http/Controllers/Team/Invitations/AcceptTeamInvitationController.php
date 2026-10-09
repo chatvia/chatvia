@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Team\Invitations;
 
 use App\Http\Requests\Team\AcceptInvitationRequest;
 use Domain\Membership\Team\Actions\Invitations\AcceptTeamInvitationAction;
-use Domain\Membership\Team\Data\AcceptInvitationData;
 use Domain\Membership\Team\Models\Invitation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -20,17 +19,15 @@ class AcceptTeamInvitationController
         Invitation $invitation,
         AcceptTeamInvitationAction $accept,
     ): RedirectResponse {
-        $user = $accept->execute(new AcceptInvitationData(
-            invitation: $invitation,
-            password: $request->input('password'),
-            name: $request->input('name'),
-        ));
+        $team = $invitation->team;
+
+        $user = $accept->execute($request->toData($invitation));
 
         Auth::login($user);
 
-        $user->switchTeam($invitation->team);
+        $user->switchTeam($team);
 
         return redirect()->route('dashboard')
-            ->with('success', "Welcome to {$invitation->team->name}!");
+            ->with('success', __('Welcome to :team!', ['team' => $team->name]));
     }
 }

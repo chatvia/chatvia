@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserQuota;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
@@ -36,6 +37,34 @@ function apiHeaders(string $token): array
 }
 
 describe('POST /api/v1/chatters', function (): void {
+    it('answers 402 with the seat limit when every workspace seat is taken', function (): void {
+        $this->user->quota()->update(['workspace_users_limit' => 0, 'extra_members_limit' => 0]);
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->postJson('/api/v1/chatters', [
+                'name' => 'Overflow',
+                'agent_ids' => [$this->agent->external_id],
+                'email' => 'overflow@example.test',
+                'password' => 'super-secret-pw',
+            ])
+            ->assertStatus(402)
+            ->assertJsonPath('message', "You've reached your workspace user limit (0), shared between team members and chatters. Upgrade your plan to add more.");
+
+        expect($this->user->chatters()->count())->toBe(0);
+    });
+
+    it('stops working once the account is deactivated', function (): void {
+        $this->withHeaders(apiHeaders($this->token))
+            ->getJson('/api/v1/teams')
+            ->assertOk();
+
+        $this->user->update(['deactivated_at' => now()]);
+        app('auth')->forgetGuards();
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->getJson('/api/v1/teams')
+            ->assertUnauthorized();
+    });
 
     it('creates a chatter granted to the given agent and returns its external id', function (): void {
         $body = $this->withHeaders(apiHeaders($this->token))
@@ -142,7 +171,7 @@ describe('POST /api/v1/chatters', function (): void {
 describe('DELETE /api/v1/chatters/{chatter}', function (): void {
 
     it('deletes a chatter in the workspace', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute($this->user, $this->agent, 'Jane');
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $this->agent, 'Jane'));
 
         $this->withHeaders(apiHeaders($this->token))
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id)
@@ -153,7 +182,7 @@ describe('DELETE /api/v1/chatters/{chatter}', function (): void {
 
     it('404s for a chatter owned by another account and leaves it intact', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $foreign = app(CreateChatterAction::class)->execute($other, createAgent($other), 'Stranger');
+        $foreign = app(CreateChatterAction::class)->execute(new CreateChatterData($other, createAgent($other), 'Stranger'));
 
         $this->withHeaders(apiHeaders($this->token))
             ->deleteJson('/api/v1/chatters/'.$foreign->external_id)
@@ -167,11 +196,11 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
 
     it('revokes access to the named agents and keeps the rest', function (): void {
         $second = createAgent($this->user);
-        $chatter = app(CreateChatterAction::class)->execute(
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData(
             $this->user,
             new Collection([$this->agent, $second]),
             'Jane',
-        );
+        ));
 
         $this->withHeaders(apiHeaders($this->token))
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', [
@@ -183,7 +212,7 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
     });
 
     it('requires at least one agent id', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute($this->user, $this->agent, 'Jane');
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $this->agent, 'Jane'));
 
         $this->withHeaders(apiHeaders($this->token))
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', [])
@@ -192,7 +221,7 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
     });
 
     it('rejects an agent owned by another account and keeps the grant', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute($this->user, $this->agent, 'Jane');
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $this->agent, 'Jane'));
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $foreignAgent = createAgent($other);
 
@@ -208,7 +237,7 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
 
     it('404s for a chatter owned by another account', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $foreign = app(CreateChatterAction::class)->execute($other, createAgent($other), 'Stranger');
+        $foreign = app(CreateChatterAction::class)->execute(new CreateChatterData($other, createAgent($other), 'Stranger'));
 
         $this->withHeaders(apiHeaders($this->token))
             ->deleteJson('/api/v1/chatters/'.$foreign->external_id.'/agents', [

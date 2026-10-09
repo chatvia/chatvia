@@ -2,8 +2,8 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Account\UpdateBillingInformationAction;
-use Domain\Billing\Data\BillingAddressData;
-use Domain\Billing\Data\UpdateBillingInformationData;
+use Domain\Billing\Data\Account\BillingAddressData;
+use Domain\Billing\Data\Account\UpdateBillingInformationData;
 use Mockery as m;
 use Stripe\StripeClient;
 

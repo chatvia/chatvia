@@ -54,6 +54,10 @@ use Illuminate\Support\Facades\Cache;
 #[Guarded([
     'id',
 ])]
+/**
+ * A model in the LLM catalog: its names, provider, context window, features
+ * and message-credit price. Agents pick their chat model from it.
+ */
 class Llm extends Model
 {
     use HasFactory;

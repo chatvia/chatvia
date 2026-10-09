@@ -10,13 +10,12 @@ use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\DeleteAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 /**
  * Ingest a raw block of text as a knowledge source. After upload the text is
  * cleaned, persisted as a file, and queued for chunking + embedding. Poll
  * the source via `GET /sources` to track the `status` field through the
- * pipeline (`pending` → `processing` → `trained`).
+ * pipeline (`pending` → `ingesting` → `ingested`, or `failed`).
  */
 #[Group(name: 'Sources', weight: 70)]
 class SourceTextController
@@ -34,14 +33,14 @@ class SourceTextController
         /** @var User $owner */
         $owner = $agent->user;
 
-        $text = $createText->execute($agent, $owner, (string) $request->input('content'));
+        $text = $createText->execute($agent, $owner, $request->textContent());
 
         return response()->json([
             'data' => [
                 'id' => $text->id,
                 'kind' => 'text',
                 'length_pages' => $text->length,
-                'status' => $text->status,
+                'status' => $text->status?->value,
                 'excerpt' => $text->excerpt,
             ],
         ], 201);
@@ -50,7 +49,7 @@ class SourceTextController
     /**
      * Delete text source
      */
-    public function destroy(Request $request, Agent $agent, int $source, DeleteAgentSourceTextAction $deleteText): JsonResponse
+    public function destroy(Agent $agent, int $source, DeleteAgentSourceTextAction $deleteText): JsonResponse
     {
         /** @var SourceText $text */
         $text = $agent->texts()->where('source_texts.id', $source)->firstOrFail();

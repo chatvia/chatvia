@@ -30,7 +30,7 @@ it('retrains without referencing a nonexistent agent_id column on chunks', funct
     $video->retrain();
 
     $video->refresh();
-    expect($video->status)->toBe(SourceStatus::Pending->value)
+    expect($video->status)->toBe(SourceStatus::Pending)
         ->and($video->failure_reason)->toBeNull();
 });
 

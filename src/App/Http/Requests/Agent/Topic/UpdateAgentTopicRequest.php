@@ -4,6 +4,9 @@ namespace App\Http\Requests\Agent\Topic;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates a new name and description for one of the agent's topics.
+ */
 class UpdateAgentTopicRequest extends FormRequest
 {
     public function authorize(): bool

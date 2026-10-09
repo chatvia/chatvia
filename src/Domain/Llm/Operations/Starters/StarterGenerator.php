@@ -2,7 +2,9 @@
 
 namespace Domain\Llm\Operations\Starters;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Services\StructuredCompletion;
 use Illuminate\Support\Collection;
 
 /**
@@ -13,7 +15,12 @@ use Illuminate\Support\Collection;
  */
 class StarterGenerator
 {
-    public function __construct(public LlmProviderInterface $provider) {}
+    /** The starters endpoint caps each entry at 255 characters. */
+    private const int MAX_LENGTH = 255;
+
+    public function __construct(
+        private readonly StructuredCompletion $completion,
+    ) {}
 
     /**
      * @param  array<int, string>  $content  knowledge-base content samples
@@ -27,60 +34,21 @@ class StarterGenerator
             return [];
         }
 
-        $body = Collection::make($content)->take(40)->implode("\n---\n");
-
-        $raw = $this->provider->completion([
-            'model' => config('chatvia.ai.models.starters'),
-            'temperature' => 0.7,
-            'messages' => [
-                [
-                    'role' => 'system',
-                    'content' => prompt('starters/generate', ['count' => $count]),
-                ],
-                [
-                    'role' => 'user',
-                    'content' => "Knowledge base content:\n<content>\n".$body."\n</content>",
-                ],
+        $reply = $this->completion->send(new ChatRequestData(
+            model: (string) config('chatvia.ai.models.starters'),
+            messages: [
+                ChatMessageData::system(prompt('starters/generate', ['count' => $count])),
+                ChatMessageData::user(prompt('starters/content', [
+                    'content' => Collection::make($content)->take(40)->implode("\n---\n"),
+                ])),
             ],
-        ])->throw()->json('choices.0.message.content');
+            temperature: 0.7,
+        ));
 
-        return $this->parse(is_string($raw) ? $raw : '', $count);
-    }
-
-    /**
-     * Decode the model's JSON array of strings, tolerating fences/prose.
-     *
-     * @return array<int, string>
-     */
-    private function parse(string $content, int $count): array
-    {
-        $content = trim($content);
-
-        if (str_starts_with($content, '```')) {
-            $content = preg_replace('/^```[a-zA-Z]*\s*|\s*```$/', '', $content) ?? $content;
-        }
-
-        $decoded = json_decode($content, true);
-
-        if (! is_array($decoded)) {
-            $start = strpos($content, '[');
-            $end = strrpos($content, ']');
-
-            if ($start === false || $end === false || $end <= $start) {
-                return [];
-            }
-
-            $decoded = json_decode(substr($content, $start, $end - $start + 1), true);
-        }
-
-        if (! is_array($decoded)) {
-            return [];
-        }
-
-        return Collection::make($decoded)
-            ->filter(fn ($value): bool => is_string($value))
+        return Collection::make($reply->data ?? [])
+            ->filter(fn (mixed $value): bool => is_string($value))
             ->map(fn (string $value): string => trim($value))
-            ->filter(fn (string $value): bool => $value !== '' && mb_strlen($value) <= 255)
+            ->filter(fn (string $value): bool => $value !== '' && mb_strlen($value) <= self::MAX_LENGTH)
             ->unique()
             ->take($count)
             ->values()

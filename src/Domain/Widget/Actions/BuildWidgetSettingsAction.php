@@ -4,26 +4,46 @@ namespace Domain\Widget\Actions;
 
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AppearanceTextResolver;
-use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Agent\ValueObjects\TranslatableText;
+use Domain\Billing\Enums\Capability;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
-use Domain\Widget\Data\Settings\WidgetSettingsResourceData;
+use Domain\Widget\Data\Settings\WidgetSettingsData;
 use Illuminate\Support\Collection;
 
 /**
- * Assemble the settings payload the embedded widget loads at boot —
- * appearance + widget chrome + starters, plus the "Powered by …" branding
- * block (label and link from `chatvia.brand.powered_by`).
+ * Assembles the settings payload the embedded widget loads at boot:
+ * appearance, widget and bar behaviour, starters, bubbles and the
+ * "Powered by …" credit.
+ *
+ * The agent's texts (title, welcome message, placeholder, starters, bubbles)
+ * are translatable. Each one is sent twice: resolved for one language (the
+ * widget's pinned language, else the visitor's browser language) for older
+ * cached widget bundles, and as a per-locale map the current widget resolves
+ * itself, because it picks its display language client-side. In every map a
+ * manual override wins over the AI translation ({@see TranslatableText}).
  */
 class BuildWidgetSettingsAction
 {
-    public function __construct(private readonly AppearanceTextResolver $appearanceText) {}
+    /** Widget payload field for each translatable appearance key. */
+    private const array TEXT_FIELDS = [
+        'chat_window_title' => 'title',
+        'welcome_message' => 'welcome_message',
+        'composer_placeholder' => 'composer_placeholder',
+    ];
 
-    public function execute(Agent $agent, ?string $visitorLocale = null): WidgetSettingsResourceData
+    /** The widget `language` setting value that means "follow the visitor". */
+    private const string FOLLOW_VISITOR_LANGUAGE = 'auto';
+
+    public function __construct(
+        private readonly AppearanceTextResolver $appearanceText,
+        private readonly DocumentLlm $documentLlm,
+    ) {}
+
+    public function execute(Agent $agent, ?string $visitorLocale = null): WidgetSettingsData
     {
-        // Single round-trip for all settings groups + starters; previously
-        // ran separate SELECTs on every widget boot.
+        // One round-trip for every settings group and the starters.
         $agent->loadMissing(['starterSet', 'team.owner']);
         $agent->loadSettingsGroups(['widget', 'appearance', 'bar', 'surfaces']);
 
@@ -31,34 +51,15 @@ class BuildWidgetSettingsAction
         $appearance = $agent->settings('appearance');
         $bar = $agent->settings('bar');
 
-        // Resolve text + starters to one effective language: a pinned widget
-        // language wins, otherwise the visitor's browser language. Falls back to
-        // the base copy when there's no translation for that language.
-        $effectiveLocale = ($widget['language'] ?? 'auto') !== 'auto' ? $widget['language'] : $visitorLocale;
+        $locale = $this->effectiveLocale($widget, $visitorLocale);
+        $text = $this->appearanceText->resolve($appearance, $locale);
+        [$bubbles, $bubbleTranslations] = $this->bubbles($agent, $locale);
+        $showsBranding = $this->showsBranding($agent);
 
-        $text = $this->appearanceText->resolve($appearance, $effectiveLocale);
-
-        // The widget resolves its OWN display language client-side (data-language
-        // / browser), which can differ from the server's Accept-Language. So we
-        // also ship the per-locale maps and let the widget localize the agent
-        // strings to that active language. The resolved scalars above stay as the
-        // fallback (older cached bundles + languages with no translation).
-        $textTranslations = $this->buildTextTranslations($appearance);
-        $starters = $this->buildStarters($agent, $effectiveLocale);
-        [$bubbleTexts, $bubbleTranslations] = $this->buildBubbles($agent, $effectiveLocale);
-
-        // Workspace-wide: the "remove branding" add-on hides the badge across
-        // every agent. Drives both the legacy branding.enabled flag (so cached
-        // widget bundles still obey it) and the dedicated chatvia_branding field.
-        // The install can also switch the credit off for everyone.
-        $poweredBy = (array) config('chatvia.brand.powered_by');
-        $showsBranding = ($poweredBy['enabled'] ?? false) === true && $agent->showsChatviaBranding();
-
-        return new WidgetSettingsResourceData(
+        return new WidgetSettingsData(
             protected: $agent->is_public === false,
-            // Per-surface kill switches. The embed reads its own mode (bubble →
-            // widget_enabled, bar → bar_enabled) and doesn't mount when its
-            // surface is off, so disabling one stops it showing on the host page.
+            // Per-surface switches: the embed does not mount when its own
+            // surface (bubble → widget, bar → bar) is turned off.
             widget_enabled: $agent->surfaceEnabled(ConversationSource::Widget),
             bar_enabled: $agent->surfaceEnabled(ConversationSource::Bar),
             title: (string) ($text['chat_window_title'] ?? ''),
@@ -67,107 +68,116 @@ class BuildWidgetSettingsAction
             welcome_message: $text['welcome_message'] ?? null,
             color_theme: $appearance['color_theme'] ?? null,
             color_shade: $appearance['color_shade'] ?? null,
-            bubbles: $bubbleTexts,
+            bubbles: $bubbles,
             bubble_translations: $bubbleTranslations,
             position: $widget['position'] ?? null,
             show_on_load: $widget['show_on_load'] ?? null,
             show_on_load_delay: $widget['show_on_load_delay'] ?? null,
-            branding: new WidgetSettingsBrandingData(
-                enabled: $showsBranding,
-                name: 'Powered by '.(($poweredBy['label'] ?? null) ?: config('chatvia.brand.name')),
-                // Empty when no URL is set: the widget then shows plain text.
-                url: (string) ($poweredBy['url'] ?? ''),
-                logo_url: asset('images/logo.svg'),
-            ),
+            branding: $this->branding($showsBranding),
             chatvia_branding: $showsBranding,
-            starters: $starters,
-            text_translations: $textTranslations,
+            starters: $this->starters($agent, $locale),
+            text_translations: $this->textTranslations($appearance),
             window_size: $widget['window_size'] ?? null,
             theme: $widget['theme'] ?? null,
             keyboard_trigger: $bar['trigger'] ?? null,
             bar_placement: $bar['placement'] ?? null,
             composer_placeholder: $text['composer_placeholder'] ?? null,
             privacy_policy_url: $appearance['privacy_policy_url'] ?? null,
-            handoff_enabled: ($widget['handoff_enabled'] ?? true) && ($agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false),
+            handoff_enabled: ($widget['handoff_enabled'] ?? true) && ($agent->team?->hasCapability(Capability::Handoff) ?? false),
             // Chat uploads are PDFs, so they need an LLM that can read them.
-            allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true) && app(DocumentLlm::class)->isAvailable(),
+            allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true) && $this->documentLlm->isAvailable(),
             allow_voice_input: (bool) ($appearance['allow_voice_input'] ?? true),
             max_files_per_chat: (int) config('chatvia.agent.files.upload.max_files'),
         );
     }
 
     /**
-     * Per-locale maps for the three appearance strings, keyed by the widget's
-     * payload field names (title / welcome_message / composer_placeholder). Each
-     * map holds the effective text per locale (a manual override winning over the
-     * AI translation). The widget resolves these to its active language.
+     * A language pinned in the widget settings wins; otherwise the visitor's
+     * browser language. Null means "no translation, use the base text".
+     *
+     * @param  Collection<string, mixed>  $widget
+     */
+    private function effectiveLocale(Collection $widget, ?string $visitorLocale): ?string
+    {
+        $pinned = $widget['language'] ?? self::FOLLOW_VISITOR_LANGUAGE;
+
+        return $pinned !== self::FOLLOW_VISITOR_LANGUAGE ? $pinned : $visitorLocale;
+    }
+
+    /**
+     * Whether the "Powered by" credit shows: the install must have it on, and
+     * the workspace must not hold the "remove branding" add-on (which hides
+     * it for every agent).
+     */
+    private function showsBranding(Agent $agent): bool
+    {
+        $installShowsCredit = (((array) config('chatvia.brand.powered_by'))['enabled'] ?? false) === true;
+
+        return $installShowsCredit && $agent->showsChatviaBranding();
+    }
+
+    /**
+     * The credit's label and link come from `chatvia.brand.powered_by`. The
+     * `enabled` flag mirrors `chatvia_branding` so cached widget bundles that
+     * only read this block still obey it.
+     */
+    private function branding(bool $enabled): WidgetSettingsBrandingData
+    {
+        $poweredBy = (array) config('chatvia.brand.powered_by');
+
+        return new WidgetSettingsBrandingData(
+            enabled: $enabled,
+            name: 'Powered by '.(($poweredBy['label'] ?? null) ?: config('chatvia.brand.name')),
+            // Empty when no URL is set: the widget then shows plain text.
+            url: (string) ($poweredBy['url'] ?? ''),
+            logo_url: asset('images/logo.svg'),
+        );
+    }
+
+    /**
+     * Per-locale maps for the three appearance texts, keyed by the widget's
+     * field names: `{ title: { de: "…" }, welcome_message: {…}, … }`.
      *
      * @param  Collection<string, mixed>  $appearance
      * @return array<string, array<string, string>>
      */
-    private function buildTextTranslations(Collection $appearance): array
+    private function textTranslations(Collection $appearance): array
     {
         $translations = (array) ($appearance['text_translations'] ?? []);
         $overrides = (array) ($appearance['text_overrides'] ?? []);
 
-        $fields = [
-            'chat_window_title' => 'title',
-            'welcome_message' => 'welcome_message',
-            'composer_placeholder' => 'composer_placeholder',
-        ];
+        $maps = [];
 
-        $out = [];
+        foreach (self::TEXT_FIELDS as $key => $field) {
+            $map = $this->localeMap(TranslatableText::fromStored([
+                'translations' => $translations[$key] ?? [],
+                'overrides' => $overrides[$key] ?? [],
+            ]));
 
-        foreach ($fields as $source => $target) {
-            $locales = array_unique(array_merge(
-                array_keys($translations[$source] ?? []),
-                array_keys($overrides[$source] ?? []),
-            ));
-
-            foreach ($locales as $locale) {
-                $value = $overrides[$source][$locale] ?? $translations[$source][$locale] ?? null;
-
-                if (is_string($value) && $value !== '') {
-                    $out[$target][(string) $locale] = $value;
-                }
+            if ($map !== []) {
+                $maps[$field] = $map;
             }
         }
 
-        return $out;
+        return $maps;
     }
 
     /**
-     * Starters for the widget payload: the base text resolved for the visitor's
-     * language (fallback for older bundles) + icon + the per-locale map the
-     * current widget resolves client-side to its active language.
+     * Starters with their text resolved for `$locale`, their icon and their
+     * per-locale map.
      *
      * @return array<int, array{text: string, icon: string|null, translations: array<string, string>}>
      */
-    private function buildStarters(Agent $agent, ?string $locale): array
+    private function starters(Agent $agent, ?string $locale): array
     {
         $resolved = $agent->resolvedStartersForLocale($locale);
-        $raw = array_values($agent->resolvedStarters());
-
         $starters = [];
 
-        foreach ($raw as $i => $starter) {
-            $translations = (array) ($starter['translations'] ?? []);
-            $overrides = (array) ($starter['overrides'] ?? []);
-
-            $map = [];
-
-            foreach (array_unique(array_merge(array_keys($translations), array_keys($overrides))) as $loc) {
-                $value = $overrides[$loc] ?? $translations[$loc] ?? null;
-
-                if (is_string($value) && $value !== '') {
-                    $map[(string) $loc] = $value;
-                }
-            }
-
+        foreach (array_values($agent->resolvedStarters()) as $index => $starter) {
             $starters[] = [
-                'text' => $resolved[$i]['text'] ?? (string) ($starter['text'] ?? ''),
+                'text' => $resolved[$index]['text'] ?? (string) ($starter['text'] ?? ''),
                 'icon' => $starter['icon'] ?? null,
-                'translations' => $map,
+                'translations' => $this->localeMap(TranslatableText::fromStored($starter)),
             ];
         }
 
@@ -175,58 +185,52 @@ class BuildWidgetSettingsAction
     }
 
     /**
-     * Floating message bubbles for the widget payload. `bubbles` stays a plain
-     * string[] (resolved for the visitor's language) so older cached bundles —
-     * which render it as text — keep working; the parallel `bubble_translations`
-     * array (same index) lets the current widget localize each bubble to its
-     * active language. Empty bubbles are dropped from BOTH so indexes align.
+     * The floating bubbles as two parallel lists: the texts resolved for
+     * `$locale` (a plain string list, which older cached bundles render) and
+     * the per-locale map of each bubble at the same index. A bubble whose
+     * resolved text is empty is left out of both, so the indexes stay aligned.
      *
-     * @return array{0: array<int, string>, 1: array<int, array<string, string>>}
+     * @return array{0: list<string>, 1: list<array<string, string>>}
      */
-    private function buildBubbles(Agent $agent, ?string $locale): array
+    private function bubbles(Agent $agent, ?string $locale): array
     {
-        $loc = $locale !== null ? strtolower(trim($locale)) : '';
-        $loc = ($loc === '' || $loc === 'auto') ? null : substr($loc, 0, 2);
-
         $texts = [];
         $maps = [];
 
         foreach ($agent->normalizedBubbles() as $bubble) {
-            $base = (string) ($bubble['text'] ?? '');
-            $translations = (array) ($bubble['translations'] ?? []);
-            $overrides = (array) ($bubble['overrides'] ?? []);
+            $copy = TranslatableText::fromStored($bubble);
+            $text = (string) $copy->in($locale);
 
-            $resolved = $base;
-
-            if ($loc !== null) {
-                $override = $overrides[$loc] ?? null;
-                $translation = $translations[$loc] ?? null;
-
-                $resolved = match (true) {
-                    is_string($override) && $override !== '' => $override,
-                    is_string($translation) && $translation !== '' => $translation,
-                    default => $base,
-                };
-            }
-
-            if ($resolved === '') {
+            if ($text === '') {
                 continue;
             }
 
-            $map = [];
-
-            foreach (array_unique(array_merge(array_keys($translations), array_keys($overrides))) as $code) {
-                $value = $overrides[$code] ?? $translations[$code] ?? null;
-
-                if (is_string($value) && $value !== '') {
-                    $map[(string) $code] = $value;
-                }
-            }
-
-            $texts[] = $resolved;
-            $maps[] = $map;
+            $texts[] = $text;
+            $maps[] = $this->localeMap($copy);
         }
 
         return [$texts, $maps];
+    }
+
+    /**
+     * Every locale that has a translation or a manual edit, with its text.
+     * The manual edit wins whenever one is stored for a locale (even an empty
+     * one, which leaves the locale out); empty texts are left out.
+     *
+     * @return array<string, string>
+     */
+    private function localeMap(TranslatableText $copy): array
+    {
+        $map = [];
+
+        foreach (array_unique([...array_keys($copy->translations), ...array_keys($copy->overrides)]) as $locale) {
+            $text = $copy->overrides[$locale] ?? $copy->translations[$locale] ?? null;
+
+            if (is_string($text) && $text !== '') {
+                $map[(string) $locale] = $text;
+            }
+        }
+
+        return $map;
     }
 }

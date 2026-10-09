@@ -3,9 +3,15 @@
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\CreateConversationAction;
 use Domain\Conversation\Data\Conversations\CreateConversationData;
+use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Jobs\StoreMessageJob;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\Memory\ChatMemory;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Str;
 
 /**
  * CreateConversationAction is the single entry point for materialising a
@@ -50,10 +56,10 @@ it('caps the number of attachments bound to a new conversation at config(chatvia
 
     [$agent, , $orphanIds] = cccBuildOrphanAttachment(50);
 
-    // Stub the inner pipeline so we exercise only claimAttachments() — the
-    // memory/turnstate/queryRewriter collaborators are tested elsewhere.
+    // Only the claim is exercised here; the other collaborators are tested
+    // elsewhere.
     $data = new CreateConversationData(
-        agent: $agent,
+        scope: new ChatScopeData($agent, (string) Str::uuid()),
         message: 'Hello',
         attachmentIds: $orphanIds,
         chatterUserId: null,
@@ -66,7 +72,7 @@ it('caps the number of attachments bound to a new conversation at config(chatvia
 
     $conversationExternalId = app(CreateConversationAction::class)->execute($data);
 
-    $conversation = Conversation::query()->where('external_id', $conversationExternalId)->first();
+    $conversation = Conversation::query()->firstWhere('external_id', $conversationExternalId);
     $boundCount = Attachment::query()
         ->where('chat_conversation_id', $conversation->id)
         ->count();
@@ -92,7 +98,7 @@ it('does NOT re-bind attachments that already belong to a different conversation
     ]);
 
     $data = new CreateConversationData(
-        agent: $agent,
+        scope: new ChatScopeData($agent, (string) Str::uuid()),
         message: 'Hello',
         attachmentIds: [$alreadyBound->external_id],
         chatterUserId: null,
@@ -106,4 +112,29 @@ it('does NOT re-bind attachments that already belong to a different conversation
     app(CreateConversationAction::class)->execute($data);
 
     expect($alreadyBound->fresh()->chat_conversation_id)->toBe($otherConversation->id);
+});
+
+it('records the first message masked and starts a hosted-chat conversation in the visitor session', function (): void {
+    config(['chatvia.ai.query.rewriter.enabled' => false, 'cache.stores.chat' => ['driver' => 'array']]);
+    Bus::fake();
+
+    $agent = Agent::factory()->create();
+    $sessionId = (string) Str::uuid();
+
+    $conversationId = app(CreateConversationAction::class)->execute(new CreateConversationData(
+        scope: new ChatScopeData($agent, $sessionId),
+        message: 'Where is my order?',
+    ));
+
+    $conversation = Conversation::query()->firstWhere('external_id', $conversationId);
+    $history = app(ChatMemory::class)
+        ->withScope(new ChatScopeData($agent, $sessionId, $conversationId))
+        ->getMessagesForConversation();
+
+    expect($conversation->source)->toBe(ConversationSource::HostedChat)
+        ->and($conversation->session->external_id)->toBe($sessionId)
+        ->and($history)->toHaveCount(1)
+        ->and($history[0]['content'])->toBe('Where is my order?');
+
+    Bus::assertDispatched(StoreMessageJob::class);
 });

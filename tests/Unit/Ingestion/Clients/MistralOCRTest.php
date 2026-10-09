@@ -1,7 +1,7 @@
 <?php
 
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
-use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Ingestion\Services\Clients\MistralOcr;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -33,7 +33,7 @@ it('posts the expected OCR envelope with bearer auth', function (): void {
         ]), 200),
     ]);
 
-    app(MistralOCR::class)->fromUrl('https://files.test/manual.pdf');
+    app(MistralOcr::class)->fromUrl('https://files.test/manual.pdf');
 
     Http::assertSent(function (Request $request): bool {
         return $request->method() === 'POST'
@@ -56,7 +56,7 @@ it('sends images under image_url instead of document_url', function (): void {
         ]), 200),
     ]);
 
-    app(MistralOCR::class)->fromUrl('https://files.test/scan.png', isImage: true);
+    app(MistralOcr::class)->fromImageUrl('https://files.test/scan.png');
 
     Http::assertSent(function (Request $request): bool {
         return $request['document'] === ['type' => 'image_url', 'image_url' => 'https://files.test/scan.png'];
@@ -80,7 +80,7 @@ it('maps an OCR page to PageData with stripped content, checksum, images, tables
         ]), 200),
     ]);
 
-    $pages = app(MistralOCR::class)->fromUrl('https://files.test/manual.pdf');
+    $pages = app(MistralOcr::class)->fromUrl('https://files.test/manual.pdf');
 
     expect($pages)->toHaveCount(1);
 
@@ -109,7 +109,7 @@ it('normalises a zero-based page index to one-based pageNumber', function (): vo
         ]), 200),
     ]);
 
-    $page = app(MistralOCR::class)->fromUrl('https://files.test/x.pdf')->first();
+    $page = app(MistralOcr::class)->fromUrl('https://files.test/x.pdf')->first();
 
     expect($page->pageNumber)->toBe(1);
 });
@@ -119,7 +119,7 @@ it('propagates upstream HTTP errors via ->throw()', function (): void {
         'api.mistral.ai/v1/ocr' => Http::response(['error' => 'rate limited'], 429),
     ]);
 
-    expect(fn () => app(MistralOCR::class)->fromUrl('https://files.test/x.pdf'))
+    expect(fn () => app(MistralOcr::class)->fromUrl('https://files.test/x.pdf'))
         ->toThrow(RequestException::class);
 });
 
@@ -134,7 +134,7 @@ it('omits hyperlinks when the upstream payload doesn\'t include them', function 
         ]), 200),
     ]);
 
-    $page = app(MistralOCR::class)->fromUrl('https://files.test/x.pdf')->first();
+    $page = app(MistralOcr::class)->fromUrl('https://files.test/x.pdf')->first();
 
     expect($page->hyperlinks)->toBe([])
         ->and($page->pageNumber)->toBe(2);
@@ -162,7 +162,7 @@ it('writes the temporary OCR copy under the owner prefix and deletes it after su
 
     $local = create_temp_file('manual.pdf', '%PDF-1.4 test');
 
-    $pages = app(MistralOCR::class)->fromFile($local, 'users/ws-ext/agents/agent-ext/tmp');
+    $pages = app(MistralOcr::class)->fromFile($local, 'users/ws-ext/agents/agent-ext/tmp');
 
     expect($pages)->toHaveCount(1)
         ->and($seenPath)->toStartWith('users/ws-ext/agents/agent-ext/tmp/')
@@ -180,7 +180,7 @@ it('deletes the temporary OCR copy when the OCR call fails', function (): void {
 
     $local = create_temp_file('manual.pdf', '%PDF-1.4 test');
 
-    expect(fn () => app(MistralOCR::class)->fromFile($local, 'users/ws-ext/agents/agent-ext/tmp'))
+    expect(fn () => app(MistralOcr::class)->fromFile($local, 'users/ws-ext/agents/agent-ext/tmp'))
         ->toThrow(RequestException::class);
 
     expect(Storage::allFiles())->toBe([]);

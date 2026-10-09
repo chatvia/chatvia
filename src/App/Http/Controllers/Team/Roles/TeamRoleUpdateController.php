@@ -7,6 +7,9 @@ use Domain\Membership\Team\Actions\Roles\UpdateTeamRoleAction;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * Saves changes to a custom team role. The owner role can never be modified.
+ */
 class TeamRoleUpdateController
 {
     public function __invoke(
@@ -15,14 +18,12 @@ class TeamRoleUpdateController
         int $roleId,
         UpdateTeamRoleAction $updateRole,
     ): RedirectResponse {
-        $roleModel = $team->roles()->findOrFail($roleId);
+        $role = $team->roles()->findOrFail($roleId);
 
-        if ($roleModel->code === 'owner') {
-            abort(403, 'Cannot modify the owner role.');
-        }
+        abort_if($role->isOwnerRole(), 403, __('Cannot modify the owner role.'));
 
-        $updateRole->execute($roleModel, $request->toData($team));
+        $updateRole->execute($role, $request->toData($team));
 
-        return redirect()->route('teams.show', $team)->with('success', 'Role updated successfully.');
+        return redirect()->route('teams.show', $team)->with('success', __('Role updated successfully.'));
     }
 }

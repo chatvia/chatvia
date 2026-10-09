@@ -2,6 +2,8 @@
 
 namespace Domain\Channel\Services;
 
+use Domain\Channel\Data\MetaPageData;
+use Domain\Channel\Instagram\Data\InstagramAccountData;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -179,7 +181,7 @@ class MetaOAuthClient
     /**
      * List the Pages the user manages, each with its own page access token.
      *
-     * @return list<array{id: string, name: string, access_token: string}>
+     * @return list<MetaPageData>
      */
     public function pages(string $userToken): array
     {
@@ -229,14 +231,14 @@ class MetaOAuthClient
             ]), $byId);
         }
 
-        $pages = array_values($byId);
+        $pages = array_map(static fn (array $page): MetaPageData => MetaPageData::from($page), array_values($byId));
 
         $context = [
             'personal_pages' => $personalCount,
             'businesses' => $businessIds,
             'business_response_present' => $businesses !== null,
             'total_pages' => count($pages),
-            'page_ids' => array_map(static fn (array $p): string => $p['id'], $pages), // ids only, never tokens
+            'page_ids' => array_map(static fn (MetaPageData $p): string => $p->id, $pages), // ids only, never tokens
         ];
 
         if ($pages === []) {
@@ -280,23 +282,23 @@ class MetaOAuthClient
      * account, each carrying its own page access token plus the IG account's id
      * + username. Pages without a linked IG account are omitted.
      *
-     * @return list<array{page_id: string, page_name: string, page_access_token: string, ig_id: string, ig_username: string}>
+     * @return list<InstagramAccountData>
      */
     public function pagesWithInstagram(string $userToken): array
     {
         $out = [];
 
         foreach ($this->pages($userToken) as $page) {
-            $linked = $this->get('/'.$page['id'], [
+            $linked = $this->get('/'.$page->id, [
                 'fields' => 'instagram_business_account{id,username}',
-                'access_token' => $page['access_token'],
+                'access_token' => $page->access_token,
             ]);
 
             $iba = $linked['instagram_business_account'] ?? null;
             $igId = is_array($iba) ? ($iba['id'] ?? null) : null;
 
             Log::debug('Meta OAuth: resolved IG account for Page', [
-                'page_id' => $page['id'],
+                'page_id' => $page->id,
                 'has_ig_account' => is_string($igId) && $igId !== '',
                 'ig_id' => is_string($igId) ? $igId : null,
             ]);
@@ -305,13 +307,13 @@ class MetaOAuthClient
                 continue; // no IG professional account linked to this Page
             }
 
-            $out[] = [
-                'page_id' => $page['id'],
-                'page_name' => $page['name'],
-                'page_access_token' => $page['access_token'],
-                'ig_id' => $igId,
-                'ig_username' => is_array($iba) ? (string) ($iba['username'] ?? '') : '',
-            ];
+            $out[] = new InstagramAccountData(
+                page_id: $page->id,
+                page_name: $page->name,
+                page_access_token: $page->access_token,
+                ig_id: $igId,
+                ig_username: is_array($iba) ? (string) ($iba['username'] ?? '') : '',
+            );
         }
 
         Log::debug('Meta OAuth: IG-linked accounts resolved', ['count' => count($out)]);

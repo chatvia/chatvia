@@ -7,6 +7,11 @@ use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Generator;
 use Illuminate\Support\Str;
 
+/**
+ * Ends a turn that was refused before any model work began (no subscription,
+ * no credits, a limit reached, an approval already handled) with one typed
+ * error event.
+ */
 class ErrorSource
 {
     /**
@@ -14,7 +19,7 @@ class ErrorSource
      * subscription/credit failures and any other reason the request was
      * refused before LLM work began.
      *
-     * @return Generator<StreamEvent>
+     * @return Generator<int, StreamEvent>
      */
     public function events(ErrorCode $code, string $message, ?string $assistantMessageId = null): Generator
     {

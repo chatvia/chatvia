@@ -5,6 +5,10 @@ namespace Domain\Membership\Team\Data\Resources\Permissions;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A top-level permission category on the role editor (per-agent or
+ * account-wide), built from config('team-permissions.scopes').
+ */
 #[TypeScript]
 class PermissionScopeData extends Data
 {

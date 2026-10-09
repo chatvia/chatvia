@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Source\Web\Services;
 
+use Domain\Knowledge\Source\Web\Data\Firecrawl\ScrapedPageData;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 
@@ -93,10 +94,8 @@ class Firecrawl
      * content (SPAs, AJAX, client-side rendering) is captured. `waitFor` adds a
      * settle delay for content that loads after the initial render; `timeout`
      * caps a slow render.
-     *
-     * @return array{markdown: string, metadata: array<string, mixed>}
      */
-    public function scrape(string $url): array
+    public function scrape(string $url): ScrapedPageData
     {
         $payload = [
             'url' => $url,
@@ -115,9 +114,9 @@ class Firecrawl
 
         $data = $response['data'] ?? [];
 
-        return [
-            'markdown' => (string) ($data['markdown'] ?? ''),
-            'metadata' => $data['metadata'] ?? [],
-        ];
+        return new ScrapedPageData(
+            markdown: (string) ($data['markdown'] ?? ''),
+            metadata: is_array($data['metadata'] ?? null) ? $data['metadata'] : [],
+        );
     }
 }

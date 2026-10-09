@@ -4,6 +4,8 @@ namespace Domain\Analytics\Queries\Account;
 
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\FeedbackTallyData;
+use Domain\Analytics\Enums\AnalyticsEventType;
+use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Analytics\Services\Period;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
@@ -28,19 +30,19 @@ abstract class AccountAnalyticsQuery
     /** The analytics DB connection (may be a separate Postgres database). */
     protected function analytics(): Connection
     {
-        return DB::connection(config('chatvia.analytics.connection'));
+        return app(AnalyticsDatabase::class)->connection();
     }
 
     /**
      * Events of one type in the window, by exact `occurred_at`.
      */
-    protected function events(AnalyticsScopeData $scope, string $eventType, ?Period $period = null): Builder
+    protected function events(AnalyticsScopeData $scope, AnalyticsEventType $eventType, ?Period $period = null): Builder
     {
         $period ??= $scope->period;
 
         return $this->forScopedAgent($scope, $this->analytics()->table('analytics_events')
             ->where('workspace_id', $scope->workspace->id)
-            ->where('event_type', $eventType)
+            ->where('event_type', $eventType->value)
             ->whereBetween('occurred_at', [$period->start, $period->end]));
     }
 
@@ -49,7 +51,7 @@ abstract class AccountAnalyticsQuery
      */
     protected function messageEvents(AnalyticsScopeData $scope, ?Period $period = null): Builder
     {
-        return $this->events($scope, 'message_sent', $period);
+        return $this->events($scope, AnalyticsEventType::MessageSent, $period);
     }
 
     /**
@@ -118,7 +120,7 @@ abstract class AccountAnalyticsQuery
     /** Thumbs up / down given in the window. */
     protected function feedback(AnalyticsScopeData $scope): FeedbackTallyData
     {
-        $row = $this->events($scope, 'feedback_given')
+        $row = $this->events($scope, AnalyticsEventType::FeedbackGiven)
             ->selectRaw("COUNT(*) FILTER (WHERE feedback = 'positive') positive, COUNT(*) FILTER (WHERE feedback = 'negative') negative")
             ->first();
 

@@ -2,6 +2,10 @@
 
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
+/**
+ * Masks phone numbers ([PHONE_n]). Runs last, after the stricter number
+ * filters, so its looser pattern cannot swallow their digits.
+ */
 final class PhoneFilter extends PiiFilter
 {
     protected function pattern(): string

@@ -7,6 +7,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Source\Concerns\Chunkable;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
@@ -15,9 +16,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Support\Concerns\HasExternalId;
-use Support\Traits\Chunkable;
 
 /**
+ * A YouTube video added as knowledge. Ingestion of videos is not built yet, so
+ * the feature is behind the `youtube_sources` flag and rows stay pending.
+ *
  * @property int $id
  * @property int $user_id
  * @property string|null $language
@@ -34,7 +37,7 @@ use Support\Traits\Chunkable;
  * @property string|null $internal_chunking_batch_id
  * @property string|null $external_parsing_job_id
  * @property string|null $metadata
- * @property string $status
+ * @property SourceStatus $status
  * @property int $took_in_seconds
  * @property string|null $failure_reason
  * @property int $retrieval_count
@@ -88,6 +91,7 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
             'duration' => 'integer',
             'length' => 'integer',
             'metadata' => 'array',
+            'status' => SourceStatus::class,
         ];
     }
 
@@ -116,7 +120,7 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
             ->delete();
 
         $this->update([
-            'status' => SourceStatus::Pending->value,
+            'status' => SourceStatus::Pending,
             'failure_reason' => null,
         ]);
 

@@ -6,13 +6,13 @@ use Domain\Billing\Models\UserQuota;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
-use Domain\Knowledge\Ingestion\Actions\Sources\CreateSourceChunkAction;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunkAction;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextEnhanceChunkJob;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Ingestion\Services\Search\KnowledgeBase;
+use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Membership\Team\Services\TeamService;
@@ -39,7 +39,7 @@ use Illuminate\Support\Str;
  *
  * REQUIRES the migrated + seeded Postgres test DB (pgvector + bm25 + tokenizer
  * extensions): chunks.embedding is vector(1024) and the retrieval test executes
- * the live hybridSearchForAgent SQL.
+ * the live HybridChunkSearch SQL.
  */
 function ingestionPipelineEmbeddingFake(): void
 {
@@ -169,7 +169,7 @@ it('creates an owned text source, stores the content, attaches it to the agent a
     $source = SourceText::query()->where('user_id', $owner->id)->sole();
 
     expect($source->checksum)->toBe(md5($content))
-        ->and($source->status)->toBe(SourceStatus::Pending->value)
+        ->and($source->status)->toBe(SourceStatus::Pending)
         ->and($source->excerpt)->not->toBe('')
         ->and($source->length)->toBeGreaterThanOrEqual(1);
 
@@ -178,7 +178,7 @@ it('creates an owned text source, stores the content, attaches it to the agent a
     expect(Storage::get($source->filepath))->toBe($content);
 
     // Attached to the agent through the polymorphic pivot using the morph
-    // alias — the value hybridSearchForAgent later joins on.
+    // alias — the value HybridChunkSearch later joins on.
     $pivot = DB::table('agent_sources')->where('agent_id', $agent->id)->first();
     expect($pivot)->not->toBeNull()
         ->and($pivot->sourceable_type)->toBe('source_text')
@@ -242,10 +242,11 @@ it('ingests an uploaded text into plaintext chunks stored under the source_text 
 
     $source = SourceText::query()->where('user_id', $owner->id)->sole();
 
-    // The batch completed inline: terminal status + bookkeeping written.
-    expect($source->status)->toBe(SourceStatus::Completed->value)
+    // The batch completed inline: terminal status + bookkeeping written. The
+    // batch id sits in the same column for every source type.
+    expect($source->status)->toBe(SourceStatus::Completed)
         ->and($source->expected_chunks)->toBeGreaterThanOrEqual(1)
-        ->and($source->internal_ingestion_job_id)->not->toBeNull();
+        ->and($source->internal_chunking_batch_id)->not->toBeNull();
 
     $chunks = Chunk::query()
         ->where('chunkable_id', $source->id)
@@ -259,7 +260,7 @@ it('ingests an uploaded text into plaintext chunks stored under the source_text 
         ->and($chunks->first()->checksum)->not->toBe('');
 
     // chunkable_type must equal the pivot's sourceable_type or the
-    // agent_sources ↔ chunks join in hybridSearchForAgent silently returns
+    // agent_sources ↔ chunks join in HybridChunkSearch silently returns
     // zero rows (documented project footgun).
     $pivotType = DB::table('agent_sources')->where('agent_id', $agent->id)->value('sourceable_type');
     expect($pivotType)->toBe($chunks->first()->chunkable_type);

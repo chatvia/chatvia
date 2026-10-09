@@ -2,20 +2,24 @@
 
 namespace App\Http\Requests\Settings\Security;
 
-use Domain\Security\Data\WorkspaceSecurityPolicyData;
+use App\Rules\IpOrCidr;
+use Domain\Security\Data\SecurityPolicyFormData;
+use Domain\Security\Enums\GeoMode;
+use Domain\Security\Enums\IpAllowlistMode;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Domain\Security\Services\NetworkAccessGuard;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Support\Localization\Country\Models\Country;
 
 /**
  * Write path for the workspace security policy: the network-access gate (IP
- * allowlist + geo) plus conversation/audit retention. {@see self::toData()}
- * preserves the settings this form doesn't own (SIEM webhook, SCIM, and the
- * leads/analytics/anonymize retention fields) from the stored row. The `security`
- * entitlement is enforced on the route ({@see routes/workspace.php}); here we
- * authorize the team permission and guard against self-lockout.
+ * allowlist + geo), conversation/audit retention and the SIEM webhook. The
+ * `security` entitlement is enforced on the route ({@see routes/workspace.php});
+ * here we authorize the team permission, validate the input and guard against
+ * self-lockout. Which stored settings the form may change is decided by
+ * UpdateSecurityPolicyAction.
  */
 class UpdateSecurityPolicyRequest extends FormRequest
 {
@@ -25,8 +29,8 @@ class UpdateSecurityPolicyRequest extends FormRequest
     }
 
     /**
-     * Treat blank retention inputs as "inherit the default" (null) so the
-     * nullable+integer rules don't choke on an empty string from the form.
+     * Treat blank inputs as "not set" (null) so the nullable rules don't choke
+     * on an empty string from the form.
      */
     protected function prepareForValidation(): void
     {
@@ -51,21 +55,16 @@ class UpdateSecurityPolicyRequest extends FormRequest
         $auditDefault = (int) config('chatvia.security_audit.retention_days', 365);
 
         return [
-            // dashboard_api is reserved for a later phase — not selectable yet.
-            'ip_allowlist_mode' => ['required', 'string', 'in:off,dashboard'],
+            'ip_allowlist_mode' => ['required', 'string', Rule::in(IpAllowlistMode::selectable())],
             'ip_allowlist' => ['array'],
-            'ip_allowlist.*' => ['string', function (string $attribute, mixed $value, callable $fail): void {
-                if (! is_string($value) || ! $this->isValidIpOrCidr($value)) {
-                    $fail(__('Each entry must be a valid IP address or CIDR range.'));
-                }
-            }],
-            'geo_mode' => ['required', 'string', 'in:off,allow,deny'],
+            'ip_allowlist.*' => ['string', new IpOrCidr],
+            'geo_mode' => ['required', 'string', Rule::in(GeoMode::values())],
             'geo_countries' => ['array'],
             'geo_countries.*' => ['string', 'size:2'],
             'retention_conversations_days' => ['nullable', 'integer', "min:{$conversationsFloor}", "max:{$conversationsCeiling}"],
             'retention_audit_days' => ['nullable', 'integer', "min:{$auditFloor}", "max:{$auditDefault}"],
-            // SIEM webhook (Enterprise). The deep SSRF check (DNS → internal IP)
-            // lives in the Action; the controller maps its exception to a 422.
+            // SIEM webhook. The deep SSRF check (DNS → internal IP) lives in the
+            // Action; the controller maps its exception to a 422.
             'webhook_url' => ['nullable', 'string', 'url:https', 'max:2048'],
             'webhook_secret' => ['nullable', 'string', 'max:255'],
             'webhook_enabled' => ['boolean'],
@@ -82,17 +81,25 @@ class UpdateSecurityPolicyRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            if ($validator->errors()->isNotEmpty() || $this->string('ip_allowlist_mode')->value() === 'off') {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            $form = $this->toData();
+
+            // The gate enforces the country rule even while the IP allowlist is
+            // off, so a country rule alone must pass the lockout check too.
+            if ($form->ip_allowlist_mode === IpAllowlistMode::Off && $form->geo_mode === GeoMode::Off) {
                 return;
             }
 
             $guard = app(NetworkAccessGuard::class);
             $ip = (string) $this->ip();
-            $geoMode = (string) $this->input('geo_mode', 'off');
-            $country = $geoMode === 'off' ? null : $this->country();
+            $country = $form->geo_mode === GeoMode::Off ? null : $this->country();
+            $enforcedAllowlist = $form->ip_allowlist_mode === IpAllowlistMode::Off ? [] : $form->ip_allowlist;
 
-            $ipBlocks = ! $guard->ipAllowed($this->cleanIpAllowlist(), $ip);
-            $geoBlocks = ! $guard->geoAllowed($geoMode, $this->cleanGeoCountries(), $country);
+            $ipBlocks = ! $guard->ipAllowed($enforcedAllowlist, $ip);
+            $geoBlocks = ! $guard->geoAllowed($form->geo_mode, $form->geo_countries, $country);
 
             if (! $ipBlocks && ! $geoBlocks) {
                 return;
@@ -101,7 +108,7 @@ class UpdateSecurityPolicyRequest extends FormRequest
             // One shared "lockout" channel: the Security page renders
             // errors.ip_allowlist as a prominent alert regardless of which rule is
             // at fault — so the wording, not the key, has to reflect the cause.
-            $validator->errors()->add('ip_allowlist', $this->lockoutMessage($ipBlocks, $geoBlocks, $geoMode, $ip, $country));
+            $validator->errors()->add('ip_allowlist', $this->lockoutMessage($ipBlocks, $geoBlocks, $form->geo_mode, $ip, $country));
         });
 
         // Enabling SIEM delivery needs a destination and a signing secret. Only
@@ -121,35 +128,20 @@ class UpdateSecurityPolicyRequest extends FormRequest
         });
     }
 
-    public function toData(): WorkspaceSecurityPolicyData
+    public function toData(): SecurityPolicyFormData
     {
-        $policy = WorkspaceSecurityPolicy::query()
-            ->where('workspace_id', $this->user()->workspace()->id)
-            ->first();
-
-        // Base the DTO on the stored row, then override only what this form owns.
-        $base = $policy ? WorkspaceSecurityPolicyData::fromModel($policy) : new WorkspaceSecurityPolicyData;
-
-        // The SIEM webhook is gated by its own capability — preserve the stored
-        // values for workspaces without it so a request can't enable or change it.
-        $canSiem = (bool) $this->user()->workspace()->capabilities->siemWebhook;
-
-        return new WorkspaceSecurityPolicyData(
-            retention_conversations_days: $this->nullableIntInput('retention_conversations_days'),
-            retention_leads_days: $base->retention_leads_days,
-            retention_audit_days: $this->nullableIntInput('retention_audit_days'),
-            retention_analytics_days: $base->retention_analytics_days,
-            anonymize_after_days: $base->anonymize_after_days,
-            ip_allowlist_mode: (string) $this->input('ip_allowlist_mode'),
-            ip_allowlist: $this->cleanIpAllowlist(),
-            geo_mode: (string) $this->input('geo_mode'),
-            geo_countries: $this->cleanGeoCountries(),
-            webhook_url: $canSiem ? $this->nullableStringInput('webhook_url') : $base->webhook_url,
+        return new SecurityPolicyFormData(
+            retention_conversations_days: $this->nullableInt('retention_conversations_days'),
+            retention_audit_days: $this->nullableInt('retention_audit_days'),
+            ip_allowlist_mode: IpAllowlistMode::from((string) $this->input('ip_allowlist_mode')),
+            ip_allowlist: $this->cleanList('ip_allowlist'),
+            geo_mode: GeoMode::from((string) $this->input('geo_mode')),
+            // Lowercase to match the countries table + the geo-IP provider's codes.
+            geo_countries: array_values(array_unique(array_map('strtolower', $this->cleanList('geo_countries')))),
+            webhook_url: $this->blankToNull($this->input('webhook_url')),
             // Write-only: a blank value leaves the stored secret untouched.
-            webhook_secret: $canSiem ? $this->nullableStringInput('webhook_secret') : null,
-            webhook_enabled: $canSiem ? $this->boolean('webhook_enabled') : $base->webhook_enabled,
-            webhook_events: $base->webhook_events,
-            scim_enabled: $base->scim_enabled,
+            webhook_secret: $this->blankToNull($this->input('webhook_secret')),
+            webhook_enabled: $this->boolean('webhook_enabled'),
         );
     }
 
@@ -157,7 +149,7 @@ class UpdateSecurityPolicyRequest extends FormRequest
      * Phrase the self-lockout error for whichever rule would actually block the
      * saver. Geo-only never mentions the IP; IP-only never mentions the country.
      */
-    private function lockoutMessage(bool $ipBlocks, bool $geoBlocks, string $geoMode, string $ip, ?string $country): string
+    private function lockoutMessage(bool $ipBlocks, bool $geoBlocks, GeoMode $geoMode, string $ip, ?string $country): string
     {
         if ($ipBlocks && $geoBlocks) {
             return __('These rules would lock you out — your address (:ip) is not in the allowed IPs and your location (:country) is blocked by the country rule. Fix both first.', [
@@ -170,7 +162,7 @@ class UpdateSecurityPolicyRequest extends FormRequest
             return __('This IP allowlist would lock you out — your current address (:ip) is not on it. Add it first.', ['ip' => $ip]);
         }
 
-        return $geoMode === 'allow'
+        return $geoMode === GeoMode::Allow
             ? __('This country rule would lock you out — your current location (:country) is not in the allowed countries. Add it, or switch the rule, first.', ['country' => $this->countryLabel($country)])
             : __('This country rule would lock you out — your current location (:country) is in the blocked countries. Remove it, or switch the rule, first.', ['country' => $this->countryLabel($country)]);
     }
@@ -200,24 +192,15 @@ class UpdateSecurityPolicyRequest extends FormRequest
     }
 
     /**
-     * @return array<int, string>
+     * Trimmed, non-empty, unique entries of a list input.
+     *
+     * @return list<string>
      */
-    private function cleanIpAllowlist(): array
+    private function cleanList(string $key): array
     {
-        $entries = array_map(fn (mixed $v): string => trim((string) $v), (array) $this->input('ip_allowlist', []));
+        $entries = array_map(fn (mixed $value): string => trim((string) $value), (array) $this->input($key, []));
 
-        return array_values(array_unique(array_filter($entries, fn (string $v): bool => $v !== '')));
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function cleanGeoCountries(): array
-    {
-        // Lowercase to match the countries table + the geo-IP provider's codes.
-        $entries = array_map(fn (mixed $v): string => strtolower(trim((string) $v)), (array) $this->input('geo_countries', []));
-
-        return array_values(array_unique(array_filter($entries, fn (string $v): bool => $v !== '')));
+        return array_values(array_unique(array_filter($entries, fn (string $value): bool => $value !== '')));
     }
 
     private function blankToNull(mixed $value): ?string
@@ -225,38 +208,10 @@ class UpdateSecurityPolicyRequest extends FormRequest
         return ($value === null || $value === '') ? null : (string) $value;
     }
 
-    private function nullableIntInput(string $key): ?int
+    private function nullableInt(string $key): ?int
     {
         $value = $this->input($key);
 
         return ($value === null || $value === '') ? null : (int) $value;
-    }
-
-    private function nullableStringInput(string $key): ?string
-    {
-        $value = $this->input($key);
-
-        return ($value === null || $value === '') ? null : (string) $value;
-    }
-
-    private function isValidIpOrCidr(string $value): bool
-    {
-        if (filter_var($value, FILTER_VALIDATE_IP) !== false) {
-            return true;
-        }
-
-        if (! str_contains($value, '/')) {
-            return false;
-        }
-
-        [$ip, $prefix] = explode('/', $value, 2);
-
-        if (filter_var($ip, FILTER_VALIDATE_IP) === false || ! ctype_digit($prefix)) {
-            return false;
-        }
-
-        $max = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false ? 128 : 32;
-
-        return (int) $prefix >= 0 && (int) $prefix <= $max;
     }
 }

@@ -4,9 +4,9 @@ use Domain\Agent\Models\Agent;
 use Domain\Channel\Messenger\Models\AgentMessengerPage;
 use Domain\Channel\Messenger\Models\MessengerThread;
 use Domain\Channel\Messenger\Services\MessengerThreadResolver;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Str;
 use Tests\Support\Messenger\FakeMessengerClient;
 
@@ -33,7 +33,7 @@ function messengerResolverPage(): AgentMessengerPage
 
 function messengerResolver(FakeMessengerClient $client): MessengerThreadResolver
 {
-    return new MessengerThreadResolver(app(ChatMemory::class), $client);
+    return new MessengerThreadResolver(app(StartConversationAction::class), $client);
 }
 
 it('creates a Session + Conversation + mapping on first contact', function (): void {

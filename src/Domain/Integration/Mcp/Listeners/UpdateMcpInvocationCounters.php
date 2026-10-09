@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Maintains the MCP invocation counters (server row, per-agent server pivot,
- * per-server-tool breakdown) off the request path, with atomic increments.
+ * per-server-tool breakdown) off the request path. The updates are raw
+ * `+ 1` statements on purpose: they stay atomic when many tool calls land at
+ * once, and need no model loads in this hot queued listener.
  */
 class UpdateMcpInvocationCounters implements ShouldQueue
 {

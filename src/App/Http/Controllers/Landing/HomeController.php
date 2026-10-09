@@ -2,31 +2,19 @@
 
 namespace App\Http\Controllers\Landing;
 
-use Domain\Billing\Services\Billing;
-use Domain\Llm\Models\Llm;
-use Illuminate\Contracts\View\Factory;
+use App\Http\Controllers\Landing\Concerns\SharesPricingData;
+use Domain\Billing\Services\PlanCatalog;
 use Illuminate\Contracts\View\View;
 
+/**
+ * The public home page, with the pricing section.
+ */
 class HomeController
 {
-    public function __invoke(Billing $billing): Factory|View
+    use SharesPricingData;
+
+    public function __invoke(PlanCatalog $plans): View
     {
-        return view('landing.index', [
-            'landing' => [],
-            'demo' => false,
-            'pricing' => true,
-            'packages' => $billing->getAvailablePackages(),
-            'models' => Llm::query()
-                ->orderBy('descriptive_name')
-                ->get(['descriptive_name', 'icon'])
-                ->map(fn (Llm $llm): array => ['name' => $llm->descriptive_name, 'icon' => $llm->icon])
-                ->all(),
-            'billingConfig' => [
-                'ui' => config('billing.ui'),
-                'currencySymbol' => config('billing.currency_symbol'),
-                'discount' => config('billing.discount'),
-                'commonFeatures' => config('billing.common_features'),
-            ],
-        ]);
+        return view('landing.index', [...$this->pricingData($plans), 'demo' => false]);
     }
 }

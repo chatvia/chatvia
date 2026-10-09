@@ -3,29 +3,30 @@
 namespace Domain\Knowledge\Ingestion\Actions\Documents;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Actions\Pipeline\DispatchSourceIngestionBatchAction;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
-use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
-use Domain\Knowledge\Source\Enums\SourceStatus;
-use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Illuminate\Bus\Batch;
-use Illuminate\Support\Facades\Bus;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * Ingest a PDF, office file or image: read it into pages with the configured
- * DocumentParser (cached by file checksum, and the page JSON is stored so a
- * retry skips parsing), then chunk and embed each page in one batch.
+ * DocumentParser, then chunk and embed each page in one batch.
+ *
+ * Parsing is the expensive step, so it is done once: the pages are cached by
+ * the file's checksum (the same file uploaded twice is parsed once) and stored
+ * as JSON in `parser_filepath`, so a retry reads them back without parsing.
  */
 class IngestDocumentAction
 {
     public function __construct(
         private readonly DocumentParser $parser,
+        private readonly DispatchSourceIngestionBatchAction $dispatchBatch,
     ) {}
 
     public function execute(SourceFile $sourceFile, Agent $agent, ?string $internalJobId = null): void
@@ -34,99 +35,48 @@ class IngestDocumentAction
             return;
         }
 
-        $updateValues = [
+        $sourceFile->update([
             'internal_ingestion_job_id' => $internalJobId,
             'parser' => $this->parser->name(),
-        ];
+        ]);
 
-        // Get the file once and reuse it; the local copy is deleted below.
-        $file = $sourceFile->readFile();
-        $filePath = $file->getPathname();
+        $pages = $this->pages($sourceFile, $agent);
 
-        try {
-            // Calculate file checksum for caching
-            $fileChecksum = md5_file($filePath);
+        $this->dispatchBatch->execute(
+            $sourceFile,
+            $agent,
+            DocumentChunkIngestionJob::forPages($agent, $sourceFile, $pages),
+        );
+    }
 
-            if ($sourceFile->parser_filepath) {
-                $pages = Storage::get($sourceFile->parser_filepath);
-                $pages = PageData::fromJson($pages);
-            } else {
-                $agentStoragePath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id;
-
-                $pages = Cache::remember('files:ocr:'.$fileChecksum, now()->addMonth(), function () use ($filePath, $agentStoragePath) {
-                    return $this->parser->parse($filePath, $agentStoragePath.'/tmp');
-                });
-
-                $fileName = Str::uuid()->toString().'.json';
-                $pagesJsonPath = create_temp_file($fileName, $pages->toJson());
-
-                try {
-                    $updateValues['parser_filepath'] = Storage::putFileAs(
-                        path: $agentStoragePath,
-                        file: new File($pagesJsonPath),
-                        name: $fileChecksum.'.json',
-                    );
-                } finally {
-                    @unlink($pagesJsonPath);
-                }
-            }
-        } finally {
-            @unlink($filePath);
+    /**
+     * @return Collection<int, PageData>
+     */
+    private function pages(SourceFile $sourceFile, Agent $agent): Collection
+    {
+        if ($sourceFile->parser_filepath) {
+            return PageData::fromJson($sourceFile->readContents('parser_filepath'));
         }
 
-        $sourceFile->update($updateValues);
+        $agentDirectory = KnowledgeStoragePath::forAgent($agent);
 
-        $sourceFile->refresh();
+        [$checksum, $pages] = $sourceFile->withLocalFile(function (File $file) use ($agentDirectory): array {
+            $checksum = (string) md5_file($file->getPathname());
 
-        $jobs = $pages->map(function (PageData $page, int $index) use ($pages, $agent, $sourceFile) {
-            $previousPage = $index > 0 ? $pages[$index - 1] : null;
-            $nextPage = $index < $pages->count() - 1 ? $pages[$index + 1] : null;
-
-            return new DocumentChunkIngestionJob(
-                $agent,
-                $sourceFile,
-                $page,
-                $previousPage,
-                $nextPage
+            $pages = Cache::remember(
+                'files:ocr:'.$checksum,
+                now()->addMonth(),
+                fn (): Collection => $this->parser->parse($file->getPathname(), $agentDirectory.'/tmp'),
             );
+
+            return [$checksum, $pages];
         });
 
-        SummaryIngestionJob::dispatch($sourceFile);
+        $pagesPath = $agentDirectory.'/'.$checksum.'.json';
+        Storage::put($pagesPath, $pages->toJson());
 
-        $sourceFile->update([
-            'status' => SourceStatus::Processing->value,
-            'expected_chunks' => $pages->count(),
-        ]);
+        $sourceFile->update(['parser_filepath' => $pagesPath]);
 
-        $agentFileId = $sourceFile->id;
-        $agentExternalId = $agent->external_id;
-
-        $batch = Bus::batch($jobs)
-            ->name('Ingestion Agent File ID: '.$agentFileId)
-            ->allowFailures() // one failed page must not cancel the batch
-            ->finally(function (Batch $batch) use ($agentFileId, $agentExternalId): void {
-                $file = SourceFile::find($agentFileId);
-
-                if (! $file) {
-                    return;
-                }
-
-                $file->update(['status' => SourceStatus::Completed->value]);
-
-                // Authoritative "ingestion finished" signal. The per-chunk
-                // progress events can never reach 100% on their own — deduped or
-                // blank pages create no chunk, so importedChunks stays below
-                // expected_chunks — which leaves the client stuck on "ingesting".
-                // Broadcasting here (finally, so it runs even when stray page
-                // jobs failed), where ingestionProgress() returns 100 via the
-                // Completed-status short-circuit, guarantees the UI flips to
-                // "ingested" regardless of dedup, races, or a dropped frame.
-                FileIngestionProgressed::dispatch($file, $agentExternalId);
-            })
-            ->dispatch();
-
-        $sourceFile->update([
-            'internal_chunking_batch_id' => $batch->id,
-        ]);
+        return $pages;
     }
 }

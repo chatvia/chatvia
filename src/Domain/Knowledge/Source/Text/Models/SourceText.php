@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Source\Concerns\Chunkable;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
@@ -13,10 +14,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Support\Concerns\HasExternalId;
-use Support\Traits\Chunkable;
 use Support\Traits\HasStorageFile;
 
 /**
+ * A block of plain text an owner typed or pasted as knowledge. The text itself
+ * lives in storage (`filepath`); the row keeps an excerpt and the ingestion
+ * state. Agents use it through the polymorphic `agent_sources` pivot.
+ *
  * @property int $id
  * @property string|null $external_id
  * @property int $user_id
@@ -29,7 +33,7 @@ use Support\Traits\HasStorageFile;
  * @property string $checksum
  * @property string|null $internal_ingestion_job_id
  * @property string|null $internal_chunking_batch_id
- * @property string $status
+ * @property SourceStatus $status
  * @property int $took_in_seconds
  * @property string|null $failure_reason
  * @property int $retrieval_count
@@ -83,6 +87,13 @@ class SourceText extends Model implements ChunkableContract
             ->using(AgentSource::class);
     }
 
+    protected function casts(): array
+    {
+        return [
+            'status' => SourceStatus::class,
+        ];
+    }
+
     public function retrain(): void
     {
         $this->chunks()->delete();
@@ -90,7 +101,7 @@ class SourceText extends Model implements ChunkableContract
         $this->update([
             'language' => null,
             'document_classification' => null,
-            'status' => SourceStatus::Pending->value,
+            'status' => SourceStatus::Pending,
         ]);
     }
 }

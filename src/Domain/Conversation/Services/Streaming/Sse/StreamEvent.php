@@ -4,6 +4,11 @@ namespace Domain\Conversation\Services\Streaming\Sse;
 
 use JsonException;
 
+/**
+ * One event of a streamed chat turn (the v1 envelope): its type, the
+ * assistant message it belongs to, its data and, once sent, its sequence
+ * number. The chat clients read this exact JSON shape, so it must not change.
+ */
 final readonly class StreamEvent
 {
     public function __construct(

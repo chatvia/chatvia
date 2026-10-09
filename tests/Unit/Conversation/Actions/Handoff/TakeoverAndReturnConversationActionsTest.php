@@ -4,6 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Handoff\ReturnConversationToAiAction;
 use Domain\Conversation\Actions\Handoff\TakeoverConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Events\HandedOff;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
@@ -50,7 +51,7 @@ it('TakeoverConversationAction transitions pending → human and broadcasts admi
     $result = app(TakeoverConversationAction::class)->execute($conversation, $admin);
 
     expect($result)->toBeTrue()
-        ->and($conversation->fresh()->handoff_status)->toBe('human')
+        ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Human)
         ->and($conversation->fresh()->handoff_user_id)->toBe($admin->id)
         ->and($conversation->fresh()->handoff_at)->not->toBeNull();
 
@@ -79,7 +80,7 @@ it('ReturnConversationToAiAction returns the conversation to AI and broadcasts "
     $conversation = freshHandoffConversation('pending');
     $admin = $conversation->session->agent->user;
 
-    // First take it over so canBeReturnedBy passes (requires isHandedOff()).
+    // First take it over so isHeldBy passes (requires isHandedOff()).
     app(TakeoverConversationAction::class)->execute($conversation, $admin);
     Event::fake([HandedOff::class]); // reset between actions
 
@@ -89,7 +90,7 @@ it('ReturnConversationToAiAction returns the conversation to AI and broadcasts "
 
     // Final DB state is 'ai' — 'returned' was an intermediate that the broadcast
     // payload carries before the immediate flip.
-    expect($conversation->fresh()->handoff_status)->toBe('ai')
+    expect($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Ai)
         ->and($conversation->fresh()->handoff_user_id)->toBeNull()
         ->and($conversation->fresh()->handoff_at)->toBeNull();
 
@@ -105,7 +106,7 @@ it('ReturnConversationToAiAction returns false when the caller is not the curren
     $result = app(ReturnConversationToAiAction::class)->execute($conversation, $intruder);
 
     expect($result)->toBeFalse()
-        ->and($conversation->fresh()->handoff_status)->toBe('human')
+        ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Human)
         ->and($conversation->fresh()->handoff_user_id)->toBe($owner->id);
 
     Event::assertNotDispatched(HandedOff::class);

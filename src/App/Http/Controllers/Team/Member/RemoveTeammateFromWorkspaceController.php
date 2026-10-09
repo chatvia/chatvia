@@ -27,6 +27,6 @@ class RemoveTeammateFromWorkspaceController
 
         $deleteEmployee->execute($member);
 
-        return back()->with('success', "{$name}'s account and all their data were deleted.");
+        return back()->with('success', __(":name's account and all their data were deleted.", ['name' => $name]));
     }
 }

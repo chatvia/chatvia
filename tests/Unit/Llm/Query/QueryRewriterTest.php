@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Llm\Data\Query\RewrittenQueryData;
 use Domain\Llm\Operations\Query\QueryRewriter;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Exceptions;
@@ -27,27 +28,27 @@ it('splits a well-formed reply into language and query', function (): void {
     fakeRewriterReply('fr|quels sont les horaires ?');
 
     expect(app(QueryRewriter::class)->rewrite('horaires ?'))
-        ->toBe(['lang' => 'fr', 'query' => 'quels sont les horaires ?']);
+        ->toEqual(new RewrittenQueryData(language: 'fr', query: 'quels sont les horaires ?'));
 });
 
 it('keeps pipes that are part of the rewritten query', function (): void {
     fakeRewriterReply('en|compare plan A | plan B');
 
     expect(app(QueryRewriter::class)->rewrite('A vs B'))
-        ->toBe(['lang' => 'en', 'query' => 'compare plan A | plan B']);
+        ->toEqual(new RewrittenQueryData(language: 'en', query: 'compare plan A | plan B'));
 });
 
 it('uses the reply as the query when it has no language prefix', function (): void {
     fakeRewriterReply('what are the opening hours?');
 
     expect(app(QueryRewriter::class)->rewrite('hours?'))
-        ->toBe(['lang' => null, 'query' => 'what are the opening hours?']);
+        ->toEqual(new RewrittenQueryData(language: null, query: 'what are the opening hours?'));
 });
 
 it('falls back to the original query on an empty reply', function (?string $reply): void {
     fakeRewriterReply($reply);
 
-    expect(app(QueryRewriter::class)->rewrite('hours?')['query'])->toBe('hours?');
+    expect(app(QueryRewriter::class)->rewrite('hours?')->query)->toBe('hours?');
 })->with(['empty' => [''], 'null' => [null], 'only a language' => ['en|']]);
 
 it('reports a failed call and keeps the original query', function (): void {
@@ -55,7 +56,7 @@ it('reports a failed call and keeps the original query', function (): void {
     Http::fake(['*' => Http::response('upstream error', 500)]);
 
     expect(app(QueryRewriter::class)->rewrite('hours?'))
-        ->toBe(['lang' => null, 'query' => 'hours?']);
+        ->toEqual(RewrittenQueryData::unchanged('hours?'));
 
     Exceptions::assertReported(RequestException::class);
 });

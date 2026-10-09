@@ -11,6 +11,7 @@ use Domain\Form\Models\FormSubmission;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -20,7 +21,8 @@ use Throwable;
  * to them — `agent_user` grants, `user_socials` identities, any open
  * `agent_chatter_invitations` row, plus their chat sessions on the cascade chain.
  * Workspace owners / employees / admins are explicitly out of scope and
- * should be rejected before this Action is called.
+ * should be rejected before this Action is called. The captured leads and the
+ * account row go in one transaction; files and cache are cleaned around it.
  *
  * Two artefacts the FK cascade can't reach are cleaned explicitly, because the
  * cascade drops rows WITHOUT firing Eloquent events: attachment files on S3
@@ -57,9 +59,12 @@ class DeleteChatterAction
         $chatterExternalId = $chatter->external_id;
 
         $this->wipeAttachmentFiles($conversationIds);
-        $this->deleteLeads($conversationIds);
 
-        $chatter->delete();
+        DB::transaction(function () use ($chatter, $conversationIds): void {
+            $this->deleteLeads($conversationIds);
+
+            $chatter->delete();
+        });
 
         $this->wipeAvatar($chatterExternalId);
 

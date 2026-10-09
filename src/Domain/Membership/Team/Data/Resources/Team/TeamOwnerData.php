@@ -6,6 +6,9 @@ use App\Identity\Workspace\Models\User;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * The owner of a team, as shown next to the team name.
+ */
 #[TypeScript]
 class TeamOwnerData extends Data
 {

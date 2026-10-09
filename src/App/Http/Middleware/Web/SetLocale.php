@@ -9,14 +9,14 @@ use Illuminate\Support\Facades\App;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Applies the signed-in user's saved UI language for the request, so the root
+ * view renders with the right `lang`/`dir` on first paint. Only configured
+ * languages are used; anything else keeps the application default. On the
+ * public site a language segment in the URL (`/ar/...`) wins.
+ */
 class SetLocale
 {
-    /**
-     * Apply the signed-in user's persisted UI locale for the request so the
-     * root view renders with the correct `lang`/`dir` on first paint. Only the
-     * configured languages are honoured; anything else (or no preference) keeps
-     * the application default.
-     */
     public function handle(Request $request, Closure $next): Response
     {
         // On the public site an explicit locale segment in the URL (e.g. `/ar/...`)

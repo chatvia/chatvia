@@ -2,29 +2,27 @@
 
 namespace Domain\Integration\Function\Actions;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Data\Resources\AgentFunctionRowData;
 use Domain\Integration\Function\Data\Resources\AgentFunctionsListResourceData;
 use Domain\Integration\Function\Models\AgentFunction;
-use Illuminate\Support\Facades\DB;
 use Spatie\LaravelData\DataCollection;
 
 /**
- * List every account-level function alongside its attachment state for a
- * specific agent — mirrors the connectors list shape.
+ * List every workspace function alongside whether a specific agent uses it —
+ * the same shape as the agent's connectors list.
  */
 class ListAgentFunctionsAction
 {
-    public function execute(User $user, Agent $agent): AgentFunctionsListResourceData
+    public function execute(Agent $agent): AgentFunctionsListResourceData
     {
-        // Functions belong to the workspace owner; a teammate sees the same list.
-        $functions = $user->workspace()->functions()->orderBy('internal_name')->get();
+        // Functions belong to the workspace owner, who also owns the agent.
+        $functions = AgentFunction::query()
+            ->where('user_id', $agent->user_id)
+            ->orderBy('internal_name')
+            ->get();
 
-        $attachedIds = DB::table('agent_function')
-            ->where('agent_id', $agent->id)
-            ->pluck('function_id')
-            ->flip();
+        $attachedIds = $agent->functions()->pluck('functions.id')->flip();
 
         $rows = $functions->map(
             fn (AgentFunction $function): AgentFunctionRowData => AgentFunctionRowData::fromModel(

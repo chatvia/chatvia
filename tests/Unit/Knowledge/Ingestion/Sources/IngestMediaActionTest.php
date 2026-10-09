@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 /**
  * IngestMediaAction turns an audio/video transcript into a batch of chunk
  * jobs. The batch id must land in `internal_chunking_batch_id`, the column
- * Ingestion::cancel() reads, or deleting a file mid-ingestion can't stop it.
+ * CancelFileIngestionAction reads, or deleting a file mid-ingestion can't stop it.
  */
 it('stores the chunking batch id where cancel() looks for it', function (): void {
     Storage::fake();

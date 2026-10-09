@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
 use App\Http\Controllers\Concerns\BindsConnectorOAuthToSession;
 use App\Identity\Workspace\Models\User;
-use Domain\Integration\Connector\Data\Catalog\ConnectorData;
+use Domain\Integration\Connector\Actions\OAuth\BeginConnectorOAuthAction;
+use Domain\Integration\Connector\Enums\ConnectorAuthStrategy;
+use Domain\Integration\Connector\Exceptions\ConnectorMisconfiguredException;
+use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
-use Domain\Integration\Connector\Services\OAuth\ConnectorMisconfiguredException;
-use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
-use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -21,39 +21,34 @@ class OAuthStartController
 {
     use BindsConnectorOAuthToSession;
 
-    public function __construct(
-        private readonly ConnectorCatalog $catalog,
-        private readonly McpOAuthFlow $flow,
-    ) {}
-
-    public function __invoke(Request $request, string $slug): RedirectResponse
+    public function __invoke(Request $request, string $slug, ConnectorCatalog $catalog, BeginConnectorOAuthAction $begin): RedirectResponse
     {
-        $connector = $this->catalog->find($slug);
-        abort_unless($connector instanceof ConnectorData && $connector->authStrategy === 'oauth' && ! $connector->comingSoon, 404);
+        $connector = $catalog->find($slug);
+        abort_unless($connector !== null && $connector->authStrategy === ConnectorAuthStrategy::Oauth && ! $connector->comingSoon, 404);
 
         /** @var User $user */
         $user = $request->user();
 
         try {
-            $url = $this->flow->begin($user, $connector, $this->connectorOAuthSessionBinding($request));
+            $url = $begin->execute($user, $connector, $this->connectorOAuthSessionBinding($request));
         } catch (ConnectorMisconfiguredException $e) {
-            // Operator hasn't provisioned this connector's OAuth credentials.
-            // Report it (so we get paged) but never leak the env-setup detail to
-            // the visitor — they just see a generic failure. The underlying
-            // message is only echoed when debugging locally.
+            // The operator hasn't provisioned this connector's OAuth
+            // credentials. Report it, but never show the visitor the
+            // environment detail — only when debugging locally.
             report($e);
 
-            return redirect()
-                ->route('integrations.connectors.edit')
-                ->with('error', config('app.debug')
-                    ? $e->getMessage()
-                    : 'This connector is not available right now. Please try again later.');
+            return $this->backWithError(config('app.debug')
+                ? $e->getMessage()
+                : __('This connector is not available right now. Please try again later.'));
         } catch (McpOAuthException $e) {
-            return redirect()
-                ->route('integrations.connectors.edit')
-                ->with('error', $e->getMessage());
+            return $this->backWithError($e->getMessage());
         }
 
         return redirect()->away($url);
+    }
+
+    private function backWithError(string $message): RedirectResponse
+    {
+        return redirect()->route('integrations.connectors.edit')->with('error', $message);
     }
 }

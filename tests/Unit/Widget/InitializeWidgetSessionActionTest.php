@@ -1,8 +1,10 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
+use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\Actions\InitializeWidgetSessionAction;
 use Domain\Widget\Data\Session\WidgetSessionInitData;
 
@@ -95,13 +97,39 @@ it('rolls back the new session when the conversation cannot be created', functio
     $agent = Agent::factory()->create();
     $sessionsBefore = Session::query()->where('agent_id', $agent->id)->count();
 
-    $memory = Mockery::mock(ChatMemory::class);
-    $memory->shouldReceive('withContext')->andReturnSelf();
-    $memory->shouldReceive('createConversation')->andThrow(new RuntimeException('conversation insert failed'));
-    app()->instance(ChatMemory::class, $memory);
+    $startConversation = Mockery::mock(StartConversationAction::class);
+    $startConversation->shouldReceive('execute')->andThrow(new RuntimeException('conversation insert failed'));
+    app()->instance(StartConversationAction::class, $startConversation);
 
     expect(fn () => app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData()))
         ->toThrow(RuntimeException::class, 'conversation insert failed');
 
     expect(Session::query()->where('agent_id', $agent->id)->count())->toBe($sessionsBefore);
+});
+
+it('starts a widget conversation with the placeholder title when none is remembered', function (): void {
+    $agent = Agent::factory()->create();
+
+    $result = app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData());
+
+    $conversation = Conversation::query()->where('external_id', $result->conversation_id)->firstOrFail();
+
+    expect($result->is_new_conversation)->toBeTrue()
+        ->and($conversation->source)->toBe(ConversationSource::Widget)
+        ->and($conversation->title)->toBe(Conversation::DEFAULT_TITLE)
+        ->and($conversation->session->external_id)->toBe($result->session_id);
+});
+
+it('resumes a remembered conversation of the same agent', function (): void {
+    $agent = Agent::factory()->create();
+    $first = app(InitializeWidgetSessionAction::class)->execute($agent, iwsInitData());
+
+    $again = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
+        ...iwsInitData(existingSessionId: $first->session_id)->toArray(),
+        'existingConversationId' => $first->conversation_id,
+    ]));
+
+    expect($again->conversation_id)->toBe($first->conversation_id)
+        ->and($again->is_new_conversation)->toBeFalse()
+        ->and($again->is_new_session)->toBeFalse();
 });

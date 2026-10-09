@@ -2,6 +2,7 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Actions\FinalizeEvalRunAction;
+use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Events\EvalRunProgressed;
 use Domain\Evaluation\Models\EvalResult;
 use Domain\Evaluation\Models\EvalRun;
@@ -19,7 +20,7 @@ function runningRun(Agent $agent, int $total = 0): EvalRun
         'agent_id' => $agent->id,
         'agent_name' => $agent->name,
         'workspace_id' => $agent->user_id,
-        'status' => EvalRun::STATUS_RUNNING,
+        'status' => EvalRunStatus::Running,
         'total_cases' => $total,
         'started_at' => now(),
     ]);
@@ -48,7 +49,7 @@ it('aggregates results and marks the run completed', function (): void {
 
     $finalized = (new FinalizeEvalRunAction)->execute($run->fresh());
 
-    expect($finalized->status)->toBe(EvalRun::STATUS_COMPLETED)
+    expect($finalized->status)->toBe(EvalRunStatus::Completed)
         ->and($finalized->passed_count)->toBe(2)
         ->and($finalized->failed_count)->toBe(1)
         ->and((float) $finalized->avg_score)->toBe(0.6)
@@ -62,7 +63,7 @@ it('marks the run failed when the batch was cancelled', function (): void {
 
     $finalized = (new FinalizeEvalRunAction)->execute($run->fresh(), cancelled: true);
 
-    expect($finalized->status)->toBe(EvalRun::STATUS_FAILED)
+    expect($finalized->status)->toBe(EvalRunStatus::Failed)
         ->and($finalized->avg_score)->toBeNull()
         ->and($finalized->finished_at)->not->toBeNull();
 });
@@ -84,7 +85,7 @@ it('broadcasts the finalized run so open Evals pages update live', function (): 
 
             return $e->agentExternalId === $agent->external_id
                 && $payload['run']['external_id'] === $run->external_id
-                && $payload['run']['status'] === EvalRun::STATUS_COMPLETED
+                && $payload['run']['status'] === EvalRunStatus::Completed->value
                 && $payload['run']['passed_count'] === 1;
         },
     );

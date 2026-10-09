@@ -4,6 +4,10 @@ namespace Domain\Analytics\Data;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * Where an IP address is, as IP2Location reports it. The country code is
+ * stored lower case to match the countries table.
+ */
 class IpLocationData extends Data
 {
     public function __construct(

@@ -9,6 +9,9 @@ use Spatie\LaravelData\Data;
 use Spatie\LaravelData\DataCollection;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * The topics the chat log can filter conversations by.
+ */
 #[TypeScript]
 class ChatLogTopicsResourceData extends Data
 {

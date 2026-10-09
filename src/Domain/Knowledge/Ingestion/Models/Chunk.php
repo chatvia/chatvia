@@ -13,6 +13,14 @@ use Pgvector\Laravel\HalfVector;
 use Support\Concerns\HasExternalId;
 
 /**
+ * One searchable piece of a knowledge source: the text, its dense embedding
+ * (pgvector halfvec, 1024 dimensions) and BM25 vector, and — once enhanced —
+ * a summary and the questions it answers with their own embeddings.
+ *
+ * Chunks belong to a source, not to an agent: `chunkable_type` holds the
+ * source's morph alias (never a class name), and agents reach chunks through
+ * `agent_sources`. Chunk index 0 is the source's summary chunk.
+ *
  * @property int $id
  * @property string|null $external_id
  * @property int $user_id
@@ -38,8 +46,8 @@ use Support\Concerns\HasExternalId;
  * @property-read Collection<int, ChunkReference> $references
  * @property-read int|null $references_count
  *
- * @method static ChunkQueryBuilder<static>|Chunk configureSearchAccuracy(string $accuracyLevel, array $config)
- * @method static ChunkQueryBuilder<static>|Chunk hybridSearchForAgent(int $agentId, int $workspaceId, string $query, string $vectorString, int $limit = 4)
+ * @method static ChunkQueryBuilder<static>|Chunk forAgent(int $agentId)
+ * @method static ChunkQueryBuilder<static>|Chunk withQuestions()
  * @method static ChunkQueryBuilder<static>|Chunk newModelQuery()
  * @method static ChunkQueryBuilder<static>|Chunk newQuery()
  * @method static ChunkQueryBuilder<static>|Chunk query()

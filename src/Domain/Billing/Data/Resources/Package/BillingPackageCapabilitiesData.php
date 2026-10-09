@@ -5,6 +5,10 @@ namespace Domain\Billing\Data\Resources\Package;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * The features a plan includes and how long it keeps conversations. Built from
+ * the plan config, or all-on when billing is turned off.
+ */
 #[TypeScript]
 class BillingPackageCapabilitiesData extends Data
 {

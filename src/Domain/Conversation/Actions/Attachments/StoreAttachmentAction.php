@@ -5,7 +5,7 @@ namespace Domain\Conversation\Actions\Attachments;
 use Domain\Conversation\Actions\Conversations\CreateConversationAction;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Domain\Conversation\Models\Attachment;
-use Domain\Knowledge\Document\PdfInfo;
+use Domain\Knowledge\Document\Conversion\PdfInfo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
@@ -56,6 +56,8 @@ class StoreAttachmentAction
         }
 
         try {
+            // Resolved per use: PdfInfo is final, so tests swap a stand-in
+            // into the container instead of passing one in.
             return app(PdfInfo::class)->getInfo($data->file->getPathname())->length;
         } catch (Throwable) {
             return null;

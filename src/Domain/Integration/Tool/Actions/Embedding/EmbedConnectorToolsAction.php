@@ -4,7 +4,7 @@ namespace Domain\Integration\Tool\Actions\Embedding;
 
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\ConnectorTool;
-use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
+use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 

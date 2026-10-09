@@ -2,9 +2,9 @@
 
 namespace Domain\Knowledge\Ingestion\Services\Parsing;
 
-use Domain\Knowledge\Document\LibreOffice;
+use Domain\Knowledge\Document\Conversion\LibreOffice;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
 use Illuminate\Support\Collection;

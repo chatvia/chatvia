@@ -12,6 +12,9 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 use Throwable;
 
+/**
+ * Builds a data export ZIP off the request, on the `exports` queue.
+ */
 class PrepareDataExportJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable, SerializesModels;

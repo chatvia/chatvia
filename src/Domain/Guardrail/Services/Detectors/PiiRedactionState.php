@@ -2,6 +2,8 @@
 
 namespace Domain\Guardrail\Services\Detectors;
 
+use Domain\Guardrail\Data\PiiRedactionData;
+
 /**
  * Mutable accumulator threaded through the PII filter pipeline. Each filter masks
  * its own entity type in {@see $text}; the state owns the shared masking mechanics
@@ -47,11 +49,8 @@ final class PiiRedactionState
         }
     }
 
-    /**
-     * @return array{text: string, types: list<string>, count: int}
-     */
-    public function result(): array
+    public function result(): PiiRedactionData
     {
-        return ['text' => $this->text, 'types' => array_values(array_unique($this->types)), 'count' => $this->count];
+        return new PiiRedactionData($this->text, array_values(array_unique($this->types)), $this->count);
     }
 }

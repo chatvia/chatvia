@@ -37,7 +37,7 @@ class GuardrailRecorder
                 $verdict->stage->value,
                 $verdict->guardType->value,
                 $verdict->outcome->value,
-                $verdict->severity,
+                $verdict->severity?->value,
                 $verdict->detail,
                 $sample,
             );

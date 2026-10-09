@@ -2,56 +2,56 @@
 
 namespace App\Http\Controllers\Widget\Conversations;
 
+use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
 use Domain\Widget\Services\WidgetVerification;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * The message history of one widget conversation, with each message's
+ * attachments, for a history reload or a conversation switch.
+ */
 class ConversationMessageController
 {
-    public function __invoke(Request $request, ChatMemory $memory, WidgetVerification $verification, MessageAttachmentHydrator $hydrator)
-    {
-        $sessionId = $request->header('X-SESSION-ID');
-        $conversationId = $request->header('X-CONVERSATION-ID');
+    use InteractsWithWidgetRequest;
 
-        if (! $sessionId || ! $conversationId) {
-            return response()->json(['error' => 'Missing thread/session ID'], 400);
+    /**
+     * @return JsonResponse|array<int, array<string, mixed>>
+     */
+    public function __invoke(
+        Request $request,
+        ChatMemory $memory,
+        WidgetVerification $verification,
+        MessageAttachmentHydrator $hydrator,
+    ): JsonResponse|array {
+        $sessionId = $this->widgetSessionId($request);
+        $conversationId = $this->widgetConversationId($request);
+
+        if ($sessionId === null || $conversationId === null) {
+            return response()->json(['error' => 'Missing thread/session ID'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $agent = current_agent_from_widget();
-        abort_if($agent === null, 404);
+        $agent = $this->widgetAgent();
 
-        // Conversation must belong to this agent — otherwise an attacker with a
-        // conversation id from agent A can pull its history while spoofing agent B.
-        // On a protected agent it must also belong to the authenticated chatter,
-        // so a signed-in visitor can't read another chatter's thread by replaying
-        // their (client-supplied) conversation/session id.
-        $conversation = $verification->verifyConversationId(
-            $conversationId,
-            $agent,
-            $request->attributes->get('widget_user'),
-        );
+        // The conversation must belong to this agent, or a conversation id from
+        // agent A could be read while faking agent B. On a protected agent it
+        // must also belong to the signed-in chatter, so one chatter cannot read
+        // another's thread by replaying their ids.
+        $conversation = $verification->verifyConversationId($conversationId, $agent, $this->widgetUser($request));
 
-        abort_if(
-            boolean: ! $conversation,
-            code: 403,
-            message: 'Invalid thread',
-        );
+        abort_if(! $conversation, JsonResponse::HTTP_FORBIDDEN, 'Invalid thread');
 
-        $chatMemory = $memory
-            ->withContext($agent, $sessionId, $conversationId);
+        $chatMemory = $memory->withContext($agent, $sessionId, $conversationId);
 
-        // Check if conversation exists (handles tampered/deleted conversations)
+        // A conversation missing from this session's memory (tampered or
+        // deleted) reads as empty; the widget then starts a new one.
         if (! $chatMemory->conversationExists()) {
-            // Return empty messages array for non-existent conversations
-            // The widget will handle this gracefully and can create a new conversation if needed
             return [];
         }
 
-        $messages = $chatMemory->getMessagesForConversation();
-
-        // Hydrate per-message attachments so chips render under each user
-        // bubble on history reload.
-        return $hydrator->hydrate($messages, $conversation);
+        // Attachments are added so their chips show under each user message.
+        return $hydrator->hydrate($chatMemory->getMessagesForConversation(), $conversation);
     }
 }

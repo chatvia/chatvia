@@ -4,8 +4,10 @@ namespace Domain\Integration\Tool\Registry;
 
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\McpTool;
+use Domain\Integration\Tool\Contracts\AttachableToAgents;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Enums\ToolKind;
@@ -66,6 +68,26 @@ class ToolRegistry
     }
 
     /**
+     * Drop the cached pool of every agent the given tool source (an MCP server
+     * or a webhook function) is attached to — one change to it can affect any
+     * number of agents.
+     */
+    public function forgetAttachedTo(AttachableToAgents $source): void
+    {
+        $this->forgetMany($source->agents()->pluck('agents.id')->all());
+    }
+
+    /**
+     * @param  iterable<int|string>  $agentIds
+     */
+    public function forgetMany(iterable $agentIds): void
+    {
+        foreach ($agentIds as $agentId) {
+            $this->forget((int) $agentId);
+        }
+    }
+
+    /**
      * @return array<int, ToolEntry>
      */
     private function compile(int $agentId): array
@@ -116,7 +138,7 @@ class ToolRegistry
             })
             ->where('mcp_servers.is_enabled', true)
             ->where('mcp_servers.uses_central_catalog', false)
-            ->where('mcp_tools.permission', '!=', 'blocked')
+            ->where('mcp_tools.permission', '!=', McpToolPermission::Blocked->value)
             // Only tools attached to THIS agent (via the agent_mcp_server pivot).
             ->whereNotNull('agent_mcp_server.agent_id')
             ->orderBy('mcp_servers.slug')
@@ -138,7 +160,9 @@ class ToolRegistry
     /**
      * Preset/builtin servers — the shared `connector_tools` catalog, scoped to
      * this agent through the `mcp_server_tool` membership (permission taken from
-     * the membership row, not the catalog).
+     * the membership row, not the catalog). A plain query-builder join rather
+     * than relations: one round-trip for the whole pool, without hydrating a
+     * model per catalog row and per pivot row.
      *
      * @return array<int, ToolEntry>
      */
@@ -153,7 +177,7 @@ class ToolRegistry
                     ->where('agent_mcp_server.agent_id', $agentId);
             })
             ->where('mcp_servers.is_enabled', true)
-            ->where('mst.permission', '!=', 'blocked')
+            ->where('mst.permission', '!=', McpToolPermission::Blocked->value)
             // Only tools attached to THIS agent (via the agent_mcp_server pivot).
             ->whereNotNull('agent_mcp_server.agent_id')
             ->orderBy('mcp_servers.slug')
@@ -202,7 +226,7 @@ class ToolRegistry
                 name: $fn->internal_name,
                 description: $fn->description,
                 parameters: $parameters,
-                mutates: strtoupper($fn->webhook_method) !== 'GET',
+                mutates: $fn->webhook_method->changesData(),
             );
         })->all();
     }

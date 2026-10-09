@@ -2,10 +2,10 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
-use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 

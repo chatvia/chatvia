@@ -3,21 +3,21 @@
 namespace Domain\Agent\Models;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Events\AgentToolsChanged;
+use Domain\Agent\Observers\AgentObserver;
+use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Agent\QueryBuilders\AgentQueryBuilder;
+use Domain\Agent\Services\AgentUrlBuilder;
+use Domain\Agent\ValueObjects\TranslatableText;
+use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
-use Domain\Channel\Instagram\Models\AgentInstagramAccount;
-use Domain\Channel\Messenger\Models\AgentMessengerPage;
-use Domain\Channel\Slack\Models\AgentSlackApp;
-use Domain\Channel\Teams\Models\AgentTeamsBot;
-use Domain\Channel\Telegram\Models\AgentTelegramBot;
-use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
+use Domain\Channel\Concerns\HasMessagingChannels;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Form\Models\FormSubmission;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
@@ -25,7 +25,6 @@ use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
-use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -48,6 +47,17 @@ use Support\MimeType;
 use Support\Traits\HasSettings;
 
 /**
+ * An AI agent a workspace builds and deploys: its persona and model, its
+ * knowledge sources, the tools it may call, its settings (via `model_settings`)
+ * and the surfaces it answers on — Hosted Chat, Chat Widget, Command Bar and
+ * the messaging channels ({@see HasMessagingChannels}).
+ *
+ * Owned by the workspace (`user_id` is the workspace owner, never the teammate
+ * who created it) and placed in one team. `external_id` is the stable public
+ * id (route key, permanent URL, storage prefix); `sub_domain` is the friendly,
+ * renameable Hosted Chat label. Lifecycle hooks live in {@see AgentObserver};
+ * deleting an agent with its data goes through DeleteAgentAction.
+ *
  * @property int $id
  * @property string $external_id
  * @property int $user_id
@@ -81,7 +91,7 @@ use Support\Traits\HasSettings;
  * @property-read int|null $model_settings_count
  * @property-read Collection<int, SourceFile> $pdfFiles
  * @property-read int|null $pdf_files_count
- * @property-read mixed $permanent_url
+ * @property-read string $permanent_url
  * @property-read Collection<int, Role> $roles
  * @property-read int|null $roles_count
  * @property-read AgentStarter|null $starterSet
@@ -90,7 +100,7 @@ use Support\Traits\HasSettings;
  * @property-read int|null $texts_count
  * @property-read Collection<int, Topic> $topics
  * @property-read int|null $topics_count
- * @property-read mixed $url
+ * @property-read string $url
  * @property-read User $user
  * @property-read Collection<int, SourceFile> $videoFiles
  * @property-read int|null $video_files_count
@@ -102,24 +112,11 @@ use Support\Traits\HasSettings;
  * @property-read int|null $youtube_videos_count
  *
  * @method static Collection<int, static> all($columns = ['*'])
- * @method static AgentQueryBuilder<static>|Agent aggregateStats()
- * @method static AgentQueryBuilder<static>|Agent conversationsByCountry()
- * @method static AgentQueryBuilder<static>|Agent conversationsByDayOfWeek()
- * @method static AgentQueryBuilder<static>|Agent conversationsByHour()
- * @method static AgentQueryBuilder<static>|Agent conversationsTrend(int $days = 30)
- * @method static AgentQueryBuilder<static>|Agent dailyMessages(int $days)
  * @method static \Database\Factories\AgentFactory factory($count = null, $state = [])
  * @method static Collection<int, static> get($columns = ['*'])
- * @method static AgentQueryBuilder<static>|Agent messagesByData(\Illuminate\Support\Carbon $startDate, \Illuminate\Support\Carbon $endDate)
- * @method static AgentQueryBuilder<static>|Agent mostAccessedFiles()
- * @method static AgentQueryBuilder<static>|Agent mostAccessedSources()
- * @method static AgentQueryBuilder<static>|Agent mostUsedFunctions()
- * @method static AgentQueryBuilder<static>|Agent mostUsedMcpTools()
  * @method static AgentQueryBuilder<static>|Agent newModelQuery()
  * @method static AgentQueryBuilder<static>|Agent newQuery()
  * @method static AgentQueryBuilder<static>|Agent query()
- * @method static AgentQueryBuilder<static>|Agent topTopics(\Illuminate\Support\Carbon $startDate, \Illuminate\Support\Carbon $endDate, int $limit = 10)
- * @method static AgentQueryBuilder<static>|Agent topicsByDateRange(\Illuminate\Support\Carbon $startDate, \Illuminate\Support\Carbon $endDate)
  * @method static AgentQueryBuilder<static>|Agent whereCollectLeads($value)
  * @method static AgentQueryBuilder<static>|Agent whereCreatedAt($value)
  * @method static AgentQueryBuilder<static>|Agent whereDomain($value)
@@ -150,6 +147,7 @@ use Support\Traits\HasSettings;
 class Agent extends Model
 {
     use HasFactory;
+    use HasMessagingChannels;
     use HasSettings {
         HasSettings::settings as protected baseSettings;
     }
@@ -230,7 +228,7 @@ class Agent extends Model
      * independently of the chat log, so flipping the chat log back on restores
      * whatever per-dimension preferences were set before. Defaults to on — the
      * `analytics` settings group carries `true` defaults. This is the per-agent
-     * half of the gate; the plan-tier capability is the other (see CapabilityEnum).
+     * half of the gate; the plan-tier capability is the other (see Capability).
      */
     public function analyticsEnabled(string $dimension): bool
     {
@@ -393,21 +391,21 @@ class Agent extends Model
      * Attach an account-level function to this agent (idempotent — a repeat
      * attach is a no-op). Single source of truth for the dashboard and the
      * public API; don't re-implement the pivot write inline. Pivot writes fire
-     * no Eloquent events, so the cached tool pool is busted here, not in an
-     * observer.
+     * no Eloquent events, so {@see AgentToolsChanged} tells the tool layer to
+     * drop its cached pool.
      */
     public function attachFunction(AgentFunction $function): void
     {
         $this->functions()->syncWithoutDetaching([$function->id]);
 
-        app(ToolRegistry::class)->forget($this->id);
+        AgentToolsChanged::dispatch($this->id);
     }
 
     public function detachFunction(AgentFunction $function): void
     {
         $this->functions()->detach($function->id);
 
-        app(ToolRegistry::class)->forget($this->id);
+        AgentToolsChanged::dispatch($this->id);
     }
 
     /**
@@ -425,21 +423,21 @@ class Agent extends Model
     /**
      * Attach a connector (MCP server) to this agent (idempotent). Single source
      * of truth for the dashboard and the public API. Pivot writes fire no
-     * Eloquent events, so the cached tool pool is busted here, not in an
-     * observer.
+     * Eloquent events, so {@see AgentToolsChanged} tells the tool layer to drop
+     * its cached pool.
      */
     public function attachConnector(AgentMcpServer $server): void
     {
         $this->mcpServers()->syncWithoutDetaching([$server->id]);
 
-        app(ToolRegistry::class)->forget($this->id);
+        AgentToolsChanged::dispatch($this->id);
     }
 
     public function detachConnector(AgentMcpServer $server): void
     {
         $this->mcpServers()->detach($server->id);
 
-        app(ToolRegistry::class)->forget($this->id);
+        AgentToolsChanged::dispatch($this->id);
     }
 
     /**
@@ -473,8 +471,8 @@ class Agent extends Model
     }
 
     /**
-     * Starters resolved for a visitor locale: each entry's text is its manual
-     * override, else its AI translation, else the base text. Returns the lean
+     * Starters resolved for a visitor locale (manual edit, else AI translation,
+     * else base text — see {@see TranslatableText}). Returns the lean
      * `{ text, icon }` shape the chat surfaces render (used server-side for the
      * embedded widget; the hosted chat resolves client-side for live switching).
      *
@@ -482,25 +480,10 @@ class Agent extends Model
      */
     public function resolvedStartersForLocale(?string $locale): array
     {
-        $loc = $locale !== null ? strtolower(trim($locale)) : '';
-        $loc = ($loc === '' || $loc === 'auto') ? null : substr($loc, 0, 2);
-
-        return array_map(function (array $starter) use ($loc): array {
-            $text = (string) ($starter['text'] ?? '');
-
-            if ($loc !== null) {
-                $override = $starter['overrides'][$loc] ?? null;
-                $translation = $starter['translations'][$loc] ?? null;
-
-                $text = match (true) {
-                    is_string($override) && $override !== '' => $override,
-                    is_string($translation) && $translation !== '' => $translation,
-                    default => $text,
-                };
-            }
-
-            return ['text' => $text, 'icon' => $starter['icon'] ?? null];
-        }, $this->resolvedStarters());
+        return array_map(static fn (array $starter): array => [
+            'text' => (string) TranslatableText::fromStored($starter)->in($locale),
+            'icon' => $starter['icon'] ?? null,
+        ], $this->resolvedStarters());
     }
 
     /**
@@ -513,56 +496,28 @@ class Agent extends Model
      */
     public function normalizedBubbles(): array
     {
-        return array_values(array_map(static function ($bubble): array {
-            if (is_string($bubble)) {
-                return ['text' => $bubble, 'translations' => [], 'overrides' => []];
-            }
+        return array_values(array_map(static function (mixed $bubble): array {
+            $copy = TranslatableText::fromStored($bubble);
 
-            $bubble = (array) $bubble;
-
-            return [
-                'text' => (string) ($bubble['text'] ?? ''),
-                'translations' => is_array($bubble['translations'] ?? null) ? $bubble['translations'] : [],
-                'overrides' => is_array($bubble['overrides'] ?? null) ? $bubble['overrides'] : [],
-            ];
+            return ['text' => (string) $copy->base, 'translations' => $copy->translations, 'overrides' => $copy->overrides];
         }, (array) $this->settings('widget')->get('bubbles', [])));
     }
 
     /**
-     * Bubble prompts resolved for a visitor locale: each bubble's manual
-     * override, else its AI translation, else the base text. Returns the plain
-     * `string[]` the widget renders (and tolerates the legacy plain-string shape).
+     * Bubble prompts resolved for a visitor locale (manual edit, else AI
+     * translation, else base text). Returns the plain `string[]` the widget
+     * renders; empty bubbles are left out.
      *
      * @return array<int, string>
      */
     public function resolvedBubblesForLocale(?string $locale): array
     {
-        $loc = $locale !== null ? strtolower(trim($locale)) : '';
-        $loc = ($loc === '' || $loc === 'auto') ? null : substr($loc, 0, 2);
+        $resolved = array_map(
+            static fn (mixed $bubble): string => (string) TranslatableText::fromStored($bubble)->in($locale),
+            (array) $this->settings('widget')->get('bubbles', []),
+        );
 
-        $resolved = array_map(function ($bubble) use ($loc): string {
-            if (is_string($bubble)) {
-                return $bubble;
-            }
-
-            $bubble = (array) $bubble;
-            $text = (string) ($bubble['text'] ?? '');
-
-            if ($loc !== null) {
-                $override = $bubble['overrides'][$loc] ?? null;
-                $translation = $bubble['translations'][$loc] ?? null;
-
-                $text = match (true) {
-                    is_string($override) && $override !== '' => $override,
-                    is_string($translation) && $translation !== '' => $translation,
-                    default => $text,
-                };
-            }
-
-            return $text;
-        }, (array) $this->settings('widget')->get('bubbles', []));
-
-        return array_values(array_filter($resolved, static fn (string $t): bool => $t !== ''));
+        return array_values(array_filter($resolved, static fn (string $text): bool => $text !== ''));
     }
 
     /**
@@ -612,66 +567,6 @@ class Agent extends Model
     }
 
     /**
-     * The agent's Telegram channel (bot), if connected. One bot per agent.
-     *
-     * @return HasOne<AgentTelegramBot, $this>
-     */
-    public function telegramBot(): HasOne
-    {
-        return $this->hasOne(AgentTelegramBot::class);
-    }
-
-    /**
-     * The agent's Slack channel (app), if connected. One app per agent.
-     *
-     * @return HasOne<AgentSlackApp, $this>
-     */
-    public function slackApp(): HasOne
-    {
-        return $this->hasOne(AgentSlackApp::class);
-    }
-
-    /**
-     * The agent's Messenger channel (Facebook Page), if connected. One page per agent.
-     *
-     * @return HasOne<AgentMessengerPage, $this>
-     */
-    public function messengerPage(): HasOne
-    {
-        return $this->hasOne(AgentMessengerPage::class);
-    }
-
-    /**
-     * The agent's WhatsApp channel (business number), if connected. One number per agent.
-     *
-     * @return HasOne<AgentWhatsappNumber, $this>
-     */
-    public function whatsappNumber(): HasOne
-    {
-        return $this->hasOne(AgentWhatsappNumber::class);
-    }
-
-    /**
-     * The agent's Microsoft Teams channel (Azure bot), if connected. One bot per agent.
-     *
-     * @return HasOne<AgentTeamsBot, $this>
-     */
-    public function teamsBot(): HasOne
-    {
-        return $this->hasOne(AgentTeamsBot::class);
-    }
-
-    /**
-     * The agent's Instagram channel (professional account), if connected. One account per agent.
-     *
-     * @return HasOne<AgentInstagramAccount, $this>
-     */
-    public function instagramAccount(): HasOne
-    {
-        return $this->hasOne(AgentInstagramAccount::class);
-    }
-
-    /**
      * Resolved LLM hyperparameters (temperature/top_k/top_p/penalties). Read
      * from the `llm_settings` settings group, falling back to the config
      * defaults via HasSettings.
@@ -686,8 +581,9 @@ class Agent extends Model
     /**
      * Per-plan conversation retention. Drives both the Redis TTL in
      * {@see ChatCache::getMessageRetention()}
-     * and the `chat_conversations.expires_at` stamped on create. Resolves
-     * through the agent's team owner (billing is workspace-owner-scoped);
+     * and the `chat_conversations.expires_at` stamped on create. Asks the
+     * billing {@see Entitlements} for the agent's team owner's plan (billing
+     * is workspace-owner-scoped);
      * falls back to the Starter floor when ownership can't be resolved so
      * we never write a TTL shorter than what the user paid for.
      *
@@ -699,40 +595,53 @@ class Agent extends Model
         return (int) Cache::remember(
             "workspace:{$this->user_id}:retention-days",
             3600,
-            fn (): int => $this->team?->owner?->capabilities?->retentionDays
-                ?? BillingPackageCapabilitiesData::DEFAULT_RETENTION_DAYS,
+            function (): int {
+                $owner = $this->team?->owner;
+
+                return $owner !== null
+                    ? app(Entitlements::class)->capabilities($owner)->retentionDays
+                    : BillingPackageCapabilitiesData::DEFAULT_RETENTION_DAYS;
+            },
         );
     }
 
+    /**
+     * The Hosted Chat address on the agent's renameable subdomain.
+     *
+     * @return Attribute<string, never>
+     */
     public function url(): Attribute
     {
-        return Attribute::get(function () {
-            $url = parse_url(config('app.url'));
-
-            return $url['scheme'].'://'.$this->sub_domain.'.'.$url['host'];
-        });
+        return Attribute::get(fn (): string => AgentUrlBuilder::hostedUrl($this));
     }
 
+    /**
+     * The Hosted Chat address on the agent's permanent (external id) subdomain.
+     *
+     * @return Attribute<string, never>
+     */
     public function permanentUrl(): Attribute
     {
-        return Attribute::get(function () {
-            $url = parse_url(config('app.url'));
-
-            return $url['scheme'].'://'.$this->external_id.'.'.$url['host'];
-        });
+        return Attribute::get(fn (): string => AgentUrlBuilder::permanentUrl($this));
     }
 
+    /**
+     * @return Attribute<string, never>
+     */
     public function chatUrl(): Attribute
     {
-        return Attribute::get(fn (): string => $this->url.'/chat');
+        return Attribute::get(fn (): string => AgentUrlBuilder::chatUrl($this));
     }
 
+    /**
+     * @return Attribute<string, never>
+     */
     public function chatEmbedUrl(): Attribute
     {
-        return Attribute::get(fn (): string => $this->permanent_url.'/chat/embed');
+        return Attribute::get(fn (): string => AgentUrlBuilder::chatEmbedUrl($this));
     }
 
-    public function getUserId()
+    public function getUserId(): int
     {
         return $this->user_id;
     }

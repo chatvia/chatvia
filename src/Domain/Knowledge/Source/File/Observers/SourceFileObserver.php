@@ -5,30 +5,24 @@ namespace Domain\Knowledge\Source\File\Observers;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Cleans up after a deleted file source: detaches the agents that used it and
+ * deletes the uploaded file from storage. Its chunks (summary included) are
+ * removed by the Chunkable trait's `deleting` hook.
+ */
 class SourceFileObserver
 {
-    public function created(SourceFile $agentFile): void {}
-
-    public function updated(SourceFile $agentFile): void {}
-
-    public function deleted(SourceFile $agentFile): void
+    public function deleted(SourceFile $sourceFile): void
     {
-        // Chunks (incl. summary) cleaned up by Chunkable::bootChunkable() via the
-        // deleting event — FK cascade handles chunk_references.
+        $sourceFile->agents()->detach();
 
-        // Detach all agents (removes agent_sources pivot records)
-        $agentFile->agents()->detach();
-
-        // Delete the actual file from storage
-        if ($agentFile->filepath) {
-            Storage::delete($agentFile->filepath);
+        if ($sourceFile->filepath) {
+            Storage::delete($sourceFile->filepath);
         }
     }
 
-    public function restored(SourceFile $agentFile): void {}
-
-    public function forceDeleted(SourceFile $agentFile): void
+    public function forceDeleted(SourceFile $sourceFile): void
     {
-        $this->deleted($agentFile);
+        $this->deleted($sourceFile);
     }
 }

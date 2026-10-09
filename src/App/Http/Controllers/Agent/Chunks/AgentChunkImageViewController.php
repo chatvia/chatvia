@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Support\Http\ChunkImageLink;
 
+/**
+ * Serves an image saved from a document page, by chunk and image position.
+ * Public (visitors' browsers load the images the agent links to), so every
+ * URL must carry the server-minted signature.
+ */
 class AgentChunkImageViewController
 {
     public function __invoke(Request $request, string $chunkExternalId, int $imageIndex)

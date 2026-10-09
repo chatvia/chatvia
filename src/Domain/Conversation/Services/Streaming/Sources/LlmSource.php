@@ -3,14 +3,15 @@
 namespace Domain\Conversation\Services\Streaming\Sources;
 
 use Domain\Conversation\Services\ChatContext;
-use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Usage\TokenUsageContext;
 use Generator;
 
 /**
@@ -22,14 +23,15 @@ class LlmSource extends ToolLoopSource
 {
     public function __construct(
         private readonly LlmProviderInterface $llmProvider,
-        ChatService $chatService,
+        AssistantReplyRecorder $replyRecorder,
         RequestDedupeStore $dedupe,
         ToolSelector $toolSelector,
         ToolLoopRunner $runner,
         GuardrailService $guardrails,
         GuardrailRecorder $guardrailRecorder,
+        TokenUsageContext $tokenUsage,
     ) {
-        parent::__construct($chatService, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder);
+        parent::__construct($replyRecorder, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder, $tokenUsage);
     }
 
     /**

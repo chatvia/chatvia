@@ -5,6 +5,11 @@ namespace App\Http\Controllers\Landing\Legal\Concerns;
 use Illuminate\Support\Carbon;
 use League\CommonMark\GithubFlavoredMarkdownConverter;
 
+/**
+ * Turns a compliance markdown document from `docs/compliance` into the title,
+ * HTML body and effective date a public legal page shows, without the
+ * internal-only parts of the document.
+ */
 trait RendersLegalDocument
 {
     /**

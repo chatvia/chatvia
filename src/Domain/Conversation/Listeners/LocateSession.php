@@ -9,8 +9,16 @@ use Domain\Conversation\Models\Session;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Support\Localization\Country\Models\Country;
 
+/**
+ * Resolves a visitor session's country (and, when the IP agrees, its city,
+ * region and time zone) off the message-write path. Queued.
+ */
 class LocateSession implements ShouldQueue
 {
+    public function __construct(
+        private readonly IP2Country $ip2Country,
+    ) {}
+
     public function handle(SessionLocationUnknown $event): void
     {
         $session = $event->session->fresh();
@@ -31,7 +39,7 @@ class LocateSession implements ShouldQueue
 
         // IP geo is best-effort enrichment for city/region/timezone only, and
         // only when it agrees with the trusted country (see stamp()).
-        $location = $session->ip_address ? IP2Country::getLocationByIP($session->ip_address) : null;
+        $location = $session->ip_address ? $this->ip2Country->locate($session->ip_address) : null;
 
         $this->stamp($session, strtolower($countryCode), $location);
     }

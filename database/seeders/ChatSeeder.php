@@ -6,8 +6,10 @@ use App\Identity\Workspace\Models\User;
 use Database\Seeders\Demo\DemoCountries;
 use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
-use Domain\Analytics\Actions\RecordFeedbackGivenAction;
-use Domain\Analytics\Actions\RecordMessageSentAction;
+use Domain\Analytics\Actions\Recording\RecordFeedbackGivenAction;
+use Domain\Analytics\Actions\Recording\RecordMessageSentAction;
+use Domain\Analytics\Data\Recording\FeedbackRecordData;
+use Domain\Analytics\Data\Recording\MessageSentRecordData;
 use Domain\Analytics\Events\FeedbackGiven;
 use Domain\Analytics\Events\MessageSent;
 use Domain\Conversation\Enums\ConversationSource;
@@ -366,7 +368,7 @@ class ChatSeeder extends Seeder
                         ? $llms->firstWhere('id', $llmId)?->external_name
                         : null;
 
-                    $messageSent->execute(new MessageSent(
+                    $messageSent->execute(MessageSentRecordData::fromEvent(new MessageSent(
                         agentId: $agent->id,
                         workspaceId: $agent->user_id,
                         chatterUserId: $session->user_id,
@@ -380,11 +382,11 @@ class ChatSeeder extends Seeder
                         promptTokens: $promptTokens,
                         completionTokens: $completionTokens,
                         occurredAt: $messageTime,
-                    ));
+                    )));
                     $analyticsFired++;
 
                     if (! empty($messageData['feedback'])) {
-                        $feedbackGiven->execute(new FeedbackGiven(
+                        $feedbackGiven->execute(FeedbackRecordData::fromEvent(new FeedbackGiven(
                             agentId: $agent->id,
                             workspaceId: $agent->user_id,
                             chatterUserId: $session->user_id,
@@ -394,7 +396,7 @@ class ChatSeeder extends Seeder
                             llmExternalName: $modelExternalName,
                             countryCode: $country['code'],
                             occurredAt: $messageTime->copy()->addSeconds(rand(5, 60)),
-                        ));
+                        )));
                         $analyticsFired++;
                     }
                 }

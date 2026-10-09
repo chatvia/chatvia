@@ -4,9 +4,12 @@ namespace Domain\Conversation\Actions\Messages;
 
 use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
 use Domain\Llm\Contracts\Transcriber;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 
+/**
+ * Turns a voice note into text: compresses a working copy of the recording,
+ * sends it to the speech-to-text service, and always removes the copy.
+ */
 class TranscribeAudioAction
 {
     public function __construct(
@@ -14,21 +17,22 @@ class TranscribeAudioAction
         private readonly Transcriber $transcriber,
     ) {}
 
-    public function execute(UploadedFile $file): string
+    /**
+     * @param  string  $audioPath  the recording; it is copied, never changed
+     * @param  string  $extension  its file extension, which tells the compressor the format
+     */
+    public function execute(string $audioPath, string $extension): string
     {
-        $tempPath = create_temp_dir('/transcription').'/'.Str::uuid().'.'.$file->getClientOriginalExtension();
+        $workingCopy = create_temp_dir('/transcription').'/'.Str::uuid().'.'.$extension;
 
-        $file->move(dirname($tempPath), basename($tempPath));
+        copy($audioPath, $workingCopy);
 
         try {
-            $compressedPath = $this->audioCompressor->process($tempPath);
-            $result = $this->transcriber->transcribe($compressedPath);
+            return $this->transcriber->transcribe($this->audioCompressor->process($workingCopy));
         } finally {
-            if (file_exists($tempPath)) {
-                @unlink($tempPath);
+            if (file_exists($workingCopy)) {
+                @unlink($workingCopy);
             }
         }
-
-        return $result;
     }
 }

@@ -2,84 +2,30 @@
 
 namespace Domain\Channel\Slack\Actions;
 
-use Domain\Channel\Services\ChannelAccessGate;
-use Domain\Channel\Services\ChannelLocale;
+use Domain\Channel\Actions\HandleChannelMessageAction;
 use Domain\Channel\Slack\Jobs\HandleSlackEventJob;
-use Domain\Channel\Slack\Models\AgentSlackApp;
-use Domain\Channel\Slack\Services\SlackChannelResolver;
-use Domain\Channel\Slack\Services\SlackClient;
-use Domain\Channel\Slack\Services\SlackReplyRunner;
+use Domain\Channel\Slack\Services\SlackAdapter;
 
 /**
- * Handles one inbound Slack message end to end: resolve the channel's
- * Session + Conversation, post a placeholder reply immediately, then stream
- * the agent's answer into it by editing the message in place as the pipeline
- * generates. Invoked off the webhook via {@see HandleSlackEventJob}.
- *
- * Messaging channels are for PUBLIC agents only: a Slack sender is anonymous
- * to Chatvia and can't satisfy a protected agent's access model. Connecting is
- * blocked for protected agents at the controller; this is the runtime backstop
- * for an agent flipped to protected after it was already connected.
+ * Handles one inbound Slack message: drop the bot's own @mention, then run
+ * the shared channel turn ({@see HandleChannelMessageAction}) — the reply
+ * streams into a placeholder message. A message that was only the mention is
+ * ignored. Invoked off the webhook via {@see HandleSlackEventJob}.
  */
 class HandleSlackEventAction
 {
-    /** Shown in the channel's own name, so every channel shares one translation. */
-    private const CHANNEL_NAME = 'Slack';
-
     public function __construct(
-        private readonly SlackChannelResolver $resolver,
-        private readonly SlackReplyRunner $runner,
-        private readonly SlackClient $client,
-        private readonly ChannelAccessGate $gate,
+        private readonly HandleChannelMessageAction $handle,
     ) {}
 
-    public function execute(AgentSlackApp $app, string $channelId, string $text, ?string $threadTs = null): void
+    public function execute(SlackAdapter $channel, string $text): void
     {
-        $text = $this->stripMention($app, $text);
+        $text = $channel->withoutBotMention($text);
 
         if ($text === '') {
             return;
         }
 
-        // Protected agents are never answered on Slack (defence in depth).
-        if (! $this->gate->allows($app->agent, fn (): ?string => $this->client->postMessage($app->bot_token, $channelId, ChannelLocale::text($app->agent, 'This assistant isn’t available on :channel right now.', ['channel' => self::CHANNEL_NAME]), $threadTs))) {
-            return;
-        }
-
-        $channel = $this->resolver->resolve($app, $channelId);
-
-        // Instant feedback: a placeholder message the moment the mention
-        // lands. Its `ts` is the handle the reply then streams into.
-        $ts = $this->client->postMessage($app->bot_token, $channelId, '_'.ChannelLocale::text($app->agent, 'Thinking…').'_', $threadTs);
-
-        // Posting failed (kicked from the channel, missing scope, outage) —
-        // bail before the pipeline runs so the turn isn't billed for a reply
-        // nobody can see.
-        if ($ts === null) {
-            return;
-        }
-
-        $reply = $this->runner->reply(
-            $channel,
-            $text,
-            fn (string $partial): bool => $this->client->updateMessage($app->bot_token, $channelId, $ts, $partial),
-        );
-
-        $this->client->updateMessage($app->bot_token, $channelId, $ts, $reply);
-
-        $channel->forceFill(['last_message_at' => now()])->save();
-    }
-
-    /**
-     * An `app_mention` arrives as `<@U123ABC> question…` — drop the bot's own
-     * mention(s) so the model sees just the question.
-     */
-    private function stripMention(AgentSlackApp $app, string $text): string
-    {
-        if ($app->bot_user_id !== null) {
-            $text = str_replace("<@{$app->bot_user_id}>", '', $text);
-        }
-
-        return trim($text);
+        $this->handle->execute($channel, $text);
     }
 }

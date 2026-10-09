@@ -6,6 +6,7 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Form\Actions\RenderInlineFormAction;
+use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Enums\FormType;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
@@ -48,7 +49,7 @@ it('issues a pending form instance for the requested form', function (): void {
     $outcome = app(RenderInlineFormAction::class)->execute($this->agent, $this->conversation, 'book-a-demo');
 
     $submission = FormSubmission::query()->sole();
-    expect($submission->status)->toBe(FormSubmission::STATUS_PENDING)
+    expect($submission->status)->toBe(FormSubmissionStatus::Pending)
         ->and($submission->form_definition_id)->toBe($form->id)
         ->and($submission->agent_id)->toBe($this->agent->id)
         ->and($submission->chat_conversation_id)->toBe($this->conversation->id)
@@ -66,7 +67,7 @@ it('issues a pending form instance for the requested form', function (): void {
         ->and($rendered->schema)->not->toBeEmpty()
         ->and($rendered->submitLabel)->toBe('Submit')
         ->and($rendered->successMessage)->toBe('See you soon.')
-        ->and($rendered->status)->toBe(FormSubmission::STATUS_PENDING)
+        ->and($rendered->status)->toBe(FormSubmissionStatus::Pending)
         ->and($rendered->expiresAt->toIso8601String())->toBe('2026-06-15T18:00:00+00:00');
 });
 

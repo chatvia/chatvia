@@ -37,10 +37,10 @@ class RequestDedupeStoreTest extends TestCase
 
         $snapshot = $store->find('req-1');
 
-        $this->assertSame('msg-1', $snapshot['assistant_message_id']);
-        $this->assertSame('Hello world', $snapshot['content']);
-        $this->assertSame('en', $snapshot['language']);
-        $this->assertSame([['id' => 7]], $snapshot['sources']);
+        $this->assertSame('msg-1', $snapshot->assistant_message_id);
+        $this->assertSame('Hello world', $snapshot->content);
+        $this->assertSame('en', $snapshot->language);
+        $this->assertSame([['id' => 7]], $snapshot->sources);
     }
 
     public function test_forgets_a_snapshot(): void

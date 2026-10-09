@@ -9,297 +9,246 @@ use Generator;
 use Illuminate\Support\Facades\Log;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use RuntimeException;
 
+/**
+ * Reads an OpenAI-compatible server-sent-event stream from an LLM provider
+ * and turns it into envelope events: text deltas, the generation id, and —
+ * collected on the {@see ChatContext} — usage and tool calls.
+ *
+ * Some open-weight models (Qwen3, Gemma 3, gpt-oss on Chat Completions) write
+ * a tool call as JSON in the reply text instead of in `tool_calls`. When
+ * tools were offered, text that starts like JSON is held back and, at the
+ * end of the stream, turned into a tool call if it names an offered tool;
+ * anything else is streamed as the answer.
+ */
 class OpenAiCompatibleTransformer implements StreamTransformer
 {
+    private const int READ_BYTES = 1024;
+
+    private const string DATA_PREFIX = 'data: ';
+
+    private const string END_OF_STREAM = '[DONE]';
+
     public function transform(ResponseInterface $upstream, ChatContext $context): Generator
     {
-        $body = $upstream->getBody();
-        $buffer = '';
-        $generationIdYielded = false;
-        $contentBuffer = '';
-        $contentMode = 'unknown';
-        $finalized = false;
-
-        // Only look for tool calls hidden in the text when tools were actually
-        // offered this turn. Without tools, a reply that starts with `{` is
-        // just a JSON answer and must stream to the user as text.
-        $toolsOffered = $context->offeredToolNames !== [];
+        $state = new StreamReadState(toolsOffered: $context->offeredToolNames !== []);
 
         try {
-            while (! $body->eof()) {
-                if (connection_status() !== CONNECTION_NORMAL || connection_aborted()) {
+            foreach ($this->payloads($upstream->getBody()) as $payload) {
+                if ($payload === self::END_OF_STREAM) {
+                    $state->finalized = true;
+                    yield from $this->finalize($context, $state);
+
                     return;
                 }
 
-                try {
-                    $chunk = $body->read(1024);
-                } catch (RuntimeException $e) {
-                    throw new UpstreamStreamClosed(previous: $e);
-                }
-                if ($chunk === '') {
-                    continue;
-                }
+                $chunk = $this->decode($payload);
 
-                $buffer .= $chunk;
-
-                while (($newlinePos = strpos($buffer, "\n")) !== false) {
-                    $line = substr($buffer, 0, $newlinePos);
-                    $buffer = substr($buffer, $newlinePos + 1);
-
-                    if (trim($line) === '' || ! str_starts_with($line, 'data: ')) {
-                        continue;
-                    }
-
-                    $payload = substr($line, 6);
-                    if ($payload === '[DONE]') {
-                        $finalized = true;
-                        yield from $this->finalize($context, $contentBuffer, $contentMode);
-
-                        return;
-                    }
-
-                    try {
-                        $json = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
-                    } catch (JsonException) {
-                        continue;
-                    }
-
-                    if (! is_array($json)) {
-                        continue;
-                    }
-
-                    if (! $generationIdYielded && isset($json['id']) && is_string($json['id'])) {
-                        $context->generationId = $json['id'];
-                        $generationIdYielded = true;
-                        yield StreamEvent::meta($context->assistantMessageId, 'generation_id', $json['id']);
-                    }
-
-                    // OpenAI-compatible providers emit a final chunk with `usage`
-                    // when the request includes `stream_options.include_usage`.
-                    // Capture it for billing (authoritative prompt+completion
-                    // count) and forward to the Spectra streaming tracker.
-                    if (isset($json['usage']) && is_array($json['usage'])) {
-                        $context->usage = $json['usage'];
-                        $context->spectraTracker?->setUsage($json['usage']);
-                    }
-
-                    $delta = $json['choices'][0]['delta']['content'] ?? null;
-                    if (is_string($delta) && $delta !== '') {
-                        // Some open-weight models on OpenAI-compatible endpoints
-                        // (Qwen3, Gemma 3, gpt-oss-* on Chat Completions) emit
-                        // tool calls as JSON inside `content` instead of via
-                        // `delta.tool_calls`. Sniff the first non-whitespace
-                        // character: `{`/`[`/backtick means hold the buffer
-                        // and try to extract a synthetic tool_call once the
-                        // stream completes. Otherwise stream as plain text.
-                        if ($contentMode === 'unknown') {
-                            $contentBuffer .= $delta;
-                            $leading = ltrim($contentBuffer);
-                            if ($leading !== '') {
-                                $first = $leading[0];
-                                if ($toolsOffered && ($first === '{' || $first === '[' || $first === '`')) {
-                                    $contentMode = 'json';
-                                } else {
-                                    $contentMode = 'text';
-                                    $context->appendStreamedMessage($contentBuffer);
-                                    $context->spectraTracker?->appendContent($contentBuffer);
-                                    yield StreamEvent::delta($context->assistantMessageId, $contentBuffer);
-                                    $contentBuffer = '';
-                                }
-                            }
-                        } elseif ($contentMode === 'json') {
-                            $contentBuffer .= $delta;
-                        } else {
-                            $context->appendStreamedMessage($delta);
-                            $context->spectraTracker?->appendContent($delta);
-                            yield StreamEvent::delta($context->assistantMessageId, $delta);
-                        }
-                    }
-
-                    // OpenAI tool-calls stream as a list of indexed partial
-                    // chunks. First chunk per index carries `id` + name; later
-                    // chunks carry only the `function.arguments` string
-                    // fragment. We accumulate into ChatContext and let
-                    // LlmSource act on them once the stream finishes.
-                    $toolCalls = $json['choices'][0]['delta']['tool_calls'] ?? null;
-                    if (is_array($toolCalls)) {
-                        foreach ($toolCalls as $tc) {
-                            if (is_array($tc)) {
-                                $context->applyToolCallDelta($tc);
-                            }
-                        }
-                    }
+                if ($chunk !== null) {
+                    yield from $this->handleChunk($context, $state, $chunk);
                 }
             }
         } finally {
-            if (! $finalized) {
-                yield from $this->finalize($context, $contentBuffer, $contentMode);
+            if (! $state->finalized) {
+                yield from $this->finalize($context, $state);
             }
         }
     }
 
     /**
-     * After the upstream stream ends, decide what to do with any content the
-     * sniffer held back. If real tool_calls already arrived structurally, the
-     * held content is irrelevant and dropped. Otherwise try to parse the
-     * buffered text as a JSON tool call and synthesise a delta so the tool
-     * loop can act on it — but only when the JSON names a tool that was
-     * offered this turn. Anything else (a JSON answer, unparseable text) is
-     * flushed as a normal delta so the user still sees the message.
+     * The payload of every `data:` line, until the stream ends or the client
+     * goes away. A read failure means the provider closed the stream.
+     *
+     * @return Generator<int, string>
      */
-    private function finalize(ChatContext $context, string $contentBuffer, string $contentMode): Generator
+    private function payloads(StreamInterface $body): Generator
     {
-        if ($contentMode !== 'json' || $contentBuffer === '') {
-            return;
-        }
+        $buffer = '';
 
-        if ($context->pendingToolCalls !== []) {
-            return;
-        }
-
-        $extracted = $this->extractToolCalls($contentBuffer);
-        if ($extracted !== [] && $this->namesAnOfferedTool($extracted, $context->offeredToolNames)) {
-            foreach ($extracted as $index => $call) {
-                $context->applyToolCallDelta([
-                    'index' => $index,
-                    'id' => 'call_'.bin2hex(random_bytes(12)),
-                    'function' => [
-                        'name' => $call['name'],
-                        'arguments' => json_encode($call['arguments']),
-                    ],
-                ]);
+        while (! $body->eof()) {
+            if (connection_status() !== CONNECTION_NORMAL || connection_aborted()) {
+                return;
             }
 
-            Log::info('Synthesised tool_calls from JSON content', [
-                'count' => count($extracted),
-                'names' => array_column($extracted, 'name'),
-                'assistant_message_id' => $context->assistantMessageId,
-            ]);
+            try {
+                $buffer .= $body->read(self::READ_BYTES);
+            } catch (RuntimeException $e) {
+                throw new UpstreamStreamClosed(previous: $e);
+            }
 
-            return;
+            while (($newline = strpos($buffer, "\n")) !== false) {
+                $line = substr($buffer, 0, $newline);
+                $buffer = substr($buffer, $newline + 1);
+
+                if (trim($line) !== '' && str_starts_with($line, self::DATA_PREFIX)) {
+                    yield substr($line, strlen(self::DATA_PREFIX));
+                }
+            }
         }
-
-        $context->appendStreamedMessage($contentBuffer);
-        $context->spectraTracker?->appendContent($contentBuffer);
-        yield StreamEvent::delta($context->assistantMessageId, $contentBuffer);
     }
 
     /**
-     * True when at least one extracted call targets a tool that was offered.
-     * Other names in the same batch still pass through: ToolLoopRunner refuses
-     * them with a tool error, which tells the model the tool does not exist.
+     * @return array<string, mixed>|null
+     */
+    private function decode(string $payload): ?array
+    {
+        try {
+            $chunk = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return null;
+        }
+
+        return is_array($chunk) ? $chunk : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $chunk
+     * @return Generator<int, StreamEvent>
+     */
+    private function handleChunk(ChatContext $context, StreamReadState $state, array $chunk): Generator
+    {
+        if (! $state->generationIdSeen && isset($chunk['id']) && is_string($chunk['id'])) {
+            $state->generationIdSeen = true;
+            $context->generationId = $chunk['id'];
+
+            yield StreamEvent::meta($context->assistantMessageId, 'generation_id', $chunk['id']);
+        }
+
+        // The final chunk carries `usage` when the request asked for it: the
+        // authoritative prompt + completion count, also handed to the cost
+        // tracker.
+        if (isset($chunk['usage']) && is_array($chunk['usage'])) {
+            $context->usage = $chunk['usage'];
+            $context->spectraTracker?->setUsage($chunk['usage']);
+        }
+
+        $delta = $chunk['choices'][0]['delta'] ?? [];
+        $text = $delta['content'] ?? null;
+
+        if (is_string($text) && $text !== '') {
+            yield from $this->handleText($context, $state, $text);
+        }
+
+        // Tool calls arrive as indexed pieces: the first carries the id and
+        // name, later ones only more of the JSON arguments. They are collected
+        // on the context; the tool loop acts on them when the stream ends.
+        if (is_array($delta['tool_calls'] ?? null)) {
+            foreach ($delta['tool_calls'] as $toolCallDelta) {
+                if (is_array($toolCallDelta)) {
+                    $context->applyToolCallDelta($toolCallDelta);
+                }
+            }
+        }
+    }
+
+    /**
+     * Stream reply text, or hold it back while it may be a JSON tool call.
+     * The first non-whitespace character decides: `{`, `[` or a backtick
+     * (a code fence) with tools offered holds; anything else streams.
+     *
+     * @return Generator<int, StreamEvent>
+     */
+    private function handleText(ChatContext $context, StreamReadState $state, string $text): Generator
+    {
+        if ($state->mode === ContentMode::Text) {
+            yield $this->streamText($context, $text);
+
+            return;
+        }
+
+        $state->heldContent .= $text;
+
+        if ($state->mode === ContentMode::HeldAsJson) {
+            return;
+        }
+
+        $leading = ltrim($state->heldContent);
+
+        if ($leading === '') {
+            return;
+        }
+
+        if ($state->toolsOffered && in_array($leading[0], ['{', '[', '`'], true)) {
+            $state->mode = ContentMode::HeldAsJson;
+
+            return;
+        }
+
+        $state->mode = ContentMode::Text;
+        $held = $state->heldContent;
+        $state->heldContent = '';
+
+        yield $this->streamText($context, $held);
+    }
+
+    private function streamText(ChatContext $context, string $text): StreamEvent
+    {
+        $context->appendStreamedMessage($text);
+        $context->spectraTracker?->appendContent($text);
+
+        return StreamEvent::delta($context->assistantMessageId, $text);
+    }
+
+    /**
+     * The stream ended: decide what the held-back text was. Real tool calls
+     * that arrived in `tool_calls` win, and the held text is dropped. Otherwise
+     * it becomes a tool call — but only when it names a tool offered this turn.
+     * Anything else (a JSON answer, unparseable text) streams as the answer.
+     *
+     * @return Generator<int, StreamEvent>
+     */
+    private function finalize(ChatContext $context, StreamReadState $state): Generator
+    {
+        if ($state->mode !== ContentMode::HeldAsJson || $state->heldContent === '' || $context->pendingToolCalls !== []) {
+            return;
+        }
+
+        $calls = JsonToolCallParser::parse($state->heldContent);
+
+        if ($calls !== [] && $this->namesAnOfferedTool($calls, $context->offeredToolNames)) {
+            $this->recordSynthesisedCalls($context, $calls);
+
+            return;
+        }
+
+        yield $this->streamText($context, $state->heldContent);
+    }
+
+    /**
+     * @param  array<int, array{name: string, arguments: array<string, mixed>}>  $calls
+     */
+    private function recordSynthesisedCalls(ChatContext $context, array $calls): void
+    {
+        foreach ($calls as $index => $call) {
+            $context->applyToolCallDelta([
+                'index' => $index,
+                'id' => 'call_'.bin2hex(random_bytes(12)),
+                'function' => [
+                    'name' => $call['name'],
+                    'arguments' => json_encode($call['arguments']),
+                ],
+            ]);
+        }
+
+        Log::info('Synthesised tool_calls from JSON content', [
+            'count' => count($calls),
+            'names' => array_column($calls, 'name'),
+            'assistant_message_id' => $context->assistantMessageId,
+        ]);
+    }
+
+    /**
+     * True when at least one call targets an offered tool. Other names in the
+     * same batch still pass through: the tool loop refuses them with a tool
+     * error, which tells the model the tool does not exist.
      *
      * @param  array<int, array{name: string, arguments: array<string, mixed>}>  $calls
      * @param  array<int, string>  $offeredToolNames
      */
     private function namesAnOfferedTool(array $calls, array $offeredToolNames): bool
     {
-        foreach ($calls as $call) {
-            if (in_array($call['name'], $offeredToolNames, true)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Extract tool calls from a raw text buffer that may contain JSON.
-     * Handles four shapes:
-     *   - {"name": "...", "parameters": {...}}                single call
-     *   - {"name": "...", "arguments": {...}}                 single call (OpenAI-ish)
-     *   - {"tool_calls": [{"function": {...}}, ...]}          OpenAI wrapper
-     *   - [{"name": "..."}, ...]                              list of calls
-     * Markdown code fences around the JSON are stripped first.
-     *
-     * @return array<int, array{name: string, arguments: array<string, mixed>}>
-     */
-    private function extractToolCalls(string $content): array
-    {
-        $stripped = trim($content);
-        $stripped = preg_replace('/^```(?:json)?\s*\n?/i', '', $stripped) ?? $stripped;
-        $stripped = preg_replace('/\n?```\s*$/', '', $stripped) ?? $stripped;
-        $stripped = trim($stripped);
-        if ($stripped === '') {
-            return [];
-        }
-
-        try {
-            $parsed = json_decode($stripped, true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
-            return [];
-        }
-
-        if (! is_array($parsed)) {
-            return [];
-        }
-
-        if (isset($parsed['tool_calls']) && is_array($parsed['tool_calls'])) {
-            return $this->normaliseList($parsed['tool_calls']);
-        }
-
-        if (array_is_list($parsed)) {
-            return $this->normaliseList($parsed);
-        }
-
-        $single = $this->normaliseCall($parsed);
-
-        return $single === null ? [] : [$single];
-    }
-
-    /**
-     * @param  array<int, mixed>  $items
-     * @return array<int, array{name: string, arguments: array<string, mixed>}>
-     */
-    private function normaliseList(array $items): array
-    {
-        $out = [];
-        foreach ($items as $item) {
-            if (! is_array($item)) {
-                continue;
-            }
-            $call = $this->normaliseCall($item);
-            if ($call !== null) {
-                $out[] = $call;
-            }
-        }
-
-        return $out;
-    }
-
-    /**
-     * @param  array<string, mixed>  $item
-     * @return array{name: string, arguments: array<string, mixed>}|null
-     */
-    private function normaliseCall(array $item): ?array
-    {
-        $name = null;
-        $arguments = null;
-
-        if (isset($item['function']) && is_array($item['function'])) {
-            $name = $item['function']['name'] ?? null;
-            $arguments = $item['function']['arguments'] ?? null;
-            if (is_string($arguments)) {
-                try {
-                    $arguments = json_decode($arguments, true, 512, JSON_THROW_ON_ERROR);
-                } catch (JsonException) {
-                    $arguments = null;
-                }
-            }
-        } else {
-            $name = $item['name'] ?? null;
-            $arguments = $item['parameters'] ?? $item['arguments'] ?? $item['input'] ?? [];
-        }
-
-        if (! is_string($name) || $name === '') {
-            return null;
-        }
-        if (! is_array($arguments)) {
-            $arguments = [];
-        }
-
-        return ['name' => $name, 'arguments' => $arguments];
+        return array_any($calls, static fn (array $call): bool => in_array($call['name'], $offeredToolNames, true));
     }
 }

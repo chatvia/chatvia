@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Agent\ChatLog;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Billing\Enums\Capability;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,7 +23,7 @@ class AgentChatLogController
             'current_conversation_id' => $request->query('conversation_id'),
             'chatlogEnabled' => $agent->chatlogEnabled(),
             'handoffEnabled' => ($agent->settings('widget')['handoff_enabled'] ?? true)
-                && ($agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false),
+                && ($agent->team?->hasCapability(Capability::Handoff) ?? false),
         ]);
     }
 }

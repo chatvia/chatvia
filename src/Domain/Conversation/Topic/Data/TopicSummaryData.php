@@ -5,6 +5,9 @@ namespace Domain\Conversation\Topic\Data;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A topic's conversation count over the whole chart range.
+ */
 #[TypeScript]
 class TopicSummaryData extends Data
 {

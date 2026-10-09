@@ -33,7 +33,7 @@ class ConversationSummaryData extends Data
             // walking $conversation->agent->team per row (an N+1 over the page).
             sentiment: $sentimentEnabled ? $conversation->sentiment : null,
             tone: $toneEnabled ? $conversation->tone : null,
-            handoff_status: $conversation->handoff_status,
+            handoff_status: $conversation->handoff_status?->value,
             last_activity_at: $conversation->last_activity_at?->toIso8601String(),
             created_at: $conversation->created_at?->toIso8601String(),
         );

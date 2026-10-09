@@ -1,9 +1,11 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Integration\Connector\Actions\Account\ConnectTokenConnectorAction;
 use Domain\Integration\Connector\Actions\Agent\EnableAgentCapabilityAction;
+use Domain\Integration\Connector\Data\Account\ConnectTokenConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
-use Domain\Integration\Connector\Services\TokenConnectorAuthorizer;
+use Domain\Integration\Mcp\Data\ProvisionedMcpServerData;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Membership\Team\Services\TeamService;
 
@@ -25,12 +27,12 @@ it('attaches an already-provisioned capability without re-provisioning', functio
         'is_enabled' => true,
     ]);
 
-    // No account-level provisioning should happen — the row already exists, so
-    // the authorizer (which does a remote tools/list) must never be called.
-    $this->mock(TokenConnectorAuthorizer::class)
-        ->shouldReceive('connect')->never();
+    // No workspace-level connect should happen — the row already exists, so
+    // the connect action (which does a remote tools/list) must never run.
+    $this->mock(ConnectTokenConnectorAction::class)
+        ->shouldReceive('execute')->never();
 
-    $result = app(EnableAgentCapabilityAction::class)->execute($this->agent, $this->user, $this->charts);
+    $result = app(EnableAgentCapabilityAction::class)->execute($this->agent, $this->charts);
 
     expect($result->id)->toBe($server->id)
         ->and($this->agent->mcpServers()->whereKey($server->id)->exists())->toBeTrue()
@@ -39,9 +41,9 @@ it('attaches an already-provisioned capability without re-provisioning', functio
 
 it('provisions the capability on first enable, then attaches it', function (): void {
     // No 'charts' row exists, so the action's own query finds nothing and it
-    // provisions via the authorizer. The persisted row carries a null
-    // connector_slug so that query can't match it; the stubbed authorizer
-    // hands it back as the freshly provisioned server (keeps the test offline).
+    // connects the capability. The persisted row carries a null connector_slug
+    // so that query can't match it; the stubbed connect action hands it back
+    // as the freshly connected server (keeps the test offline).
     $provisioned = $this->user->mcpServers()->create([
         'connector_slug' => null,
         'category' => 'builtin',
@@ -52,12 +54,14 @@ it('provisions the capability on first enable, then attaches it', function (): v
         'is_enabled' => true,
     ]);
 
-    $this->mock(TokenConnectorAuthorizer::class)
-        ->shouldReceive('connect')
+    $this->mock(ConnectTokenConnectorAction::class)
+        ->shouldReceive('execute')
         ->once()
-        ->andReturn(['server' => $provisioned, 'tools_count' => 12]);
+        // Connected under the agent's owner — the workspace the server belongs to.
+        ->withArgs(fn (ConnectTokenConnectorData $data): bool => $data->user->is($this->user) && $data->connector->slug === 'charts')
+        ->andReturn(new ProvisionedMcpServerData(server: $provisioned, tools_count: 12));
 
-    app(EnableAgentCapabilityAction::class)->execute($this->agent, $this->user, $this->charts);
+    app(EnableAgentCapabilityAction::class)->execute($this->agent, $this->charts);
 
     expect($this->agent->mcpServers()->whereKey($provisioned->id)->exists())->toBeTrue();
 });

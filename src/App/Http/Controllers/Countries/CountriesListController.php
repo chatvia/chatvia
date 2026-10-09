@@ -2,21 +2,27 @@
 
 namespace App\Http\Controllers\Countries;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Support\Localization\Country\Models\Country;
 
+/**
+ * Every country (ISO code and translated name), sorted by name, for the
+ * country pickers in the dashboard.
+ */
 class CountriesListController
 {
-    public function __invoke(Request $request)
+    /**
+     * @return Collection<int, array{code: string, name: array<array-key, mixed>|string}>
+     */
+    public function __invoke(): Collection
     {
         return Country::query()
-            ->select('code', 'name')->orderBy('name')
+            ->select('code', 'name')
+            ->orderBy('name')
             ->get()
-            ->map(function (Country $country) {
-                return [
-                    'code' => $country->code,
-                    'name' => __($country->name),
-                ];
-            });
+            ->map(fn (Country $country): array => [
+                'code' => $country->code,
+                'name' => __($country->name),
+            ]);
     }
 }

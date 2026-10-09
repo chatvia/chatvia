@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Chat\Tools;
 
+use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\Tools\ResolveToolApprovalRequest;
+use App\Http\Responses\SseResponder;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\ChatStreamService;
-use Domain\Conversation\Services\Memory\TurnState;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -17,7 +18,8 @@ readonly class ResolveToolApprovalController
 {
     public function __construct(
         private ChatStreamService $chatStreamService,
-        private TurnState $session,
+        private HostedChatSession $session,
+        private SseResponder $sse,
     ) {}
 
     public function __invoke(ResolveToolApprovalRequest $request, ToolApprovalCheckpoint $approval): StreamedResponse
@@ -29,10 +31,10 @@ readonly class ResolveToolApprovalController
         abort_unless(
             $agent !== null
             && $approval->agent_id === $agent->id
-            && ($approval->context['external_session_id'] ?? null) === $this->session->firstOrCreateSession($agent),
+            && $approval->approvalContext()->externalSessionId === $this->session->findOrStart($agent),
             403,
         );
 
-        return $this->chatStreamService->resume($approval, $request->toData());
+        return $this->sse->respond($this->chatStreamService->resume($approval, $request->toData()));
     }
 }

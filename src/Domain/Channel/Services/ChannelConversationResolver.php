@@ -4,9 +4,10 @@ namespace Domain\Channel\Services;
 
 use Closure;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
+use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +29,7 @@ use Illuminate\Support\Facades\DB;
 abstract class ChannelConversationResolver
 {
     public function __construct(
-        protected readonly ChatMemory $memory,
+        protected readonly StartConversationAction $startConversation,
     ) {}
 
     /**
@@ -84,13 +85,13 @@ abstract class ChannelConversationResolver
                 'name' => $name,
             ]);
 
-            $this->memory
-                ->withContext($agent, $session->external_id)
-                ->createConversation(title: $context['title'], source: $source);
+            $conversationId = $this->startConversation->execute(
+                new ChatScopeData($agent, $session->external_id),
+                $source,
+                $context['title'],
+            );
 
-            // The freshly-created session has exactly one conversation — the one
-            // createConversation() just made for it.
-            $conversation = $session->conversations()->latest('id')->firstOrFail();
+            $conversation = $session->conversations()->where('external_id', $conversationId)->firstOrFail();
 
             return $this->createMapping([
                 ...$identity,

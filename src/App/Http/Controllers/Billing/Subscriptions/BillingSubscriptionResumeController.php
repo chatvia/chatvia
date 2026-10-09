@@ -7,6 +7,10 @@ use Domain\Billing\Actions\Subscriptions\ResumeSubscriptionAction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Resumes a plan subscription that was cancelled but is still in its grace
+ * period.
+ */
 class BillingSubscriptionResumeController
 {
     public function __invoke(Request $request, ResumeSubscriptionAction $resume): ?RedirectResponse
@@ -15,7 +19,7 @@ class BillingSubscriptionResumeController
         $user = $request->user();
 
         if (! $resume->execute($user)) {
-            return back()->with('error', 'No subscription found.');
+            return back()->with('error', __('No subscription found.'));
         }
 
         return null;

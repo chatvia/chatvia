@@ -1,46 +1,28 @@
 <?php
 
-namespace Tests\Unit;
-
 use Domain\Analytics\Services\IP2Country;
-use PHPUnit\Framework\TestCase;
+use Illuminate\Support\Facades\Http;
 
-class IP2CountryTest extends TestCase
-{
-    public function test_returns_empty_string_for_localhost_ip(): void
-    {
-        $result = IP2Country::getCountryByIP('127.0.0.1');
+/**
+ * Private, reserved and malformed addresses are never sent to the geolocation
+ * provider and resolve to no country.
+ */
+beforeEach(function (): void {
+    Http::fake();
+});
 
-        $this->assertSame('', $result);
-    }
+it('does not look up local, private or invalid addresses', function (string $ip): void {
+    expect(app(IP2Country::class)->countryCode($ip))->toBeNull();
 
-    public function test_returns_empty_string_for_private_ip_addresses(): void
-    {
-        $privateIPs = [
-            '192.168.1.1',
-            '10.0.0.1',
-            '172.16.0.1',
-            '169.254.1.1',
-        ];
-
-        foreach ($privateIPs as $ip) {
-            $result = IP2Country::getCountryByIP($ip);
-            $this->assertSame('', $result, "Failed for IP: {$ip}");
-        }
-    }
-
-    public function test_returns_empty_string_for_invalid_ip_addresses(): void
-    {
-        $invalidIPs = [
-            'not-an-ip',
-            '999.999.999.999',
-            '',
-            'localhost',
-        ];
-
-        foreach ($invalidIPs as $ip) {
-            $result = IP2Country::getCountryByIP($ip);
-            $this->assertSame('', $result, "Failed for invalid IP: {$ip}");
-        }
-    }
-}
+    Http::assertNothingSent();
+})->with([
+    'localhost' => '127.0.0.1',
+    'private class C' => '192.168.1.1',
+    'private class A' => '10.0.0.1',
+    'private class B' => '172.16.0.1',
+    'link-local' => '169.254.1.1',
+    'not an ip' => 'not-an-ip',
+    'out of range' => '999.999.999.999',
+    'empty' => '',
+    'hostname' => 'localhost',
+]);

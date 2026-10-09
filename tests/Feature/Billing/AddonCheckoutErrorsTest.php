@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Billing\Actions\Subscriptions\SubscribeCustomDomainAction;
+use Domain\Billing\Actions\Addons\SubscribeAddonAction;
 use Illuminate\Support\Facades\Exceptions;
 
 /**
@@ -25,7 +25,7 @@ it('shows the not-configured message when the add-on price is missing', function
 it('hides database error text and reports the exception', function (): void {
     Exceptions::fake();
 
-    $this->mock(SubscribeCustomDomainAction::class)
+    $this->mock(SubscribeAddonAction::class)
         ->shouldReceive('execute')
         ->andThrow(new PDOException('SQLSTATE[42P01]: relation "secret_table" does not exist'));
 
@@ -39,7 +39,7 @@ it('hides database error text and reports the exception', function (): void {
 });
 
 it('hides other runtime error text', function (): void {
-    $this->mock(SubscribeCustomDomainAction::class)
+    $this->mock(SubscribeAddonAction::class)
         ->shouldReceive('execute')
         ->andThrow(new RuntimeException('No UserBilling row for user 42.'));
 
@@ -50,7 +50,7 @@ it('hides other runtime error text', function (): void {
 });
 
 it('confirms a quantity change that needed no checkout', function (): void {
-    $this->mock(SubscribeCustomDomainAction::class)
+    $this->mock(SubscribeAddonAction::class)
         ->shouldReceive('execute')
         ->andReturnNull();
 

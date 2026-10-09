@@ -2,6 +2,7 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Actions\RunEvalSuiteAction;
+use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Events\EvalRunProgressed;
 use Domain\Evaluation\Jobs\ScoreEvalCaseJob;
 use Domain\Evaluation\Models\EvalCase;
@@ -10,7 +11,7 @@ use Domain\Llm\Models\Llm;
 use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Validation\ValidationException;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * RunEvalSuite snapshots a run and fans the ACTIVE cases out as a batch. The
@@ -52,7 +53,7 @@ it('snapshots a running run and batches one job per active case', function (): v
 
     $run = app(RunEvalSuiteAction::class)->execute($agent);
 
-    expect($run->status)->toBe(EvalRun::STATUS_RUNNING)
+    expect($run->status)->toBe(EvalRunStatus::Running)
         ->and($run->total_cases)->toBe(2)
         ->and($run->model_snapshot)->toBe($agent->llm->internal_name);
 
@@ -68,7 +69,7 @@ it('finalizes immediately when there are no active cases', function (): void {
 
     $run = app(RunEvalSuiteAction::class)->execute($agent);
 
-    expect($run->status)->toBe(EvalRun::STATUS_COMPLETED)
+    expect($run->status)->toBe(EvalRunStatus::Completed)
         ->and($run->total_cases)->toBe(0);
 
     Bus::assertNothingBatched();
@@ -83,7 +84,7 @@ it('refuses to start a suite when the workspace is out of messages', function ()
     fakeMessageCreditGate(false);
 
     expect(fn () => app(RunEvalSuiteAction::class)->execute($agent))
-        ->toThrow(ValidationException::class);
+        ->toThrow(DomainValidationException::class);
 
     expect(EvalRun::query()->forAgent($agent->id)->count())->toBe(0);
 
@@ -109,7 +110,7 @@ it('broadcasts the new running run so it appears live on open Evals pages', func
 
             return $e->agentExternalId === $agent->external_id
                 && $payload['run']['external_id'] === $run->external_id
-                && $payload['run']['status'] === EvalRun::STATUS_RUNNING
+                && $payload['run']['status'] === EvalRunStatus::Running->value
                 && $payload['run']['passed_count'] === 0
                 && $payload['run']['failed_count'] === 0;
         },

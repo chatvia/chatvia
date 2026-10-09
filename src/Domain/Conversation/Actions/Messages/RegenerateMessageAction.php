@@ -2,40 +2,36 @@
 
 namespace Domain\Conversation\Actions\Messages;
 
-use Domain\Agent\Models\Agent;
-use Domain\Conversation\Data\Messages\RegenerateMessageResult;
+use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Messages\RegeneratedTurnData;
 use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Conversation\Services\Memory\TurnState;
 
+/**
+ * Prepares a "regenerate answer": removes the last exchange (the visitor's
+ * message and the assistant's answer) from the live history and hands back
+ * the visitor's text, which the client sends again as a new turn. Returns
+ * null when the visitor message is not in the history.
+ */
 class RegenerateMessageAction
 {
     public function __construct(
         private readonly ChatMemory $memory,
-        private readonly TurnState $session,
+        private readonly DeleteMessagePairAction $deletePair,
     ) {}
 
-    public function execute(
-        Agent $agent,
-        string $conversationId,
-        string $assistantMessageId,
-        string $userMessageId,
-    ): ?RegenerateMessageResult {
-        $this->memory
-            ->withContext($agent, $this->session->firstOrCreateSession($agent), $conversationId);
+    public function execute(ChatScopeData $scope, string $assistantMessageId, string $userMessageId): ?RegeneratedTurnData
+    {
+        $userMessage = $this->memory->withScope($scope)->getMessageById($userMessageId);
 
-        $userMessage = $this->memory->getMessageById($userMessageId);
-
-        if (! $userMessage) {
+        if ($userMessage === null) {
             return null;
         }
 
-        $userMessageContent = $userMessage->content ?? '';
+        $this->deletePair->execute($scope, $assistantMessageId);
+        $this->deletePair->execute($scope, $userMessageId);
 
-        $this->memory->deleteMessage($assistantMessageId);
-        $this->memory->deleteMessage($userMessageId);
-
-        return new RegenerateMessageResult(
-            userMessageContent: $userMessageContent,
+        return new RegeneratedTurnData(
+            userMessageContent: $userMessage->content,
             createdAt: now()->toISOString(),
         );
     }

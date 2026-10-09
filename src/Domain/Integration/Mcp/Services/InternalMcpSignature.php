@@ -2,7 +2,7 @@
 
 namespace Domain\Integration\Mcp\Services;
 
-use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Mcp\Exceptions\McpException;
 use Illuminate\Support\Str;
 
 /**
@@ -18,9 +18,10 @@ use Illuminate\Support\Str;
  * the receiving tools can trust those headers. VerifyInternalMcpRequest
  * rejects anything without a valid, fresh signature.
  *
- * The signature is only attached to first-party server rows
- * ({@see isFirstPartyServer()}) — never to third-party MCP servers, customer
- * webhooks, or a custom server a workspace pointed at one of our URLs.
+ * The signature is only attached to first-party server rows (see
+ * McpClient, which asks the connector catalog whether a row is one) — never to
+ * third-party MCP servers, customer webhooks, or a custom server a workspace
+ * pointed at one of our URLs.
  *
  * The `X-Chatvia-*` header names are part of the public tool-call contract,
  * so they keep this name even when the product is rebranded.
@@ -53,27 +54,6 @@ final class InternalMcpSignature
         $base = rtrim((string) config('app.url'), '/').'/mcp/';
 
         return Str::startsWith($url, $base);
-    }
-
-    /**
-     * True only for a server row Chatvia itself defines: its `connector_slug`
-     * is a first-party connector (built-in registry or a catalog preset served
-     * from our own /mcp/ routes) and its URL is that connector's canonical
-     * internal URL. A custom server whose URL merely points at our host has no
-     * connector_slug and never qualifies.
-     */
-    public static function isFirstPartyServer(AgentMcpServer $server): bool
-    {
-        $slug = $server->connector_slug;
-        if (! is_string($slug) || $slug === '') {
-            return false;
-        }
-
-        $canonical = AgentMcpServer::canonicalConnectorUrl($slug);
-
-        return $canonical !== null
-            && self::isInternalUrl($canonical)
-            && rtrim((string) $server->url, '/') === rtrim($canonical, '/');
     }
 
     /**

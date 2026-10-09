@@ -4,6 +4,10 @@ namespace Domain\Knowledge\Ingestion\Services\Tidy;
 
 use Normalizer;
 
+/**
+ * Normalises text before it is stored or split: valid UTF-8, no control
+ * characters, consistent whitespace.
+ */
 class TextCleaner
 {
     public static function clean(string $text): string

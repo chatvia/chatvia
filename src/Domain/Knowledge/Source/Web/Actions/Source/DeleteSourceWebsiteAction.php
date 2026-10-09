@@ -6,6 +6,11 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Deletes a website source: cancels its training batch if one is running, then
+ * deletes the row. Its chunks are removed by the Chunkable trait and its agent
+ * links by the observer.
+ */
 class DeleteSourceWebsiteAction
 {
     public function execute(SourceWebsite $website): void

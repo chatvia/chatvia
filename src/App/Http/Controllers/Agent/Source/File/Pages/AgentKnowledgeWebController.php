@@ -4,23 +4,17 @@ namespace App\Http\Controllers\Agent\Source\File\Pages;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
+/**
+ * Renders the agent's Web knowledge page. Agent access and the
+ * `agent.sources.train.web` permission are checked by the route middleware.
+ */
 class AgentKnowledgeWebController
 {
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(Agent $agent): Response
     {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
-
-        abort_if(
-            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.web'),
-            code: 403,
-        );
-
         return Inertia::render('agents/Sources/Web', [
             'agent' => AgentResourceData::fromModel($agent),
         ]);

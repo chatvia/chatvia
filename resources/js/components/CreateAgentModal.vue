@@ -21,7 +21,7 @@ const emit = defineEmits<{
     'agent-created': [];
 }>();
 
-type UsageData = App.Identity.Workspace.Data.Resources.My.Usage.UsageResourceData;
+type UsageData = Domain.Billing.Data.Resources.Usage.UsageResourceData;
 
 const form = useForm({
     name: '',

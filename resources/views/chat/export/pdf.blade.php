@@ -273,7 +273,7 @@
                         @pageBreak
                     @endif
 
-                    @if ($message['type'] === 'assistant')
+                    @if ($message['role'] === 'assistant')
                         <hr/>
                     @endif
                 @endforeach

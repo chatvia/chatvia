@@ -8,6 +8,9 @@ use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
+/**
+ * Email (and broadcast) that a data export is ready to download.
+ */
 class DataExportReadyNotification extends Notification
 {
     use Queueable;

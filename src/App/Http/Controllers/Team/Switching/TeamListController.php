@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Team\Switching;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * JSON list of the user's teams (owned first) for the team switcher.
+ */
 class TeamListController
 {
     /**

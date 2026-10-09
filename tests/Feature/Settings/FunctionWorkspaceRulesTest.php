@@ -2,7 +2,9 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Function\Actions\CreateAgentFunctionAction;
-use Domain\Integration\Function\Data\CreateAgentFunctionData;
+use Domain\Integration\Function\Data\FunctionDefinitionData;
+use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
@@ -126,16 +128,14 @@ describe('function names are unique per workspace', function (): void {
         workspaceFunction($this->owner, ['internal_name' => 'taken_name']);
         $member = functionsTeammate($this->owner, ['account.functions']);
 
-        expect(fn () => app(CreateAgentFunctionAction::class)->execute(new CreateAgentFunctionData(
-            user: $member,
+        expect(fn () => app(CreateAgentFunctionAction::class)->execute($member, new FunctionDefinitionData(
             internal_name: 'taken_name',
             display_name: null,
             description: 'd',
             parameters_schema: ['type' => 'object', 'properties' => []],
             webhook_url: 'https://example.com/webhook',
-            webhook_method: 'POST',
-            auth_type: 'none',
-            auth_config: null,
+            webhook_method: FunctionWebhookMethod::Post,
+            auth_type: FunctionAuthType::None,
         )))->toThrow(ValidationException::class);
     });
 

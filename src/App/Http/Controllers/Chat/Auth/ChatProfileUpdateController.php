@@ -6,6 +6,9 @@ use App\Http\Requests\Chat\UpdateChatterProfileRequest;
 use App\Identity\Chatter\Actions\UpdateChatterProfileAction;
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * Saves a signed-in chatter's profile changes.
+ */
 class ChatProfileUpdateController
 {
     public function __invoke(

@@ -6,6 +6,10 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Deletes a text source. Its chunks (summary included) are removed by the
+ * Chunkable trait's `deleting` hook, in the same transaction.
+ */
 class DeleteAgentSourceTextAction
 {
     public function execute(Agent $agent, SourceText $text): void

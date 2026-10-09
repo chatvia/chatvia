@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Chat;
 
+use Domain\Conversation\Enums\ChatExportFormat;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Validates a chat-export request. Per-conversation access is enforced by the
@@ -22,8 +24,21 @@ class ExportChatRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'messageId' => ['sometimes'],
-            'type' => ['required', 'string', 'in:pdf,text,markdown'],
+            'messageId' => ['sometimes', 'nullable', 'string'],
+            'type' => ['required', 'string', Rule::enum(ChatExportFormat::class)],
         ];
+    }
+
+    public function exportFormat(): ChatExportFormat
+    {
+        return $this->enum('type', ChatExportFormat::class) ?? ChatExportFormat::Text;
+    }
+
+    /** The one message to export, or null for the whole conversation. */
+    public function messageId(): ?string
+    {
+        $messageId = $this->input('messageId');
+
+        return is_string($messageId) && $messageId !== '' ? $messageId : null;
     }
 }

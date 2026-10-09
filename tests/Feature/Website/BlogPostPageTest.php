@@ -1,6 +1,6 @@
 <?php
 
-use Support\Cms\Marketing\Models\Post;
+use App\Marketing\Models\Post;
 
 it('renders a post without a cover image and closes every output buffer', function (): void {
     $post = Post::factory()->create(['image_path' => null]);

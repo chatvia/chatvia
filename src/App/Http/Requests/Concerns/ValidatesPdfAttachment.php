@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests\Concerns;
 
-use Domain\Conversation\Rules\DocumentChatAvailable;
-use Domain\Conversation\Rules\HasMessageCreditsForPdf;
-use Domain\Conversation\Rules\MaxConversationAttachments;
-use Domain\Conversation\Rules\MaxPdfPages;
+use App\Http\Rules\DocumentChatAvailable;
+use App\Http\Rules\HasMessageCreditsForPdf;
+use App\Http\Rules\MaxConversationAttachments;
+use App\Http\Rules\MaxPdfPages;
+use Domain\Billing\Contracts\Entitlements;
+use Domain\Llm\Services\DocumentLlm;
 
 /**
  * Shared PDF-attachment validation for the chat and widget upload requests.
@@ -21,14 +23,16 @@ trait ValidatesPdfAttachment
     }
 
     /**
+     * Resolved through the container, so the rules get their services injected.
+     *
      * @return array<string, mixed>
      */
-    public function rules(): array
+    public function rules(DocumentLlm $documentLlm, Entitlements $entitlements): array
     {
         return [
             'file' => [
                 'required',
-                new DocumentChatAvailable,
+                new DocumentChatAvailable($documentLlm),
                 'file',
                 'mimes:pdf',
                 'mimetypes:application/pdf',
@@ -41,6 +45,7 @@ trait ValidatesPdfAttachment
                     max: (int) config('chatvia.agent.files.upload.max_pdf_pages'),
                 ),
                 new HasMessageCreditsForPdf(
+                    entitlements: $entitlements,
                     workspaceUserId: $this->workspaceUserId(),
                 ),
             ],
@@ -60,10 +65,10 @@ trait ValidatesPdfAttachment
     public function messages(): array
     {
         return [
-            'file.required' => 'No file was uploaded.',
-            'file.mimes' => 'Only PDF files are supported right now.',
-            'file.mimetypes' => 'Only PDF files are supported right now.',
-            'file.max' => 'File is too large — the limit is 25 MB.',
+            'file.required' => __('No file was uploaded.'),
+            'file.mimes' => __('Only PDF files are supported right now.'),
+            'file.mimetypes' => __('Only PDF files are supported right now.'),
+            'file.max' => __('File is too large — the limit is 25 MB.'),
         ];
     }
 }

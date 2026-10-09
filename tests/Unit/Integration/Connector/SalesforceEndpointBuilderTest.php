@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Requests\Settings\Connector\SalesforceConnectRequest;
+use Domain\Integration\Connector\Data\Salesforce\SalesforceOrgData;
+use Domain\Integration\Connector\Enums\SalesforceEnvironment;
 use Domain\Integration\Connector\Services\Salesforce\SalesforceEndpointBuilder;
 use Illuminate\Support\Facades\Validator;
 
@@ -12,7 +14,7 @@ use Illuminate\Support\Facades\Validator;
 beforeEach(fn (): SalesforceEndpointBuilder => $this->builder = new SalesforceEndpointBuilder);
 
 it('builds production endpoints with the default login host', function (): void {
-    $byo = $this->builder->build('3MVG9key', null, 'production', null, 'sobject-all');
+    $byo = $this->builder->build(new SalesforceOrgData('3MVG9key', null, SalesforceEnvironment::Production, null, 'sobject-all'));
 
     expect($byo->clientId)->toBe('3MVG9key')
         ->and($byo->clientSecret)->toBeNull()
@@ -23,7 +25,7 @@ it('builds production endpoints with the default login host', function (): void 
 });
 
 it('uses the sandbox path segment and test login host for sandbox', function (): void {
-    $byo = $this->builder->build('key', null, 'sandbox', null, 'flows');
+    $byo = $this->builder->build(new SalesforceOrgData('key', null, SalesforceEnvironment::Sandbox, null, 'flows'));
 
     expect($byo->mcpUrl)->toBe('https://api.salesforce.com/platform/mcp/v1/sandbox/flows')
         ->and($byo->authServerUrl)->toBe('https://test.salesforce.com')
@@ -31,7 +33,7 @@ it('uses the sandbox path segment and test login host for sandbox', function ():
 });
 
 it('prefers a My Domain login host when supplied, trimming a trailing slash', function (): void {
-    $byo = $this->builder->build('key', null, 'production', 'https://acme.my.salesforce.com/', 'sobject-reads');
+    $byo = $this->builder->build(new SalesforceOrgData('key', null, SalesforceEnvironment::Production, 'https://acme.my.salesforce.com/', 'sobject-reads'));
 
     expect($byo->authServerUrl)->toBe('https://acme.my.salesforce.com')
         ->and($byo->authorizationEndpoint)->toBe('https://acme.my.salesforce.com/services/oauth2/authorize')
@@ -41,8 +43,8 @@ it('prefers a My Domain login host when supplied, trimming a trailing slash', fu
 });
 
 it('passes a non-empty client secret through and nulls a blank one', function (): void {
-    expect($this->builder->build('k', 'shhh', 'production', null, 'sobject-all')->clientSecret)->toBe('shhh')
-        ->and($this->builder->build('k', '   ', 'production', null, 'sobject-all')->clientSecret)->toBeNull();
+    expect($this->builder->build(new SalesforceOrgData('k', 'shhh', SalesforceEnvironment::Production, null, 'sobject-all'))->clientSecret)->toBe('shhh')
+        ->and($this->builder->build(new SalesforceOrgData('k', '   ', SalesforceEnvironment::Production, null, 'sobject-all'))->clientSecret)->toBeNull();
 });
 
 it('lets the connect request accept exactly the servers the builder knows', function (): void {

@@ -4,10 +4,12 @@ namespace Domain\Analytics\Services\Chat;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Analytics\Data\Chat\AnalyticsChatRequestData;
+use Domain\Analytics\Data\Chat\AnalyticsChatTurnData;
+use Domain\Conversation\Data\Tooling\EmittedToolCallData;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
-use Domain\Conversation\Services\Streaming\Sse\SseStreamer;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Streaming\Sse\ToolCallPhase;
+use Domain\Conversation\Services\Streaming\ToolCallDeltas;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
 use Domain\Llm\Contracts\LlmProviderInterface;
@@ -18,41 +20,35 @@ use Generator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 /**
- * The owner-facing "Ask your data" turn: a self-contained streaming tool-loop
- * that reuses the SSE envelope + the internal analytics/charts MCP servers but
- * has NO agent, NO conversation, and persists NOTHING. Each call streams the
- * model, dispatches any analytics/chart tool calls scoped to the workspace,
- * feeds the results back, and repeats until the model gives a final answer.
+ * The owner-facing "Ask your data" turn: a self-contained streaming tool loop
+ * over the internal analytics and charts MCP servers, with NO agent, NO
+ * conversation, and nothing persisted. Each turn streams the model, runs any
+ * analytics/chart tool calls scoped to the workspace, feeds the results back,
+ * and repeats until the model gives a final answer.
  *
- * Decoupled from the production chat engine on purpose (see the plan): the
- * read-only analytics tools need none of ToolLoopRunner's governance, approval,
- * routing, or persistence machinery.
+ * It yields {@see StreamEvent}s; the HTTP layer turns them into an SSE
+ * response. It is separate from the production chat engine on purpose: the
+ * read-only analytics tools need none of ToolLoopRunner's governance,
+ * approval, routing or persistence machinery.
  */
 class AnalyticsChatRunner
 {
-    private const MAX_HISTORY = 20;
+    private const int MAX_HISTORY = 20;
 
     public function __construct(
         private readonly LlmProviderInterface $provider,
-        private readonly SseStreamer $sse,
         private readonly AnalyticsToolset $toolset,
         private readonly AnalyticsToolDispatcher $dispatcher,
         private readonly BuiltinToolRouter $router,
         private readonly TokenUsageContext $usage,
     ) {}
 
-    public function stream(User $workspace, AnalyticsChatRequestData $data): StreamedResponse
-    {
-        return $this->sse->respond($this->events($workspace, $data));
-    }
-
     /**
-     * The turn as a stream of {@see StreamEvent}s. Public so tests can iterate
-     * it directly without going through the SSE/output-buffer layer.
+     * The turn as a stream of events: start, text deltas, tool start/end
+     * pairs, then done (or error + done).
      *
      * @return Generator<int, StreamEvent>
      */
@@ -67,71 +63,84 @@ class AnalyticsChatRunner
         ]);
 
         try {
-            // Route to only the relevant built-in tools for this turn from the
-            // cached + embedded registry. Falls back to the reflection-built
-            // full toolset before the registry is synced (or if routing is empty).
-            // Routing embeds the query (token cost) — attribute it to the
-            // workspace. The streamed turns below are accounted separately
-            // because their usage arrives out-of-band in the stream.
-            $routed = $this->usage->track(
-                $workspace->id,
-                fn (): array => $this->router->route($data->message, [McpServerCategory::Analytics, McpServerCategory::Builtin]),
-                'analytics_chat',
-            );
-            ['definitions' => $tools, 'routes' => $routes] = $routed['definitions'] === []
-                ? $this->toolset->build()
-                : $routed;
-            $messages = $this->buildMessages($workspace, $data);
-            $modelName = $this->resolveModel();
-            $maxIterations = (int) config('chatvia.agent.tools.max_iterations', 5);
-
-            // Sum the streamed completions' token usage across every tool-loop
-            // iteration; recorded once after the loop. The provider forces
-            // `include_usage`, so each stream ends with a usage chunk.
-            $streamTokens = 0;
-
-            for ($iteration = 0; $iteration < $maxIterations; $iteration++) {
-                $assistantText = '';
-                $pending = [];
-
-                $response = $this->provider->stream($modelName, $messages, [
-                    'temperature' => 0.2,
-                    'tools' => $tools,
-                    'tool_choice' => 'auto',
-                ]);
-
-                yield from $this->consume($response, $assistantId, $assistantText, $pending, $streamTokens);
-
-                $calls = array_values($pending);
-                if ($calls === []) {
-                    break;
-                }
-
-                $messages[] = [
-                    'role' => 'assistant',
-                    'content' => $assistantText,
-                    'tool_calls' => array_map(static fn (array $tc): array => [
-                        'id' => $tc['id'],
-                        'type' => 'function',
-                        'function' => ['name' => $tc['name'], 'arguments' => $tc['arguments']],
-                    ], $calls),
-                ];
-
-                foreach ($calls as $tc) {
-                    yield from $this->runToolCall($workspace, $routes, $messages, $assistantId, $tc);
-                }
-            }
-
-            $this->recordStreamTokens($workspace, $streamTokens);
+            yield from $this->toolLoop($workspace, $data, $assistantId);
 
             yield StreamEvent::done($assistantId, 'complete');
         } catch (Throwable $e) {
             Log::error('Analytics chat stream crashed', ['message' => $e->getMessage()]);
             report($e);
 
-            yield StreamEvent::error($assistantId, ErrorCode::Internal, 'Something went wrong while answering. Please try again.');
+            yield StreamEvent::error($assistantId, ErrorCode::Internal, __('Something went wrong while answering. Please try again.'));
             yield StreamEvent::done($assistantId, 'error');
         }
+    }
+
+    /**
+     * Stream the model, run the tools it asks for, and repeat until it answers
+     * without a tool call (or the iteration cap is hit).
+     *
+     * @return Generator<int, StreamEvent>
+     */
+    private function toolLoop(User $workspace, AnalyticsChatRequestData $data, string $assistantId): Generator
+    {
+        ['definitions' => $tools, 'routes' => $routes] = $this->toolsFor($workspace, $data->message);
+        $messages = $this->buildMessages($workspace, $data);
+        $modelName = $this->resolveModel();
+        $maxIterations = (int) config('chatvia.agent.tools.max_iterations', 5);
+
+        // Summed over every iteration and recorded once: the provider forces
+        // `include_usage`, so each stream ends with a usage chunk.
+        $streamTokens = 0;
+
+        for ($iteration = 0; $iteration < $maxIterations; $iteration++) {
+            $assistantText = '';
+            $pending = [];
+
+            $response = $this->provider->stream($modelName, $messages, [
+                'temperature' => 0.2,
+                'tools' => $tools,
+                'tool_choice' => 'auto',
+            ]);
+
+            yield from $this->consume($response, $assistantId, $assistantText, $pending, $streamTokens);
+
+            $calls = array_map(EmittedToolCallData::fromStreamBuffer(...), array_values($pending));
+
+            if ($calls === []) {
+                break;
+            }
+
+            $messages[] = [
+                'role' => 'assistant',
+                'content' => $assistantText,
+                'tool_calls' => array_map(static fn (EmittedToolCallData $call): array => $call->toOpenAiToolCall(), $calls),
+            ];
+
+            foreach ($calls as $call) {
+                yield from $this->runToolCall($workspace, $routes, $messages, $assistantId, $call);
+            }
+        }
+
+        $this->recordStreamTokens($workspace, $streamTokens);
+    }
+
+    /**
+     * Only the built-in tools relevant to this question, from the embedded
+     * registry. Falls back to the full reflection-built toolset before the
+     * registry is synced (or when routing finds nothing). Routing embeds the
+     * question, so its tokens are attributed to the workspace.
+     *
+     * @return array{definitions: array<int, array<string, mixed>>, routes: array<string, string>}
+     */
+    private function toolsFor(User $workspace, string $question): array
+    {
+        $routed = $this->usage->track(
+            $workspace->id,
+            fn (): array => $this->router->route($question, [McpServerCategory::Analytics, McpServerCategory::Builtin]),
+            'analytics_chat',
+        );
+
+        return $routed['definitions'] === [] ? $this->toolset->build() : $routed;
     }
 
     /**
@@ -159,117 +168,111 @@ class AnalyticsChatRunner
                 }
 
                 $payload = trim(substr($line, 5));
+
                 if ($payload === '[DONE]') {
                     return;
                 }
 
                 $chunk = json_decode($payload, true);
-                if (! is_array($chunk)) {
-                    continue;
-                }
 
-                // The final `include_usage` chunk carries token totals (and an
-                // empty choices array) — accumulate it for analytics.
-                if (isset($chunk['usage']) && is_array($chunk['usage'])) {
-                    $usage = $chunk['usage'];
-                    $streamTokens += (int) ($usage['total_tokens']
-                        ?? (($usage['prompt_tokens'] ?? 0) + ($usage['completion_tokens'] ?? 0)));
-                }
-
-                $delta = $chunk['choices'][0]['delta'] ?? [];
-
-                if (isset($delta['content']) && is_string($delta['content']) && $delta['content'] !== '') {
-                    $assistantText .= $delta['content'];
-                    yield StreamEvent::delta($assistantId, $delta['content']);
-                }
-
-                if (isset($delta['tool_calls']) && is_array($delta['tool_calls'])) {
-                    foreach ($delta['tool_calls'] as $fragment) {
-                        if (is_array($fragment)) {
-                            $this->applyToolCallDelta($pending, $fragment);
-                        }
-                    }
+                if (is_array($chunk)) {
+                    yield from $this->applyChunk($chunk, $assistantId, $assistantText, $pending, $streamTokens);
                 }
             }
         }
     }
 
     /**
-     * Accumulate a streamed tool-call fragment by its index — id + name land on
-     * the first fragment, the JSON arguments arrive as appended string pieces.
-     * Mirrors ChatContext::applyToolCallDelta.
-     *
+     * @param  array<string, mixed>  $chunk
      * @param  array<int, array{id: string, name: string, arguments: string}>  $pending
-     * @param  array<string, mixed>  $fragment
+     * @return Generator<int, StreamEvent>
      */
-    private function applyToolCallDelta(array &$pending, array $fragment): void
+    private function applyChunk(array $chunk, string $assistantId, string &$assistantText, array &$pending, int &$streamTokens): Generator
     {
-        $index = (int) ($fragment['index'] ?? 0);
-        $current = $pending[$index] ?? ['id' => '', 'name' => '', 'arguments' => ''];
-
-        if (isset($fragment['id']) && is_string($fragment['id'])) {
-            $current['id'] = $fragment['id'];
+        // The final `include_usage` chunk carries token totals (and an empty
+        // choices array) — accumulate it for analytics.
+        if (isset($chunk['usage']) && is_array($chunk['usage'])) {
+            $usage = $chunk['usage'];
+            $streamTokens += (int) ($usage['total_tokens'] ?? (($usage['prompt_tokens'] ?? 0) + ($usage['completion_tokens'] ?? 0)));
         }
 
-        $function = $fragment['function'] ?? null;
-        if (is_array($function)) {
-            if (isset($function['name']) && is_string($function['name'])) {
-                $current['name'] = $function['name'];
-            }
-            if (isset($function['arguments']) && is_string($function['arguments'])) {
-                $current['arguments'] .= $function['arguments'];
-            }
+        $delta = $chunk['choices'][0]['delta'] ?? [];
+
+        if (isset($delta['content']) && is_string($delta['content']) && $delta['content'] !== '') {
+            $assistantText .= $delta['content'];
+
+            yield StreamEvent::delta($assistantId, $delta['content']);
         }
 
-        $pending[$index] = $current;
+        foreach ((array) ($delta['tool_calls'] ?? []) as $fragment) {
+            if (is_array($fragment)) {
+                $pending = ToolCallDeltas::merge($pending, $fragment);
+            }
+        }
     }
 
     /**
-     * Dispatch one tool call, emit its start/end events (charts ride along as
+     * Run one tool call, emit its start/end events (charts ride along as
      * `artifacts` on the end event), and append the `role: 'tool'` result so the
      * next iteration can use it.
      *
      * @param  array<string, string>  $routes
      * @param  array<int, array<string, mixed>>  $messages
-     * @param  array{id: string, name: string, arguments: string}  $tc
      * @return Generator<int, StreamEvent>
      */
-    private function runToolCall(User $workspace, array $routes, array &$messages, string $assistantId, array $tc): Generator
+    private function runToolCall(User $workspace, array $routes, array &$messages, string $assistantId, EmittedToolCallData $call): Generator
     {
-        $name = $tc['name'];
-        $url = $routes[$name] ?? null;
-        $isChart = $url !== null && str_contains($url, '/mcp/charts');
+        $url = $routes[$call->name] ?? null;
 
         yield StreamEvent::tool(
             assistantMessageId: $assistantId,
             phase: ToolCallPhase::Start,
-            toolCallId: $tc['id'],
-            name: $name,
-            args: $tc['arguments'],
+            toolCallId: $call->id,
+            name: $call->name,
+            args: $call->arguments,
             kind: 'mcp',
-            label: $isChart ? 'Chart' : 'Analytics',
+            label: $this->toolLabel($url),
         );
 
         if ($url === null) {
-            $messages[] = ['role' => 'tool', 'tool_call_id' => $tc['id'], 'content' => 'Tool error: unknown tool.'];
-            yield StreamEvent::tool($assistantId, ToolCallPhase::End, $tc['id'], name: $name, result: 'Tool error: unknown tool.');
+            $unknown = 'Tool error: unknown tool.';
+            $messages[] = ['role' => 'tool', 'tool_call_id' => $call->id, 'content' => $unknown];
+
+            yield StreamEvent::tool($assistantId, ToolCallPhase::End, $call->id, name: $call->name, result: $unknown);
 
             return;
         }
 
-        $arguments = json_decode($tc['arguments'] !== '' ? $tc['arguments'] : '{}', true);
-        $result = $this->dispatcher->dispatch($workspace, $name, $url, is_array($arguments) ? $arguments : []);
+        $arguments = json_decode($call->arguments !== '' ? $call->arguments : '{}', true);
+        $result = $this->dispatcher->dispatch($workspace, $call->name, $url, is_array($arguments) ? $arguments : []);
 
-        $messages[] = ['role' => 'tool', 'tool_call_id' => $tc['id'], 'content' => $result->text];
+        $messages[] = ['role' => 'tool', 'tool_call_id' => $call->id, 'content' => $result->text];
 
         yield StreamEvent::tool(
             assistantMessageId: $assistantId,
             phase: ToolCallPhase::End,
-            toolCallId: $tc['id'],
-            name: $name,
+            toolCallId: $call->id,
+            name: $call->name,
             result: $result->text,
             artifacts: $result->artifacts !== [] ? $result->artifacts : null,
         );
+    }
+
+    /**
+     * The badge for a tool call: the `tool_label` of the built-in server the
+     * call routes to (config/mcp.php), "Analytics" when none matches.
+     */
+    private function toolLabel(?string $url): string
+    {
+        $slug = $url === null ? null : basename((string) parse_url($url, PHP_URL_PATH));
+
+        foreach ((array) config('mcp.builtin', []) as $server) {
+            if (($server['slug'] ?? null) === $slug) {
+                return (string) ($server['tool_label'] ?? 'Analytics');
+            }
+        }
+
+        return 'Analytics';
     }
 
     /**
@@ -280,10 +283,8 @@ class AnalyticsChatRunner
         $messages = [['role' => 'system', 'content' => $this->systemPrompt($workspace)]];
 
         foreach (array_slice($data->history, -self::MAX_HISTORY) as $turn) {
-            $role = $turn['role'] ?? null;
-            $content = $turn['content'] ?? null;
-            if (in_array($role, ['user', 'assistant'], true) && is_string($content) && $content !== '') {
-                $messages[] = ['role' => $role, 'content' => $content];
+            if ($this->isReplayable($turn)) {
+                $messages[] = ['role' => $turn->role, 'content' => $turn->content];
             }
         }
 
@@ -292,31 +293,25 @@ class AnalyticsChatRunner
         return $messages;
     }
 
+    private function isReplayable(AnalyticsChatTurnData $turn): bool
+    {
+        return in_array($turn->role, ['user', 'assistant'], true) && $turn->content !== '';
+    }
+
     private function systemPrompt(User $workspace): string
     {
-        $today = now()->toFormattedDateString();
-        $brand = (string) config('chatvia.brand.name');
-
-        return <<<TXT
-        You are the analytics assistant for the {$brand} workspace "{$workspace->name}". Answer the owner's questions about their own account using the account-analytics tools, which return exact numbers scoped to this workspace.
-
-        Guidelines:
-        - Only ever present REAL numbers from the account-analytics tools — never invent, estimate, or fabricate figures, including sample data for a chart.
-        - You exist to answer questions about THIS account's data. If the user asks to "plot"/"chart" something with no real metric behind it and gives no values (e.g. "plot a bar from 1–10"), do NOT make up numbers — ask what they'd like to chart, or offer a real metric (messages, channels, top users, …) and chart that.
-        - The default period is the current billing cycle. For a "total", "overall", "all-time" or "so far" question, pass `period: all_time`. Only pass other periods when the user names one.
-        - Lead with the number, then a short plain-English sentence. Keep answers concise.
-        - The analytics tools already render the right chart automatically when the answer is a breakdown or trend — you do NOT need to call a separate chart tool. Only call a charts tool if the user explicitly asks for a different chart type, and only with figures you fetched from a tool or exact values the user supplied.
-        - If a tool returns zeros, say there's no data for that period rather than guessing.
-
-        Today is {$today}.
-        TXT;
+        return trim(prompt('analytics/chat-system', [
+            'brand' => (string) config('chatvia.brand.name'),
+            'workspace' => $workspace->name,
+            'today' => now()->toFormattedDateString(),
+        ]));
     }
 
     /**
      * Record the streamed completions' token usage for the workspace (analytics
      * only). The streamed reply's usage arrives out-of-band, so it can't ride a
      * TokenUsageContext scope like the routing embed — dispatch the same event
-     * directly. Swallow failures: analytics must never break the turn.
+     * directly. Failures are swallowed: analytics must never break the turn.
      */
     private function recordStreamTokens(User $workspace, int $tokens): void
     {
@@ -327,7 +322,7 @@ class AnalyticsChatRunner
         try {
             LlmTokensConsumed::dispatch($workspace->id, $tokens, 'analytics_chat');
         } catch (Throwable) {
-            // ignore — a missed analytics increment is acceptable.
+            // A missed analytics increment is acceptable.
         }
     }
 

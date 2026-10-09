@@ -3,57 +3,61 @@
 namespace Domain\Knowledge\Source\File\Actions;
 
 use Domain\Agent\Models\Agent;
-use Domain\Agent\Services\FileAnalyzer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
+use Domain\Knowledge\Source\File\Data\UploadedSourceFileData;
+use Domain\Knowledge\Source\File\Exceptions\UnsupportedSourceFileException;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Illuminate\Http\UploadedFile;
+use Domain\Knowledge\Source\File\Services\FileAnalyzer;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
+use Illuminate\Http\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use RuntimeException;
 use Throwable;
 
 /**
- * Persist a knowledge-source upload to disk, attach it to the agent, and
- * queue ingestion. Throws when the file type is not one the document ingestion accepts
- * (see config/mimes.php `ocr`) nor audio/video — the controller maps that to a
- * 422.
+ * Stores an uploaded knowledge file and attaches it to the agent. The file is
+ * keyed to the agent's owner (the workspace), measured for the quota (pages or
+ * minutes), and left in the "uploaded" state until the owner starts training.
  *
- * Body previously lived on Agent::addFile() — moved here so the model
- * carries data + relations and the orchestration (storage write, analyzer
- * call, pivot attach, S3 cleanup on failure) lives in an Action.
+ * The stored object is written before the database rows; when the rows fail,
+ * the object is deleted again so no orphan file stays in storage.
  */
 class UploadKnowledgeSourceFileAction
 {
+    public function __construct(
+        private readonly FileAnalyzer $analyzer,
+    ) {}
+
+    /**
+     * @throws UnsupportedSourceFileException when the knowledge base cannot ingest the file type
+     */
     public function execute(
         Agent $agent,
-        UploadedFile $file,
+        UploadedSourceFileData $upload,
         SourceStatus $status = SourceStatus::Uploaded,
     ): SourceFile {
-        if (! is_ocr_supported($file) && ! is_audio_file($file) && ! is_video_file($file)) {
-            throw new RuntimeException('Unsupported file type.');
+        if (! $upload->isSupported()) {
+            throw new UnsupportedSourceFileException;
         }
 
-        $path = Storage::putFile(
-            path: 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/files',
-            file: $file,
-        );
+        // Stored under a random name with the extension guessed from the content.
+        $path = Storage::putFile(KnowledgeStoragePath::forAgent($agent, 'files'), new File($upload->path));
 
         try {
-            return DB::transaction(function () use ($agent, $file, $path, $status): SourceFile {
-                $analyzer = FileAnalyzer::analyze($file);
+            return DB::transaction(function () use ($agent, $upload, $path, $status): SourceFile {
+                $analysis = $this->analyzer->analyze($upload->path, $upload->extension());
 
-                /** @var SourceFile $sourceFile */
                 $sourceFile = SourceFile::create([
                     'user_id' => $agent->user_id,
-                    'filename' => $file->getClientOriginalName(),
-                    'filetype' => file_category($file),
+                    'filename' => $upload->originalName,
+                    'filetype' => $upload->category(),
                     'filepath' => $path,
-                    'size_in_kb' => round($file->getSize() / 1024),
-                    'mime_type' => $file->getClientMimeType(),
-                    'checksum' => md5_file($file->getPathname()),
-                    'status' => $status->value,
-                    'length' => $analyzer->length,
-                    'metadata' => $analyzer->toArray(),
+                    'size_in_kb' => round($upload->sizeInBytes / 1024),
+                    'mime_type' => $upload->clientMimeType,
+                    'checksum' => md5_file($upload->path),
+                    'status' => $status,
+                    'length' => $analysis->length,
+                    'metadata' => $analysis->toArray(),
                 ]);
 
                 $sourceFile->agents()->attach($agent->id);
@@ -61,8 +65,6 @@ class UploadKnowledgeSourceFileAction
                 return $sourceFile;
             });
         } catch (Throwable $e) {
-            // The transaction rolled back, but Storage::putFile is outside the
-            // DB scope — clean up the orphaned S3 object before bubbling.
             Storage::delete($path);
 
             throw $e;

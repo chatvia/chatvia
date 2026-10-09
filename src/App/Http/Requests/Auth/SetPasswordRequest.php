@@ -8,6 +8,9 @@ use App\Identity\Workspace\Services\PasswordSetup;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
+/**
+ * First-time password choice for an account created by the trial checkout.
+ */
 class SetPasswordRequest extends FormRequest
 {
     public function authorize(): bool

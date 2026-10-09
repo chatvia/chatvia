@@ -4,6 +4,10 @@ namespace App\Identity\ApiKey\Data;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * A newly created API key, including the plain-text value that is shown only
+ * once.
+ */
 class CreatedApiKeyData extends Data
 {
     public function __construct(

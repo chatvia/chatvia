@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\Agent\Handoff;
 
+use App\Http\Resources\Handoff\HandoffReturnResultData;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Handoff\ReturnConversationToAiAction;
-use Domain\Conversation\Data\Handoff\HandoffReturnResultData;
-use Domain\Conversation\Exceptions\HandoffOperationException;
 use Domain\Conversation\Models\Conversation;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * The operator who holds a conversation hands it back to the AI. Agent access
+ * is checked by the route's `can.access.agent` middleware.
+ */
 class ReturnHandoffController
 {
     public function __invoke(
@@ -17,19 +19,15 @@ class ReturnHandoffController
         Agent $agent,
         Conversation $conversation,
         ReturnConversationToAiAction $returnToAi,
-    ): JsonResponse|HandoffReturnResultData {
-        try {
-            if (! $conversation->isOperableBy($request->user(), $agent)) {
-                throw HandoffOperationException::unauthorized();
-            }
+    ): HandoffReturnResultData {
+        abort_unless($conversation->belongsToAgent($agent), 403, __('Unauthorized.'));
 
-            if (! $returnToAi->execute($conversation, $request->user())) {
-                throw HandoffOperationException::conflict('Unable to return this conversation to AI.');
-            }
+        abort_unless(
+            $returnToAi->execute($conversation, $request->user()),
+            409,
+            __('Unable to return this conversation to AI.'),
+        );
 
-            return HandoffReturnResultData::ok();
-        } catch (HandoffOperationException $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], $e->status);
-        }
+        return HandoffReturnResultData::returned();
     }
 }

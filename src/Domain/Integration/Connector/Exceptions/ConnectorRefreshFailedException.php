@@ -2,7 +2,7 @@
 
 namespace Domain\Integration\Connector\Exceptions;
 
-use Domain\Integration\Mcp\Services\McpException;
+use Domain\Integration\Mcp\Exceptions\McpException;
 use RuntimeException;
 use Throwable;
 
@@ -16,7 +16,7 @@ class ConnectorRefreshFailedException extends RuntimeException
     public static function because(Throwable $cause): self
     {
         return new self(
-            $cause instanceof McpException ? $cause->getMessage() : 'Could not refresh the connector.',
+            $cause instanceof McpException ? $cause->getMessage() : __('Could not refresh the connector.'),
             previous: $cause,
         );
     }

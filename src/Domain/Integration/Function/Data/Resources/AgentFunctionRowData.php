@@ -36,7 +36,7 @@ class AgentFunctionRowData extends Data
             display_name: $function->display_name,
             description: $function->description,
             webhook_url: $function->webhook_url,
-            webhook_method: $function->webhook_method,
+            webhook_method: $function->webhook_method->value,
             is_enabled: (bool) $function->is_enabled,
             last_error: $function->last_error,
             is_attached: $isAttached,

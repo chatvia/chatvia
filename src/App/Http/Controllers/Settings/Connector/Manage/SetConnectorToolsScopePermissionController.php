@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Settings\Connector\Manage;
 
 use App\Http\Requests\Settings\Connector\SetConnectorToolsScopePermissionRequest;
-use Domain\Integration\Mcp\Actions\SetMcpToolsScopePermissionAction;
+use Domain\Integration\Mcp\Actions\Permissions\SetMcpToolsScopePermissionAction;
 use Domain\Integration\Mcp\Data\McpToolsScopePermissionData;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 

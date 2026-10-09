@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Ingestion\Jobs\TextFile;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Documents\IngestTextFileAction;
+use Domain\Knowledge\Ingestion\Actions\Pipeline\MarkSourceFailedAction;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
@@ -11,15 +12,11 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Ingest a text SourceFile (.txt, .md/.markdown, and Pandoc-extracted ebooks
- * .epub/.fb2) by splitting its content directly with the TextSplitter — the document/OCR
- * pipeline (DocumentIngestionJob) is bypassed because the text is already
- * chunk-ready. Mirrors DocumentIngestionJob's lifecycle handling; the per-chunk
- * embedding work is shared via DocumentChunkIngestionJob.
+ * Splits a text file (.txt, .md, or an ebook read by Pandoc) and starts its
+ * chunk batch, without the document parser. See {@see IngestTextFileAction}.
  */
 class TextFileIngestionJob implements ShouldBeUnique, ShouldQueue
 {
@@ -59,6 +56,9 @@ class TextFileIngestionJob implements ShouldBeUnique, ShouldQueue
         return $this->uniqueFor;
     }
 
+    /**
+     * @return list<string>
+     */
     public function tags(): array
     {
         return [
@@ -69,16 +69,6 @@ class TextFileIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        Log::error('TextFileIngestionJob failed', [
-            'source_file_id' => $this->sourceFile->id,
-            'job_id' => $this->job?->getJobId(),
-            'error' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString(),
-        ]);
-
-        $this->sourceFile->update([
-            'status' => 'failed',
-            'failure_reason' => $exception->getMessage(),
-        ]);
+        app(MarkSourceFailedAction::class)->execute($this->sourceFile, $this->agent, $exception);
     }
 }

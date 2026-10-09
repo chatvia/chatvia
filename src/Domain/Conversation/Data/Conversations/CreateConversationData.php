@@ -2,22 +2,22 @@
 
 namespace Domain\Conversation\Data\Conversations;
 
-use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\CreateConversationAction;
+use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Models\Attachment;
 use Spatie\LaravelData\Data;
 
+/**
+ * A hosted-chat visitor's first message, which opens a new conversation
+ * ({@see CreateConversationAction}).
+ */
 class CreateConversationData extends Data
 {
     /**
-     * @param  array<int, string>  $attachmentIds  External UUIDs of orphan
-     *                                             {@see Attachment}
-     *                                             rows uploaded before the conversation
-     *                                             existed — claimed by
-     *                                             {@see CreateConversationAction}.
+     * @param  array<int, string>  $attachmentIds  external ids of {@see Attachment} rows uploaded before the conversation existed; the new conversation claims them
      */
     public function __construct(
-        public Agent $agent,
+        public ChatScopeData $scope,
         public string $message,
         public ?string $ipAddress = null,
         public ?string $userAgent = null,
@@ -25,9 +25,8 @@ class CreateConversationData extends Data
         public ?string $pageUrl = null,
         public ?string $locale = null,
         public array $attachmentIds = [],
-        // The authenticated chatter creating this conversation on the hosted
-        // /chat surface, or null for owner/employee senders. Stamps the first
-        // user message's Session.user_id (per-chatter limit + analytics).
+        // The signed-in chatter, or null for owner/teammate senders. Stamps
+        // the session's user (per-chatter limit and analytics).
         public ?int $chatterUserId = null,
     ) {}
 }

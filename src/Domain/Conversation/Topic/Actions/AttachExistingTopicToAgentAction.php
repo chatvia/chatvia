@@ -6,6 +6,9 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\Topic;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * Adds an existing topic (global, or the workspace's own) to an agent.
+ */
 class AttachExistingTopicToAgentAction
 {
     /**

@@ -7,6 +7,9 @@ use Domain\Conversation\Data\Handoff\SendHandoffAdminMessageData;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates an operator's reply into a handed-off conversation.
+ */
 class AgentHandoffMessageRequest extends FormRequest
 {
     public function authorize(): bool

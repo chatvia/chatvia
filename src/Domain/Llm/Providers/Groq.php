@@ -4,6 +4,9 @@ namespace Domain\Llm\Providers;
 
 use Domain\Llm\AbstractLlmProvider;
 
+/**
+ * Chat completions through Groq's OpenAI-compatible API.
+ */
 class Groq extends AbstractLlmProvider
 {
     /**

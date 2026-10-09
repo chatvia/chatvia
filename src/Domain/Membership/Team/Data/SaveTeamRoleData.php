@@ -5,6 +5,10 @@ namespace Domain\Membership\Team\Data;
 use Domain\Membership\Team\Models\Team;
 use Spatie\LaravelData\Data;
 
+/**
+ * Input for creating or updating a team role: its name, permission codes, and
+ * agent access (every agent, or the listed agent external ids).
+ */
 class SaveTeamRoleData extends Data
 {
     /**

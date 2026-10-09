@@ -1,14 +1,15 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Teams\Actions\HandleTeamsActivityAction;
+use Domain\Channel\Teams\Data\TeamsActivityData;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Teams\Models\TeamsChat;
+use Domain\Channel\Teams\Services\TeamsAdapter;
 use Domain\Channel\Teams\Services\TeamsChatResolver;
-use Domain\Channel\Teams\Services\TeamsReplyRunner;
-use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Illuminate\Support\Str;
+use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Teams\FakeTeamsClient;
 
 /**
@@ -32,38 +33,15 @@ function teamsHandleBot(bool $public = true): AgentTeamsBot
 }
 
 /**
- * @param  list<string>  $partials
+ * Run one Teams activity through the handle action, wired to the stubbed
+ * pipeline.
+ *
+ * @param  array<string, mixed>  $activity
  */
-function stubTeamsReplyRunner(string $reply, array $partials = []): TeamsReplyRunner
+function teamsHandle(FakeTeamsClient $client, StubChannelReplyRunner $runner, AgentTeamsBot $bot, array $activity): void
 {
-    return new class($reply, $partials) extends TeamsReplyRunner
-    {
-        public ?string $received = null;
-
-        public function __construct(private string $canned, private array $partials) {}
-
-        public function reply(TeamsChat $chat, string $message, ?Closure $onPartial = null): string
-        {
-            $this->received = $message;
-
-            foreach ($this->partials as $partial) {
-                if ($onPartial !== null) {
-                    $onPartial($partial);
-                }
-            }
-
-            return $this->canned;
-        }
-    };
-}
-
-function teamsHandleAction(FakeTeamsClient $client, TeamsReplyRunner $runner): HandleTeamsActivityAction
-{
-    return new HandleTeamsActivityAction(
-        new TeamsChatResolver(app(ChatMemory::class)),
-        $runner,
-        $client,
-        new ChannelAccessGate,
+    (new HandleTeamsActivityAction($runner->handler()))->execute(
+        new TeamsAdapter($client, new TeamsChatResolver(app(StartConversationAction::class)), $bot, TeamsActivityData::fromArray($activity)),
     );
 }
 
@@ -87,9 +65,9 @@ function teamsHandleActivity(array $overrides = []): array
 it('posts a placeholder, streams partials into it, and lands the final reply', function (): void {
     $bot = teamsHandleBot();
     $client = new FakeTeamsClient;
-    $runner = stubTeamsReplyRunner('Hello from the agent', ['Hello', 'Hello from']);
+    $runner = new StubChannelReplyRunner('Hello from the agent', ['Hello', 'Hello from']);
 
-    teamsHandleAction($client, $runner)->execute($bot, teamsHandleActivity());
+    teamsHandle($client, $runner, $bot, teamsHandleActivity());
 
     // One placeholder post, then a partial edit per push + the final edit.
     expect($client->posted)->toHaveCount(1)
@@ -102,7 +80,7 @@ it('posts a placeholder, streams partials into it, and lands the final reply', f
         ->and($client->updates[2]['markdown'])->toBe('Hello from the agent')
         ->and($client->updates[2]['activityId'])->toBe($client->nextActivityId);
 
-    expect($runner->received)->toBe('hi there');
+    expect($runner->received())->toBe('hi there');
 
     $chat = TeamsChat::query()->firstOrFail();
     expect($chat->conversation_id)->toBe('a:1conversation')
@@ -112,7 +90,7 @@ it('posts a placeholder, streams partials into it, and lands the final reply', f
 it('strips the bot’s own mention through the mention entity', function (): void {
     $bot = teamsHandleBot();
     $client = new FakeTeamsClient;
-    $runner = stubTeamsReplyRunner('ok');
+    $runner = new StubChannelReplyRunner('ok');
 
     $activity = teamsHandleActivity([
         'text' => '<at>Support Bot</at> what are your opening hours?',
@@ -126,15 +104,15 @@ it('strips the bot’s own mention through the mention entity', function (): voi
         ],
     ]);
 
-    teamsHandleAction($client, $runner)->execute($bot, $activity);
+    teamsHandle($client, $runner, $bot, $activity);
 
-    expect($runner->received)->toBe('what are your opening hours?');
+    expect($runner->received())->toBe('what are your opening hours?');
 });
 
 it('unwraps other people’s mentions instead of dropping them', function (): void {
     $bot = teamsHandleBot();
     $client = new FakeTeamsClient;
-    $runner = stubTeamsReplyRunner('ok');
+    $runner = new StubChannelReplyRunner('ok');
 
     $activity = teamsHandleActivity([
         'text' => '<at>Support Bot</at> summarize what <at>Lina</at> asked',
@@ -152,18 +130,18 @@ it('unwraps other people’s mentions instead of dropping them', function (): vo
         ],
     ]);
 
-    teamsHandleAction($client, $runner)->execute($bot, $activity);
+    teamsHandle($client, $runner, $bot, $activity);
 
-    expect($runner->received)->toBe('summarize what Lina asked');
+    expect($runner->received())->toBe('summarize what Lina asked');
 });
 
 it('keeps one chat mapping across multiple inbound activities', function (): void {
     $bot = teamsHandleBot();
     $client = new FakeTeamsClient;
-    $action = teamsHandleAction($client, stubTeamsReplyRunner('ok'));
+    $runner = new StubChannelReplyRunner('ok');
 
-    $action->execute($bot, teamsHandleActivity(['id' => 'act-1', 'text' => 'first']));
-    $action->execute($bot, teamsHandleActivity(['id' => 'act-2', 'text' => 'second']));
+    teamsHandle($client, $runner, $bot, teamsHandleActivity(['id' => 'act-1', 'text' => 'first']));
+    teamsHandle($client, $runner, $bot, teamsHandleActivity(['id' => 'act-2', 'text' => 'second']));
 
     expect(TeamsChat::query()->count())->toBe(1);
     expect($client->posted)->toHaveCount(2);
@@ -172,7 +150,7 @@ it('keeps one chat mapping across multiple inbound activities', function (): voi
 it('does nothing when the message is only the mention itself', function (): void {
     $bot = teamsHandleBot();
     $client = new FakeTeamsClient;
-    $runner = stubTeamsReplyRunner('should never run');
+    $runner = new StubChannelReplyRunner('should never run');
 
     $activity = teamsHandleActivity([
         'text' => '<at>Support Bot</at>',
@@ -185,10 +163,10 @@ it('does nothing when the message is only the mention itself', function (): void
         ],
     ]);
 
-    teamsHandleAction($client, $runner)->execute($bot, $activity);
+    teamsHandle($client, $runner, $bot, $activity);
 
     expect($client->posted)->toBeEmpty();
-    expect($runner->received)->toBeNull();
+    expect($runner->received())->toBeNull();
     expect(TeamsChat::query()->count())->toBe(0);
 });
 
@@ -196,20 +174,20 @@ it('bails before the pipeline when the placeholder cannot be posted', function (
     $bot = teamsHandleBot();
     $client = new FakeTeamsClient;
     $client->nextActivityId = null; // bot removed / expired secret
-    $runner = stubTeamsReplyRunner('should never run');
+    $runner = new StubChannelReplyRunner('should never run');
 
-    teamsHandleAction($client, $runner)->execute($bot, teamsHandleActivity());
+    teamsHandle($client, $runner, $bot, teamsHandleActivity());
 
-    expect($runner->received)->toBeNull();
+    expect($runner->received())->toBeNull();
     expect($client->updates)->toBeEmpty();
 });
 
 it('refuses to answer on a protected agent and creates no chat', function (): void {
     $bot = teamsHandleBot(public: false);
     $client = new FakeTeamsClient;
-    $runner = stubTeamsReplyRunner('should never be sent');
+    $runner = new StubChannelReplyRunner('should never be sent');
 
-    teamsHandleAction($client, $runner)->execute($bot, teamsHandleActivity());
+    teamsHandle($client, $runner, $bot, teamsHandleActivity());
 
     // Gated before the pipeline: a single "unavailable" notice, no chat row.
     expect($client->posted)->toHaveCount(1)

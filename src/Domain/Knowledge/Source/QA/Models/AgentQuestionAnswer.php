@@ -1,15 +1,19 @@
 <?php
 
-namespace Domain\Knowledge\Source\QA\Models;
+namespace Domain\Knowledge\Source\Qa\Models;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Source\QA\QueryBuilders\AgentQuestionAnswerQueryBuilder;
+use Domain\Knowledge\Source\Qa\QueryBuilders\AgentQuestionAnswerQueryBuilder;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
+ * A curated question-and-answer entry of one agent. When a visitor's message
+ * matches one of its questions as a phrase, the chat answers with the stored
+ * answer instead of the LLM. Questions are stored one per line.
+ *
  * @property int $id
  * @property int $agent_id
  * @property string $title

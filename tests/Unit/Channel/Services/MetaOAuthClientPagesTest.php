@@ -26,9 +26,9 @@ it('falls back to business-owned Pages when /me/accounts is empty', function ():
     $pages = (new MetaOAuthClient)->pages('USER-TOKEN');
 
     expect($pages)->toHaveCount(1)
-        ->and($pages[0]['id'])->toBe('PAGE-1')
-        ->and($pages[0]['name'])->toBe('ChatVia')
-        ->and($pages[0]['access_token'])->toBe('EAAG-page-token');
+        ->and($pages[0]->id)->toBe('PAGE-1')
+        ->and($pages[0]->name)->toBe('ChatVia')
+        ->and($pages[0]->access_token)->toBe('EAAG-page-token');
 });
 
 it('also picks up client (agency-managed) Pages', function (): void {
@@ -44,7 +44,7 @@ it('also picks up client (agency-managed) Pages', function (): void {
     $pages = (new MetaOAuthClient)->pages('USER-TOKEN');
 
     expect($pages)->toHaveCount(1)
-        ->and($pages[0]['id'])->toBe('PAGE-9');
+        ->and($pages[0]->id)->toBe('PAGE-9');
 });
 
 it('dedupes a Page that appears both personally and via a business (personal wins)', function (): void {
@@ -62,5 +62,5 @@ it('dedupes a Page that appears both personally and via a business (personal win
     $pages = (new MetaOAuthClient)->pages('USER-TOKEN');
 
     expect($pages)->toHaveCount(1)
-        ->and($pages[0]['access_token'])->toBe('EAAG-personal'); // first write wins
+        ->and($pages[0]->access_token)->toBe('EAAG-personal'); // first write wins
 });

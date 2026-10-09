@@ -7,15 +7,16 @@ use App\Http\Requests\Api\V1\Function\UpdateApiFunctionRequest;
 use App\Http\Resources\Api\V1\Tools\FunctionData;
 use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Integration\Function\Actions\CreateApiFunctionAction;
-use Domain\Integration\Function\Actions\UpdateApiFunctionAction;
+use Domain\Integration\Function\Actions\CreateAgentFunctionAction;
+use Domain\Integration\Function\Actions\UpdateAgentFunctionAction;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Account-level webhook-backed functions. Auth credentials are encrypted at
- * rest and never returned.
+ * Workspace webhook functions over the public API — the same Actions as the
+ * dashboard's Settings → Functions page. Credentials are encrypted at rest
+ * and never returned.
  */
 #[Group(name: 'Functions', weight: 60)]
 class FunctionController
@@ -40,13 +41,12 @@ class FunctionController
      *
      * @return array{data: FunctionData}
      */
-    public function store(StoreApiFunctionRequest $request, CreateApiFunctionAction $createFunction): array
+    public function store(StoreApiFunctionRequest $request, CreateAgentFunctionAction $createFunction): array
     {
         /** @var User $user */
         $user = $request->user();
-        $owner = $user->workspace();
 
-        return ['data' => FunctionData::fromModel($createFunction->execute($owner, $request->toData()))];
+        return ['data' => FunctionData::fromModel($createFunction->execute($user, $request->toData()))];
     }
 
     /**
@@ -66,7 +66,7 @@ class FunctionController
      *
      * @return array{data: FunctionData}
      */
-    public function update(UpdateApiFunctionRequest $request, AgentFunction $function, UpdateApiFunctionAction $updateFunction): array
+    public function update(UpdateApiFunctionRequest $request, AgentFunction $function, UpdateAgentFunctionAction $updateFunction): array
     {
         abort_if($request->user()->cannot('update', $function), 404);
 

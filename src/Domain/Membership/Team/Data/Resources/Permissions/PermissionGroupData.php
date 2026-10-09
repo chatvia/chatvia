@@ -5,6 +5,10 @@ namespace Domain\Membership\Team\Data\Resources\Permissions;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A card of related permissions on the role editor (e.g. "Chat", "Sources"),
+ * built from config('team-permissions.groups').
+ */
 #[TypeScript]
 class PermissionGroupData extends Data
 {

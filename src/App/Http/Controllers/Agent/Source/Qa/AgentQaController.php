@@ -7,9 +7,9 @@ use App\Http\Requests\Agent\Source\Qa\UpdateAgentQaRequest;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Enums\SourceStatus;
-use Domain\Knowledge\Source\QA\Actions\CreateAgentQaAction;
-use Domain\Knowledge\Source\QA\Actions\UpdateAgentQaAction;
-use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
+use Domain\Knowledge\Source\Qa\Actions\UpdateAgentQaAction;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,12 +17,17 @@ use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * The agent's curated Q&A entries: the page, the list, and creating, editing
+ * and deleting an entry. Agent access is checked by the route middleware; the
+ * `agent.sources.train.qa` and `agent.sources.delete` permissions too.
+ */
 class AgentQaController
 {
     public function index(Request $request, Agent $agent): Response|JsonResponse
     {
         if ($request->wantsJson()) {
-            return response()->json(['data' => $this->buildQaList($agent)]);
+            return response()->json(['data' => $this->qaList($agent)]);
         }
 
         return Inertia::render('agents/Sources/Qa', [
@@ -30,82 +35,73 @@ class AgentQaController
         ]);
     }
 
-    public function show(Request $request, Agent $agent, int $id): JsonResponse
+    public function show(Agent $agent, int $id): JsonResponse
     {
-        $qa = AgentQuestionAnswer::query()
-            ->where('agent_id', $agent->id)
-            ->findOrFail($id);
-
-        return response()->json([
-            'id' => $qa->id,
-            'title' => $qa->title,
-            'questions' => $this->parseQuestionsToArray($qa->questions),
-            'answer' => $qa->answer,
-            'status' => SourceStatus::Completed->value,
-            'created_at' => $qa->created_at,
-            'updated_at' => $qa->updated_at,
-        ]);
+        return response()->json($this->qaRow($this->agentQa($agent, $id)));
     }
 
     public function store(CreateAgentQaRequest $request, Agent $agent, CreateAgentQaAction $createQa): RedirectResponse
     {
-        $createQa->execute(
-            agent: $agent,
-            title: (string) $request->validated('title'),
-            questions: (array) $request->validated('questions'),
-            answer: (string) $request->validated('answer'),
-        );
+        $createQa->execute($agent, $request->toData());
 
         return back();
     }
 
     public function update(UpdateAgentQaRequest $request, Agent $agent, int $id, UpdateAgentQaAction $updateQa): RedirectResponse
     {
-        $qa = AgentQuestionAnswer::query()
-            ->where('agent_id', $agent->id)
-            ->findOrFail($id);
-
-        $updateQa->execute(
-            qa: $qa,
-            title: (string) $request->validated('title'),
-            questions: (array) $request->validated('questions'),
-            answer: (string) $request->validated('answer'),
-        );
+        $updateQa->execute($this->agentQa($agent, $id), $request->toData());
 
         return back();
     }
 
-    public function destroy(Request $request, Agent $agent, int $id): JsonResponse
+    public function destroy(Agent $agent, int $id): JsonResponse
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
+        $this->agentQa($agent, $id)->delete();
 
-        $qa = AgentQuestionAnswer::query()
-            ->where('agent_id', $agent->id)
-            ->findOrFail($id);
-
-        $qa->delete();
-
-        return response()->json(['message' => 'Q&A entry deleted successfully']);
+        return response()->json(['message' => __('Q&A entry deleted successfully')]);
     }
 
-    private function buildQaList(Agent $agent): Collection
+    private function agentQa(Agent $agent, int $id): AgentQuestionAnswer
+    {
+        return AgentQuestionAnswer::query()
+            ->where('agent_id', $agent->id)
+            ->findOrFail($id);
+    }
+
+    /**
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function qaList(Agent $agent): Collection
     {
         return AgentQuestionAnswer::query()
             ->where('agent_id', $agent->id)
             ->latest()
             ->get()
-            ->map(fn (AgentQuestionAnswer $qa): array => [
-                'id' => $qa->id,
-                'title' => $qa->title,
-                'questions' => $this->parseQuestionsToArray($qa->questions),
-                'answer' => $qa->answer,
-                'status' => SourceStatus::Completed->value,
-                'created_at' => $qa->created_at,
-                'updated_at' => $qa->updated_at,
-            ]);
+            ->map(fn (AgentQuestionAnswer $qa): array => $this->qaRow($qa));
     }
 
-    private function parseQuestionsToArray(?string $questions): array
+    /**
+     * A Q&A entry needs no ingestion, so it always reports the ingested status.
+     *
+     * @return array<string, mixed>
+     */
+    private function qaRow(AgentQuestionAnswer $qa): array
+    {
+        return [
+            'id' => $qa->id,
+            'title' => $qa->title,
+            'questions' => $this->questionItems($qa->questions),
+            'answer' => $qa->answer,
+            'status' => SourceStatus::Completed->value,
+            'created_at' => $qa->created_at,
+            'updated_at' => $qa->updated_at,
+        ];
+    }
+
+    /**
+     * @return list<array{id: string, question: string}>
+     */
+    private function questionItems(?string $questions): array
     {
         if (empty($questions)) {
             return [];
@@ -119,6 +115,6 @@ class AgentQaController
                 'id' => md5($question),
                 'question' => $question,
             ])
-            ->toArray();
+            ->all();
     }
 }

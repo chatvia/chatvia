@@ -3,10 +3,14 @@
 namespace App\Http\Requests\Chat;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Conversations\CreateConversationData;
+use Domain\Conversation\Data\Memory\ChatScopeData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates a hosted-chat visitor's first message, which opens a new
+ * conversation.
+ */
 class CreateConversationRequest extends FormRequest
 {
     public function authorize(): bool
@@ -29,10 +33,10 @@ class CreateConversationRequest extends FormRequest
         ];
     }
 
-    public function toData(Agent $agent): CreateConversationData
+    public function toData(ChatScopeData $scope): CreateConversationData
     {
         return new CreateConversationData(
-            agent: $agent,
+            scope: $scope,
             message: $this->string('message')->toString(),
             ipAddress: $this->ip(),
             userAgent: $this->userAgent(),

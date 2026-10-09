@@ -9,6 +9,11 @@ use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Support\Facades\DB;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * Adds a YouTube video as a knowledge source of an agent. The video is keyed
+ * to the agent's owner (the workspace) and stays pending: video ingestion is
+ * not built yet.
+ */
 class AddAgentYoutubeVideoAction
 {
     /**
@@ -17,7 +22,7 @@ class AddAgentYoutubeVideoAction
     public function execute(Agent $agent, User $user, string $url): SourceYoutubeVideo
     {
         if (! $this->extractVideoId($url)) {
-            throw new DomainValidationException('url', 'Could not extract video ID from URL.');
+            throw new DomainValidationException('url', __('Could not extract video ID from URL.'));
         }
 
         $exists = $agent->youtubeVideos()
@@ -25,18 +30,18 @@ class AddAgentYoutubeVideoAction
             ->exists();
 
         if ($exists) {
-            throw new DomainValidationException('url', 'This YouTube video has already been added to this agent.');
+            throw new DomainValidationException('url', __('This YouTube video has already been added to this agent.'));
         }
 
         /** @var SourceYoutubeVideo $video */
         $video = DB::transaction(function () use ($agent, $url): SourceYoutubeVideo {
-            $video = SourceYoutubeVideo::create([
+            $video = SourceYoutubeVideo::query()->create([
                 // Knowledge belongs to the workspace, not whoever added it — key to
                 // the agent's owner so an employee's deletion can't cascade it away.
                 'user_id' => $agent->user_id,
                 'url' => $url,
                 'length' => 0,
-                'status' => SourceStatus::Pending->value,
+                'status' => SourceStatus::Pending,
             ]);
 
             $agent->youtubeVideos()->attach($video->id);

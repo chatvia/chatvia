@@ -2,22 +2,18 @@
 
 namespace App\Http\Controllers\Agent\Source\Qa;
 
-use Domain\Agent\Models\Agent;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 /**
- * Confirm-only endpoint for detaching a Q&A entry from this agent (the actual
- * detach is currently a no-op — Q&As live per-agent today and `destroy` deletes
- * them outright; this route exists so the UI can show a confirmation flow
- * symmetric with text/website detach).
+ * Confirm-only endpoint for detaching a Q&A entry from this agent. Q&A entries
+ * belong to one agent and `destroy` deletes them, so there is nothing to
+ * detach; the route exists so the UI can offer the same confirmation flow as
+ * for texts and websites. Agent access is checked by the route middleware.
  */
 class DetachAgentQaController
 {
-    public function __invoke(Request $request, Agent $agent, int $id): JsonResponse
+    public function __invoke(): JsonResponse
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        return response()->json(['message' => 'Q&A entry unlinked successfully']);
+        return response()->json(['message' => __('Q&A entry unlinked successfully')]);
     }
 }

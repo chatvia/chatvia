@@ -3,7 +3,11 @@
 namespace Domain\Channel\Telegram\Jobs;
 
 use Domain\Channel\Telegram\Actions\HandleTelegramUpdateAction;
+use Domain\Channel\Telegram\Data\TelegramSenderData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
+use Domain\Channel\Telegram\Services\TelegramAdapter;
+use Domain\Channel\Telegram\Services\TelegramChatResolver;
+use Domain\Channel\Telegram\Services\TelegramClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -29,8 +33,11 @@ class HandleTelegramUpdateJob implements ShouldQueue
         public readonly array $from,
     ) {}
 
-    public function handle(HandleTelegramUpdateAction $action): void
+    public function handle(HandleTelegramUpdateAction $action, TelegramClient $client, TelegramChatResolver $resolver): void
     {
-        $action->execute($this->bot, $this->chatId, $this->text, $this->from);
+        $action->execute(
+            new TelegramAdapter($client, $resolver, $this->bot, $this->chatId, TelegramSenderData::fromArray($this->from)),
+            $this->text,
+        );
     }
 }

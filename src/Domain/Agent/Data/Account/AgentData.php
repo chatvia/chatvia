@@ -4,6 +4,10 @@ namespace Domain\Agent\Data\Account;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * An agent's identity and addresses, the short shape other parts of the app
+ * pass around.
+ */
 class AgentData extends Data
 {
     public function __construct(

@@ -7,6 +7,11 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Public API gate (`api.owner`) for account-level operations only the
+ * workspace owner may run (for example managing teams and roles). Teammate
+ * and chatter tokens get a 403; admins pass.
+ */
 class EnsureApiWorkspaceOwner
 {
     /**
@@ -17,12 +22,11 @@ class EnsureApiWorkspaceOwner
         $user = $request->user();
 
         if (! $user instanceof User) {
-            abort(401);
+            abort(Response::HTTP_UNAUTHORIZED);
         }
 
-        // isWorkspace() === UserType::{Workspace, Admin} — i.e. not an employee
-        // or chatter token.
-        abort_unless($user->isWorkspace(), 403, 'This action requires workspace owner access.');
+        // isWorkspace() is true for workspace owners and admins only.
+        abort_unless($user->isWorkspace(), Response::HTTP_FORBIDDEN, __('This action requires workspace owner access.'));
 
         return $next($request);
     }

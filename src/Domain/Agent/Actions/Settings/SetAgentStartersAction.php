@@ -2,143 +2,119 @@
 
 namespace Domain\Agent\Actions\Settings;
 
+use Domain\Agent\Data\Settings\Copy\StarterData;
 use Domain\Agent\Models\Agent;
-use Domain\Llm\Operations\Translate\TextTranslator;
-use Domain\Llm\Usage\TokenUsageContext;
+use Domain\Agent\Services\AgentTextTranslator;
+use Domain\Agent\ValueObjects\TranslatableText;
 use Illuminate\Support\Str;
 
 /**
  * Replace an agent's conversation starters with the given ordered list and
- * (re)generate their AI translations into every supported language. Each entry
- * is `{ id, text, icon, translations, overrides }`: `text` is the base copy,
- * `translations` the AI output, `overrides` the owner's manual per-language
- * edits (which win over the AI output and are preserved across saves). Only
- * new/changed base texts are re-translated, so unchanged starters skip the LLM.
+ * (re)generate their AI translations into every enabled language. The owner's
+ * manual per-language edits win over the AI output and are kept across saves.
+ * A starter whose base text is unchanged and already translated into every
+ * enabled language keeps its translations, so only new or changed starters (or
+ * a newly enabled language) reach the translator.
  */
 class SetAgentStartersAction
 {
     public function __construct(
-        private readonly TextTranslator $translator,
-        private readonly TokenUsageContext $usage,
+        private readonly AgentTextTranslator $translator,
     ) {}
 
     /**
-     * @param  array<int, array{id?: string|null, text: string, icon?: string|null, overrides?: array<string, string>}>  $starters
-     * @return array<int, array{id: string, text: string, icon: string|null, translations: array<string, string>, overrides: array<string, string>}>
+     * @param  list<StarterData>  $starters
+     * @return list<StarterData>
      */
     public function execute(Agent $agent, array $starters): array
     {
-        $existing = collect($agent->resolvedStarters())
-            ->filter(fn ($s): bool => is_array($s) && isset($s['id']))
-            ->keyBy('id');
-
         $languages = $agent->enabledLanguages();
+        $previous = $this->previousCopy($agent);
 
+        /** @var array<string, array{icon: string|null, copy: TranslatableText}> $items keyed by starter id */
         $items = [];
-        $toTranslate = []; // shortKey => base text (short keys keep the LLM honest)
-        $keyToId = [];     // shortKey => starter id
 
-        foreach (array_values($starters) as $i => $starter) {
-            $text = trim((string) ($starter['text'] ?? ''));
+        foreach (array_values($starters) as $starter) {
+            $text = trim($starter->text);
 
             if ($text === '') {
                 continue;
             }
 
-            $id = (isset($starter['id']) && is_string($starter['id']) && $starter['id'] !== '')
-                ? $starter['id']
-                : (string) Str::uuid();
+            $id = $starter->id !== null && $starter->id !== '' ? $starter->id : (string) Str::uuid();
+            $copy = new TranslatableText($text, [], TranslatableText::onlyLanguages($starter->overrides, $languages));
 
-            $overrides = $this->cleanLocaleMap($starter['overrides'] ?? [], $languages);
+            // Keep the stored translations while the base text is unchanged and
+            // they cover every enabled language.
+            $before = $previous[$id] ?? null;
 
-            // Reuse stored translations when this starter's base text is unchanged
-            // AND they already cover every enabled language (re-translate when the
-            // owner just enabled a language the cached set doesn't cover yet).
-            $prev = $existing->get($id);
-            $reuse = is_array($prev)
-                && ($prev['text'] ?? null) === $text
-                && $this->covers($prev['translations'] ?? null, array_keys($languages));
-
-            if (! $reuse) {
-                $key = 'k'.$i;
-                $toTranslate[$key] = $text;
-                $keyToId[$key] = $id;
+            if ($before !== null && $before->base === $text && $before->isTranslatedInto(array_keys($languages))) {
+                $copy = $copy->withTranslations($before->translations);
             }
 
-            $items[$id] = [
-                'id' => $id,
-                'text' => $text,
-                'icon' => $starter['icon'] ?? null,
-                'translations' => $reuse ? $prev['translations'] : [],
-                'overrides' => $overrides,
-            ];
+            $items[$id] = ['icon' => $starter->icon, 'copy' => $copy];
         }
 
-        if ($toTranslate !== [] && $languages !== []) {
-            $translated = $this->usage->track(
-                $agent->user_id,
-                fn (): array => $this->translator->translate($toTranslate, $languages),
-                'translate',
-            );
+        $items = $this->translateMissing($agent, $items, array_keys($languages));
 
-            foreach ($translated as $key => $map) {
-                $id = $keyToId[$key] ?? null;
+        $final = array_map(
+            static fn (string $id, array $item): StarterData => StarterData::fromCopy($id, $item['icon'], $item['copy']),
+            array_keys($items),
+            $items,
+        );
 
-                if ($id !== null && isset($items[$id])) {
-                    $items[$id]['translations'] = $map;
-                }
-            }
-        }
-
-        $final = array_values($items);
-
-        $agent->starterSet()->updateOrCreate([], ['starters' => $final]);
+        $agent->starterSet()->updateOrCreate([], [
+            'starters' => array_map(static fn (StarterData $starter): array => $starter->toArray(), $final),
+        ]);
 
         return $final;
     }
 
     /**
-     * True when $translations already holds a non-empty entry for every enabled
-     * locale — i.e. there is nothing new to translate for this starter.
+     * The stored starters' copy, keyed by starter id.
      *
-     * @param  array<int, string>  $locales
+     * @return array<string, TranslatableText>
      */
-    private function covers(mixed $translations, array $locales): bool
+    private function previousCopy(Agent $agent): array
     {
-        if (! is_array($translations) || $translations === []) {
-            return false;
-        }
+        $previous = [];
 
-        foreach ($locales as $locale) {
-            $value = $translations[$locale] ?? null;
-
-            if (! is_string($value) || $value === '') {
-                return false;
+        foreach ($agent->resolvedStarters() as $starter) {
+            if (is_array($starter) && isset($starter['id'])) {
+                $previous[(string) $starter['id']] = TranslatableText::fromStored($starter);
             }
         }
 
-        return true;
+        return $previous;
     }
 
     /**
-     * Keep only non-empty string values for known locales.
+     * Translate the starters that still lack a language, in one call. Short
+     * keys (`k0`, `k1`, …) stand in for the ids so the model can't mangle them.
      *
-     * @param  array<string, mixed>  $map
-     * @param  array<string, string>  $languages
-     * @return array<string, string>
+     * @param  array<string, array{icon: string|null, copy: TranslatableText}>  $items
+     * @param  list<string>  $locales
+     * @return array<string, array{icon: string|null, copy: TranslatableText}>
      */
-    private function cleanLocaleMap(array $map, array $languages): array
+    private function translateMissing(Agent $agent, array $items, array $locales): array
     {
-        $clean = [];
+        $pending = [];
 
-        foreach ($map as $locale => $value) {
-            $value = is_string($value) ? trim($value) : '';
-
-            if ($value !== '' && isset($languages[(string) $locale])) {
-                $clean[(string) $locale] = $value;
+        foreach (array_keys($items) as $index => $id) {
+            if (! $items[$id]['copy']->isTranslatedInto($locales)) {
+                $pending['k'.$index] = $id;
             }
         }
 
-        return $clean;
+        $translated = $this->translator->translate(
+            $agent,
+            array_map(static fn (string $id): TranslatableText => $items[$id]['copy'], $pending),
+        );
+
+        foreach ($translated as $key => $copy) {
+            $items[$pending[$key]]['copy'] = $copy;
+        }
+
+        return $items;
     }
 }

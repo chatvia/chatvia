@@ -27,7 +27,7 @@ class UploadedSourceFileData extends Data
             name: $file->filename,
             mime_type: $file->mime_type,
             size_kb: $file->size_in_kb,
-            status: (string) $file->status,
+            status: $file->status->value,
         );
     }
 }

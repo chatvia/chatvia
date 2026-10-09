@@ -4,9 +4,9 @@ use Domain\Agent\Models\Agent;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Models\SlackChannel;
 use Domain\Channel\Slack\Services\SlackChannelResolver;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Str;
 use Tests\Support\Slack\FakeSlackClient;
 
@@ -33,7 +33,7 @@ function slackResolverApp(): AgentSlackApp
 
 function slackResolver(FakeSlackClient $client): SlackChannelResolver
 {
-    return new SlackChannelResolver(app(ChatMemory::class), $client);
+    return new SlackChannelResolver(app(StartConversationAction::class), $client);
 }
 
 it('creates a Session + Conversation + mapping on first contact', function (): void {

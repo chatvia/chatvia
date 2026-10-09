@@ -4,17 +4,16 @@ namespace App\Http\Controllers\Agent\Source\File\Manage;
 
 use Domain\Agent\Data\Resources\Sources\AgentSourcesStatsData;
 use Domain\Agent\Models\Agent;
-use Illuminate\Http\Request;
+use Domain\Agent\Queries\AgentSourceCountsQuery;
 
+/**
+ * Returns the counts shown on the agent's knowledge overview (trained files,
+ * websites, texts, …).
+ */
 class AgentKnowledgeSourcesStatsController
 {
-    public function __invoke(Request $request, Agent $agent): AgentSourcesStatsData
+    public function __invoke(Agent $agent, AgentSourceCountsQuery $counts): AgentSourcesStatsData
     {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
-
-        return AgentSourcesStatsData::fromAgent($agent);
+        return $counts->get($agent);
     }
 }

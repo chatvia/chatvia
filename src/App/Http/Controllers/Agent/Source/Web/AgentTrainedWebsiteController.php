@@ -2,27 +2,30 @@
 
 namespace App\Http\Controllers\Agent\Source\Web;
 
+use App\Http\Requests\Agent\Source\Web\LinkSourceWebsiteRequest;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Actions\AttachSourceToAgentAction;
+use Domain\Knowledge\Source\Actions\DetachSourceFromAgentAction;
 use Domain\Knowledge\Source\Enums\SourceStatus;
-use Domain\Knowledge\Source\Web\Actions\Source\AttachWebsiteToAgentAction;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
+/**
+ * The shared website pool of a workspace: lists trained websites an agent does
+ * not use yet, and links or unlinks one. Agent access is checked by the route
+ * middleware; access to the website by its policy.
+ */
 class AgentTrainedWebsiteController
 {
-    public function index(Request $request, Agent $agent): JsonResponse
+    public function index(Agent $agent): JsonResponse
     {
-        $currentIds = $agent->websites()->pluck('source_websites.id')->toArray();
-
         $websites = SourceWebsite::query()
-            ->where('user_id', $request->user()->id)
-            ->where('status', SourceStatus::Completed->value)
-            ->whereNotIn('id', $currentIds)
-            ->with(['agents' => function ($q) use ($agent): void {
-                $q->select('agents.id', 'agents.name')
-                    ->where('agents.id', '!=', $agent->id);
-            }])
+            // Websites belong to the workspace (the agent's owner), not to the
+            // teammate who is looking.
+            ->where('user_id', $agent->user_id)
+            ->where('status', SourceStatus::Completed)
+            ->whereDoesntHave('agents', fn ($query) => $query->where('agents.id', $agent->id))
+            ->with(['agents' => fn ($query) => $query->select('agents.id', 'agents.name')->where('agents.id', '!=', $agent->id)])
             ->withCount('urls')
             ->get()
             ->map(fn (SourceWebsite $website): array => [
@@ -30,39 +33,32 @@ class AgentTrainedWebsiteController
                 'url' => $website->url,
                 'urls_count' => $website->urls_count,
                 'created_at' => $website->created_at,
-                'agents' => $website->agents->map(fn (Agent $a): array => ['id' => $a->id, 'name' => $a->name]),
+                'agents' => $website->agents->map(fn (Agent $other): array => ['id' => $other->id, 'name' => $other->name]),
             ]);
 
         return response()->json($websites);
     }
 
-    public function store(Request $request, Agent $agent, int $websiteId, AttachWebsiteToAgentAction $attach): JsonResponse
+    public function store(LinkSourceWebsiteRequest $request, Agent $agent, int $websiteId, AttachSourceToAgentAction $attach): JsonResponse
     {
-        $request->validate(['website_id' => ['required', 'exists:source_websites,id']]);
-
-        /** @var SourceWebsite $website */
-        $website = SourceWebsite::findOrFail($websiteId);
+        $website = SourceWebsite::query()->findOrFail($websiteId);
 
         abort_if($request->user()->cannot('view', $website), 403);
 
         if (! $attach->execute($agent, $website)) {
-            return response()->json(['message' => 'This website is already attached to the agent.'], 422);
+            return response()->json(['message' => __('This website is already attached to the agent.')], 422);
         }
 
-        return response()->json(['message' => 'Website successfully attached to agent.']);
+        return response()->json(['message' => __('Website successfully attached to agent.')]);
     }
 
-    public function destroy(Request $request, Agent $agent, int $websiteId): JsonResponse
+    public function destroy(Agent $agent, int $websiteId, DetachSourceFromAgentAction $detach): JsonResponse
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
         /** @var SourceWebsite $website */
-        $website = $agent->websites()
-            ->where('source_websites.id', $websiteId)
-            ->firstOrFail();
+        $website = $agent->websites()->where('source_websites.id', $websiteId)->firstOrFail();
 
-        $agent->websites()->detach($website->id);
+        $detach->execute($agent, $website);
 
-        return response()->json(['message' => 'Website unlinked from agent successfully.']);
+        return response()->json(['message' => __('Website unlinked from agent successfully.')]);
     }
 }

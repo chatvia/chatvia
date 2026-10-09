@@ -3,31 +3,32 @@
 namespace Domain\Conversation\Services\Streaming\Sources;
 
 use Domain\Conversation\Services\ChatContext;
-use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
-use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Generator;
 use Throwable;
 
-class QASource
+/**
+ * Answers a turn with a curated Q&A entry whose question matched exactly, in
+ * the same envelope as an LLM answer. One delta carries the whole answer —
+ * no chunking and no server-side delay; a typing effect is the client's job.
+ * The reply is recorded and billed like any other answer.
+ */
+class QaSource
 {
     public function __construct(
-        private readonly ChatService $chatService,
+        private readonly AssistantReplyRecorder $replyRecorder,
     ) {}
 
     /**
-     * Stream a Q&A match using the same envelope as LLM streaming.
-     *
-     * One delta carries the full answer — no chunking, no server-side
-     * sleep. If a typing effect is desired, the client renders it.
-     *
-     * @return Generator<StreamEvent>
+     * @return Generator<int, StreamEvent>
      */
     public function events(ChatContext $context): Generator
     {
         $qaMatch = $context->qaMatch;
-        $answer = (string) $qaMatch->answer;
+        $answer = (string) $qaMatch?->answer;
         $assistantId = $context->assistantMessageId;
 
         $context->appendStreamedMessage($answer);
@@ -44,7 +45,7 @@ class QASource
 
             yield StreamEvent::delta($assistantId, $answer);
 
-            if ($context->requestData->streamSources) {
+            if ($context->requestData->streamSources && $qaMatch !== null) {
                 yield StreamEvent::sources($assistantId, [[
                     'id' => $qaMatch->id,
                     'chunk' => $answer,
@@ -57,27 +58,24 @@ class QASource
             }
 
             $context->markEndTime();
-            $this->chatService->handleChatCompletion($context);
+            $this->replyRecorder->recordCompletedReply($context);
 
-            yield StreamEvent::done(
-                $assistantId,
-                'complete',
-                $context->getResponseTimeMs(),
-            );
+            yield StreamEvent::done($assistantId, 'complete', $context->getResponseTimeMs());
         } catch (ClientDisconnected) {
-            $context->markEndTime();
-            $this->safeFinalize($context);
+            $this->recordAfterFailure($context);
         } catch (Throwable $e) {
-            $context->markEndTime();
-            $this->safeFinalize($context);
+            $this->recordAfterFailure($context);
             report($e);
         }
     }
 
-    private function safeFinalize(ChatContext $context): void
+    /** Keep the answer even when the stream broke; never throw from here. */
+    private function recordAfterFailure(ChatContext $context): void
     {
+        $context->markEndTime();
+
         try {
-            $this->chatService->handleChatCompletion($context);
+            $this->replyRecorder->recordCompletedReply($context);
         } catch (Throwable $e) {
             report($e);
         }

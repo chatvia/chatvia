@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Agent\Source\Youtube;
 
+use App\Http\Requests\Agent\Source\Youtube\AddYoutubeVideoRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
@@ -15,6 +16,11 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * The agent's YouTube sources: the page, the list, adding and removing a video.
+ * Behind the `youtube_sources` feature flag (video ingestion is not built yet).
+ * Agent access is checked by the route middleware.
+ */
 class AgentYoutubeController
 {
     public function index(Request $request, Agent $agent): Response|Collection
@@ -32,19 +38,13 @@ class AgentYoutubeController
         ]);
     }
 
-    public function store(Request $request, Agent $agent, AddAgentYoutubeVideoAction $add): JsonResponse
+    public function store(AddYoutubeVideoRequest $request, Agent $agent, AddAgentYoutubeVideoAction $add): JsonResponse
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        $request->validate([
-            'url' => ['required', 'url', 'regex:/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/'],
-        ], ['url.regex' => 'Please enter a valid YouTube URL.']);
-
         /** @var User $user */
         $user = $request->user();
 
         try {
-            $add->execute($agent, $user, $request->string('url')->toString());
+            $add->execute($agent, $user, $request->videoUrl());
         } catch (DomainValidationException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
@@ -52,19 +52,15 @@ class AgentYoutubeController
             ], 422);
         }
 
-        return response()->json(['message' => 'YouTube video added successfully.']);
+        return response()->json(['message' => __('YouTube video added successfully.')]);
     }
 
-    public function destroy(Request $request, Agent $agent, SourceYoutubeVideo $youtube, DeleteAgentYoutubeVideoAction $delete): JsonResponse
+    public function destroy(Agent $agent, SourceYoutubeVideo $youtube, DeleteAgentYoutubeVideoAction $delete): JsonResponse
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
-        abort_unless(
-            $agent->youtubeVideos()->where('source_youtube_videos.id', $youtube->id)->exists(),
-            404,
-        );
+        abort_unless($agent->youtubeVideos()->whereKey($youtube->id)->exists(), 404);
 
         $delete->execute($agent, $youtube);
 
-        return response()->json(['message' => 'YouTube video deleted successfully.']);
+        return response()->json(['message' => __('YouTube video deleted successfully.')]);
     }
 }

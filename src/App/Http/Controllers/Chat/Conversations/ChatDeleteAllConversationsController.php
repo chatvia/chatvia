@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
-use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Conversation\Services\Memory\TurnState;
-use Illuminate\Http\Request;
+use App\Http\Chat\HostedChatSession;
+use Domain\Conversation\Actions\Removal\DeleteSessionConversationsAction;
 
+/**
+ * Erases every conversation of the hosted-chat visitor's session.
+ */
 class ChatDeleteAllConversationsController
 {
-    public function __invoke(Request $request, ChatMemory $memory, TurnState $session): void
+    public function __invoke(DeleteSessionConversationsAction $deleteConversations, HostedChatSession $session): void
     {
-        $agent = current_agent();
-
-        $memory
-            ->withContext($agent, $session->firstOrCreateSession($agent))
-            ->deleteAllConversations();
+        $deleteConversations->execute($session->scope(current_agent()));
     }
 }

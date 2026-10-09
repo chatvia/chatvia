@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Responses\SseResponder;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Models\UserCredit;
@@ -8,7 +9,6 @@ use Domain\Conversation\Models\AgentActivity;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
-use Domain\Conversation\Services\Streaming\Sse\SseStreamer;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
@@ -39,7 +39,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * SSE wire format the transformer parses: the first stream emits a
  * `delta.tool_calls` chunk, the follow-up stream answers in plain text.
  *
- * The SseStreamer binding is swapped for a buffer-friendly subclass: the real
+ * The SseResponder binding is swapped for a buffer-friendly subclass: the real
  * pump() unconditionally closes every PHP output buffer (`while (ob_get_level()
  * > 0) ob_end_clean()`), which destroys PHPUnit's own output-capture buffer and
  * makes TestResponse::streamedContent() unusable in-process. The override emits
@@ -55,7 +55,7 @@ beforeEach(function (): void {
     // turn never tries to persist cost-tracking rows mid-stream.
     Spectra::fake();
 
-    app()->instance(SseStreamer::class, new class extends SseStreamer
+    app()->instance(SseResponder::class, new class extends SseResponder
     {
         public function respond(iterable $events): StreamedResponse
         {

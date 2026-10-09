@@ -4,6 +4,8 @@ use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
+use Domain\Security\Enums\GeoMode;
+use Domain\Security\Enums\IpAllowlistMode;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -100,7 +102,7 @@ it('persists network rules that keep the saver reachable', function (): void {
 
     $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->id);
 
-    expect($policy->ip_allowlist_mode)->toBe('dashboard')
+    expect($policy->ip_allowlist_mode)->toBe(IpAllowlistMode::Dashboard)
         ->and($policy->ip_allowlist)->toBe(['127.0.0.0/8', '203.0.113.0/24']);
 });
 
@@ -116,7 +118,7 @@ it('rejects rules that would lock the saver out', function (): void {
         ])
         ->assertSessionHasErrors('ip_allowlist');
 
-    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->ip_allowlist_mode)->toBe('off');
+    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->ip_allowlist_mode)->toBe(IpAllowlistMode::Off);
 });
 
 it('rejects a country rule that would lock the saver out — and never blames the IP', function (): void {
@@ -142,7 +144,26 @@ it('rejects a country rule that would lock the saver out — and never blames th
         ->and($message)->not->toContain('network');
 
     // Nothing persisted — the save was rejected.
-    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->geo_mode)->toBe('off');
+    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->geo_mode)->toBe(GeoMode::Off);
+});
+
+it('rejects a country rule that would lock the saver out while the IP allowlist is off', function (): void {
+    entitleSecurity($this->owner);
+
+    // The gate enforces the country rule even when the IP allowlist is off, so
+    // this save must be checked too (it used to be skipped).
+    Cache::put('security:geoip:127.0.0.1', 'us', now()->addDay());
+
+    $this->actingAs($this->owner)
+        ->put(route('security.update'), [
+            'ip_allowlist_mode' => 'off',
+            'ip_allowlist' => [],
+            'geo_mode' => 'deny',
+            'geo_countries' => ['us'],
+        ])
+        ->assertSessionHasErrors('ip_allowlist');
+
+    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->geo_mode)->toBe(GeoMode::Off);
 });
 
 it('rejects an invalid IP / CIDR entry', function (): void {

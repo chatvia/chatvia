@@ -3,13 +3,17 @@
 namespace Domain\Analytics\Services;
 
 use Domain\Agent\Models\Agent;
-use Domain\Analytics\Actions\AnalyzeMessageAction;
+use Domain\Analytics\Actions\Analysis\AnalyzeMessageAction;
 use Domain\Analytics\Data\ConversationAnalysisData;
 use Domain\Analytics\Enums\SentimentEnum;
 use Domain\Analytics\Enums\ToneEnum;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Services\StructuredCompletion;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 
 /**
@@ -17,15 +21,17 @@ use Illuminate\Support\Collection;
  * every existing topic that applies + emergent suggestions, plus sentiment,
  * tone and language. Uses the provider's json_schema response format, which
  * keeps sentiment/tone inside their enums when the model follows the schema.
+ * The prompts live in resources/prompts/analytics.
  *
- * When the response cannot be parsed (empty, cut off, not JSON) both methods
- * return null instead of a guessed "neutral" result, so callers save nothing
- * and the item can be analyzed again later.
+ * When the response cannot be parsed (empty, cut off, not JSON, or an HTTP
+ * error from the provider) both methods return null instead of a guessed
+ * "neutral" result, so callers save nothing and the item can be analyzed
+ * again later.
  */
 class ConversationAnalyzer
 {
     public function __construct(
-        private readonly LlmProviderInterface $provider,
+        private readonly StructuredCompletion $completion,
     ) {}
 
     public function analyze(string $transcript, Agent $agent): ?ConversationAnalysisData
@@ -33,58 +39,45 @@ class ConversationAnalyzer
         /** @var Collection<int, Topic> $topics */
         $topics = $agent->topics()->get();
 
-        $response = $this->provider->completion([
-            'model' => config('chatvia.ai.models.topic'),
-            'response_format' => [
-                'type' => 'json_schema',
-                'json_schema' => [
-                    'name' => 'conversation_analysis',
-                    'schema' => $this->schema(),
-                ],
+        $data = $this->ask(new ChatRequestData(
+            model: (string) config('chatvia.ai.models.topic'),
+            messages: [
+                ChatMessageData::system($this->conversationPrompt($topics, $this->pendingLabels($agent))),
+                ChatMessageData::user($transcript),
             ],
-            'messages' => [
-                ['role' => 'system', 'content' => $this->systemPrompt($topics, $this->pendingLabels($agent))],
-                ['role' => 'user', 'content' => $transcript],
-            ],
-        ]);
+            responseSchema: new ResponseSchemaData('conversation_analysis', $this->conversationSchema(), strict: false),
+        ));
 
-        // completion() returns a Laravel HTTP Response; pull the assistant content
-        // explicitly rather than relying on its string coercion (the raw body).
-        $content = $response->json('choices.0.message.content');
+        if ($data === null) {
+            return null;
+        }
 
-        return $this->parse(
-            is_string($content) ? $content : null,
-            allowedIds: $topics->pluck('id')->map(fn ($id): int => (int) $id)->all(),
-            existingNames: $topics->pluck('topic')->map(fn ($n): string => mb_strtolower(trim((string) $n)))->all(),
+        return new ConversationAnalysisData(
+            topicIds: $this->allowedTopicIds($data['topic_ids'] ?? [], $topics),
+            suggestedTopics: $this->newSuggestions($data['suggested_topics'] ?? [], $topics),
+            sentiment: $this->sentiment($data),
+            tone: $this->tone($data),
+            language: $this->normalizeLanguage($data['language'] ?? null),
         );
     }
 
     /**
      * Per-message variant: sentiment + tone only, no topic resolution. Used by
-     * {@see AnalyzeMessageAction} on the per-message
-     * analysis path. Returns the same structured-output shape minus topic_ids
-     * and language, so per-message and per-conversation analytics can never
-     * drift on the same input. Null when the response cannot be parsed.
+     * {@see AnalyzeMessageAction} on the per-message analysis path. Returns the
+     * same structured-output shape minus topic_ids and language, so
+     * per-message and per-conversation analytics can never drift on the same
+     * input. Null when the response cannot be parsed.
      */
     public function analyzeMessage(string $text): ?ConversationAnalysisData
     {
-        $response = $this->provider->completion([
-            'model' => config('chatvia.ai.models.tone'),
-            'response_format' => [
-                'type' => 'json_schema',
-                'json_schema' => [
-                    'name' => 'message_analysis',
-                    'schema' => $this->messageSchema(),
-                ],
+        $data = $this->ask(new ChatRequestData(
+            model: (string) config('chatvia.ai.models.tone'),
+            messages: [
+                ChatMessageData::system(trim(prompt('analytics/message-analysis'))),
+                ChatMessageData::user($text),
             ],
-            'messages' => [
-                ['role' => 'system', 'content' => $this->messageSystemPrompt()],
-                ['role' => 'user', 'content' => $text],
-            ],
-        ]);
-
-        $content = $response->json('choices.0.message.content');
-        $data = $this->decodeJson(is_string($content) ? $content : null);
+            responseSchema: new ResponseSchemaData('message_analysis', $this->messageSchema(), strict: false),
+        ));
 
         if ($data === null) {
             return null;
@@ -93,16 +86,45 @@ class ConversationAnalyzer
         return new ConversationAnalysisData(
             topicIds: [],
             suggestedTopics: [],
-            sentiment: SentimentEnum::tryFrom(strtolower((string) ($data['sentiment'] ?? ''))) ?? SentimentEnum::NEUTRAL,
-            tone: ToneEnum::tryFrom(strtolower((string) ($data['tone'] ?? ''))) ?? ToneEnum::NEUTRAL,
+            sentiment: $this->sentiment($data),
+            tone: $this->tone($data),
             language: null,
         );
     }
 
     /**
-     * Per-message schema: sentiment + tone only. Reads ToneEnum/SentimentEnum
-     * dynamically so adding a new value to either enum reaches both
-     * `analyze()` and `analyzeMessage()` without a parallel update.
+     * The decoded JSON reply, or null when there is none. A provider HTTP
+     * error counts as "no answer" so the item stays pending for a retry.
+     *
+     * @return array<array-key, mixed>|null
+     */
+    private function ask(ChatRequestData $request): ?array
+    {
+        try {
+            return $this->completion->send($request)->data;
+        } catch (RequestException) {
+            return null;
+        }
+    }
+
+    /**
+     * @param  Collection<int, Topic>  $topics
+     * @param  list<string>  $pendingLabels
+     */
+    private function conversationPrompt(Collection $topics, array $pendingLabels): string
+    {
+        $topicList = $topics->isEmpty()
+            ? '(none configured)'
+            : $topics->map(fn (Topic $topic): string => "  {$topic->id}: {$topic->topic}".($topic->description ? " — {$topic->description}" : ''))->implode("\n");
+
+        return trim(prompt('analytics/conversation-analysis', [
+            'topicList' => $topicList,
+            'pendingLabels' => $pendingLabels === [] ? '(none)' : implode(', ', $pendingLabels),
+        ]));
+    }
+
+    /**
+     * Per-message schema: sentiment + tone only.
      *
      * @return array<string, mixed>
      */
@@ -113,29 +135,10 @@ class ConversationAnalyzer
             'additionalProperties' => false,
             'required' => ['sentiment', 'tone'],
             'properties' => [
-                'sentiment' => [
-                    'type' => 'string',
-                    'description' => "The visitor's overall sentiment.",
-                    'enum' => array_column(SentimentEnum::cases(), 'value'),
-                ],
-                'tone' => [
-                    'type' => 'string',
-                    'description' => "The visitor's overall tone.",
-                    'enum' => ToneEnum::values(),
-                ],
+                'sentiment' => $this->sentimentProperty(),
+                'tone' => $this->toneProperty(),
             ],
         ];
-    }
-
-    private function messageSystemPrompt(): string
-    {
-        return <<<'PROMPT'
-        You analyse the sentiment and tone of a single visitor message to a
-        customer-support agent. Return only the structured JSON shape — do not
-        explain. Treat simple questions ("how do I X?", "what is your pricing?")
-        as NEUTRAL by default. Only mark Confused when the visitor explicitly
-        signals they are lost or struggling to understand after prior attempts.
-        PROMPT;
     }
 
     /**
@@ -145,7 +148,7 @@ class ConversationAnalyzer
      *
      * @return array<string, mixed>
      */
-    private function schema(): array
+    private function conversationSchema(): array
     {
         return [
             'type' => 'object',
@@ -162,16 +165,8 @@ class ConversationAnalyzer
                     'description' => 'Short Title Case labels (1-4 words) for distinct themes no existing topic covers; empty if all covered.',
                     'items' => ['type' => 'string'],
                 ],
-                'sentiment' => [
-                    'type' => 'string',
-                    'description' => "The visitor's overall sentiment.",
-                    'enum' => array_column(SentimentEnum::cases(), 'value'),
-                ],
-                'tone' => [
-                    'type' => 'string',
-                    'description' => "The visitor's overall tone.",
-                    'enum' => ToneEnum::values(),
-                ],
+                'sentiment' => $this->sentimentProperty(),
+                'tone' => $this->toneProperty(),
                 'language' => [
                     'type' => 'string',
                     'description' => 'ISO 639-1 two-letter language code of the conversation, e.g. en, es, fr, ar.',
@@ -181,95 +176,83 @@ class ConversationAnalyzer
     }
 
     /**
-     * @param  Collection<int, Topic>  $topics
-     * @param  string[]  $pendingLabels
+     * Read from the enum, so a new sentiment value reaches both schemas.
+     *
+     * @return array<string, mixed>
      */
-    private function systemPrompt(Collection $topics, array $pendingLabels): string
+    private function sentimentProperty(): array
     {
-        $topicList = $topics->isEmpty()
-            ? '(none configured)'
-            : $topics->map(fn ($t): string => "  {$t->id}: {$t->topic}".($t->description ? " — {$t->description}" : ''))->implode("\n");
-
-        $pending = empty($pendingLabels) ? '(none)' : implode(', ', $pendingLabels);
-
-        return <<<PROMPT
-        Analyze the following conversation transcript between an AI agent and a visitor.
-        Detect the language, the visitor's sentiment and tone, which of the agent's
-        existing topics apply, and any emergent themes no existing topic covers.
-
-        EXISTING TOPICS (id: name):
-        {$topicList}
-
-        PENDING SUGGESTED TOPICS (reuse one of these labels verbatim if it fits, instead of inventing a near-duplicate):
-        {$pending}
-
-        Pick every existing topic that genuinely applies. Only suggest a new topic
-        when no existing one fits that theme; keep suggested labels generic and
-        reusable across conversations, not specific to this one.
-        PROMPT;
+        return [
+            'type' => 'string',
+            'description' => "The visitor's overall sentiment.",
+            'enum' => array_column(SentimentEnum::cases(), 'value'),
+        ];
     }
 
     /**
-     * @param  int[]  $allowedIds
-     * @param  string[]  $existingNames  lower-cased existing topic names
+     * @return array<string, mixed>
      */
-    private function parse(?string $content, array $allowedIds, array $existingNames): ?ConversationAnalysisData
+    private function toneProperty(): array
     {
-        $data = $this->decodeJson($content);
+        return [
+            'type' => 'string',
+            'description' => "The visitor's overall tone.",
+            'enum' => ToneEnum::values(),
+        ];
+    }
 
-        if ($data === null) {
-            // Malformed / empty response — return nothing rather than guessing,
-            // so the caller leaves the conversation pending for a later retry.
-            return null;
-        }
+    /**
+     * @param  array<array-key, mixed>  $data
+     */
+    private function sentiment(array $data): SentimentEnum
+    {
+        return SentimentEnum::tryFrom(strtolower((string) ($data['sentiment'] ?? ''))) ?? SentimentEnum::NEUTRAL;
+    }
 
-        $topicIds = collect($data['topic_ids'] ?? [])
-            ->map(fn ($id): int => (int) $id)
-            ->filter(fn ($id): bool => in_array($id, $allowedIds, true))
+    /**
+     * @param  array<array-key, mixed>  $data
+     */
+    private function tone(array $data): ToneEnum
+    {
+        return ToneEnum::tryFrom(strtolower((string) ($data['tone'] ?? ''))) ?? ToneEnum::NEUTRAL;
+    }
+
+    /**
+     * Only ids of topics the agent actually has.
+     *
+     * @param  Collection<int, Topic>  $topics
+     * @return list<int>
+     */
+    private function allowedTopicIds(mixed $ids, Collection $topics): array
+    {
+        $allowed = $topics->pluck('id')->map(fn (mixed $id): int => (int) $id)->all();
+
+        return collect(is_array($ids) ? $ids : [])
+            ->map(fn (mixed $id): int => (int) $id)
+            ->filter(fn (int $id): bool => in_array($id, $allowed, true))
             ->unique()
             ->values()
             ->all();
-
-        $suggested = collect($data['suggested_topics'] ?? [])
-            ->filter(fn ($l): bool => is_string($l) && trim($l) !== '')
-            ->map(fn ($l): string => trim($l))
-            ->reject(fn ($l): bool => in_array(mb_strtolower($l), $existingNames, true))
-            ->unique(fn ($l): string => mb_strtolower($l))
-            ->values()
-            ->all();
-
-        return new ConversationAnalysisData(
-            topicIds: $topicIds,
-            suggestedTopics: $suggested,
-            sentiment: SentimentEnum::tryFrom(strtolower((string) ($data['sentiment'] ?? ''))) ?? SentimentEnum::NEUTRAL,
-            tone: ToneEnum::tryFrom(strtolower((string) ($data['tone'] ?? ''))) ?? ToneEnum::NEUTRAL,
-            language: $this->normalizeLanguage($data['language'] ?? null),
-        );
     }
 
     /**
-     * Decode the JSON object in the response. With structured output the content
-     * is already a clean JSON object; the substring guard just tolerates a model
-     * that wraps it in prose or fences.
+     * Suggested labels, trimmed and de-duplicated, minus any that match an
+     * existing topic name.
      *
-     * @return array<string, mixed>|null
+     * @param  Collection<int, Topic>  $topics
+     * @return list<string>
      */
-    private function decodeJson(?string $content): ?array
+    private function newSuggestions(mixed $labels, Collection $topics): array
     {
-        if (! is_string($content) || $content === '') {
-            return null;
-        }
+        $existingNames = $topics->pluck('topic')->map(fn (mixed $name): string => mb_strtolower(trim((string) $name)))->all();
 
-        $start = strpos($content, '{');
-        $end = strrpos($content, '}');
-
-        if ($start === false || $end === false || $end < $start) {
-            return null;
-        }
-
-        $data = json_decode(substr($content, $start, $end - $start + 1), true);
-
-        return is_array($data) ? $data : null;
+        return collect(is_array($labels) ? $labels : [])
+            ->filter(fn (mixed $label): bool => is_string($label) && trim($label) !== '')
+            ->map(fn (string $label): string => trim($label))
+            ->reject(fn (string $label): bool => in_array(mb_strtolower($label), $existingNames, true))
+            ->unique(fn (string $label): string => mb_strtolower($label))
+            ->values()
+            ->all();
     }
 
     private function normalizeLanguage(mixed $language): ?string
@@ -287,13 +270,13 @@ class ConversationAnalyzer
      * Distinct emergent labels already pending for this agent — fed back to the
      * model so it reuses an existing label instead of coining a near-duplicate.
      *
-     * @return string[]
+     * @return list<string>
      */
     private function pendingLabels(Agent $agent): array
     {
         return ConversationTopic::query()
             ->whereNotNull('suggested_label')
-            ->whereHas('conversation.session', fn ($q) => $q->where('agent_id', $agent->id))
+            ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id))
             ->distinct()
             ->pluck('suggested_label')
             ->all();

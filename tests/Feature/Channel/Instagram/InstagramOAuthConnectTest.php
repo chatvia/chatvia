@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Channel\Instagram\Data\InstagramAccountData;
 use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Domain\Channel\Instagram\Services\InstagramClient;
 use Domain\Channel\Services\MetaOAuthClient;
@@ -39,7 +40,7 @@ class FakeInstagramOAuthClient extends MetaOAuthClient
 
     public function pagesWithInstagram(string $userToken): array
     {
-        return $this->accountsList;
+        return array_map(static fn (array $account): InstagramAccountData => InstagramAccountData::from($account), $this->accountsList);
     }
 }
 

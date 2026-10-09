@@ -6,6 +6,12 @@ use Domain\Llm\Providers\Scaleway;
 use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Http;
 
+/**
+ * Embeddings from the open-weight Qwen3-Embedding model, served by an OpenAI-
+ * compatible `/embeddings` endpoint (Scaleway Generative APIs by default).
+ * Queries get the instruction prefix the model was trained with; documents do
+ * not. Token usage is added to the open workspace scope.
+ */
 class Qwen3 extends AbstractEmbeddingsProvider
 {
     /**

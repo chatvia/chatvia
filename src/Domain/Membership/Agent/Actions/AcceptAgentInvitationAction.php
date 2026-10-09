@@ -47,7 +47,10 @@ class AcceptAgentInvitationAction
             if (! hash_equals(strtolower($invitedEmail), strtolower($socialEmail))) {
                 throw new AgentChatterInvitationRejectedException(
                     'email',
-                    "This invitation was sent to {$invitedEmail}. Sign in with the {$data->socialProvider?->value} account that uses the same email.",
+                    __('This invitation was sent to :email. Sign in with the :provider account that uses the same email.', [
+                        'email' => $invitedEmail,
+                        'provider' => $data->socialProvider?->value,
+                    ]),
                 );
             }
         }
@@ -100,14 +103,14 @@ class AcceptAgentInvitationAction
         if ($invitation === null || $invitation->agent === null) {
             throw new AgentChatterInvitationRejectedException(
                 'invitation',
-                'This invitation is no longer valid. Ask the agent owner to send a new one.',
+                __('This invitation is no longer valid. Ask the agent owner to send a new one.'),
             );
         }
 
         if ($invitation->hasExpired()) {
             throw new AgentChatterInvitationRejectedException(
                 'invitation',
-                'This invitation has expired. Ask the agent owner to send a new one.',
+                __('This invitation has expired. Ask the agent owner to send a new one.'),
             );
         }
 
@@ -126,21 +129,21 @@ class AcceptAgentInvitationAction
         if ($chatter === null) {
             throw new AgentChatterInvitationRejectedException(
                 'invitation',
-                'This invitation is no longer valid. Ask the agent owner to send a new one.',
+                __('This invitation is no longer valid. Ask the agent owner to send a new one.'),
             );
         }
 
         if ($chatter->email_verified_at !== null) {
             throw new AgentChatterInvitationRejectedException(
                 'invitation',
-                'This invitation has already been used. Sign in with your existing credentials instead.',
+                __('This invitation has already been used. Sign in with your existing credentials instead.'),
             );
         }
 
         if (! $agent->chatters()->whereKey($chatter->id)->exists()) {
             throw new AgentChatterInvitationRejectedException(
                 'invitation',
-                'This invitation no longer grants access to this agent.',
+                __('This invitation no longer grants access to this agent.'),
             );
         }
 

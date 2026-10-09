@@ -2,12 +2,16 @@
 
 namespace App\Http\Requests\Landing;
 
+use App\Marketing\Data\ContactMessageData;
 use Illuminate\Foundation\Http\FormRequest;
 use RyanChandler\LaravelCloudflareTurnstile\Rules\Turnstile;
 
+/**
+ * The public contact form. Guests may send it; a Turnstile challenge keeps
+ * bots out.
+ */
 class ContactRequest extends FormRequest
 {
-    /** Public landing contact form — no authentication required. */
     public function authorize(): bool
     {
         return true;
@@ -25,5 +29,15 @@ class ContactRequest extends FormRequest
             'message' => ['required', 'string', 'max:5000'],
             'cf-turnstile-response' => ['required', new Turnstile],
         ];
+    }
+
+    public function toData(): ContactMessageData
+    {
+        return new ContactMessageData(
+            name: $this->string('name')->toString(),
+            email: $this->string('email')->toString(),
+            company: $this->filled('company') ? $this->string('company')->toString() : null,
+            message: $this->string('message')->toString(),
+        );
     }
 }

@@ -56,6 +56,20 @@ class UserBilling extends Model
     }
 
     /**
+     * The billing row linked to a Stripe customer, or null when no workspace
+     * is linked to it (for example an event for a customer we never
+     * provisioned).
+     */
+    public static function forStripeCustomer(?string $customerId): ?self
+    {
+        if ($customerId === null || $customerId === '') {
+            return null;
+        }
+
+        return self::query()->where('stripe_id', $customerId)->first();
+    }
+
+    /**
      * Fetch a Cashier subscription with its `owner` relation pre-wired to this
      * billing row. Cashier's `updateQuantity()` / `cancelNow()` reach for
      * `$subscription->owner` to get the Stripe client; under

@@ -3,6 +3,9 @@
 namespace Domain\Conversation\Actions\Handoff;
 
 use Domain\Conversation\Data\Handoff\SendHandoffAdminMessageData;
+use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Memory\MessageData;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\MessagePosted;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Services\Memory\ChatMemory;
@@ -10,14 +13,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Posts a human operator's reply into a conversation they have taken over:
- * writes it to the live chat cache and the database under one external id,
- * then broadcasts it to the visitor.
+ * Posts a human operator's reply into a conversation they hold: writes it to
+ * the live chat memory and the database under one external id, then
+ * broadcasts it to the visitor. Returns null when the operator does not hold
+ * the conversation or its session has no agent any more.
  */
 class SendHandoffAdminMessageAction
 {
     public function __construct(
-        private readonly ChatMemory $chatMemory,
+        private readonly ChatMemory $memory,
     ) {}
 
     public function execute(SendHandoffAdminMessageData $data): ?Message
@@ -25,7 +29,7 @@ class SendHandoffAdminMessageAction
         $conversation = $data->conversation;
         $admin = $data->admin;
 
-        if (! $conversation->isHandedOff() || $conversation->handoff_user_id !== $admin->id) {
+        if (! $conversation->isHeldBy($admin)) {
             return null;
         }
 
@@ -38,18 +42,16 @@ class SendHandoffAdminMessageAction
 
         $messageId = Str::uuid()->toString();
 
-        $message = DB::transaction(function () use ($conversation, $admin, $session, $agent, $messageId, $data) {
-            $this->chatMemory
-                ->withContext($agent, $session->external_id, $conversation->external_id)
-                ->addMessage(
-                    role: 'agent',
-                    message: $data->content,
-                    messageId: $messageId,
-                    append: [
-                        'admin_id' => $admin->id,
-                        'admin_name' => $admin->name,
-                    ],
-                );
+        $message = DB::transaction(function () use ($data, $conversation, $session, $agent, $messageId): Message {
+            $this->memory
+                ->withScope(new ChatScopeData($agent, $session->external_id, $conversation->external_id))
+                ->appendMessage(new MessageData(
+                    id: $messageId,
+                    role: MessageRole::Operator,
+                    content: $data->content,
+                    type: MessageData::TYPE_TEXT,
+                    timestamp: now()->timestamp,
+                ));
 
             // Same id as the cached copy and the broadcast: read receipts look
             // the row up by this external_id, so a fresh id would never match.
@@ -57,10 +59,10 @@ class SendHandoffAdminMessageAction
                 'external_id' => $messageId,
                 'chat_conversation_id' => $conversation->id,
                 'content' => $data->content,
-                'role' => 'agent',
+                'role' => MessageRole::Operator,
                 'metadata' => [
-                    'admin_id' => $admin->id,
-                    'admin_name' => $admin->name,
+                    'admin_id' => $data->admin->id,
+                    'admin_name' => $data->admin->name,
                 ],
             ]);
 
@@ -74,7 +76,7 @@ class SendHandoffAdminMessageAction
             $conversation->external_id,
             $messageId,
             $data->content,
-            'agent',
+            MessageRole::Operator->value,
             $admin->name,
             (string) $admin->id,
         );

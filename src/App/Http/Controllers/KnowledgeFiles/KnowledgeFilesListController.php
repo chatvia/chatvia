@@ -6,6 +6,10 @@ use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Source\File\Actions\ListUserKnowledgeFilesAction;
 use Illuminate\Http\Request;
 
+/**
+ * Lists every knowledge file of the caller's workspace with the agents that
+ * use it (the account-wide knowledge base page).
+ */
 class KnowledgeFilesListController
 {
     /**

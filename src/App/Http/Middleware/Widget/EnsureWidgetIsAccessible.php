@@ -2,28 +2,39 @@
 
 namespace App\Http\Middleware\Widget;
 
+use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WidgetAuthSessionService;
 use Closure;
+use Domain\Agent\Models\Agent;
+use Domain\Widget\WidgetHeaders;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Gates protected widgets. Public agents (is_public = true) pass untouched — the
- * same `is_public` flag governs the hosted chat (see EnsureChatIsAccessible), so
- * one toggle protects both surfaces.
+ * Gates the widget's chat-data routes behind the agent's sign-in rule. The
+ * same `is_public` flag governs the hosted chat (see EnsureChatIsAccessible),
+ * so one switch protects both surfaces.
  *
- * For a protected agent the request must carry a valid `X-AUTH-TOKEN`: a session
- * token minted by the auth-exchange endpoint for an external user of this
- * agent's account. The resolved user (and any session meta — e.g. the
- * `is_playground` flag carried from the bootstrap JWT's `ctx` claim) is
- * attached to the request; an absent, expired, or fingerprint-mismatched token
- * is rejected with 401 so the widget can prompt to re-exchange.
+ *  - Public agent: always passes. When the call carries a valid X-AUTH-TOKEN
+ *    anyway (a signed-in visitor, or the dashboard playground) the user is
+ *    resolved on a best-effort basis, so actions can be attributed to them.
+ *  - Protected agent: the call must carry a valid X-AUTH-TOKEN — a session
+ *    token minted by the auth exchange for a user of this agent's account. An
+ *    absent, expired or fingerprint-mismatched token gets a 401, so the widget
+ *    knows to run the exchange again.
  *
- * Bootstrap routes (auth exchange, settings, verify, version) sit OUTSIDE this
- * middleware so the widget can render its locked shell and run the exchange.
+ * A resolved token puts two request attributes in place for the controllers:
+ * `widget_user` (the {@see User}) and `widget_is_playground` (from the
+ * bootstrap token's `ctx` claim). Bootstrap routes (agents/verify, settings,
+ * auth exchange) sit outside this middleware so a protected widget can still
+ * render its locked shell and sign in.
  */
 class EnsureWidgetIsAccessible
 {
+    public const string USER_ATTRIBUTE = 'widget_user';
+
+    public const string PLAYGROUND_ATTRIBUTE = 'widget_is_playground';
+
     public function __construct(
         private readonly WidgetAuthSessionService $sessions,
     ) {}
@@ -33,42 +44,42 @@ class EnsureWidgetIsAccessible
         $agent = current_agent_from_widget();
 
         if (! $agent) {
-            return response()->json(['error' => 'Could not verify the agent'], 403);
+            return response()->json(['error' => 'Could not verify the agent'], Response::HTTP_FORBIDDEN);
         }
 
-        if ($agent->is_public) {
-            // Public agents don't REQUIRE auth, but if a token is present (e.g. an
-            // authenticated playground, or a signed-in user) resolve it
-            // best-effort so the governance audit can attribute the action to who
-            // is signed in. Never gate — an absent/invalid token stays anonymous.
-            $token = $request->header('X-AUTH-TOKEN');
-            if (is_string($token) && $token !== '') {
-                $resolved = $this->sessions->resolveWithMeta($token, $agent, $request);
-                if ($resolved) {
-                    $request->attributes->set('widget_user', $resolved['user']);
-                    $request->attributes->set('widget_is_playground', (bool) ($resolved['meta']['is_playground'] ?? false));
-                }
-            }
+        $resolved = $this->resolveSignedInUser($request, $agent);
 
-            return $next($request);
-        }
-
-        $token = $request->header('X-AUTH-TOKEN');
-
-        $resolved = is_string($token) && $token !== ''
-            ? $this->sessions->resolveWithMeta($token, $agent, $request)
-            : null;
-
-        if (! $resolved) {
+        if (! $agent->is_public && ! $resolved) {
             return response()->json([
                 'error' => 'This chat requires sign-in.',
                 'code' => 'widget_auth_required',
-            ], 401);
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $request->attributes->set('widget_user', $resolved['user']);
-        $request->attributes->set('widget_is_playground', (bool) ($resolved['meta']['is_playground'] ?? false));
-
         return $next($request);
+    }
+
+    /**
+     * Resolve the X-AUTH-TOKEN header (when present) and attach its user to the
+     * request. Returns whether a valid token was found.
+     */
+    private function resolveSignedInUser(Request $request, Agent $agent): bool
+    {
+        $token = $request->header(WidgetHeaders::AUTH_TOKEN);
+
+        if (! is_string($token) || $token === '') {
+            return false;
+        }
+
+        $resolved = $this->sessions->resolveWithMeta($token, $agent, $request);
+
+        if (! $resolved) {
+            return false;
+        }
+
+        $request->attributes->set(self::USER_ATTRIBUTE, $resolved['user']);
+        $request->attributes->set(self::PLAYGROUND_ATTRIBUTE, (bool) ($resolved['meta']['is_playground'] ?? false));
+
+        return true;
     }
 }

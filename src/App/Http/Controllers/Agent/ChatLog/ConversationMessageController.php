@@ -20,7 +20,7 @@ class ConversationMessageController
         Conversation $conversation,
         ListConversationMessagesAction $list,
     ): ChatLogMessagesResourceData {
-        abort_if($conversation->session->agent_id !== $agent->id, 404);
+        abort_unless($conversation->belongsToAgent($agent), 404);
 
         return $list->execute($agent, $conversation, $request->integer('page', 1));
     }

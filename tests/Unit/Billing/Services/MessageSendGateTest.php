@@ -6,15 +6,18 @@ use Domain\Billing\Enums\MessageAdmission;
 use Domain\Billing\Models\UserCredit;
 use Domain\Billing\Services\MessageSendGate;
 use Domain\Billing\Services\UserCreditSystem;
+use Domain\Channel\Data\ChannelTurnData;
 use Domain\Channel\Services\ChannelReplyRunner;
+use Domain\Conversation\Data\Turn\StreamRequestData;
+use Domain\Conversation\Data\Turn\StreamRequestMessageData;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Services\ChatStreamService;
-use Domain\Conversation\Services\Data\StreamRequestData;
-use Domain\Conversation\Services\Data\StreamRequestMessageData;
+use Domain\Conversation\Services\Streaming\Sse\EventType;
+use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * One send gate for every surface. The web chat stream and the messaging
@@ -72,15 +75,14 @@ function sendGateAgent(User $owner): Agent
  * event generator (pumping the real stream would close the test's output
  * buffers).
  */
-function webStreamErrorCode(StreamedResponse $response): ?string
+/**
+ * @param  iterable<int, StreamEvent>  $events
+ */
+function webStreamErrorCode(iterable $events): ?string
 {
-    $events = (new ReflectionFunction($response->getCallback()))->getClosureUsedVariables()['events'];
-
     foreach ($events as $event) {
-        $payload = json_decode(substr($event->toLine(), 6, -2), true);
-
-        if (($payload['type'] ?? null) === 'error') {
-            return $payload['data']['code'];
+        if ($event->type === EventType::Error) {
+            return $event->data['code'];
         }
     }
 
@@ -132,14 +134,14 @@ it('refuses the same admin owner on the web stream and on a messaging channel', 
 
     // No LLM is faked: if the gate let the turn through, the pipeline would
     // fail and the runner would answer "something went wrong" instead.
-    $channel = app(ChannelReplyRunner::class)->reply(
+    $channel = app(ChannelReplyRunner::class)->reply(new ChannelTurnData(
         agent: $agent->fresh(),
         sessionExternalId: (string) Str::uuid(),
         conversationExternalId: (string) Str::uuid(),
         message: 'hi',
-        source: 'telegram',
+        source: ConversationSource::Telegram,
         requestIdPrefix: 'tg_',
-    );
+    ));
 
     expect($channel)->toBe('Sorry — this assistant is unavailable right now. Please try again later.');
 });
@@ -163,14 +165,14 @@ it('answers a refused channel turn in the language the owner pinned for the agen
     $agent = sendGateAgent($owner);
     $agent->setSetting(key: 'language', value: 'de', group: 'embed');
 
-    $reply = app(ChannelReplyRunner::class)->reply(
+    $reply = app(ChannelReplyRunner::class)->reply(new ChannelTurnData(
         agent: $agent->fresh(),
         sessionExternalId: (string) Str::uuid(),
         conversationExternalId: (string) Str::uuid(),
         message: 'hi',
-        source: 'telegram',
+        source: ConversationSource::Telegram,
         requestIdPrefix: 'tg_',
-    );
+    ));
 
     expect($reply)->toBe('Entschuldigung – dieser Assistent ist gerade nicht verfügbar. Bitte versuchen Sie es später erneut.');
 });

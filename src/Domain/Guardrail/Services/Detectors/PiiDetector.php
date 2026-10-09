@@ -2,6 +2,7 @@
 
 namespace Domain\Guardrail\Services\Detectors;
 
+use Domain\Guardrail\Data\PiiRedactionData;
 use Domain\Guardrail\Enums\PiiFilterType;
 use Domain\Guardrail\Services\Detectors\Filters\CardFilter;
 use Domain\Guardrail\Services\Detectors\Filters\DanishCprFilter;
@@ -40,9 +41,8 @@ class PiiDetector
      * text, the distinct PII categories found, and the total spans masked.
      *
      * @param  list<string>|null  $only
-     * @return array{text: string, types: list<string>, count: int}
      */
-    public function redact(string $text, ?array $only = null): array
+    public function redact(string $text, ?array $only = null): PiiRedactionData
     {
         $filters = [];
         foreach (PiiFilterType::cases() as $type) {
@@ -52,13 +52,13 @@ class PiiDetector
         }
 
         if ($filters === []) {
-            return ['text' => $text, 'types' => [], 'count' => 0];
+            return new PiiRedactionData($text);
         }
 
         return app(Pipeline::class)
             ->send(new PiiRedactionState($text))
             ->through($filters)
-            ->then(fn (PiiRedactionState $state): array => $state->result());
+            ->then(fn (PiiRedactionState $state): PiiRedactionData => $state->result());
     }
 
     /**

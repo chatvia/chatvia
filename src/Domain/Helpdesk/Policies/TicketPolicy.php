@@ -5,6 +5,9 @@ namespace Domain\Helpdesk\Policies;
 use App\Identity\Workspace\Models\User;
 use Domain\Helpdesk\Models\Ticket;
 
+/**
+ * Tickets are private to the user who opened them; only admins list them all.
+ */
 class TicketPolicy
 {
     /**

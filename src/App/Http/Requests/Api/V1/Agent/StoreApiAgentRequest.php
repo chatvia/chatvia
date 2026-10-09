@@ -2,14 +2,33 @@
 
 namespace App\Http\Requests\Api\V1\Agent;
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Account\CreateApiAgentData;
+use Domain\Agent\Models\Agent;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 class StoreApiAgentRequest extends FormRequest
 {
-    public function authorize(): bool
+    /**
+     * The agent policy decides: only the owner of the target team may add an
+     * agent to it. An unknown `team_id` is left to validation and the create
+     * action, which reject it.
+     */
+    public function authorize(): Response
     {
-        return true;
+        /** @var User $user */
+        $user = $this->user();
+
+        $teamId = $this->input('team_id');
+
+        $team = is_string($teamId) && Str::isUuid($teamId)
+            ? $user->workspace()->ownedTeams()->where('external_id', $teamId)->first()
+            : null;
+
+        return $team === null ? Response::allow() : Gate::inspect('create', [Agent::class, $team]);
     }
 
     /**

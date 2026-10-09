@@ -12,7 +12,8 @@ use App\Http\Middleware\Access\EnsureWorkspaceNetworkAllowed;
 use App\Http\Middleware\Auth\AuthenticateChatter;
 use App\Http\Middleware\Auth\AuthenticateChatterUsingToken;
 use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
-use App\Http\Middleware\Auth\ChatterGuestMiddleware;
+use App\Http\Middleware\Auth\LogoutDeactivatedUser;
+use App\Http\Middleware\Auth\RedirectIfChatterAuthenticated;
 use App\Http\Middleware\Auth\RequirePasswordSetup;
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use App\Http\Middleware\Chat\EnsureChatIsAccessible;
@@ -22,6 +23,8 @@ use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use App\Http\Middleware\Web\SetLocale;
+use App\Identity\Chatter\Exceptions\ChatterQuotaExceededException;
+use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -33,6 +36,8 @@ use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
 use Spatie\LaravelFlare\Facades\Flare;
 use Support\Exceptions\DomainValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
@@ -82,6 +87,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
             ResolveAgentFromSubdomain::class,
             AuthenticateChatterUsingToken::class,
             AuthenticateChatViaSignInToken::class,
+            LogoutDeactivatedUser::class,
             EnsureChatIsAccessible::class,
             EnsureAgentHasMessagesCapacity::class,
             ChatHandleInertiaRequests::class,
@@ -89,7 +95,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'auth.chatter' => AuthenticateChatter::class,
-            'guest.chatter' => ChatterGuestMiddleware::class,
+            'guest.chatter' => RedirectIfChatterAuthenticated::class,
             'can.access.agent' => EnsureUserCanAccessAgent::class,
             'user.subscribed' => EnsureUserHasSubscription::class,
             'api.owner' => EnsureApiWorkspaceOwner::class,
@@ -140,6 +146,14 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $exceptions->map(fn (DomainValidationException $e) => ValidationException::withMessages([
             $e->field => [$e->getMessage()],
         ]));
+
+        // A visitor asked for a human operator on an agent whose plan or
+        // live-chat toggle does not allow it.
+        $exceptions->map(fn (HandoffUnavailableException $e): AccessDeniedHttpException => new AccessDeniedHttpException($e->getMessage(), $e));
+
+        // A workspace with no free seat asked for another chatter: 402 so API
+        // clients can show an upgrade prompt.
+        $exceptions->map(fn (ChatterQuotaExceededException $e): HttpException => new HttpException(402, $e->getMessage(), $e));
     })->create();
 
 // DDD layout: the Laravel framework surface lives at src/App/ rather than

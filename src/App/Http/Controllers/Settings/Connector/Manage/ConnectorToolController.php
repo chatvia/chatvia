@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Settings\Connector\Manage;
 
+use Domain\Integration\Connector\Actions\Catalog\ListConnectorToolsAction;
 use Domain\Integration\Connector\Data\Catalog\ConnectorToolsResourceData;
-use Domain\Integration\Mcp\Actions\ListConnectorToolsAction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\Request;
 

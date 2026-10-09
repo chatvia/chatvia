@@ -4,6 +4,9 @@ namespace App\Identity\Workspace\Data\Account;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * Inputs for the self-serve sign-up.
+ */
 class RegisterUserData extends Data
 {
     public function __construct(

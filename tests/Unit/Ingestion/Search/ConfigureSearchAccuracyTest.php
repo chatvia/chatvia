@@ -1,10 +1,10 @@
 <?php
 
-use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
 use Illuminate\Support\Facades\DB;
 
 /**
- * configureSearchAccuracy() interpolates the vchordrq settings into `SET
+ * HybridChunkSearch::configureAccuracy() interpolates the vchordrq settings into `SET
  * LOCAL` (SET takes no bind parameters), so the values must be cast to
  * numbers first — a config/env string can never reach the SQL as text.
  */
@@ -15,7 +15,7 @@ it('casts probes and epsilon to numbers before interpolating them', function ():
     });
 
     DB::transaction(function (): void {
-        Chunk::query()->configureSearchAccuracy('default', [
+        app(HybridChunkSearch::class)->configureAccuracy('default', [
             'search' => [
                 'probes' => ['default' => '48; DROP TABLE chunks'],
                 'epsilon' => ['default' => '1.5 ; SELECT 1'],
@@ -37,7 +37,7 @@ it('falls back to the default mode and never sets probes below one', function ()
     });
 
     DB::transaction(function (): void {
-        Chunk::query()->configureSearchAccuracy('unknown_mode', [
+        app(HybridChunkSearch::class)->configureAccuracy('unknown_mode', [
             'search' => [
                 'probes' => ['default' => 0],
                 'epsilon' => ['default' => 1.9],

@@ -2,77 +2,71 @@
 
 namespace Domain\Billing\Actions\Trials;
 
-use Domain\Billing\Data\StartTrialCheckoutData;
+use Domain\Billing\Actions\Webhooks\ProvisionTrialWorkspaceAction;
+use Domain\Billing\Data\Stripe\StripeMetadata;
+use Domain\Billing\Data\Trials\StartTrialCheckoutData;
+use Domain\Billing\Enums\RegistrationType;
 use InvalidArgumentException;
 use Laravel\Cashier\Cashier;
 use Stripe\Checkout\Session as StripeCheckoutSession;
 
 /**
- * Create a Stripe Checkout session for the public "Start trial" funnel.
+ * Creates a Stripe Checkout Session for the public "start a trial" funnel and
+ * returns it, so the caller can redirect to its URL. No account exists yet:
+ * the webhook creates it when the checkout completes
+ * ({@see ProvisionTrialWorkspaceAction}).
  *
- * Returns the Stripe Checkout Session so the caller can redirect to its URL.
- * Throws InvalidArgumentException when the requested package is not configured —
- * the controller maps that to a redirect with a flash error.
+ * The same metadata goes on the session (read by `checkout.session.completed`)
+ * and on `subscription_data` (Stripe copies only that onto the subscription),
+ * built once so the two cannot drift.
  *
- * Note on metadata: the same payload is set on BOTH the top-level Checkout
- * session metadata AND the subscription_data.metadata. Stripe only forwards
- * subscription_data.metadata onto the actual Subscription object — the
- * top-level set is what `checkout.session.completed` webhook reads. We build
- * the array once and pass it to both fields so the contract can't drift.
- *
- * Consumer of this metadata: Domain\Billing\Listeners\HandleStripeWebhook
- * (registration_type, package, is_yearly keys on checkout.session.completed).
+ * @throws InvalidArgumentException when the package is unknown or sold through sales only
  */
 class StartTrialCheckoutAction
 {
     public function execute(StartTrialCheckoutData $data): StripeCheckoutSession
     {
-        $plans = config('billing.packages');
+        $plan = ((array) config('billing.packages', []))[$data->package] ?? null;
 
-        if (! isset($plans[$data->package])) {
+        if (! is_array($plan)) {
             throw new InvalidArgumentException("Unknown billing package: {$data->package}");
         }
 
-        // Contact-sales packages (Enterprise) have no Stripe price — they are
-        // provisioned manually through the demo/sales flow, never self-serve.
-        if ($plans[$data->package]['contact_sales'] ?? false) {
+        // Contact-sales packages (Enterprise) have no Stripe price.
+        if ($plan['contact_sales'] ?? false) {
             throw new InvalidArgumentException("Package is not self-serve: {$data->package}");
         }
 
-        $stripePriceId = $data->yearly
-            ? $plans[$data->package]['stripe_yearly_price_id']
-            : $plans[$data->package]['stripe_monthly_price_id'];
-
+        $package = strtolower($data->package);
         $trialDays = (int) config('billing.trial.days', 7);
 
         $metadata = [
-            'registration_type' => 'trial_registration',
-            'package' => strtolower($data->package),
-            'is_yearly' => $data->yearly ? 'true' : 'false',
-            'user_ip' => $data->userIp,
+            StripeMetadata::REGISTRATION_TYPE => RegistrationType::TrialRegistration->value,
+            StripeMetadata::PACKAGE => $package,
+            StripeMetadata::IS_YEARLY => StripeMetadata::flag($data->yearly),
+            StripeMetadata::USER_IP => $data->userIp,
         ];
 
         return Cashier::stripe()->checkout->sessions->create([
             'mode' => 'subscription',
             'line_items' => [
-                ['price' => $stripePriceId, 'quantity' => 1],
+                ['price' => $data->yearly ? $plan['stripe_yearly_price_id'] : $plan['stripe_monthly_price_id'], 'quantity' => 1],
             ],
-            'success_url' => route('trial.success').'?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('home').'#pricing',
+            'success_url' => $data->urls->successUrl,
+            'cancel_url' => $data->urls->cancelUrl,
             'allow_promotion_codes' => true,
             'billing_address_collection' => 'required',
             'subscription_data' => [
                 'trial_period_days' => $trialDays,
-                'metadata' => array_merge($metadata, [
-                    // Fallback labels for renewal invoices. HandleStripeWebhook
-                    // derives the renewed plan from the subscription's Stripe
-                    // price and only reads `to_package` when that price is not
-                    // in the billing config. Belong on the subscription, not
-                    // the checkout session.
-                    'to_package' => strtolower($data->package),
-                    'from_package' => 'starter',
+                'metadata' => [
+                    ...$metadata,
+                    // Fallback labels for renewal invoices: the renewal derives
+                    // the plan from the subscription's Stripe price and reads
+                    // these only when that price is not in the billing config.
+                    StripeMetadata::TO_PACKAGE => $package,
+                    StripeMetadata::FROM_PACKAGE => 'starter',
                     'trial_days' => (string) $trialDays,
-                ]),
+                ],
             ],
             'metadata' => $metadata,
         ]);

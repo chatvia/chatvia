@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Chat\Usage;
 use Domain\Billing\Contracts\Entitlements;
 use Illuminate\Http\Request;
 
+/**
+ * Whether the agent's workspace can still send messages, so the hosted chat
+ * can warn before the visitor types.
+ */
 class MessagesUsage
 {
     public function __invoke(Request $request, Entitlements $entitlements): array

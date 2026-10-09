@@ -3,9 +3,15 @@
 namespace App\Http\Requests\Chat\Tools;
 
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
+use Domain\Conversation\Enums\ToolApprovalDecision;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
+/**
+ * Validates the approve / deny decisions a chatter posts for a paused turn's
+ * gated tool calls. Ownership of the checkpoint is checked by the controller.
+ */
 class ResolveToolApprovalRequest extends FormRequest
 {
     public function authorize(): bool
@@ -20,7 +26,7 @@ class ResolveToolApprovalRequest extends FormRequest
     {
         return [
             'decisions' => ['required', 'array', 'min:1'],
-            'decisions.*' => ['required', 'string', 'in:approve,deny'],
+            'decisions.*' => ['required', 'string', Rule::enum(ToolApprovalDecision::class)],
         ];
     }
 
@@ -29,6 +35,8 @@ class ResolveToolApprovalRequest extends FormRequest
         /** @var array<string, string> $decisions */
         $decisions = $this->validated('decisions');
 
-        return new ResolveToolApprovalData(decisions: $decisions);
+        return new ResolveToolApprovalData(
+            decisions: array_map(ToolApprovalDecision::from(...), $decisions),
+        );
     }
 }

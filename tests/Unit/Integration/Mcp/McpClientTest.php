@@ -2,10 +2,10 @@
 
 namespace Tests\Unit\Integration\Mcp;
 
+use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
 use Domain\Integration\Mcp\Services\McpClient;
-use Domain\Integration\Mcp\Services\McpException;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -66,10 +66,10 @@ class McpClientTest extends TestCase
             return Http::response('', 200);
         });
 
-        $tools = (new McpClient)->fetchTools($this->server());
+        $tools = app(McpClient::class)->fetchTools($this->server());
 
         $this->assertCount(1, $tools);
-        $this->assertSame('foo', $tools[0]['name']);
+        $this->assertSame('foo', $tools[0]->name);
     }
 
     public function test_call_tool_returns_result_envelope(): void
@@ -102,7 +102,7 @@ class McpClientTest extends TestCase
             return Http::response('', 200);
         });
 
-        $result = (new McpClient)->callTool($this->server(), 'ping', []);
+        $result = app(McpClient::class)->callTool($this->server(), 'ping', []);
 
         $this->assertFalse($result['isError']);
         $this->assertSame('pong', $result['content'][0]['text']);
@@ -138,7 +138,7 @@ class McpClientTest extends TestCase
             return Http::response('', 200);
         });
 
-        (new McpClient)->callTool($this->server(), 'ping', [], [
+        app(McpClient::class)->callTool($this->server(), 'ping', [], [
             'X-Chatvia-Agent-Id' => 'agent-uuid',
             'X-Chatvia-User-Id' => 'user-uuid',
         ]);
@@ -184,7 +184,7 @@ class McpClientTest extends TestCase
             return Http::response('', 202);
         });
 
-        (new McpClient)->fetchTools($this->server());
+        app(McpClient::class)->fetchTools($this->server());
 
         Http::assertSent(function ($request) {
             $body = $request->data();
@@ -220,7 +220,7 @@ class McpClientTest extends TestCase
         $this->expectException(McpException::class);
         $this->expectExceptionMessage('method not found');
 
-        (new McpClient)->fetchTools($this->server());
+        app(McpClient::class)->fetchTools($this->server());
     }
 
     /**
@@ -262,7 +262,7 @@ class McpClientTest extends TestCase
     {
         $this->fakeMcpServer();
 
-        (new McpClient)->callTool($this->internalServer('charts'), 'render-bar-chart', ['title' => 'x'], [
+        app(McpClient::class)->callTool($this->internalServer('charts'), 'render-bar-chart', ['title' => 'x'], [
             'X-Chatvia-Agent-Id' => 'agent-uuid',
             'X-Chatvia-User-Id' => 'user-uuid',
         ]);
@@ -292,7 +292,7 @@ class McpClientTest extends TestCase
 
         // A workspace's own server that merely uses our /mcp/ URL has no
         // connector_slug, so it must not receive our proof-of-origin.
-        (new McpClient)->callTool($this->internalServer(null), 'render-bar-chart', []);
+        app(McpClient::class)->callTool($this->internalServer(null), 'render-bar-chart', []);
 
         Http::assertNotSent(fn (ClientRequest $request): bool => $request->hasHeader(InternalMcpSignature::SIGNATURE_HEADER));
     }
@@ -301,7 +301,7 @@ class McpClientTest extends TestCase
     {
         $this->fakeMcpServer();
 
-        (new McpClient)->callTool($this->server(), 'ping', [], ['X-Chatvia-Agent-Id' => 'agent-uuid']);
+        app(McpClient::class)->callTool($this->server(), 'ping', [], ['X-Chatvia-Agent-Id' => 'agent-uuid']);
 
         Http::assertNotSent(fn (ClientRequest $request): bool => $request->hasHeader(InternalMcpSignature::SIGNATURE_HEADER));
     }
@@ -313,7 +313,7 @@ class McpClientTest extends TestCase
         $server = $this->internalServer('charts');
         $server->headers = [['key' => 'X-Chatvia-Workspace-Id', 'value' => 'someone-else']];
 
-        (new McpClient)->callTool($server, 'render-bar-chart', [], ['X-Chatvia-Agent-Id' => 'agent-uuid']);
+        app(McpClient::class)->callTool($server, 'render-bar-chart', [], ['X-Chatvia-Agent-Id' => 'agent-uuid']);
 
         Http::assertNotSent(fn (ClientRequest $request): bool => $request->hasHeader('X-Chatvia-Workspace-Id'));
     }
@@ -341,7 +341,7 @@ class McpClientTest extends TestCase
             return Http::response('', 202);
         });
 
-        (new McpClient)->fetchTools($this->server());
+        app(McpClient::class)->fetchTools($this->server());
 
         Http::assertSent(fn (ClientRequest $request): bool => ($request->data()['method'] ?? null) === 'initialize'
             && $request->data()['params']['clientInfo']['name'] === 'acme-chat');

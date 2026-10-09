@@ -12,10 +12,11 @@ use Spatie\LaravelData\Data;
 class AnalyticsChatRequestData extends Data
 {
     /**
-     * @param  array<int, array{role: string, content: string}>  $history
+     * @param  list<AnalyticsChatTurnData>  $history
      */
     public function __construct(
         public string $message,
+        /** @var list<AnalyticsChatTurnData> */
         public array $history = [],
         public ?string $userMessageId = null,
     ) {}

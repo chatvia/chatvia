@@ -44,6 +44,6 @@ class TicketController
     {
         $createTicket->execute($request->toData());
 
-        return to_route('support')->with('success', 'Ticket created successfully.');
+        return to_route('support')->with('success', __('Ticket created successfully.'));
     }
 }

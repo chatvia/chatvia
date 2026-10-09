@@ -2,9 +2,8 @@
 
 namespace Domain\Channel\Telegram\Models;
 
+use Domain\Channel\Concerns\MapsChannelConversation;
 use Domain\Channel\Contracts\ChannelConversationMapping;
-use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,28 +20,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Guarded(['id'])]
 class TelegramChat extends Model implements ChannelConversationMapping
 {
+    use MapsChannelConversation;
+
     /**
      * @return BelongsTo<AgentTelegramBot, $this>
      */
     public function bot(): BelongsTo
     {
         return $this->belongsTo(AgentTelegramBot::class, 'agent_telegram_bot_id');
-    }
-
-    /**
-     * @return BelongsTo<Session, $this>
-     */
-    public function session(): BelongsTo
-    {
-        return $this->belongsTo(Session::class, 'chat_session_id');
-    }
-
-    /**
-     * @return BelongsTo<Conversation, $this>
-     */
-    public function conversation(): BelongsTo
-    {
-        return $this->belongsTo(Conversation::class, 'chat_conversation_id');
     }
 
     protected function casts(): array

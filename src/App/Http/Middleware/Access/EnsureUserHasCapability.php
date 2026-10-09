@@ -4,7 +4,7 @@ namespace App\Http\Middleware\Access;
 
 use App\Identity\Workspace\Models\User;
 use Closure;
-use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Billing\Enums\Capability;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use ValueError;
@@ -12,8 +12,8 @@ use ValueError;
 /**
  * Gates a route by a plan capability. Apply as `capability:topics`,
  * `capability:pulse`, etc. The argument must be a value on
- * {@see CapabilityEnum}; unknown values throw at request time so a typo
- * is loud, not silently false (the historical `hasCapability('foo')` bug).
+ * {@see Capability}; an unknown value throws at request time, so a typo
+ * fails loudly instead of quietly denying everyone. Admins always pass.
  */
 class EnsureUserHasCapability
 {
@@ -22,14 +22,14 @@ class EnsureUserHasCapability
      */
     public function handle(Request $request, Closure $next, string $capability): Response
     {
-        $case = CapabilityEnum::tryFrom($capability)
+        $case = Capability::tryFrom($capability)
             ?? throw new ValueError("Unknown capability `{$capability}` in route middleware.");
 
         /** @var User|null $user */
         $user = $request->user();
 
         if (! $user) {
-            abort(401);
+            abort(Response::HTTP_UNAUTHORIZED);
         }
 
         if ($user->isAdmin()) {
@@ -41,7 +41,7 @@ class EnsureUserHasCapability
         $allowed = $user->currentTeam?->hasCapability($case) ?? $user->hasCapability($case);
 
         if (! $allowed) {
-            abort(403, "Your plan doesn't include {$case->label()}.");
+            abort(Response::HTTP_FORBIDDEN, __('Your plan does not include :feature.', ['feature' => $case->label()]));
         }
 
         return $next($request);

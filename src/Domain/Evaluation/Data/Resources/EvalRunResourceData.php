@@ -3,18 +3,23 @@
 namespace Domain\Evaluation\Data\Resources;
 
 use Carbon\CarbonInterface;
+use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Models\EvalRun;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * One eval run as the Evals page and its live broadcasts show it: status,
+ * counts, pass rate, the model it ran on and who started it.
+ */
 #[TypeScript]
 class EvalRunResourceData extends Data
 {
     public function __construct(
         public int $id,
         public string $external_id,
-        public string $status,
+        public EvalRunStatus $status,
         public int $total_cases,
         public int $passed_count,
         public int $failed_count,

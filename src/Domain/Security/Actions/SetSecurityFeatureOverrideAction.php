@@ -15,8 +15,9 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
  * suite for ANY workspace, independent of its plan. The Pennant `security`
  * feature resolver reads this before falling back to the plan entitlement.
  *
- * Auth (admin-only) is enforced at the HTTP boundary; this Action stays
- * Request/Auth-free and just records who made the change for the audit trail.
+ * Operators run it through the `app:security-override` console command; it
+ * stays Request/Auth-free and just records who made the change for the audit
+ * trail.
  */
 class SetSecurityFeatureOverrideAction
 {

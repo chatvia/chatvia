@@ -2,34 +2,24 @@
 
 namespace App\Http\Controllers\Agent\Analytics\Tone;
 
+use App\Http\Requests\Agent\Analytics\AnalyticsDateRangeRequest;
 use Domain\Agent\Models\Agent;
-use Domain\Analytics\Actions\AgentMessageDimensionByDateAction;
-use Domain\Analytics\Data\DateRangeData;
+use Domain\Analytics\Actions\Dimensions\BuildMessageDimensionBreakdownAction;
+use Domain\Analytics\Enums\MessageDimension;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
+/**
+ * Daily visitor tone for the agent's tone chart.
+ */
 class AgentToneDataController
 {
-    public function __invoke(Request $request, Agent $agent, AgentMessageDimensionByDateAction $aggregate): JsonResponse
+    public function __invoke(AnalyticsDateRangeRequest $request, Agent $agent, BuildMessageDimensionBreakdownAction $breakdown): JsonResponse
     {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
-
-        $range = DateRangeData::fromRequestOrLastDays($request);
-
-        $result = $aggregate->execute(
-            agent: $agent,
-            column: 'tone',
-            bucketValues: ['neutral', 'frustrated', 'urgent', 'confused', 'satisfied'],
-            startDate: $range->start,
-            endDate: $range->end,
-        );
+        $result = $breakdown->execute($agent, MessageDimension::Tone, $request->toData());
 
         return response()->json([
-            'toneByDate' => $result['byDate'],
-            'totalTones' => $result['totals'],
+            'toneByDate' => $result->byDate,
+            'totalTones' => $result->totals,
         ]);
     }
 }

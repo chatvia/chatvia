@@ -10,11 +10,11 @@ use Domain\Evaluation\Enums\EvalQuestionSource;
 use Domain\Evaluation\Enums\ScorerType;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
+use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * The "From knowledge" bulk-create contract: every picked question becomes an
@@ -170,7 +170,7 @@ it('rejects a chunk whose source is not attached to the agent and writes nothing
             chunkQuestion($foreign, 'A foreign question?'),
         ),
         $agent,
-    ))->toThrow(ValidationException::class);
+    ))->toThrow(DomainValidationException::class);
 
     expect(EvalCase::query()->forAgent($agent->id)->count())->toBe(0);
 });
@@ -183,7 +183,7 @@ it('rejects a chunk belonging to another workspace', function (): void {
     expect(fn () => app(CreateEvalCasesFromQuestionsAction::class)->execute(
         knowledgeEvalData(chunkQuestion($foreignChunk, 'A question?')),
         $agent,
-    ))->toThrow(ValidationException::class);
+    ))->toThrow(DomainValidationException::class);
 
     expect(EvalCase::query()->forAgent($agent->id)->count())->toBe(0);
 });
@@ -201,7 +201,7 @@ it('rejects a QA pair belonging to another agent', function (): void {
     expect(fn () => app(CreateEvalCasesFromQuestionsAction::class)->execute(
         knowledgeEvalData(qaQuestion($foreignQa, 'A question?')),
         $agent,
-    ))->toThrow(ValidationException::class);
+    ))->toThrow(DomainValidationException::class);
 
     expect(EvalCase::query()->forAgent($agent->id)->count())->toBe(0);
 });

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Chat\Forms;
 
 use App\Http\Requests\Chat\Forms\SubmitInlineFormRequest;
 use Domain\Form\Actions\SubmitFormAction;
+use Domain\Form\Data\SubmitFormData;
+use Domain\Form\Enums\FormClaimFailure;
 use Domain\Form\Exceptions\FormNotClaimableException;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Http\JsonResponse;
@@ -27,20 +29,20 @@ class SubmitInlineFormController
         abort_unless($conversation !== null, 404);
 
         try {
-            $result = $action->execute(
-                $formInstance,
-                $conversation,
-                $request->fieldValues(),
-                $request->ip(),
-                $request->userAgent(),
-                $request->requestId(),
-                $request->assistantMessageId(),
-            );
+            $result = $action->execute(new SubmitFormData(
+                submission: $formInstance,
+                conversation: $conversation,
+                values: $request->fieldValues(),
+                ip: $request->ip(),
+                userAgent: $request->userAgent(),
+                requestId: $request->requestId(),
+                assistantMessageExternalId: $request->assistantMessageId(),
+            ));
         } catch (FormNotClaimableException $e) {
             return response()->json([
-                'status' => $e->status === 410 ? 'expired' : 'already_submitted',
+                'status' => $e->reason->value,
                 'message' => $e->getMessage(),
-            ], $e->status);
+            ], $e->reason === FormClaimFailure::Expired ? JsonResponse::HTTP_GONE : JsonResponse::HTTP_CONFLICT);
         }
 
         return response()->json($result);

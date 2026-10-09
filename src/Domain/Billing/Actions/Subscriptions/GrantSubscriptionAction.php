@@ -3,61 +3,71 @@
 namespace Domain\Billing\Actions\Subscriptions;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Actions\Credits\StartCreditCycleAction;
+use Domain\Billing\Data\Subscriptions\PlanSelectionData;
+use Domain\Billing\Services\UserCreditSystem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Grants the quotas and message credits a paid plan entitles a workspace to.
  *
- * This is the core "what a paid plan grants" business rule. It runs for both
- * new subscriptions (trial start) and renewals; the Stripe webhook listener is
- * the thin adapter that parses the payload and calls this. Keeping the rule
- * here makes it directly unit-testable and reusable by any future manual /
- * admin grant flow without faking a Stripe webhook.
+ * This is the core "what a paid plan grants" rule. It runs for new
+ * subscriptions (trial start) and for every renewal; the Stripe webhook only
+ * works out which plan was paid for and calls this, so the rule can be tested
+ * and reused (for example by a manual grant) without faking a webhook.
  *
- * Source of truth for entitlement remains the synced Cashier subscription
- * (stripe_price); `user_billing.plan` is a denormalised convenience label
- * written on every grant.
+ * The synced Cashier subscription (its Stripe price) stays the source of truth
+ * for the plan; `user_billing.plan` is a convenience label written on every
+ * grant.
  */
 class GrantSubscriptionAction
 {
-    public function execute(User $user, string $package, bool $isYearly): void
+    /** The fixed quota columns a plan sets on `user_quotas`. */
+    private const array FIXED_QUOTA_COLUMNS = [
+        'agents_limit',
+        'pages_limit',
+        'minutes_limit',
+        'custom_domains_limit',
+        'workspace_users_limit',
+        'links_limit',
+        'teams_limit',
+    ];
+
+    public function __construct(
+        private readonly StartCreditCycleAction $startCreditCycle,
+        private readonly UserCreditSystem $creditSystem,
+    ) {}
+
+    public function execute(User $user, PlanSelectionData $plan): void
     {
-        $cycle = $isYearly ? 'yearly' : 'monthly';
+        $cycle = $plan->isYearly ? 'yearly' : 'monthly';
 
-        $quotaLimit = config('billing.packages.'.$package.'.quota_limits.'.$cycle);
-        $fixedLimit = config('billing.packages.'.$package.'.quota_limits.fixed');
+        $cycleLimits = config("billing.packages.{$plan->package}.quota_limits.{$cycle}");
+        $fixedLimits = config("billing.packages.{$plan->package}.quota_limits.fixed");
 
-        if (! $quotaLimit || ! $fixedLimit) {
-            Log::warning('Invalid package configuration', ['package' => $package, 'cycle' => $cycle]);
+        if (! $cycleLimits || ! $fixedLimits) {
+            Log::warning('Invalid package configuration', ['package' => $plan->package, 'cycle' => $cycle]);
 
             return;
         }
 
-        $endsAt = $isYearly ? now()->addYear() : now()->addMonth();
+        $endsAt = $plan->isYearly ? now()->addYear() : now()->addMonth();
 
-        DB::transaction(function () use ($user, $package, $fixedLimit, $quotaLimit, $endsAt): void {
-            // Persist the denormalised plan label (written on trial start + each
-            // renewal, which passes the plan derived from the Stripe price).
-            $user->billing()->updateOrCreate([], ['plan' => $package]);
+        DB::transaction(function () use ($user, $plan, $fixedLimits, $cycleLimits, $endsAt): void {
+            $user->billing()->updateOrCreate([], ['plan' => $plan->package]);
 
-            // Set quota limits (fixed per package, not cumulative).
-            $user->quota()->updateOrCreate([], [
-                'agents_limit' => $fixedLimit['agents_limit'],
-                'pages_limit' => $fixedLimit['pages_limit'],
-                'minutes_limit' => $fixedLimit['minutes_limit'],
-                'custom_domains_limit' => $fixedLimit['custom_domains_limit'],
-                'workspace_users_limit' => $fixedLimit['workspace_users_limit'],
-                'links_limit' => $fixedLimit['links_limit'],
-                'teams_limit' => $fixedLimit['teams_limit'],
-            ]);
+            // Plan quotas are fixed per package, never added up.
+            $user->quota()->updateOrCreate([], array_intersect_key(
+                $fixedLimits,
+                array_flip(self::FIXED_QUOTA_COLUMNS),
+            ));
 
-            // Add message credits for the billing period.
-            $user->creditSystem()->addCredit($quotaLimit, $endsAt);
+            $this->startCreditCycle->execute($user, (int) $cycleLimits['messages_limit'], $endsAt);
         });
 
         $user->refresh();
 
-        $user->creditSystem()->refreshCanSendMessages();
+        $this->creditSystem->forWorkspace($user->workspace()->id)->refreshCanSendMessages();
     }
 }

@@ -102,3 +102,62 @@ it('reflects a function attach and detach immediately despite the warm pool cach
     $agent->detachFunction($function);
     expect(registryPoolNames($registry->for($agent)))->not->toContain('cache_write_thing');
 });
+
+it('drops the cached pool when an attached connector is deleted', function (): void {
+    $agent = registryCacheAgent();
+
+    $server = AgentMcpServer::create([
+        'user_id' => $agent->user_id,
+        'name' => 'Doomed Server',
+        'slug' => 'doomed',
+        'url' => 'https://mcp.example.test',
+        'transport' => 'streamable_http',
+        'auth_type' => 'none',
+        'is_enabled' => true,
+    ]);
+    McpTool::create([
+        'mcp_server_id' => $server->id,
+        'name' => 'do_thing',
+        'description' => 'Does a thing',
+        'input_schema' => ['type' => 'object', 'properties' => []],
+        'permission' => McpToolPermission::Allow,
+        'fetched_at' => now(),
+    ]);
+    $agent->attachConnector($server);
+
+    $registry = app(ToolRegistry::class);
+    expect(registryPoolNames($registry->for($agent)))->toContain('mcp__doomed__do_thing');
+
+    // The pivot rows go with the server (cascade), so the observer must read
+    // the attached agents before the delete.
+    $server->delete();
+
+    expect(registryPoolNames($registry->for($agent)))->not->toContain('mcp__doomed__do_thing');
+});
+
+it('drops the cached pool when an attached function is deleted from Settings', function (): void {
+    $agent = registryCacheAgent();
+    $owner = $agent->user;
+
+    $function = new AgentFunction;
+    $function->user_id = $agent->user_id;
+    $function->internal_name = 'doomed_fn';
+    $function->description = 'Goes away';
+    $function->parameters_schema = ['type' => 'object', 'properties' => []];
+    $function->webhook_url = 'https://hooks.example.test/fn';
+    $function->webhook_method = 'POST';
+    $function->auth_type = 'none';
+    $function->is_enabled = true;
+    $function->save();
+    $agent->attachFunction($function);
+
+    $registry = app(ToolRegistry::class);
+    expect(registryPoolNames($registry->for($agent)))->toContain('doomed_fn');
+
+    test()->actingAs($owner)
+        ->delete(route('integrations.functions.destroy', ['external_id' => $function->external_id]))
+        ->assertRedirect();
+
+    expect(AgentFunction::query()->whereKey($function->id)->exists())->toBeFalse()
+        ->and(registryPoolNames($registry->for($agent)))->not->toContain('doomed_fn');
+});

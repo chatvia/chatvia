@@ -8,6 +8,10 @@ use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Events\SecurityEventOccurred;
 
+/**
+ * Creates a personal access token for the user and returns it once with its
+ * plain-text value.
+ */
 class CreateApiKeyAction
 {
     public function execute(CreateApiKeyData $data): CreatedApiKeyData

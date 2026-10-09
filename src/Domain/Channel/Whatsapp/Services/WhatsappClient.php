@@ -2,17 +2,14 @@
 
 namespace Domain\Channel\Whatsapp\Services;
 
-use Domain\Channel\Services\RedactedException;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Throwable;
+use Domain\Channel\Services\MetaGraphClient;
 
 /**
  * Thin wrapper over the WhatsApp Business Cloud API (Meta Graph API — plain
  * HTTP, no SDK), called per access token (Chatvia is multi-number — one
  * WhatsApp business number per agent). Every call is best-effort: a Meta
  * outage logs and returns a safe value rather than throwing into the
- * webhook/job path.
+ * webhook/job path (see {@see MetaGraphClient}).
  *
  * WhatsApp messages can't be edited, so replies don't stream — the adapter
  * keeps the typing indicator alive during generation and sends the full
@@ -20,7 +17,7 @@ use Throwable;
  * always immediate responses to an inbound message, so they stay inside the
  * free-form 24-hour customer-service window.
  */
-class WhatsappClient
+class WhatsappClient extends MetaGraphClient
 {
     /** WhatsApp caps a single text body at 4096 chars. */
     private const MESSAGE_LIMIT = 4096;
@@ -112,53 +109,13 @@ class WhatsappClient
         ]);
     }
 
-    /** The versioned Graph base URL; the version comes from `services.meta.graph_version`. */
-    protected function graphBaseUrl(): string
+    protected function messageLimit(): int
     {
-        return 'https://graph.facebook.com/'.config('services.meta.graph_version', 'v25.0');
+        return self::MESSAGE_LIMIT;
     }
 
-    /**
-     * Call a Graph API endpoint; null on transport failure or a Graph error.
-     *
-     * @return array<string, mixed>|null
-     */
-    protected function call(string $token, string $method, string $path, array $params = []): ?array
+    protected function logLabel(): string
     {
-        try {
-            $pending = Http::withToken($token);
-
-            $response = $method === 'get'
-                ? $pending->get($this->graphBaseUrl().$path, $params)
-                : $pending->asJson()->post($this->graphBaseUrl().$path, (object) $params);
-
-            $json = $response->json();
-
-            if (! $response->successful() || ! is_array($json) || isset($json['error'])) {
-                Log::warning("WhatsApp {$path} returned an error", ['error' => $json['error']['message'] ?? 'malformed response']);
-
-                return null;
-            }
-
-            return $json;
-        } catch (Throwable $e) {
-            Log::warning("WhatsApp {$path} failed", RedactedException::context($e));
-
-            return null;
-        }
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function chunk(string $text): array
-    {
-        $text = trim($text);
-
-        if ($text === '') {
-            return [];
-        }
-
-        return mb_strlen($text) <= self::MESSAGE_LIMIT ? [$text] : mb_str_split($text, self::MESSAGE_LIMIT);
+        return 'WhatsApp';
     }
 }

@@ -6,6 +6,9 @@ use Domain\Membership\Team\Data\UpdateTeamData;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Renaming a team. Only the owner may (TeamPolicy::update).
+ */
 class UpdateTeamRequest extends FormRequest
 {
     public function authorize(): bool

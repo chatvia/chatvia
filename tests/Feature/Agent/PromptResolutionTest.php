@@ -1,7 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Prompt\Models\AgentPrompt;
+use Domain\Agent\Prompt\Models\AgentPrompt;
 
 it('resolves the attached library prompt first', function (): void {
     $libraryPrompt = AgentPrompt::factory()->create(['prompt' => 'Library body']);

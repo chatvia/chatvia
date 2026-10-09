@@ -5,6 +5,10 @@ namespace Domain\Billing\Data\Resources\Subscription;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A plan change that is scheduled for the end of the billing period, read from
+ * the Stripe subscription.
+ */
 #[TypeScript]
 class BillingPendingChangeData extends Data
 {

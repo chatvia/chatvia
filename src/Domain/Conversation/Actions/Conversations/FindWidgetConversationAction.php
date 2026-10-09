@@ -4,6 +4,7 @@ namespace Domain\Conversation\Actions\Conversations;
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
+use Illuminate\Support\Str;
 
 /**
  * Resolve a widget-side conversation by `(agent, session, conversation)` —
@@ -22,6 +23,12 @@ class FindWidgetConversationAction
         string $sessionExternalId,
         ?Agent $agent = null,
     ): ?Conversation {
+        // External ids are UUIDs; anything else can never match (and would
+        // make Postgres reject the query with a 500).
+        if (! Str::isUuid($conversationExternalId) || ! Str::isUuid($sessionExternalId)) {
+            return null;
+        }
+
         return Conversation::query()
             ->where('external_id', $conversationExternalId)
             ->whereHas('session', function ($q) use ($sessionExternalId, $agent): void {

@@ -2,7 +2,7 @@
 
 namespace Domain\Knowledge\Ingestion\Contracts;
 
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Illuminate\Support\Collection;
 
 /**

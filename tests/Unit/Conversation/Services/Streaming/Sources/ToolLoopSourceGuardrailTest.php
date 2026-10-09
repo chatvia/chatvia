@@ -1,11 +1,10 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Data\Messages\ChatInputPayload;
+use Domain\Conversation\Data\Messages\UserTurnData;
+use Domain\Conversation\Data\Turn\StreamRequestData;
+use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Services\ChatContext;
-use Domain\Conversation\Services\ChatService;
-use Domain\Conversation\Services\Data\StreamRequestData;
-use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
@@ -15,6 +14,7 @@ use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Data\GuardVerdictData;
 use Domain\Guardrail\Enums\GuardOutcome;
@@ -26,6 +26,7 @@ use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -72,12 +73,12 @@ function tlsRecorder(): GuardrailRecorder
 }
 
 /**
- * A ChatService whose only job here is to remember the text it was asked to
- * save.
+ * A reply recorder whose only job here is to remember the text it was asked
+ * to save.
  */
-function tlsChatService(): ChatService
+function tlsReplyRecorder(): AssistantReplyRecorder
 {
-    return new readonly class extends ChatService
+    return new class extends AssistantReplyRecorder
     {
         public ArrayObject $saved;
 
@@ -86,7 +87,7 @@ function tlsChatService(): ChatService
             $this->saved = new ArrayObject;
         }
 
-        public function handleChatCompletion(ChatContext $context): void
+        public function recordCompletedReply(ChatContext $context): void
         {
             $this->saved->append($context->streamedMessage);
         }
@@ -143,7 +144,7 @@ function tlsContext(): ChatContext
 
     return new ChatContext(
         requestData: $requestData,
-        payload: ChatInputPayload::from([
+        payload: UserTurnData::from([
             'external_session_id' => $requestData->externalSessionId,
             'external_conversation_id' => $requestData->conversationId,
             'external_message_id' => (string) Str::uuid(),
@@ -160,21 +161,21 @@ function tlsContext(): ChatContext
 /**
  * Build the named source with the shared fakes and return its event stream.
  *
- * @return array{0: Generator<int, StreamEvent>, 1: ChatService, 2: GuardrailRecorder}
+ * @return array{0: Generator<int, StreamEvent>, 1: AssistantReplyRecorder, 2: GuardrailRecorder}
  */
 function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner): array
 {
-    $chatService = tlsChatService();
+    $replyRecorder = tlsReplyRecorder();
     $recorder = tlsRecorder();
 
-    $shared = [$chatService, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), $recorder];
+    $shared = [$replyRecorder, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), $recorder, app(TokenUsageContext::class)];
 
     $events = match ($source) {
         'pdf' => (new PdfSource(new DocumentLlm(LlmProviderEnum::MISTRAL), ...$shared))->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
         default => (new LlmSource(app(LlmProviderInterface::class), ...$shared))->events($context, [['role' => 'user', 'content' => 'Hello']]),
     };
 
-    return [$events, $chatService, $recorder];
+    return [$events, $replyRecorder, $recorder];
 }
 
 beforeEach(function (): void {
@@ -198,16 +199,16 @@ it('redacts the answer with the output guardrails before saving and replaying it
         return false;
     });
 
-    [$stream, $chatService, $recorder] = tlsStream($source, $context, $runner);
+    [$stream, $replyRecorder, $recorder] = tlsStream($source, $context, $runner);
     $events = iterator_to_array($stream, preserve_keys: false);
 
     $replace = collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Replace);
 
     expect($replace)->not->toBeNull()
         ->and($replace->data['text'])->toBe('Mail me at [EMAIL]')
-        ->and($chatService->saved->getArrayCopy())->toBe(['Mail me at [EMAIL]'])
+        ->and($replyRecorder->saved->getArrayCopy())->toBe(['Mail me at [EMAIL]'])
         ->and($recorder->samples)->toBe(['Mail me at [EMAIL]'])
-        ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)['content'])->toBe('Mail me at [EMAIL]')
+        ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)->content)->toBe('Mail me at [EMAIL]')
         ->and(end($events)->data['reason'])->toBe('complete');
 })->with('tool loop sources');
 
@@ -219,26 +220,26 @@ it('redacts the partial answer it saves after the client disconnects', function 
         throw new ClientDisconnected;
     });
 
-    [$stream, $chatService] = tlsStream($source, $context, $runner);
+    [$stream, $replyRecorder] = tlsStream($source, $context, $runner);
     iterator_to_array($stream, preserve_keys: false);
 
-    expect($chatService->saved->getArrayCopy())->toBe(['Mail me at [EMAIL]'])
-        ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)['content'])->toBe('Mail me at [EMAIL]');
+    expect($replyRecorder->saved->getArrayCopy())->toBe(['Mail me at [EMAIL]'])
+        ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)->content)->toBe('Mail me at [EMAIL]');
 })->with('tool loop sources');
 
 it('ends a PDF turn with a clear error, saving nothing, when no LLM can read PDF documents', function (): void {
     $context = tlsContext();
-    $chatService = tlsChatService();
+    $replyRecorder = tlsReplyRecorder();
     $runner = tlsRunner(function (): Generator {
         throw new RuntimeException('The tool loop must not run without a document LLM.');
         yield;
     });
 
-    $source = new PdfSource(new DocumentLlm(null), $chatService, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), tlsRecorder());
+    $source = new PdfSource(new DocumentLlm(null), $replyRecorder, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), tlsRecorder(), app(TokenUsageContext::class));
     $events = iterator_to_array($source->events($context, [['role' => 'user', 'content' => 'Hello']], collect()), false);
 
     expect(array_map(static fn (StreamEvent $e): EventType => $e->type, $events))->toBe([EventType::Start, EventType::Error, EventType::Done])
         ->and($events[1]->data['message'])->toBe('Chatting with PDF files is not available.')
         ->and($events[1]->data['message'])->not->toContain('Mistral')
-        ->and($chatService->saved->getArrayCopy())->toBe([]);
+        ->and($replyRecorder->saved->getArrayCopy())->toBe([]);
 });

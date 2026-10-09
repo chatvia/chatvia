@@ -2,45 +2,38 @@
 
 namespace App\Http\Controllers\Agent\Source\File\Upload;
 
+use App\Http\Requests\Agent\Source\File\UploadKnowledgeFileRequest;
 use Domain\Agent\Actions\Sources\AgentSourceAnalyzeFileAction;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\File\Actions\UploadKnowledgeSourceFileAction;
-use Illuminate\Http\Request;
 
+/**
+ * Uploads one knowledge file for the agent: checks the quota and duplicates,
+ * then stores it in the "uploaded" state. Agent access and the
+ * `agent.sources.train.files` permission are checked by the route middleware.
+ */
 class AgentKnowledgeFileUploadController
 {
+    /**
+     * @return array{id: int, length: int, mime_type: string}
+     */
     public function __invoke(
-        Request $request,
+        UploadKnowledgeFileRequest $request,
         Agent $agent,
         AgentSourceAnalyzeFileAction $analyze,
         UploadKnowledgeSourceFileAction $upload,
     ): array {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
+        $data = $request->toData();
 
-        abort_if(
-            boolean: ! has_permission_to_agent($agent, 'agent.sources.train.files'),
-            code: 403,
-        );
+        abort_unless($data->isSupported(), 422, __('File upload failed'));
 
-        $uploadedFile = $request->file('file');
-
-        abort_if(
-            boolean: ! is_ocr_supported($uploadedFile) && ! is_audio_file($uploadedFile) && ! is_video_file($uploadedFile),
-            code: 422,
-            message: 'File upload failed'
-        );
-
-        $info = $analyze->execute($uploadedFile, $request->user(), $agent);
-
-        $file = $upload->execute($agent, $uploadedFile);
+        $info = $analyze->execute($request->file('file'), $request->user(), $agent);
+        $file = $upload->execute($agent, $data);
 
         return [
             'id' => $file->id,
             'length' => $info->length,
-            'mime_type' => $uploadedFile->getMimeType(),
+            'mime_type' => $data->mimeType,
         ];
     }
 }

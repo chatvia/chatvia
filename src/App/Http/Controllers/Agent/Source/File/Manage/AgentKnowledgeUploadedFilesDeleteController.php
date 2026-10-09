@@ -3,19 +3,16 @@
 namespace App\Http\Controllers\Agent\Source\File\Manage;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Source\File\Models\SourceFile;
-use Illuminate\Http\Request;
+use Domain\Knowledge\Source\File\Actions\DeleteUploadedSourceFilesAction;
 
+/**
+ * Discards the agent's uploaded files that were never sent to training. The
+ * `agent.sources.delete` permission is checked by the route middleware.
+ */
 class AgentKnowledgeUploadedFilesDeleteController
 {
-    public function __invoke(Request $request, Agent $agent): void
+    public function __invoke(Agent $agent, DeleteUploadedSourceFilesAction $deleteUploaded): void
     {
-        $fileIds = $agent->files()
-            ->where('source_files.status', 'uploaded')
-            ->pluck('source_files.id');
-
-        SourceFile::whereIn('id', $fileIds)
-            ->where('user_id', $request->user()->id)
-            ->delete();
+        $deleteUploaded->execute($agent);
     }
 }

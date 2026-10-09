@@ -2,35 +2,33 @@
 
 namespace App\Identity\Workspace\Models;
 
-use App\Identity\Workspace\Concerns\InteractsWithWorkspaceQuotas;
 use App\Identity\Workspace\Concerns\ResolvesTeamMembership;
-use App\Identity\Workspace\Services\MessageCredits;
-use App\Identity\Workspace\Services\WorkspaceConsumption;
+use App\Identity\Workspace\Services\AgentAccessPolicy;
 use Database\Factories\UserFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\ModelSetting;
+use Domain\Agent\Prompt\Models\AgentPrompt;
+use Domain\Billing\Concerns\InteractsWithWorkspaceQuotas;
 use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use Domain\Billing\Enums\Addon;
-use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Billing\Enums\Capability;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserBilling;
 use Domain\Billing\Models\UserCredit;
 use Domain\Billing\Models\UserQuota;
-use Domain\Billing\Services\Billing;
 use Domain\Billing\Services\ChatterMessageAllowance;
+use Domain\Billing\Services\MessageCredits;
+use Domain\Billing\Services\PlanCatalog;
 use Domain\Billing\Services\UserCreditSystem;
+use Domain\Billing\Services\WorkspaceConsumption;
 use Domain\Helpdesk\Models\Ticket;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Domain\Llm\Data\LlmModelData;
-use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
-use Domain\Prompt\Models\AgentPrompt;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
@@ -68,6 +66,17 @@ use Support\Enums\User\UserType;
 use Support\Traits\HasSettings;
 
 /**
+ * An account: who someone is and what they belong to. One table holds four
+ * kinds of account ({@see UserType}): platform admins, workspace owners (the
+ * tenant that owns agents, billing and quotas), teammates (employees of a
+ * workspace) and chatters (end-users of a workspace's agents).
+ *
+ * Everything account-wide resolves through {@see workspace()}: a teammate or
+ * chatter reads the owner's billing, quotas and agents. The model keeps the
+ * identity, relations and auth checks; billing rules live in Domain\Billing
+ * and are reached through the thin accessors below (`creditSystem()`,
+ * `capabilities`, `quotaLimit()`, …), agent access in {@see AgentAccessPolicy}.
+ *
  * @property int $id
  * @property string $external_id
  * @property string $name
@@ -325,16 +334,18 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return $workspace->hasMany(Agent::class);
     }
 
+    /**
+     * The plan the account's subscription is on (the default plan without one),
+     * as configured in `config('billing.packages')`.
+     *
+     * @return array<string, mixed>
+     */
     public function getCurrentPackage(): array
     {
-        return $this->remember('currentPackage', function (): array {
-            $stripePrice = $this->accountBilling()?->subscription()?->stripe_price;
-            $billing = app(Billing::class);
-
-            return $stripePrice
-                ? $billing->getPackageByPriceId($stripePrice, true)
-                : $billing->getFreePackage();
-        });
+        return $this->remember(
+            'currentPackage',
+            fn (): array => app(PlanCatalog::class)->currentPackage($this->accountBilling()),
+        );
     }
 
     public function isAdmin(): bool
@@ -408,7 +419,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         );
     }
 
-    public function hasCapability(CapabilityEnum $capability): bool
+    public function hasCapability(Capability $capability): bool
     {
         // `capabilities()` returns the Eloquent Attribute container; calling
         // it as a method on the instance bypasses the accessor and yields
@@ -419,9 +430,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * Workspace-scoped knowledge consumption queries (pages, minutes, links)
-     * and the matching upload-quota check. Lives on a small dedicated service
-     * so the auth model isn't also a query layer. See {@see WorkspaceConsumption}.
+     * Knowledge consumption (pages, minutes, links) and the upload-quota check.
      */
     public function consumption(): WorkspaceConsumption
     {
@@ -429,41 +438,17 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * Workspace-scoped message-credit metering for read paths (cycle usage, base
-     * + addons, available/limit math). Reads from the analytics rollup
-     * (`analytics_agent_hourly_rollups`) so the figure stays in sync with the
-     * usage panel and any downstream BI consumer.
-     *
-     * Use this for dashboard/UI surfaces ("X messages remaining this cycle"),
-     * billing emails, and customer-trust math.
-     *
-     * For the **send-gate decision** (can this user send another message right
-     * now?), call {@see creditSystem()} instead — it reads `user_credits.usage`,
-     * which the message-write path increments synchronously and is the
-     * authoritative counter for capacity enforcement. The two paths can
-     * disagree by a rollup-write cycle; the divergence is intentional.
+     * Message-credit figures for screens ("X messages left this cycle"). For
+     * the send decision use {@see creditSystem()}.
      */
     public function messageCredits(): MessageCredits
     {
         return new MessageCredits($this);
     }
 
-    public function formattedLlms()
-    {
-        return Llm::catalog()->map(fn (Llm $llm): LlmModelData => LlmModelData::fromLlmModel($llm));
-    }
-
-    /**
-     * @return Collection<int, Llm>
-     */
-    public function llms(): Collection
-    {
-        return Llm::catalog();
-    }
-
     public function plan(): Attribute
     {
-        return Attribute::get(fn () => $this->getCurrentPackage()['id']);
+        return Attribute::get(fn (): mixed => $this->getCurrentPackage()['id']);
     }
 
     // Profile photos are public, small and read-heavy, so they live on the
@@ -488,6 +473,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
      * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
      * through the workspace leg instead: `loadMissing(['parentWorkspace.credits', 'credits'])`.
+     *
+     * @return HasMany<UserCredit, self>
      */
     public function credits(): HasMany
     {
@@ -500,6 +487,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
      * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
      * through the workspace leg instead: `loadMissing(['parentWorkspace.credit', 'credit'])`.
+     *
+     * @return HasOne<UserCredit, self>
      */
     public function credit(): HasOne
     {
@@ -514,6 +503,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
      * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
      * through the workspace leg instead: `loadMissing(['parentWorkspace.addons', 'addons'])`.
+     *
+     * @return HasMany<UserAddon, self>
      */
     public function addons(): HasMany
     {
@@ -523,21 +514,12 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * Authoritative send-gate accessor: reads `user_credits.usage` (the
-     * synchronous counter incremented on every message write) to decide whether
-     * the next message is allowed through. Use this from
-     * {@see EnsureAgentHasMessagesCapacity} and the ChatStreamService capacity
-     * check.
-     *
-     * For dashboard/UI displays of "remaining messages this cycle", prefer
-     * {@see MessageCredits()} which reads the analytics rollup and matches the
-     * usage panel.
+     * The workspace's message-credit pool: the send decision and the cached
+     * counters behind it.
      */
     public function creditSystem(): UserCreditSystem
     {
-        $workspaceId = $this->workspace()->id;
-
-        return app(UserCreditSystem::class)->forWorkspace($workspaceId);
+        return app(UserCreditSystem::class)->forWorkspace($this->workspace()->id);
     }
 
     /**
@@ -582,6 +564,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
      * (`with('quota')` / `load('quota')`) builds the relation on a bare instance
      * and returns null for an employee/chatter; eager-load through the workspace
      * leg instead: `loadMissing(['parentWorkspace.quota', 'quota'])` (see AgentTeamController).
+     *
+     * @return HasOne<UserQuota, self>
      */
     public function quota(): HasOne
     {
@@ -744,7 +728,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     /**
      * Agents a chatter has been explicitly granted access to (via the
      * `agent_user` pivot). Empty for non-chatter types; their agent reach is
-     * still resolved through teams + roles via {@see TeamService}.
+     * still resolved through teams + roles via {@see AgentAccessPolicy}.
      *
      * @return BelongsToMany<Agent, $this>
      */
@@ -783,60 +767,22 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return $this->workspace_id !== null;
     }
 
+    /**
+     * Whether the user may chat with the agent (see {@see AgentAccessPolicy}).
+     */
     public function canAccessAgent(Agent $agent): bool
     {
-        if ($this->isChatter()) {
-            return $this->accessibleAgents()->whereKey($agent->id)->exists();
-        }
-
-        if ($agent->user_id === $this->id) {
-            return true;
-        }
-
-        $team = $this->currentTeam;
-
-        if ($team === null) {
-            return false;
-        }
-
-        return app(TeamService::class)->canAccessAgent(
-            user: $this,
-            team: $team,
-            agent: $agent,
-        );
+        return app(AgentAccessPolicy::class)->canChat($this, $agent);
     }
 
     /**
-     * Every agent this user may open from the chat agent-switcher — the plural
-     * companion to {@see canAccessAgent()}, resolved by account type:
-     *
-     *  - Chatter   → explicit `agent_user` grants only.
-     *  - Workspace → every agent in the account (all teams).
-     *  - Employee  → agents reachable through their current team + role.
-     *
-     * Kept in lock-step with canAccessAgent() so the set listed here is exactly
-     * the set the switch endpoint's Gate will accept — never list a row the
-     * user cannot then switch to.
+     * Every agent the user may chat with, for the chat agent switcher.
      *
      * @return \Illuminate\Support\Collection<int, Agent>
      */
     public function listAccessibleAgents(): \Illuminate\Support\Collection
     {
-        if ($this->isChatter()) {
-            return $this->accessibleAgents()->get();
-        }
-
-        if ($this->isWorkspace()) {
-            return $this->agents()->get();
-        }
-
-        $team = $this->currentTeam;
-
-        if ($team === null) {
-            return collect();
-        }
-
-        return app(TeamService::class)->accessibleAgents($this, $team);
+        return app(AgentAccessPolicy::class)->chattableAgents($this);
     }
 
     /**

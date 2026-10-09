@@ -4,21 +4,23 @@ namespace Domain\Guardrail\Services;
 
 use Domain\Agent\Models\Agent;
 use Domain\Guardrail\Data\ClassifierOptionsData;
+use Domain\Guardrail\Data\ClassifierVerdictData;
+use Domain\Guardrail\Data\GuardrailSettingsData;
 use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Data\GuardVerdictData;
+use Domain\Guardrail\Data\PiiRedactionData;
 use Domain\Guardrail\Enums\GuardOutcome;
+use Domain\Guardrail\Enums\GuardSeverity;
 use Domain\Guardrail\Enums\GuardStage;
 use Domain\Guardrail\Enums\GuardType;
-use Domain\Guardrail\Enums\PiiFilterType;
 use Domain\Guardrail\Services\Detectors\PiiDetector;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
  * The guardrail engine: given an agent's per-agent settings, runs the enabled
  * guards over a piece of text and returns the enforcement decision (redacted
- * text, whether to block, and the verdicts to log). Pure detection — it dispatches
- * no events; the chat-pipeline integration records the verdicts.
+ * text, whether to block, and the verdicts to log). Pure detection — it
+ * dispatches no events; the chat-pipeline integration records the verdicts.
  *
  * PII is regex (free); injection / off-topic / toxicity are one classifier call.
  */
@@ -51,28 +53,7 @@ class GuardrailService
             return $text;
         }
 
-        $filters = $this->piiFilters($agent->settings('guardrails'));
-
-        return $filters === [] ? $text : $this->pii->redact($text, $filters)['text'];
-    }
-
-    /**
-     * The PII filter keys selected for this agent, validated against the known
-     * catalog and returned in canonical pipeline order. Defaults to the standard
-     * set when unset; an empty stored array means PII redaction is off.
-     *
-     * @param  Collection<string, mixed>  $settings
-     * @return list<string>
-     */
-    private function piiFilters(Collection $settings): array
-    {
-        $stored = $settings->get('filters', PiiFilterType::defaults());
-
-        if (! is_array($stored)) {
-            return [];
-        }
-
-        return array_values(array_intersect(PiiFilterType::keys(), $stored));
+        return $this->redact(GuardrailSettingsData::fromAgent($agent), $text)->text;
     }
 
     /**
@@ -85,71 +66,22 @@ class GuardrailService
             return GuardResultData::clean($text);
         }
 
-        $settings = $agent->settings('guardrails');
+        $settings = GuardrailSettingsData::fromAgent($agent);
         $verdicts = [];
 
-        // PII — regex redaction, never blocks.
-        $piiFilters = $this->piiFilters($settings);
-        if ($piiFilters !== []) {
-            $pii = $this->pii->redact($text, $piiFilters);
-            if ($pii['count'] > 0) {
-                $text = $pii['text'];
-                $verdicts[] = new GuardVerdictData(
-                    GuardType::Pii, GuardStage::Input, GuardOutcome::Redacted,
-                    detail: ['types' => $pii['types'], 'count' => $pii['count']],
-                );
-            }
+        $pii = $this->redact($settings, $text);
+        if ($pii->found()) {
+            $verdicts[] = $this->piiVerdict($pii, GuardStage::Input);
         }
 
-        // Injection / off-topic / toxicity — one classifier call.
-        $blockedTopics = $this->blockedTopics($settings->get('blocked_topics'));
-        $allowedScope = trim((string) $settings->get('allowed_scope', ''));
-        $checkTopic = $blockedTopics !== [] || $allowedScope !== '';
-
-        $options = new ClassifierOptionsData(
-            checkInjection: (bool) $settings->get('injection', true),
-            checkTopic: $checkTopic,
-            checkToxicity: (bool) $settings->get('toxicity', true),
-            blockedTopics: $blockedTopics,
-            allowedScope: $allowedScope !== '' ? $allowedScope : null,
-        );
-
-        $blocked = false;
-        if ($options->any()) {
-            $verdict = $this->classifier->classify($text, $options);
-
-            if ($options->checkInjection && $verdict->injection) {
-                $blocked = true;
-                $verdicts[] = new GuardVerdictData(
-                    GuardType::PromptInjection, GuardStage::Input, GuardOutcome::Blocked,
-                    severity: $verdict->injectionRisk, detail: ['reason' => $verdict->reason],
-                );
-            }
-
-            if ($options->checkTopic && $verdict->offTopic) {
-                $blocked = true;
-                $verdicts[] = new GuardVerdictData(
-                    GuardType::BlockedTopic, GuardStage::Input, GuardOutcome::Blocked,
-                    severity: 'medium', detail: ['reason' => $verdict->reason],
-                );
-            }
-
-            if ($options->checkToxicity && $verdict->toxic) {
-                $severe = in_array($verdict->toxicitySeverity, ['medium', 'high'], true);
-                $blocked = $blocked || $severe;
-                $verdicts[] = new GuardVerdictData(
-                    GuardType::Toxicity, GuardStage::Input,
-                    $severe ? GuardOutcome::Blocked : GuardOutcome::Flagged,
-                    severity: $verdict->toxicitySeverity,
-                    detail: ['categories' => $verdict->toxicityCategories, 'reason' => $verdict->reason],
-                );
-            }
-        }
+        $classifierVerdicts = $this->classifyInput($settings, $pii->text);
+        $verdicts = [...$verdicts, ...$classifierVerdicts];
+        $blocked = $this->anyBlocked($classifierVerdicts);
 
         return new GuardResultData(
-            text: $text,
+            text: $pii->text,
             blocked: $blocked,
-            refusalMessage: $blocked ? $this->refusalMessage($settings->get('refusal_message')) : null,
+            refusalMessage: $blocked ? $settings->refusalMessage() : null,
             verdicts: $verdicts,
         );
     }
@@ -164,36 +96,23 @@ class GuardrailService
             return GuardResultData::clean($text);
         }
 
-        $settings = $agent->settings('guardrails');
+        $settings = GuardrailSettingsData::fromAgent($agent);
         $verdicts = [];
-        $blocked = false;
 
-        $piiFilters = $this->piiFilters($settings);
-        if ($piiFilters !== []) {
-            $pii = $this->pii->redact($text, $piiFilters);
-            if ($pii['count'] > 0) {
-                $text = $pii['text'];
-                $verdicts[] = new GuardVerdictData(
-                    GuardType::Pii, GuardStage::Output, GuardOutcome::Redacted,
-                    detail: ['types' => $pii['types'], 'count' => $pii['count']],
-                );
-            }
+        $pii = $this->redact($settings, $text);
+        if ($pii->found()) {
+            $verdicts[] = $this->piiVerdict($pii, GuardStage::Output);
         }
 
-        if ((bool) $settings->get('toxicity', true)) {
-            $verdict = $this->classifier->classify($text, new ClassifierOptionsData(checkToxicity: true));
-            if ($verdict->toxic && in_array($verdict->toxicitySeverity, ['medium', 'high'], true)) {
-                $blocked = true;
-                $text = $this->refusalMessage($settings->get('refusal_message'));
-                $verdicts[] = new GuardVerdictData(
-                    GuardType::Toxicity, GuardStage::Output, GuardOutcome::Blocked,
-                    severity: $verdict->toxicitySeverity,
-                    detail: ['categories' => $verdict->toxicityCategories, 'reason' => $verdict->reason],
-                );
-            }
+        $toxicity = $settings->toxicity ? $this->blockingToxicity($pii->text) : null;
+
+        if ($toxicity === null) {
+            return new GuardResultData(text: $pii->text, verdicts: $verdicts);
         }
 
-        return new GuardResultData(text: $text, blocked: $blocked, refusalMessage: null, verdicts: $verdicts);
+        $verdicts[] = $this->toxicityVerdict($toxicity, GuardStage::Output, GuardOutcome::Blocked);
+
+        return new GuardResultData(text: $settings->refusalMessage(), blocked: true, verdicts: $verdicts);
     }
 
     /**
@@ -208,6 +127,7 @@ class GuardrailService
         }
 
         $haystack = Str::lower($chunk);
+
         foreach ((array) config('chatvia.guardrails.injection_markers', []) as $marker) {
             if ($marker !== '' && str_contains($haystack, Str::lower((string) $marker))) {
                 return new GuardResultData(
@@ -215,7 +135,7 @@ class GuardrailService
                     blocked: true,
                     verdicts: [new GuardVerdictData(
                         GuardType::PromptInjection, GuardStage::Source, GuardOutcome::Blocked,
-                        severity: 'high', detail: ['marker' => (string) $marker],
+                        severity: GuardSeverity::High, detail: ['marker' => (string) $marker],
                     )],
                 );
             }
@@ -224,25 +144,90 @@ class GuardrailService
         return GuardResultData::clean($chunk);
     }
 
-    /**
-     * @return list<string>
-     */
-    private function blockedTopics(mixed $value): array
+    private function redact(GuardrailSettingsData $settings, string $text): PiiRedactionData
     {
-        if (! is_array($value)) {
+        $filters = $settings->piiFilters();
+
+        return $filters === [] ? new PiiRedactionData($text) : $this->pii->redact($text, $filters);
+    }
+
+    private function piiVerdict(PiiRedactionData $pii, GuardStage $stage): GuardVerdictData
+    {
+        return new GuardVerdictData(
+            GuardType::Pii, $stage, GuardOutcome::Redacted,
+            detail: ['types' => $pii->types, 'count' => $pii->count],
+        );
+    }
+
+    /**
+     * The injection / off-topic / toxicity verdicts for a visitor message, from
+     * one classifier call covering only the checks the agent has on.
+     *
+     * @return list<GuardVerdictData>
+     */
+    private function classifyInput(GuardrailSettingsData $settings, string $text): array
+    {
+        $options = new ClassifierOptionsData(
+            checkInjection: $settings->injection,
+            checkTopic: $settings->hasTopicPolicy(),
+            checkToxicity: $settings->toxicity,
+            blockedTopics: $settings->blocked_topics,
+            allowedScope: $settings->allowedScope(),
+        );
+
+        if (! $options->any()) {
             return [];
         }
 
-        return array_values(array_filter(array_map(
-            fn ($v): string => is_string($v) ? trim($v) : '',
-            $value,
-        ), fn (string $v): bool => $v !== ''));
+        $verdict = $this->classifier->classify($text, $options);
+        $verdicts = [];
+
+        if ($options->checkInjection && $verdict->injection) {
+            $verdicts[] = new GuardVerdictData(
+                GuardType::PromptInjection, GuardStage::Input, GuardOutcome::Blocked,
+                severity: $verdict->injectionRisk, detail: ['reason' => $verdict->reason],
+            );
+        }
+
+        if ($options->checkTopic && $verdict->offTopic) {
+            $verdicts[] = new GuardVerdictData(
+                GuardType::BlockedTopic, GuardStage::Input, GuardOutcome::Blocked,
+                severity: GuardSeverity::Medium, detail: ['reason' => $verdict->reason],
+            );
+        }
+
+        if ($options->checkToxicity && $verdict->toxic) {
+            $outcome = $verdict->toxicitySeverity->blocks() ? GuardOutcome::Blocked : GuardOutcome::Flagged;
+            $verdicts[] = $this->toxicityVerdict($verdict, GuardStage::Input, $outcome);
+        }
+
+        return $verdicts;
     }
 
-    private function refusalMessage(mixed $configured): string
+    /**
+     * The classifier verdict when the text is toxic enough to block, else null.
+     */
+    private function blockingToxicity(string $text): ?ClassifierVerdictData
     {
-        $message = is_string($configured) ? trim($configured) : '';
+        $verdict = $this->classifier->classify($text, new ClassifierOptionsData(checkToxicity: true));
 
-        return $message !== '' ? $message : 'Sorry, I can’t help with that request.';
+        return $verdict->toxic && $verdict->toxicitySeverity->blocks() ? $verdict : null;
+    }
+
+    private function toxicityVerdict(ClassifierVerdictData $verdict, GuardStage $stage, GuardOutcome $outcome): GuardVerdictData
+    {
+        return new GuardVerdictData(
+            GuardType::Toxicity, $stage, $outcome,
+            severity: $verdict->toxicitySeverity,
+            detail: ['categories' => $verdict->toxicityCategories, 'reason' => $verdict->reason],
+        );
+    }
+
+    /**
+     * @param  list<GuardVerdictData>  $verdicts
+     */
+    private function anyBlocked(array $verdicts): bool
+    {
+        return array_any($verdicts, fn (GuardVerdictData $verdict): bool => $verdict->outcome === GuardOutcome::Blocked);
     }
 }

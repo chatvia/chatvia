@@ -6,6 +6,10 @@ use Domain\Conversation\Models\Message;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * One message in the chat log's conversation view, with its analysis
+ * (sentiment, tone, feedback) and cost details.
+ */
 #[TypeScript]
 class ChatLogMessageData extends Data
 {
@@ -41,7 +45,7 @@ class ChatLogMessageData extends Data
             id: (string) $message->id,
             chat_conversation_id: (string) $message->chat_conversation_id,
             content: $message->content,
-            role: $message->role,
+            role: $message->role->value,
             sentiment: $message->sentiment,
             tone: $message->tone,
             feedback: $message->feedback,

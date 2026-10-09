@@ -4,6 +4,10 @@ namespace Domain\Agent\Data\Api;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * The public API's request for a one-time sign-in link that opens an agent's
+ * chat as a given chatter.
+ */
 class SignInLinkPayloadData extends Data
 {
     public function __construct(

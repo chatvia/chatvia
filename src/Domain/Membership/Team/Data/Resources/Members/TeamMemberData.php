@@ -8,6 +8,10 @@ use Domain\Membership\Team\Models\Team;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * One row of the team page's member list. The owner has no role pivot row, so
+ * a null role renders as the owner role.
+ */
 #[TypeScript]
 class TeamMemberData extends Data
 {
@@ -33,7 +37,7 @@ class TeamMemberData extends Data
             id: $user->id,
             name: $user->name,
             email: $user->email,
-            role: $role->code ?? 'owner',
+            role: $role->code ?? Role::OWNER_CODE,
             role_name: $role->name ?? 'Owner',
             is_owner: $team->user_id === $user->id,
             joined_at: null, // No timestamp on pivot table anymore

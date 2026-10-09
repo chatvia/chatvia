@@ -4,6 +4,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Roles\UpdateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
+use Domain\Membership\Team\Services\TeamAgentAccess;
 use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
@@ -48,7 +49,7 @@ it('drops agents.access-all when scoping an all-agents role, even if the payload
         ->and($updated->agents()->pluck('agents.id')->all())->toBe([$kept->id]);
 
     // The scoped role now resolves to exactly the one agent — not all of them.
-    $roleAgents = app(TeamService::class)->roleAccessibleAgents($updated, $this->team);
+    $roleAgents = app(TeamAgentAccess::class)->roleAccessibleAgents($updated, $this->team);
 
     expect($roleAgents->pluck('id')->all())->toBe([$kept->id])
         ->and($roleAgents->pluck('id')->all())->not->toContain($dropped->id);

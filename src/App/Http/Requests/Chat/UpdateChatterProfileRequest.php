@@ -6,6 +6,9 @@ use App\Identity\Chatter\Data\UpdateChatterProfileData;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates a signed-in chatter's profile changes on the hosted chat.
+ */
 class UpdateChatterProfileRequest extends FormRequest
 {
     public function authorize(): bool

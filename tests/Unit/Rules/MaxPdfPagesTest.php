@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Rules;
 
-use Domain\Conversation\Rules\MaxPdfPages;
-use Domain\Knowledge\Document\PdfInfo;
+use App\Http\Rules\MaxPdfPages;
+use Domain\Knowledge\Document\Conversion\PdfInfo;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;

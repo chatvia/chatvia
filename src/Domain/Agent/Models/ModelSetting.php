@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 
 /**
+ * One stored setting of a model (an agent, a user): a key and its value inside
+ * a settings group. Read through HasSettings, which lays the config defaults
+ * underneath, so only values that differ from a default are stored.
+ *
  * @property int $id
  * @property string $model_type
  * @property int $model_id

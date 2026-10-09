@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * A workspace's plan limits (agents, pages, seats, …) plus the extra amounts
+ * its add-on subscriptions add.
+ *
  * @property int $id
  * @property int $user_id
  * @property int $agents_limit

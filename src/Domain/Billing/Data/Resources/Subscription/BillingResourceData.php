@@ -9,6 +9,11 @@ use Laravel\Cashier\Subscription;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * Everything the billing page shows: plan, trial, subscription, pending plan
+ * change and add-ons. Reads Stripe for the live subscription; if Stripe is
+ * unreachable the page still renders without it.
+ */
 #[TypeScript]
 class BillingResourceData extends Data
 {

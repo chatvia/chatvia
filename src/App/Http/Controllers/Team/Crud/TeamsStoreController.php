@@ -7,6 +7,9 @@ use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * Creates a team from the Teams page, within the plan's team limit.
+ */
 class TeamsStoreController
 {
     public function __invoke(CreateTeamRequest $request, CreateTeamAction $createTeam): RedirectResponse
@@ -16,7 +19,7 @@ class TeamsStoreController
 
         if (! $user->canCreateTeam()) {
             return back()->withErrors([
-                'name' => "You've reached your team limit ({$user->quotaLimit('teams_limit')}). Upgrade your plan to create more teams.",
+                'name' => __("You've reached your team limit (:limit). Upgrade your plan to create more teams.", ['limit' => $user->quotaLimit('teams_limit')]),
             ]);
         }
 
@@ -24,6 +27,6 @@ class TeamsStoreController
 
         return redirect()
             ->route('teams.show', $team)
-            ->with('success', 'Team created successfully.');
+            ->with('success', __('Team created successfully.'));
     }
 }

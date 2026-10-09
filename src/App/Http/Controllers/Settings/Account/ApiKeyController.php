@@ -11,6 +11,10 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * API keys (personal access tokens): list, create (the plain key is shown
+ * once) and revoke.
+ */
 class ApiKeyController
 {
     public function edit(Request $request): Response

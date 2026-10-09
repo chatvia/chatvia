@@ -3,11 +3,11 @@
 use App\Identity\Workspace\Actions\Account\DeleteEmployeeAction;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session as ChatSession;
 use Domain\Membership\Team\Services\TeamService;
-use Domain\Prompt\Models\AgentPrompt;
 use Illuminate\Support\Facades\DB;
 
 it('hard-deletes the employee while leaving the owner and sibling teammates intact', function (): void {

@@ -69,8 +69,8 @@ interface UploadingFileData extends BaseUploadingFileData {
 
 // Usage data interface - subset of the full usage resource with optional minutes
 type UsageData = {
-    pages: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
-    minutes?: App.Identity.Workspace.Data.Resources.My.Usage.UsageStatsData;
+    pages: Domain.Billing.Data.Resources.Usage.UsageStatsData;
+    minutes?: Domain.Billing.Data.Resources.Usage.UsageStatsData;
 };
 
 // File summary data interface

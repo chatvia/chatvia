@@ -1,7 +1,7 @@
 <?php
 
-use Domain\Knowledge\Document\LibreOffice;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Document\Conversion\LibreOffice;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Symfony\Component\Process\ExecutableFinder;

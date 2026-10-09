@@ -9,10 +9,9 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Rules shared by every create/update path for a webhook function (dashboard
- * and API), so the paths can't drift apart: function names are unique per
- * workspace, and the approval gate follows the HTTP verb unless the caller
- * chose otherwise.
+ * Rules shared by creating and updating a webhook function: names are unique
+ * per workspace, and the approval gate follows the HTTP verb unless the
+ * caller chose otherwise.
  */
 trait GuardsFunctionDefinition
 {
@@ -52,24 +51,13 @@ trait GuardsFunctionDefinition
     }
 
     /**
-     * Reads (GET) run without approval by default; any verb that can change
-     * data asks first.
-     */
-    private function approvalDefaultFor(string $method): bool
-    {
-        return FunctionWebhookMethod::tryFrom(strtoupper($method)) !== FunctionWebhookMethod::Get;
-    }
-
-    /**
      * When an update switches the verb and the caller did not set the
      * approval flag, only ever tighten it: a GET function that becomes a
      * POST must not keep running without approval.
      */
-    private function approvalAfterMethodChange(AgentFunction $function, string $newMethod): ?bool
+    private function approvalAfterMethodChange(AgentFunction $function, FunctionWebhookMethod $newMethod): ?bool
     {
-        $changed = strtoupper($newMethod) !== strtoupper((string) $function->webhook_method);
-
-        return $changed && ! $function->requires_approval && $this->approvalDefaultFor($newMethod)
+        return $newMethod !== $function->webhook_method && ! $function->requires_approval && $newMethod->changesData()
             ? true
             : null;
     }
@@ -77,7 +65,7 @@ trait GuardsFunctionDefinition
     private function duplicateNameException(): ValidationException
     {
         return ValidationException::withMessages([
-            'internal_name' => 'A function with this name already exists in your workspace.',
+            'internal_name' => __('A function with this name already exists in your workspace.'),
         ]);
     }
 }

@@ -63,11 +63,17 @@ class Attachment extends Model
      */
     public const DISK = 'public';
 
+    /**
+     * @return BelongsTo<Conversation, $this>
+     */
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class, 'chat_conversation_id');
     }
 
+    /**
+     * @return BelongsTo<Message, $this>
+     */
     public function message(): BelongsTo
     {
         return $this->belongsTo(Message::class, 'chat_message_id');

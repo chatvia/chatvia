@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
+ * A GDPR export of an account's data: its status, the ZIP on the private local
+ * disk, and when the download link expires.
+ *
  * @property int $id
  * @property int $user_id
  * @property DataExportStatus $status

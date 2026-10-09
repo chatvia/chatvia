@@ -4,6 +4,8 @@ namespace App\Http\Middleware\Access;
 
 use App\Identity\Workspace\Models\User;
 use Closure;
+use Domain\Security\Data\NetworkRulesData;
+use Domain\Security\Enums\GeoMode;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Domain\Security\Services\NetworkAccessGuard;
 use Illuminate\Http\Request;
@@ -45,19 +47,15 @@ class EnsureWorkspaceNetworkAllowed
             return $next($request);
         }
 
-        $ip = (string) $request->ip();
-        $ipAllowlist = $rules['ip_allowlist_mode'] === 'off' ? [] : $rules['ip_allowlist'];
-        $country = $rules['geo_mode'] === 'off' ? null : $request->country();
-
         $allowed = $this->guard->passes(
-            $ipAllowlist,
-            $rules['geo_mode'],
-            $rules['geo_countries'],
-            $ip,
-            $country,
+            $rules->enforcedIpAllowlist(),
+            $rules->geoMode,
+            $rules->geoCountries,
+            (string) $request->ip(),
+            $rules->geoMode === GeoMode::Off ? null : $request->country(),
         );
 
-        abort_if(! $allowed, 403, 'Access from your network is not permitted by this workspace.');
+        abort_if(! $allowed, 403, __('Access from your network is not permitted by this workspace.'));
 
         return $next($request);
     }
@@ -66,14 +64,12 @@ class EnsureWorkspaceNetworkAllowed
      * The workspace's network rules, or null when no control is on. Cached
      * because this runs on every web request; the model clears the entry on
      * every save (see WorkspaceSecurityPolicy::booted()).
-     *
-     * @return array{ip_allowlist_mode: string, ip_allowlist: array<int, string>, geo_mode: string, geo_countries: array<int, string>}|null
      */
-    private function networkRules(int $workspaceId): ?array
+    private function networkRules(int $workspaceId): ?NetworkRulesData
     {
         // An empty array (not null) marks "nothing to enforce", so the common
         // case is cached too — Cache::remember() treats null as a miss.
-        $rules = Cache::remember(
+        $cached = Cache::remember(
             WorkspaceSecurityPolicy::networkRulesCacheKey($workspaceId),
             now()->addMinutes(10),
             function () use ($workspaceId): array {
@@ -81,19 +77,12 @@ class EnsureWorkspaceNetworkAllowed
                     ->where('workspace_id', $workspaceId)
                     ->first(['ip_allowlist_mode', 'ip_allowlist', 'geo_mode', 'geo_countries']);
 
-                if ($policy === null || ($policy->ip_allowlist_mode === 'off' && $policy->geo_mode === 'off')) {
-                    return [];
-                }
+                $rules = $policy === null ? null : NetworkRulesData::fromPolicy($policy);
 
-                return [
-                    'ip_allowlist_mode' => $policy->ip_allowlist_mode,
-                    'ip_allowlist' => $policy->ip_allowlist ?? [],
-                    'geo_mode' => $policy->geo_mode,
-                    'geo_countries' => $policy->geo_countries ?? [],
-                ];
+                return $rules?->isActive() ? $rules->toCache() : [];
             },
         );
 
-        return $rules === [] ? null : $rules;
+        return $cached === [] ? null : NetworkRulesData::fromCache($cached);
     }
 }

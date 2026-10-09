@@ -2,21 +2,28 @@
 
 namespace App\Http\Middleware\Web;
 
+use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Laravel\Pennant\Feature;
 use Tighten\Ziggy\Ziggy;
 
+/**
+ * Inertia root for the dashboard and the rest of the `web` group: the props
+ * every page shares — the signed-in user, flash messages, locale, billing and
+ * subscription state, current team and its permissions, and feature flags.
+ * The hosted chat has its own root middleware
+ * ({@see ChatHandleInertiaRequests}).
+ */
 class HandleInertiaRequests extends Middleware
 {
     protected $rootView = 'app';
 
-    public function version(Request $request): ?string
-    {
-        return parent::version($request);
-    }
-
+    /**
+     * @return array<string, mixed>
+     */
+    #[\Override]
     public function share(Request $request): array
     {
         $user = $request->user('web');
@@ -78,6 +85,9 @@ class HandleInertiaRequests extends Middleware
         ];
     }
 
+    /**
+     * @return array{id: int, external_id: string, name: string, is_owner: bool, is_primary: bool}|null
+     */
     private function getCurrentTeam(Request $request): ?array
     {
         $user = $request->user('web');
@@ -102,6 +112,9 @@ class HandleInertiaRequests extends Middleware
         ];
     }
 
+    /**
+     * @return array<int, list<string>>
+     */
     private function getTeamPermissions(Request $request): array
     {
         $user = $request->user('web');

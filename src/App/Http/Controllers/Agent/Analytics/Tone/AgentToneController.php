@@ -2,24 +2,19 @@
 
 namespace App\Http\Controllers\Agent\Analytics\Tone;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
+/**
+ * The agent's tone analytics page; the chart data loads from
+ * {@see AgentToneDataController}.
+ */
 class AgentToneController
 {
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(Agent $agent): Response
     {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
-
-        /** @var User $user */
-        $user = $agent->user;
-
         return Inertia::render('agents/Tone', [
             'agent' => AgentResourceData::fromModel($agent),
             'enabled' => $agent->analyticsEnabled('tone'),

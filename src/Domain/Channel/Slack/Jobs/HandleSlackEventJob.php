@@ -4,6 +4,9 @@ namespace Domain\Channel\Slack\Jobs;
 
 use Domain\Channel\Slack\Actions\HandleSlackEventAction;
 use Domain\Channel\Slack\Models\AgentSlackApp;
+use Domain\Channel\Slack\Services\SlackAdapter;
+use Domain\Channel\Slack\Services\SlackChannelResolver;
+use Domain\Channel\Slack\Services\SlackClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -25,8 +28,11 @@ class HandleSlackEventJob implements ShouldQueue
         public readonly ?string $threadTs = null,
     ) {}
 
-    public function handle(HandleSlackEventAction $action): void
+    public function handle(HandleSlackEventAction $action, SlackClient $client, SlackChannelResolver $resolver): void
     {
-        $action->execute($this->app, $this->channelId, $this->text, $this->threadTs);
+        $action->execute(
+            new SlackAdapter($client, $resolver, $this->app, $this->channelId, $this->threadTs),
+            $this->text,
+        );
     }
 }

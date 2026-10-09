@@ -10,7 +10,6 @@ use Domain\Knowledge\Source\File\Actions\DeleteSourceFileFromAgentAction;
 use Domain\Knowledge\Source\File\Actions\UploadKnowledgeSourceFileAction;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use RuntimeException;
 
 /**
@@ -27,8 +26,9 @@ class SourceFileController
     public function store(UploadSourceFileRequest $request, Agent $agent, UploadKnowledgeSourceFileAction $upload): JsonResponse|array
     {
         try {
-            $sourceFile = $upload->execute($agent, $request->file('file'));
+            $sourceFile = $upload->execute($agent, $request->toData());
         } catch (RuntimeException $e) {
+            // Unsupported types, and MIME types the file categories do not know.
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
@@ -38,7 +38,7 @@ class SourceFileController
     /**
      * Delete file source
      */
-    public function destroy(Request $request, Agent $agent, int $source, DeleteSourceFileFromAgentAction $deleteFile): JsonResponse
+    public function destroy(Agent $agent, int $source, DeleteSourceFileFromAgentAction $deleteFile): JsonResponse
     {
         /** @var SourceFile $file */
         $file = $agent->files()->where('source_files.id', $source)->firstOrFail();

@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -13,27 +14,37 @@ use Illuminate\Support\Str;
 use Support\Exceptions\DomainValidationException;
 use Throwable;
 
+/**
+ * Adds a text as a knowledge source of an agent and queues its ingestion.
+ *
+ * The cleaned text is written to storage first; the row and the agent link are
+ * created in one transaction, and the stored file is deleted again when that
+ * fails. The text is keyed to the agent's owner (the workspace), and its size
+ * in pages (~450 words each) counts against the page quota.
+ */
 class CreateAgentSourceTextAction
 {
+    /** Words per quota page. */
+    private const int WORDS_PER_PAGE = 450;
+
     /**
      * @throws DomainValidationException
      */
     public function execute(Agent $agent, User $user, string $rawContent): SourceText
     {
         $content = Str::of(TextCleaner::clean($rawContent))->trim()->toString();
-        $numberOfPages = (int) ceil(str_word_count($content) / 450);
+        $numberOfPages = (int) ceil(str_word_count($content) / self::WORDS_PER_PAGE);
 
         if (! $user->consumption()->canUploadPages($numberOfPages)) {
-            throw new DomainValidationException('content', 'This document requires '.$numberOfPages.' pages.');
+            throw new DomainValidationException('content', __('This document requires :pages pages.', ['pages' => $numberOfPages]));
         }
 
-        $filepath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt';
+        $filepath = KnowledgeStoragePath::forAgent($agent, 'train/text').'/'.Str::uuid()->toString().'.txt';
         Storage::put($filepath, $content);
 
         try {
-            /** @var SourceText $agentText */
-            $agentText = DB::transaction(function () use ($agent, $filepath, $content, $numberOfPages): SourceText {
-                $agentText = SourceText::create([
+            $sourceText = DB::transaction(function () use ($agent, $filepath, $content, $numberOfPages): SourceText {
+                $sourceText = SourceText::query()->create([
                     // Knowledge belongs to the workspace, not whoever uploaded it — key
                     // to the agent's owner so an employee's deletion can't cascade it away.
                     'user_id' => $agent->user_id,
@@ -43,9 +54,9 @@ class CreateAgentSourceTextAction
                     'checksum' => md5($content),
                 ]);
 
-                $agent->texts()->attach($agentText->id);
+                $agent->texts()->attach($sourceText->id);
 
-                return $agentText;
+                return $sourceText;
             });
         } catch (Throwable $e) {
             // No row points at the file, so nothing else would ever delete it.
@@ -54,8 +65,8 @@ class CreateAgentSourceTextAction
             throw $e;
         }
 
-        TextIngestionJob::dispatch($agentText, $agent);
+        TextIngestionJob::dispatch($sourceText, $agent);
 
-        return $agentText;
+        return $sourceText;
     }
 }

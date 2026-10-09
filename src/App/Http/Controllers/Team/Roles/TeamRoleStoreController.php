@@ -7,6 +7,9 @@ use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * Saves a new custom team role from the role editor.
+ */
 class TeamRoleStoreController
 {
     public function __invoke(
@@ -16,6 +19,6 @@ class TeamRoleStoreController
     ): RedirectResponse {
         $createRole->execute($request->toData($team));
 
-        return redirect()->route('teams.show', $team)->with('success', 'Role created successfully.');
+        return redirect()->route('teams.show', $team)->with('success', __('Role created successfully.'));
     }
 }

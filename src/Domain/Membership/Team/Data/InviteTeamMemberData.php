@@ -6,6 +6,10 @@ use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Models\Team;
 use Spatie\LaravelData\Data;
 
+/**
+ * Input for adding someone to a team under a role code: either an existing
+ * managed user (`userId`) or an email address to invite.
+ */
 class InviteTeamMemberData extends Data
 {
     public function __construct(

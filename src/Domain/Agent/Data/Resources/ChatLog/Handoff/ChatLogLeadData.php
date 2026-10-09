@@ -6,6 +6,10 @@ use Domain\Form\Models\FormSubmission;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * The contact details a conversation captured (a lead), shown beside it in
+ * the chat log.
+ */
 #[TypeScript]
 class ChatLogLeadData extends Data
 {

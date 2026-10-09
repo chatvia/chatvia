@@ -10,6 +10,14 @@ use Illuminate\Support\Facades\Hash;
 use Support\Enums\User\UserType;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * Accepts a team invitation from its signed link. Rejects an expired link and
+ * an owner without an active subscription or a free workspace seat. Inside one
+ * transaction it either verifies an existing account's password or creates a
+ * new teammate account (email pre-verified — the link proves the address),
+ * attaches it to the team under the invited role and deletes the invitation.
+ * Chatter accounts can never join a team.
+ */
 class AcceptTeamInvitationAction
 {
     /**
@@ -19,8 +27,8 @@ class AcceptTeamInvitationAction
     {
         $invitation = $data->invitation;
 
-        if ($invitation->created_at->addDays(7)->isPast()) {
-            throw new DomainValidationException('invitation', 'This invitation has expired.');
+        if ($invitation->hasExpired()) {
+            throw new DomainValidationException('invitation', __('This invitation has expired.'));
         }
 
         $team = $invitation->team;
@@ -28,11 +36,11 @@ class AcceptTeamInvitationAction
         $owner = $team->owner;
 
         if (! $owner->hasActiveSubscription()) {
-            throw new DomainValidationException('invitation', 'The team owner does not have an active subscription.');
+            throw new DomainValidationException('invitation', __('The team owner does not have an active subscription.'));
         }
 
         if (! $owner->canAddWorkspaceUser()) {
-            throw new DomainValidationException('invitation', 'The team owner has reached their workspace user limit. Please contact them to upgrade their plan.');
+            throw new DomainValidationException('invitation', __('The team owner has reached their workspace user limit. Please contact them to upgrade their plan.'));
         }
 
         return DB::transaction(function () use ($data, $invitation, $team, $owner): User {
@@ -40,11 +48,11 @@ class AcceptTeamInvitationAction
 
             if ($existingUser) {
                 if ($existingUser->isChatter()) {
-                    throw new DomainValidationException('invitation', 'This account is a chat user and cannot join a team.');
+                    throw new DomainValidationException('invitation', __('This account is a chat user and cannot join a team.'));
                 }
 
                 if (! Hash::check($data->password ?? '', $existingUser->password)) {
-                    throw new DomainValidationException('password', 'The provided password is incorrect.');
+                    throw new DomainValidationException('password', __('The provided password is incorrect.'));
                 }
 
                 $user = $existingUser;

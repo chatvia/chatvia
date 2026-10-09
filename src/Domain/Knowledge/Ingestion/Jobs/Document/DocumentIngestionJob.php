@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Ingestion\Jobs\Document;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Documents\IngestDocumentAction;
+use Domain\Knowledge\Ingestion\Actions\Pipeline\MarkSourceFailedAction;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Llm\Usage\AttributesTokenUsage;
 use Domain\Llm\Usage\TracksTokenUsage;
@@ -13,9 +14,13 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
+/**
+ * Parses an uploaded document and starts its chunk batch. See
+ * {@see IngestDocumentAction}. Word files run on their own queue because
+ * LibreOffice conversion is slower; the other formats share the OCR queue.
+ */
 class DocumentIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
     use Batchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
@@ -32,13 +37,7 @@ class DocumentIngestionJob implements AttributesTokenUsage, ShouldBeUnique, Shou
 
     public function __construct(public SourceFile $sourceFile, public Agent $agent)
     {
-        if ($sourceFile->isWordFile()) {
-            $this->onQueue('ingestion.word');
-        } else {
-            // PDF, images, and the other OCR formats (PowerPoint, Excel) share
-            // the generic OCR queue (ingestion.pdf in the ingestion-medium pool).
-            $this->onQueue('ingestion.pdf');
-        }
+        $this->onQueue($sourceFile->isWordFile() ? 'ingestion.word' : 'ingestion.pdf');
     }
 
     public function handle(IngestDocumentAction $action): void
@@ -65,6 +64,9 @@ class DocumentIngestionJob implements AttributesTokenUsage, ShouldBeUnique, Shou
         return $this->uniqueFor;
     }
 
+    /**
+     * @return list<string>
+     */
     public function tags(): array
     {
         return [
@@ -75,18 +77,6 @@ class DocumentIngestionJob implements AttributesTokenUsage, ShouldBeUnique, Shou
 
     public function failed(Throwable $exception): void
     {
-        $jobId = $this->job->getJobId();
-
-        Log::error('IngestionJob failed', [
-            'source_file_id' => $this->sourceFile->id,
-            'job_id' => $jobId,
-            'error' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString(),
-        ]);
-
-        $this->sourceFile->update([
-            'status' => 'failed',
-            'failure_reason' => $exception->getMessage(),
-        ]);
+        app(MarkSourceFailedAction::class)->execute($this->sourceFile, $this->agent, $exception);
     }
 }

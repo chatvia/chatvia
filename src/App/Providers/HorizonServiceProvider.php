@@ -2,15 +2,20 @@
 
 namespace App\Providers;
 
+use App\Admin\StaffToolsAccess;
+use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Horizon\Horizon;
 use Laravel\Horizon\HorizonApplicationServiceProvider;
 
+/**
+ * Horizon (the queue dashboard): alert routing and who may open it outside the
+ * local environment — staff signed in to the admin panel
+ * ({@see StaffToolsAccess}).
+ */
 class HorizonServiceProvider extends HorizonApplicationServiceProvider
 {
-    /**
-     * Bootstrap any application services.
-     */
+    #[\Override]
     public function boot(): void
     {
         parent::boot();
@@ -25,14 +30,12 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
     }
 
     /**
-     * Register the Horizon gate.
-     *
-     * This gate determines who can access Horizon in non-local environments.
+     * The web-guard user Horizon passes in is ignored: only the admin panel's
+     * own session counts.
      */
+    #[\Override]
     protected function gate(): void
     {
-        Gate::define('viewHorizon', function ($user = null) {
-            return (bool) $user?->isAdmin();
-        });
+        Gate::define('viewHorizon', fn (?User $user = null): bool => $this->app->make(StaffToolsAccess::class)->allows());
     }
 }

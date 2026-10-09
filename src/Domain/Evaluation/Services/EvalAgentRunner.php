@@ -3,9 +3,9 @@
 namespace Domain\Evaluation\Services;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Turn\StreamRequestData;
+use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Services\ChatService;
-use Domain\Conversation\Services\Data\StreamRequestData;
-use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Evaluation\Data\AgentRunResultData;
@@ -132,7 +132,7 @@ class EvalAgentRunner
     /**
      * A lightweight, deduped view of the retrieved RAG sources (for the
      * groundedness signal). Knowledge chunks carry their document label at
-     * `metadata.filename` (see ChatService::enrichSourcesWithMetadata); the
+     * `metadata.filename` (see KnowledgeEnricher); the
      * title/name/url fallbacks keep it tolerant of other source shapes. Many
      * chunks come from one document, so collapse to distinct labels.
      *

@@ -6,6 +6,10 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Records that the signed-in user finished or skipped the first-run welcome
+ * tour.
+ */
 class CompleteOnboardingController
 {
     /**

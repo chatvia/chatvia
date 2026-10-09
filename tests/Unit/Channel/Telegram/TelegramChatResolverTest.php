@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Telegram\Data\TelegramSenderData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
@@ -29,7 +30,7 @@ function telegramBot(): AgentTelegramBot
 it('creates a Session + Conversation + mapping on first contact', function (): void {
     $bot = telegramBot();
 
-    $chat = app(TelegramChatResolver::class)->resolve($bot, 555, ['first_name' => 'Sam', 'username' => 'sam_t']);
+    $chat = app(TelegramChatResolver::class)->resolve($bot, 555, new TelegramSenderData('Sam', 'sam_t'));
 
     expect($chat->agent_telegram_bot_id)->toBe($bot->id)
         ->and($chat->chat_id)->toBe('555')
@@ -49,8 +50,8 @@ it('reuses the same mapping for a returning chat', function (): void {
     $bot = telegramBot();
     $resolver = app(TelegramChatResolver::class);
 
-    $first = $resolver->resolve($bot, 555, ['first_name' => 'Sam']);
-    $second = $resolver->resolve($bot, 555, ['first_name' => 'Sam']);
+    $first = $resolver->resolve($bot, 555, new TelegramSenderData('Sam'));
+    $second = $resolver->resolve($bot, 555, new TelegramSenderData('Sam'));
 
     expect($second->id)->toBe($first->id);
     expect(TelegramChat::query()->count())->toBe(1);
@@ -71,7 +72,7 @@ it('keeps separate conversations for different chats', function (): void {
 it('tags the conversation as a Telegram conversation', function (): void {
     $bot = telegramBot();
 
-    $chat = app(TelegramChatResolver::class)->resolve($bot, 777, ['first_name' => 'Lee']);
+    $chat = app(TelegramChatResolver::class)->resolve($bot, 777, new TelegramSenderData('Lee'));
 
     $this->assertDatabaseHas('chat_conversations', [
         'external_id' => $chat->conversation->external_id,

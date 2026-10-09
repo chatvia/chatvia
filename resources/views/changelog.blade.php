@@ -55,19 +55,19 @@
                                 $groupedItems = $changelog->items->groupBy('type');
                             @endphp
                             @foreach($groupedItems as $changeType => $items)
-                                @if(isset($changeTypes[$changeType]))
-                                    @php
-                                        $changeTypeConfig = $changeTypes[$changeType];
-                                    @endphp
+                                @php
+                                    $changeTypeConfig = \App\Marketing\Enums\ChangelogChangeType::tryFrom((string) $changeType);
+                                @endphp
+                                @if($changeTypeConfig)
                                     <div>
                                         <h3 class="text-lg font-semibold text-gray-800 mb-2 flex items-center">
-                                            <span class="w-2 h-2 bg-{{ $changeTypeConfig['color'] }}-500 rounded-full mr-3"></span>
-                                            {{ $changeTypeConfig['label'] }}
+                                            <span class="w-2 h-2 bg-{{ $changeTypeConfig->color() }}-500 rounded-full mr-3"></span>
+                                            {{ $changeTypeConfig->label() }}
                                         </h3>
                                         <ul class="space-y-2 text-gray-700">
                                             @foreach($items as $item)
                                                 <li class="flex items-start">
-                                                    <span class="text-{{ $changeTypeConfig['color'] }}-500 mr-2">{{ $changeTypeConfig['icon'] }}</span>
+                                                    <span class="text-{{ $changeTypeConfig->color() }}-500 mr-2">{{ $changeTypeConfig->icon() }}</span>
                                                     {{ $item->description }}
                                                 </li>
                                             @endforeach

@@ -5,6 +5,10 @@ namespace Domain\Knowledge\Ingestion\Services\Media;
 use Illuminate\Support\Facades\Process;
 use RuntimeException;
 
+/**
+ * Reads the duration of an audio or video file with ffprobe; the minute quota
+ * counts it.
+ */
 class AudioDurationExtractor
 {
     private function getSupportedMimeTypes(): array

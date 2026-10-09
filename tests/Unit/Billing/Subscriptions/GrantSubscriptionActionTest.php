@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Subscriptions\GrantSubscriptionAction;
+use Domain\Billing\Data\Subscriptions\PlanSelectionData;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -27,7 +28,7 @@ beforeEach(function (): void {
 it('grants the package quota, plan label and message credits', function (): void {
     $user = User::factory()->workspace()->create();
 
-    app(GrantSubscriptionAction::class)->execute($user, 'test_pkg', isYearly: false);
+    app(GrantSubscriptionAction::class)->execute($user, new PlanSelectionData('test_pkg', isYearly: false));
 
     $user->refresh();
 
@@ -41,7 +42,7 @@ it('grants the package quota, plan label and message credits', function (): void
 it('uses the yearly credit allotment and a one-year expiry for yearly grants', function (): void {
     $user = User::factory()->workspace()->create();
 
-    app(GrantSubscriptionAction::class)->execute($user, 'test_pkg', isYearly: true);
+    app(GrantSubscriptionAction::class)->execute($user, new PlanSelectionData('test_pkg', isYearly: true));
 
     $user->refresh();
 
@@ -58,7 +59,7 @@ it('logs a warning and grants nothing for an unknown package', function (): void
     $user = User::factory()->workspace()->create();
     $quotaBefore = $user->quota?->toArray();
 
-    app(GrantSubscriptionAction::class)->execute($user, 'no-such-package', isYearly: false);
+    app(GrantSubscriptionAction::class)->execute($user, new PlanSelectionData('no-such-package', isYearly: false));
 
     Log::shouldHaveReceived('warning')
         ->once()

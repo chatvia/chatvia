@@ -5,11 +5,10 @@ namespace Domain\Billing\Enums;
 use App\Identity\Workspace\Models\User;
 
 /**
- * The single source of truth for addon-subscriptions (extra agents / custom
- * domains). The case value doubles as the Cashier subscription `type`, the
- * `addon` metadata slug on the Stripe subscription, and the
- * `config('billing.addons.<value>.stripe_price_id')` config key — so adding a
- * new addon means adding one case here, not editing five files.
+ * The single source of truth for add-on subscriptions. The case value doubles
+ * as the Cashier subscription `type`, the `addon` metadata slug on the Stripe
+ * subscription, and the `config('billing.addons.<value>')` key — so adding a
+ * new add-on means adding one case here, not editing five files.
  */
 enum Addon: string
 {
@@ -31,6 +30,45 @@ enum Addon: string
             self::CustomDomains => 'extra_custom_domains_limit',
             self::RemoveBranding => null,
             self::Members => 'extra_members_limit',
+        };
+    }
+
+    /**
+     * Whether the customer picks a quantity. Remove Branding is a yes/no
+     * add-on, always bought once.
+     */
+    public function hasQuantity(): bool
+    {
+        return $this !== self::RemoveBranding;
+    }
+
+    /** The add-on's Stripe price, or null when it is not configured. */
+    public function stripePriceId(): ?string
+    {
+        $priceId = config("billing.addons.{$this->value}.stripe_price_id");
+
+        return is_string($priceId) && $priceId !== '' ? $priceId : null;
+    }
+
+    /** The environment variable that holds the add-on's Stripe price. */
+    public function priceEnvironmentKey(): string
+    {
+        return match ($this) {
+            self::ExtraAgents => 'STRIPE_EXTRA_AGENT_PRICE_ID',
+            self::CustomDomains => 'STRIPE_CUSTOM_DOMAIN_PRICE_ID',
+            self::RemoveBranding => 'STRIPE_REMOVE_BRANDING_PRICE_ID',
+            self::Members => 'STRIPE_MEMBERS_PRICE_ID',
+        };
+    }
+
+    /** Short English name, used in operator-facing messages. */
+    public function label(): string
+    {
+        return match ($this) {
+            self::ExtraAgents => 'Extra Agents',
+            self::CustomDomains => 'Custom Domain',
+            self::RemoveBranding => 'Remove Branding',
+            self::Members => 'Members',
         };
     }
 }

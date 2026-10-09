@@ -113,7 +113,7 @@ abstract class AnalyticsTool extends Tool
     protected function periodPayload(Period $period): array
     {
         return [
-            'key' => $period->key,
+            'key' => $period->key(),
             'label' => $period->label,
             'start' => $period->start->toDateString(),
             'end' => $period->end->toDateString(),

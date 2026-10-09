@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Agent\Audit;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogController;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Billing\Enums\Capability;
 use Domain\Conversation\Models\AgentActivity;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -24,12 +25,12 @@ class AgentAuditController
         // The audit log is a Pro-tier capability. Below it the page still renders
         // so the Vue LockedFeature card can show the upgrade prompt, but we skip
         // the queries and ship no audit data.
-        if (! $request->user()->hasCapability(CapabilityEnum::AUDIT)) {
+        if (! $request->user()->hasCapability(Capability::Audit)) {
             return Inertia::render('agents/Audit/index', [
                 'agent' => AgentResourceData::fromModel($agent),
                 'rows' => ['data' => []],
                 'connectors' => [],
-                'outcomes' => ['auto', 'approved', 'denied', 'rate_limited'],
+                'outcomes' => array_column(ToolCallOutcome::cases(), 'value'),
                 'filters' => ['outcome' => null, 'connector' => null],
             ]);
         }
@@ -65,7 +66,7 @@ class AgentAuditController
             'agent' => AgentResourceData::fromModel($agent),
             'rows' => $rows,
             'connectors' => $connectors,
-            'outcomes' => ['auto', 'approved', 'denied', 'rate_limited'],
+            'outcomes' => array_column(ToolCallOutcome::cases(), 'value'),
             'filters' => [
                 'outcome' => $request->filled('outcome') ? (string) $request->string('outcome') : null,
                 'connector' => $request->filled('connector') ? (string) $request->string('connector') : null,

@@ -2,9 +2,12 @@
 
 namespace Domain\Llm\Operations\Documents;
 
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Data\Chat\ChatResponseData;
 use Domain\Llm\Exceptions\DocumentLlmUnavailableException;
 use Domain\Llm\Services\DocumentLlm;
-use Illuminate\Http\Client\Response;
+use Domain\Llm\Services\LlmChat;
 
 /**
  * Writes a short summary of a whole document, read as a PDF from a signed URL
@@ -14,38 +17,25 @@ class Summarizer
 {
     public function __construct(
         private readonly DocumentLlm $documentLlm,
+        private readonly LlmChat $chat,
     ) {}
 
-    public function fromUrl(string $documentUrl): string
-    {
-        return (string) $this->complete($documentUrl)->json('choices.0.message.content');
-    }
-
     /**
-     * The raw completion response, for callers that also need its `usage`.
+     * The summary is the reply's content; its usage prices the call.
      *
      * @throws DocumentLlmUnavailableException
      */
-    public function complete(string $documentUrl): Response
+    public function summarize(string $documentUrl): ChatResponseData
     {
-        return $this->documentLlm->provider()->completion([
-            'model' => (string) config('chatvia.ai.models.summary'),
-            'max_tokens' => 1024,
-            'messages' => [
-                [
-                    'role' => 'user',
-                    'content' => [
-                        [
-                            'type' => 'text',
-                            'text' => prompt('summarization/system'),
-                        ],
-                        [
-                            'type' => 'document_url',
-                            'document_url' => $documentUrl,
-                        ],
-                    ],
-                ],
+        return $this->chat->using($this->documentLlm->provider())->send(new ChatRequestData(
+            model: (string) config('chatvia.ai.models.summary'),
+            messages: [
+                ChatMessageData::userWithAttachment(prompt('summarization/system'), [
+                    'type' => 'document_url',
+                    'document_url' => $documentUrl,
+                ]),
             ],
-        ]);
+            maxTokens: 1024,
+        ));
     }
 }

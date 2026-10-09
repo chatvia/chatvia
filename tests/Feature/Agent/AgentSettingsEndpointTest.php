@@ -54,3 +54,17 @@ it('refuses to delete a key that is not part of the group', function (string $ke
 
     expect($this->agent->fresh()->settings('security')->get('chat_rate_limit_per_minute'))->toBe(5);
 })->with(['chat_rate_limit_per_minute', 'anything']);
+
+it('does not write groups that have their own, stricter endpoint', function (string $group, string $key, mixed $value): void {
+    // The rate limit needs agent.identity.manage and the guardrails need the
+    // guardrails capability + permission; agent.setup alone must not reach them.
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => $group]), [$key => $value])
+        ->assertNotFound();
+
+    expect($this->agent->fresh()->modelSettings()->where('group', $group)->where('key', $key)->exists())->toBeFalse();
+})->with([
+    'rate limit' => ['security', 'chat_rate_limit_per_minute', 999],
+    'guardrails' => ['guardrails', 'enabled', true],
+    'model' => ['llm_settings', 'temperature', 1.5],
+]);

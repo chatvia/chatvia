@@ -7,6 +7,9 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
+ * Query scopes for file sources: by ingestion status and by file kind (MIME
+ * groups from config/mimes.php).
+ *
  * @template TModel of SourceFile
  *
  * @extends Builder<TModel>
@@ -15,7 +18,7 @@ class SourceFileQueryBuilder extends Builder
 {
     public function ingested(): self
     {
-        return $this->where('source_files.status', SourceStatus::Completed->value);
+        return $this->where('source_files.status', SourceStatus::Completed);
     }
 
     public function pdf(): self

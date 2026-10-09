@@ -2,50 +2,55 @@
 
 namespace Domain\Conversation\Actions\Handoff;
 
-use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Billing\Enums\Capability;
+use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Events\HandedOff;
-use Domain\Conversation\Exceptions\HandoffOperationException;
+use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Models\Conversation;
 
+/**
+ * Puts a visitor's conversation in the queue for a human operator. It only
+ * ever moves a conversation into `pending`; one that is already waiting or
+ * already with a human is returned as it is, without a second broadcast.
+ */
 class RequestHandoffAction
 {
     /**
-     * Returns the new status string. If already 'human' or 'pending', returns
-     * that without dispatching a duplicate event.
+     * @throws HandoffUnavailableException when the plan or the agent's live-chat toggle does not allow handoff
      */
-    public function execute(Conversation $conversation): string
+    public function execute(Conversation $conversation): HandoffStatus
     {
-        // Visitor-side endpoint has no auth context, so the capability gate
-        // can't live in HTTP middleware — enforce here against the plan of the
-        // team that owns the agent the visitor is talking to.
-        if (! ($conversation->agent?->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false)) {
-            throw HandoffOperationException::forbidden('Handoff is not available on this plan.');
+        $this->ensureHandoffIsAvailable($conversation);
+
+        if (in_array($conversation->handoff_status, [HandoffStatus::Human, HandoffStatus::Pending], true)) {
+            return $conversation->handoff_status;
         }
 
-        // Per-agent toggle (Setup → Widget → Live Chat). Live Chat is widget-only,
-        // so a disabled toggle blocks visitor handoff even on a capable plan.
-        $widgetSettings = $conversation->agent?->settings('widget');
+        $conversation->update(['handoff_status' => HandoffStatus::Pending]);
+
+        HandedOff::dispatch($conversation->external_id, HandoffStatus::Pending->value);
+
+        return HandoffStatus::Pending;
+    }
+
+    /**
+     * The visitor endpoint has no signed-in user, so the plan gate cannot live
+     * in route middleware: it is checked here against the plan of the team
+     * that owns the agent. Live chat is widget-only, so the agent's widget
+     * toggle can also switch it off on a capable plan.
+     */
+    private function ensureHandoffIsAvailable(Conversation $conversation): void
+    {
+        $agent = $conversation->agent;
+
+        if ($agent === null || ! ($agent->team?->hasCapability(Capability::Handoff) ?? false)) {
+            throw HandoffUnavailableException::notOnPlan();
+        }
+
+        $widgetSettings = $agent->settings('widget');
+
         if ($widgetSettings !== null && ! ($widgetSettings['handoff_enabled'] ?? true)) {
-            throw HandoffOperationException::forbidden('Live chat is turned off for this agent.');
+            throw HandoffUnavailableException::liveChatDisabled();
         }
-
-        if ($conversation->handoff_status === 'human') {
-            return 'human';
-        }
-
-        if ($conversation->handoff_status === 'pending') {
-            return 'pending';
-        }
-
-        $conversation->update(['handoff_status' => 'pending']);
-
-        HandedOff::dispatch(
-            $conversation->external_id,
-            'pending',
-            null,
-            null,
-        );
-
-        return 'pending';
     }
 }

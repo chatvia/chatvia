@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Services\Tooling\Routing;
 
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 
@@ -13,7 +14,7 @@ use Domain\Conversation\Models\Message;
  * "tell me more about #3".
  *
  * Reads from `chat_messages.metadata.tool_calls`, which is populated
- * by LlmSource when an assistant turn dispatches one or more tools.
+ * when an assistant reply that ran one or more tools is stored.
  * If that key is missing (older messages or assistant turns that didn't
  * use tools), the message simply contributes nothing.
  *
@@ -42,7 +43,7 @@ class StickyToolResolver
 
         $messages = Message::query()
             ->where('chat_conversation_id', $internalId)
-            ->where('role', 'assistant')
+            ->where('role', MessageRole::Assistant)
             ->orderByDesc('created_at')
             ->limit(self::RECENT_TURNS)
             ->get(['metadata']);

@@ -3,9 +3,12 @@
 namespace App\Http\Requests\Billing;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Data\UpdateAutoRechargeData;
+use Domain\Billing\Data\Account\UpdateAutoRechargeData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * The auto-recharge settings form.
+ */
 class UpdateAutoRechargeRequest extends FormRequest
 {
     public function authorize(): bool

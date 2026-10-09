@@ -2,32 +2,37 @@
 
 namespace App\Http\Controllers\Widget\Handoff;
 
+use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Requests\Widget\WidgetHandoffRequest;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Actions\Handoff\RequestHandoffAction;
 use Domain\Widget\Data\Handoff\WidgetHandoffRequestResultData;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * The visitor asks to talk to a human operator ("Live chat").
+ */
 readonly class HandoffRequestController
 {
+    use InteractsWithWidgetRequest;
+
     public function __invoke(
         WidgetHandoffRequest $request,
         RequestHandoffAction $requestHandoff,
         FindWidgetConversationAction $findConversation,
     ): JsonResponse|WidgetHandoffRequestResultData {
-        $sessionId = $request->header('X-SESSION-ID');
-        $conversationId = $request->string('conversation_id')->toString();
+        $target = $request->toData();
 
-        if (! $sessionId) {
-            return response()->json(['error' => 'Missing session'], 400);
+        if ($target->sessionId === null) {
+            return response()->json(['error' => 'Missing session'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $conversation = $findConversation->execute($conversationId, $sessionId, current_agent_from_widget());
+        $conversation = $findConversation->execute($target->conversationId, $target->sessionId, $this->widgetAgent());
 
         if (! $conversation) {
-            return response()->json(['error' => 'Conversation not found'], 404);
+            return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        return WidgetHandoffRequestResultData::make($requestHandoff->execute($conversation), $conversationId);
+        return WidgetHandoffRequestResultData::make($requestHandoff->execute($conversation), $target->conversationId);
     }
 }

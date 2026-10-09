@@ -2,14 +2,21 @@
 
 namespace App\Http\Controllers\Widget\Settings;
 
+use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use Domain\Widget\Actions\BuildWidgetSettingsAction;
-use Domain\Widget\Data\Settings\WidgetSettingsResourceData;
+use Domain\Widget\Data\Settings\WidgetSettingsData;
 use Illuminate\Http\Request;
 
+/**
+ * Appearance and behaviour settings the widget loads at boot, with the agent's
+ * texts resolved for the visitor's browser language.
+ */
 class WidgetSettingsController
 {
-    public function __invoke(Request $request, BuildWidgetSettingsAction $build): WidgetSettingsResourceData
+    use InteractsWithWidgetRequest;
+
+    public function __invoke(Request $request, BuildWidgetSettingsAction $build): WidgetSettingsData
     {
-        return $build->execute(current_agent_from_widget(), $request->header('Accept-Language'));
+        return $build->execute($this->widgetAgent(), $request->header('Accept-Language'));
     }
 }

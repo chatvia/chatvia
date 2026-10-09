@@ -3,7 +3,7 @@
 namespace Domain\Integration\Tool\Routing;
 
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Mcp\Actions\SetConnectorAlwaysAvailableAction;
+use Domain\Integration\Mcp\Actions\Agent\SetConnectorAlwaysAvailableAction;
 use Domain\Integration\Tool\Data\ToolEntry;
 
 /**

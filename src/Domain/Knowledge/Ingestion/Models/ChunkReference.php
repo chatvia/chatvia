@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
+ * Links a chunk to a website page (AgentWebsiteUrl) that produced it. Website
+ * chunks are shared by checksum across pages, so one chunk can have several
+ * references; a page can be retrained or removed without touching chunks other
+ * pages still use. `referenceable_type` holds the morph alias.
+ *
  * @property int $chunk_id
  * @property string $referenceable_type
  * @property int $referenceable_id

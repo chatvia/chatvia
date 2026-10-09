@@ -3,94 +3,87 @@
 namespace App\Http\Controllers\Agent\Analytics\Source;
 
 use Domain\Agent\Models\Agent;
-use Illuminate\Http\Request;
+use Domain\Analytics\Data\Agent\Usage\FunctionUsageData;
+use Domain\Analytics\Data\Agent\Usage\McpToolUsageData;
+use Domain\Analytics\Data\Agent\Usage\SourceUsageData;
+use Domain\Analytics\Queries\Agent\AgentKnowledgeUsageQuery;
+use Domain\Analytics\Queries\Agent\AgentToolUsageQuery;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
 
+/**
+ * The knowledge sources, functions and MCP tools the agent used most, with
+ * their last use, for the source-usage analytics page.
+ */
 class AgentSourcesDataController
 {
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(Agent $agent, AgentKnowledgeUsageQuery $knowledge, AgentToolUsageQuery $tools): JsonResponse
     {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
-
         return response()->json([
-            'knowledge' => $this->knowledgeSources($agent),
-            'functions' => $this->functions($agent),
-            'mcp_tools' => $this->mcpTools($agent),
+            'knowledge' => array_map($this->knowledgeSource(...), $knowledge->sources($agent)),
+            'functions' => array_map($this->functionUsage(...), $tools->functions($agent)),
+            'mcp_tools' => array_map($this->mcpTool(...), $tools->mcpTools($agent)),
         ]);
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * Every field — including the denormalised name/mime — comes from the
+     * durable analytics rollup, so a DELETED source still shows with its real
+     * label. The generic fallback only covers legacy rows recorded before the
+     * name column existed.
+     *
+     * @return array<string, mixed>
      */
-    private function knowledgeSources(Agent $agent): array
+    private function knowledgeSource(SourceUsageData $source): array
     {
-        // Every field — including the denormalised name/mime — comes from the
-        // durable analytics rollup, so a DELETED source still shows with its
-        // real label. The generic fallback only covers legacy rows recorded
-        // before the name column existed.
-        return $agent->mostAccessedSources()
-            ->limit(50)
-            ->get()
-            ->map(fn ($row): array => [
-                'name' => (string) ($row->name ?: $this->deletedLabel($row->sub_kind)),
-                'sub_kind' => $row->sub_kind,
-                'mime_type' => $row->mime_type,
-                'count' => (int) $row->count,
-                'last_used_at' => $this->toIso($row->last_used_at),
-            ])
-            ->toArray();
+        return [
+            'name' => $source->name ?? $this->deletedLabel($source->kind),
+            'sub_kind' => $source->kind,
+            'mime_type' => $source->mimeType,
+            'count' => $source->retrievals,
+            'last_used_at' => $this->toIso($source->lastUsedOn),
+        ];
     }
 
     private function deletedLabel(string $subKind): string
     {
         return match ($subKind) {
-            'source_file' => 'Deleted file',
-            'source_website' => 'Deleted website',
-            'source_text' => 'Deleted text snippet',
-            'source_youtube_video' => 'Deleted YouTube video',
-            'agent_website_url' => 'Deleted web page',
-            default => 'Deleted source',
+            'source_file' => __('Deleted file'),
+            'source_website' => __('Deleted website'),
+            'source_text' => __('Deleted text snippet'),
+            'source_youtube_video' => __('Deleted YouTube video'),
+            'agent_website_url' => __('Deleted web page'),
+            default => __('Deleted source'),
         };
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<string, mixed>
      */
-    private function functions(Agent $agent): array
+    private function functionUsage(FunctionUsageData $function): array
     {
-        return $agent->mostUsedFunctions()
-            ->limit(50)
-            ->get()
-            ->map(fn ($row): array => [
-                'name' => $row->name,
-                'description' => $row->description,
-                'count' => (int) $row->count,
-                'last_used_at' => $this->toIso($row->last_used_at),
-            ])
-            ->toArray();
+        return [
+            'name' => $function->name,
+            'description' => $function->description,
+            'count' => $function->calls,
+            'last_used_at' => $this->toIso($function->lastUsedOn),
+        ];
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<string, mixed>
      */
-    private function mcpTools(Agent $agent): array
+    private function mcpTool(McpToolUsageData $tool): array
     {
-        return $agent->mostUsedMcpTools()
-            ->limit(50)
-            ->get()
-            ->map(fn ($row): array => [
-                'tool_name' => $row->tool_name,
-                'tool_description' => $row->tool_description,
-                'server_name' => $row->server_name,
-                'server_slug' => $row->server_slug,
-                'connector_slug' => $row->connector_slug,
-                'count' => (int) $row->count,
-                'last_used_at' => $this->toIso($row->last_used_at),
-            ])
-            ->toArray();
+        return [
+            'tool_name' => $tool->toolName,
+            'tool_description' => $tool->toolDescription,
+            'server_name' => $tool->serverName,
+            'server_slug' => $tool->serverSlug,
+            'connector_slug' => $tool->connectorSlug,
+            'count' => $tool->calls,
+            'last_used_at' => $this->toIso($tool->lastUsedOn),
+        ];
     }
 
     /**

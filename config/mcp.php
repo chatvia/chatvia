@@ -2,6 +2,7 @@
 
 use App\Mcp\Servers\AccountAnalyticsServer;
 use App\Mcp\Servers\ChartsServer;
+use App\Mcp\Servers\FormsServer;
 
 return [
 
@@ -19,7 +20,8 @@ return [
     | McpServerCategory value the global row carries. `class` is the server
     | that defines the tools; the analytics chat also builds its fallback
     | toolset from it (AnalyticsToolset), and only these routes accept a
-    | workspace caller (VerifyInternalMcpRequest).
+    | workspace caller (VerifyInternalMcpRequest). `tool_label` is the badge
+    | the analytics chat shows on a call to one of the server's tools.
     |
     */
 
@@ -28,6 +30,7 @@ return [
             'slug' => 'account-analytics',
             'class' => AccountAnalyticsServer::class,
             'category' => 'analytics',
+            'tool_label' => 'Analytics',
             'name' => 'Account Analytics',
             'description' => "Answer the workspace owner's questions about their own account in numbers — messages, conversations, users, channels, leads, satisfaction, response time, topics and handoffs.",
         ],
@@ -40,8 +43,28 @@ return [
             'slug' => 'charts',
             'class' => ChartsServer::class,
             'category' => 'builtin',
+            'tool_label' => 'Chart',
             'name' => 'Interactive charts',
             'description' => 'Render interactive charts (bar, line, pie, gauge, scatter, radar, heatmap, …) inline in the chat.',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Per-agent capability servers
+    |--------------------------------------------------------------------------
+    |
+    | First-party servers an agent opts into (Capabilities page). The deploy
+    | sync catalogs their tools like the builtins above but creates NO global
+    | row: a global Builtin-category row would surface their tools inside the
+    | owner analytics chat, which routes over global rows.
+    |
+    */
+
+    'capabilities' => [
+        [
+            'slug' => 'forms',
+            'class' => FormsServer::class,
         ],
     ],
 

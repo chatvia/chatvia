@@ -9,7 +9,7 @@ use Illuminate\Validation\Validator;
 /**
  * Validates an agent's Telegram commands — built-in overrides (/start, /reset,
  * /help) plus custom commands. The route already enforces
- * `agent.permission:agent.setup`, so authorize() defers to it.
+ * `agent.permission:agent.channels`, so authorize() defers to it.
  *
  * Each command is a {command, description, type, value}: `type` is "message"
  * (canned text sent as-is) or "prompt" (run through the agent). Command names

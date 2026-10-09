@@ -4,80 +4,94 @@ namespace Domain\Widget\Services;
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
+use Domain\Widget\Data\Auth\WidgetBroadcastAuthData;
+use Domain\Widget\Enums\BroadcastDenialReason;
+use Illuminate\Broadcasting\Broadcasters\PusherBroadcaster;
+use Illuminate\Contracts\Broadcasting\Factory as BroadcastFactory;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
+use LogicException;
 use Pusher\Pusher;
 
 /**
- * Authorises a widget visitor's WebSocket subscription against a presence
- * channel. Encapsulates the defence-in-depth check:
- *  - the channel name must be presence-chat.<conversationExternalId>
- *  - the conversation must exist and belong to a Session whose external_id
- *    matches the widget's session id
- *  - if an Agent is resolvable from the widget, the conversation's session
- *    must also belong to that agent (no cross-agent presence-channel reuse).
+ * Decides whether a widget visitor may join a conversation's presence channel
+ * on the WebSocket server, and signs the permission when they may.
  *
- * Returns the Pusher auth payload on success, or an array {error, status}
- * the controller can hand back as JSON. Kept here so the rule is unit-testable
- * without a full HTTP round-trip.
+ * Widget visitors have no login, so the rule is:
+ *  - the channel must be `presence-chat.<conversation external id>`;
+ *  - that conversation must belong to the session the visitor sent;
+ *  - when the agent is known, the session must belong to that agent too, so a
+ *    channel can never be joined through another agent's widget.
+ *
+ * The signature comes from the `reverb` broadcast connection, so the keys are
+ * the same ones the WebSocket server checks.
  */
 readonly class BroadcastAuthorizer
 {
-    /**
-     * @return array{error: string, status: int}|array<string, mixed>
-     */
+    private const string CHANNEL_PATTERN = '/^presence-chat\.(.+)$/';
+
+    /** Member name shown to operators when the visitor gave no name. */
+    private const string ANONYMOUS_NAME = 'Visitor';
+
+    public function __construct(private BroadcastFactory $broadcasts) {}
+
     public function authorize(
         string $channelName,
         string $sessionExternalId,
         string $socketId,
         ?Agent $agent = null,
-    ): array {
-        if (! preg_match('/^presence-chat\.(.+)$/', $channelName, $matches)) {
-            return ['error' => 'Invalid channel', 'status' => 403];
+    ): WidgetBroadcastAuthData|BroadcastDenialReason {
+        if (preg_match(self::CHANNEL_PATTERN, $channelName, $matches) !== 1) {
+            return BroadcastDenialReason::InvalidChannel;
         }
 
-        $conversationExternalId = $matches[1];
+        $conversation = $this->findConversation($matches[1], $sessionExternalId, $agent);
 
-        $conversation = Conversation::query()
-            ->where('external_id', $conversationExternalId)
-            ->whereHas('session', function ($q) use ($sessionExternalId, $agent): void {
-                $q->where('external_id', $sessionExternalId);
-                if ($agent !== null) {
-                    $q->where('agent_id', $agent->id);
-                }
-            })
-            ->first();
-
-        if (! $conversation) {
-            return ['error' => 'Unauthorized', 'status' => 403];
+        if ($conversation === null) {
+            return BroadcastDenialReason::UnknownConversation;
         }
-
-        $userName = $conversation->displayName() ?? 'Visitor';
 
         $payload = $this->pusher()->authorizePresenceChannel(
             $channelName,
             $socketId,
             $sessionExternalId,
             [
-                'name' => $userName,
+                'name' => $conversation->displayName() ?? self::ANONYMOUS_NAME,
                 'type' => 'user',
                 'session_id' => $sessionExternalId,
             ],
         );
 
-        return (array) json_decode($payload, true);
+        return WidgetBroadcastAuthData::from(json_decode($payload, true, flags: JSON_THROW_ON_ERROR));
+    }
+
+    private function findConversation(string $conversationExternalId, string $sessionExternalId, ?Agent $agent): ?Conversation
+    {
+        // External ids are UUIDs; anything else can never match.
+        if (! Str::isUuid($conversationExternalId) || ! Str::isUuid($sessionExternalId)) {
+            return null;
+        }
+
+        return Conversation::query()
+            ->where('external_id', $conversationExternalId)
+            ->whereHas('session', function (Builder $session) use ($sessionExternalId, $agent): void {
+                $session->where('external_id', $sessionExternalId);
+
+                if ($agent !== null) {
+                    $session->where('agent_id', $agent->id);
+                }
+            })
+            ->first();
     }
 
     private function pusher(): Pusher
     {
-        return new Pusher(
-            config('broadcasting.connections.reverb.key'),
-            config('broadcasting.connections.reverb.secret'),
-            config('broadcasting.connections.reverb.app_id'),
-            [
-                'host' => config('broadcasting.connections.reverb.options.host'),
-                'port' => config('broadcasting.connections.reverb.options.port'),
-                'scheme' => config('broadcasting.connections.reverb.options.scheme'),
-                'useTLS' => config('broadcasting.connections.reverb.options.useTLS'),
-            ],
-        );
+        $broadcaster = $this->broadcasts->connection('reverb');
+
+        if (! $broadcaster instanceof PusherBroadcaster) {
+            throw new LogicException('The `reverb` broadcast connection must use the reverb or pusher driver.');
+        }
+
+        return $broadcaster->getPusher();
     }
 }

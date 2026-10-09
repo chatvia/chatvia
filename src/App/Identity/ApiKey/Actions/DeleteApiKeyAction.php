@@ -7,6 +7,9 @@ use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Events\SecurityEventOccurred;
 
+/**
+ * Revokes one of the user's own personal access tokens.
+ */
 class DeleteApiKeyAction
 {
     public function execute(User $user, int $tokenId): void

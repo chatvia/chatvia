@@ -1,0 +1,92 @@
+<?php
+
+use Domain\Agent\Models\Agent;
+use Domain\Channel\Actions\HandleChannelMessageAction;
+use Domain\Channel\Messenger\Models\AgentMessengerPage;
+use Domain\Channel\Messenger\Models\MessengerThread;
+use Domain\Channel\Messenger\Services\MessengerAdapter;
+use Domain\Channel\Messenger\Services\MessengerThreadResolver;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
+use Illuminate\Support\Str;
+use Tests\Support\Channel\StubChannelReplyRunner;
+use Tests\Support\Messenger\FakeMessengerClient;
+
+/**
+ * A Messenger turn through {@see HandleChannelMessageAction} with the
+ * {@see MessengerAdapter}: resolve the thread, show typing, run the agent for
+ * a reply, send it back, and stamp the thread. The pipeline (real LLM) is
+ * stubbed here — this asserts the wiring, not the model's answer.
+ */
+function messengerTurnPage(bool $public = true): AgentMessengerPage
+{
+    $agent = Agent::factory()->create(['is_public' => $public]);
+
+    return AgentMessengerPage::create([
+        'agent_id' => $agent->id,
+        'page_access_token' => 'EAAG-secret-token',
+        'app_secret' => 'app-secret-value-1234567890',
+        'page_id' => '1234567890',
+        'page_name' => 'Acme Support',
+        'webhook_secret' => Str::random(48),
+        'enabled' => true,
+    ]);
+}
+
+function messengerTurnAdapter(FakeMessengerClient $client, AgentMessengerPage $page, string $psid): MessengerAdapter
+{
+    return new MessengerAdapter($client, new MessengerThreadResolver(app(StartConversationAction::class), $client), $page, $psid);
+}
+
+it('resolves the thread, sends the agent reply, and stamps last_message_at', function (): void {
+    $page = messengerTurnPage();
+    $client = new FakeMessengerClient;
+    $runner = new StubChannelReplyRunner('Hello from the agent');
+
+    $runner->handler()->execute(messengerTurnAdapter($client, $page, '24680'), 'hi there');
+
+    expect($client->sent)->toHaveCount(1)
+        ->and($client->sent[0]['token'])->toBe('EAAG-secret-token')
+        ->and($client->sent[0]['psid'])->toBe('24680')
+        ->and($client->sent[0]['markdown'])->toBe('Hello from the agent');
+
+    // A "typing…" indicator fires the moment the message lands.
+    expect($client->typing)->not->toBeEmpty()
+        ->and($client->typing[0]['psid'])->toBe('24680');
+
+    // The pipeline runs the user's text on the Messenger surface.
+    expect($runner->received())->toBe('hi there')
+        ->and($runner->turn->source->value)->toBe('messenger')
+        ->and($runner->turn->requestIdPrefix)->toBe('msgr_');
+
+    $thread = MessengerThread::query()->firstOrFail();
+    expect($thread->psid)->toBe('24680')
+        ->and($thread->last_message_at)->not->toBeNull();
+});
+
+it('keeps one thread mapping across multiple inbound messages', function (): void {
+    $page = messengerTurnPage();
+    $client = new FakeMessengerClient;
+    $action = (new StubChannelReplyRunner('ok'))->handler();
+
+    $action->execute(messengerTurnAdapter($client, $page, '900'), 'first');
+    $action->execute(messengerTurnAdapter($client, $page, '900'), 'second');
+
+    expect(MessengerThread::query()->count())->toBe(1);
+    expect($client->sent)->toHaveCount(2);
+});
+
+it('refuses to answer on a protected agent and creates no thread', function (): void {
+    $page = messengerTurnPage(public: false);
+    $client = new FakeMessengerClient;
+    $runner = new StubChannelReplyRunner('should never be sent');
+
+    $runner->handler()->execute(messengerTurnAdapter($client, $page, '24680'), 'hello');
+
+    // Gated before the pipeline: a single "unavailable" notice, no thread row.
+    expect($client->sent)->toHaveCount(1)
+        ->and($client->sent[0]['markdown'])->toContain('available on Messenger')
+        ->and($client->sent[0]['markdown'])->not->toBe('should never be sent');
+
+    expect($runner->received())->toBeNull();
+    expect(MessengerThread::query()->count())->toBe(0);
+});

@@ -2,13 +2,16 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Services\ChannelAccessGate;
+use Domain\Channel\Services\Replies\TypingReplyStrategy;
 use Domain\Channel\Telegram\Actions\HandleTelegramUpdateAction;
+use Domain\Channel\Telegram\Data\TelegramSenderData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
+use Domain\Channel\Telegram\Services\TelegramAdapter;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
-use Domain\Channel\Telegram\Services\TelegramReplyRunner;
 use Illuminate\Support\Str;
+use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Telegram\FakeTelegramClient;
 
 /**
@@ -29,46 +32,30 @@ function handleBot(bool $public = true): AgentTelegramBot
     ]);
 }
 
-function stubReplyRunner(string $reply): TelegramReplyRunner
+/**
+ * Run one Telegram message through the handle action, wired to the stubbed
+ * pipeline (a null reply echoes the message it was asked to run).
+ */
+function telegramHandle(FakeTelegramClient $client, StubChannelReplyRunner $runner, AgentTelegramBot $bot, string $chatId, string $text, string $firstName = 'Sam'): void
 {
-    return new class($reply) extends TelegramReplyRunner
-    {
-        public function __construct(private string $canned) {}
+    $resolver = app(TelegramChatResolver::class);
 
-        public function reply(TelegramChat $chat, string $message): string
-        {
-            return $this->canned;
-        }
-    };
-}
+    $action = new HandleTelegramUpdateAction(
+        new ChannelAccessGate,
+        new TypingReplyStrategy($runner),
+        new TelegramCommandRouter($resolver, $client),
+    );
 
-/** A runner that echoes the message it was asked to run — to assert what the pipeline received. */
-function echoReplyRunner(): TelegramReplyRunner
-{
-    return new class extends TelegramReplyRunner
-    {
-        public function __construct() {}
-
-        public function reply(TelegramChat $chat, string $message): string
-        {
-            return $message;
-        }
-    };
+    $action->execute(new TelegramAdapter($client, $resolver, $bot, $chatId, new TelegramSenderData($firstName)), $text);
 }
 
 it('resolves the chat, sends the agent reply, and stamps last_message_at', function (): void {
     $bot = handleBot();
     $client = new FakeTelegramClient;
 
-    $action = new HandleTelegramUpdateAction(
-        app(TelegramChatResolver::class),
-        stubReplyRunner('Hello from the agent'),
-        $client,
-        new ChannelAccessGate,
-        new TelegramCommandRouter(app(TelegramChatResolver::class), $client),
-    );
+    $runner = new StubChannelReplyRunner('Hello from the agent');
 
-    $action->execute($bot, '555', 'hi there', ['first_name' => 'Sam']);
+    telegramHandle($client, $runner, $bot, '555', 'hi there', 'Sam');
 
     expect($client->sent)->toHaveCount(1)
         ->and($client->sent[0]['token'])->toBe('123:secret-token')
@@ -89,16 +76,10 @@ it('keeps one chat mapping across multiple inbound messages', function (): void 
     $bot = handleBot();
     $client = new FakeTelegramClient;
 
-    $action = new HandleTelegramUpdateAction(
-        app(TelegramChatResolver::class),
-        stubReplyRunner('ok'),
-        $client,
-        new ChannelAccessGate,
-        new TelegramCommandRouter(app(TelegramChatResolver::class), $client),
-    );
+    $runner = new StubChannelReplyRunner('ok');
 
-    $action->execute($bot, '900', 'first', ['first_name' => 'Ann']);
-    $action->execute($bot, '900', 'second', ['first_name' => 'Ann']);
+    telegramHandle($client, $runner, $bot, '900', 'first', 'Ann');
+    telegramHandle($client, $runner, $bot, '900', 'second', 'Ann');
 
     expect(TelegramChat::query()->count())->toBe(1);
     expect($client->sent)->toHaveCount(2);
@@ -108,15 +89,9 @@ it('refuses to answer on a protected agent and creates no chat', function (): vo
     $bot = handleBot(public: false);
     $client = new FakeTelegramClient;
 
-    $action = new HandleTelegramUpdateAction(
-        app(TelegramChatResolver::class),
-        stubReplyRunner('should never be sent'),
-        $client,
-        new ChannelAccessGate,
-        new TelegramCommandRouter(app(TelegramChatResolver::class), $client),
-    );
+    $runner = new StubChannelReplyRunner('should never be sent');
 
-    $action->execute($bot, '555', 'hello', ['first_name' => 'Sam']);
+    telegramHandle($client, $runner, $bot, '555', 'hello', 'Sam');
 
     // Gated before the pipeline: a single "unavailable" notice, no chat row.
     expect($client->sent)->toHaveCount(1)
@@ -130,15 +105,9 @@ it('answers /start with the default message and never runs the pipeline', functi
     $bot = handleBot();
     $client = new FakeTelegramClient;
 
-    $action = new HandleTelegramUpdateAction(
-        app(TelegramChatResolver::class),
-        stubReplyRunner('PIPELINE REPLY'),
-        $client,
-        new ChannelAccessGate,
-        new TelegramCommandRouter(app(TelegramChatResolver::class), $client),
-    );
+    $runner = new StubChannelReplyRunner('PIPELINE REPLY');
 
-    $action->execute($bot, '777', '/start', ['first_name' => 'Sam']);
+    telegramHandle($client, $runner, $bot, '777', '/start', 'Sam');
 
     // Built-in /start defaults to "Hello" — a canned message, not the pipeline.
     expect($client->sent)->toHaveCount(1)
@@ -156,15 +125,9 @@ it('runs a prompt-mode command through the agent pipeline', function (): void {
     ]]);
     $client = new FakeTelegramClient;
 
-    $action = new HandleTelegramUpdateAction(
-        app(TelegramChatResolver::class),
-        echoReplyRunner(),
-        $client,
-        new ChannelAccessGate,
-        new TelegramCommandRouter(app(TelegramChatResolver::class), $client),
-    );
+    $runner = new StubChannelReplyRunner;
 
-    $action->execute($bot, '888', '/pricing', ['first_name' => 'Sam']);
+    telegramHandle($client, $runner, $bot, '888', '/pricing', 'Sam');
 
     // The configured prompt — not the literal "/pricing" — is what the agent runs.
     expect($client->sent)->toHaveCount(1)

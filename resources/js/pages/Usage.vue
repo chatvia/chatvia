@@ -9,7 +9,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-type UsageData = App.Identity.Workspace.Data.Resources.My.Usage.UsageResourceData;
+type UsageData = Domain.Billing.Data.Resources.Usage.UsageResourceData;
 
 const usageData = ref<UsageData | null>(null);
 const isLoadingUsage = ref(true);

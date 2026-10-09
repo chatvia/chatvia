@@ -11,6 +11,7 @@ use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
 use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
 use Domain\Integration\Tool\Dispatch\ToolCallerIdentity;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -61,11 +62,11 @@ class HttpToolDispatcher implements ToolDispatcherInterface
             return $this->error('webhook URL is not allowed: '.$e->getMessage());
         }
 
-        $method = FunctionWebhookMethod::tryFrom(strtoupper((string) $function->webhook_method)) ?? FunctionWebhookMethod::Post;
+        $method = $function->webhook_method;
         $payload = $this->encodePayload($method, $args);
         $headers = $this->headers($function, $agent, $call);
 
-        if ($function->auth_type === FunctionAuthType::Hmac->value) {
+        if ($function->auth_type === FunctionAuthType::Hmac) {
             $secret = (string) (($function->auth_config ?? [])['secret'] ?? '');
 
             // Never send an unsigned request to an endpoint that expects one.
@@ -91,11 +92,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
             ->where('user_id', $agent->user_id)
             ->where('internal_name', $name)
             ->where('is_enabled', true)
-            ->whereExists(function ($q) use ($agent): void {
-                $q->from('agent_function')
-                    ->whereColumn('agent_function.function_id', 'functions.id')
-                    ->where('agent_function.agent_id', $agent->id);
-            })
+            ->whereHas('agents', fn (Builder $agents): Builder => $agents->whereKey($agent->id))
             ->first();
     }
 
@@ -197,10 +194,10 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         //   hmac   → ['secret' => '...'] (signs the request, see signatureHeaders())
         $config = $function->auth_config ?? [];
 
-        if ($function->auth_type === FunctionAuthType::Bearer->value && ! empty($config['token'])) {
+        if ($function->auth_type === FunctionAuthType::Bearer && ! empty($config['token'])) {
             $headers['Authorization'] = 'Bearer '.$config['token'];
         }
-        if ($function->auth_type === FunctionAuthType::Header->value && ! empty($config['name']) && isset($config['value'])) {
+        if ($function->auth_type === FunctionAuthType::Header && ! empty($config['name']) && isset($config['value'])) {
             $headers[(string) $config['name']] = (string) $config['value'];
         }
 
@@ -241,7 +238,8 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         // Per-agent counter on the pivot — drives the Sources analytics page.
         // The global `functions.invocation_count` above sums across every
         // agent in the account; this one tells us how often *this* agent
-        // reached for it.
+        // reached for it. A raw `+ 1` keeps the increment atomic when several
+        // turns call the same function at once.
         DB::table('agent_function')
             ->where('agent_id', $agent->id)
             ->where('function_id', $function->id)

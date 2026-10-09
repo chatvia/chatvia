@@ -5,11 +5,16 @@ namespace App\Http\Controllers\Billing\Payments;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 use Laravel\Cashier\PaymentMethod;
 
+/**
+ * The payment methods page: saved cards, which one is the default, and a
+ * Stripe SetupIntent for adding a new card.
+ */
 class BillingPaymentMethodController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): Response
     {
         /** @var User $user */
         $user = $request->user();

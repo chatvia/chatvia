@@ -96,7 +96,7 @@ class RenderFormTool extends Tool
             'schema' => $form->schema,
             'submit_label' => $form->submitLabel,
             'success_message' => $form->successMessage,
-            'status' => $form->status,
+            'status' => $form->status->value,
             'expires_at' => $form->expiresAt?->toIso8601String(),
         ]]);
     }

@@ -2,7 +2,7 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextEnhanceChunkJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Text\Models\SourceText;

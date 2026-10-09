@@ -7,59 +7,48 @@ use App\Http\Requests\Settings\Function\UpdateAgentFunctionRequest;
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Function\Actions\CreateAgentFunctionAction;
 use Domain\Integration\Function\Actions\UpdateAgentFunctionAction;
-use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Function\Data\Resources\WorkspaceFunctionRowData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Account-level webhook functions dashboard page. Mirrors `/api/v1/functions`.
+ * The workspace webhook functions page (Settings → Functions) and its create,
+ * update and delete endpoints. The public API offers the same through
+ * `/api/v1/functions`, using the same Actions.
  */
 class FunctionController
 {
     public function edit(Request $request): Response
     {
+        /** @var User $user */
+        $user = $request->user();
+
         // Functions belong to the workspace owner; teammates see the same list.
-        $functions = $request->user()->workspace()->functions()
+        $functions = $user->workspace()->functions()
             ->withCount('agents')
             ->latest()
-            ->get()
-            ->map(fn (AgentFunction $f): array => [
-                'id' => $f->external_id,
-                'internal_name' => $f->internal_name,
-                'display_name' => $f->display_name,
-                'description' => $f->description,
-                'parameters_schema' => json_encode($f->parameters_schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
-                'webhook_url' => $f->webhook_url,
-                'webhook_method' => $f->webhook_method,
-                'auth_type' => $f->auth_type,
-                // Header name isn't a secret, so prefill it; the value never leaves the server.
-                'auth_header_name' => $f->auth_type === 'header' ? ($f->auth_config['name'] ?? '') : '',
-                'has_auth_value' => $f->auth_config !== null,
-                'is_enabled' => $f->is_enabled,
-                'requires_approval' => $f->requires_approval,
-                'created_at' => $f->created_at?->toFormattedDateString(),
-                'agents_count' => $f->agents_count,
-            ])
-            ->all();
+            ->get();
 
-        return Inertia::render('workspace/integrations/Functions', ['functions' => $functions]);
+        return Inertia::render('workspace/integrations/Functions', [
+            'functions' => WorkspaceFunctionRowData::collect($functions)->toArray(),
+        ]);
     }
 
-    public function store(CreateAgentFunctionRequest $request, CreateAgentFunctionAction $createFunction): RedirectResponse
-    {
-        $createFunction->execute($request->toData());
-
-        return back();
-    }
-
-    public function update(UpdateAgentFunctionRequest $request, string $external_id, UpdateAgentFunctionAction $updateFunction): RedirectResponse
+    public function store(CreateAgentFunctionRequest $request, CreateAgentFunctionAction $create): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
 
-        $updateFunction->execute($user, $external_id, $request->toData());
+        $create->execute($user, $request->toData());
+
+        return back();
+    }
+
+    public function update(UpdateAgentFunctionRequest $request, UpdateAgentFunctionAction $update): RedirectResponse
+    {
+        $update->execute($request->function(), $request->toData());
 
         return back();
     }
@@ -69,7 +58,9 @@ class FunctionController
         /** @var User $user */
         $user = $request->user();
 
-        $user->workspace()->functions()->where('external_id', $external_id)->delete();
+        // Deleted through the model (not a mass delete) so the observer drops
+        // the cached tool pool of every agent that used the function.
+        $user->workspace()->functions()->where('external_id', $external_id)->first()?->delete();
 
         return back();
     }

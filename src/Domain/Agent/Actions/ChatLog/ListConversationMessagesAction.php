@@ -29,7 +29,7 @@ class ListConversationMessagesAction
         $lead = FormSubmission::query()
             ->where('agent_id', $agent->id)
             ->where('chat_conversation_id', $conversation->id)
-            ->where('status', FormSubmission::STATUS_SUBMITTED)
+            ->submitted()
             ->latest('id')
             ->first();
 

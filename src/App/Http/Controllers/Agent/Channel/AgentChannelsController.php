@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Agent\Channel;
 
+use App\Http\Controllers\Agent\Channel\Concerns\InteractsWithMetaOAuth;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Enums\MetaOAuthChannel;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
+use Domain\Conversation\Enums\ConversationSource;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -12,123 +15,151 @@ use Inertia\Response;
 /**
  * Per-agent "Channels" page — connects the agent to messaging apps (Telegram,
  * Slack, Messenger, WhatsApp, Instagram, and Microsoft Teams). Gated by
- * `agent.channels` on the route.
+ * `agent.permission:agent.channels` on the route.
  */
 class AgentChannelsController
 {
-    /** @var list<string> Channel kinds the page knows how to render a slide-over for. */
-    private const CHANNELS = ['telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram'];
+    use InteractsWithMetaOAuth;
 
     public function __invoke(Request $request, Agent $agent, TelegramCommandRouter $commands): Response
     {
-        $bot = $agent->telegramBot;
-        $slack = $agent->slackApp;
-        $messenger = $agent->messengerPage;
-        $whatsapp = $agent->whatsappNumber;
-        $teams = $agent->teamsBot;
-        $instagram = $agent->instagramAccount;
-
-        // Which channel slide-over to auto-open on load. Set after the
-        // Messenger/Instagram OAuth round-trip (a full-page redirect) so the
-        // page picker / error doesn't land in a closed sheet. Allow-listed so a
-        // hand-crafted `?open=` can't open an unknown channel.
-        $open = (string) $request->query('open');
-        $open = in_array($open, self::CHANNELS, true) ? $open : null;
+        $agent->loadMissing(['telegramBot', 'slackApp', 'messengerPage', 'whatsappNumber', 'teamsBot', 'instagramAccount']);
 
         return Inertia::render('agents/Channels/index', [
             'agent' => AgentResourceData::fromModel($agent),
-            'open' => $open,
-            'telegram' => $bot !== null
-                ? ['connected' => true, 'bot_username' => $bot->bot_username, 'enabled' => $bot->enabled, 'commands' => $commands->forEditing($bot)]
-                : ['connected' => false, 'bot_username' => null, 'enabled' => false, 'commands' => []],
-            // The webhook URLs embed the per-app secret — the workspace pastes
-            // them into their Slack app's Event Subscriptions / Meta app's
-            // Messenger Webhooks settings after connecting. For Messenger the
-            // same secret doubles as the verify token of Meta's GET handshake.
-            'slack' => $slack !== null
-                ? ['connected' => true, 'team_name' => $slack->team_name, 'webhook_url' => route('slack.webhook', ['secret' => $slack->webhook_secret]), 'enabled' => $slack->enabled]
-                : ['connected' => false, 'team_name' => null, 'webhook_url' => null, 'enabled' => false],
-            // Messenger connects via Facebook OAuth (one Chatvia Meta app), so
-            // there's no per-page webhook URL to surface. `pick` holds the Pages
-            // returned from Facebook awaiting the workspace's choice (id + name
-            // only — the page tokens stay server-side in cache).
-            'messenger' => [
-                'connected' => $messenger !== null,
-                'page_name' => $messenger?->page_name,
-                'enabled' => (bool) $messenger?->enabled,
-                'pick' => $this->messengerPick($agent),
-            ],
-            // WhatsApp connects via Embedded Signup (the Facebook JS SDK popup),
-            // so there's no per-number webhook URL to surface — the frontend just
-            // needs the shared app id + WhatsApp Login configuration to launch it.
-            'whatsapp' => [
-                'connected' => $whatsapp !== null,
-                'display_phone_number' => $whatsapp?->display_phone_number,
-                'verified_name' => $whatsapp?->verified_name,
-                'enabled' => (bool) $whatsapp?->enabled,
-                'app_id' => config('services.meta.app_id'),
-                'config_id' => config('services.meta.whatsapp_config_id') ?: config('services.meta.config_id'),
-                'graph_version' => config('services.meta.graph_version'),
-            ],
-            // The app id doubles as the "Open in Teams" deep-link target
-            // (a bot's Teams user id is `28:{app_id}`).
-            'msteams' => $teams !== null
-                ? ['connected' => true, 'app_id' => $teams->app_id, 'webhook_url' => route('msteams.webhook', ['secret' => $teams->webhook_secret]), 'enabled' => $teams->enabled]
-                : ['connected' => false, 'app_id' => null, 'webhook_url' => null, 'enabled' => false],
-            // Instagram connects via Facebook OAuth (one Chatvia Meta app) — no
-            // per-account webhook URL to surface. `pick` holds the IG-linked
-            // accounts returned from Facebook awaiting the workspace's choice
-            // (ig username + page name only — the page tokens stay server-side).
-            'instagram' => [
-                'connected' => $instagram !== null,
-                'username' => $instagram?->username,
-                'enabled' => (bool) $instagram?->enabled,
-                'pick' => $this->instagramPick($agent),
-            ],
+            'open' => $this->channelToOpen($request),
+            ConversationSource::Telegram->value => $this->telegram($agent, $commands),
+            ConversationSource::Slack->value => $this->slack($agent),
+            ConversationSource::Messenger->value => $this->messenger($agent),
+            ConversationSource::Whatsapp->value => $this->whatsapp($agent),
+            ConversationSource::MsTeams->value => $this->teams($agent),
+            ConversationSource::Instagram->value => $this->instagram($agent),
         ]);
     }
 
     /**
-     * The Pages Facebook just handed back, waiting for the workspace to pick
-     * which one powers this agent — id + name only (tokens stay server-side).
-     * Mirrors the session stash written by {@see AgentMessengerChannelController}.
-     *
-     * @return list<array{id: string, name: string}>|null
+     * Which channel slide-over to auto-open on load. Set after the
+     * Messenger/Instagram OAuth round-trip (a full-page redirect) so the page
+     * picker / error doesn't land in a closed sheet. Only messaging channels
+     * are accepted, so a hand-crafted `?open=` can't open an unknown one.
      */
-    private function messengerPick(Agent $agent): ?array
+    private function channelToOpen(Request $request): ?string
     {
-        $stash = session('messenger_oauth_pages');
+        $source = ConversationSource::tryFrom((string) $request->query('open'));
 
-        if (! is_array($stash) || ($stash['agent_id'] ?? null) !== $agent->id || ! is_array($stash['pages'] ?? null) || $stash['pages'] === []) {
-            return null;
-        }
-
-        return array_map(static fn (array $page): array => [
-            'id' => (string) $page['id'],
-            'name' => (string) $page['name'],
-        ], $stash['pages']);
+        return $source !== null && ! $source->isWeb() ? $source->value : null;
     }
 
     /**
-     * The IG-linked accounts Facebook just handed back, waiting for the
-     * workspace to pick which one powers this agent — ig username + page name
-     * only (tokens stay server-side). Mirrors the session stash written by
-     * {@see AgentInstagramChannelController}.
-     *
-     * @return list<array{ig_id: string, ig_username: string, page_name: string}>|null
+     * @return array<string, mixed>
      */
-    private function instagramPick(Agent $agent): ?array
+    private function telegram(Agent $agent, TelegramCommandRouter $commands): array
     {
-        $stash = session('instagram_oauth_pages');
+        $bot = $agent->telegramBot;
 
-        if (! is_array($stash) || ($stash['agent_id'] ?? null) !== $agent->id || ! is_array($stash['pages'] ?? null) || $stash['pages'] === []) {
-            return null;
-        }
+        return $bot !== null
+            ? ['connected' => true, 'bot_username' => $bot->bot_username, 'enabled' => $bot->enabled, 'commands' => $commands->forEditing($bot)]
+            : ['connected' => false, 'bot_username' => null, 'enabled' => false, 'commands' => []];
+    }
 
-        return array_map(static fn (array $page): array => [
-            'ig_id' => (string) $page['ig_id'],
-            'ig_username' => (string) $page['ig_username'],
-            'page_name' => (string) $page['page_name'],
-        ], $stash['pages']);
+    /**
+     * The webhook URL embeds the per-app secret — the workspace pastes it into
+     * their Slack app's Event Subscriptions after connecting.
+     *
+     * @return array<string, mixed>
+     */
+    private function slack(Agent $agent): array
+    {
+        $slack = $agent->slackApp;
+
+        return $slack !== null
+            ? ['connected' => true, 'team_name' => $slack->team_name, 'webhook_url' => route('slack.webhook', ['secret' => $slack->webhook_secret]), 'enabled' => $slack->enabled]
+            : ['connected' => false, 'team_name' => null, 'webhook_url' => null, 'enabled' => false];
+    }
+
+    /**
+     * Messenger connects via Facebook OAuth (one Chatvia Meta app), so there's
+     * no per-page webhook URL. `pick` holds the Pages returned from Facebook
+     * awaiting the workspace's choice (id + name only — the page tokens stay
+     * server-side in the session).
+     *
+     * @return array<string, mixed>
+     */
+    private function messenger(Agent $agent): array
+    {
+        $page = $agent->messengerPage;
+        $pending = self::pendingAccounts($agent, MetaOAuthChannel::Messenger);
+
+        return [
+            'connected' => $page !== null,
+            'page_name' => $page?->page_name,
+            'enabled' => (bool) $page?->enabled,
+            'pick' => $pending === [] ? null : array_map(static fn (array $pick): array => [
+                'id' => (string) $pick['id'],
+                'name' => (string) $pick['name'],
+            ], $pending),
+        ];
+    }
+
+    /**
+     * WhatsApp connects via Embedded Signup (the Facebook JS SDK popup), so
+     * there's no per-number webhook URL — the frontend just needs the shared
+     * app id + WhatsApp Login configuration to launch it.
+     *
+     * @return array<string, mixed>
+     */
+    private function whatsapp(Agent $agent): array
+    {
+        $number = $agent->whatsappNumber;
+
+        return [
+            'connected' => $number !== null,
+            'display_phone_number' => $number?->display_phone_number,
+            'verified_name' => $number?->verified_name,
+            'enabled' => (bool) $number?->enabled,
+            'app_id' => config('services.meta.app_id'),
+            'config_id' => config('services.meta.whatsapp_config_id') ?: config('services.meta.config_id'),
+            'graph_version' => config('services.meta.graph_version'),
+        ];
+    }
+
+    /**
+     * The app id doubles as the "Open in Teams" deep-link target (a bot's
+     * Teams user id is `28:{app_id}`).
+     *
+     * @return array<string, mixed>
+     */
+    private function teams(Agent $agent): array
+    {
+        $bot = $agent->teamsBot;
+
+        return $bot !== null
+            ? ['connected' => true, 'app_id' => $bot->app_id, 'webhook_url' => route('msteams.webhook', ['secret' => $bot->webhook_secret]), 'enabled' => $bot->enabled]
+            : ['connected' => false, 'app_id' => null, 'webhook_url' => null, 'enabled' => false];
+    }
+
+    /**
+     * Instagram connects via Facebook OAuth (one Chatvia Meta app) — no
+     * per-account webhook URL. `pick` holds the IG-linked accounts returned
+     * from Facebook awaiting the workspace's choice (ig username + page name
+     * only — the page tokens stay server-side in the session).
+     *
+     * @return array<string, mixed>
+     */
+    private function instagram(Agent $agent): array
+    {
+        $account = $agent->instagramAccount;
+        $pending = self::pendingAccounts($agent, MetaOAuthChannel::Instagram);
+
+        return [
+            'connected' => $account !== null,
+            'username' => $account?->username,
+            'enabled' => (bool) $account?->enabled,
+            'pick' => $pending === [] ? null : array_map(static fn (array $pick): array => [
+                'ig_id' => (string) $pick['ig_id'],
+                'ig_username' => (string) $pick['ig_username'],
+                'page_name' => (string) $pick['page_name'],
+            ], $pending),
+        ];
     }
 }

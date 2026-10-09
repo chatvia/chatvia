@@ -3,7 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Services\Parsing;
 
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
-use Domain\Knowledge\Ingestion\Services\Clients\MistralOCR;
+use Domain\Knowledge\Ingestion\Services\Clients\MistralOcr;
 use Illuminate\Support\Collection;
 
 /**
@@ -13,7 +13,7 @@ use Illuminate\Support\Collection;
 class MistralDocumentParser implements DocumentParser
 {
     public function __construct(
-        private readonly MistralOCR $ocr,
+        private readonly MistralOcr $ocr,
     ) {}
 
     public function parse(string $filePath, string $storageDirectory): Collection

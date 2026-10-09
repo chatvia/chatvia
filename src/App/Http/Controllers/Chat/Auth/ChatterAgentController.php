@@ -7,6 +7,9 @@ use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
+/**
+ * The agents a signed-in chatter may chat with, for the agent switcher.
+ */
 class ChatterAgentController
 {
     public function __invoke(Request $request): Collection

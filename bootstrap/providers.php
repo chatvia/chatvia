@@ -1,16 +1,28 @@
 <?php
 
 use App\Admin\AdminPanelProvider;
+use App\Providers\ApiDocsServiceProvider;
 use App\Providers\AppServiceProvider;
+use App\Providers\AuthServiceProvider;
 use App\Providers\DatabaseServiceProvider;
 use App\Providers\DomainServiceProvider;
+use App\Providers\FeatureServiceProvider;
+use App\Providers\FilesystemServiceProvider;
 use App\Providers\FortifyServiceProvider;
 use App\Providers\HorizonServiceProvider;
+use App\Providers\HttpMacroServiceProvider;
+use App\Providers\RateLimitServiceProvider;
 use App\Providers\TelescopeServiceProvider;
 use App\Providers\TypeScriptTransformerServiceProvider;
 
 return [
     AppServiceProvider::class,
+    HttpMacroServiceProvider::class,
+    AuthServiceProvider::class,
+    RateLimitServiceProvider::class,
+    FeatureServiceProvider::class,
+    FilesystemServiceProvider::class,
+    ApiDocsServiceProvider::class,
     DatabaseServiceProvider::class,
     DomainServiceProvider::class,
     AdminPanelProvider::class,

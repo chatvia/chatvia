@@ -2,54 +2,49 @@
 
 namespace App\Http\Controllers\Connector;
 
-use App\Http\Controllers\Concerns\BindsConnectorOAuthToSession;
+use App\Http\Requests\Connector\ConnectorOAuthCallbackRequest;
 use App\Identity\Workspace\Models\User;
-use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
-use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
+use Domain\Integration\Connector\Actions\OAuth\CompleteConnectorOAuthAction;
+use Domain\Integration\Connector\Exceptions\McpOAuthException;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
  * Single global callback for every OAuth-backed connector. The state
- * parameter identifies the in-flight session; the flow only accepts it from
- * the same signed-in user and browser session that started it. Every outcome
- * lands the user back on the Connectors page with a flash message.
+ * parameter identifies the in-flight flow; it is only accepted from the same
+ * signed-in user and browser session that started it. Every outcome lands the
+ * user back on the Connectors page with a flash message.
  */
 class ConnectorOAuthCallbackController
 {
-    use BindsConnectorOAuthToSession;
-
-    public function __construct(
-        private readonly McpOAuthFlow $flow,
-    ) {}
-
-    public function __invoke(Request $request): RedirectResponse
-    {
-        $state = (string) $request->query('state', '');
-        $code = (string) $request->query('code', '');
-        $upstreamError = (string) $request->query('error', '');
-
-        if ($upstreamError !== '') {
-            return $this->bounceWithError((string) $request->query('error_description', $upstreamError));
+    public function __invoke(
+        ConnectorOAuthCallbackRequest $request,
+        CompleteConnectorOAuthAction $complete,
+        ConnectorCatalog $catalog,
+    ): RedirectResponse {
+        $upstreamError = $request->upstreamError();
+        if ($upstreamError !== null) {
+            return $this->bounceWithError($upstreamError);
         }
 
-        if ($state === '' || $code === '') {
-            return redirect('/')->with('error', 'OAuth callback is missing required parameters.');
+        $callback = $request->toData();
+        if ($callback === null) {
+            return redirect('/')->with('error', __('OAuth callback is missing required parameters.'));
         }
 
         /** @var User $user */
         $user = $request->user();
 
         try {
-            $server = $this->flow->complete($user, $this->connectorOAuthSessionBinding($request), $state, $code);
+            $server = $complete->execute($user, $callback);
         } catch (McpOAuthException $e) {
             return $this->bounceWithError($e->getMessage());
         }
 
         return redirect()
             ->route('integrations.connectors.edit')
-            ->with('success', $this->connectorNameFor($server).' connected.');
+            ->with('success', __(':name connected.', ['name' => $this->displayName($server, $catalog)]));
     }
 
     private function bounceWithError(string $message): RedirectResponse
@@ -57,10 +52,8 @@ class ConnectorOAuthCallbackController
         return redirect()->route('integrations.connectors.edit')->with('error', $message);
     }
 
-    private function connectorNameFor(AgentMcpServer $server): string
+    private function displayName(AgentMcpServer $server, ConnectorCatalog $catalog): string
     {
-        $entry = config('connectors.'.$server->connector_slug);
-
-        return is_array($entry) && isset($entry['name']) ? (string) $entry['name'] : $server->name;
+        return ($server->connector_slug ? $catalog->find($server->connector_slug)?->name : null) ?? $server->name;
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WidgetAuthSessionService;
@@ -35,7 +36,7 @@ it('round-trips the agent owner (not just chatters)', function (): void {
 });
 
 it('round-trips a chatter', function (): void {
-    $chatter = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+    $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
 
     $session = $this->service->issue($chatter, $this->agent, $this->request);
 

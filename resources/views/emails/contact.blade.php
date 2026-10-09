@@ -9,16 +9,16 @@
     <h2 style="color: #4f46e5;">New contact message</h2>
 
     <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <p><strong>Name:</strong> {{ $data['name'] }}</p>
-        <p><strong>Email:</strong> {{ $data['email'] }}</p>
-        @if (! empty($data['company']))
-            <p><strong>Company:</strong> {{ $data['company'] }}</p>
+        <p><strong>Name:</strong> {{ $contact->name }}</p>
+        <p><strong>Email:</strong> {{ $contact->email }}</p>
+        @if (filled($contact->company))
+            <p><strong>Company:</strong> {{ $contact->company }}</p>
         @endif
     </div>
 
     <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
         <h3 style="margin-top: 0;">Message</h3>
-        <p style="white-space: pre-wrap;">{{ $data['message'] }}</p>
+        <p style="white-space: pre-wrap;">{{ $contact->message }}</p>
     </div>
 </div>
 </body>

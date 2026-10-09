@@ -2,10 +2,9 @@
 
 namespace App\Identity\Chatter\Actions;
 
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Chatter\Exceptions\ChatterQuotaExceededException;
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Models\Agent;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -13,54 +12,49 @@ use Support\Enums\User\UserSource;
 use Support\Enums\User\UserType;
 
 /**
- * Provisions a customer's chatter (`type=chatter`) under their account and
- * immediately grants them access to one or more agents via the `agent_user`
- * pivot. Without that grant the chatter can't log in
- * ({@see User::canAccessAgent()} blocks them).
+ * Creates a chatter (`type=chatter`, `source=api`) under a workspace and grants
+ * it access to one or more of the workspace's agents through the `agent_user`
+ * pivot. Without that grant the chatter could not sign in to any agent.
  *
- * Login email is optional: pass null for a token-only chatter (random password,
- * no login form), or an email + password for one that can sign in with
- * credentials. Either way the row is `type=chatter`, `source=api`, and is
- * managed by `$owner`.
+ * The seat check runs inside the transaction with the owner's row locked, so
+ * two requests at the same time cannot both take the last seat.
  */
 class CreateChatterAction
 {
     /**
-     * @param  Agent|Collection<int, Agent>  $agents  one agent, or a collection of
-     *                                                (workspace-owned) agents, to grant the chatter access to
-     *
-     * @throws ChatterQuotaExceededException when the workspace has hit
-     *                                       its `workspace_users_limit`.
+     * @throws ChatterQuotaExceededException when every seat is taken
      */
-    public function execute(
-        User $owner,
-        Agent|Collection $agents,
-        string $name,
-        ?string $email = null,
-        ?string $password = null,
-    ): User {
-        if (! $owner->canAddWorkspaceUser()) {
-            throw ChatterQuotaExceededException::limitReached($owner->quotaLimit('workspace_users_limit'));
-        }
+    public function execute(CreateChatterData $data): User
+    {
+        return DB::transaction(function () use ($data): User {
+            $owner = $this->lockOwner($data->owner);
 
-        $agentIds = $agents instanceof Agent
-            ? [$agents->id]
-            : $agents->pluck('id')->all();
+            if (! $owner->canAddWorkspaceUser()) {
+                throw ChatterQuotaExceededException::limitReached($owner->totalWorkspaceUsersLimit());
+            }
 
-        return DB::transaction(function () use ($owner, $agentIds, $name, $email, $password): User {
-            $user = User::create([
-                'name' => $name,
-                'email' => $email,
-                'password' => Hash::make($password ?? Str::random(64)),
+            /** @var User $chatter */
+            $chatter = User::query()->create([
+                'name' => $data->name,
+                'email' => $data->email,
+                'password' => Hash::make($data->password ?? Str::random(64)),
                 'type' => UserType::Chatter,
                 'source' => UserSource::Api,
                 'workspace_id' => $owner->id,
                 'email_verified_at' => now(),
             ]);
 
-            $user->accessibleAgents()->attach($agentIds);
+            $chatter->accessibleAgents()->attach($data->agentIds());
 
-            return $user;
+            return $chatter;
         });
+    }
+
+    private function lockOwner(User $owner): User
+    {
+        /** @var User $locked */
+        $locked = User::query()->whereKey($owner->id)->lockForUpdate()->firstOrFail();
+
+        return $locked;
     }
 }

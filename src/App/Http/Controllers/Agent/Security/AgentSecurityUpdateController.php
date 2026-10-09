@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers\Agent\Security;
 
+use App\Http\Requests\Agent\Security\UpdateAgentVisibilityRequest;
 use Domain\Agent\Models\Agent;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
+/**
+ * Makes an agent public or protected. A single column write, so it stays in
+ * the controller. Messaging channels keep refusing a protected agent at run
+ * time (see ChannelAccessGate).
+ */
 class AgentSecurityUpdateController
 {
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(UpdateAgentVisibilityRequest $request, Agent $agent): RedirectResponse
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
+        $agent->update(['is_public' => $request->isPublic()]);
 
-        $request->validate(['is_public' => ['required', 'boolean']]);
-
-        $agent->update(['is_public' => $request->boolean('is_public')]);
-
-        return back()->with('success', 'Security settings updated successfully');
+        return back()->with('success', __('Security settings updated successfully'));
     }
 }
